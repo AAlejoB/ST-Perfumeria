@@ -9,6 +9,9 @@
   <meta property="og:title" content="ST Scent &amp; Textures — Perfumes &#193;rabes Originales"/>
   <meta property="og:description" content="Perfumer&#237;a &#225;rabe original en Comodoro Rivadavia. +150 fragancias de larga duraci&#243;n. Pas&#225;s y la gente gira."/>
   <meta property="og:type" content="website"/>
+  <meta property="og:image" content="img/logo-st.png"/>
+  <link rel="icon" type="image/png" href="img/logo-st.png"/>
+  <link rel="apple-touch-icon" href="img/logo-st.png"/>
   <title>ST Scent &amp; Textures — Perfumer&#237;a &#193;rabe Original en Comodoro Rivadavia | +150 Fragancias</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -806,6 +809,44 @@
     .cta-register-btn:hover { background: var(--amarillo-claro); }
     .cta-register.logged { display: none; }
 
+    /* Scroll to top */
+    .scroll-top {
+      position: fixed; bottom: 96px; right: 24px; z-index: 998;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(232,184,0,.9); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0; pointer-events: none;
+      transition: opacity .3s, transform .25s;
+      box-shadow: 0 3px 12px rgba(0,0,0,.3);
+    }
+    .scroll-top.visible { opacity: 1; pointer-events: auto; }
+    .scroll-top:hover { transform: scale(1.1); }
+    .scroll-top svg { width: 18px; height: 18px; stroke: #080808; stroke-width: 2.5; fill: none; }
+    @media (min-width: 768px) { .scroll-top { bottom: 102px; right: 30px; } }
+
+    /* Skeleton loading */
+    .card-image img { background: rgba(255,255,255,.06); }
+    @keyframes shimmer {
+      0% { background-position: -200px 0; }
+      100% { background-position: 200px 0; }
+    }
+    .card-image .skeleton-bg {
+      width: 100%; height: 180px;
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    /* Card entrance animation */
+    .product-card.card-animate {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    .product-card.card-visible {
+      opacity: 1 !important; transform: translateY(0) !important;
+    }
+
     /* ================================================
        FOOTER — BASE (mobile: columna)
     ================================================ */
@@ -1523,6 +1564,11 @@
     </div>
   </footer>
 
+  <!-- Scroll to top -->
+  <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Volver arriba">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
   <!-- Botón flotante WhatsApp -->
   <a href="https://wa.me/5492975416017?text=Hola!%20Quiero%20consultar%20por%20un%20perfume" target="_blank" class="wa-float" aria-label="WhatsApp">
     <svg viewBox="0 0 32 32" width="28" height="28"><path fill="#fff" d="M16.01 2.93A13.07 13.07 0 0 0 2.93 16a12.94 12.94 0 0 0 1.74 6.51L2.93 29.07l6.73-1.74A13.06 13.06 0 1 0 16.01 2.93Zm0 23.9a10.8 10.8 0 0 1-5.52-1.5l-.4-.24-4.12 1.08 1.1-4.03-.26-.41a10.83 10.83 0 1 1 9.2 5.1Zm5.93-8.1c-.33-.16-1.93-.95-2.23-1.06-.3-.11-.52-.16-.74.17-.22.32-.85 1.06-1.04 1.28-.2.22-.39.24-.72.08-.33-.16-1.38-.51-2.63-1.62-.97-.87-1.63-1.94-1.82-2.27-.19-.33-.02-.5.14-.67.15-.15.33-.39.5-.59.16-.2.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.17-.73-1.77-1-2.42-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.72 0 1.6 1.17 3.15 1.33 3.37.17.22 2.3 3.51 5.57 4.92.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.1 1.93-.79 2.2-1.55.28-.76.28-1.41.2-1.55-.09-.14-.31-.22-.64-.38Z"/></svg>
@@ -2174,6 +2220,62 @@
     renderCatalog();
     renderCategories();
     renderVotoButtons();
+
+    // ============================================================
+    // SCROLL TO TOP — mostrar/ocultar
+    // ============================================================
+    window.addEventListener('scroll', function() {
+      var btn = document.getElementById('scrollTop');
+      if (btn) btn.classList.toggle('visible', window.scrollY > 600);
+    });
+
+    // ============================================================
+    // CARD ENTRANCE ANIMATION
+    // ============================================================
+    (function() {
+      function animateVisibleCards() {
+        var cards = document.querySelectorAll('.product-card');
+        var delay = 0;
+        cards.forEach(function(card) {
+          if (card.style.display !== 'none' && !card.classList.contains('card-visible')) {
+            card.classList.add('card-animate');
+            setTimeout(function() { card.classList.add('card-visible'); }, delay);
+            delay += 60;
+          }
+        });
+      }
+
+      // Animar cards iniciales
+      setTimeout(animateVisibleCards, 100);
+
+      // Re-animar cuando se hace load more
+      var origLoadMore = loadMore;
+      loadMore = function() {
+        origLoadMore();
+        animateVisibleCards();
+      };
+    })();
+
+    // ============================================================
+    // SKELETON — mostrar shimmer hasta que la imagen cargue
+    // ============================================================
+    (function() {
+      document.querySelectorAll('.card-image img').forEach(function(img) {
+        if (img.complete) return;
+        var skeleton = document.createElement('div');
+        skeleton.className = 'skeleton-bg';
+        img.style.display = 'none';
+        img.parentNode.insertBefore(skeleton, img);
+        img.addEventListener('load', function() {
+          skeleton.remove();
+          img.style.display = '';
+        });
+        img.addEventListener('error', function() {
+          skeleton.remove();
+          img.style.display = '';
+        });
+      });
+    })();
   </script>
 </body>
 </html>
