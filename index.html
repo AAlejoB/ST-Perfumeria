@@ -94,15 +94,17 @@
     .nav-logo {
       position: absolute; left: 50%; transform: translateX(-50%);
       font-family: var(--font-display);
-      font-size: .92rem;       /* mobile: compacto para no chocar con íconos */
-      font-weight: 600; letter-spacing: .1em;
+      font-size: 1.3rem;
+      font-weight: 600; letter-spacing: .15em;
       color: var(--blanco); text-decoration: none; white-space: nowrap;
     }
     .nav-logo strong { color: var(--amarillo); }
+    .nav-logo-full { display: none; }
 
-    /* En desktop el logo crece */
+    /* En tablet+ aparece el nombre completo */
     @media (min-width: 768px) {
       .nav-logo { font-size: 1.25rem; }
+      .nav-logo-full { display: inline; }
     }
 
     .nav-icons { display: flex; align-items: center; gap: .8rem; }
@@ -1173,7 +1175,7 @@
     <button class="nav-hamburger" onclick="toggleDrawer()" aria-label="Men&#250;">
       <span></span><span></span><span></span>
     </button>
-    <a href="#" class="nav-logo"><strong>ST</strong> Scent &amp; Textures</a>
+    <a href="#" class="nav-logo"><strong>ST</strong><span class="nav-logo-full"> Scent &amp; Textures</span></a>
     <div class="nav-icons">
       <a href="#catalogo" class="nav-icon-btn nav-fav-btn" title="Favoritos" onclick="showFavorites(event)">
         <span class="nav-fav-wrap">
