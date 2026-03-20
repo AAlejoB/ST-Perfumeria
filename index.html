@@ -193,28 +193,29 @@
       pointer-events: none;
     }
     .hero-tagline {
-      font-size: .68rem;
-      font-weight: 500; letter-spacing: .35em; text-transform: uppercase;
-      color: var(--amarillo); margin-bottom: 1rem;
+      font-size: .6rem;
+      font-weight: 500; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--amarillo); margin-bottom: .8rem;
       opacity: 0; animation: fadeUp .7s ease .1s forwards;
     }
     .hero-title {
       font-family: var(--font-display);
-      font-size: clamp(1.6rem, 5vw, 4rem);
+      font-size: clamp(1.4rem, 4.5vw, 3.5rem);
       font-weight: 300; line-height: 1.1; color: var(--blanco);
       margin-bottom: .6rem;
       opacity: 0; animation: fadeUp .8s ease .3s forwards;
     }
     .hero-title em { font-style: italic; color: var(--amarillo); }
     .hero-sub {
-      font-size: clamp(.72rem, 1.5vw, .9rem); font-weight: 300; color: var(--gris-claro);
-      line-height: 1.7;
+      font-size: clamp(.7rem, 1.4vw, .88rem); font-weight: 300; color: var(--gris-claro);
+      line-height: 1.7; max-width: 320px; margin: 0 auto;
       opacity: 0; animation: fadeUp .8s ease .5s forwards;
     }
 
     @media (min-width: 768px) {
       .hero { padding: 4rem 2rem 3rem; }
-      .hero-sub { max-width: 420px; margin: 0 auto; }
+      .hero-tagline { font-size: .68rem; letter-spacing: .35em; margin-bottom: 1rem; }
+      .hero-sub { max-width: 420px; }
     }
     @media (min-width: 1024px) {
       .hero { padding: 5rem 2rem 4rem; }
