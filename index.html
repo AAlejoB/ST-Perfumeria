@@ -521,7 +521,7 @@
     .card-reveal {
       position: absolute; top: 0; left: 30%; width: 70%; height: 100%;
       background: #111;
-      padding: 1.2rem 1.5rem;
+      padding: .8rem 1rem;
       z-index: 10;
       display: flex; flex-direction: column; justify-content: center;
       transform: translateX(100%); opacity: 0;
@@ -558,12 +558,18 @@
       }
     }
 
-    .reveal-title { font-size: .65rem; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--amarillo); margin-bottom: .8rem; }
-    .scent-notes  { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
-    .scent-note   { display: flex; align-items: flex-start; gap: .5rem; font-size: .85rem; font-weight: 300; color: #e0e0e0; line-height: 1.4; }
-    .scent-note::before { content: '\25C6'; color: var(--amarillo); font-size: .4rem; flex-shrink: 0; margin-top: .4em; }
+    .reveal-title { font-size: .58rem; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--amarillo); margin-bottom: .5rem; }
+    .scent-notes  { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .6rem; }
+    .scent-note   { display: flex; align-items: flex-start; gap: .4rem; font-size: .68rem; font-weight: 300; color: #e0e0e0; line-height: 1.35; }
+    .scent-note::before { content: '\25C6'; color: var(--amarillo); font-size: .35rem; flex-shrink: 0; margin-top: .35em; }
     .scent-note strong  { font-weight: 600; color: #fff; }
-    .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .72rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .65rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
+    .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .65rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .55rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
+    @media (min-width: 768px) {
+      .reveal-title { font-size: .65rem; margin-bottom: .8rem; }
+      .scent-notes { gap: .5rem; margin-bottom: 1rem; }
+      .scent-note { font-size: .8rem; }
+      .reveal-cta { font-size: .72rem; padding: .65rem; }
+    }
     .reveal-cta:hover { background: var(--amarillo-claro); }
     .set-highlight { font-size: 1rem !important; color: var(--amarillo) !important; margin-bottom: .3rem; }
 
