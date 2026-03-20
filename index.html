@@ -756,7 +756,38 @@
       letter-spacing: .05em;
       border-top: 1px solid var(--borde-sutil);
       margin-top: .3rem;
+      cursor: pointer;
+      transition: color .2s;
     }
+    .voto-lock:hover { color: var(--amarillo); }
+    .voto-result {
+      font-size: .65rem; color: var(--gris); text-align: center;
+      margin-top: .3rem; letter-spacing: .04em;
+    }
+
+    /* CTA registro */
+    .cta-register {
+      background: linear-gradient(135deg, rgba(232,184,0,.08) 0%, rgba(232,184,0,.02) 100%);
+      border: 1px solid rgba(232,184,0,.2);
+      border-radius: 6px;
+      padding: 1.2rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; max-width: 1100px; margin: 1.5rem auto 0;
+      flex-wrap: wrap;
+    }
+    .cta-register-text {
+      font-size: .8rem; color: var(--gris-claro); line-height: 1.5;
+    }
+    .cta-register-text strong { color: var(--amarillo); }
+    .cta-register-btn {
+      font-family: var(--font-body); font-size: .72rem; font-weight: 600;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--negro); background: var(--amarillo); border: none;
+      padding: .6rem 1.5rem; border-radius: 3px; cursor: pointer;
+      transition: all .2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .cta-register-btn:hover { background: var(--amarillo-claro); }
+    .cta-register.logged { display: none; }
 
     /* ================================================
        FOOTER — BASE (mobile: columna)
@@ -1309,6 +1340,11 @@
       <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">Ver m&#225;s fragancias</button>
       <p class="load-more-count" id="loadMoreCount"></p>
     </div>
+
+    <div class="cta-register" id="ctaRegister">
+      <p class="cta-register-text"><strong>Cre&#225; tu cuenta gratis</strong> y guard&#225; tus perfumes favoritos, vot&#225; el perfume del mes y mucho m&#225;s.</p>
+      <button class="cta-register-btn" onclick="openAuth()">Registrarme</button>
+    </div>
   </section>
 
   <section class="section-cats" id="categorias">
@@ -1445,7 +1481,7 @@
               </div>
             </div>
           </div>
-          <div class="voto-lock">
+          <div class="voto-lock" onclick="openAuth()">
             <span>&#128274; Registrate para votar</span>
           </div>
         </div>
@@ -1718,19 +1754,102 @@
     }
 
     // ============================================================
-    // VOTACIÓN — desbloquear para logueados
+    // VOTACIÓN — independiente por categoría, Supabase
     // ============================================================
-    function unlockVoting() {
+    var currentMes = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+
+    // Candidatos del mes (editá estos nombres para cambiar las opciones)
+    var candidatosMasc = ['9 AM DIVE', 'BADEE AL OUD HONOR & GLORY', 'CLUB DE NUIT INTENSE MAN', 'YARA'];
+    var candidatosFem = ['CANDY VANILLA', 'EMAAN', 'LA VIVACITÉ', 'VELVET ROSE'];
+
+    function renderVotoButtons() {
+      var gridMasc = document.getElementById('votoMasc');
+      var gridFem = document.getElementById('votoFem');
+      gridMasc.innerHTML = candidatosMasc.map(function(name) {
+        return '<button class="voto-opt" onclick="submitVoto(this,\'masculino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
+      }).join('');
+      gridFem.innerHTML = candidatosFem.map(function(name) {
+        return '<button class="voto-opt" onclick="submitVoto(this,\'femenino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
+      }).join('');
+    }
+
+    async function submitVoto(btn, categoria, slug) {
+      if (!currentUser) { openAuth(); return; }
+      var grid = btn.closest('.voto-grid');
+      // Si ya votó en esta categoría, no hacer nada
+      if (grid.querySelector('.voted-opt')) return;
+      btn.classList.add('voted-opt');
+      btn.disabled = true;
+      // Guardar en Supabase
+      await sb.from('votos').upsert({
+        user_id: currentUser.id,
+        categoria: categoria,
+        slug: slug,
+        mes: currentMes
+      }, { onConflict: 'user_id,categoria,mes' });
+      // Mostrar resultados de esta categoría
+      loadVotoResults(categoria, grid);
+    }
+
+    async function loadVotoResults(categoria, grid) {
+      var res = await sb.from('votos').select('slug').eq('categoria', categoria).eq('mes', currentMes);
+      if (!res.data || res.data.length === 0) return;
+      var counts = {};
+      var total = res.data.length;
+      res.data.forEach(function(v) { counts[v.slug] = (counts[v.slug] || 0) + 1; });
+      var btns = grid.querySelectorAll('.voto-opt');
+      btns.forEach(function(b) {
+        var name = b.textContent.trim();
+        var pct = Math.round((counts[name] || 0) / total * 100);
+        b.innerHTML = '<span class="poll-bar" style="width:' + pct + '%"></span>'
+          + '<span class="poll-label">' + name + '</span>'
+          + '<span class="poll-pct">' + pct + '%</span>';
+        b.disabled = true;
+        b.classList.add('showed');
+      });
+      // Agregar total
+      var existing = grid.parentNode.querySelector('.voto-result');
+      if (!existing) {
+        var p = document.createElement('p');
+        p.className = 'voto-result';
+        p.textContent = total + ' voto' + (total !== 1 ? 's' : '');
+        grid.parentNode.appendChild(p);
+      }
+    }
+
+    async function unlockVoting() {
       var lock = document.querySelector('.voto-lock');
       if (lock) lock.style.display = 'none';
       var btns = document.querySelectorAll('.voto-opt');
       btns.forEach(function(b) { b.disabled = false; });
+      // Ocultar CTA de registro
+      var cta = document.getElementById('ctaRegister');
+      if (cta) cta.style.display = 'none';
+      // Cargar votos previos del usuario
+      if (currentUser) {
+        var res = await sb.from('votos').select('categoria, slug').eq('user_id', currentUser.id).eq('mes', currentMes);
+        if (res.data) {
+          res.data.forEach(function(v) {
+            var gridId = v.categoria === 'masculino' ? 'votoMasc' : 'votoFem';
+            var grid = document.getElementById(gridId);
+            var btns = grid.querySelectorAll('.voto-opt');
+            btns.forEach(function(b) {
+              if (b.textContent.trim() === v.slug) b.classList.add('voted-opt');
+            });
+            loadVotoResults(v.categoria, grid);
+          });
+        }
+      }
     }
+
     function lockVoting() {
       var lock = document.querySelector('.voto-lock');
       if (lock) lock.style.display = '';
       var btns = document.querySelectorAll('.voto-opt');
-      btns.forEach(function(b) { b.disabled = true; });
+      btns.forEach(function(b) { b.disabled = true; b.classList.remove('voted-opt', 'showed'); });
+      // Mostrar CTA de registro
+      var cta = document.getElementById('ctaRegister');
+      if (cta) cta.style.display = '';
     }
 
     // ============================================================
@@ -2031,6 +2150,7 @@
 
     renderCatalog();
     renderCategories();
+    renderVotoButtons();
   </script>
 </body>
 </html>
