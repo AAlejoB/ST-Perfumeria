@@ -1,0 +1,9 @@
+node_modules/
+*.js
+!perfumes.js
+notas.json
+notas_pendientes.xlsx
+~$*
+.claude/
+package.json
+package-lock.json
