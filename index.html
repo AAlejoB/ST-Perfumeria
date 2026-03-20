@@ -1783,10 +1783,10 @@
       var gridMasc = document.getElementById('votoMasc');
       var gridFem = document.getElementById('votoFem');
       gridMasc.innerHTML = candidatosMasc.map(function(name) {
-        return '<button class="voto-opt" onclick="submitVoto(this,\'masculino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
+        return '<button class="voto-opt" data-name="' + name.replace(/"/g, '') + '" onclick="submitVoto(this,\'masculino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
       }).join('');
       gridFem.innerHTML = candidatosFem.map(function(name) {
-        return '<button class="voto-opt" onclick="submitVoto(this,\'femenino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
+        return '<button class="voto-opt" data-name="' + name.replace(/"/g, '') + '" onclick="submitVoto(this,\'femenino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
       }).join('');
     }
 
@@ -1816,7 +1816,7 @@
       res.data.forEach(function(v) { counts[v.slug] = (counts[v.slug] || 0) + 1; });
       var btns = grid.querySelectorAll('.voto-opt');
       btns.forEach(function(b) {
-        var name = b.textContent.trim();
+        var name = b.getAttribute('data-name') || b.textContent.trim();
         var pct = Math.round((counts[name] || 0) / total * 100);
         b.innerHTML = '<span class="poll-bar" style="width:' + pct + '%"></span>'
           + '<span class="poll-label">' + name + '</span>'
@@ -1851,7 +1851,8 @@
             var grid = document.getElementById(gridId);
             var btns = grid.querySelectorAll('.voto-opt');
             btns.forEach(function(b) {
-              if (b.textContent.trim() === v.slug) b.classList.add('voted-opt');
+              var bName = b.getAttribute('data-name') || b.textContent.trim();
+              if (bName === v.slug) b.classList.add('voted-opt');
             });
             loadVotoResults(v.categoria, grid);
           });
