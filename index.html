@@ -1466,7 +1466,7 @@
         <div class="sector-card sector-opiniones">
           <p class="sector-card-eyebrow">&#127908; Espacio para ustedes</p>
           <p class="sector-card-desc">&#191;Qu&#233; perfume te vol&#243; la cabeza? &#191;Cu&#225;l no te convenci&#243;? Cont&#225;nos.</p>
-          <textarea class="board-input" id="boardInput" placeholder="Ej: El 9 AM me dura todo el d&#237;a, incre&#237;ble..." maxlength="280"></textarea>
+          <textarea class="board-input" id="boardInput" placeholder="Registrate para dejar tu opini&#243;n..." maxlength="280"></textarea>
           <div class="board-footer">
             <span class="board-hint" id="boardHint">M&#225;x. 280 caracteres</span>
             <button class="board-send" id="boardSend" onclick="sendBoardMsg()">Enviar</button>
@@ -1593,6 +1593,8 @@
     async function onLogin(user) {
       currentUser = user;
       updateAuthUI();
+      var bi = document.getElementById('boardInput');
+      if (bi) bi.placeholder = 'Ej: El 9 AM me dura todo el día, increíble...';
       await loadFavsFromSupabase();
       unlockVoting();
     }
@@ -1601,6 +1603,8 @@
       currentUser = null;
       favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
       updateAuthUI();
+      var bi = document.getElementById('boardInput');
+      if (bi) bi.placeholder = 'Registrate para dejar tu opinión...';
       lockVoting();
       renderCatalog();
     }
@@ -1646,6 +1650,7 @@
     }
 
     async function sendBoardMsg() {
+      if (!currentUser) { openAuth(); return; }
       var input = document.getElementById('boardInput');
       var text = input.value.trim();
       if (!text) return;
