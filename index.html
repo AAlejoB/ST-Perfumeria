@@ -854,6 +854,77 @@
       .reveal-cta { font-size: .72rem; padding: .65rem; }
     }
     .reveal-cta:hover { background: var(--amarillo-claro); }
+    .reveal-similares {
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      font-size: .6rem;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      background: transparent;
+      border: 1px solid rgba(232,184,0,.3);
+      padding: .4rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: .3rem;
+      font-family: var(--font-body);
+    }
+    .reveal-similares:hover { background: rgba(232,184,0,.1); border-color: var(--amarillo); }
+    @media (min-width: 768px) {
+      .reveal-similares { font-size: .65rem; padding: .45rem; }
+    }
+
+    /* Modal similares */
+    .similares-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,.85); z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .similares-overlay.active { display: flex; }
+    .similares-modal {
+      background: #111; border: 1px solid var(--amarillo);
+      border-radius: 8px; padding: 1.5rem; max-width: 500px; width: 100%;
+      max-height: 85vh; overflow-y: auto; position: relative;
+    }
+    .similares-close {
+      position: absolute; top: .8rem; right: 1rem;
+      background: none; border: none; color: var(--gris-claro);
+      font-size: 1.5rem; cursor: pointer; line-height: 1;
+    }
+    .similares-close:hover { color: #fff; }
+    .similares-title {
+      font-size: .75rem; font-weight: 600; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--amarillo); margin-bottom: 1rem;
+      text-align: center;
+    }
+    .similar-item {
+      display: flex; align-items: center; gap: .8rem;
+      padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,.06);
+      cursor: pointer; transition: background .2s;
+    }
+    .similar-item:hover { background: rgba(255,255,255,.03); }
+    .similar-item:last-child { border-bottom: none; }
+    .similar-img {
+      width: 50px; height: 65px; border-radius: 4px;
+      background: #1a1a1a; overflow: hidden; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .similar-img img { width: 100%; height: 100%; object-fit: contain; }
+    .similar-info { flex: 1; min-width: 0; }
+    .similar-name {
+      font-size: .8rem; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .similar-brand { font-size: .65rem; color: var(--gris-claro); }
+    .similar-match {
+      font-size: .6rem; color: var(--amarillo); font-weight: 600;
+      letter-spacing: .05em;
+    }
+    .similar-price { font-size: .85rem; font-weight: 700; color: var(--amarillo); flex-shrink: 0; }
     .set-highlight { font-size: 1rem !important; color: var(--amarillo) !important; margin-bottom: .3rem; }
 
     .set-highlight::before { content: '' !important; }
@@ -1932,6 +2003,15 @@
   </button>
 
   <!-- Botón flotante WhatsApp -->
+  <!-- Modal Similares -->
+  <div class="similares-overlay" id="similaresOverlay" onclick="closeSimilares(event)">
+    <div class="similares-modal" onclick="event.stopPropagation()">
+      <button class="similares-close" onclick="closeSimilares()">&times;</button>
+      <p class="similares-title" id="similaresTitle">Perfumes similares</p>
+      <div id="similaresContent"></div>
+    </div>
+  </div>
+
   <a href="https://wa.me/5492975416017?text=Hola!%20Quiero%20consultar%20por%20un%20perfume" target="_blank" class="wa-float" aria-label="WhatsApp">
     <svg viewBox="0 0 32 32" width="28" height="28"><path fill="#fff" d="M16.01 2.93A13.07 13.07 0 0 0 2.93 16a12.94 12.94 0 0 0 1.74 6.51L2.93 29.07l6.73-1.74A13.06 13.06 0 1 0 16.01 2.93Zm0 23.9a10.8 10.8 0 0 1-5.52-1.5l-.4-.24-4.12 1.08 1.1-4.03-.26-.41a10.83 10.83 0 1 1 9.2 5.1Zm5.93-8.1c-.33-.16-1.93-.95-2.23-1.06-.3-.11-.52-.16-.74.17-.22.32-.85 1.06-1.04 1.28-.2.22-.39.24-.72.08-.33-.16-1.38-.51-2.63-1.62-.97-.87-1.63-1.94-1.82-2.27-.19-.33-.02-.5.14-.67.15-.15.33-.39.5-.59.16-.2.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.17-.73-1.77-1-2.42-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.72 0 1.6 1.17 3.15 1.33 3.37.17.22 2.3 3.51 5.57 4.92.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.1 1.93-.79 2.2-1.55.28-.76.28-1.41.2-1.55-.09-.14-.31-.22-.64-.38Z"/></svg>
   </a>
@@ -1946,6 +2026,13 @@
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z2p6emtqcndia2Roa3NseGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzU3NzEsImV4cCI6MjA4OTYxMTc3MX0.SoVxC3eF51wi27pavlqIAjE-omqcnPylxJIQjY8vimo';
     var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     var currentUser = null;
+
+    // ============================================================
+    // ANALYTICS — tracking de clicks por perfume
+    // ============================================================
+    function trackClick(slug) {
+      sb.from('perfume_clicks').insert({ slug: slug }).then(function(){});
+    }
 
     // ============================================================
     // AUTH — registro con nombre + WhatsApp
@@ -2500,6 +2587,7 @@
             )
           + '</div>'
           + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + p.name + (p.esSet ? ' (Set)' : '') + '. ¿Tienen disponibilidad?') + '" target="_blank" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</a>'
+          + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base)) ? '<button class="reveal-similares" onclick="showSimilares(\'' + p.slug + '\', event)">&#9830; Ver similares</button>' : '')
         + '</div>'
       + '</div>';
     }
@@ -2549,6 +2637,92 @@
       }
     }
 
+    // ============================================================
+    // VER SIMILARES
+    // ============================================================
+    function getNotas(p) {
+      var all = [];
+      [p.notas_salida, p.notas_corazon, p.notas_base].forEach(function(n) {
+        if (!n) return;
+        n.split(',').forEach(function(s) {
+          var nota = s.trim().toLowerCase();
+          if (nota) all.push(nota);
+        });
+      });
+      return all;
+    }
+
+    function findSimilares(slug) {
+      var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
+      if (!perfume) return [];
+      var notasOrigen = getNotas(perfume);
+      if (notasOrigen.length === 0) return [];
+
+      var scores = [];
+      PERFUMES.forEach(function(p) {
+        if (p.slug === slug || p.esSet) return;
+        var notasP = getNotas(p);
+        if (notasP.length === 0) return;
+        var shared = 0;
+        notasOrigen.forEach(function(n) {
+          if (notasP.indexOf(n) !== -1) shared++;
+        });
+        if (shared > 0) {
+          scores.push({ perfume: p, shared: shared, total: notasOrigen.length });
+        }
+      });
+
+      scores.sort(function(a, b) { return b.shared - a.shared; });
+      return scores.slice(0, 5);
+    }
+
+    function showSimilares(slug, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
+      if (!perfume) return;
+
+      var similares = findSimilares(slug);
+      var title = document.getElementById('similaresTitle');
+      title.textContent = 'Similares a ' + perfume.name;
+
+      var content = document.getElementById('similaresContent');
+      if (similares.length === 0) {
+        content.innerHTML = '<p style="text-align:center;color:var(--gris-claro);font-size:.8rem;">No se encontraron perfumes similares.</p>';
+      } else {
+        var html = '';
+        similares.forEach(function(s) {
+          var p = s.perfume;
+          var pct = Math.round((s.shared / s.total) * 100);
+          var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+          var letter = p.name.charAt(0);
+          var imgHTML = p.foto
+            ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
+            : '<div style="color:var(--amarillo);font-size:1rem;opacity:.4;">' + letter + '</div>';
+          var price = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
+
+          html += '<div class="similar-item" onclick="closeSimilares();scrollToPerfume(\'' + p.slug + '\')">'
+            + '<div class="similar-img">' + imgHTML + '</div>'
+            + '<div class="similar-info">'
+              + '<p class="similar-name">' + p.name + '</p>'
+              + '<p class="similar-brand">' + (p.marca_real || p.marca) + '</p>'
+              + '<p class="similar-match">' + s.shared + ' notas en com\u00fan \u00b7 ' + pct + '% match</p>'
+            + '</div>'
+            + '<span class="similar-price">' + price + '</span>'
+          + '</div>';
+        });
+        content.innerHTML = html;
+      }
+
+      document.getElementById('similaresOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSimilares(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('similaresOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
     function renderCatalog() {
       const grid = document.getElementById('catalogGrid');
       grid.innerHTML = PERFUMES.map(buildCard).join('');
@@ -2556,6 +2730,19 @@
       applyCardVisibility();
       updateFavBadge();
       renderSeleccionST();
+
+      // Track clicks en cards
+      var tracked = {};
+      grid.querySelectorAll('.product-card').forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+          var slug = card.dataset.slug;
+          if (!tracked[slug]) { tracked[slug] = true; trackClick(slug); }
+        });
+        card.addEventListener('touchstart', function() {
+          var slug = card.dataset.slug;
+          if (!tracked[slug]) { tracked[slug] = true; trackClick(slug); }
+        }, { passive: true });
+      });
     }
 
     function applyCardVisibility() {
