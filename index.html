@@ -441,57 +441,26 @@
       letter-spacing: .08em;
       margin-top: .4rem;
     }
-    .seleccion-st-track {
-      overflow: hidden;
-      position: relative;
-      width: 100%;
-    }
-    .seleccion-st-track::before,
-    .seleccion-st-track::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      width: 40px;
-      height: 100%;
-      z-index: 2;
-      pointer-events: none;
-    }
-    .seleccion-st-track::before {
-      left: 0;
-      background: linear-gradient(to right, var(--negro), transparent);
-    }
-    .seleccion-st-track::after {
-      right: 0;
-      background: linear-gradient(to left, var(--negro), transparent);
-    }
     .seleccion-st-grid {
       display: flex;
       gap: 1rem;
-      width: max-content;
-      animation: carousel-scroll 25s linear infinite;
-      will-change: transform;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      padding-bottom: .5rem;
+      scrollbar-width: none;
     }
-    .seleccion-st-grid:hover {
-      animation-play-state: paused;
-    }
-    @keyframes carousel-scroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
+    .seleccion-st-grid::-webkit-scrollbar { display: none; }
 
     .collectible-card {
-      flex: 0 0 160px;
+      flex: 0 0 150px;
       scroll-snap-align: start;
-      background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+      background: #111;
       border: 2px solid var(--amarillo);
       border-radius: 8px;
       overflow: hidden;
       position: relative;
       cursor: pointer;
-      transition: transform .3s, box-shadow .3s;
-    }
-    .collectible-card:hover {
-      box-shadow: 0 4px 20px rgba(232,184,0,.2);
     }
     @media (min-width: 768px) {
       .collectible-card { flex: 0 0 190px; }
@@ -507,26 +476,12 @@
     .collectible-img-wrap {
       width: 100%;
       aspect-ratio: 3/4;
-      background: radial-gradient(ellipse at center, #2a2019 0%, #0d0d0d 70%);
+      background: #1a1a1a;
       border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      position: relative;
-    }
-    .collectible-img-wrap::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(232,184,0,.06), transparent);
-      pointer-events: none;
-    }
-    .collectible-card:hover .collectible-img-wrap::before {
-      left: 100%;
-      transition: left .6s ease;
     }
     .collectible-img-wrap img {
       width: 80%;
@@ -1543,9 +1498,7 @@
       <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
       <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
     </div>
-    <div class="seleccion-st-track">
-      <div class="seleccion-st-grid" id="seleccionGrid"></div>
-    </div>
+    <div class="seleccion-st-grid" id="seleccionGrid"></div>
   </section>
 
   <!--
@@ -2234,7 +2187,7 @@
           + '</div>'
         + '</div>';
       });
-      grid.innerHTML = html + html;
+      grid.innerHTML = html;
     }
 
     function scrollToPerfume(slug) {
