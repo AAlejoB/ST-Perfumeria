@@ -47,7 +47,7 @@ const PERFUMES = [
     promo:  "61,200.00",
     price:  "68,000.00",
     foto:   "",
-    notas_salida:  "Coriander, Azahar, Pimienta de Jamaica, Rosewood",
+    notas_salida:  "Coriander, Azahar, Pimento, Rosewood",
     notas_corazon: "Carnation, Nardo, Heliotropo, Jazmín, Rosa, Ylang-ylang",
     notas_base:    "Cedro, Civet, Opoponax, Vainilla, Ámbar gris, Benjuí",
   },
@@ -740,7 +740,7 @@ const PERFUMES = [
     price:  "75,000.00",
     foto:   "",
     notas_salida:  "Bergamota, Limón",
-    notas_corazon: "Jazmín, Lirio, Loto, Rosa",
+    notas_corazon: "Jazmín, Lirio, Lotus, Rosa",
     notas_base:    "Ámbar, Almizcle, Sándalo, Woods",
   },
   {
@@ -1184,7 +1184,7 @@ const PERFUMES = [
     price:  "109,000.00",
     foto:   "img/HAWAS ICE.webp",
     notas_salida:  "Bergamota, Menta, Manzana verde",
-    notas_corazon: "Ambroxán, Geranio, Notas acuáticas",
+    notas_corazon: "Ambroxan, Geranio, Notas acuáticas",
     notas_base:    "Almizcle, Sándalo, Notas amaderadas",
   },
   {
@@ -1238,7 +1238,7 @@ const PERFUMES = [
     foto:   "img/GLACIER ULTRA.webp",
     notas_salida:  "Bergamota, Pomelo, Pimienta rosa",
     notas_corazon: "Geranio, Lavanda, Salvia",
-    notas_base:    "Cedro, Almizcle, Ambroxán",
+    notas_base:    "Cedro, Almizcle, Ambroxan",
   },
   {
     slug:   "glacier-le-noir",
@@ -1419,7 +1419,7 @@ const PERFUMES = [
     foto:   "img/EMAAN.webp",
     notas_salida:  "Pink freesia, Magnolia, Lavanda",
     notas_corazon: "Rosa centifolia, Almizcle",
-    notas_base:    "Ambroxán, Orris butter, Cashmere wood",
+    notas_base:    "Ambroxan, Orris butter, Cashmere wood",
   },
   {
     slug:   "eclaire-banoffi",
