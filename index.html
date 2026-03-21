@@ -1312,12 +1312,11 @@
   <div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuth()">
     <div class="auth-modal">
       <button class="auth-close" onclick="closeAuth()">&times;</button>
-      <h3 class="auth-title" id="authTitle">Crear cuenta</h3>
-      <p class="auth-subtitle" id="authSubtitle">Guard&#225; tus favoritos y vot&#225; el perfume del mes</p>
-      <input type="email" class="auth-input" id="authEmail" placeholder="Email">
-      <input type="password" class="auth-input" id="authPass" placeholder="Contrase&#241;a (m&#237;n. 6 caracteres)">
-      <button class="auth-btn" id="authBtn" onclick="handleAuth()">Registrarse</button>
-      <p class="auth-toggle" id="authToggle" onclick="toggleAuthMode()">&#191;Ya ten&#233;s cuenta? <span>Inici&#225; sesi&#243;n</span></p>
+      <h3 class="auth-title" id="authTitle">Unite a ST</h3>
+      <p class="auth-subtitle" id="authSubtitle">Guard&#225; tus favoritos, vot&#225; el perfume del mes y recib&#237; ofertas por WhatsApp</p>
+      <input type="text" class="auth-input" id="authName" placeholder="Tu nombre" maxlength="60">
+      <input type="tel" class="auth-input" id="authPhone" placeholder="N&#250;mero de WhatsApp (ej: 2975416017)">
+      <button class="auth-btn" id="authBtn" onclick="handleAuth()">Unirme</button>
       <p class="auth-error" id="authError"></p>
     </div>
   </div>
@@ -1592,67 +1591,70 @@
     var currentUser = null;
 
     // ============================================================
-    // AUTH — registro / login
+    // AUTH — registro con nombre + WhatsApp
     // ============================================================
-    var authMode = 'register'; // 'register' o 'login'
-
     function openAuth() {
+      if (currentUser) return; // ya registrado
       document.getElementById('authOverlay').classList.add('open');
       document.getElementById('authError').textContent = '';
     }
     function closeAuth() {
       document.getElementById('authOverlay').classList.remove('open');
     }
-    function toggleAuthMode() {
-      authMode = authMode === 'register' ? 'login' : 'register';
-      document.getElementById('authTitle').textContent = authMode === 'register' ? 'Crear cuenta' : 'Iniciar sesión';
-      document.getElementById('authBtn').textContent = authMode === 'register' ? 'Registrarse' : 'Iniciar sesión';
-      document.getElementById('authToggle').innerHTML = authMode === 'register'
-        ? '¿Ya tenés cuenta? <span>Iniciá sesión</span>'
-        : '¿No tenés cuenta? <span>Registrate</span>';
-      document.getElementById('authError').textContent = '';
+
+    function cleanPhone(raw) {
+      return raw.replace(/[\s\-\(\)\.]/g, '');
     }
 
     async function handleAuth() {
-      var email = document.getElementById('authEmail').value.trim();
-      var pass = document.getElementById('authPass').value;
+      var name = document.getElementById('authName').value.trim();
+      var phone = cleanPhone(document.getElementById('authPhone').value.trim());
       var errEl = document.getElementById('authError');
       var btn = document.getElementById('authBtn');
       errEl.textContent = '';
-      if (!email || !pass) { errEl.textContent = 'Completá email y contraseña'; return; }
-      if (pass.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres'; return; }
+      errEl.style.color = '#e74c3c';
+      if (!name) { errEl.textContent = 'Poné tu nombre'; return; }
+      if (!phone || phone.length < 8) { errEl.textContent = 'Poné un número de WhatsApp válido'; return; }
       btn.disabled = true;
       try {
-        var res;
-        if (authMode === 'register') {
-          res = await sb.auth.signUp({ email: email, password: pass });
-        } else {
-          res = await sb.auth.signInWithPassword({ email: email, password: pass });
-        }
-        if (res.error) { errEl.textContent = res.error.message; btn.disabled = false; return; }
-        if (authMode === 'register' && res.data.user && !res.data.session) {
+        // Verificar si ya existe
+        var existing = await sb.from('clientes').select('id, nombre').eq('telefono', phone).limit(1);
+        if (existing.data && existing.data.length > 0) {
+          // Ya registrado, loguear directo
+          var cliente = existing.data[0];
+          onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: phone });
+          closeAuth();
           errEl.style.color = '#25D366';
-          errEl.textContent = '¡Revisá tu email para confirmar la cuenta!';
+          errEl.textContent = '';
+          btn.disabled = false;
+          return;
+        }
+        // Registrar nuevo
+        var res = await sb.from('clientes').insert({ nombre: name, telefono: phone }).select().single();
+        if (res.error) {
+          errEl.textContent = res.error.message;
           btn.disabled = false;
           return;
         }
         closeAuth();
-        onLogin(res.data.user);
+        onLogin({ id: res.data.id, nombre: res.data.nombre, telefono: res.data.telefono });
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;
     }
 
-    async function onLogin(user) {
+    function onLogin(user) {
       currentUser = user;
+      localStorage.setItem('st_cliente', JSON.stringify(user));
       updateAuthUI();
       var bi = document.getElementById('boardInput');
       if (bi) bi.placeholder = 'Ej: El 9 AM me dura todo el día, increíble...';
-      await loadFavsFromSupabase();
+      loadFavsFromSupabase();
       unlockVoting();
     }
 
     function onLogout() {
       currentUser = null;
+      localStorage.removeItem('st_cliente');
       favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
       updateAuthUI();
       var bi = document.getElementById('boardInput');
@@ -1661,8 +1663,7 @@
       renderCatalog();
     }
 
-    async function logout() {
-      await sb.auth.signOut();
+    function logout() {
       onLogout();
     }
 
@@ -1670,8 +1671,7 @@
       var regBtn = document.querySelector('.nav-register-btn');
       if (!regBtn) return;
       if (currentUser) {
-        var emailShort = currentUser.email.split('@')[0];
-        regBtn.innerHTML = '<span class="auth-user-bar"><strong>' + emailShort + '</strong></span>';
+        regBtn.innerHTML = '<span class="auth-user-bar"><strong>' + currentUser.nombre + '</strong></span>';
         regBtn.setAttribute('onclick', 'event.preventDefault();logout()');
         regBtn.setAttribute('title', 'Cerrar sesión');
       } else {
@@ -1681,12 +1681,13 @@
       }
     }
 
-    // Check session on load
-    sb.auth.getSession().then(function(res) {
-      if (res.data.session) {
-        onLogin(res.data.session.user);
+    // Check session on load (localStorage)
+    (function() {
+      var saved = localStorage.getItem('st_cliente');
+      if (saved) {
+        try { onLogin(JSON.parse(saved)); } catch(e) {}
       }
-    });
+    })();
 
     // ============================================================
     // BOARD — opiniones (Supabase)
@@ -1770,12 +1771,14 @@
 
     async function loadFavsFromSupabase() {
       if (!currentUser) return;
-      var res = await sb.from('favoritos').select('slug').eq('user_id', currentUser.id);
-      if (res.data) {
-        favs = res.data.map(function(f) { return f.slug; });
-        localStorage.setItem('st_favs', JSON.stringify(favs));
-        renderCatalog();
-      }
+      try {
+        var res = await sb.from('favoritos').select('slug').eq('user_id', currentUser.id);
+        if (res.data && res.data.length > 0) {
+          favs = res.data.map(function(f) { return f.slug; });
+          localStorage.setItem('st_favs', JSON.stringify(favs));
+          renderCatalog();
+        }
+      } catch(e) {}
     }
 
     function saveFavs() {
