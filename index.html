@@ -441,19 +441,42 @@
       letter-spacing: .08em;
       margin-top: .4rem;
     }
+    .seleccion-st-track {
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+    }
+    .seleccion-st-track::before,
+    .seleccion-st-track::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 40px;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .seleccion-st-track::before {
+      left: 0;
+      background: linear-gradient(to right, var(--negro), transparent);
+    }
+    .seleccion-st-track::after {
+      right: 0;
+      background: linear-gradient(to left, var(--negro), transparent);
+    }
     .seleccion-st-grid {
       display: flex;
       gap: 1rem;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: .8rem;
-      scrollbar-width: thin;
-      scrollbar-color: var(--amarillo) transparent;
+      width: max-content;
+      animation: carousel-scroll 30s linear infinite;
     }
-    .seleccion-st-grid::-webkit-scrollbar { height: 4px; }
-    .seleccion-st-grid::-webkit-scrollbar-track { background: transparent; }
-    .seleccion-st-grid::-webkit-scrollbar-thumb { background: var(--amarillo); border-radius: 2px; }
+    .seleccion-st-grid:hover {
+      animation-play-state: paused;
+    }
+    @keyframes carousel-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
 
     .collectible-card {
       flex: 0 0 160px;
@@ -1520,7 +1543,9 @@
       <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
       <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
     </div>
-    <div class="seleccion-st-grid" id="seleccionGrid"></div>
+    <div class="seleccion-st-track">
+      <div class="seleccion-st-grid" id="seleccionGrid"></div>
+    </div>
   </section>
 
   <!--
@@ -2209,7 +2234,7 @@
           + '</div>'
         + '</div>';
       });
-      grid.innerHTML = html;
+      grid.innerHTML = html + html;
     }
 
     function scrollToPerfume(slug) {
