@@ -2047,36 +2047,47 @@
     }
 
     function cleanPhone(raw) {
-      return raw.replace(/[\s\-\(\)\.]/g, '');
+      // Quitar todo menos números
+      var digits = raw.replace(/[^0-9]/g, '');
+      // Si empieza con 0, quitarlo (ej: 02975 -> 2975)
+      if (digits.charAt(0) === '0') digits = digits.substring(1);
+      // Si NO empieza con 54 (código Argentina), agregarlo
+      if (digits.substring(0, 2) !== '54') digits = '54' + digits;
+      // Si tiene 549 seguido de 15, quitar el 15 (formato viejo)
+      digits = digits.replace(/^549(\d{2,4})15(\d+)$/, '549$1$2');
+      return digits;
     }
 
     async function handleAuth() {
       var name = document.getElementById('authName').value.trim();
-      var phone = cleanPhone(document.getElementById('authPhone').value.trim());
+      var rawPhone = document.getElementById('authPhone').value.trim();
       var errEl = document.getElementById('authError');
       var btn = document.getElementById('authBtn');
       errEl.textContent = '';
       errEl.style.color = '#e74c3c';
-      if (!name) { errEl.textContent = 'Poné tu nombre'; return; }
-      if (!phone || phone.length < 8) { errEl.textContent = 'Poné un número de WhatsApp válido'; return; }
+      if (!name || name.length < 2) { errEl.textContent = 'Poné tu nombre completo'; return; }
+      if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) { errEl.textContent = 'Poné un número de WhatsApp válido'; return; }
+      var phone = cleanPhone(rawPhone);
       btn.disabled = true;
       try {
-        // Verificar si ya existe
+        // Verificar si ya existe con ese teléfono
         var existing = await sb.from('clientes').select('id, nombre').eq('telefono', phone).limit(1);
         if (existing.data && existing.data.length > 0) {
           // Ya registrado, loguear directo
           var cliente = existing.data[0];
           onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: phone });
           closeAuth();
-          errEl.style.color = '#25D366';
-          errEl.textContent = '';
           btn.disabled = false;
           return;
         }
         // Registrar nuevo
         var res = await sb.from('clientes').insert({ nombre: name, telefono: phone }).select().single();
         if (res.error) {
-          errEl.textContent = res.error.message;
+          if (res.error.message.indexOf('unique') !== -1 || res.error.message.indexOf('duplicate') !== -1) {
+            errEl.textContent = 'Este número ya está registrado';
+          } else {
+            errEl.textContent = res.error.message;
+          }
           btn.disabled = false;
           return;
         }
