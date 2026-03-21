@@ -413,6 +413,146 @@
     }
 
     /* ================================================
+       SELECCIÓN ST — Cards coleccionables
+    ================================================ */
+    .seleccion-st {
+      padding: 2rem 1.5rem 1rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .seleccion-st-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .seleccion-st-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 300;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+    }
+    .seleccion-st-sub {
+      font-family: var(--font-display);
+      font-size: .8rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--gris-claro);
+      letter-spacing: .08em;
+      margin-top: .4rem;
+    }
+    .seleccion-st-grid {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: .8rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--amarillo) transparent;
+    }
+    .seleccion-st-grid::-webkit-scrollbar { height: 4px; }
+    .seleccion-st-grid::-webkit-scrollbar-track { background: transparent; }
+    .seleccion-st-grid::-webkit-scrollbar-thumb { background: var(--amarillo); border-radius: 2px; }
+
+    .collectible-card {
+      flex: 0 0 160px;
+      scroll-snap-align: start;
+      background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+      border: 2px solid var(--amarillo);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform .3s, box-shadow .3s;
+    }
+    .collectible-card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 8px 30px rgba(232,184,0,.25), 0 0 15px rgba(232,184,0,.1);
+    }
+    @media (min-width: 768px) {
+      .collectible-card { flex: 0 0 190px; }
+      .seleccion-st { padding: 3rem 2rem 1.5rem; }
+    }
+
+    .collectible-card-inner {
+      padding: .6rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .collectible-img-wrap {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: radial-gradient(ellipse at center, #2a2019 0%, #0d0d0d 70%);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .collectible-img-wrap::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(from 0deg, transparent 0%, rgba(232,184,0,.08) 25%, transparent 50%);
+      animation: collectible-shine 4s linear infinite;
+    }
+    @keyframes collectible-shine {
+      to { transform: rotate(360deg); }
+    }
+    .collectible-img-wrap img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 4px 12px rgba(232,184,0,.2));
+    }
+    .collectible-info {
+      width: 100%;
+      text-align: center;
+      padding: .5rem .2rem .3rem;
+    }
+    .collectible-name {
+      font-family: var(--font-display);
+      font-size: .85rem;
+      font-weight: 400;
+      color: #fff;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      margin-bottom: .35rem;
+    }
+    @media (min-width: 768px) {
+      .collectible-name { font-size: .95rem; }
+    }
+    .collectible-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      font-family: var(--font-display);
+      font-size: .62rem;
+      font-weight: 400;
+      font-style: italic;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      background: rgba(232,184,0,.08);
+      border: 1px solid rgba(232,184,0,.25);
+      padding: .25rem .6rem;
+      border-radius: 3px;
+    }
+    .collectible-badge::before {
+      content: '\25C6';
+      font-size: .45rem;
+    }
+
+    /* ================================================
        CARD — Estilo horizontal (imagen izq, info der)
     ================================================ */
     .product-card {
@@ -1374,6 +1514,15 @@
     <p class="hero-sub">Perfumes &#225;rabes de larga duraci&#243;n y gran estela. Pas&#225;s y la gente gira.</p>
   </section>
 
+  <!-- ========== SELECCIÓN ST — Top Ventas ========== -->
+  <section class="seleccion-st">
+    <div class="seleccion-st-header">
+      <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
+      <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
+    </div>
+    <div class="seleccion-st-grid" id="seleccionGrid"></div>
+  </section>
+
   <!--
     FILTROS: ahora usan .filter-group para que los botones
     queden centrados en mobile y alineados a la izquierda en desktop
@@ -2037,12 +2186,54 @@
     var CARDS_INCREMENT = 15;
     var cardsShown = CARDS_INITIAL;
 
+    var TOP_VENTAS_SLUGS = ['khamrah','asad','9-am','9-pm','yara-tous','hawas','badee-oud-for-glory','cdn-sillage'];
+
+    function renderSeleccionST() {
+      var grid = document.getElementById('seleccionGrid');
+      if (!grid) return;
+      var html = '';
+      TOP_VENTAS_SLUGS.forEach(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!p) return;
+        var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+        var imgHTML = p.foto
+          ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
+          : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + p.name.charAt(0) + '</div>';
+        html += '<div class="collectible-card" onclick="scrollToPerfume(\'' + slug + '\')">'
+          + '<div class="collectible-card-inner">'
+            + '<div class="collectible-img-wrap">' + imgHTML + '</div>'
+            + '<div class="collectible-info">'
+              + '<p class="collectible-name">' + p.name + '</p>'
+              + '<span class="collectible-badge">Top ventas</span>'
+            + '</div>'
+          + '</div>'
+        + '</div>';
+      });
+      grid.innerHTML = html;
+    }
+
+    function scrollToPerfume(slug) {
+      var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
+      if (card) {
+        // Reset filters to show all
+        filterBy('all', document.querySelector('.filter-btn'));
+        cardsShown = PERFUMES.length;
+        applyCardVisibility();
+        setTimeout(function() {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.boxShadow = '0 0 20px rgba(232,184,0,.5)';
+          setTimeout(function() { card.style.boxShadow = ''; }, 2000);
+        }, 100);
+      }
+    }
+
     function renderCatalog() {
       const grid = document.getElementById('catalogGrid');
       grid.innerHTML = PERFUMES.map(buildCard).join('');
       cardsShown = CARDS_INITIAL;
       applyCardVisibility();
       updateFavBadge();
+      renderSeleccionST();
     }
 
     function applyCardVisibility() {
