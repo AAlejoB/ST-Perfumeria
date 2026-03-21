@@ -468,7 +468,8 @@
       display: flex;
       gap: 1rem;
       width: max-content;
-      animation: carousel-scroll 30s linear infinite;
+      animation: carousel-scroll 25s linear infinite;
+      will-change: transform;
     }
     .seleccion-st-grid:hover {
       animation-play-state: paused;
@@ -490,8 +491,7 @@
       transition: transform .3s, box-shadow .3s;
     }
     .collectible-card:hover {
-      transform: translateY(-6px) scale(1.03);
-      box-shadow: 0 8px 30px rgba(232,184,0,.25), 0 0 15px rgba(232,184,0,.1);
+      box-shadow: 0 4px 20px rgba(232,184,0,.2);
     }
     @media (min-width: 768px) {
       .collectible-card { flex: 0 0 190px; }
@@ -518,15 +518,15 @@
     .collectible-img-wrap::before {
       content: '';
       position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: conic-gradient(from 0deg, transparent 0%, rgba(232,184,0,.08) 25%, transparent 50%);
-      animation: collectible-shine 4s linear infinite;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(232,184,0,.06), transparent);
+      pointer-events: none;
     }
-    @keyframes collectible-shine {
-      to { transform: rotate(360deg); }
+    .collectible-card:hover .collectible-img-wrap::before {
+      left: 100%;
+      transition: left .6s ease;
     }
     .collectible-img-wrap img {
       width: 80%;
@@ -534,7 +534,7 @@
       object-fit: contain;
       position: relative;
       z-index: 1;
-      filter: drop-shadow(0 4px 12px rgba(232,184,0,.2));
+      /* sin filtros para mejor rendimiento mobile */
     }
     .collectible-info {
       width: 100%;
@@ -2211,7 +2211,7 @@
     var CARDS_INCREMENT = 15;
     var cardsShown = CARDS_INITIAL;
 
-    var TOP_VENTAS_SLUGS = ['khamrah','asad','9-am','9-pm','yara-tous','hawas','badee-oud-for-glory','cdn-sillage'];
+    var TOP_VENTAS_SLUGS = ['khamrah','asad','9-am','9-pm','yara-tous','hawas','badee-oud-for-glory'];
 
     function renderSeleccionST() {
       var grid = document.getElementById('seleccionGrid');
