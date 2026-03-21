@@ -1971,8 +1971,9 @@
       const originalFormatted = p.promo ? formatPrice(p.price) : '';
       const pCat = catLabel(p.cat);
 
+      const fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
       const imageHTML = p.foto
-        ? '<img src="' + p.foto + '" alt="' + p.name + '" loading="lazy">'
+        ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
         : '<div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div>';
 
       const pricingHTML = p.promo
