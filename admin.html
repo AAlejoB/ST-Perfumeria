@@ -293,8 +293,6 @@
     var SUPABASE_URL = 'https://rtgjzzkjrwbkdhkslxix.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z2p6emtqcndia2Roa3NseGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzU3NzEsImV4cCI6MjA4OTYxMTc3MX0.SoVxC3eF51wi27pavlqIAjE-omqcnPylxJIQjY8vimo';
     var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    var BOT_TOKEN = '8768088055:AAHo6XnAmd2Zh7OWgccZ4lYqXWqmBU1CzJM';
-    var CHAT_ID = '6071313124';
 
     var editingSlug = '';
 
@@ -327,11 +325,7 @@
     // TELEGRAM
     // ============================================================
     function notifyTelegram(msg) {
-      fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
-      }).catch(function(){});
+      sb.rpc('send_telegram', { msg: msg }).then(function(){}).catch(function(){});
     }
 
     // ============================================================
