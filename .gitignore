@@ -1,4 +1,6 @@
 node_modules/
+img_backup/
+compress-images.js
 *.js
 !perfumes.js
 notas.json
