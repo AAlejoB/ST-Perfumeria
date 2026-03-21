@@ -531,6 +531,166 @@
     }
 
     /* ================================================
+       QUIZ — Encontrá tu perfume
+    ================================================ */
+    .quiz-section {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .quiz-box {
+      background: var(--negro-card);
+      border: 1px solid var(--borde-sutil);
+      border-radius: 8px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+    .quiz-icon { font-size: 1.8rem; margin-bottom: .6rem; }
+    .quiz-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--amarillo);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: .3rem;
+    }
+    .quiz-subtitle {
+      font-size: .78rem;
+      font-weight: 300;
+      color: var(--gris-claro);
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+    .quiz-step { display: none; }
+    .quiz-step.active { display: block; }
+    .quiz-question {
+      font-size: .9rem;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .6rem;
+    }
+    .quiz-opt {
+      font-family: var(--font-body);
+      font-size: .75rem;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--borde-sutil);
+      padding: .8rem .5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all .25s;
+    }
+    .quiz-opt:hover {
+      border-color: var(--amarillo);
+      background: rgba(232,184,0,.08);
+      color: var(--amarillo);
+    }
+    .quiz-opt.selected {
+      border-color: var(--amarillo);
+      background: var(--amarillo);
+      color: #000;
+    }
+    .quiz-progress {
+      display: flex;
+      gap: .4rem;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+    }
+    .quiz-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      transition: background .3s;
+    }
+    .quiz-dot.filled { background: var(--amarillo); }
+    .quiz-results {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .quiz-results.active { display: flex; }
+    .quiz-result-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--borde-sutil);
+      border-radius: 6px;
+      padding: .8rem;
+      text-align: left;
+    }
+    .quiz-result-img {
+      width: 60px; height: 75px;
+      object-fit: contain;
+      flex-shrink: 0;
+      background: #1a1a1a;
+      border-radius: 4px;
+      padding: 4px;
+    }
+    .quiz-result-info { flex: 1; }
+    .quiz-result-name {
+      font-size: .82rem;
+      font-weight: 600;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .quiz-result-marca {
+      font-size: .68rem;
+      color: var(--amarillo);
+      letter-spacing: .08em;
+      margin-top: .15rem;
+    }
+    .quiz-result-notas {
+      font-size: .68rem;
+      color: var(--gris-claro);
+      font-weight: 300;
+      margin-top: .3rem;
+      line-height: 1.4;
+    }
+    .quiz-result-cta {
+      font-family: var(--font-body);
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #000;
+      background: var(--amarillo);
+      padding: .4rem .8rem;
+      border-radius: 3px;
+      text-decoration: none;
+      margin-top: .4rem;
+      display: inline-block;
+      transition: background .2s;
+    }
+    .quiz-result-cta:hover { background: var(--amarillo-claro); }
+    .quiz-restart {
+      font-family: var(--font-body);
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--gris-claro);
+      background: none;
+      border: 1px solid var(--borde-sutil);
+      padding: .5rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: .5rem;
+      transition: all .2s;
+    }
+    .quiz-restart:hover { border-color: var(--amarillo); color: var(--amarillo); }
+
+    /* ================================================
        CARD — Estilo horizontal (imagen izq, info der)
     ================================================ */
     .product-card {
@@ -1501,6 +1661,64 @@
     <div class="seleccion-st-grid" id="seleccionGrid"></div>
   </section>
 
+  <!-- ========== QUIZ — Encontrá tu perfume ========== -->
+  <section class="quiz-section" id="quizSection">
+    <div class="quiz-box" id="quizBox">
+      <div class="quiz-icon">&#128142;</div>
+      <p class="quiz-title">Encontr&#225; tu perfume</p>
+      <p class="quiz-subtitle">Respond&#233; 4 preguntas y te recomendamos 3 fragancias ideales para vos</p>
+
+      <div class="quiz-progress" id="quizProgress">
+        <span class="quiz-dot filled"></span>
+        <span class="quiz-dot"></span>
+        <span class="quiz-dot"></span>
+        <span class="quiz-dot"></span>
+      </div>
+
+      <div class="quiz-step active" data-step="1">
+        <p class="quiz-question">&#191;Para qui&#233;n es el perfume?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(1,'Hombre')">Hombre</button>
+          <button class="quiz-opt" onclick="quizAnswer(1,'Mujer')">Mujer</button>
+          <button class="quiz-opt" onclick="quizAnswer(1,'Unisex')">Unisex</button>
+          <button class="quiz-opt" onclick="quizAnswer(1,'any')">No importa</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" data-step="2">
+        <p class="quiz-question">&#191;Para qu&#233; ocasi&#243;n lo usar&#237;as?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(2,'diario')">D&#237;a a d&#237;a</button>
+          <button class="quiz-opt" onclick="quizAnswer(2,'noche')">Noche / Salida</button>
+          <button class="quiz-opt" onclick="quizAnswer(2,'oficina')">Oficina</button>
+          <button class="quiz-opt" onclick="quizAnswer(2,'cita')">Cita</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" data-step="3">
+        <p class="quiz-question">&#191;Qu&#233; tipo de aroma prefer&#237;s?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(3,'dulce')">&#127852; Dulce</button>
+          <button class="quiz-opt" onclick="quizAnswer(3,'fresco')">&#127754; Fresco</button>
+          <button class="quiz-opt" onclick="quizAnswer(3,'amaderado')">&#127795; Amaderado</button>
+          <button class="quiz-opt" onclick="quizAnswer(3,'especiado')">&#128293; Especiado</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" data-step="4">
+        <p class="quiz-question">&#191;Qu&#233; intensidad busc&#225;s?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(4,'suave')">Suave</button>
+          <button class="quiz-opt" onclick="quizAnswer(4,'moderado')">Moderado</button>
+          <button class="quiz-opt" onclick="quizAnswer(4,'potente')">Potente</button>
+          <button class="quiz-opt" onclick="quizAnswer(4,'any')">Sorprendeme</button>
+        </div>
+      </div>
+
+      <div class="quiz-results" id="quizResults"></div>
+    </div>
+  </section>
+
   <!--
     FILTROS: ahora usan .filter-group para que los botones
     queden centrados en mobile y alineados a la izquierda en desktop
@@ -1866,6 +2084,132 @@
     }
 
     document.addEventListener('DOMContentLoaded', initBoard);
+
+    // ============================================================
+    // QUIZ — Encontrá tu perfume
+    // ============================================================
+    var quizAnswers = {};
+
+    function quizAnswer(step, value) {
+      quizAnswers[step] = value;
+
+      // Marcar botón seleccionado
+      var stepEl = document.querySelector('.quiz-step[data-step="'+step+'"]');
+      stepEl.querySelectorAll('.quiz-opt').forEach(function(b){ b.classList.remove('selected'); });
+      event.target.classList.add('selected');
+
+      // Avanzar después de un breve delay
+      setTimeout(function() {
+        // Actualizar dots
+        var dots = document.querySelectorAll('.quiz-dot');
+        if (step < 4) {
+          dots[step].classList.add('filled');
+          stepEl.classList.remove('active');
+          document.querySelector('.quiz-step[data-step="'+(step+1)+'"]').classList.add('active');
+        } else {
+          // Última pregunta — mostrar resultados
+          stepEl.classList.remove('active');
+          showQuizResults();
+        }
+      }, 300);
+    }
+
+    function showQuizResults() {
+      var gender = quizAnswers[1];
+      var occasion = quizAnswers[2];
+      var aroma = quizAnswers[3];
+      var intensity = quizAnswers[4];
+
+      // Notas asociadas a cada tipo de aroma
+      var aromaNotas = {
+        dulce: ['vainilla','caramelo','chocolate','cacao','miel','praline','frutilla','cereza','frambuesa','canela','haba tonka'],
+        fresco: ['bergamota','limón','pomelo','mandarina','menta','lavanda','notas acuáticas','notas verdes','ananá','pepino'],
+        amaderado: ['cedro','sándalo','oud','vetiver','pachulí','ciprés','pino','madera','maderas secas','amberwood'],
+        especiado: ['cardamomo','canela','pimienta negra','pimienta rosa','jengibre','azafrán','clavo','nuez moscada','incienso']
+      };
+
+      // Perfiles según ocasión
+      var occasionProfiles = {
+        diario: ['Versátil','Fresco'],
+        noche: ['Intenso','Dulce'],
+        oficina: ['Versátil','Fresco'],
+        cita: ['Intenso','Dulce','Versátil']
+      };
+
+      var targetNotas = aromaNotas[aroma] || [];
+      var targetProfiles = occasionProfiles[occasion] || ['Versátil'];
+
+      // Puntuar cada perfume
+      var scored = PERFUMES.filter(function(p) {
+        if (p.esSet) return false;
+        if (gender !== 'any') {
+          var catMatch = p.cat === gender || p.cat === 'Unisex' || p.cat.indexOf(gender) !== -1;
+          if (!catMatch) return false;
+        }
+        return true;
+      }).map(function(p) {
+        var score = 0;
+        var allNotas = [p.notas_salida||'', p.notas_corazon||'', p.notas_base||''].join(',').toLowerCase();
+
+        // Puntos por notas coincidentes
+        targetNotas.forEach(function(n) {
+          if (allNotas.indexOf(n) !== -1) score += 3;
+        });
+
+        // Puntos por perfil
+        if (targetProfiles.indexOf(p.perfil) !== -1) score += 2;
+
+        // Bonus por intensidad
+        if (intensity === 'potente' && p.perfil === 'Intenso') score += 2;
+        if (intensity === 'suave' && (p.perfil === 'Fresco' || p.perfil === 'Versátil')) score += 1;
+        if (intensity === 'moderado' && p.perfil === 'Versátil') score += 1;
+
+        // Bonus si tiene foto (mejor experiencia visual)
+        if (p.foto) score += 1;
+
+        return { perfume: p, score: score };
+      });
+
+      // Ordenar por puntaje y tomar top 3
+      scored.sort(function(a,b) { return b.score - a.score; });
+      var top3 = scored.slice(0,3);
+
+      var resultsEl = document.getElementById('quizResults');
+      var html = '<p class="quiz-question" style="margin-bottom:.5rem">&#128142; Tus 3 recomendaciones:</p>';
+
+      top3.forEach(function(item) {
+        var p = item.perfume;
+        var imgHtml = p.foto
+          ? '<img class="quiz-result-img" src="'+p.foto+'" alt="'+p.name+'" loading="lazy">'
+          : '<div class="quiz-result-img" style="display:flex;align-items:center;justify-content:center;color:#666;font-size:.6rem">Sin foto</div>';
+        var notasPreview = (p.notas_salida || p.notas_corazon || p.notas_base || '').split(',').slice(0,3).join(', ');
+
+        html += '<div class="quiz-result-card">'
+          + imgHtml
+          + '<div class="quiz-result-info">'
+          + '<p class="quiz-result-name">'+p.name+'</p>'
+          + '<p class="quiz-result-marca">'+p.marca+'</p>'
+          + (notasPreview ? '<p class="quiz-result-notas">'+notasPreview+'</p>' : '')
+          + '<a href="https://wa.me/5492975416017?text='+encodeURIComponent('Hola! Me interesa el '+p.name+'. ¿Tienen disponibilidad?')+'" target="_blank" class="quiz-result-cta">Consultar &#8594;</a>'
+          + '</div></div>';
+      });
+
+      html += '<button class="quiz-restart" onclick="restartQuiz()">Volver a empezar</button>';
+      resultsEl.innerHTML = html;
+      resultsEl.classList.add('active');
+      document.getElementById('quizProgress').style.display = 'none';
+    }
+
+    function restartQuiz() {
+      quizAnswers = {};
+      document.getElementById('quizResults').classList.remove('active');
+      document.getElementById('quizResults').innerHTML = '';
+      document.getElementById('quizProgress').style.display = 'flex';
+      document.querySelectorAll('.quiz-dot').forEach(function(d,i){ d.classList.toggle('filled', i===0); });
+      document.querySelectorAll('.quiz-step').forEach(function(s){ s.classList.remove('active'); });
+      document.querySelector('.quiz-step[data-step="1"]').classList.add('active');
+      document.querySelectorAll('.quiz-opt').forEach(function(b){ b.classList.remove('selected'); });
+    }
 
     // ============================================================
     // ENCUESTA CULTURA — localStorage (se mantiene local)
