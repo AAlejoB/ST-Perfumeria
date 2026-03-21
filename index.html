@@ -2268,18 +2268,24 @@
     // ============================================================
     (function() {
       document.querySelectorAll('.card-image img').forEach(function(img) {
-        if (img.complete) return;
+        if (img.complete && img.naturalWidth > 0) return;
         var skeleton = document.createElement('div');
         skeleton.className = 'skeleton-bg';
-        img.style.display = 'none';
+        img.style.opacity = '0';
+        img.style.position = 'absolute';
+        img.parentNode.style.position = 'relative';
         img.parentNode.insertBefore(skeleton, img);
         img.addEventListener('load', function() {
           skeleton.remove();
-          img.style.display = '';
+          img.style.opacity = '1';
+          img.style.position = '';
+          img.parentNode.style.position = '';
         });
         img.addEventListener('error', function() {
           skeleton.remove();
-          img.style.display = '';
+          img.style.opacity = '1';
+          img.style.position = '';
+          img.parentNode.style.position = '';
         });
       });
     })();
