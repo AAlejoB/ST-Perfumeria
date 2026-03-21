@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>ST Admin</title>
+  <link rel="icon" type="image/png" href="img/logo-st.webp"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --negro: #0a0a0a; --amarillo: #e8b800; --amarillo-claro: #f5d442;
+      --gris: #888; --gris-claro: #ccc; --borde: rgba(255,255,255,.08);
+    }
+    body {
+      font-family: 'Outfit', sans-serif; background: var(--negro); color: #fff;
+      min-height: 100vh;
+    }
+
+    /* LOGIN */
+    .login-wrap {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem;
+    }
+    .login-box {
+      background: #111; border: 1px solid var(--borde); border-radius: 8px;
+      padding: 2.5rem; max-width: 380px; width: 100%; text-align: center;
+    }
+    .login-logo { font-size: 1.5rem; font-weight: 700; color: var(--amarillo); margin-bottom: .5rem; }
+    .login-sub { font-size: .75rem; color: var(--gris); margin-bottom: 1.5rem; letter-spacing: .1em; text-transform: uppercase; }
+    .login-input {
+      width: 100%; padding: .8rem 1rem; font-family: inherit; font-size: .85rem;
+      background: rgba(255,255,255,.06); border: 1px solid var(--borde); border-radius: 4px;
+      color: #fff; outline: none; margin-bottom: 1rem; transition: border-color .2s;
+    }
+    .login-input:focus { border-color: var(--amarillo); }
+    .login-input::placeholder { color: var(--gris); }
+    .login-btn {
+      width: 100%; padding: .8rem; font-family: inherit; font-size: .8rem; font-weight: 600;
+      letter-spacing: .12em; text-transform: uppercase; background: var(--amarillo);
+      color: #000; border: none; border-radius: 4px; cursor: pointer; transition: background .2s;
+    }
+    .login-btn:hover { background: var(--amarillo-claro); }
+    .login-error { font-size: .75rem; color: #e74c3c; margin-top: .8rem; min-height: 1.2rem; }
+
+    /* PANEL */
+    .panel { display: none; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+    .panel.active { display: block; }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--borde); padding-bottom: 1rem; margin-bottom: 1.5rem;
+    }
+    .panel-title { font-size: 1.2rem; font-weight: 700; color: var(--amarillo); }
+    .panel-logout {
+      font-family: inherit; font-size: .7rem; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gris); background: none; border: 1px solid var(--gris);
+      padding: .4rem .8rem; border-radius: 3px; cursor: pointer; transition: all .2s;
+    }
+    .panel-logout:hover { color: #fff; border-color: #fff; }
+
+    /* TABS */
+    .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-btn {
+      font-family: inherit; font-size: .7rem; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gris); background: none;
+      border: 1px solid var(--borde); padding: .5rem 1rem; border-radius: 4px;
+      cursor: pointer; transition: all .2s;
+    }
+    .tab-btn.active { color: var(--amarillo); border-color: var(--amarillo); background: rgba(232,184,0,.08); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* SEARCH */
+    .admin-search {
+      width: 100%; padding: .7rem 1rem; font-family: inherit; font-size: .85rem;
+      background: rgba(255,255,255,.06); border: 1px solid var(--borde); border-radius: 4px;
+      color: #fff; outline: none; margin-bottom: 1rem;
+    }
+    .admin-search:focus { border-color: var(--amarillo); }
+    .admin-search::placeholder { color: var(--gris); }
+
+    /* TABLE */
+    .admin-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    .admin-table th {
+      text-align: left; padding: .6rem .8rem; font-size: .65rem; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo);
+      border-bottom: 1px solid var(--amarillo);
+    }
+    .admin-table td {
+      padding: .6rem .8rem; border-bottom: 1px solid var(--borde); vertical-align: middle;
+    }
+    .admin-table tr:hover td { background: rgba(255,255,255,.03); }
+    .td-name { font-weight: 600; max-width: 200px; }
+    .td-price { color: var(--amarillo); font-weight: 600; }
+    .td-stock { text-align: center; }
+
+    /* BADGES */
+    .badge-stock {
+      font-size: .6rem; font-weight: 600; letter-spacing: .05em; padding: .2rem .5rem;
+      border-radius: 3px; text-transform: uppercase;
+    }
+    .badge-ok { background: rgba(46,204,113,.15); color: #2ecc71; }
+    .badge-low { background: rgba(241,196,15,.15); color: #f1c40f; }
+    .badge-out { background: rgba(231,76,60,.15); color: #e74c3c; }
+
+    /* ACTIONS */
+    .action-btn {
+      font-family: inherit; font-size: .65rem; font-weight: 600; letter-spacing: .05em;
+      padding: .3rem .6rem; border-radius: 3px; cursor: pointer; transition: all .2s;
+      border: none; margin-right: .3rem;
+    }
+    .btn-price { background: rgba(232,184,0,.15); color: var(--amarillo); }
+    .btn-price:hover { background: rgba(232,184,0,.3); }
+    .btn-stock { background: rgba(52,152,219,.15); color: #3498db; }
+    .btn-stock:hover { background: rgba(52,152,219,.3); }
+    .btn-hide { background: rgba(231,76,60,.15); color: #e74c3c; }
+    .btn-hide:hover { background: rgba(231,76,60,.3); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,.85); z-index: 9999;
+      display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #111; border: 1px solid var(--amarillo); border-radius: 8px;
+      padding: 2rem; max-width: 420px; width: 100%; position: relative;
+    }
+    .modal-close {
+      position: absolute; top: .8rem; right: 1rem; background: none; border: none;
+      color: var(--gris); font-size: 1.5rem; cursor: pointer;
+    }
+    .modal-close:hover { color: #fff; }
+    .modal-title {
+      font-size: .8rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+      color: var(--amarillo); margin-bottom: 1rem; text-align: center;
+    }
+    .modal-label {
+      font-size: .7rem; color: var(--gris-claro); margin-bottom: .3rem; display: block;
+    }
+    .modal-input {
+      width: 100%; padding: .6rem .8rem; font-family: inherit; font-size: .85rem;
+      background: rgba(255,255,255,.06); border: 1px solid var(--borde); border-radius: 4px;
+      color: #fff; outline: none; margin-bottom: .8rem;
+    }
+    .modal-input:focus { border-color: var(--amarillo); }
+    .modal-confirm-text {
+      font-size: .7rem; color: var(--gris); margin-bottom: .3rem; text-align: center;
+      font-style: italic;
+    }
+    .modal-btn {
+      width: 100%; padding: .7rem; font-family: inherit; font-size: .75rem; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase; border: none; border-radius: 4px;
+      cursor: pointer; transition: all .2s; margin-top: .5rem;
+    }
+    .modal-btn:disabled { opacity: .3; cursor: not-allowed; }
+    .modal-btn-price { background: var(--amarillo); color: #000; }
+    .modal-btn-price:hover:not(:disabled) { background: var(--amarillo-claro); }
+    .modal-btn-danger { background: #e74c3c; color: #fff; }
+    .modal-btn-danger:hover:not(:disabled) { background: #c0392b; }
+    .modal-success {
+      font-size: .75rem; color: #2ecc71; text-align: center; margin-top: .5rem; min-height: 1.2rem;
+    }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card {
+      background: #111; border: 1px solid var(--borde); border-radius: 6px; padding: 1.2rem;
+    }
+    .stat-label { font-size: .65rem; color: var(--gris); letter-spacing: .1em; text-transform: uppercase; }
+    .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--amarillo); margin-top: .3rem; }
+    .stat-sub { font-size: .7rem; color: var(--gris-claro); margin-top: .2rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .admin-table { font-size: .7rem; }
+      .admin-table th, .admin-table td { padding: .4rem .5rem; }
+      .td-name { max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="login-wrap" id="loginWrap">
+    <div class="login-box">
+      <p class="login-logo">ST Admin</p>
+      <p class="login-sub">Panel de administracion</p>
+      <input type="password" class="login-input" id="loginPass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <button class="login-btn" onclick="doLogin()">Ingresar</button>
+      <p class="login-error" id="loginError"></p>
+    </div>
+  </div>
+
+  <!-- PANEL -->
+  <div class="panel" id="adminPanel">
+    <div class="panel-header">
+      <p class="panel-title">ST Admin Panel</p>
+      <button class="panel-logout" onclick="doLogout()">Cerrar sesion</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('precios',this)">Precios</button>
+      <button class="tab-btn" onclick="switchTab('stock',this)">Stock</button>
+      <button class="tab-btn" onclick="switchTab('stats',this)">Estadisticas</button>
+      <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
+    </div>
+
+    <!-- TAB: PRECIOS -->
+    <div class="tab-content active" id="tab-precios">
+      <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar perfume..." oninput="filterTable('precios')"/>
+      <table class="admin-table">
+        <thead><tr><th>Perfume</th><th>Marca</th><th>Precio</th><th>Promo</th><th>Accion</th></tr></thead>
+        <tbody id="tbodyPrecios"></tbody>
+      </table>
+    </div>
+
+    <!-- TAB: STOCK -->
+    <div class="tab-content" id="tab-stock">
+      <input type="text" class="admin-search" id="searchStock" placeholder="Buscar perfume..." oninput="filterTable('stock')"/>
+      <table class="admin-table">
+        <thead><tr><th>Perfume</th><th>Estado</th><th>Accion</th></tr></thead>
+        <tbody id="tbodyStock"></tbody>
+      </table>
+    </div>
+
+    <!-- TAB: STATS -->
+    <div class="tab-content" id="tab-stats">
+      <div class="stats-grid" id="statsGrid"></div>
+      <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Top perfumes mas vistos</h3>
+      <table class="admin-table">
+        <thead><tr><th>#</th><th>Perfume</th><th>Visitas</th></tr></thead>
+        <tbody id="tbodyStats"></tbody>
+      </table>
+    </div>
+
+    <!-- TAB: CLIENTES -->
+    <div class="tab-content" id="tab-clientes">
+      <table class="admin-table">
+        <thead><tr><th>Nombre</th><th>Telefono</th><th>Fecha</th></tr></thead>
+        <tbody id="tbodyClientes"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: CAMBIAR PRECIO -->
+  <div class="modal-overlay" id="modalPrice" onclick="closeModal('modalPrice',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalPrice')">&times;</button>
+      <p class="modal-title">Cambiar precio</p>
+      <p id="modalPriceName" style="text-align:center;font-weight:600;margin-bottom:1rem;"></p>
+      <label class="modal-label">Nuevo precio (sin punto ni coma)</label>
+      <input type="number" class="modal-input" id="modalPriceValue" placeholder="Ej: 85000"/>
+      <label class="modal-label">Nuevo precio promo (dejar vacio si no hay)</label>
+      <input type="number" class="modal-input" id="modalPromoValue" placeholder="Ej: 76500"/>
+      <p class="modal-confirm-text">Para confirmar, escribi el nombre exacto del perfume:</p>
+      <input type="text" class="modal-input" id="modalPriceConfirm" placeholder="Nombre del perfume..." oninput="checkPriceConfirm()"/>
+      <button class="modal-btn modal-btn-price" id="modalPriceBtn" disabled onclick="savePrice()">Confirmar cambio</button>
+      <p class="modal-success" id="modalPriceMsg"></p>
+    </div>
+  </div>
+
+  <!-- MODAL: CAMBIAR STOCK -->
+  <div class="modal-overlay" id="modalStock" onclick="closeModal('modalStock',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalStock')">&times;</button>
+      <p class="modal-title">Cambiar stock</p>
+      <p id="modalStockName" style="text-align:center;font-weight:600;margin-bottom:1rem;"></p>
+      <label class="modal-label">Estado</label>
+      <select class="modal-input" id="modalStockSelect" style="cursor:pointer;">
+        <option value="ok">En stock</option>
+        <option value="low">Ultimo disponible</option>
+        <option value="out">Sin stock (ocultar)</option>
+      </select>
+      <p class="modal-confirm-text">Para confirmar, escribi el nombre exacto del perfume:</p>
+      <input type="text" class="modal-input" id="modalStockConfirm" placeholder="Nombre del perfume..." oninput="checkStockConfirm()"/>
+      <button class="modal-btn modal-btn-price" id="modalStockBtn" disabled onclick="saveStock()">Confirmar cambio</button>
+      <p class="modal-success" id="modalStockMsg"></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="perfumes.js"></script>
+  <script>
+    // ============================================================
+    // CONFIG
+    // ============================================================
+    var ADMIN_PASS = 'GUANACO _ \u00d1ANDU _ YACARE _ 10';
+    var SUPABASE_URL = 'https://rtgjzzkjrwbkdhkslxix.supabase.co';
+    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z2p6emtqcndia2Roa3NseGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzU3NzEsImV4cCI6MjA4OTYxMTc3MX0.SoVxC3eF51wi27pavlqIAjE-omqcnPylxJIQjY8vimo';
+    var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    var BOT_TOKEN = '8768088055:AAHo6XnAmd2Zh7OWgccZ4lYqXWqmBU1CzJM';
+    var CHAT_ID = '6071313124';
+
+    var editingSlug = '';
+
+    // ============================================================
+    // LOGIN
+    // ============================================================
+    function doLogin() {
+      var pass = document.getElementById('loginPass').value;
+      if (pass === ADMIN_PASS) {
+        document.getElementById('loginWrap').style.display = 'none';
+        document.getElementById('adminPanel').classList.add('active');
+        renderPrecios();
+        renderStock();
+        loadStats();
+        loadClientes();
+        notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+      } else {
+        document.getElementById('loginError').textContent = 'Contrase\u00f1a incorrecta';
+        notifyTelegram('\ud83d\udea8 Intento fallido de acceso al Panel Admin\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+      }
+    }
+
+    function doLogout() {
+      document.getElementById('adminPanel').classList.remove('active');
+      document.getElementById('loginWrap').style.display = 'flex';
+      document.getElementById('loginPass').value = '';
+    }
+
+    // ============================================================
+    // TELEGRAM
+    // ============================================================
+    function notifyTelegram(msg) {
+      fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
+      }).catch(function(){});
+    }
+
+    // ============================================================
+    // TABS
+    // ============================================================
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById('tab-' + tab).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // ============================================================
+    // PRECIOS
+    // ============================================================
+    function getStockStatus(slug) {
+      var s = localStorage.getItem('st_stock_' + slug);
+      return s || 'ok';
+    }
+
+    function renderPrecios() {
+      var tbody = document.getElementById('tbodyPrecios');
+      var html = '';
+      PERFUMES.forEach(function(p) {
+        if (p.esSet) return;
+        html += '<tr data-search="' + p.name.toLowerCase() + '">'
+          + '<td class="td-name">' + p.name + '</td>'
+          + '<td>' + (p.marca_real || p.marca) + '</td>'
+          + '<td class="td-price">$' + (p.price || 0).toLocaleString('es-AR') + '</td>'
+          + '<td class="td-price">' + (p.promo ? '$' + p.promo.toLocaleString('es-AR') : '-') + '</td>'
+          + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
+          + '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ============================================================
+    // STOCK
+    // ============================================================
+    function renderStock() {
+      var tbody = document.getElementById('tbodyStock');
+      var html = '';
+      PERFUMES.forEach(function(p) {
+        if (p.esSet) return;
+        var status = getStockStatus(p.slug);
+        var badgeClass = status === 'ok' ? 'badge-ok' : status === 'low' ? 'badge-low' : 'badge-out';
+        var badgeText = status === 'ok' ? 'En stock' : status === 'low' ? 'Ultimo' : 'Sin stock';
+        html += '<tr data-search="' + p.name.toLowerCase() + '">'
+          + '<td class="td-name">' + p.name + '</td>'
+          + '<td class="td-stock"><span class="badge-stock ' + badgeClass + '">' + badgeText + '</span></td>'
+          + '<td><button class="action-btn btn-stock" onclick="openStockModal(\'' + p.slug + '\')">Cambiar</button></td>'
+          + '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ============================================================
+    // STATS
+    // ============================================================
+    async function loadStats() {
+      var statsGrid = document.getElementById('statsGrid');
+      var tbody = document.getElementById('tbodyStats');
+
+      // Total perfumes
+      var totalPerfumes = PERFUMES.filter(function(p) { return !p.esSet; }).length;
+
+      // Total clientes
+      var { data: clientes } = await sb.from('clientes').select('id');
+      var totalClientes = clientes ? clientes.length : 0;
+
+      // Total opiniones
+      var { data: opiniones } = await sb.from('opiniones').select('id');
+      var totalOpiniones = opiniones ? opiniones.length : 0;
+
+      // Total clicks
+      var { data: clicks } = await sb.from('perfume_clicks').select('slug');
+      var totalClicks = clicks ? clicks.length : 0;
+
+      statsGrid.innerHTML = ''
+        + '<div class="stat-card"><p class="stat-label">Perfumes</p><p class="stat-value">' + totalPerfumes + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">Clientes</p><p class="stat-value">' + totalClientes + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">Opiniones</p><p class="stat-value">' + totalOpiniones + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">Visitas totales</p><p class="stat-value">' + totalClicks + '</p></div>';
+
+      // Top perfumes
+      if (clicks && clicks.length > 0) {
+        var counts = {};
+        clicks.forEach(function(c) { counts[c.slug] = (counts[c.slug] || 0) + 1; });
+        var sorted = Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; });
+        var html = '';
+        sorted.slice(0, 10).forEach(function(slug, i) {
+          var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+          var name = p ? p.name : slug;
+          html += '<tr><td>' + (i + 1) + '</td><td>' + name + '</td><td class="td-price">' + counts[slug] + '</td></tr>';
+        });
+        tbody.innerHTML = html;
+      } else {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gris);">Sin datos aun</td></tr>';
+      }
+    }
+
+    // ============================================================
+    // CLIENTES
+    // ============================================================
+    async function loadClientes() {
+      var tbody = document.getElementById('tbodyClientes');
+      var { data } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gris);">Sin clientes registrados</td></tr>';
+        return;
+      }
+      var html = '';
+      data.forEach(function(c) {
+        var fecha = new Date(c.created_at).toLocaleDateString('es-AR');
+        html += '<tr><td>' + c.nombre + '</td><td>' + c.telefono + '</td><td>' + fecha + '</td></tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ============================================================
+    // MODALS
+    // ============================================================
+    function openPriceModal(slug) {
+      editingSlug = slug;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      document.getElementById('modalPriceName').textContent = p.name;
+      document.getElementById('modalPriceValue').value = p.price || '';
+      document.getElementById('modalPromoValue').value = p.promo || '';
+      document.getElementById('modalPriceConfirm').value = '';
+      document.getElementById('modalPriceBtn').disabled = true;
+      document.getElementById('modalPriceMsg').textContent = '';
+      document.getElementById('modalPrice').classList.add('active');
+    }
+
+    function openStockModal(slug) {
+      editingSlug = slug;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      document.getElementById('modalStockName').textContent = p.name;
+      document.getElementById('modalStockSelect').value = getStockStatus(slug);
+      document.getElementById('modalStockConfirm').value = '';
+      document.getElementById('modalStockBtn').disabled = true;
+      document.getElementById('modalStockMsg').textContent = '';
+      document.getElementById('modalStock').classList.add('active');
+    }
+
+    function closeModal(id, e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById(id).classList.remove('active');
+      editingSlug = '';
+    }
+
+    // Double verification
+    function checkPriceConfirm() {
+      var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
+      if (!p) return;
+      var input = document.getElementById('modalPriceConfirm').value.trim().toUpperCase();
+      document.getElementById('modalPriceBtn').disabled = (input !== p.name.toUpperCase());
+    }
+
+    function checkStockConfirm() {
+      var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
+      if (!p) return;
+      var input = document.getElementById('modalStockConfirm').value.trim().toUpperCase();
+      document.getElementById('modalStockBtn').disabled = (input !== p.name.toUpperCase());
+    }
+
+    // ============================================================
+    // SAVE CHANGES
+    // ============================================================
+    function savePrice() {
+      var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
+      if (!p) return;
+      var newPrice = parseInt(document.getElementById('modalPriceValue').value);
+      var newPromo = document.getElementById('modalPromoValue').value ? parseInt(document.getElementById('modalPromoValue').value) : null;
+
+      if (!newPrice || newPrice <= 0) {
+        document.getElementById('modalPriceMsg').textContent = 'Precio invalido';
+        document.getElementById('modalPriceMsg').style.color = '#e74c3c';
+        return;
+      }
+
+      // Guardar en localStorage (temporal hasta que se actualice perfumes.js)
+      var changes = JSON.parse(localStorage.getItem('st_price_changes') || '{}');
+      changes[editingSlug] = { price: newPrice, promo: newPromo };
+      localStorage.setItem('st_price_changes', JSON.stringify(changes));
+
+      // Actualizar en memoria
+      p.price = newPrice;
+      p.promo = newPromo;
+
+      document.getElementById('modalPriceMsg').textContent = 'Precio actualizado correctamente';
+      document.getElementById('modalPriceMsg').style.color = '#2ecc71';
+
+      notifyTelegram('\ud83d\udcb0 Precio actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcb5 Precio: $' + newPrice.toLocaleString('es-AR') + (newPromo ? '\n\ud83c\udf1f Promo: $' + newPromo.toLocaleString('es-AR') : ''));
+
+      renderPrecios();
+      setTimeout(function() { closeModal('modalPrice'); }, 1500);
+    }
+
+    function saveStock() {
+      var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
+      if (!p) return;
+      var status = document.getElementById('modalStockSelect').value;
+
+      localStorage.setItem('st_stock_' + editingSlug, status);
+
+      var labels = { ok: 'En stock', low: '\u00daltimo disponible', out: 'Sin stock' };
+      document.getElementById('modalStockMsg').textContent = 'Stock actualizado: ' + labels[status];
+      document.getElementById('modalStockMsg').style.color = '#2ecc71';
+
+      notifyTelegram('\ud83d\udce6 Stock actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcca Estado: ' + labels[status]);
+
+      renderStock();
+      setTimeout(function() { closeModal('modalStock'); }, 1500);
+    }
+
+    // ============================================================
+    // FILTER TABLE
+    // ============================================================
+    function filterTable(tab) {
+      var input = document.getElementById('search' + tab.charAt(0).toUpperCase() + tab.slice(1)).value.toLowerCase();
+      var rows = document.querySelectorAll('#tbody' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' tr');
+      rows.forEach(function(row) {
+        var search = row.dataset.search || '';
+        row.style.display = search.indexOf(input) !== -1 ? '' : 'none';
+      });
+    }
+
+    // Apply saved price changes on load
+    function applySavedChanges() {
+      var changes = JSON.parse(localStorage.getItem('st_price_changes') || '{}');
+      Object.keys(changes).forEach(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (p) {
+          p.price = changes[slug].price;
+          p.promo = changes[slug].promo;
+        }
+      });
+    }
+
+    applySavedChanges();
+  </script>
+</body>
+</html>
