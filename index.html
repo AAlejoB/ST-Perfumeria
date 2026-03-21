@@ -9,7 +9,12 @@
   <meta property="og:title" content="ST Scent &amp; Textures — Perfumes &#193;rabes Originales"/>
   <meta property="og:description" content="Perfumer&#237;a &#225;rabe original en Comodoro Rivadavia. +150 fragancias de larga duraci&#243;n. Pas&#225;s y la gente gira."/>
   <meta property="og:type" content="website"/>
-  <meta property="og:image" content="img/logo-st.webp"/>
+  <meta property="og:image" content="https://st-perfumeria.vercel.app/img/logo-st.webp"/>
+  <meta property="og:url" content="https://st-perfumeria.vercel.app"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="ST Scent &amp; Textures — Perfumes &#193;rabes Originales"/>
+  <meta name="twitter:description" content="Perfumer&#237;a &#225;rabe original en Comodoro Rivadavia. +150 fragancias de larga duraci&#243;n."/>
+  <link rel="canonical" href="https://st-perfumeria.vercel.app"/>
   <link rel="icon" type="image/png" href="img/logo-st.webp"/>
   <link rel="apple-touch-icon" href="img/logo-st.webp"/>
   <title>ST Scent &amp; Textures — Perfumer&#237;a &#193;rabe Original en Comodoro Rivadavia | +150 Fragancias</title>
@@ -751,18 +756,25 @@
       overflow: hidden;
     }
     .voto-opt .poll-label {
-      display: block; position: relative; z-index: 1;
+      position: relative; z-index: 1;
       font-size: .6rem; line-height: 1.3;
+      text-align: left;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 70%;
     }
     .voto-opt .poll-pct {
-      display: block; position: relative; z-index: 1;
+      position: relative; z-index: 1;
       font-size: .7rem; font-weight: 700; color: var(--amarillo);
-      float: none; margin-top: .2rem;
+      text-align: right; flex-shrink: 0;
     }
     .voto-opt .poll-bar {
       position: absolute; top: 0; left: 0; height: 100%;
       background: rgba(232,184,0,.15); border-radius: 4px;
       z-index: 0;
+    }
+    .voto-opt.showed {
+      display: flex; align-items: center; justify-content: space-between;
+      text-align: left;
     }
     .voto-opt.voted-opt .poll-pct { color: var(--negro); }
     .voto-opt:hover:not(:disabled) { border-color: var(--amarillo); color: var(--amarillo); }
@@ -2243,27 +2255,46 @@
     // CARD ENTRANCE ANIMATION
     // ============================================================
     (function() {
-      function animateVisibleCards() {
-        var cards = document.querySelectorAll('.product-card');
-        var delay = 0;
-        cards.forEach(function(card) {
-          if (card.style.display !== 'none' && !card.classList.contains('card-visible')) {
-            card.classList.add('card-animate');
-            setTimeout(function() { card.classList.add('card-visible'); }, delay);
-            delay += 60;
-          }
+      // IntersectionObserver: anima cards cuando entran al viewport
+      if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              var card = entry.target;
+              card.classList.add('card-animate');
+              requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                  card.classList.add('card-visible');
+                });
+              });
+              observer.unobserve(card);
+            }
+          });
+        }, { threshold: 0.1 });
+
+        function observeCards() {
+          document.querySelectorAll('.product-card').forEach(function(card) {
+            if (!card.classList.contains('card-visible')) {
+              observer.observe(card);
+            }
+          });
+        }
+
+        // Observar cards iniciales
+        setTimeout(observeCards, 100);
+
+        // Re-observar cuando se hace load more
+        var origLoadMore = loadMore;
+        loadMore = function() {
+          origLoadMore();
+          observeCards();
+        };
+      } else {
+        // Fallback para navegadores sin IntersectionObserver
+        document.querySelectorAll('.product-card').forEach(function(card) {
+          card.classList.add('card-visible');
         });
       }
-
-      // Animar cards iniciales
-      setTimeout(animateVisibleCards, 100);
-
-      // Re-animar cuando se hace load more
-      var origLoadMore = loadMore;
-      loadMore = function() {
-        origLoadMore();
-        animateVisibleCards();
-      };
     })();
 
     // ============================================================
