@@ -729,6 +729,31 @@
     }
     .set-cta:hover { background: var(--amarillo-claro); }
 
+    /* Sets navigation arrows (desktop only) */
+    .sets-nav-wrap {
+      position: relative;
+    }
+    .sets-arrow {
+      display: none;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(232,184,0,.15);
+      border: 1px solid rgba(232,184,0,.3);
+      color: var(--amarillo);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+      line-height: 1;
+    }
+    .sets-arrow:hover { background: rgba(232,184,0,.3); }
+    .sets-arrow--left { left: -8px; }
+    .sets-arrow--right { right: -8px; }
+
     @media (max-width: 500px) {
       .set-card { flex: 0 0 300px; }
       .set-images { flex: 0 0 110px; }
@@ -738,6 +763,8 @@
       .sets-section { padding: 3rem 2rem 1.5rem; }
       .set-card { flex: 0 0 380px; }
       .set-images { flex: 0 0 150px; }
+      .sets-arrow { display: flex; align-items: center; justify-content: center; }
+      .sets-grid { justify-content: flex-start; }
     }
 
     /* ================================================
@@ -975,16 +1002,35 @@
       margin-bottom: 30px;
     }
 
-    .card-gender {
-      font-size: 1rem;
-      margin-bottom: 5px;
-      color: #666;
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
     }
-
-    .card-ml {
-      font-size: 1rem;
-      margin-bottom: 10px;
-      color: #666;
+    .card-tag {
+      font-size: .6rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      padding: .2rem .5rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .tag-cat {
+      background: rgba(232,184,0,.12);
+      color: var(--amarillo);
+      border: 1px solid rgba(232,184,0,.25);
+    }
+    .tag-ml {
+      background: rgba(255,255,255,.06);
+      color: var(--gris-claro);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .tag-acorde {
+      background: rgba(255,255,255,.04);
+      color: var(--gris);
+      border: 1px solid rgba(255,255,255,.08);
     }
 
     /* Botón favorito (corazón) */
@@ -2065,7 +2111,11 @@
       <p class="sets-title">&#127873; Packs &amp; Sets</p>
       <p class="sets-sub">Combos ideales para regalar o regalarte</p>
     </div>
-    <div class="sets-grid" id="setsGrid"></div>
+    <div class="sets-nav-wrap">
+      <button class="sets-arrow sets-arrow--left" onclick="scrollSets(-1)">&#9664;</button>
+      <div class="sets-grid" id="setsGrid"></div>
+      <button class="sets-arrow sets-arrow--right" onclick="scrollSets(1)">&#9654;</button>
+    </div>
   </section>
 
   <!-- ========== QUIZ — Encontrá tu perfume ========== -->
@@ -2927,8 +2977,11 @@
           + '<p class="card-name">' + p.name + '</p>'
           + '<p class="card-brand-st">ST PERFUMER\u00cdA</p>'
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
-          + '<p class="card-gender">' + pCat + '</p>'
-          + '<p class="card-ml">100 ml.</p>'
+          + '<div class="card-tags">'
+            + '<span class="card-tag tag-cat">' + pCat + '</span>'
+            + '<span class="card-tag tag-ml">100 ml</span>'
+            + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+          + '</div>'
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
         + '</div>'
@@ -3077,6 +3130,13 @@
         + '</div>';
       });
       grid.innerHTML = html;
+    }
+
+    function scrollSets(dir) {
+      var grid = document.getElementById('setsGrid');
+      if (!grid) return;
+      var cardWidth = grid.querySelector('.set-card') ? grid.querySelector('.set-card').offsetWidth + 16 : 400;
+      grid.scrollBy({ left: dir * cardWidth, behavior: 'smooth' });
     }
 
     // ============================================================

@@ -240,6 +240,7 @@
       <button class="tab-btn" onclick="switchTab('destacados',this)">Destacados</button>
       <button class="tab-btn" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" onclick="switchTab('stats',this)">Estadisticas</button>
+      <button class="tab-btn" onclick="switchTab('opiniones',this)">Opiniones</button>
       <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
     </div>
 
@@ -332,6 +333,15 @@
       </table>
     </div>
 
+    <!-- TAB: OPINIONES -->
+    <div class="tab-content" id="tab-opiniones">
+      <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Moderá las opiniones de los clientes. Podés eliminar spam o mensajes inapropiados.</p>
+      <table class="admin-table">
+        <thead><tr><th>Cliente</th><th>Perfume</th><th>Opinión</th><th>Fecha</th><th>Accion</th></tr></thead>
+        <tbody id="tbodyOpiniones"></tbody>
+      </table>
+    </div>
+
     <!-- TAB: CLIENTES -->
     <div class="tab-content" id="tab-clientes">
       <table class="admin-table">
@@ -402,6 +412,7 @@
         renderStock();
         loadDestacados();
         loadStats();
+        loadOpiniones();
         loadClientes();
         loadCierres();
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
@@ -543,6 +554,46 @@
     // ============================================================
     // CLIENTES
     // ============================================================
+    // ============================================================
+    // OPINIONES
+    // ============================================================
+    async function loadOpiniones() {
+      var tbody = document.getElementById('tbodyOpiniones');
+      var { data } = await sb.from('opiniones').select('*').order('created_at', { ascending: false });
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gris);">Sin opiniones</td></tr>';
+        return;
+      }
+      var html = '';
+      data.forEach(function(o) {
+        var fecha = new Date(o.created_at).toLocaleDateString('es-AR');
+        var textoCorto = o.texto && o.texto.length > 60 ? o.texto.substring(0, 60) + '...' : (o.texto || '');
+        html += '<tr>'
+          + '<td>' + (o.nombre || 'Anónimo') + '</td>'
+          + '<td>' + (o.perfume_slug || '-') + '</td>'
+          + '<td style="max-width:200px;font-size:.7rem;color:var(--gris-claro);" title="' + (o.texto || '').replace(/"/g, '&quot;') + '">' + textoCorto + '</td>'
+          + '<td>' + fecha + '</td>'
+          + '<td><button class="action-btn btn-hide" onclick="deleteOpinion(' + o.id + ', this)">Eliminar</button></td>'
+        + '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    async function deleteOpinion(id, btn) {
+      if (!confirm('¿Seguro que querés eliminar esta opinión?')) return;
+      btn.textContent = '...';
+      btn.disabled = true;
+      var { error } = await sb.from('opiniones').delete().eq('id', id);
+      if (error) {
+        alert('Error al eliminar: ' + error.message);
+        btn.textContent = 'Eliminar';
+        btn.disabled = false;
+      } else {
+        notifyTelegram('🗑️ Opinión eliminada (ID: ' + id + ')');
+        loadOpiniones();
+      }
+    }
+
     async function loadClientes() {
       var tbody = document.getElementById('tbodyClientes');
       var { data } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
