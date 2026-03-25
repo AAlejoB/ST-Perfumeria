@@ -207,6 +207,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('precios',this)">Precios</button>
       <button class="tab-btn" onclick="switchTab('stock',this)">Stock</button>
+      <button class="tab-btn" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
     </div>
@@ -242,6 +243,32 @@
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Estado</th><th>Accion</th></tr></thead>
         <tbody id="tbodyStock"></tbody>
+      </table>
+    </div>
+
+    <!-- TAB: HORARIO -->
+    <div class="tab-content" id="tab-horario">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Cerrar un día</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Si el local no abre un día (mudanza, inventario, vacaciones, etc.), agregalo acá y los clientes van a ver el motivo en la web automáticamente.</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:140px;">
+            <label class="modal-label">Fecha</label>
+            <input type="date" class="modal-input" id="cierreFecha" style="margin-bottom:0;"/>
+          </div>
+          <div style="flex:2;min-width:200px;">
+            <label class="modal-label">Motivo</label>
+            <input type="text" class="modal-input" id="cierreMotivo" placeholder="Ej: Inventario, Vacaciones, Mudanza..." style="margin-bottom:0;"/>
+          </div>
+          <button class="modal-btn modal-btn-price" onclick="addCierre()" style="width:auto;padding:.6rem 1.5rem;margin-top:0;">Agregar</button>
+        </div>
+        <p class="modal-success" id="cierreMsg"></p>
+      </div>
+
+      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Días cerrados programados</p>
+      <table class="admin-table">
+        <thead><tr><th>Fecha</th><th>Motivo</th><th>Accion</th></tr></thead>
+        <tbody id="tbodyCierres"></tbody>
       </table>
     </div>
 
@@ -325,6 +352,7 @@
         renderStock();
         loadStats();
         loadClientes();
+        loadCierres();
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
         document.getElementById('loginError').textContent = 'Contrase\u00f1a incorrecta';
@@ -603,6 +631,66 @@
     }
 
     applySavedChanges();
+
+    // ============================================================
+    // CIERRES ESPECIALES
+    // ============================================================
+    async function loadCierres() {
+      var tbody = document.getElementById('tbodyCierres');
+      var { data } = await sb.from('cierres_especiales').select('*').order('fecha', { ascending: true });
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gris);">No hay cierres programados</td></tr>';
+        return;
+      }
+      var hoy = new Date().toISOString().split('T')[0];
+      var html = '';
+      data.forEach(function(c) {
+        var fechaStr = new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        var isPast = c.fecha < hoy;
+        html += '<tr style="' + (isPast ? 'opacity:.4;' : '') + '">'
+          + '<td style="font-weight:600;">' + fechaStr + '</td>'
+          + '<td>' + c.motivo + '</td>'
+          + '<td><button class="action-btn btn-hide" onclick="removeCierre(' + c.id + ')">Eliminar</button></td>'
+          + '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    async function addCierre() {
+      var fecha = document.getElementById('cierreFecha').value;
+      var motivo = document.getElementById('cierreMotivo').value.trim();
+      var msgEl = document.getElementById('cierreMsg');
+
+      if (!fecha) { msgEl.textContent = 'Seleccioná una fecha'; msgEl.style.color = '#e74c3c'; return; }
+      if (!motivo) motivo = 'Cerrado por el día de hoy';
+
+      var { error } = await sb.from('cierres_especiales').insert({ fecha: fecha, motivo: motivo });
+      if (error) {
+        if (error.code === '23505') {
+          msgEl.textContent = 'Esa fecha ya está cargada';
+        } else {
+          msgEl.textContent = 'Error: ' + error.message;
+        }
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      var fechaStr = new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+      msgEl.textContent = 'Cierre agregado: ' + fechaStr;
+      msgEl.style.color = '#2ecc71';
+      notifyTelegram('🚫 Cierre programado\n📅 ' + fechaStr + '\n📝 ' + motivo);
+
+      document.getElementById('cierreFecha').value = '';
+      document.getElementById('cierreMotivo').value = '';
+      loadCierres();
+      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+    }
+
+    async function removeCierre(id) {
+      if (!confirm('¿Eliminar este cierre?')) return;
+      await sb.from('cierres_especiales').delete().eq('id', id);
+      loadCierres();
+    }
   </script>
 </body>
 </html>

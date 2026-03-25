@@ -3267,7 +3267,7 @@
     }
 
     // ============================================================
-    // HORARIO DEL LOCAL — automático con feriados argentinos
+    // HORARIO DEL LOCAL — automático con feriados + cierres admin
     // ============================================================
     (function() {
       var HORARIOS = {
@@ -3280,38 +3280,43 @@
         0: null                        // Domingo cerrado
       };
 
-      function updateStatus(feriados) {
+      function updateStatus(feriados, cierres) {
         var el = document.getElementById('storeStatus');
         var textEl = document.getElementById('storeStatusText');
         if (!el || !textEl) return;
 
-        // Hora Argentina (UTC-3)
         var now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
         var dia = now.getDay();
         var hora = now.getHours();
         var mes = now.getMonth() + 1;
         var diaNum = now.getDate();
+        var hoyISO = now.getFullYear() + '-' + String(mes).padStart(2,'0') + '-' + String(diaNum).padStart(2,'0');
 
-        // Verificar feriado
-        var esFeriado = false;
-        var feriadoNombre = '';
-        if (feriados && feriados.length) {
-          for (var i = 0; i < feriados.length; i++) {
-            if (feriados[i].mes === mes && feriados[i].dia === diaNum) {
-              esFeriado = true;
-              feriadoNombre = feriados[i].motivo || 'Feriado';
-              break;
+        // 1) Verificar cierre especial del admin
+        if (cierres && cierres.length) {
+          for (var i = 0; i < cierres.length; i++) {
+            if (cierres[i].fecha === hoyISO) {
+              el.className = 'store-status holiday';
+              textEl.textContent = cierres[i].motivo;
+              el.style.display = 'inline-flex';
+              return;
             }
           }
         }
 
-        if (esFeriado) {
-          el.className = 'store-status holiday';
-          textEl.textContent = 'Hoy feriado · ' + feriadoNombre;
-          el.style.display = 'inline-flex';
-          return;
+        // 2) Verificar feriado nacional
+        if (feriados && feriados.length) {
+          for (var i = 0; i < feriados.length; i++) {
+            if (feriados[i].mes === mes && feriados[i].dia === diaNum) {
+              el.className = 'store-status holiday';
+              textEl.textContent = 'Hoy feriado · ' + (feriados[i].motivo || 'Feriado');
+              el.style.display = 'inline-flex';
+              return;
+            }
+          }
         }
 
+        // 3) Horario normal
         var horario = HORARIOS[dia];
         if (!horario) {
           el.className = 'store-status closed';
@@ -3328,14 +3333,12 @@
           el.className = 'store-status closed';
           textEl.textContent = 'Cerrado · Abrimos hoy a las ' + horario.open + 'hs';
         } else {
-          // Ya cerró, ¿cuándo abre de nuevo?
           var manana = (dia + 1) % 7;
           var diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
           if (HORARIOS[manana]) {
             el.className = 'store-status closed';
             textEl.textContent = 'Cerrado · Abrimos ' + diasSemana[manana] + ' ' + HORARIOS[manana].open + 'hs';
           } else {
-            // Mañana cerrado (domingo), buscar lunes
             el.className = 'store-status closed';
             textEl.textContent = 'Cerrado · Abrimos lunes 10hs';
           }
@@ -3343,12 +3346,14 @@
         el.style.display = 'inline-flex';
       }
 
-      // Cargar feriados del año actual
+      // Cargar feriados + cierres en paralelo
       var year = new Date().getFullYear();
-      fetch('https://nolaborables.com.ar/api/v2/feriados/' + year)
-        .then(function(r) { return r.json(); })
-        .then(function(data) { updateStatus(data); })
-        .catch(function() { updateStatus([]); });
+      Promise.all([
+        fetch('https://nolaborables.com.ar/api/v2/feriados/' + year).then(function(r) { return r.json(); }).catch(function() { return []; }),
+        sb.from('cierres_especiales').select('fecha,motivo').then(function(r) { return r.data || []; }).catch(function() { return []; })
+      ]).then(function(results) {
+        updateStatus(results[0], results[1]);
+      });
     })();
   </script>
 </body>
