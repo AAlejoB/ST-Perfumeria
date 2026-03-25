@@ -2564,7 +2564,7 @@
         ? '<span class="price-promo">' + priceFormatted + '</span><span class="price-original">' + originalFormatted + '</span>'
         : '<span class="price-promo">' + priceFormatted + '</span>';
 
-      var searchText = [p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || ''].join(' ').toLowerCase();
+      var searchText = stripAccents([p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || ''].join(' ').toLowerCase());
 
       var isFav = favs.indexOf(p.slug) !== -1;
 
@@ -2870,10 +2870,13 @@
     // ============================================================
     // BUSCAR
     // ============================================================
+    function stripAccents(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
     var currentSearch = '';
 
     function applySearch(query) {
-      currentSearch = query.trim().toLowerCase();
+      currentSearch = stripAccents(query.trim().toLowerCase());
       var clearBtn = document.getElementById('searchClear');
       clearBtn.classList.toggle('visible', currentSearch.length > 0);
       applyFilters();
