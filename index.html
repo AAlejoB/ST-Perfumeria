@@ -17,6 +17,8 @@
   <link rel="canonical" href="https://st-perfumeria.vercel.app"/>
   <link rel="icon" type="image/png" href="img/logo-st.webp"/>
   <link rel="apple-touch-icon" href="img/logo-st.webp"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#E8B800"/>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -1753,6 +1755,22 @@
       cursor: pointer; text-decoration: underline; font-family: var(--font-body);
     }
 
+    /* Indicador de horario */
+    .store-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .6rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 20px; margin-top: .5rem;
+    }
+    .store-status .dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .store-status.open { background: rgba(46,204,113,.12); color: #2ecc71; }
+    .store-status.open .dot { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+    .store-status.closed { background: rgba(231,76,60,.1); color: #e74c3c; }
+    .store-status.closed .dot { background: #e74c3c; }
+    .store-status.holiday { background: rgba(241,196,15,.12); color: #f1c40f; }
+    .store-status.holiday .dot { background: #f1c40f; }
+
   </style>
 </head>
 <body>
@@ -1809,6 +1827,10 @@
     <p class="hero-tagline">Perfumer&#237;a &#225;rabe original &middot; Comodoro Rivadavia</p>
     <h1 class="hero-title">"Tu aroma, tu <em>identidad."</em></h1>
     <p class="hero-sub">Perfumes &#225;rabes de larga duraci&#243;n y gran estela. Pas&#225;s y la gente gira.</p>
+    <div class="store-status" id="storeStatus" style="display:none;">
+      <span class="dot"></span>
+      <span id="storeStatusText"></span>
+    </div>
   </section>
 
   <!-- ========== SELECCIÓN ST — Top Ventas ========== -->
@@ -3235,6 +3257,98 @@
           img.parentNode.style.position = '';
         });
       });
+    })();
+
+    // ============================================================
+    // SERVICE WORKER (PWA)
+    // ============================================================
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(function(){});
+    }
+
+    // ============================================================
+    // HORARIO DEL LOCAL — automático con feriados argentinos
+    // ============================================================
+    (function() {
+      var HORARIOS = {
+        1: { open: 10, close: 20 },  // Lunes
+        2: { open: 10, close: 20 },  // Martes
+        3: { open: 10, close: 20 },  // Miércoles
+        4: { open: 10, close: 20 },  // Jueves
+        5: { open: 10, close: 20 },  // Viernes
+        6: { open: 10, close: 14 },  // Sábado
+        0: null                        // Domingo cerrado
+      };
+
+      function updateStatus(feriados) {
+        var el = document.getElementById('storeStatus');
+        var textEl = document.getElementById('storeStatusText');
+        if (!el || !textEl) return;
+
+        // Hora Argentina (UTC-3)
+        var now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+        var dia = now.getDay();
+        var hora = now.getHours();
+        var mes = now.getMonth() + 1;
+        var diaNum = now.getDate();
+
+        // Verificar feriado
+        var esFeriado = false;
+        var feriadoNombre = '';
+        if (feriados && feriados.length) {
+          for (var i = 0; i < feriados.length; i++) {
+            if (feriados[i].mes === mes && feriados[i].dia === diaNum) {
+              esFeriado = true;
+              feriadoNombre = feriados[i].motivo || 'Feriado';
+              break;
+            }
+          }
+        }
+
+        if (esFeriado) {
+          el.className = 'store-status holiday';
+          textEl.textContent = 'Hoy feriado · ' + feriadoNombre;
+          el.style.display = 'inline-flex';
+          return;
+        }
+
+        var horario = HORARIOS[dia];
+        if (!horario) {
+          el.className = 'store-status closed';
+          textEl.textContent = 'Cerrado · Abrimos lunes 10hs';
+          el.style.display = 'inline-flex';
+          return;
+        }
+
+        if (hora >= horario.open && hora < horario.close) {
+          var restante = horario.close - hora;
+          el.className = 'store-status open';
+          textEl.textContent = 'Abierto · Cierra a las ' + horario.close + 'hs' + (restante <= 1 ? ' · ¡Última hora!' : '');
+        } else if (hora < horario.open) {
+          el.className = 'store-status closed';
+          textEl.textContent = 'Cerrado · Abrimos hoy a las ' + horario.open + 'hs';
+        } else {
+          // Ya cerró, ¿cuándo abre de nuevo?
+          var manana = (dia + 1) % 7;
+          var diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+          if (HORARIOS[manana]) {
+            el.className = 'store-status closed';
+            textEl.textContent = 'Cerrado · Abrimos ' + diasSemana[manana] + ' ' + HORARIOS[manana].open + 'hs';
+          } else {
+            // Mañana cerrado (domingo), buscar lunes
+            el.className = 'store-status closed';
+            textEl.textContent = 'Cerrado · Abrimos lunes 10hs';
+          }
+        }
+        el.style.display = 'inline-flex';
+      }
+
+      // Cargar feriados del año actual
+      var year = new Date().getFullYear();
+      fetch('https://nolaborables.com.ar/api/v2/feriados/' + year)
+        .then(function(r) { return r.json(); })
+        .then(function(data) { updateStatus(data); })
+        .catch(function() { updateStatus([]); });
     })();
   </script>
 </body>

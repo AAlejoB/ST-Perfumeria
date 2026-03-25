@@ -3,6 +3,7 @@ img_backup/
 compress-images.js
 *.js
 !perfumes.js
+!sw.js
 notas.json
 notas_pendientes.xlsx
 ~$*
