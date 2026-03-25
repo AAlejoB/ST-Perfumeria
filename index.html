@@ -1294,6 +1294,50 @@
     .wa-float:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(0,0,0,.4); }
     @media (min-width: 768px) { .wa-float { width: 62px; height: 62px; bottom: 30px; right: 30px; } }
 
+    /* Tooltip horario sobre WhatsApp */
+    .wa-status {
+      position: fixed;
+      bottom: 86px;
+      right: 24px;
+      z-index: 999;
+      font-family: 'Outfit', sans-serif;
+      font-size: .62rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      padding: .3rem .6rem;
+      border-radius: 20px;
+      white-space: nowrap;
+      box-shadow: 0 2px 10px rgba(0,0,0,.4);
+      animation: waStatusIn .5s ease .8s both;
+    }
+    .wa-status--open {
+      background: rgba(37,211,102,.15);
+      color: #25D366;
+      border: 1px solid rgba(37,211,102,.3);
+    }
+    .wa-status--closed {
+      background: rgba(231,76,60,.12);
+      color: #e74c3c;
+      border: 1px solid rgba(231,76,60,.25);
+    }
+    .wa-status--special {
+      background: rgba(241,196,15,.12);
+      color: #f1c40f;
+      border: 1px solid rgba(241,196,15,.25);
+    }
+    .wa-status-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .wa-status--open .wa-status-dot { background: #25D366; }
+    .wa-status--closed .wa-status-dot { background: #e74c3c; }
+    .wa-status--special .wa-status-dot { background: #f1c40f; }
+    @keyframes waStatusIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (min-width: 768px) { .wa-status { bottom: 98px; right: 30px; font-size: .65rem; } }
+
     /* Badge "Último disponible" en card */
     .badge-ultimo {
       position: absolute; top: 8px; left: 8px; z-index: 3;
@@ -2124,6 +2168,7 @@
     </div>
   </div>
 
+  <div class="wa-status" id="waStatus"></div>
   <a href="https://wa.me/5492975416017?text=Hola!%20Quiero%20consultar%20por%20un%20perfume" target="_blank" class="wa-float" aria-label="WhatsApp">
     <svg viewBox="0 0 32 32" width="28" height="28"><path fill="#fff" d="M16.01 2.93A13.07 13.07 0 0 0 2.93 16a12.94 12.94 0 0 0 1.74 6.51L2.93 29.07l6.73-1.74A13.06 13.06 0 1 0 16.01 2.93Zm0 23.9a10.8 10.8 0 0 1-5.52-1.5l-.4-.24-4.12 1.08 1.1-4.03-.26-.41a10.83 10.83 0 1 1 9.2 5.1Zm5.93-8.1c-.33-.16-1.93-.95-2.23-1.06-.3-.11-.52-.16-.74.17-.22.32-.85 1.06-1.04 1.28-.2.22-.39.24-.72.08-.33-.16-1.38-.51-2.63-1.62-.97-.87-1.63-1.94-1.82-2.27-.19-.33-.02-.5.14-.67.15-.15.33-.39.5-.59.16-.2.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.17-.73-1.77-1-2.42-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.72 0 1.6 1.17 3.15 1.33 3.37.17.22 2.3 3.51 5.57 4.92.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.1 1.93-.79 2.2-1.55.28-.76.28-1.41.2-1.55-.09-.14-.31-.22-.64-.38Z"/></svg>
   </a>
@@ -3190,6 +3235,64 @@
     });
     renderCategories();
     renderVotoButtons();
+    checkStoreStatus();
+
+    // ============================================================
+    // HORARIO DEL LOCAL
+    // ============================================================
+    async function checkStoreStatus() {
+      var el = document.getElementById('waStatus');
+      if (!el) return;
+
+      // Hora Argentina (UTC-3)
+      var now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+      var day = now.getDay(); // 0=dom
+      var hour = now.getHours();
+      var min = now.getMinutes();
+      var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+
+      // Verificar cierre especial
+      try {
+        var { data: cierres } = await sb.from('cierres_especiales').select('motivo').eq('fecha', todayStr);
+        if (cierres && cierres.length > 0) {
+          el.className = 'wa-status wa-status--special';
+          el.innerHTML = '<span class="wa-status-dot"></span>' + cierres[0].motivo;
+          return;
+        }
+      } catch(e) {}
+
+      // Domingo cerrado
+      if (day === 0) {
+        el.className = 'wa-status wa-status--closed';
+        el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos lunes 10hs';
+        return;
+      }
+
+      // Lunes a sábado: 10:00 a 20:00
+      var currentMin = hour * 60 + min;
+      var openMin = 10 * 60;   // 10:00
+      var closeMin = 20 * 60;  // 20:00
+
+      if (currentMin >= openMin && currentMin < closeMin) {
+        var remainHrs = Math.floor((closeMin - currentMin) / 60);
+        var remainMin = (closeMin - currentMin) % 60;
+        var remainText = remainHrs > 0 ? remainHrs + 'h ' + (remainMin > 0 ? remainMin + 'min' : '') : remainMin + 'min';
+        el.className = 'wa-status wa-status--open';
+        el.innerHTML = '<span class="wa-status-dot"></span>Abierto · Cierra en ' + remainText.trim();
+      } else if (currentMin < openMin) {
+        el.className = 'wa-status wa-status--closed';
+        el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos hoy 10hs';
+      } else {
+        // Ya cerró
+        if (day === 6) {
+          el.className = 'wa-status wa-status--closed';
+          el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos lunes 10hs';
+        } else {
+          el.className = 'wa-status wa-status--closed';
+          el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos mañana 10hs';
+        }
+      }
+    }
 
     // ============================================================
     // SCROLL TO TOP — mostrar/ocultar
