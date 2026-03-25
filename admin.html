@@ -400,7 +400,7 @@
         document.getElementById('adminPanel').classList.add('active');
         renderPrecios();
         renderStock();
-        renderDestacados();
+        loadDestacados();
         loadStats();
         loadClientes();
         loadCierres();
@@ -684,21 +684,29 @@
     applySavedChanges();
 
     // ============================================================
-    // DESTACADOS (Selección ST)
+    // DESTACADOS (Selección ST) — Supabase
     // ============================================================
-    var DEFAULT_DEST = ['khamrah','asad','9-am','9-pm','yara-tous'];
+    var cachedDestacados = [];
 
-    function getDestacados() {
-      return JSON.parse(localStorage.getItem('st_destacados') || 'null') || DEFAULT_DEST;
+    async function loadDestacados() {
+      var { data } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
+      cachedDestacados = data ? data.map(function(d) { return d.slug; }) : [];
+      renderDestacados();
     }
 
-    function saveDestacados(list) {
-      localStorage.setItem('st_destacados', JSON.stringify(list));
+    async function syncDestacadosToDB(slugs) {
+      // Borrar todos y reinsertar con posiciones correctas
+      await sb.from('destacados').delete().neq('id', 0);
+      if (slugs.length > 0) {
+        var rows = slugs.map(function(slug, i) { return { slug: slug, posicion: i }; });
+        await sb.from('destacados').insert(rows);
+      }
+      cachedDestacados = slugs;
       renderDestacados();
     }
 
     function renderDestacados() {
-      var slugs = getDestacados();
+      var slugs = cachedDestacados;
       var container = document.getElementById('destacadosList');
       var countEl = document.getElementById('destacadosCount');
       if (!container) return;
@@ -730,19 +738,19 @@
     }
 
     function moveDestacado(index, dir) {
-      var slugs = getDestacados();
+      var slugs = cachedDestacados.slice();
       var newIndex = index + dir;
       if (newIndex < 0 || newIndex >= slugs.length) return;
       var temp = slugs[index];
       slugs[index] = slugs[newIndex];
       slugs[newIndex] = temp;
-      saveDestacados(slugs);
+      syncDestacadosToDB(slugs);
     }
 
     function removeDestacado(index) {
-      var slugs = getDestacados();
+      var slugs = cachedDestacados.slice();
       var removed = slugs.splice(index, 1);
-      saveDestacados(slugs);
+      syncDestacadosToDB(slugs);
       var p = PERFUMES.find(function(pf) { return pf.slug === removed[0]; });
       var msgEl = document.getElementById('destacadoMsg');
       msgEl.textContent = (p ? p.name : '') + ' eliminado de destacados';
@@ -751,7 +759,7 @@
     }
 
     function addDestacado(slug) {
-      var slugs = getDestacados();
+      var slugs = cachedDestacados.slice();
       if (slugs.indexOf(slug) !== -1) {
         var msgEl = document.getElementById('destacadoMsg');
         msgEl.textContent = 'Ya está en destacados';
@@ -767,7 +775,7 @@
         return;
       }
       slugs.push(slug);
-      saveDestacados(slugs);
+      syncDestacadosToDB(slugs);
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       var msgEl = document.getElementById('destacadoMsg');
       msgEl.textContent = (p ? p.name : '') + ' agregado a destacados';
@@ -789,7 +797,7 @@
       if (matches.length === 0) {
         results.innerHTML = '<div class="dest-search-item" style="color:var(--gris);">Sin resultados</div>';
       } else {
-        var slugs = getDestacados();
+        var slugs = cachedDestacados;
         var html = '';
         matches.forEach(function(p) {
           var already = slugs.indexOf(p.slug) !== -1;

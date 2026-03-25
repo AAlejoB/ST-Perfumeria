@@ -2735,7 +2735,18 @@
     var cardsShown = CARDS_INITIAL;
 
     var DEFAULT_TOP_SLUGS = ['khamrah','asad','9-am','9-pm','yara-tous'];
-    var TOP_VENTAS_SLUGS = JSON.parse(localStorage.getItem('st_destacados') || 'null') || DEFAULT_TOP_SLUGS;
+    var TOP_VENTAS_SLUGS = DEFAULT_TOP_SLUGS;
+
+    // Cargar destacados desde Supabase (visible para TODOS los visitantes)
+    (async function loadDestacadosFromDB() {
+      try {
+        var { data } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
+        if (data && data.length > 0) {
+          TOP_VENTAS_SLUGS = data.map(function(d) { return d.slug; });
+          renderSeleccionST();
+        }
+      } catch(e) {}
+    })();
 
     function renderSeleccionST() {
       var grid = document.getElementById('seleccionGrid');
