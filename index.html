@@ -569,6 +569,178 @@
     }
 
     /* ================================================
+       PACKS & SETS
+    ================================================ */
+    .sets-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem 1rem;
+    }
+    .sets-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .sets-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 400;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+    }
+    .sets-sub {
+      font-size: .75rem;
+      color: var(--gris);
+      font-style: italic;
+      margin-top: .3rem;
+    }
+    .sets-grid {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      padding-bottom: .5rem;
+      scrollbar-width: none;
+      justify-content: center;
+    }
+    .sets-grid::-webkit-scrollbar { display: none; }
+
+    .set-card {
+      flex: 0 0 340px;
+      scroll-snap-align: start;
+      background: #0f0f12;
+      border: 1px solid rgba(232,184,0,.2);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
+      transition: border-color .3s;
+    }
+    .set-card:hover { border-color: var(--amarillo); }
+
+    .set-images {
+      flex: 0 0 130px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      padding: .6rem;
+      align-content: center;
+    }
+    .set-images.items-2 .set-img-slot { width: 100%; aspect-ratio: 3/4; }
+    .set-images.items-4 .set-img-slot { width: calc(50% - 1px); aspect-ratio: 1; }
+    .set-images.items-3 .set-img-slot { width: calc(50% - 1px); aspect-ratio: 1; }
+    .set-images.items-1 .set-img-slot { width: 100%; aspect-ratio: 3/4; }
+
+    .set-img-slot {
+      background: #1a1a1d;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .set-img-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .set-img-letter {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--amarillo);
+      opacity: .3;
+    }
+
+    .set-info {
+      flex: 1;
+      padding: 1rem .8rem 1rem .4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: .5rem;
+    }
+    .set-badge {
+      align-self: flex-start;
+      font-size: .55rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #000;
+      background: var(--amarillo);
+      padding: .2rem .5rem;
+      border-radius: 3px;
+    }
+    .set-name {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: .08em;
+    }
+    .set-items-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .set-items-list li {
+      font-size: .68rem;
+      color: var(--gris-claro);
+      padding: .15rem 0;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .set-items-list li::before {
+      content: '\25C6';
+      color: var(--amarillo);
+      font-size: .3rem;
+    }
+    .set-pricing {
+      display: flex;
+      align-items: baseline;
+      gap: .5rem;
+    }
+    .set-price-promo {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--amarillo);
+    }
+    .set-price-original {
+      font-size: .7rem;
+      color: var(--gris);
+      text-decoration: line-through;
+    }
+    .set-cta {
+      display: inline-block;
+      text-align: center;
+      font-family: var(--font-body);
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #000;
+      background: var(--amarillo);
+      padding: .45rem .8rem;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .2s;
+      align-self: flex-start;
+    }
+    .set-cta:hover { background: var(--amarillo-claro); }
+
+    @media (max-width: 500px) {
+      .set-card { flex: 0 0 300px; }
+      .set-images { flex: 0 0 110px; }
+      .set-name { font-size: .85rem; }
+    }
+    @media (min-width: 768px) {
+      .sets-section { padding: 3rem 2rem 1.5rem; }
+      .set-card { flex: 0 0 380px; }
+      .set-images { flex: 0 0 150px; }
+    }
+
+    /* ================================================
        QUIZ — Encontrá tu perfume
     ================================================ */
     .quiz-section {
@@ -1887,6 +2059,15 @@
     <div class="seleccion-st-grid" id="seleccionGrid"></div>
   </section>
 
+  <!-- ========== PACKS & SETS ========== -->
+  <section class="sets-section" id="setsSection">
+    <div class="sets-header">
+      <p class="sets-title">&#127873; Packs &amp; Sets</p>
+      <p class="sets-sub">Combos ideales para regalar o regalarte</p>
+    </div>
+    <div class="sets-grid" id="setsGrid"></div>
+  </section>
+
   <!-- ========== QUIZ — Encontrá tu perfume ========== -->
   <section class="quiz-section" id="quizSection">
     <div class="quiz-box" id="quizBox">
@@ -2834,6 +3015,71 @@
     }
 
     // ============================================================
+    // PACKS & SETS
+    // ============================================================
+    function renderSets() {
+      var grid = document.getElementById('setsGrid');
+      if (!grid) return;
+      var sets = PERFUMES.filter(function(p) { return p.esSet; });
+      if (sets.length === 0) {
+        document.getElementById('setsSection').style.display = 'none';
+        return;
+      }
+      var html = '';
+      sets.forEach(function(s) {
+        var items = s.items || [];
+        var itemCount = items.length;
+        var itemsClass = 'items-' + (itemCount > 4 ? 4 : itemCount);
+
+        // Build image slots
+        var imgsHTML = '';
+        items.forEach(function(item) {
+          var ref = item.slug ? PERFUMES.find(function(pf) { return pf.slug === item.slug; }) : null;
+          var foto = ref && ref.foto ? ref.foto.replace(/ /g, '%20') : '';
+          var nombre = item.nombre || (ref ? ref.name : '?');
+          if (foto) {
+            imgsHTML += '<div class="set-img-slot"><img src="' + foto + '" alt="' + nombre + '" loading="lazy"></div>';
+          } else {
+            imgsHTML += '<div class="set-img-slot"><span class="set-img-letter">' + nombre.charAt(0) + '</span></div>';
+          }
+        });
+
+        // Build items list
+        var listHTML = '';
+        items.forEach(function(item) {
+          var ref = item.slug ? PERFUMES.find(function(pf) { return pf.slug === item.slug; }) : null;
+          var nombre = item.nombre || (ref ? ref.name : '?');
+          var mlText = item.ml ? ' (' + item.ml + 'ml)' : '';
+          listHTML += '<li>' + nombre + mlText + '</li>';
+        });
+
+        // Pricing
+        var promoHTML = s.promo ? formatPrice(s.promo) : formatPrice(s.price);
+        var origHTML = s.promo ? formatPrice(s.price) : '';
+
+        // Badge text
+        var badgeText = 'SET x' + itemCount;
+        if (s.setTipo === 'regalo') badgeText = 'REGALO';
+        if (s.setTipo === 'mini-collection') badgeText = 'MINI x' + itemCount;
+
+        html += '<div class="set-card">'
+          + '<div class="set-images ' + itemsClass + '">' + imgsHTML + '</div>'
+          + '<div class="set-info">'
+            + '<span class="set-badge">' + badgeText + '</span>'
+            + '<p class="set-name">' + s.name + '</p>'
+            + '<ul class="set-items-list">' + listHTML + '</ul>'
+            + '<div class="set-pricing">'
+              + '<span class="set-price-promo">' + promoHTML + '</span>'
+              + (origHTML ? '<span class="set-price-original">' + origHTML + '</span>' : '')
+            + '</div>'
+            + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + s.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="set-cta">Consultar &#8594;</a>'
+          + '</div>'
+        + '</div>';
+      });
+      grid.innerHTML = html;
+    }
+
+    // ============================================================
     // VER SIMILARES
     // ============================================================
     function getNotas(p) {
@@ -3004,11 +3250,12 @@
 
     function renderCatalog() {
       const grid = document.getElementById('catalogGrid');
-      grid.innerHTML = PERFUMES.map(buildCard).join('');
+      grid.innerHTML = PERFUMES.filter(function(p) { return !p.esSet; }).map(buildCard).join('');
       cardsShown = CARDS_INITIAL;
       applyCardVisibility();
       updateFavBadge();
       renderSeleccionST();
+      renderSets();
       renderNoteFilters();
 
       // Track clicks en cards
