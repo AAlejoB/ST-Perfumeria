@@ -1325,8 +1325,8 @@ const PERFUMES = [
     notas_base:    "SÁNDALO, ÁMBAR",
   },
   {
-    slug:   "fhakar-women",
-    name:   "FHAKAR WOMEN",
+    slug:   "fakhar-women",
+    name:   "FAKHAR WOMEN",
     cat:    "Mujer",
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
@@ -1339,8 +1339,8 @@ const PERFUMES = [
     notas_base:    "Vainilla, Ambroxan, Sándalo, Almizcle",
   },
   {
-    slug:   "fhakar-man",
-    name:   "FHAKAR MAN",
+    slug:   "fakhar-man",
+    name:   "FAKHAR MAN",
     cat:    "Hombre",
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
@@ -1353,8 +1353,8 @@ const PERFUMES = [
     notas_base:    "Almizcle, Vainilla, Vetiver, Pachulí",
   },
   {
-    slug:   "fhakar-gold",
-    name:   "FHAKAR GOLD",
+    slug:   "fakhar-gold",
+    name:   "FAKHAR GOLD",
     cat:    "Unisex",
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
