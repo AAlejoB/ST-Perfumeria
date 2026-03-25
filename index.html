@@ -2734,7 +2734,8 @@
     var CARDS_INCREMENT = 15;
     var cardsShown = CARDS_INITIAL;
 
-    var TOP_VENTAS_SLUGS = ['khamrah','asad','9-am','9-pm','yara-tous','hawas','badee-oud-for-glory'];
+    var DEFAULT_TOP_SLUGS = ['khamrah','asad','9-am','9-pm','yara-tous'];
+    var TOP_VENTAS_SLUGS = JSON.parse(localStorage.getItem('st_destacados') || 'null') || DEFAULT_TOP_SLUGS;
 
     function renderSeleccionST() {
       var grid = document.getElementById('seleccionGrid');

@@ -176,6 +176,36 @@
     .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--amarillo); margin-top: .3rem; }
     .stat-sub { font-size: .7rem; color: var(--gris-claro); margin-top: .2rem; }
 
+    /* DESTACADOS */
+    .dest-item {
+      display: flex; align-items: center; gap: .8rem;
+      background: #111; border: 1px solid var(--borde); border-radius: 6px;
+      padding: .6rem .8rem;
+    }
+    .dest-num {
+      font-size: 1.1rem; font-weight: 700; color: var(--amarillo); min-width: 24px; text-align: center;
+    }
+    .dest-img {
+      width: 40px; height: 50px; border-radius: 4px; object-fit: cover; background: #1a1a1a;
+    }
+    .dest-info { flex: 1; }
+    .dest-name { font-size: .8rem; font-weight: 600; }
+    .dest-brand { font-size: .65rem; color: var(--gris); }
+    .dest-actions { display: flex; gap: .3rem; }
+    .dest-btn {
+      font-family: inherit; font-size: .7rem; background: none; border: none;
+      cursor: pointer; padding: .3rem; border-radius: 3px; transition: all .2s;
+    }
+    .dest-btn:hover { background: rgba(255,255,255,.1); }
+    .dest-btn-up, .dest-btn-down { color: var(--gris-claro); font-size: .9rem; }
+    .dest-btn-remove { color: #e74c3c; font-size: .9rem; }
+    .dest-search-item {
+      padding: .5rem .8rem; cursor: pointer; font-size: .75rem;
+      border-bottom: 1px solid var(--borde); transition: background .15s;
+    }
+    .dest-search-item:hover { background: rgba(232,184,0,.1); }
+    .dest-search-item:last-child { border-bottom: none; }
+
     /* RESPONSIVE */
     @media (max-width: 600px) {
       .admin-table { font-size: .7rem; }
@@ -207,6 +237,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('precios',this)">Precios</button>
       <button class="tab-btn" onclick="switchTab('stock',this)">Stock</button>
+      <button class="tab-btn" onclick="switchTab('destacados',this)">Destacados</button>
       <button class="tab-btn" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
@@ -244,6 +275,25 @@
         <thead><tr><th>Perfume</th><th>Estado</th><th>Accion</th></tr></thead>
         <tbody id="tbodyStock"></tbody>
       </table>
+    </div>
+
+    <!-- TAB: DESTACADOS -->
+    <div class="tab-content" id="tab-destacados">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Selección ST</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Los perfumes que aparecen en la sección destacada del inicio. Máximo 7, recomendado 5.</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:200px;">
+            <label class="modal-label">Agregar perfume</label>
+            <input type="text" class="modal-input" id="destacadoSearch" placeholder="Buscar perfume..." oninput="filterDestacados()" style="margin-bottom:0;"/>
+            <div id="destacadoResults" style="max-height:150px;overflow-y:auto;border:1px solid var(--borde);border-radius:4px;display:none;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Destacados actuales (<span id="destacadosCount">0</span>/7)</p>
+      <div id="destacadosList" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+      <p class="modal-success" id="destacadoMsg" style="margin-top:.8rem;"></p>
     </div>
 
     <!-- TAB: HORARIO -->
@@ -350,6 +400,7 @@
         document.getElementById('adminPanel').classList.add('active');
         renderPrecios();
         renderStock();
+        renderDestacados();
         loadStats();
         loadClientes();
         loadCierres();
@@ -631,6 +682,126 @@
     }
 
     applySavedChanges();
+
+    // ============================================================
+    // DESTACADOS (Selección ST)
+    // ============================================================
+    var DEFAULT_DEST = ['khamrah','asad','9-am','9-pm','yara-tous'];
+
+    function getDestacados() {
+      return JSON.parse(localStorage.getItem('st_destacados') || 'null') || DEFAULT_DEST;
+    }
+
+    function saveDestacados(list) {
+      localStorage.setItem('st_destacados', JSON.stringify(list));
+      renderDestacados();
+    }
+
+    function renderDestacados() {
+      var slugs = getDestacados();
+      var container = document.getElementById('destacadosList');
+      var countEl = document.getElementById('destacadosCount');
+      if (!container) return;
+      countEl.textContent = slugs.length;
+
+      if (slugs.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">No hay destacados. Buscá un perfume arriba para agregar.</p>';
+        return;
+      }
+
+      var html = '';
+      slugs.forEach(function(slug, i) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!p) return;
+        var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+        var imgHTML = fotoSrc ? '<img class="dest-img" src="' + fotoSrc + '" alt="' + p.name + '">' : '<div class="dest-img" style="display:flex;align-items:center;justify-content:center;color:var(--amarillo);font-weight:700;">' + p.name.charAt(0) + '</div>';
+        html += '<div class="dest-item">'
+          + '<span class="dest-num">' + (i + 1) + '</span>'
+          + imgHTML
+          + '<div class="dest-info"><p class="dest-name">' + p.name + '</p><p class="dest-brand">' + (p.marca_real || p.marca) + '</p></div>'
+          + '<div class="dest-actions">'
+            + (i > 0 ? '<button class="dest-btn dest-btn-up" onclick="moveDestacado(' + i + ',-1)" title="Subir">&#9650;</button>' : '')
+            + (i < slugs.length - 1 ? '<button class="dest-btn dest-btn-down" onclick="moveDestacado(' + i + ',1)" title="Bajar">&#9660;</button>' : '')
+            + '<button class="dest-btn dest-btn-remove" onclick="removeDestacado(' + i + ')" title="Quitar">&times;</button>'
+          + '</div>'
+        + '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function moveDestacado(index, dir) {
+      var slugs = getDestacados();
+      var newIndex = index + dir;
+      if (newIndex < 0 || newIndex >= slugs.length) return;
+      var temp = slugs[index];
+      slugs[index] = slugs[newIndex];
+      slugs[newIndex] = temp;
+      saveDestacados(slugs);
+    }
+
+    function removeDestacado(index) {
+      var slugs = getDestacados();
+      var removed = slugs.splice(index, 1);
+      saveDestacados(slugs);
+      var p = PERFUMES.find(function(pf) { return pf.slug === removed[0]; });
+      var msgEl = document.getElementById('destacadoMsg');
+      msgEl.textContent = (p ? p.name : '') + ' eliminado de destacados';
+      msgEl.style.color = '#e74c3c';
+      setTimeout(function() { msgEl.textContent = ''; }, 2000);
+    }
+
+    function addDestacado(slug) {
+      var slugs = getDestacados();
+      if (slugs.indexOf(slug) !== -1) {
+        var msgEl = document.getElementById('destacadoMsg');
+        msgEl.textContent = 'Ya está en destacados';
+        msgEl.style.color = '#f1c40f';
+        setTimeout(function() { msgEl.textContent = ''; }, 2000);
+        return;
+      }
+      if (slugs.length >= 7) {
+        var msgEl = document.getElementById('destacadoMsg');
+        msgEl.textContent = 'Máximo 7 destacados. Quitá uno primero.';
+        msgEl.style.color = '#e74c3c';
+        setTimeout(function() { msgEl.textContent = ''; }, 2000);
+        return;
+      }
+      slugs.push(slug);
+      saveDestacados(slugs);
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      var msgEl = document.getElementById('destacadoMsg');
+      msgEl.textContent = (p ? p.name : '') + ' agregado a destacados';
+      msgEl.style.color = '#2ecc71';
+      setTimeout(function() { msgEl.textContent = ''; }, 2000);
+      document.getElementById('destacadoSearch').value = '';
+      document.getElementById('destacadoResults').style.display = 'none';
+    }
+
+    function filterDestacados() {
+      var input = document.getElementById('destacadoSearch').value.trim().toLowerCase();
+      var results = document.getElementById('destacadoResults');
+      if (input.length < 2) { results.style.display = 'none'; return; }
+
+      var matches = PERFUMES.filter(function(p) {
+        return !p.esSet && p.name.toLowerCase().indexOf(input) !== -1;
+      }).slice(0, 8);
+
+      if (matches.length === 0) {
+        results.innerHTML = '<div class="dest-search-item" style="color:var(--gris);">Sin resultados</div>';
+      } else {
+        var slugs = getDestacados();
+        var html = '';
+        matches.forEach(function(p) {
+          var already = slugs.indexOf(p.slug) !== -1;
+          html += '<div class="dest-search-item" onclick="addDestacado(\'' + p.slug + '\')" style="' + (already ? 'opacity:.4;' : '') + '">'
+            + p.name + ' <span style="color:var(--gris);font-size:.65rem;">' + (p.marca_real || p.marca) + '</span>'
+            + (already ? ' <span style="color:var(--amarillo);font-size:.6rem;">✦ ya destacado</span>' : '')
+          + '</div>';
+        });
+        results.innerHTML = html;
+      }
+      results.style.display = 'block';
+    }
 
     // ============================================================
     // CIERRES ESPECIALES
