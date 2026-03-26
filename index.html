@@ -2753,8 +2753,26 @@
       <p class="auth-subtitle" id="authSubtitle">Guard&#225; tus favoritos, vot&#225; el perfume del mes y recib&#237; ofertas por WhatsApp</p>
       <input type="text" class="auth-input" id="authName" placeholder="Tu nombre" maxlength="60">
       <input type="tel" class="auth-input" id="authPhone" placeholder="N&#250;mero de WhatsApp (ej: 2975416017)">
+      <input type="password" class="auth-input" id="authPass" placeholder="Cre&#225; una contrase&#241;a (m&#237;n. 4 caracteres)" minlength="4" maxlength="30">
       <button class="auth-btn" id="authBtn" onclick="handleAuth()">Unirme</button>
       <p class="auth-error" id="authError"></p>
+    </div>
+  </div>
+
+  <!-- Modal Editar Perfil -->
+  <div class="auth-overlay" id="editProfileOverlay" onclick="if(event.target===this)closeEditProfile()">
+    <div class="auth-modal">
+      <button class="auth-close" onclick="closeEditProfile()">&times;</button>
+      <h3 class="auth-title">&#9998; Editar perfil</h3>
+      <p class="auth-subtitle">Modific&#225; tus datos. Se requiere contrase&#241;a para confirmar.</p>
+      <input type="text" class="auth-input" id="editName" placeholder="Nombre" maxlength="60">
+      <input type="tel" class="auth-input" id="editPhone" placeholder="N&#250;mero de WhatsApp">
+      <div style="border-top:1px solid rgba(255,255,255,.1); margin:12px 0; padding-top:12px;">
+        <p style="font-size:.7rem;color:#999;margin-bottom:8px;">Confirm&#225; con tu contrase&#241;a para guardar</p>
+        <input type="password" class="auth-input" id="editConfirmPass" placeholder="Tu contrase&#241;a actual">
+      </div>
+      <button class="auth-btn" id="editProfileBtn" onclick="saveEditProfile()">Guardar cambios</button>
+      <p class="auth-error" id="editProfileError"></p>
     </div>
   </div>
 
@@ -2767,6 +2785,8 @@
     <a href="#categorias" class="drawer-link" onclick="toggleDrawer()">Categor&#237;as</a>
     <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()">Nosotros</a>
     <a href="#contacto" class="drawer-link" onclick="toggleDrawer()">Contacto</a>
+    <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth">Registrarse</a>
+    <a href="#" class="drawer-link" style="display:none;color:#e74c3c;" onclick="event.preventDefault();toggleDrawer();logout()" id="drawerLogout">Cerrar sesi&#243;n</a>
   </div>
 
   <nav>
@@ -3262,7 +3282,8 @@
     // AUTH — registro con nombre + WhatsApp
     // ============================================================
     function openAuth() {
-      if (currentUser) return; // ya registrado
+      if (currentUser) return;
+      switchAuthMode('register');
       document.getElementById('authOverlay').classList.add('open');
       document.getElementById('authError').textContent = '';
     }
@@ -3282,41 +3303,148 @@
       return digits;
     }
 
+    var authMode = 'register'; // 'register' o 'login'
+
+    function switchAuthMode(mode) {
+      authMode = mode;
+      var nameEl = document.getElementById('authName');
+      var passEl = document.getElementById('authPass');
+      var titleEl = document.getElementById('authTitle');
+      var subEl = document.getElementById('authSubtitle');
+      var btnEl = document.getElementById('authBtn');
+      document.getElementById('authError').textContent = '';
+      if (mode === 'login') {
+        nameEl.style.display = 'none';
+        passEl.placeholder = 'Tu contraseña';
+        titleEl.textContent = 'Iniciá sesión';
+        subEl.innerHTML = '¿No tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" style="color:var(--amarillo)">Registrate</a>';
+        btnEl.textContent = 'Entrar';
+      } else {
+        nameEl.style.display = '';
+        passEl.placeholder = 'Creá una contraseña (mín. 4 caracteres)';
+        titleEl.textContent = 'Unite a ST';
+        subEl.innerHTML = 'Guardá tus favoritos, votá el perfume del mes y recibí ofertas<br><br>¿Ya tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
+        btnEl.textContent = 'Unirme';
+      }
+    }
+
     async function handleAuth() {
       var name = document.getElementById('authName').value.trim();
       var rawPhone = document.getElementById('authPhone').value.trim();
+      var pass = document.getElementById('authPass').value;
       var errEl = document.getElementById('authError');
       var btn = document.getElementById('authBtn');
       errEl.textContent = '';
       errEl.style.color = '#e74c3c';
-      if (!name || name.length < 2) { errEl.textContent = 'Poné tu nombre completo'; return; }
+
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) { errEl.textContent = 'Poné un número de WhatsApp válido'; return; }
+      if (!pass || pass.length < 4) { errEl.textContent = 'La contraseña debe tener al menos 4 caracteres'; return; }
       var phone = cleanPhone(rawPhone);
       btn.disabled = true;
+
       try {
-        // Verificar si ya existe con ese teléfono
-        var existing = await sb.from('clientes').select('id, nombre').eq('telefono', phone).limit(1);
-        if (existing.data && existing.data.length > 0) {
-          // Ya registrado, loguear directo
-          var cliente = existing.data[0];
-          onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: phone });
-          closeAuth();
-          btn.disabled = false;
-          return;
-        }
-        // Registrar nuevo
-        var res = await sb.from('clientes').insert({ nombre: name, telefono: phone }).select().single();
-        if (res.error) {
-          if (res.error.message.indexOf('unique') !== -1 || res.error.message.indexOf('duplicate') !== -1) {
-            errEl.textContent = 'Este número ya está registrado';
-          } else {
-            errEl.textContent = res.error.message;
+        if (authMode === 'login') {
+          // Login: verificar teléfono + contraseña
+          var existing = await sb.from('clientes').select('id, nombre, telefono, password').eq('telefono', phone).limit(1);
+          if (!existing.data || existing.data.length === 0) {
+            errEl.textContent = 'No hay cuenta con ese número. ¿Querés registrarte?';
+            btn.disabled = false; return;
           }
-          btn.disabled = false;
-          return;
+          var cliente = existing.data[0];
+          if (cliente.password !== pass) {
+            errEl.textContent = 'Contraseña incorrecta';
+            btn.disabled = false; return;
+          }
+          onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: cliente.telefono });
+          closeAuth();
+        } else {
+          // Register
+          if (!name || name.length < 2) { errEl.textContent = 'Poné tu nombre completo'; btn.disabled = false; return; }
+          var existing2 = await sb.from('clientes').select('id').eq('telefono', phone).limit(1);
+          if (existing2.data && existing2.data.length > 0) {
+            errEl.textContent = 'Este número ya está registrado. ¿Querés iniciar sesión?';
+            errEl.innerHTML = 'Este número ya está registrado. <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
+            btn.disabled = false; return;
+          }
+          var res = await sb.from('clientes').insert({ nombre: name, telefono: phone, password: pass }).select().single();
+          if (res.error) {
+            errEl.textContent = res.error.message;
+            btn.disabled = false; return;
+          }
+          closeAuth();
+          onLogin({ id: res.data.id, nombre: res.data.nombre, telefono: res.data.telefono });
         }
-        closeAuth();
-        onLogin({ id: res.data.id, nombre: res.data.nombre, telefono: res.data.telefono });
+      } catch(e) { errEl.textContent = 'Error de conexión'; }
+      btn.disabled = false;
+    }
+
+    // Notificar Telegram desde frontend
+    function notifyTG(msg) {
+      sb.rpc('send_telegram', { msg: msg }).catch(function(){});
+    }
+
+    // Editar perfil
+    function openEditProfile() {
+      if (!currentUser) return;
+      document.getElementById('editName').value = currentUser.nombre || '';
+      document.getElementById('editPhone').value = currentUser.telefono || '';
+      document.getElementById('editConfirmPass').value = '';
+      document.getElementById('editProfileError').textContent = '';
+      document.getElementById('editProfileOverlay').classList.add('open');
+    }
+    function closeEditProfile() {
+      document.getElementById('editProfileOverlay').classList.remove('open');
+    }
+
+    async function saveEditProfile() {
+      var newName = document.getElementById('editName').value.trim();
+      var newRawPhone = document.getElementById('editPhone').value.trim();
+      var confirmPass = document.getElementById('editConfirmPass').value;
+      var errEl = document.getElementById('editProfileError');
+      var btn = document.getElementById('editProfileBtn');
+      errEl.textContent = '';
+      errEl.style.color = '#e74c3c';
+
+      if (!newName || newName.length < 2) { errEl.textContent = 'Poné tu nombre completo'; return; }
+      if (!newRawPhone || newRawPhone.replace(/[^0-9]/g, '').length < 8) { errEl.textContent = 'Poné un número válido'; return; }
+      if (!confirmPass || confirmPass.length < 4) { errEl.textContent = 'Ingresá tu contraseña para confirmar'; return; }
+
+      btn.disabled = true;
+      var newPhone = cleanPhone(newRawPhone);
+
+      try {
+        // Verificar contraseña actual
+        var check = await sb.from('clientes').select('password, telefono, nombre').eq('id', currentUser.id).single();
+        if (!check.data || check.data.password !== confirmPass) {
+          errEl.textContent = 'Contraseña incorrecta';
+          btn.disabled = false; return;
+        }
+
+        var oldName = check.data.nombre;
+        var oldPhone = check.data.telefono;
+
+        // Guardar cambios
+        var { error } = await sb.from('clientes').update({ nombre: newName, telefono: newPhone }).eq('id', currentUser.id);
+        if (error) { errEl.textContent = error.message; btn.disabled = false; return; }
+
+        // Actualizar sesión local
+        currentUser.nombre = newName;
+        currentUser.telefono = newPhone;
+        localStorage.setItem('st_cliente', JSON.stringify(currentUser));
+        updateAuthUI();
+
+        // Notificar Telegram
+        var changes = [];
+        if (oldName !== newName) changes.push('Nombre: ' + oldName + ' → ' + newName);
+        if (oldPhone !== newPhone) changes.push('Tel: ' + oldPhone + ' → ' + newPhone);
+        if (changes.length > 0) {
+          notifyTG('✏️ Perfil editado\n👤 ' + newName + '\n' + changes.join('\n') + '\n📲 https://wa.me/' + newPhone);
+        }
+
+        closeEditProfile();
+        errEl.style.color = '#27ae60';
+        // Mostrar confirmación breve
+        alert('✅ Perfil actualizado correctamente');
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;
     }
@@ -3348,15 +3476,21 @@
 
     function updateAuthUI() {
       var regBtn = document.querySelector('.nav-register-btn');
+      var drawerAuth = document.getElementById('drawerAuth');
+      var drawerLogout = document.getElementById('drawerLogout');
       if (!regBtn) return;
       if (currentUser) {
         regBtn.innerHTML = '<span class="auth-user-bar"><strong>' + currentUser.nombre + '</strong></span>';
-        regBtn.setAttribute('onclick', 'event.preventDefault();logout()');
-        regBtn.setAttribute('title', 'Cerrar sesión');
+        regBtn.setAttribute('onclick', 'event.preventDefault();openEditProfile()');
+        regBtn.setAttribute('title', 'Editar perfil');
+        if (drawerAuth) { drawerAuth.textContent = '✏️ Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
+        if (drawerLogout) drawerLogout.style.display = '';
       } else {
         regBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Registrarse';
         regBtn.setAttribute('onclick', 'event.preventDefault();openAuth()');
         regBtn.setAttribute('title', 'Registrarse');
+        if (drawerAuth) { drawerAuth.textContent = 'Registrarse'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openAuth()'); }
+        if (drawerLogout) drawerLogout.style.display = 'none';
       }
     }
 
