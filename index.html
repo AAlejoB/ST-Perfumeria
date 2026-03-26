@@ -3844,9 +3844,16 @@
       var favBtn = document.getElementById('btnFavFilter');
       if (favBtn) favBtn.classList.add('active');
       applyFilters();
-      var el = document.getElementById('catalogo');
-      var navH = document.querySelector('.navbar') ? document.querySelector('.navbar').offsetHeight : 60;
-      var y = el.getBoundingClientRect().top + window.pageYOffset - navH - 10;
+      scrollToCatalog();
+    }
+
+    function scrollToCatalog() {
+      var grid = document.getElementById('catalogGrid');
+      var nav = document.querySelector('nav');
+      var filterBar = document.querySelector('.filter-bar');
+      var navH = nav ? nav.offsetHeight : 58;
+      var filterH = filterBar ? filterBar.offsetHeight : 50;
+      var y = grid.getBoundingClientRect().top + window.pageYOffset - navH - filterH - 8;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
 
