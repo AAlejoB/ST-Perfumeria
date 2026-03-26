@@ -1035,6 +1035,59 @@
       border: 1px solid rgba(255,255,255,.08);
     }
 
+    /* ================================================
+       DARK MODE
+    ================================================ */
+    .dark-toggle {
+      position: fixed;
+      top: 70px;
+      right: 16px;
+      z-index: 997;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      color: #ccc;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .25s;
+      backdrop-filter: blur(8px);
+    }
+    .dark-toggle:hover { background: rgba(255,255,255,.2); color: #fff; }
+    @media (min-width: 768px) { .dark-toggle { top: 75px; right: 24px; } }
+
+    body.dark-mode .catalog-section { background: #121212; }
+    body.dark-mode .product-card { background: #1a1a1a; border-color: #2a2a2a; }
+    body.dark-mode .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+    body.dark-mode .card-name { color: #f0f0f0; }
+    body.dark-mode .card-brand { color: #888; }
+    body.dark-mode .card-brand-st { color: var(--amarillo); }
+    body.dark-mode .price-promo { color: #ffcc00; }
+    body.dark-mode .price-original { color: #666; }
+    body.dark-mode .price-label { color: #777; }
+    body.dark-mode .price-cash { color: #4caf50; }
+    body.dark-mode .fav-heart { background: rgba(40,40,40,.85); color: #555; }
+    body.dark-mode .fav-heart:hover { color: #e74c3c; }
+    body.dark-mode .fav-heart.liked { color: #e74c3c; background: rgba(40,40,40,.95); }
+    body.dark-mode .tag-cat { background: rgba(232,184,0,.15); }
+    body.dark-mode .tag-ml { background: rgba(255,255,255,.06); color: #999; border-color: rgba(255,255,255,.1); }
+    body.dark-mode .tag-acorde { background: rgba(255,255,255,.04); color: #777; border-color: rgba(255,255,255,.08); }
+    body.dark-mode .card-views { color: #888; }
+    body.dark-mode .card-views svg { fill: #888; }
+    body.dark-mode .bottle-body,
+    body.dark-mode .bottle-neck { border-color: #555; }
+    body.dark-mode .bottle-cap { background: #555; }
+    body.dark-mode .bottle-letter { color: rgba(255,255,255,.15); }
+    body.dark-mode .load-more-btn { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: rgba(232,184,0,.3); }
+    body.dark-mode .load-more-btn:hover { background: var(--amarillo); color: #000; }
+    body.dark-mode .filter-bar { background: #0e0e0e; }
+    body.dark-mode .note-chip { background: rgba(255,255,255,.06); color: #aaa; border-color: rgba(255,255,255,.1); }
+    body.dark-mode .note-chip:hover, body.dark-mode .note-chip.active { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: var(--amarillo); }
+
     /* Botón favorito (corazón) */
     .fav-heart {
       position: absolute; top: 8px; right: 10px; z-index: 15;
@@ -2243,31 +2296,7 @@
     </div>
   </nav>
 
-  <!-- DECANTS BANNER -->
-  <div class="decant-banner">
-    <div class="decant-b-left">
-      <p class="decant-b-label">◆ ST Perfumería</p>
-      <h2 class="decant-b-title">DECANTS<br/><span>tu fragancia, tu medida</span></h2>
-      <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
-      <a href="https://wa.me/5492975416017?text=Hola!%20Me%20interesan%20los%20decants.%20%C2%BFQu%C3%A9%20opciones%20tienen?" target="_blank" class="decant-b-cta">Consultar decants →</a>
-    </div>
-    <div class="decant-b-right">
-      <div class="decant-b-vial">
-        <div class="decant-b-bottle"></div>
-        <span class="decant-b-ml">5 ml</span>
-      </div>
-      <div class="decant-b-vial coming-soon">
-        <div class="decant-ribbon">Próximamente</div>
-        <div class="decant-b-bottle size-10"></div>
-        <span class="decant-b-ml">10 ml</span>
-      </div>
-      <div class="decant-b-vial coming-soon">
-        <div class="decant-ribbon">Próximamente</div>
-        <div class="decant-b-bottle size-20"></div>
-        <span class="decant-b-ml">20 ml</span>
-      </div>
-    </div>
-  </div>
+  <button class="dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Modo oscuro/claro">🌙</button>
 
   <section class="hero">
     <p class="hero-tagline">Perfumer&#237;a &#225;rabe original &middot; Comodoro Rivadavia</p>
@@ -2376,6 +2405,32 @@
         </div>
       </div>
       <span class="filter-count" id="filterCount">6 fragancias</span>
+    </div>
+  </div>
+
+  <!-- DECANTS BANNER -->
+  <div class="decant-banner">
+    <div class="decant-b-left">
+      <p class="decant-b-label">◆ ST Perfumería</p>
+      <h2 class="decant-b-title">DECANTS<br/><span>tu fragancia, tu medida</span></h2>
+      <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
+      <a href="https://wa.me/5492975416017?text=Hola!%20Me%20interesan%20los%20decants.%20%C2%BFQu%C3%A9%20opciones%20tienen?" target="_blank" class="decant-b-cta">Consultar decants →</a>
+    </div>
+    <div class="decant-b-right">
+      <div class="decant-b-vial">
+        <div class="decant-b-bottle"></div>
+        <span class="decant-b-ml">5 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-10"></div>
+        <span class="decant-b-ml">10 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-20"></div>
+        <span class="decant-b-ml">20 ml</span>
+      </div>
     </div>
   </div>
 
@@ -3967,6 +4022,28 @@
       ]).then(function(results) {
         updateStatus(results[0], results[1]);
       });
+    })();
+
+    // ============================================================
+    // DARK MODE
+    // ============================================================
+    function toggleDarkMode() {
+      var body = document.body;
+      var btn = document.getElementById('darkToggle');
+      body.classList.toggle('dark-mode');
+      var isDark = body.classList.contains('dark-mode');
+      btn.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
+    }
+
+    // Restaurar preferencia guardada
+    (function() {
+      var saved = localStorage.getItem('st_dark_mode');
+      if (saved === '1') {
+        document.body.classList.add('dark-mode');
+        var btn = document.getElementById('darkToggle');
+        if (btn) btn.textContent = '☀️';
+      }
     })();
   </script>
 </body>
