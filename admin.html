@@ -328,9 +328,19 @@
               <label class="modal-label">ML</label>
               <input type="number" class="modal-input" id="nuevoMl" placeholder="100" value="100" style="margin-bottom:0;"/>
             </div>
-            <div>
-              <label class="modal-label">Foto (ruta o URL)</label>
-              <input type="text" class="modal-input" id="nuevoFoto" placeholder="img/NOMBRE.webp" style="margin-bottom:0;"/>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Foto del perfume</label>
+              <div style="display:flex;gap:.5rem;align-items:center;">
+                <label class="action-btn btn-price" style="cursor:pointer;padding:.5rem 1rem;font-size:.7rem;text-align:center;flex:0 0 auto;">
+                  📷 Subir foto
+                  <input type="file" id="nuevoFotoFile" accept="image/*" onchange="uploadFoto(this)" style="display:none;"/>
+                </label>
+                <input type="text" class="modal-input" id="nuevoFoto" placeholder="Se completa automático al subir o pegá URL..." style="margin-bottom:0;flex:1;font-size:.7rem;"/>
+                <div id="fotoPreview" style="width:40px;height:50px;border-radius:4px;overflow:hidden;background:#1a1a1a;flex-shrink:0;display:none;">
+                  <img id="fotoPreviewImg" style="width:100%;height:100%;object-fit:cover;"/>
+                </div>
+              </div>
+              <p id="fotoUploadMsg" style="font-size:.6rem;color:var(--gris);margin-top:4px;min-height:.8rem;"></p>
             </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">Notas de salida</label>
@@ -849,6 +859,109 @@
       tbody.innerHTML = html;
     }
 
+    // ============================================================
+    // UPLOAD FOTO A SUPABASE STORAGE
+    // ============================================================
+    async function uploadFoto(input) {
+      var file = input.files[0];
+      if (!file) return;
+
+      var msgEl = document.getElementById('fotoUploadMsg');
+      var previewWrap = document.getElementById('fotoPreview');
+      var previewImg = document.getElementById('fotoPreviewImg');
+      var fotoInput = document.getElementById('nuevoFoto');
+
+      msgEl.textContent = 'Comprimiendo y subiendo...';
+      msgEl.style.color = '#e8b800';
+
+      try {
+        // Comprimir a WebP usando canvas
+        var compressed = await compressToWebP(file, 800, 0.82);
+
+        // Generar nombre único
+        var nombre = document.getElementById('nuevoName').value.trim();
+        var fileName = nombre
+          ? nombre.toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\s+/g, ' ') + '.webp'
+          : 'perfume-' + Date.now() + '.webp';
+
+        // Subir a Supabase Storage
+        var { data, error } = await sb.storage
+          .from('perfume-fotos')
+          .upload(fileName, compressed, {
+            contentType: 'image/webp',
+            upsert: true
+          });
+
+        if (error) throw error;
+
+        // Obtener URL pública
+        var { data: urlData } = sb.storage
+          .from('perfume-fotos')
+          .getPublicUrl(fileName);
+
+        var publicUrl = urlData.publicUrl;
+        fotoInput.value = publicUrl;
+
+        // Preview
+        previewImg.src = publicUrl;
+        previewWrap.style.display = 'block';
+
+        var sizeKB = Math.round(compressed.size / 1024);
+        msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
+        msgEl.style.color = '#2ecc71';
+
+      } catch(e) {
+        msgEl.textContent = 'Error: ' + (e.message || e);
+        msgEl.style.color = '#e74c3c';
+      }
+
+      // Limpiar file input para poder subir otra
+      input.value = '';
+    }
+
+    function compressToWebP(file, maxSize, quality) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var img = new Image();
+          img.onload = function() {
+            var canvas = document.createElement('canvas');
+            var w = img.width;
+            var h = img.height;
+
+            // Redimensionar si es muy grande
+            if (w > maxSize || h > maxSize) {
+              if (w > h) {
+                h = Math.round(h * maxSize / w);
+                w = maxSize;
+              } else {
+                w = Math.round(w * maxSize / h);
+                h = maxSize;
+              }
+            }
+
+            canvas.width = w;
+            canvas.height = h;
+            var ctx = canvas.getContext('2d');
+
+            // Fondo blanco (por si es PNG con transparencia)
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+
+            canvas.toBlob(function(blob) {
+              if (blob) resolve(blob);
+              else reject(new Error('No se pudo comprimir'));
+            }, 'image/webp', quality);
+          };
+          img.onerror = function() { reject(new Error('Imagen inválida')); };
+          img.src = e.target.result;
+        };
+        reader.onerror = function() { reject(new Error('No se pudo leer')); };
+        reader.readAsDataURL(file);
+      });
+    }
+
     function generateSlug(name) {
       return name.toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -923,6 +1036,15 @@
       document.getElementById('nuevoPrice').value = data.price;
       document.getElementById('nuevoPromo').value = data.promo || '';
       document.getElementById('nuevoFoto').value = data.foto || '';
+      // Mostrar preview si tiene foto
+      var previewWrap = document.getElementById('fotoPreview');
+      var previewImg = document.getElementById('fotoPreviewImg');
+      if (data.foto) {
+        previewImg.src = data.foto;
+        previewWrap.style.display = 'block';
+      } else {
+        previewWrap.style.display = 'none';
+      }
       document.getElementById('nuevoMl').value = data.ml || 100;
       document.getElementById('nuevoSalida').value = data.notas_salida || '';
       document.getElementById('nuevoCorazon').value = data.notas_corazon || '';
@@ -954,6 +1076,8 @@
       document.getElementById('nuevoPrice').value = '';
       document.getElementById('nuevoPromo').value = '';
       document.getElementById('nuevoFoto').value = '';
+      document.getElementById('fotoPreview').style.display = 'none';
+      document.getElementById('fotoUploadMsg').textContent = '';
       document.getElementById('nuevoMl').value = '100';
       document.getElementById('nuevoSalida').value = '';
       document.getElementById('nuevoCorazon').value = '';
