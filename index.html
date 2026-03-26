@@ -1187,18 +1187,96 @@
     .note-prev .note-label { font-size: .5rem; }
     .reveal-tags { display: none; gap: 4px; flex-wrap: wrap; margin-bottom: .5rem; }
 
-    /* MOBILE: card muestra notas, oculta tags. Reveal muestra tags, oculta notas */
+    /* MOBILE: ocultar reveal lateral, mostrar notas en card, bottom sheet al tocar */
     @media (max-width: 767px) {
       .card-tags { display: none; }
       .card-notes-preview { display: flex; }
-      .reveal-tags { display: flex; }
-      .card-reveal .scent-notes { display: none; }
+      .product-card:hover .card-reveal { transform: translateX(100%); opacity: 0; pointer-events: none; }
+      .card-reveal { display: none !important; }
     }
-    /* DESKTOP: card muestra tags, oculta notas preview. Reveal muestra notas sin tags */
+    /* DESKTOP: card muestra tags, oculta notas preview. Reveal lateral normal */
     @media (min-width: 768px) {
       .card-tags { display: flex; }
       .card-notes-preview { display: none; }
       .reveal-tags { display: none; }
+    }
+
+    /* BOTTOM SHEET — solo mobile */
+    .bottom-sheet-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,.7); z-index: 10000;
+      display: none; align-items: flex-end; justify-content: center;
+      animation: fadeIn .2s ease;
+    }
+    .bottom-sheet-overlay.active { display: flex; }
+    .bottom-sheet {
+      background: #111; width: 100%; max-width: 500px;
+      max-height: 85vh; overflow-y: auto;
+      border-radius: 20px 20px 0 0;
+      padding: 0 1.2rem 1.5rem;
+      animation: slideUp .3s cubic-bezier(.25,.46,.45,.94);
+      -webkit-overflow-scrolling: touch;
+    }
+    .bs-handle {
+      width: 40px; height: 4px; background: rgba(255,255,255,.25);
+      border-radius: 2px; margin: .8rem auto 1rem;
+    }
+    .bs-header {
+      display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;
+    }
+    .bs-img {
+      width: 120px; height: 160px; border-radius: 8px; object-fit: cover;
+      background: #1a1a1a; flex-shrink: 0;
+    }
+    .bs-img-placeholder {
+      width: 120px; height: 160px; border-radius: 8px; flex-shrink: 0;
+      background: #1a1a1a; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 2.5rem; color: rgba(255,255,255,.1);
+    }
+    .bs-info { flex: 1; padding-top: .3rem; }
+    .bs-name {
+      font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+      color: #fff; text-transform: uppercase; line-height: 1.2; margin-bottom: .25rem;
+    }
+    .bs-brand-st { font-size: .6rem; color: var(--amarillo); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .bs-brand { font-size: .8rem; color: var(--gris); text-transform: uppercase; margin-bottom: .6rem; }
+    .bs-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: .6rem; }
+    .bs-price-wrap { margin-bottom: .2rem; }
+    .bs-price-wrap .price-promo { font-size: 1.5rem; }
+    .bs-price-wrap .price-cash { font-size: .85rem; }
+    .bs-divider { width: 100%; height: 1px; background: linear-gradient(90deg, var(--amarillo), transparent); margin: .8rem 0; }
+    .bs-notes { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
+    .bs-note { font-size: .78rem; font-weight: 300; color: #e0e0e0; line-height: 1.4; }
+    .bs-note .note-label { font-size: .6rem; }
+    .bs-buttons { display: flex; flex-direction: column; gap: .4rem; }
+    .bs-btn-primary {
+      display: block; width: 100%; text-align: center; padding: .75rem;
+      font-family: var(--font-body); font-size: .75rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; text-decoration: none;
+      background: var(--amarillo); color: #000; border: none; border-radius: 8px;
+      cursor: pointer; transition: background .2s;
+    }
+    .bs-btn-primary:hover { background: var(--amarillo-claro); }
+    .bs-btn-row { display: flex; gap: .4rem; }
+    .bs-btn-secondary {
+      flex: 1; text-align: center; padding: .6rem;
+      font-family: var(--font-body); font-size: .65rem; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--amarillo); background: none; border: 1px solid rgba(232,184,0,.3);
+      border-radius: 8px; cursor: pointer; transition: all .2s;
+    }
+    .bs-btn-secondary:hover { background: rgba(232,184,0,.1); border-color: var(--amarillo); }
+    .bs-btn-cart {
+      flex: 1; text-align: center; padding: .6rem;
+      font-family: var(--font-body); font-size: .65rem; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 8px; cursor: pointer; transition: all .2s;
+    }
+    .bs-btn-cart:hover { background: rgba(232,184,0,.2); border-color: var(--amarillo); color: var(--amarillo); }
+    .bs-btn-cart.added { background: rgba(46,204,113,.15); border-color: #2ecc71; color: #2ecc71; }
+    @media (min-width: 768px) {
+      .bottom-sheet-overlay { display: none !important; }
     }
     .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .65rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .55rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
     @media (min-width: 768px) {
@@ -2928,6 +3006,34 @@
       <button class="cart-favs-btn" onclick="addFavsToCart()">❤️ Agregar mis favoritos al pedido</button>
       <button class="cart-clear-btn" onclick="clearCart()">Vaciar pedido</button>
       <div class="cart-limit-msg" id="cartLimitMsg" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Sheet (mobile) -->
+  <div class="bottom-sheet-overlay" id="bsOverlay" onclick="if(event.target===this)closeBottomSheet()">
+    <div class="bottom-sheet" id="bottomSheet">
+      <div class="bs-handle"></div>
+      <div class="bs-header">
+        <div id="bsImgWrap"></div>
+        <div class="bs-info">
+          <p class="bs-name" id="bsName"></p>
+          <p class="bs-brand-st">ST PERFUMER&#205;A</p>
+          <p class="bs-brand" id="bsBrand"></p>
+          <div class="bs-tags" id="bsTags"></div>
+          <div class="bs-price-wrap" id="bsPrice"></div>
+        </div>
+      </div>
+      <div class="bs-divider"></div>
+      <div class="bs-notes" id="bsNotes"></div>
+      <div class="bs-buttons">
+        <a href="#" class="bs-btn-primary" id="bsBtnConsultar">Consultar &#8594;</a>
+        <div class="bs-btn-row">
+          <button class="bs-btn-secondary" id="bsBtnSimilares">&#9830; Similares</button>
+          <button class="bs-btn-cart" id="bsBtnCart">&#128722; Agregar</button>
+          <button class="bs-btn-secondary" id="bsBtnShare" style="flex:0 0 auto;padding:.6rem .8rem;">&#128279;</button>
+        </div>
+        <button class="bs-btn-secondary" id="bsBtnFav" style="margin-top:.2rem;">&#9825; Agregar a favoritos</button>
+      </div>
     </div>
   </div>
 
@@ -4683,6 +4789,126 @@
 
     // Init cart UI
     updateCartUI();
+
+    // ============================================================
+    // BOTTOM SHEET — solo mobile
+    // ============================================================
+    var currentBsSlug = null;
+
+    function openBottomSheet(slug) {
+      if (window.innerWidth >= 768) return; // solo mobile
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      currentBsSlug = slug;
+
+      // Imagen
+      var imgWrap = document.getElementById('bsImgWrap');
+      var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+      imgWrap.innerHTML = fotoSrc
+        ? '<img class="bs-img" src="' + fotoSrc + '" alt="' + p.name + '">'
+        : '<div class="bs-img-placeholder">' + p.name.charAt(0) + '</div>';
+
+      // Info
+      document.getElementById('bsName').textContent = p.name;
+      document.getElementById('bsBrand').textContent = p.marca_real || p.marca;
+
+      // Tags
+      var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
+      document.getElementById('bsTags').innerHTML =
+        '<span class="card-tag tag-cat">' + pCat + '</span>'
+        + '<span class="card-tag tag-ml">100 ml</span>'
+        + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>';
+
+      // Precio
+      var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+      var cashNum = Math.round(priceNum * 0.9);
+      var priceHTML = '';
+      if (p.promo) {
+        priceHTML = '<span class="price-promo">$' + formatPrice(p.promo) + '</span> <span class="price-label">tarjeta</span> <span class="price-original">$' + formatPrice(p.price) + '</span>'
+          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' efectivo/transf.</span>';
+      } else {
+        priceHTML = '<span class="price-promo">$' + formatPrice(p.price) + '</span> <span class="price-label">tarjeta</span>'
+          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' efectivo/transf.</span>';
+      }
+      document.getElementById('bsPrice').innerHTML = priceHTML;
+
+      // Notas
+      var notesHTML = '';
+      if (p.notas_salida || p.notas_corazon || p.notas_base) {
+        notesHTML = '<p class="bs-note"><span class="note-label">SALIDA</span> ' + (p.notas_salida || '\u2014') + '</p>'
+          + '<p class="bs-note"><span class="note-label">CORAZ\u00d3N</span> ' + (p.notas_corazon || '\u2014') + '</p>'
+          + '<p class="bs-note"><span class="note-label">BASE</span> ' + (p.notas_base || '\u2014') + '</p>';
+      }
+      document.getElementById('bsNotes').innerHTML = notesHTML;
+
+      // Botón consultar
+      document.getElementById('bsBtnConsultar').onclick = function(e) {
+        e.preventDefault();
+        closeBottomSheet();
+        goToWA(slug, e);
+      };
+
+      // Botón similares
+      var btnSim = document.getElementById('bsBtnSimilares');
+      if (p.notas_salida || p.notas_corazon || p.notas_base) {
+        btnSim.style.display = '';
+        btnSim.onclick = function(e) { closeBottomSheet(); showSimilares(slug, e); };
+      } else {
+        btnSim.style.display = 'none';
+      }
+
+      // Botón carrito
+      var btnCart = document.getElementById('bsBtnCart');
+      var inCart = cart.indexOf(slug) !== -1;
+      btnCart.textContent = inCart ? '\u2713 Agregado' : '\uD83D\uDED2 Agregar';
+      btnCart.classList.toggle('added', inCart);
+      btnCart.onclick = function(e) {
+        addToCart(slug, null, e);
+        var nowInCart = cart.indexOf(slug) !== -1;
+        btnCart.textContent = nowInCart ? '\u2713 Agregado' : '\uD83D\uDED2 Agregar';
+        btnCart.classList.toggle('added', nowInCart);
+      };
+
+      // Botón compartir
+      document.getElementById('bsBtnShare').onclick = function(e) {
+        sharePerfume(slug, this, e);
+      };
+
+      // Botón favorito
+      var btnFav = document.getElementById('bsBtnFav');
+      var isFav = favs.indexOf(slug) !== -1;
+      btnFav.innerHTML = isFav ? '&#9829; En tus favoritos' : '&#9825; Agregar a favoritos';
+      btnFav.style.color = isFav ? '#e74c3c' : '';
+      btnFav.onclick = function(e) {
+        // Simulate toggle on the card's fav button
+        var card = document.querySelector('[data-slug="' + slug + '"]');
+        var favBtn = card ? card.querySelector('.fav-heart') : null;
+        if (favBtn) toggleFav(favBtn, e);
+        var nowFav = favs.indexOf(slug) !== -1;
+        btnFav.innerHTML = nowFav ? '&#9829; En tus favoritos' : '&#9825; Agregar a favoritos';
+        btnFav.style.color = nowFav ? '#e74c3c' : '';
+      };
+
+      document.getElementById('bsOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBottomSheet() {
+      document.getElementById('bsOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+      currentBsSlug = null;
+    }
+
+    // Click en cards → bottom sheet (mobile)
+    document.addEventListener('click', function(e) {
+      if (window.innerWidth >= 768) return;
+      var card = e.target.closest('.product-card');
+      if (!card) return;
+      // No interceptar clicks en botones internos
+      if (e.target.closest('.fav-heart') || e.target.closest('a') || e.target.closest('button')) return;
+      var slug = card.dataset.slug;
+      if (slug) openBottomSheet(slug);
+    });
 
     // ============================================================
     // DARK MODE
