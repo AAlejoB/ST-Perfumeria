@@ -2715,6 +2715,13 @@
     .auth-error {
       font-size: .7rem; color: #e74c3c; text-align: center; margin-top: .5rem; min-height: 1em;
     }
+    .phone-preview {
+      font-size: .7rem; color: var(--amarillo); text-align: left; margin: -4px 0 6px 2px;
+      min-height: 1em; font-family: var(--font-body); letter-spacing: .03em;
+    }
+    .phone-match {
+      font-size: .65rem; text-align: left; margin: -4px 0 6px 2px; min-height: 1em;
+    }
     .auth-user-bar {
       font-size: .7rem; color: var(--gris-claro); display: flex; align-items: center;
       gap: .5rem;
@@ -2752,7 +2759,10 @@
       <h3 class="auth-title" id="authTitle">Unite a ST</h3>
       <p class="auth-subtitle" id="authSubtitle">Guard&#225; tus favoritos, vot&#225; el perfume del mes y recib&#237; ofertas por WhatsApp</p>
       <input type="text" class="auth-input" id="authName" placeholder="Tu nombre" maxlength="60">
-      <input type="tel" class="auth-input" id="authPhone" placeholder="N&#250;mero de WhatsApp (ej: 2975416017)">
+      <input type="tel" class="auth-input" id="authPhone" placeholder="N&#250;mero de WhatsApp (ej: 2975416017)" oninput="previewPhone('authPhone','authPhonePreview')">
+      <p class="phone-preview" id="authPhonePreview"></p>
+      <input type="tel" class="auth-input" id="authPhone2" placeholder="Repet&#237; tu n&#250;mero de WhatsApp" oninput="checkPhoneMatch('authPhone','authPhone2','authPhoneMatch')">
+      <p class="phone-match" id="authPhoneMatch"></p>
       <input type="password" class="auth-input" id="authPass" placeholder="Cre&#225; una contrase&#241;a (m&#237;n. 4 caracteres)" minlength="4" maxlength="30">
       <button class="auth-btn" id="authBtn" onclick="handleAuth()">Unirme</button>
       <p class="auth-error" id="authError"></p>
@@ -2766,7 +2776,8 @@
       <h3 class="auth-title">&#9998; Editar perfil</h3>
       <p class="auth-subtitle">Modific&#225; tus datos. Se requiere contrase&#241;a para confirmar.</p>
       <input type="text" class="auth-input" id="editName" placeholder="Nombre" maxlength="60">
-      <input type="tel" class="auth-input" id="editPhone" placeholder="N&#250;mero de WhatsApp">
+      <input type="tel" class="auth-input" id="editPhone" placeholder="N&#250;mero de WhatsApp" oninput="previewPhone('editPhone','editPhonePreview')">
+      <p class="phone-preview" id="editPhonePreview"></p>
       <div style="border-top:1px solid rgba(255,255,255,.1); margin:12px 0; padding-top:12px;">
         <p style="font-size:.7rem;color:#999;margin-bottom:8px;">Confirm&#225; con tu contrase&#241;a para guardar</p>
         <input type="password" class="auth-input" id="editConfirmPass" placeholder="Tu contrase&#241;a actual">
@@ -3303,24 +3314,78 @@
       return digits;
     }
 
+    function formatPhoneDisplay(raw) {
+      var d = cleanPhone(raw);
+      // Formato: +54 9 XXXX XX-XXXX
+      if (d.length < 5) return '';
+      var after549 = d.substring(3); // quitar "549" si tiene, o ajustar
+      if (d.substring(0, 3) === '549') after549 = d.substring(3);
+      else if (d.substring(0, 2) === '54') after549 = d.substring(2);
+      else after549 = d;
+      if (after549.length < 6) return '+' + d;
+      // Intentar formato bonito
+      var area = after549.substring(0, after549.length - 6);
+      var rest = after549.substring(after549.length - 6);
+      return '+54 9 ' + area + ' ' + rest.substring(0, 2) + '-' + rest.substring(2);
+    }
+
+    function previewPhone(inputId, previewId) {
+      var raw = document.getElementById(inputId).value.trim();
+      var el = document.getElementById(previewId);
+      if (!raw || raw.replace(/[^0-9]/g, '').length < 6) {
+        el.textContent = '';
+        return;
+      }
+      var clean = cleanPhone(raw);
+      var display = formatPhoneDisplay(raw);
+      var digitCount = clean.length;
+      // Argentina: 549 + 10 dígitos = 13 total
+      if (digitCount === 13) {
+        el.innerHTML = '📱 ' + display + ' <span style="color:#27ae60">✓</span>';
+      } else if (digitCount > 13) {
+        el.innerHTML = '⚠️ ' + display + ' <span style="color:#e74c3c">(demasiados dígitos)</span>';
+      } else {
+        el.innerHTML = '📱 ' + display + ' <span style="color:#999">(' + (13 - digitCount) + ' dígitos faltan)</span>';
+      }
+    }
+
+    function checkPhoneMatch(id1, id2, matchId) {
+      var p1 = cleanPhone(document.getElementById(id1).value.trim() || '');
+      var p2 = cleanPhone(document.getElementById(id2).value.trim() || '');
+      var el = document.getElementById(matchId);
+      if (!document.getElementById(id2).value.trim()) { el.textContent = ''; return; }
+      if (p1 === p2) {
+        el.innerHTML = '<span style="color:#27ae60">✓ Los números coinciden</span>';
+      } else {
+        el.innerHTML = '<span style="color:#e74c3c">✗ Los números no coinciden</span>';
+      }
+    }
+
     var authMode = 'register'; // 'register' o 'login'
 
     function switchAuthMode(mode) {
       authMode = mode;
       var nameEl = document.getElementById('authName');
       var passEl = document.getElementById('authPass');
+      var phone2El = document.getElementById('authPhone2');
+      var phone2Match = document.getElementById('authPhoneMatch');
+      var phonePreview = document.getElementById('authPhonePreview');
       var titleEl = document.getElementById('authTitle');
       var subEl = document.getElementById('authSubtitle');
       var btnEl = document.getElementById('authBtn');
       document.getElementById('authError').textContent = '';
+      if (phonePreview) phonePreview.textContent = '';
+      if (phone2Match) phone2Match.textContent = '';
       if (mode === 'login') {
         nameEl.style.display = 'none';
+        if (phone2El) phone2El.style.display = 'none';
         passEl.placeholder = 'Tu contraseña';
         titleEl.textContent = 'Iniciá sesión';
         subEl.innerHTML = '¿No tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" style="color:var(--amarillo)">Registrate</a>';
         btnEl.textContent = 'Entrar';
       } else {
         nameEl.style.display = '';
+        if (phone2El) phone2El.style.display = '';
         passEl.placeholder = 'Creá una contraseña (mín. 4 caracteres)';
         titleEl.textContent = 'Unite a ST';
         subEl.innerHTML = 'Guardá tus favoritos, votá el perfume del mes y recibí ofertas<br><br>¿Ya tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
@@ -3338,8 +3403,21 @@
       errEl.style.color = '#e74c3c';
 
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) { errEl.textContent = 'Poné un número de WhatsApp válido'; return; }
-      if (!pass || pass.length < 4) { errEl.textContent = 'La contraseña debe tener al menos 4 caracteres'; return; }
       var phone = cleanPhone(rawPhone);
+
+      // Validar 13 dígitos (549 + 10)
+      if (phone.length !== 13) { errEl.textContent = 'El número debe tener 10 dígitos (sin 0 ni 15). Ej: 2975416017'; return; }
+
+      if (!pass || pass.length < 4) { errEl.textContent = 'La contraseña debe tener al menos 4 caracteres'; return; }
+
+      // En registro: verificar que coincidan los números
+      if (authMode === 'register') {
+        var rawPhone2 = document.getElementById('authPhone2').value.trim();
+        if (!rawPhone2) { errEl.textContent = 'Repetí tu número para confirmar'; return; }
+        var phone2 = cleanPhone(rawPhone2);
+        if (phone !== phone2) { errEl.textContent = 'Los números no coinciden. Revisá bien.'; return; }
+      }
+
       btn.disabled = true;
 
       try {
