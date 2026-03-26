@@ -330,13 +330,13 @@
             </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">Foto del perfume</label>
-              <div style="display:flex;gap:.5rem;align-items:center;">
-                <label class="action-btn btn-price" style="cursor:pointer;padding:.5rem 1rem;font-size:.7rem;text-align:center;flex:0 0 auto;">
-                  📷 Subir foto
+              <div style="display:flex;gap:.5rem;align-items:center;max-width:100%;overflow:hidden;">
+                <label class="action-btn btn-price" style="cursor:pointer;padding:.5rem .8rem;font-size:.65rem;text-align:center;flex-shrink:0;white-space:nowrap;">
+                  📷 Subir
                   <input type="file" id="nuevoFotoFile" accept="image/*" onchange="uploadFoto(this)" style="display:none;"/>
                 </label>
-                <input type="text" class="modal-input" id="nuevoFoto" placeholder="Se completa automático al subir o pegá URL..." style="margin-bottom:0;flex:1;font-size:.7rem;"/>
-                <div id="fotoPreview" style="width:40px;height:50px;border-radius:4px;overflow:hidden;background:#1a1a1a;flex-shrink:0;display:none;">
+                <input type="text" class="modal-input" id="nuevoFoto" placeholder="Se completa al subir..." style="margin-bottom:0;flex:1;min-width:0;font-size:.65rem;"/>
+                <div id="fotoPreview" style="width:36px;height:48px;border-radius:4px;overflow:hidden;background:#1a1a1a;flex-shrink:0;display:none;">
                   <img id="fotoPreviewImg" style="width:100%;height:100%;object-fit:cover;"/>
                 </div>
               </div>
@@ -925,21 +925,29 @@
         reader.onload = function(e) {
           var img = new Image();
           img.onload = function() {
-            var canvas = document.createElement('canvas');
-            var w = img.width;
-            var h = img.height;
+            // Recorte centrado a ratio 3:4 (retrato estándar)
+            var targetRatio = 3 / 4;
+            var srcW = img.width;
+            var srcH = img.height;
+            var srcRatio = srcW / srcH;
 
-            // Redimensionar si es muy grande
-            if (w > maxSize || h > maxSize) {
-              if (w > h) {
-                h = Math.round(h * maxSize / w);
-                w = maxSize;
-              } else {
-                w = Math.round(w * maxSize / h);
-                h = maxSize;
-              }
+            var cropX = 0, cropY = 0, cropW = srcW, cropH = srcH;
+            if (srcRatio > targetRatio) {
+              // Imagen más ancha: recortar lados
+              cropW = Math.round(srcH * targetRatio);
+              cropX = Math.round((srcW - cropW) / 2);
+            } else {
+              // Imagen más alta: recortar arriba/abajo
+              cropH = Math.round(srcW / targetRatio);
+              cropY = Math.round((srcH - cropH) / 2);
             }
 
+            // Tamaño final: máximo 600x800
+            var w = Math.min(cropW, 600);
+            var h = Math.round(w / targetRatio);
+            if (h > 800) { h = 800; w = Math.round(h * targetRatio); }
+
+            var canvas = document.createElement('canvas');
             canvas.width = w;
             canvas.height = h;
             var ctx = canvas.getContext('2d');
@@ -947,7 +955,7 @@
             // Fondo blanco (por si es PNG con transparencia)
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, w, h);
-            ctx.drawImage(img, 0, 0, w, h);
+            ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, w, h);
 
             canvas.toBlob(function(blob) {
               if (blob) resolve(blob);
