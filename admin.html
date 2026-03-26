@@ -303,7 +303,7 @@
               <input type="text" class="modal-input" id="editMarca" style="margin-bottom:0;"/>
             </div>
             <div>
-              <label class="modal-label">Marca real</label>
+              <label class="modal-label">Fabricante</label>
               <input type="text" class="modal-input" id="editMarcaReal" style="margin-bottom:0;"/>
             </div>
             <div>
@@ -380,12 +380,12 @@
               <input type="text" class="modal-input" id="nuevoName" placeholder="Ej: EMEER GOLD" style="margin-bottom:0;"/>
             </div>
             <div>
-              <label class="modal-label">Marca *</label>
-              <input type="text" class="modal-input" id="nuevoMarca" placeholder="Lattafa" value="Lattafa" style="margin-bottom:0;"/>
+              <label class="modal-label">Marca</label>
+              <input type="text" class="modal-input" id="nuevoMarca" value="ST Perfumería" readonly style="margin-bottom:0;opacity:.6;cursor:not-allowed;"/>
             </div>
             <div>
-              <label class="modal-label">Marca real (si aplica)</label>
-              <input type="text" class="modal-input" id="nuevoMarcaReal" placeholder="Ej: Lattafa Pride" style="margin-bottom:0;"/>
+              <label class="modal-label">Fabricante *</label>
+              <input type="text" class="modal-input" id="nuevoMarcaReal" placeholder="Ej: Lattafa, Armaf, Rasasi..." style="margin-bottom:0;"/>
             </div>
             <div>
               <label class="modal-label">Categoría *</label>
@@ -1207,7 +1207,7 @@
     async function saveNuevoPerfume() {
       var editId = document.getElementById('nuevoEditId').value;
       var name = document.getElementById('nuevoName').value.trim().toUpperCase();
-      var marca = document.getElementById('nuevoMarca').value.trim() || 'Lattafa';
+      var marca = 'ST Perfumería';
       var marcaReal = document.getElementById('nuevoMarcaReal').value.trim();
       var cat = document.getElementById('nuevoCat').value;
       var perfil = document.getElementById('nuevoPerfil').value;
@@ -1304,7 +1304,7 @@
     function clearNuevoForm() {
       document.getElementById('nuevoEditId').value = '';
       document.getElementById('nuevoName').value = '';
-      document.getElementById('nuevoMarca').value = 'Lattafa';
+      document.getElementById('nuevoMarca').value = 'ST Perfumería';
       document.getElementById('nuevoMarcaReal').value = '';
       document.getElementById('nuevoCat').value = 'Unisex';
       document.getElementById('nuevoPerfil').value = 'Versátil';
