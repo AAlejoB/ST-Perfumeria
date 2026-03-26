@@ -76,7 +76,7 @@ const PERFUMES = [
     price:  "85,000.00",
     foto:   "img/YARA TOUS.webp",
     notas_salida:  "Mango, Coco, Maracuyá",
-    notas_corazon: "Jazmín, Flor del naranjo, Heliotropo",
+    notas_corazon: "Jazmín, Flor del Naranjo, Heliotropo",
     notas_base:    "Cachemira, Vainilla, Almizcle",
   },
   {
@@ -160,7 +160,7 @@ const PERFUMES = [
     price:  "75,000.00",
     foto:   "",
     notas_salida:  "Manzana, Limón",
-    notas_corazon: "Violeta, Flor del naranjo, Jazmín",
+    notas_corazon: "Violeta, Flor del Naranjo, Jazmín",
     notas_base:    "Almizcle, Vainilla, Ámbar",
   },
   { // DESTACADO en home
@@ -202,7 +202,7 @@ const PERFUMES = [
     price:  "98,500.00",
     foto:   "",
     notas_salida:  "Pera, Mandarina, Pomelo, Bergamota",
-    notas_corazon: "Flor del naranjo, Manzana, Cedro",
+    notas_corazon: "Flor del Naranjo, Manzana, Cedro",
     notas_base:    "Almizcle, Vainilla, Ámbar",
   },
   { // DESTACADO en home
@@ -353,7 +353,7 @@ const PERFUMES = [
     promo:  "71,100.00",
     price:  "79,000.00",
     foto:   "img/SCEPTRE MALACHITE.webp",
-    notas_salida:  "Grosellas negras, Bergamota",
+    notas_salida:  "Grosella negra, Bergamota",
     notas_corazon: "Pimienta rosa, Lavanda, Especias, Jazmín",
     notas_base:    "Almizcle, Vetiver, Ámbar",
   },
@@ -382,7 +382,7 @@ const PERFUMES = [
     price:  "79,000.00",
     foto:   "",
     notas_salida:  "Maracuyá, Mandarina",
-    notas_corazon: "Rosa, Sal, Flor del naranjo, Rosa",
+    notas_corazon: "Rosa, Sal, Flor del Naranjo, Rosa",
     notas_base:    "Praliné, Almizcle, Vainilla",
   },
   {
@@ -424,7 +424,7 @@ const PERFUMES = [
     price:  "75,000.00",
     foto:   "img/RAVE NOW WOMAN.webp",
     notas_salida:  "Frutos rojos, Naranja",
-    notas_corazon: "Jazmín, Lirio de los valles, Malvavisco",
+    notas_corazon: "Jazmín, Lirio de los Valles, Malvavisco",
     notas_base:    "Musgo, Vainilla, Almizcle",
   },
   {
@@ -480,7 +480,7 @@ const PERFUMES = [
     price:  "65,000.00",
     foto:   "img/QAED AL FURSAN UNLIMITED.webp",
     notas_salida:  "Coco, Ananá, Cítricos",
-    notas_corazon: "Ylang-ylang, Jazmín",
+    notas_corazon: "Ylang-Ylang, Jazmín",
     notas_base:    "Vainilla, Almizcle, Sándalo, Notas dulces",
   },
   {
@@ -592,7 +592,7 @@ const PERFUMES = [
     price:  "68,000.00",
     foto:   "",
     notas_salida:  "Cereza, Mandarina",
-    notas_corazon: "Té, Flor del naranjo",
+    notas_corazon: "Té, Flor del Naranjo",
     notas_base:    "Café, Pachulí, Vainilla",
   },
   {
@@ -605,7 +605,7 @@ const PERFUMES = [
     promo:  "88,650.00",
     price:  "98,500.00",
     foto:   "",
-    notas_salida:  "Piña, Grosellas negras, Slvia",
+    notas_salida:  "Piña, Grosella negra, Salvia",
     notas_corazon: "Vainilla, Ciruela, Cardamomo, Praliné",
     notas_base:    "Haba tonka, Pachulí",
   },
@@ -676,7 +676,7 @@ const PERFUMES = [
     price:  "98,500.00",
     foto:   "img/ODYSSEY LIMONI.webp",
     notas_salida:  "Limón, Mandarina, Bergamota",
-    notas_corazon: "Jengibre, Notas marinas, Flor de naranjo",
+    notas_corazon: "Jengibre, Notas marinas, Flor del Naranjo",
     notas_base:    "Almizcle, Ámbar",
   },
   {
@@ -760,7 +760,7 @@ const PERFUMES = [
     price:  "75,000.00",
     foto:   "",
     notas_salida:  "Almendra",
-    notas_corazon: "Canela, Rosa, Flor del naranjo",
+    notas_corazon: "Canela, Rosa, Flor del Naranjo",
     notas_base:    "Haba tonka, Vainilla, Amberwood",
   },
   {
@@ -802,7 +802,7 @@ const PERFUMES = [
     price:  "85,000.00",
     foto:   "",
     notas_salida:  "Frambuesa, Bergamota, Pera, Frutilla, Naranja, Pera",
-    notas_corazon: "Peonía, Flor del naranjo, Jazmín",
+    notas_corazon: "Peonía, Flor del Naranjo, Jazmín",
     notas_base:    "Musgo, Vainilla, Pachulí, Cedro, Ambroxan",
   },
   {
@@ -899,7 +899,7 @@ const PERFUMES = [
     promo:  "98,100.00",
     price:  "109,000.00",
     foto:   "img/LIQUID BRUN.webp",
-    notas_salida:  "Canela, Bergamota, Flor del naranjo, Cardamomo",
+    notas_salida:  "Canela, Bergamota, Flor del Naranjo, Cardamomo",
     notas_corazon: "Vainilla, Elemí",
     notas_base:    "Praliné, Ambroxan, Almizcle, Madera",
   },
@@ -913,8 +913,8 @@ const PERFUMES = [
     promo:  "61,200.00",
     price:  "68,000.00",
     foto:   "",
-    notas_salida:  "Lavanda, Mandarina, Grosellas negras",
-    notas_corazon: "Jazmín, Flor del naranjo",
+    notas_salida:  "Lavanda, Mandarina, Grosella negra",
+    notas_corazon: "Jazmín, Flor del Naranjo",
     notas_base:    "Cedro, Almizcle, Ámbar gris, Vainilla",
   },
   {
@@ -941,8 +941,8 @@ const PERFUMES = [
     promo:  "71,100.00",
     price:  "79,000.00",
     foto:   "img/LA VIVACITÉ.webp",
-    notas_salida:  "Grosellas negras, Pera",
-    notas_corazon: "Iris, Flor del naranjo, Jazmín",
+    notas_salida:  "Grosella negra, Pera",
+    notas_corazon: "Iris, Flor del Naranjo, Jazmín",
     notas_base:    "Haba tonka, Vainilla, Praliné, Pachulí",
   },
   {
@@ -970,7 +970,7 @@ const PERFUMES = [
     price:  "98,000.00",
     foto:   "img/THE KINGDOM MAN.webp",
     notas_salida:  "Menta, Lavanda",
-    notas_corazon: "Vainilla, Tabaco, Flor del naranjo",
+    notas_corazon: "Vainilla, Tabaco, Flor del Naranjo",
     notas_base:    "Benjuí, Haba tonka",
   },
   {
@@ -1037,7 +1037,7 @@ const PERFUMES = [
     price:  "68,000.00",
     foto:   "",
     notas_salida:  "Manzana verde, Notas acuáticas, Bergamota",
-    notas_corazon: "Ciclamen, Jazmín, Lirio del valle",
+    notas_corazon: "Ciclamen, Jazmín, Lirio de los Valles",
     notas_base:    "Ámbar, Cedro, Almizcle, Musgo de roble",
   },
   {
@@ -1243,7 +1243,7 @@ const PERFUMES = [
     price:  "98,500.00",
     foto:   "img/HAWAS.webp",
     notas_salida:  "Bergamota, Manzana, Canela, Limón",
-    notas_corazon: "Ciruela, Cardamomo, Flor del naranjo",
+    notas_corazon: "Ciruela, Cardamomo, Flor del Naranjo",
     notas_base:    "Ámbar gris, Almizcle, Pachulí",
   },
   {
@@ -1355,7 +1355,7 @@ const PERFUMES = [
     price:  "85,000.00",
     foto:   "img/FAKHAR ROSE.webp",
     notas_salida:  "Azucena, Granada, Aldehídos, Frutas",
-    notas_corazon: "Jazmín, Nardos, Rosa, Peonía, Ylang-ylang",
+    notas_corazon: "Jazmín, Nardo, Rosa, Peonía, Ylang-Ylang",
     notas_base:    "Vainilla, Ambroxan, Sándalo, Almizcle",
   },
   {
@@ -1369,7 +1369,7 @@ const PERFUMES = [
     price:  "85,000.00",
     foto:   "img/FAKHAR.webp",
     notas_salida:  "Pomelo, Durazno, Bergamota, Naranja",
-    notas_corazon: "Jazmín, Geranio, Rosa, Lychee",
+    notas_corazon: "Jazmín, Geranio, Rosa, Litchi",
     notas_base:    "Almizcle, Vainilla, Vetiver, Pachulí",
   },
   {
@@ -1410,7 +1410,7 @@ const PERFUMES = [
     price:  "68,000.00",
     foto:   "",
     notas_salida:  "Pimienta roja, Mandarina",
-    notas_corazon: "Jazmín, Rosa, Flor del naranjo",
+    notas_corazon: "Jazmín, Rosa, Flor del Naranjo",
     notas_base:    "Ámbar, Vainilla",
   },
   {
@@ -1424,7 +1424,7 @@ const PERFUMES = [
     price:  "99,500.00",
     foto:   "img/EMEER.webp",
     notas_salida:  "Bergamota, Limón, Esclarea",
-    notas_corazon: "Sándalo, Te verde, Cardamomo",
+    notas_corazon: "Sándalo, Té verde, Cardamomo",
     notas_base:    "Cedro, Ámbar gris, Pachulí, Cachemira",
   },
   {
@@ -1437,8 +1437,8 @@ const PERFUMES = [
     promo:  "71,100.00",
     price:  "79,000.00",
     foto:   "img/EMAAN.webp",
-    notas_salida:  "Flor del naranjo, Grosellas negras, Bergamota",
-    notas_corazon: "Nardos, Jazmín",
+    notas_salida:  "Flor del Naranjo, Grosella negra, Bergamota",
+    notas_corazon: "Nardo, Jazmín",
     notas_base:    "Cedro, Pachulí, Vainilla, Almizcle",
   },
   {
@@ -1480,7 +1480,7 @@ const PERFUMES = [
     price:  "68,000.00",
     foto:   "",
     notas_salida:  "Limón",
-    notas_corazon: "Ron, Flor del naranjo",
+    notas_corazon: "Ron, Flor del Naranjo",
     notas_base:    "Vainilla",
   },
   {
@@ -1522,7 +1522,7 @@ const PERFUMES = [
     price:  "89,000.00",
     foto:   "img/CONFIDENTIAL GOLD.webp",
     notas_salida:  "Maracuyá, Pera, Frambuesa, Durazno",
-    notas_corazon: "Lirio del valle",
+    notas_corazon: "Lirio de los Valles",
     notas_base:    "Pachulí, Heliotropo, Vainilla, Almizcle, Sándalo",
   },
   {
@@ -1548,7 +1548,7 @@ const PERFUMES = [
     promo:  "89,550.00",
     price:  "99,500.00",
     foto:   "img/CDN URBAN MAN ELIXIR.webp",
-    notas_salida:  "Bergamota, Pimienta rosa, Jazmín, Flor del naranjo",
+    notas_salida:  "Bergamota, Pimienta rosa, Jazmín, Flor del Naranjo",
     notas_corazon: "Lavanda, Vetiver, Geranio, Azafrán",
     notas_base:    "Ámbar, Ládano, Pachulí, Ambroxan",
   },
@@ -1574,9 +1574,9 @@ const PERFUMES = [
     promo:  "89,550.00",
     price:  "99,500.00",
     foto:   "img/ARMAF-CDN_SILLAGE.webp",
-    notas_salida:  "Bergamota, Limón, Grosellas negras, Jengibre",
+    notas_salida:  "Bergamota, Limón, Grosella negra, Jengibre",
     notas_corazon: "Iris, Rosa, Jazmín",
-    notas_base:    "Almizcle, Sándalo, Cedro, Ambroxán",
+    notas_base:    "Almizcle, Sándalo, Cedro, Ambroxan",
   },
   {
     slug:   "cdn-rosa",
@@ -1601,7 +1601,7 @@ const PERFUMES = [
     price:  "125,000.00",
     foto:   "img/ARMAF-CDN_PRECIEUX.webp",
     notas_salida:  "Caramelo, Pimienta, Pera, Bergamota, Limón, Piña",
-    notas_corazon: "Musgo, Jazmín, Lirio de los valles, Anís",
+    notas_corazon: "Musgo, Jazmín, Lirio de los Valles, Anís",
     notas_base:    "Vainilla, Cuero, Pachulí, Ambroxan, Almizcle",
   },
   {
@@ -1626,7 +1626,7 @@ const PERFUMES = [
     promo:  "89,550.00",
     price:  "99,500.00",
     foto:   "img/ARMAF-CDN_MALEKA.webp",
-    notas_salida:  "Litchi, Pimienta roja, Bergamora",
+    notas_salida:  "Litchi, Pimienta roja, Bergamota",
     notas_corazon: "Lirio",
     notas_base:    "Praliné, Sándalo, Ambroxan",
   },
@@ -1665,7 +1665,7 @@ const PERFUMES = [
     promo:  "85,500.00",
     price:  "95,000.00",
     foto:   "",
-    notas_salida:  "Limón, Piña, Bergamota, Manzana, Grosellas negras",
+    notas_salida:  "Limón, Piña, Bergamota, Manzana, Grosella negra",
     notas_corazon: "Rosa, Jazmín, Madera",
     notas_base:    "Almizcle, Ámbar gris, Pachulí, Vainilla",
   },
@@ -1694,7 +1694,7 @@ const PERFUMES = [
     price:  "79,000.00",
     foto:   "img/MAISONALHAMBRA_CANDID.webp",
     notas_salida:  "Bergamota, Ananá",
-    notas_corazon: "Jazmín, Rosa, Flor del naranjo",
+    notas_corazon: "Jazmín, Rosa, Flor del Naranjo",
     notas_base:    "Vainilla, Pachulí, Haba tonka",
   },
   {
@@ -1873,7 +1873,7 @@ const PERFUMES = [
     price:  "89,000.00",
     foto:   "img/ART OF UNIVERSE.webp",
     notas_salida:  "Mandarina, Jengibre, Bergamota, Menta",
-    notas_corazon: "Pera, Flor del naranjo",
+    notas_corazon: "Pera, Flor del Naranjo",
     notas_base:    "Almizcle, Ámbar, Cedro",
   },
   {
@@ -1888,7 +1888,7 @@ const PERFUMES = [
     foto:   "img/ART OF NATURE I.webp",
     notas_salida:  "Higo, Ciruela",
     notas_corazon: "Cuero, Ruibarbo, Rosa",
-    notas_base:    "Oud, Ámar gris, Vainilla",
+    notas_base:    "Oud, Ámbar gris, Vainilla",
   },
   {
     slug:   "antique",
@@ -1942,7 +1942,7 @@ const PERFUMES = [
     price:  "149,000.00",
     foto:   "img/AMBER OUD DUBAI NIGHT.webp",
     notas_salida:  "Lavanda, Azafrán, Bergamota",
-    notas_corazon: "Madera de oud, Lirio de los valles, Rosa",
+    notas_corazon: "Madera de oud, Lirio de los Valles, Rosa",
     notas_base:    "Ámbar, Almizcle, Haba tonka, Vainilla",
   },
   {
@@ -2035,7 +2035,7 @@ const PERFUMES = [
     price:  "98,000.00",
     foto:   "",
     notas_salida:  "Manzana, Lavanda, Canela, Bergamota",
-    notas_corazon: "Azahar, Lirio del valle",
+    notas_corazon: "Azahar, Lirio de los Valles",
     notas_base:    "Vainilla, Haba tonka, Ámbar, Pachulí",
   },
   {
@@ -2061,7 +2061,7 @@ const PERFUMES = [
     price:  "98,000.00",
     foto:   "img/9PM.webp",
     notas_salida:  "Manzana, Canela, Lavanda, Bergamota",
-    notas_corazon: "Azahar, Lirio del valle",
+    notas_corazon: "Azahar, Lirio de los Valles",
     notas_base:    "Vainilla, Haba tonka, Ámbar, Pachulí",
   },
   {
