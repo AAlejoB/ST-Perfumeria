@@ -1258,7 +1258,7 @@
       margin-bottom: 0;
     }
     .price-original { font-size: .9rem; color: #999; text-decoration: line-through; }
-    .price-label { font-size: .65rem; color: #bbb; font-weight: 400; }
+    .price-label { font-size: .55rem; color: #bbb; font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
     .price-cash { width: 100%; font-size: .85rem; color: #4caf50; font-weight: 600; }
 
     /* REVEAL LATERAL — por defecto entra desde la derecha (columna derecha / mobile) */
@@ -3143,7 +3143,7 @@
       <p class="cart-panel-title">Tu pedido</p>
       <div id="cartItems"></div>
       <div class="cart-total">
-        <span>Total tarjeta:</span>
+        <span>Total 3 cuotas sin interés:</span>
         <span class="cart-total-amount" id="cartTotal">$0</span>
       </div>
       <p class="cart-cash" id="cartCash"></p>
@@ -3792,10 +3792,10 @@
       const cashFormatted = '$' + cashPrice.toLocaleString('es-AR').replace(/,/g, '.');
 
       const pricingHTML = p.promo
-        ? '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">tarjeta</span><span class="price-original">' + originalFormatted + '</span>'
-          + '<span class="price-cash">' + cashFormatted + ' efectivo/transf.</span>'
-        : '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">tarjeta</span>'
-          + '<span class="price-cash">' + cashFormatted + ' efectivo/transf.</span>';
+        ? '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span><span class="price-original">' + originalFormatted + '</span>'
+          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>'
+        : '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span>'
+          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
 
       var searchText = stripAccents([p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || ''].join(' ').toLowerCase());
 
@@ -4994,11 +4994,11 @@
       var cashNum = Math.round(priceNum * 0.9);
       var priceHTML = '';
       if (p.promo) {
-        priceHTML = '<span class="price-promo">$' + formatPrice(p.promo) + '</span> <span class="price-label">tarjeta</span> <span class="price-original">$' + formatPrice(p.price) + '</span>'
-          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' efectivo/transf.</span>';
+        priceHTML = '<span class="price-promo">$' + formatPrice(p.promo) + '</span> <span class="price-label">3 cuotas sin interés</span> <span class="price-original">$' + formatPrice(p.price) + '</span>'
+          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' descuento efectivo/transf.</span>';
       } else {
-        priceHTML = '<span class="price-promo">$' + formatPrice(p.price) + '</span> <span class="price-label">tarjeta</span>'
-          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' efectivo/transf.</span>';
+        priceHTML = '<span class="price-promo">$' + formatPrice(p.price) + '</span> <span class="price-label">3 cuotas sin interés</span>'
+          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' descuento efectivo/transf.</span>';
       }
       document.getElementById('bsPrice').innerHTML = priceHTML;
 
