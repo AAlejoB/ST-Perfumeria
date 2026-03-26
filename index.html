@@ -7,13 +7,18 @@
   <meta name="keywords" content="perfumes &#225;rabes, Comodoro Rivadavia, perfumer&#237;a, Lattafa, Afnan, Armaf, Maison Alhambra, perfumes originales, larga duraci&#243;n, ST Scent Textures"/>
   <meta name="author" content="ST Scent &amp; Textures"/>
   <meta property="og:title" content="ST Scent &amp; Textures — Perfumes &#193;rabes Originales"/>
-  <meta property="og:description" content="Perfumer&#237;a &#225;rabe original en Comodoro Rivadavia. +150 fragancias de larga duraci&#243;n. Pas&#225;s y la gente gira."/>
+  <meta property="og:description" content="+150 fragancias &#225;rabes originales de larga duraci&#243;n. Pas&#225;s y la gente gira. &#128293; Comodoro Rivadavia."/>
   <meta property="og:type" content="website"/>
-  <meta property="og:image" content="https://st-perfumeria.vercel.app/img/logo-st.webp"/>
+  <meta property="og:image" content="https://st-perfumeria.vercel.app/img/og-preview.webp"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
   <meta property="og:url" content="https://st-perfumeria.vercel.app"/>
+  <meta property="og:locale" content="es_AR"/>
+  <meta property="og:site_name" content="ST Scent &amp; Textures"/>
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="ST Scent &amp; Textures — Perfumes &#193;rabes Originales"/>
-  <meta name="twitter:description" content="Perfumer&#237;a &#225;rabe original en Comodoro Rivadavia. +150 fragancias de larga duraci&#243;n."/>
+  <meta name="twitter:description" content="+150 fragancias &#225;rabes originales de larga duraci&#243;n. Pas&#225;s y la gente gira. &#128293;"/>
+  <meta name="twitter:image" content="https://st-perfumeria.vercel.app/img/og-preview.webp"/>
   <link rel="canonical" href="https://st-perfumeria.vercel.app"/>
   <link rel="icon" type="image/png" href="img/logo-st.webp"/>
   <link rel="apple-touch-icon" href="img/logo-st.webp"/>
@@ -1038,27 +1043,29 @@
     /* ================================================
        DARK MODE
     ================================================ */
-    .dark-toggle {
-      position: fixed;
-      top: 70px;
-      right: 16px;
-      z-index: 997;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.1);
+    .nav-dark-toggle {
+      background: none;
       border: 1px solid rgba(255,255,255,.15);
-      color: #ccc;
-      font-size: 1rem;
+      border-radius: 20px;
+      padding: .25rem .6rem;
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: all .25s;
-      backdrop-filter: blur(8px);
+      gap: 4px;
+      transition: all .3s;
+      font-family: inherit;
+      font-size: .7rem;
+      color: var(--gris-claro);
     }
-    .dark-toggle:hover { background: rgba(255,255,255,.2); color: #fff; }
-    @media (min-width: 768px) { .dark-toggle { top: 75px; right: 24px; } }
+    .nav-dark-toggle:hover { border-color: var(--amarillo); background: rgba(232,184,0,.08); }
+    .dark-toggle-icon {
+      font-size: .9rem;
+      display: inline-block;
+      transition: transform .4s ease;
+    }
+    .nav-dark-toggle:hover .dark-toggle-icon { transform: rotate(25deg) scale(1.15); }
+    body.dark-mode .nav-dark-toggle { border-color: var(--amarillo); background: rgba(232,184,0,.1); }
+    body.dark-mode .nav-dark-toggle .dark-toggle-icon { transform: rotate(0); }
 
     body.dark-mode .catalog-section { background: #121212; }
     body.dark-mode .product-card { background: #1a1a1a; border-color: #2a2a2a; }
@@ -2291,6 +2298,9 @@
     </button>
     <a href="#" class="nav-logo"><img src="img/logo-st.webp" alt="ST Scent & Textures"></a>
     <div class="nav-icons">
+      <button class="nav-dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Cambiar tema">
+        <span class="dark-toggle-icon">🌙</span>
+      </button>
       <a href="#catalogo" class="nav-icon-btn nav-fav-btn" title="Favoritos" onclick="showFavorites(event)">
         <span class="nav-fav-wrap">
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -2309,7 +2319,6 @@
     </div>
   </nav>
 
-  <button class="dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Modo oscuro/claro">🌙</button>
 
   <section class="hero">
     <p class="hero-tagline">Perfumer&#237;a &#225;rabe original &middot; Comodoro Rivadavia</p>
@@ -4071,10 +4080,10 @@
     // ============================================================
     function toggleDarkMode() {
       var body = document.body;
-      var btn = document.getElementById('darkToggle');
+      var icon = document.querySelector('.dark-toggle-icon');
       body.classList.toggle('dark-mode');
       var isDark = body.classList.contains('dark-mode');
-      btn.textContent = isDark ? '☀️' : '🌙';
+      if (icon) icon.textContent = isDark ? '☀️' : '🌙';
       localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
     }
 
@@ -4083,8 +4092,8 @@
       var saved = localStorage.getItem('st_dark_mode');
       if (saved === '1') {
         document.body.classList.add('dark-mode');
-        var btn = document.getElementById('darkToggle');
-        if (btn) btn.textContent = '☀️';
+        var icon = document.querySelector('.dark-toggle-icon');
+        if (icon) icon.textContent = '☀️';
       }
     })();
   </script>
