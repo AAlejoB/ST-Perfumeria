@@ -1465,6 +1465,159 @@
       border-radius: 4px;
     }
 
+    /* ================================================
+       DECANTS BANNER
+    ================================================ */
+    .decant-banner {
+      width: 100%;
+      background: #000;
+      display: flex;
+      align-items: stretch;
+      min-height: 160px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    .decant-b-left {
+      flex: 1;
+      background: linear-gradient(135deg, #1a1508, #0d0d0d);
+      padding: 1.8rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 2px solid var(--amarillo);
+    }
+    .decant-b-label {
+      font-size: .55rem;
+      font-weight: 600;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      margin-bottom: .4rem;
+    }
+    .decant-b-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: .3rem;
+    }
+    .decant-b-title span { color: var(--amarillo); font-size: 1.1rem; font-weight: 400; }
+    .decant-b-sub {
+      font-size: .75rem;
+      color: #888;
+      margin-bottom: 1rem;
+    }
+    .decant-b-cta {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      border: 1px solid var(--amarillo);
+      padding: .5rem 1.5rem;
+      border-radius: 3px;
+      text-decoration: none;
+      width: fit-content;
+      transition: all .2s;
+    }
+    .decant-b-cta:hover { background: var(--amarillo); color: #000; }
+    .decant-b-right {
+      flex: 0 0 40%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      background: linear-gradient(180deg, rgba(232,184,0,.05), transparent);
+    }
+    .decant-b-vial {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4rem;
+      position: relative;
+    }
+    .decant-b-bottle {
+      width: 36px;
+      height: 62px;
+      background: linear-gradient(180deg, rgba(232,184,0,.3), rgba(232,184,0,.1));
+      border: 1px solid rgba(232,184,0,.4);
+      border-radius: 4px 4px 2px 2px;
+      position: relative;
+    }
+    .decant-b-bottle::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 10px;
+      background: rgba(232,184,0,.4);
+      border-radius: 50%;
+    }
+    .decant-b-bottle.size-10 { width: 44px; height: 72px; }
+    .decant-b-bottle.size-10::before { width: 12px; height: 12px; top: -10px; }
+    .decant-b-bottle.size-20 { width: 52px; height: 82px; }
+    .decant-b-bottle.size-20::before { width: 14px; height: 14px; top: -11px; }
+    .decant-b-ml {
+      font-size: .65rem;
+      font-weight: 600;
+      color: var(--amarillo);
+    }
+    /* Cinta diagonal "Próximamente" */
+    .decant-ribbon {
+      position: absolute;
+      top: 8px; right: -22px;
+      background: var(--amarillo);
+      color: #000;
+      font-size: .4rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 2px 20px;
+      transform: rotate(35deg);
+      z-index: 2;
+      box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    }
+    .decant-b-vial.coming-soon .decant-b-bottle {
+      opacity: .4;
+    }
+    .decant-b-vial.coming-soon .decant-b-ml {
+      opacity: .5;
+    }
+
+    @media (max-width: 768px) {
+      .decant-banner { flex-direction: column; }
+      .decant-b-left { border-right: none; border-bottom: 2px solid var(--amarillo); padding: 1.3rem 1.2rem; }
+      .decant-b-title { font-size: 1.6rem; }
+      .decant-b-right { flex: 0 0 auto; padding: 1.2rem; gap: 1rem; }
+    }
+
+    /* Cinta "Foto próximamente" en cards sin foto */
+    .photo-coming {
+      position: relative;
+      overflow: hidden;
+    }
+    .photo-coming-ribbon {
+      position: absolute;
+      bottom: 12px; left: -30px;
+      background: var(--amarillo);
+      color: #000;
+      font-size: .45rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 3px 30px;
+      transform: rotate(-15deg);
+      z-index: 2;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+      white-space: nowrap;
+    }
+
     /* Card entrance animation */
     .product-card.card-animate {
       opacity: 0; transform: translateY(20px);
@@ -2166,6 +2319,32 @@
       <div class="quiz-results" id="quizResults"></div>
     </div>
   </section>
+
+  <!-- DECANTS BANNER -->
+  <div class="decant-banner">
+    <div class="decant-b-left">
+      <p class="decant-b-label">◆ ST Perfumería</p>
+      <h2 class="decant-b-title">DECANTS<br/><span>tu fragancia, tu medida</span></h2>
+      <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
+      <a href="https://wa.me/5492975416017?text=Hola!%20Me%20interesan%20los%20decants.%20%C2%BFQu%C3%A9%20opciones%20tienen?" target="_blank" class="decant-b-cta">Consultar decants →</a>
+    </div>
+    <div class="decant-b-right">
+      <div class="decant-b-vial">
+        <div class="decant-b-bottle"></div>
+        <span class="decant-b-ml">5 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-10"></div>
+        <span class="decant-b-ml">10 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-20"></div>
+        <span class="decant-b-ml">20 ml</span>
+      </div>
+    </div>
+  </div>
 
   <!--
     FILTROS: ahora usan .filter-group para que los botones
@@ -2950,7 +3129,7 @@
       const fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
       const imageHTML = p.foto
         ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
-        : '<div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div>';
+        : '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
 
       const effectivePrice = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
       const cashPrice = Math.round(effectivePrice * 0.9);
