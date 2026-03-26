@@ -1180,6 +1180,26 @@
     .scent-note   { font-size: .68rem; font-weight: 300; color: #e0e0e0; line-height: 1.4; }
     .scent-note strong  { font-weight: 600; color: #fff; }
     .note-label { font-weight: 700; color: var(--amarillo); font-size: .55rem; letter-spacing: .1em; margin-right: .3rem; }
+
+    /* Notes preview in card (mobile) + tags in reveal (mobile) */
+    .card-notes-preview { display: flex; flex-direction: column; gap: .2rem; margin-bottom: 6px; }
+    .note-prev { font-size: .6rem; font-weight: 300; color: #999; line-height: 1.35; }
+    .note-prev .note-label { font-size: .5rem; }
+    .reveal-tags { display: none; gap: 4px; flex-wrap: wrap; margin-bottom: .5rem; }
+
+    /* MOBILE: card muestra notas, oculta tags. Reveal muestra tags, oculta notas */
+    @media (max-width: 767px) {
+      .card-tags { display: none; }
+      .card-notes-preview { display: flex; }
+      .reveal-tags { display: flex; }
+      .card-reveal .scent-notes { display: none; }
+    }
+    /* DESKTOP: card muestra tags, oculta notas preview. Reveal muestra notas sin tags */
+    @media (min-width: 768px) {
+      .card-tags { display: flex; }
+      .card-notes-preview { display: none; }
+      .reveal-tags { display: none; }
+    }
     .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .65rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .55rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
     @media (min-width: 768px) {
       .reveal-name { font-size: 1.1rem; }
@@ -3532,6 +3552,13 @@
             + '<span class="card-tag tag-ml">100 ml</span>'
             + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
           + '</div>'
+          + ((p.notas_salida || p.notas_corazon || p.notas_base)
+            ? '<div class="card-notes-preview">'
+              + '<p class="note-prev"><span class="note-label">SALIDA</span> ' + (p.notas_salida || '—') + '</p>'
+              + '<p class="note-prev"><span class="note-label">CORAZ\u00d3N</span> ' + (p.notas_corazon || '—') + '</p>'
+              + '<p class="note-prev"><span class="note-label">BASE</span> ' + (p.notas_base || '—') + '</p>'
+            + '</div>'
+            : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
         + '</div>'
@@ -3539,6 +3566,11 @@
           + '<p class="reveal-name">' + p.name + '</p>'
           + '<p class="reveal-brand">' + (p.marca_real || p.marca) + '</p>'
           + '<div class="reveal-divider"></div>'
+          + '<div class="reveal-tags">'
+            + '<span class="card-tag tag-cat">' + pCat + '</span>'
+            + '<span class="card-tag tag-ml">100 ml</span>'
+            + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+          + '</div>'
           + '<div class="scent-notes">'
             + (p.esSet
               ? '<p class="scent-note set-highlight"><strong>' + p.setInfo + '</strong></p>'
