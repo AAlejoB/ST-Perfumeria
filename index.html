@@ -3958,7 +3958,34 @@
       } catch(e) {}
     }
 
+    // Cargar overrides desde Supabase y aplicar sobre perfumes.js
+    async function loadOverrides() {
+      try {
+        var { data } = await sb.from('perfume_overrides').select('*');
+        if (data && data.length > 0) {
+          data.forEach(function(o) {
+            var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
+            if (!p) return;
+            // Solo sobreescribir campos que tengan valor
+            if (o.name) p.name = o.name;
+            if (o.marca) p.marca = o.marca;
+            if (o.marca_real) p.marca_real = o.marca_real;
+            if (o.cat) p.cat = o.cat;
+            if (o.perfil) p.perfil = o.perfil;
+            if (o.price) p.price = o.price;
+            if (o.promo !== null && o.promo !== undefined) p.promo = o.promo;
+            if (o.foto) p.foto = o.foto;
+            if (o.notas_salida) p.notas_salida = o.notas_salida;
+            if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
+            if (o.notas_base) p.notas_base = o.notas_base;
+          });
+        }
+      } catch(e) {}
+    }
+
     loadPerfumesNuevos().then(function() {
+      return loadOverrides();
+    }).then(function() {
       markNewPerfumes();
       return loadPerfumeViews();
     }).then(function() {

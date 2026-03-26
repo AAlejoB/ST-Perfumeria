@@ -237,6 +237,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('precios',this)">Precios</button>
       <button class="tab-btn" onclick="switchTab('stock',this)">Stock</button>
+      <button class="tab-btn" onclick="switchTab('editar',this)">✏️ Editar</button>
       <button class="tab-btn" onclick="switchTab('nuevos',this)">+ Perfume</button>
       <button class="tab-btn" onclick="switchTab('destacados',this)">Destacados</button>
       <button class="tab-btn" onclick="switchTab('horario',this)">Horario</button>
@@ -277,6 +278,93 @@
         <thead><tr><th>Perfume</th><th>Estado</th><th>Accion</th></tr></thead>
         <tbody id="tbodyStock"></tbody>
       </table>
+    </div>
+
+    <!-- TAB: EDITAR PERFUME EXISTENTE -->
+    <div class="tab-content" id="tab-editar">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Editar perfume existente</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Buscá un perfume de los 151 ya cargados. Los cambios se guardan en Supabase y se aplican sobre el catálogo original sin tocar el código.</p>
+        <input type="text" class="admin-search" id="editSearch" placeholder="Buscar perfume para editar..." oninput="searchEditPerfume()" style="margin-bottom:0;"/>
+        <div id="editSearchResults" style="max-height:200px;overflow-y:auto;border:1px solid var(--borde);border-radius:4px;display:none;margin-top:4px;"></div>
+      </div>
+
+      <div id="editFormWrap" style="display:none;">
+        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Editando: <span id="editingName"></span></p>
+        <input type="hidden" id="editSlug"/>
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Nombre</label>
+              <input type="text" class="modal-input" id="editName" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Marca</label>
+              <input type="text" class="modal-input" id="editMarca" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Marca real</label>
+              <input type="text" class="modal-input" id="editMarcaReal" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Categoría</label>
+              <select class="modal-input" id="editCat" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+                <option value="Unisex">Unisex</option>
+                <option value="Hombre">Hombre</option>
+                <option value="Mujer">Mujer</option>
+              </select>
+            </div>
+            <div>
+              <label class="modal-label">Perfil</label>
+              <select class="modal-input" id="editPerfil" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+                <option value="Versátil">Versátil</option>
+                <option value="Intenso">Intenso</option>
+                <option value="Dulce">Dulce</option>
+                <option value="Fresco">Fresco</option>
+              </select>
+            </div>
+            <div>
+              <label class="modal-label">Precio tarjeta</label>
+              <input type="text" class="modal-input" id="editPrice" placeholder="98,500.00" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Precio promo</label>
+              <input type="text" class="modal-input" id="editPromo" placeholder="Vacío si no hay" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Foto</label>
+              <div style="display:flex;gap:.5rem;align-items:center;max-width:100%;overflow:hidden;">
+                <label class="action-btn btn-price" style="cursor:pointer;padding:.5rem .8rem;font-size:.65rem;text-align:center;flex-shrink:0;white-space:nowrap;">
+                  📷 Subir
+                  <input type="file" accept="image/*" onchange="uploadEditFoto(this)" style="display:none;"/>
+                </label>
+                <input type="text" class="modal-input" id="editFoto" placeholder="URL de la foto..." style="margin-bottom:0;flex:1;min-width:0;font-size:.65rem;"/>
+                <div id="editFotoPreview" style="width:36px;height:48px;border-radius:4px;overflow:hidden;background:#1a1a1a;flex-shrink:0;display:none;">
+                  <img id="editFotoPreviewImg" style="width:100%;height:100%;object-fit:cover;"/>
+                </div>
+              </div>
+              <p id="editFotoMsg" style="font-size:.6rem;color:var(--gris);margin-top:4px;min-height:.8rem;"></p>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Notas de salida</label>
+              <input type="text" class="modal-input" id="editSalida" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Notas de corazón</label>
+              <input type="text" class="modal-input" id="editCorazon" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Notas de base</label>
+              <input type="text" class="modal-input" id="editBase" style="margin-bottom:0;"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:1rem;">
+            <button class="modal-btn modal-btn-price" onclick="saveEditPerfume()" style="flex:1;">Guardar cambios</button>
+            <button class="modal-btn" onclick="cancelEdit()" style="flex:0 0 auto;background:#333;color:#fff;">Cancelar</button>
+          </div>
+          <p class="modal-success" id="editMsg" style="margin-top:.5rem;"></p>
+        </div>
+      </div>
     </div>
 
     <!-- TAB: NUEVO PERFUME -->
@@ -857,6 +945,145 @@
         + '</tr>';
       });
       tbody.innerHTML = html;
+    }
+
+    // ============================================================
+    // EDITAR PERFUME EXISTENTE (overrides)
+    // ============================================================
+    function searchEditPerfume() {
+      var input = document.getElementById('editSearch').value.trim().toLowerCase();
+      var results = document.getElementById('editSearchResults');
+      if (input.length < 2) { results.style.display = 'none'; return; }
+
+      var matches = PERFUMES.filter(function(p) {
+        return !p.esSet && p.name.toLowerCase().indexOf(input) !== -1;
+      }).slice(0, 10);
+
+      if (matches.length === 0) {
+        results.innerHTML = '<div class="dest-search-item" style="color:var(--gris);">Sin resultados</div>';
+      } else {
+        var html = '';
+        matches.forEach(function(p) {
+          html += '<div class="dest-search-item" onclick="loadEditPerfume(\'' + p.slug + '\')">'
+            + p.name + ' <span style="color:var(--gris);font-size:.6rem;">' + (p.marca_real || p.marca) + '</span>'
+          + '</div>';
+        });
+        results.innerHTML = html;
+      }
+      results.style.display = 'block';
+    }
+
+    function loadEditPerfume(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+
+      document.getElementById('editSlug').value = slug;
+      document.getElementById('editingName').textContent = p.name;
+      document.getElementById('editName').value = p.name;
+      document.getElementById('editMarca').value = p.marca || '';
+      document.getElementById('editMarcaReal').value = p.marca_real || '';
+      document.getElementById('editCat').value = p.cat ? p.cat.split(',')[0].trim() : 'Unisex';
+      document.getElementById('editPerfil').value = p.perfil || 'Versátil';
+      document.getElementById('editPrice').value = p.price || '';
+      document.getElementById('editPromo').value = p.promo || '';
+      document.getElementById('editFoto').value = p.foto || '';
+      document.getElementById('editSalida').value = p.notas_salida || '';
+      document.getElementById('editCorazon').value = p.notas_corazon || '';
+      document.getElementById('editBase').value = p.notas_base || '';
+
+      // Preview foto
+      var previewWrap = document.getElementById('editFotoPreview');
+      var previewImg = document.getElementById('editFotoPreviewImg');
+      if (p.foto) {
+        previewImg.src = p.foto.replace(/ /g, '%20');
+        previewWrap.style.display = 'block';
+      } else {
+        previewWrap.style.display = 'none';
+      }
+
+      document.getElementById('editFormWrap').style.display = 'block';
+      document.getElementById('editSearchResults').style.display = 'none';
+      document.getElementById('editSearch').value = '';
+      document.getElementById('editMsg').textContent = '';
+    }
+
+    async function saveEditPerfume() {
+      var slug = document.getElementById('editSlug').value;
+      if (!slug) return;
+
+      var obj = {
+        slug: slug,
+        name: document.getElementById('editName').value.trim().toUpperCase(),
+        marca: document.getElementById('editMarca').value.trim(),
+        marca_real: document.getElementById('editMarcaReal').value.trim(),
+        cat: document.getElementById('editCat').value,
+        perfil: document.getElementById('editPerfil').value,
+        price: document.getElementById('editPrice').value.trim(),
+        promo: document.getElementById('editPromo').value.trim(),
+        foto: document.getElementById('editFoto').value.trim(),
+        notas_salida: document.getElementById('editSalida').value.trim(),
+        notas_corazon: document.getElementById('editCorazon').value.trim(),
+        notas_base: document.getElementById('editBase').value.trim()
+      };
+
+      var msgEl = document.getElementById('editMsg');
+      msgEl.textContent = 'Guardando...';
+      msgEl.style.color = '#e8b800';
+
+      // Upsert: insert si no existe, update si ya existe
+      var { error } = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
+
+      if (error) {
+        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      msgEl.textContent = '✓ ' + obj.name + ' actualizado. Los cambios se ven al recargar el sitio.';
+      msgEl.style.color = '#2ecc71';
+      notifyTelegram('✏️ Perfume editado: ' + obj.name + '\n📋 Cambios guardados en Supabase');
+    }
+
+    function cancelEdit() {
+      document.getElementById('editFormWrap').style.display = 'none';
+      document.getElementById('editSlug').value = '';
+      document.getElementById('editMsg').textContent = '';
+    }
+
+    async function uploadEditFoto(input) {
+      var file = input.files[0];
+      if (!file) return;
+      var msgEl = document.getElementById('editFotoMsg');
+      var fotoInput = document.getElementById('editFoto');
+      var previewWrap = document.getElementById('editFotoPreview');
+      var previewImg = document.getElementById('editFotoPreviewImg');
+
+      msgEl.textContent = 'Comprimiendo y subiendo...';
+      msgEl.style.color = '#e8b800';
+
+      try {
+        var compressed = await compressToWebP(file, 800, 0.82);
+        var nombre = document.getElementById('editName').value.trim();
+        var fileName = nombre
+          ? nombre.toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\s+/g, ' ') + '.webp'
+          : 'perfume-' + Date.now() + '.webp';
+
+        var { data, error } = await sb.storage.from('perfume-fotos').upload(fileName, compressed, { contentType: 'image/webp', upsert: true });
+        if (error) throw error;
+
+        var { data: urlData } = sb.storage.from('perfume-fotos').getPublicUrl(fileName);
+        fotoInput.value = urlData.publicUrl;
+        previewImg.src = urlData.publicUrl;
+        previewWrap.style.display = 'block';
+
+        var sizeKB = Math.round(compressed.size / 1024);
+        msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
+        msgEl.style.color = '#2ecc71';
+      } catch(e) {
+        msgEl.textContent = 'Error: ' + (e.message || e);
+        msgEl.style.color = '#e74c3c';
+      }
+      input.value = '';
     }
 
     // ============================================================
