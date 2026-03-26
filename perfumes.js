@@ -35,7 +35,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Pimienta roja, Violeta, Enebro",
     notas_corazon: "Canela, Esclarea, Lavanda",
-    notas_base:    "Gamuza, Ámbar, Vainilla, Haba tonka",
+    notas_base:    "Gamuza, Ámbar, Vainilla, Haba Tonka",
   },
   {
     slug:   "yeah-parfum",
@@ -49,7 +49,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Aldehídos, Manzana, Jengibre, Pomelo",
     notas_corazon: "Geranio, Lavanda, Salvia",
-    notas_base:    "Incienso, Cedro, Haba tonka, Pachulí",
+    notas_base:    "Incienso, Cedro, Haba Tonka, Pachulí",
   },
   { // DESTACADO en home
     slug:   "yeah-man-edp",
@@ -63,7 +63,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Bergamota, Manzana, Jengibre",
     notas_corazon: "Salvia, Geranio, Bayas de enebro",
-    notas_base:    "Amberwood, Vetiver, Cedro, Haba tonka",
+    notas_base:    "Amberwood, Vetiver, Cedro, Haba Tonka",
   },
   {
     slug:   "yara-tous",
@@ -147,7 +147,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Mango, Limón, Ruibarbo, Jengibre",
     notas_corazon: "Pimienta roja, Jazmín, Praliné, Violeta",
-    notas_base:    "Haba tonka, Musgo, Ámbar gris, Cedro",
+    notas_base:    "Haba Tonka, Musgo, Ámbar gris, Cedro",
   },
   { // DESTACADO en home
     slug:   "vogue-rouge",
@@ -174,7 +174,7 @@ const PERFUMES = [
     price:  "75,000.00",
     foto:   "",
     notas_salida:  "Bergamota, Mandarina, Notas acuáticas",
-    notas_corazon: "Caramelo, Jazmín, Pachulí, Haba tonka",
+    notas_corazon: "Caramelo, Jazmín, Pachulí, Haba Tonka",
     notas_base:    "Ámbar gris, Frambuesa, Vainilla, Almizcle",
   },
   { // DESTACADO en home
@@ -245,7 +245,7 @@ const PERFUMES = [
     foto:   "img/TERIAQ INTENSE.webp",
     notas_salida:  "Azafrán, Bergamota",
     notas_corazon: "Ciruela, Canela",
-    notas_base:    "Benjuí, Ámbar, Haba tonka",
+    notas_base:    "Benjuí, Ámbar, Haba Tonka",
   },
   { // DESTACADO en home
     slug:   "shaheen-gold",
@@ -341,7 +341,7 @@ const PERFUMES = [
     foto:   "img/SEHR.webp",
     notas_salida:  "Almendra, Canela",
     notas_corazon: "Jazmín, Pomarose",
-    notas_base:    "Vainilla, Haba tonka, Ámbar",
+    notas_base:    "Vainilla, Haba Tonka, Ámbar",
   },
   {
     slug:   "sceptre-malachite",
@@ -508,7 +508,7 @@ const PERFUMES = [
     price:  "98,000.00",
     foto:   "img/PISTACHIO.webp",
     notas_salida:  "Pistacho, Almendra, Caramelo, Postre kunafa",
-    notas_corazon: "Haba tonka, Cardamomo",
+    notas_corazon: "Haba Tonka, Cardamomo",
     notas_base:    "Chocolate, Vainilla, Almizcle, Sándalo",
   },
   {
@@ -607,7 +607,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Piña, Grosella negra, Salvia",
     notas_corazon: "Vainilla, Ciruela, Cardamomo, Praliné",
-    notas_base:    "Haba tonka, Pachulí",
+    notas_base:    "Haba Tonka, Pachulí",
   },
   {
     slug:   "odyssey-bahamas",
@@ -649,7 +649,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Menta, Bergamota, Naranja, Jengibre",
     notas_corazon: "Enebro, Geranio, Ananá",
-    notas_base:    "Cedro, Almizcle, Vetiver, Haba tonka",
+    notas_base:    "Cedro, Almizcle, Vetiver, Haba Tonka",
   },
   {
     slug:   "odissey-mandarin",
@@ -662,7 +662,7 @@ const PERFUMES = [
     price:  "109,000.00",
     foto:   "img/ODYSSEY MANDARIN SKY.webp",
     notas_salida:  "Naranja, Azafrán, Mandarina",
-    notas_corazon: "Caramelo, Haba tonka",
+    notas_corazon: "Caramelo, Haba Tonka",
     notas_base:    "Ambroxan, Cedro, Vetiver",
   },
   {
@@ -761,7 +761,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Almendra",
     notas_corazon: "Canela, Rosa, Flor del Naranjo",
-    notas_base:    "Haba tonka, Vainilla, Amberwood",
+    notas_base:    "Haba Tonka, Vainilla, Amberwood",
   },
   {
     slug:   "nebula-i",
@@ -789,7 +789,7 @@ const PERFUMES = [
     foto:   "img/NEBRAS.webp",
     notas_salida:  "Bayas rojas, Mandarina",
     notas_corazon: "Rosa, Cacao, Vainilla",
-    notas_base:    "Ámbar, Azúcar, Almizcle, Haba tonka",
+    notas_base:    "Ámbar, Azúcar, Almizcle, Haba Tonka",
   },
   {
     slug:   "miss-chic",
@@ -887,7 +887,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Cilantro, Bergamota",
     notas_corazon: "Manzana, Vainilla, Ambroxan",
-    notas_base:    "Ámbar gris, Haba tonka, Madera",
+    notas_base:    "Ámbar gris, Haba Tonka, Madera",
   },
   {
     slug:   "liquid-brun",
@@ -943,7 +943,7 @@ const PERFUMES = [
     foto:   "img/LA VIVACITÉ.webp",
     notas_salida:  "Grosella negra, Pera",
     notas_corazon: "Iris, Flor del Naranjo, Jazmín",
-    notas_base:    "Haba tonka, Vainilla, Praliné, Pachulí",
+    notas_base:    "Haba Tonka, Vainilla, Praliné, Pachulí",
   },
   {
     slug:   "kingdom-women",
@@ -956,7 +956,7 @@ const PERFUMES = [
     price:  "89,000.00",
     foto:   "img/THE_KINGDOM_WOMEN.webp",
     notas_salida:  "Pera, Peonía",
-    notas_corazon: "Jazmín, Praliné, Haba tonka",
+    notas_corazon: "Jazmín, Praliné, Haba Tonka",
     notas_base:    "Sándalo, Almizcle, Ámbar, Vainilla",
   },
   {
@@ -971,7 +971,7 @@ const PERFUMES = [
     foto:   "img/THE KINGDOM MAN.webp",
     notas_salida:  "Menta, Lavanda",
     notas_corazon: "Vainilla, Tabaco, Flor del Naranjo",
-    notas_base:    "Benjuí, Haba tonka",
+    notas_base:    "Benjuí, Haba Tonka",
   },
   {
     slug:   "khanjar",
@@ -998,7 +998,7 @@ const PERFUMES = [
     foto:   "img/KHAMRAH QAHWA.webp",
     notas_salida:  "Canela, Cardamomo, Jengibre",
     notas_corazon: "Praliné, Frutas confitadas, Flores blancas",
-    notas_base:    "Café, Vainilla, Haba tonka, Benjuí, Almizcle",
+    notas_base:    "Café, Vainilla, Haba Tonka, Benjuí, Almizcle",
   },
   {
     slug:   "khamrah-dukhan",
@@ -1011,7 +1011,7 @@ const PERFUMES = [
     foto:   "img/KHAMRAH DUKHAN.webp",
     notas_salida:  "Pimienta, Mandarina, Especias",
     notas_corazon: "Incienso, Ládano, Pachulí",
-    notas_base:    "Benjuí, Haba tonka, Tabaco, Praliné, Ámbar",
+    notas_base:    "Benjuí, Haba Tonka, Tabaco, Praliné, Ámbar",
   },
   {
     slug:   "khamrah",
@@ -1079,7 +1079,7 @@ const PERFUMES = [
     price:  "89,000.00",
     foto:   "img/ISHQ AL SHUYUK GOLD.webp",
     notas_salida:  "Caramelo, Azafrán",
-    notas_corazon: "Cuero, Haba tonka, Gamuza",
+    notas_corazon: "Cuero, Haba Tonka, Gamuza",
     notas_base:    "Ámbar, Almizcle, Vainilla",
   },
   {
@@ -1093,7 +1093,7 @@ const PERFUMES = [
     price:  "89,000.00",
     foto:   "",
     notas_salida:  "Caramelo, Azafrán",
-    notas_corazon: "Cuero, Haba tonka, Gamuza",
+    notas_corazon: "Cuero, Haba Tonka, Gamuza",
     notas_base:    "Ámbar, Almizcle, Vainilla",
   },
   {
@@ -1122,7 +1122,7 @@ const PERFUMES = [
     foto:   "img/HIS CONFESSION.webp",
     notas_salida:  "Lavanda, Mandarina, Sándalo",
     notas_corazon: "Iris, Benjuí, Ciprés",
-    notas_base:    "Haba tonka, Ámbar, Vainilla, Pachulí, Cedro, Incienso",
+    notas_base:    "Haba Tonka, Ámbar, Vainilla, Pachulí, Cedro, Incienso",
   },
   {
     slug:   "her-confession",
@@ -1136,7 +1136,7 @@ const PERFUMES = [
     foto:   "img/HER CONFESSION.webp",
     notas_salida:  "Canela",
     notas_corazon: "Jazmín, Incienso, Nardo",
-    notas_base:    "Almizcle, Vainilla, Haba tonka",
+    notas_base:    "Almizcle, Vainilla, Haba Tonka",
   },
   {
     slug:   "hayaati-rosa",
@@ -1284,7 +1284,7 @@ const PERFUMES = [
     promo:  "61,200.00",
     price:  "68,000.00",
     foto:   "",
-    notas_salida:  "Coco, Haba tonka, Bergamota",
+    notas_salida:  "Coco, Haba Tonka, Bergamota",
     notas_corazon: "Ládano, Azafrán, Violeta",
     notas_base:    "Ámbar, Oud, Sándalo, Almizcle blanco",
   },
@@ -1695,7 +1695,7 @@ const PERFUMES = [
     foto:   "img/MAISONALHAMBRA_CANDID.webp",
     notas_salida:  "Bergamota, Ananá",
     notas_corazon: "Jazmín, Rosa, Flor del Naranjo",
-    notas_base:    "Vainilla, Pachulí, Haba tonka",
+    notas_base:    "Vainilla, Pachulí, Haba Tonka",
   },
   {
     slug:   "cherry-bouquet",
@@ -1737,7 +1737,7 @@ const PERFUMES = [
     foto:   "img/BHARARA CHOCOLATE.webp",
     notas_salida:  "Bergamota, Canela, Cardamomo",
     notas_corazon: "Coñac, Praliné",
-    notas_base:    "Almizcle, Haba tonka, Vainilla",
+    notas_base:    "Almizcle, Haba Tonka, Vainilla",
   },
   {
     slug:   "badee-sublime",
@@ -1791,7 +1791,7 @@ const PERFUMES = [
     promo:  "",
     price:  "89,000.00",
     foto:   "img/BADEE HONOR Y GLORY.webp",
-    notas_salida:  "Piña, Créme brulée",
+    notas_salida:  "Piña, Crème brûlée",
     notas_corazon: "Canela, Pimienta, Cúrcuma, Benjuí",
     notas_base:    "Sándalo, Musgo, Cachemira, Vainilla",
   },
@@ -1902,7 +1902,7 @@ const PERFUMES = [
     foto:   "img/ANTIQUE.webp",
     notas_salida:  "Higo, Leche, Cardamomo, Coco",
     notas_corazon: "Vetiver, Iris, Jazmín",
-    notas_base:    "Sándalo, Caramelo, Haba tonka, Ámbar, Almizcle",
+    notas_base:    "Sándalo, Caramelo, Haba Tonka, Ámbar, Almizcle",
   },
   {
     slug:   "ansaam-gold",
@@ -1943,7 +1943,7 @@ const PERFUMES = [
     foto:   "img/AMBER OUD DUBAI NIGHT.webp",
     notas_salida:  "Lavanda, Azafrán, Bergamota",
     notas_corazon: "Madera de oud, Lirio de los Valles, Rosa",
-    notas_base:    "Ámbar, Almizcle, Haba tonka, Vainilla",
+    notas_base:    "Ámbar, Almizcle, Haba Tonka, Vainilla",
   },
   {
     slug:   "9am-pour-femme",
@@ -2036,7 +2036,7 @@ const PERFUMES = [
     foto:   "",
     notas_salida:  "Manzana, Lavanda, Canela, Bergamota",
     notas_corazon: "Azahar, Lirio de los Valles",
-    notas_base:    "Vainilla, Haba tonka, Ámbar, Pachulí",
+    notas_base:    "Vainilla, Haba Tonka, Ámbar, Pachulí",
   },
   {
     slug:   "9-pm-elixir",
@@ -2062,7 +2062,7 @@ const PERFUMES = [
     foto:   "img/9PM.webp",
     notas_salida:  "Manzana, Canela, Lavanda, Bergamota",
     notas_corazon: "Azahar, Lirio de los Valles",
-    notas_base:    "Vainilla, Haba tonka, Ámbar, Pachulí",
+    notas_base:    "Vainilla, Haba Tonka, Ámbar, Pachulí",
   },
   {
     slug:   "9am-dive",
