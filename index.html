@@ -155,6 +155,11 @@
     }
 
     .nav-icons { display: flex; align-items: center; gap: .8rem; }
+    /* Mobile: ocultar Registrarse y Contacto del nav (están en drawer) */
+    @media (max-width: 767px) {
+      .nav-icons { gap: .5rem; }
+      .nav-register-btn, .nav-icons > a[href="#contacto"] { display: none !important; }
+    }
 
     .nav-icon-btn {
       background: none; border: none; cursor: pointer;
@@ -232,7 +237,7 @@
     ================================================ */
     .hero {
       padding: 3rem 1.5rem 2.5rem;
-      text-align: left;
+      text-align: center;
       position: relative; overflow: hidden;
       border-bottom: 1px solid var(--borde);
     }
@@ -257,7 +262,7 @@
     .hero-title em { font-style: italic; color: var(--amarillo); }
     .hero-sub {
       font-size: clamp(.68rem, 1.3vw, .85rem); font-weight: 300; color: var(--gris-claro);
-      line-height: 1.7; max-width: 300px; margin: 0;
+      line-height: 1.7; max-width: 300px; margin: 0 auto;
       opacity: 0; animation: fadeUp .8s ease .5s forwards;
     }
 
@@ -1806,6 +1811,11 @@
       flex-direction: column;
       justify-content: center;
       border-right: 2px solid var(--amarillo);
+    }
+    @media (max-width: 767px) {
+      .decant-banner { flex-direction: column; }
+      .decant-b-left { text-align: center; align-items: center; border-right: none; border-bottom: 2px solid var(--amarillo); }
+      .decant-b-right { flex: none; }
     }
     .decant-b-label {
       font-size: .55rem;
