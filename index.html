@@ -3800,9 +3800,16 @@
           data.forEach(function(p) {
             // No duplicar si ya existe
             if (PERFUMES.find(function(pf) { return pf.slug === p.slug; })) return;
+            // Convertir price integer a formato string "85,000.00"
+            function intToPrice(n) {
+              if (!n) return '';
+              return n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
             PERFUMES.push({
               slug: p.slug, name: p.name, marca: p.marca, marca_real: p.marca_real || '',
-              cat: p.cat, perfil: p.perfil, price: p.price, promo: p.promo,
+              cat: p.cat, perfil: p.perfil,
+              price: intToPrice(p.price),
+              promo: p.promo ? intToPrice(p.promo) : '',
               foto: p.foto || '', ml: p.ml || 100,
               notas_salida: p.notas_salida || '', notas_corazon: p.notas_corazon || '',
               notas_base: p.notas_base || '', _isNew: true
