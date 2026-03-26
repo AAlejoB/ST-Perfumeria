@@ -237,6 +237,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('precios',this)">Precios</button>
       <button class="tab-btn" onclick="switchTab('stock',this)">Stock</button>
+      <button class="tab-btn" onclick="switchTab('nuevos',this)">+ Perfume</button>
       <button class="tab-btn" onclick="switchTab('destacados',this)">Destacados</button>
       <button class="tab-btn" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" onclick="switchTab('stats',this)">Estadisticas</button>
@@ -276,6 +277,90 @@
         <thead><tr><th>Perfume</th><th>Estado</th><th>Accion</th></tr></thead>
         <tbody id="tbodyStock"></tbody>
       </table>
+    </div>
+
+    <!-- TAB: NUEVO PERFUME -->
+    <div class="tab-content" id="tab-nuevos">
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+        <!-- FORMULARIO -->
+        <div style="flex:1;min-width:300px;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
+          <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;" id="formNuevoTitle">Agregar perfume</p>
+          <input type="hidden" id="nuevoEditId" value=""/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Nombre *</label>
+              <input type="text" class="modal-input" id="nuevoName" placeholder="Ej: EMEER GOLD" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Marca *</label>
+              <input type="text" class="modal-input" id="nuevoMarca" placeholder="Lattafa" value="Lattafa" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Marca real (si aplica)</label>
+              <input type="text" class="modal-input" id="nuevoMarcaReal" placeholder="Ej: Lattafa Pride" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Categoría *</label>
+              <select class="modal-input" id="nuevoCat" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+                <option value="Unisex">Unisex</option>
+                <option value="Hombre">Hombre</option>
+                <option value="Mujer">Mujer</option>
+              </select>
+            </div>
+            <div>
+              <label class="modal-label">Perfil *</label>
+              <select class="modal-input" id="nuevoPerfil" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+                <option value="Versátil">Versátil</option>
+                <option value="Intenso">Intenso</option>
+                <option value="Dulce">Dulce</option>
+                <option value="Fresco">Fresco</option>
+              </select>
+            </div>
+            <div>
+              <label class="modal-label">Precio tarjeta *</label>
+              <input type="number" class="modal-input" id="nuevoPrice" placeholder="85000" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Precio promo (opcional)</label>
+              <input type="number" class="modal-input" id="nuevoPromo" placeholder="76500" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">ML</label>
+              <input type="number" class="modal-input" id="nuevoMl" placeholder="100" value="100" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Foto (ruta o URL)</label>
+              <input type="text" class="modal-input" id="nuevoFoto" placeholder="img/NOMBRE.webp" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Notas de salida</label>
+              <input type="text" class="modal-input" id="nuevoSalida" placeholder="Bergamota, Azafrán, Canela" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Notas de corazón</label>
+              <input type="text" class="modal-input" id="nuevoCorazon" placeholder="Rosa, Jazmín, Oud" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Notas de base</label>
+              <input type="text" class="modal-input" id="nuevoBase" placeholder="Vainilla, Ámbar, Almizcle" style="margin-bottom:0;"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:1rem;">
+            <button class="modal-btn modal-btn-price" onclick="saveNuevoPerfume()" style="flex:1;" id="btnSaveNuevo">Agregar perfume</button>
+            <button class="modal-btn" onclick="cancelEditNuevo()" style="flex:0 0 auto;background:#333;color:#fff;display:none;" id="btnCancelNuevo">Cancelar</button>
+          </div>
+          <p class="modal-success" id="nuevoMsg" style="margin-top:.5rem;"></p>
+        </div>
+
+        <!-- LISTA DE PERFUMES AGREGADOS -->
+        <div style="flex:1;min-width:300px;">
+          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Perfumes agregados desde admin (<span id="nuevosCount">0</span>)</p>
+          <table class="admin-table">
+            <thead><tr><th>Perfume</th><th>Marca</th><th>Precio</th><th>Acciones</th></tr></thead>
+            <tbody id="tbodyNuevos"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- TAB: DESTACADOS -->
@@ -411,6 +496,7 @@
         renderPrecios();
         renderStock();
         loadDestacados();
+        loadNuevos();
         loadStats();
         loadOpiniones();
         loadClientes();
@@ -735,6 +821,148 @@
     applySavedChanges();
 
     // ============================================================
+    // ============================================================
+    // NUEVOS PERFUMES (Supabase)
+    // ============================================================
+    async function loadNuevos() {
+      var tbody = document.getElementById('tbodyNuevos');
+      var countEl = document.getElementById('nuevosCount');
+      var { data } = await sb.from('perfumes_nuevos').select('*').order('created_at', { ascending: false });
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gris);">Sin perfumes agregados aún</td></tr>';
+        countEl.textContent = '0';
+        return;
+      }
+      countEl.textContent = data.length;
+      var html = '';
+      data.forEach(function(p) {
+        html += '<tr>'
+          + '<td class="td-name">' + p.name + '</td>'
+          + '<td>' + (p.marca_real || p.marca) + '</td>'
+          + '<td class="td-price">$' + (p.price || 0).toLocaleString('es-AR') + '</td>'
+          + '<td>'
+            + '<button class="action-btn btn-price" onclick="editNuevo(' + p.id + ')">Editar</button>'
+            + '<button class="action-btn btn-hide" onclick="deleteNuevo(' + p.id + ', \'' + p.name.replace(/'/g, "\\'") + '\')">Eliminar</button>'
+          + '</td>'
+        + '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function generateSlug(name) {
+      return name.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+
+    async function saveNuevoPerfume() {
+      var editId = document.getElementById('nuevoEditId').value;
+      var name = document.getElementById('nuevoName').value.trim().toUpperCase();
+      var marca = document.getElementById('nuevoMarca').value.trim() || 'Lattafa';
+      var marcaReal = document.getElementById('nuevoMarcaReal').value.trim();
+      var cat = document.getElementById('nuevoCat').value;
+      var perfil = document.getElementById('nuevoPerfil').value;
+      var price = parseInt(document.getElementById('nuevoPrice').value) || 0;
+      var promo = document.getElementById('nuevoPromo').value ? parseInt(document.getElementById('nuevoPromo').value) : null;
+      var foto = document.getElementById('nuevoFoto').value.trim();
+      var ml = parseInt(document.getElementById('nuevoMl').value) || 100;
+      var salida = document.getElementById('nuevoSalida').value.trim();
+      var corazon = document.getElementById('nuevoCorazon').value.trim();
+      var base = document.getElementById('nuevoBase').value.trim();
+
+      var msgEl = document.getElementById('nuevoMsg');
+
+      if (!name || !price) {
+        msgEl.textContent = 'Nombre y precio son obligatorios';
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      var slug = generateSlug(name);
+      var obj = {
+        slug: slug, name: name, marca: marca, marca_real: marcaReal,
+        cat: cat, perfil: perfil, price: price, promo: promo,
+        foto: foto, ml: ml,
+        notas_salida: salida, notas_corazon: corazon, notas_base: base
+      };
+
+      var result;
+      if (editId) {
+        result = await sb.from('perfumes_nuevos').update(obj).eq('id', parseInt(editId));
+      } else {
+        result = await sb.from('perfumes_nuevos').insert(obj);
+      }
+
+      if (result.error) {
+        msgEl.textContent = 'Error: ' + result.error.message;
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      var action = editId ? 'actualizado' : 'agregado';
+      msgEl.textContent = name + ' ' + action + ' correctamente';
+      msgEl.style.color = '#2ecc71';
+      notifyTelegram('🆕 Perfume ' + action + ': ' + name + '\n💰 $' + price.toLocaleString('es-AR') + '\n📋 ' + cat + ' · ' + perfil);
+
+      clearNuevoForm();
+      loadNuevos();
+      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+    }
+
+    async function editNuevo(id) {
+      var { data } = await sb.from('perfumes_nuevos').select('*').eq('id', id).single();
+      if (!data) return;
+
+      document.getElementById('nuevoEditId').value = data.id;
+      document.getElementById('nuevoName').value = data.name;
+      document.getElementById('nuevoMarca').value = data.marca;
+      document.getElementById('nuevoMarcaReal').value = data.marca_real || '';
+      document.getElementById('nuevoCat').value = data.cat;
+      document.getElementById('nuevoPerfil').value = data.perfil;
+      document.getElementById('nuevoPrice').value = data.price;
+      document.getElementById('nuevoPromo').value = data.promo || '';
+      document.getElementById('nuevoFoto').value = data.foto || '';
+      document.getElementById('nuevoMl').value = data.ml || 100;
+      document.getElementById('nuevoSalida').value = data.notas_salida || '';
+      document.getElementById('nuevoCorazon').value = data.notas_corazon || '';
+      document.getElementById('nuevoBase').value = data.notas_base || '';
+
+      document.getElementById('formNuevoTitle').textContent = 'Editar perfume';
+      document.getElementById('btnSaveNuevo').textContent = 'Guardar cambios';
+      document.getElementById('btnCancelNuevo').style.display = 'block';
+    }
+
+    async function deleteNuevo(id, name) {
+      if (!confirm('¿Seguro que querés eliminar ' + name + '?')) return;
+      await sb.from('perfumes_nuevos').delete().eq('id', id);
+      notifyTelegram('🗑️ Perfume eliminado: ' + name);
+      loadNuevos();
+    }
+
+    function cancelEditNuevo() {
+      clearNuevoForm();
+    }
+
+    function clearNuevoForm() {
+      document.getElementById('nuevoEditId').value = '';
+      document.getElementById('nuevoName').value = '';
+      document.getElementById('nuevoMarca').value = 'Lattafa';
+      document.getElementById('nuevoMarcaReal').value = '';
+      document.getElementById('nuevoCat').value = 'Unisex';
+      document.getElementById('nuevoPerfil').value = 'Versátil';
+      document.getElementById('nuevoPrice').value = '';
+      document.getElementById('nuevoPromo').value = '';
+      document.getElementById('nuevoFoto').value = '';
+      document.getElementById('nuevoMl').value = '100';
+      document.getElementById('nuevoSalida').value = '';
+      document.getElementById('nuevoCorazon').value = '';
+      document.getElementById('nuevoBase').value = '';
+      document.getElementById('formNuevoTitle').textContent = 'Agregar perfume';
+      document.getElementById('btnSaveNuevo').textContent = 'Agregar perfume';
+      document.getElementById('btnCancelNuevo').style.display = 'none';
+    }
+
     // DESTACADOS (Selección ST) — Supabase
     // ============================================================
     var cachedDestacados = [];

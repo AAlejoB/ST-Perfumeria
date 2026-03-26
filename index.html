@@ -3792,8 +3792,30 @@
     // INIT
     // ============================================================
 
-    markNewPerfumes();
-    loadPerfumeViews().then(function() {
+    // Cargar perfumes nuevos desde Supabase y combinar con perfumes.js
+    async function loadPerfumesNuevos() {
+      try {
+        var { data } = await sb.from('perfumes_nuevos').select('*');
+        if (data && data.length > 0) {
+          data.forEach(function(p) {
+            // No duplicar si ya existe
+            if (PERFUMES.find(function(pf) { return pf.slug === p.slug; })) return;
+            PERFUMES.push({
+              slug: p.slug, name: p.name, marca: p.marca, marca_real: p.marca_real || '',
+              cat: p.cat, perfil: p.perfil, price: p.price, promo: p.promo,
+              foto: p.foto || '', ml: p.ml || 100,
+              notas_salida: p.notas_salida || '', notas_corazon: p.notas_corazon || '',
+              notas_base: p.notas_base || '', _isNew: true
+            });
+          });
+        }
+      } catch(e) {}
+    }
+
+    loadPerfumesNuevos().then(function() {
+      markNewPerfumes();
+      return loadPerfumeViews();
+    }).then(function() {
       renderCatalog();
       sortCards('price-desc');
       checkDeepLink();
