@@ -1900,6 +1900,154 @@
 
 
     /* ================================================
+       CARRITO / PEDIDO
+    ================================================ */
+    .cart-add-btn {
+      display: inline-block; width: 100%; text-align: center;
+      font-size: .6rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+      padding: .4rem; border-radius: 3px; cursor: pointer; transition: all .2s;
+      margin-top: .3rem; font-family: inherit;
+    }
+    .cart-add-btn:hover { background: rgba(232,184,0,.2); border-color: var(--amarillo); color: var(--amarillo); }
+    .cart-add-btn.added { background: rgba(46,204,113,.15); border-color: #2ecc71; color: #2ecc71; }
+
+    /* Carrito flotante */
+    .cart-float {
+      position: fixed; bottom: 100px; right: 24px; z-index: 998;
+      background: var(--amarillo); color: #000; border: none; border-radius: 28px;
+      padding: .6rem 1.2rem .6rem .8rem; cursor: pointer;
+      font-family: var(--font-body); font-size: .72rem; font-weight: 700;
+      letter-spacing: .03em; display: none; align-items: center; gap: 6px;
+      box-shadow: 0 4px 20px rgba(232,184,0,.35);
+      transition: transform .25s, box-shadow .25s;
+      animation: cartBounce .4s ease;
+    }
+    .cart-float:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(232,184,0,.5); }
+    .cart-float.visible { display: flex; }
+    .cart-float-count {
+      background: #000; color: var(--amarillo); width: 22px; height: 22px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: .65rem; font-weight: 800;
+    }
+    @keyframes cartBounce { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+    @media (min-width: 768px) { .cart-float { bottom: 110px; right: 30px; } }
+
+    /* Panel carrito */
+    .cart-panel-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,.85); z-index: 9999; display: none;
+      align-items: flex-end; justify-content: center;
+      animation: fadeIn .2s ease;
+    }
+    .cart-panel-overlay.active { display: flex; }
+    .cart-panel {
+      background: #111; border-top: 3px solid var(--amarillo);
+      border-radius: 16px 16px 0 0; width: 100%; max-width: 500px;
+      max-height: 80vh; overflow-y: auto; padding: 1.5rem;
+      animation: slideUp .3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .cart-panel-title {
+      font-family: var(--font-display); font-size: 1.2rem; font-weight: 600;
+      color: var(--amarillo); text-align: center; margin-bottom: 1rem;
+    }
+    .cart-item {
+      display: flex; align-items: center; gap: .8rem;
+      padding: .6rem 0; border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .cart-item-img {
+      width: 40px; height: 53px; border-radius: 4px; object-fit: cover;
+      background: #1a1a1a; flex-shrink: 0;
+    }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-size: .75rem; font-weight: 600; }
+    .cart-item-brand { font-size: .6rem; color: var(--gris); }
+    .cart-item-price { font-size: .75rem; font-weight: 700; color: var(--amarillo); white-space: nowrap; }
+    .cart-item-remove {
+      background: none; border: none; color: #e74c3c; font-size: 1rem;
+      cursor: pointer; padding: .3rem; opacity: .6; transition: opacity .2s;
+    }
+    .cart-item-remove:hover { opacity: 1; }
+    .cart-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .8rem 0; margin-top: .5rem;
+      border-top: 2px solid var(--amarillo);
+      font-size: .85rem; font-weight: 700;
+    }
+    .cart-total-amount { color: var(--amarillo); font-size: 1.1rem; }
+    .cart-cash {
+      text-align: right; font-size: .7rem; color: #2ecc71; font-weight: 600; margin-top: .2rem;
+    }
+    .cart-wa-btn {
+      display: block; width: 100%; margin-top: 1rem; padding: .8rem;
+      font-family: var(--font-body); font-size: .8rem; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase; text-align: center;
+      background: #25D366; color: #fff; border: none; border-radius: 8px;
+      cursor: pointer; transition: background .2s;
+    }
+    .cart-wa-btn:hover { background: #20bd5a; }
+    .cart-clear-btn {
+      display: block; width: 100%; margin-top: .5rem; padding: .5rem;
+      font-family: var(--font-body); font-size: .65rem; font-weight: 500;
+      color: var(--gris); background: none; border: 1px solid var(--borde);
+      border-radius: 6px; cursor: pointer; text-align: center; transition: all .2s;
+    }
+    .cart-clear-btn:hover { color: #e74c3c; border-color: #e74c3c; }
+
+    /* Splash screen */
+    .splash-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #0a0a0a; z-index: 99999; display: none;
+      align-items: center; justify-content: center;
+    }
+    .splash-overlay.active { display: flex; }
+    .splash-content {
+      display: flex; align-items: center; gap: 2rem; padding: 2rem;
+      max-width: 700px; width: 100%;
+      animation: splashIn .6s ease;
+    }
+    @keyframes splashIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+    .splash-img {
+      width: 180px; height: 240px; object-fit: cover; border-radius: 6px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    }
+    .splash-img-placeholder {
+      width: 180px; height: 240px; border-radius: 6px;
+      background: #1a1a1a; display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: rgba(232,184,0,.2);
+    }
+    .splash-info { flex: 1; }
+    .splash-brand-st {
+      font-size: .6rem; font-weight: 600; letter-spacing: .25em;
+      text-transform: uppercase; color: var(--amarillo); margin-bottom: .3rem;
+    }
+    .splash-line {
+      width: 40px; height: 1px; background: var(--amarillo); margin: .8rem 0;
+    }
+    .splash-brand {
+      font-size: .7rem; font-weight: 500; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gris); margin-bottom: .3rem;
+    }
+    .splash-name {
+      font-family: var(--font-display); font-size: 1.8rem; font-weight: 600;
+      color: #fff; line-height: 1.2; margin-bottom: .8rem;
+    }
+    .splash-loading {
+      font-size: .6rem; color: var(--gris); letter-spacing: .15em;
+      text-transform: uppercase; animation: splashPulse 1s ease infinite;
+    }
+    @keyframes splashPulse { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+
+    @media (max-width: 500px) {
+      .splash-content { flex-direction: column; text-align: center; gap: 1.2rem; }
+      .splash-img, .splash-img-placeholder { width: 140px; height: 187px; }
+      .splash-name { font-size: 1.4rem; }
+      .splash-line { margin: .5rem auto; }
+    }
+
+    /* ================================================
        SOBRE NOSOTROS — BASE (mobile)
     ================================================ */
     .section-nosotros {
@@ -2712,6 +2860,41 @@
     </div>
   </footer>
 
+  <!-- Carrito flotante -->
+  <button class="cart-float" id="cartFloat" onclick="openCartPanel()">
+    <span class="cart-float-count" id="cartFloatCount">0</span>
+    🛒 Ver pedido
+  </button>
+
+  <!-- Panel carrito -->
+  <div class="cart-panel-overlay" id="cartPanelOverlay" onclick="if(event.target===this)closeCartPanel()">
+    <div class="cart-panel">
+      <p class="cart-panel-title">Tu pedido</p>
+      <div id="cartItems"></div>
+      <div class="cart-total">
+        <span>Total tarjeta:</span>
+        <span class="cart-total-amount" id="cartTotal">$0</span>
+      </div>
+      <p class="cart-cash" id="cartCash"></p>
+      <button class="cart-wa-btn" onclick="sendCartToWA()">📲 Consultar por WhatsApp</button>
+      <button class="cart-clear-btn" onclick="clearCart()">Vaciar pedido</button>
+    </div>
+  </div>
+
+  <!-- Splash screen -->
+  <div class="splash-overlay" id="splashOverlay">
+    <div class="splash-content">
+      <div id="splashImgWrap"></div>
+      <div class="splash-info">
+        <p class="splash-brand-st">ST Perfumería</p>
+        <div class="splash-line"></div>
+        <p class="splash-brand" id="splashBrand"></p>
+        <p class="splash-name" id="splashName"></p>
+        <p class="splash-loading">Abriendo WhatsApp...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Scroll to top -->
   <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Volver arriba">
     <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
@@ -3337,8 +3520,9 @@
                   + '<p class="scent-note"><strong>Precio:</strong> ' + pricingHTML + '</p>'
             )
           + '</div>'
-          + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + p.name + (p.esSet ? ' (Set)' : '') + '. ¿Tienen disponibilidad?') + '" target="_blank" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</a>'
+          + '<a href="#" onclick="goToWA(\'' + p.slug + '\', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</a>'
           + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base)) ? '<button class="reveal-similares" onclick="showSimilares(\'' + p.slug + '\', event)">&#9830; Ver similares</button>' : '')
+          + '<button class="cart-add-btn" onclick="addToCart(\'' + p.slug + '\', this, event)">🛒 Agregar al pedido</button>'
           + '<button class="reveal-share" onclick="sharePerfume(\'' + p.slug + '\', this, event)">&#128279; Compartir</button>'
         + '</div>'
       + '</div>';
@@ -4231,6 +4415,150 @@
         updateStatus(results[0], results[1]);
       });
     })();
+
+    // ============================================================
+    // ============================================================
+    // CARRITO / PEDIDO
+    // ============================================================
+    var cart = JSON.parse(sessionStorage.getItem('st_cart') || '[]');
+
+    function updateCartUI() {
+      var btn = document.getElementById('cartFloat');
+      var countEl = document.getElementById('cartFloatCount');
+      countEl.textContent = cart.length;
+      btn.classList.toggle('visible', cart.length > 0);
+      sessionStorage.setItem('st_cart', JSON.stringify(cart));
+    }
+
+    function addToCart(slug, btn, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (cart.indexOf(slug) !== -1) {
+        // Ya está, quitar
+        cart = cart.filter(function(s) { return s !== slug; });
+        if (btn) { btn.textContent = '🛒 Agregar al pedido'; btn.classList.remove('added'); }
+      } else {
+        cart.push(slug);
+        if (btn) { btn.textContent = '✓ Agregado'; btn.classList.add('added'); }
+      }
+      updateCartUI();
+    }
+
+    function openCartPanel() {
+      var container = document.getElementById('cartItems');
+      var totalEl = document.getElementById('cartTotal');
+      var cashEl = document.getElementById('cartCash');
+
+      if (cart.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1rem;font-size:.75rem;">Tu pedido está vacío</p>';
+        totalEl.textContent = '$0';
+        cashEl.textContent = '';
+      } else {
+        var html = '';
+        var total = 0;
+        cart.forEach(function(slug) {
+          var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+          if (!p) return;
+          var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+          total += priceNum;
+          var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+          var imgHTML = fotoSrc
+            ? '<img class="cart-item-img" src="' + fotoSrc + '" alt="' + p.name + '">'
+            : '<div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--amarillo);opacity:.3;">' + p.name.charAt(0) + '</div>';
+          html += '<div class="cart-item">'
+            + imgHTML
+            + '<div class="cart-item-info"><p class="cart-item-name">' + p.name + '</p><p class="cart-item-brand">' + (p.marca_real || p.marca) + '</p></div>'
+            + '<span class="cart-item-price">$' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.') + '</span>'
+            + '<button class="cart-item-remove" onclick="removeFromCart(\'' + slug + '\')">&times;</button>'
+          + '</div>';
+        });
+        container.innerHTML = html;
+        totalEl.textContent = '$' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.');
+        var cashTotal = Math.round(total * 0.9);
+        cashEl.textContent = 'Efectivo/transferencia: $' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + ' (10% off)';
+      }
+      document.getElementById('cartPanelOverlay').classList.add('active');
+    }
+
+    function closeCartPanel() {
+      document.getElementById('cartPanelOverlay').classList.remove('active');
+    }
+
+    function removeFromCart(slug) {
+      cart = cart.filter(function(s) { return s !== slug; });
+      updateCartUI();
+      openCartPanel(); // refresh
+    }
+
+    function clearCart() {
+      cart = [];
+      updateCartUI();
+      closeCartPanel();
+    }
+
+    function sendCartToWA() {
+      if (cart.length === 0) return;
+      var lines = ['Hola! Me interesan estos perfumes:'];
+      var total = 0;
+      cart.forEach(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!p) return;
+        var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+        total += priceNum;
+        lines.push('• ' + p.name + ' — $' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.'));
+      });
+      lines.push('');
+      lines.push('Total: $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.'));
+      lines.push('¿Tienen disponibilidad?');
+
+      var msg = lines.join('\n');
+      closeCartPanel();
+
+      // Splash con el primer perfume
+      var firstP = PERFUMES.find(function(pf) { return pf.slug === cart[0]; });
+      showSplash(firstP, function() {
+        window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+        cart = [];
+        updateCartUI();
+      });
+    }
+
+    // ============================================================
+    // SPLASH SCREEN
+    // ============================================================
+    function showSplash(p, callback) {
+      if (!p) { if (callback) callback(); return; }
+      var overlay = document.getElementById('splashOverlay');
+      var imgWrap = document.getElementById('splashImgWrap');
+      var brandEl = document.getElementById('splashBrand');
+      var nameEl = document.getElementById('splashName');
+
+      var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+      imgWrap.innerHTML = fotoSrc
+        ? '<img class="splash-img" src="' + fotoSrc + '" alt="' + p.name + '">'
+        : '<div class="splash-img-placeholder">' + p.name.charAt(0) + '</div>';
+      brandEl.textContent = p.marca_real || p.marca;
+      nameEl.textContent = p.name;
+
+      overlay.classList.add('active');
+
+      setTimeout(function() {
+        overlay.classList.remove('active');
+        if (callback) callback();
+      }, 3000);
+    }
+
+    function goToWA(slug, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      var msg = 'Hola! Me interesa el ' + p.name + (p.esSet ? ' (Set)' : '') + '. ¿Tienen disponibilidad?';
+      showSplash(p, function() {
+        window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+      });
+    }
+
+    // Init cart UI
+    updateCartUI();
 
     // ============================================================
     // DARK MODE
