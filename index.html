@@ -1962,17 +1962,29 @@
        FOOTER — BASE (mobile: columna)
     ================================================ */
     footer {
-      padding: 1.8rem 1.2rem;
+      padding: 2rem 1.2rem 1.5rem;
       border-top: 1px solid var(--borde);
-      display: flex; flex-direction: column;   /* mobile: columna */
-      align-items: center; gap: 1rem; text-align: center;
+      text-align: center;
     }
-
+    .footer-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 1.5rem; margin-bottom: 1.5rem; text-align: center;
+    }
     @media (min-width: 768px) {
-      footer { flex-direction: column; align-items: center; padding: 2rem; text-align: center; gap: 1rem; }
+      footer { padding: 2.5rem 2rem 1.5rem; }
+      .footer-grid { grid-template-columns: 1fr 1fr 1fr; text-align: left; }
+      .footer-socials { justify-content: flex-start; }
     }
-
-    .footer-copy { font-size: .7rem; color: var(--gris); letter-spacing: .07em; }
+    .footer-col-title {
+      font-family: var(--font-display); font-size: .75rem; font-weight: 600;
+      color: var(--amarillo); text-transform: uppercase; letter-spacing: .15em;
+      margin-bottom: .4rem;
+    }
+    .footer-col-text { font-size: .7rem; color: var(--gris-claro); line-height: 1.8; }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,.06); padding-top: 1rem; margin-top: .5rem;
+    }
+    .footer-copy { font-size: .65rem; color: var(--gris); letter-spacing: .07em; }
     .footer-socials { display: flex; gap: 1.2rem; justify-content: center; }
     .footer-social-btn { width: 44px; height: 44px; border: 1px solid var(--borde-sutil); border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--gris-claro); font-size: .85rem; font-weight: 600; transition: all .3s; }
     @media (min-width: 768px) { .footer-social-btn { width: 48px; height: 48px; font-size: .9rem; } }
@@ -3153,12 +3165,30 @@
   </section>
 
   <footer>
-    <p class="footer-copy">&#169; 2026 ST Scent &amp; Textures | Todos los derechos reservados</p>
-    <div class="footer-socials">
-      <a href="https://instagram.com/st.perfumeria_" target="_blank" class="footer-social-btn" title="Instagram">IG</a>
-      <a href="https://www.facebook.com/profile.php?id=61570483660479" target="_blank" class="footer-social-btn" title="Facebook">FB</a>
-      <a href="https://tiktok.com" target="_blank" class="footer-social-btn" title="TikTok">TK</a>
-      <a href="https://wa.me/5492975416017" target="_blank" class="footer-social-btn footer-social-btn--wa" title="WhatsApp">WA</a>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <p class="footer-col-title">ST Scent &amp; Textures</p>
+        <p class="footer-col-text">Perfumer&#237;a &#225;rabe original</p>
+        <p class="footer-col-text">Comodoro Rivadavia, Chubut</p>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Horarios</p>
+        <p class="footer-col-text">Lun a Vie: 10:00 - 20:00</p>
+        <p class="footer-col-text">S&#225;bados: 10:00 - 14:00</p>
+        <p class="footer-col-text">Domingos: Cerrado</p>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Seguinos</p>
+        <div class="footer-socials">
+          <a href="https://instagram.com/st.perfumeria_" target="_blank" class="footer-social-btn" title="Instagram">IG</a>
+          <a href="https://www.facebook.com/profile.php?id=61570483660479" target="_blank" class="footer-social-btn" title="Facebook">FB</a>
+          <a href="https://tiktok.com" target="_blank" class="footer-social-btn" title="TikTok">TK</a>
+          <a href="https://wa.me/5492975416017" target="_blank" class="footer-social-btn footer-social-btn--wa" title="WhatsApp">WA</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">&#169; 2026 ST Scent &amp; Textures | Todos los derechos reservados</p>
     </div>
   </footer>
 
@@ -3485,10 +3515,11 @@
 
       if (!newName || newName.length < 2) { errEl.textContent = 'Poné tu nombre completo'; return; }
       if (!newRawPhone || newRawPhone.replace(/[^0-9]/g, '').length < 8) { errEl.textContent = 'Poné un número válido'; return; }
+      var newPhone = cleanPhone(newRawPhone);
+      if (newPhone.length !== 13) { errEl.textContent = 'El número debe tener 10 dígitos (sin 0 ni 15). Ej: 2975416017'; return; }
       if (!confirmPass || confirmPass.length < 4) { errEl.textContent = 'Ingresá tu contraseña para confirmar'; return; }
 
       btn.disabled = true;
-      var newPhone = cleanPhone(newRawPhone);
 
       try {
         // Verificar contraseña actual
