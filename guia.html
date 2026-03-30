@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>ST Admin — Guia del equipo</title>
+  <link rel="icon" type="image/png" href="img/logo-st.webp"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --amarillo: #e8b800; --negro: #0a0a0a; --gris: #888; }
+    body { font-family: 'Inter', sans-serif; background: var(--negro); color: #ddd; line-height: 1.7; }
+    .guia-wrap { max-width: 750px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .guia-header { text-align: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .guia-logo { font-size: 1.5rem; font-weight: 700; color: var(--amarillo); }
+    .guia-sub { font-size: .7rem; color: var(--gris); letter-spacing: .2em; text-transform: uppercase; margin-top: .3rem; }
+    h2 { font-size: 1.1rem; font-weight: 700; color: var(--amarillo); margin: 2.5rem 0 1rem; letter-spacing: .05em; }
+    h3 { font-size: .85rem; font-weight: 600; color: #fff; margin: 1.5rem 0 .5rem; }
+    p { font-size: .82rem; color: #bbb; margin-bottom: .8rem; }
+    .step { background: #111; border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: .6rem; }
+    .step-num { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: var(--amarillo); color: #000; font-size: .65rem; font-weight: 700; text-align: center; line-height: 22px; margin-right: .4rem; }
+    .step-text { font-size: .8rem; color: #ddd; }
+    .tip { background: rgba(232,184,0,.06); border-left: 3px solid var(--amarillo); padding: .8rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+    .tip p { color: #ccc; margin: 0; font-size: .78rem; }
+    .tip strong { color: var(--amarillo); }
+    .warning { background: rgba(231,76,60,.06); border-left: 3px solid #e74c3c; padding: .8rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+    .warning p { color: #ccc; margin: 0; font-size: .78rem; }
+    .warning strong { color: #e74c3c; }
+    code { background: rgba(255,255,255,.08); padding: .15rem .4rem; border-radius: 3px; font-size: .75rem; color: var(--amarillo); }
+    .toc { list-style: none; margin: 1rem 0 2rem; }
+    .toc li { margin: .3rem 0; }
+    .toc a { color: var(--amarillo); text-decoration: none; font-size: .8rem; font-weight: 500; }
+    .toc a:hover { text-decoration: underline; }
+    .back-btn { display: inline-block; margin-top: 2rem; padding: .6rem 1.2rem; background: var(--amarillo); color: #000; font-family: inherit; font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; border-radius: 4px; }
+    .back-btn:hover { background: #f5d442; }
+    @media (max-width: 500px) { .guia-wrap { padding: 1.5rem 1rem 3rem; } h2 { font-size: 1rem; } }
+  </style>
+</head>
+<body>
+  <div class="guia-wrap">
+
+    <div class="guia-header">
+      <p class="guia-logo">ST Admin</p>
+      <p class="guia-sub">Guia del equipo</p>
+    </div>
+
+    <p>Esta guia explica como usar el panel de administracion de ST Perfumeria. Accedes en <code>/admin.html</code></p>
+
+    <h3>Indice</h3>
+    <ul class="toc">
+      <li><a href="#precios">1. Cambiar precios</a></li>
+      <li><a href="#stock">2. Cambiar stock</a></li>
+      <li><a href="#editar">3. Editar perfumes</a></li>
+      <li><a href="#nuevo">4. Agregar perfume nuevo</a></li>
+      <li><a href="#destacados">5. Destacados (Seleccion ST)</a></li>
+      <li><a href="#combos">6. Combos y sets</a></li>
+      <li><a href="#horario">7. Horarios y cierres</a></li>
+      <li><a href="#opiniones">8. Opiniones</a></li>
+      <li><a href="#clientes">9. Gestion de clientes</a></li>
+      <li><a href="#compartir">10. Compartir perfumes</a></li>
+    </ul>
+
+    <!-- 1. PRECIOS -->
+    <h2 id="precios">1. Cambiar precios</h2>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Precios</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Buscar el perfume por nombre</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Click en el boton amarillo <strong>Precio</strong></span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Escribir el nuevo precio (sin puntos ni comas). Ej: <code>85000</code></span></div>
+    <div class="step"><span class="step-num">5</span><span class="step-text">Opcionalmente poner un precio promo (para mostrar tachado)</span></div>
+    <div class="step"><span class="step-num">6</span><span class="step-text">Escribir el nombre exacto del perfume para confirmar</span></div>
+    <div class="tip"><p><strong>Tip:</strong> El precio promo es el que se muestra como principal. El precio original aparece tachado. Si no hay promo, dejar vacio.</p></div>
+
+    <!-- 2. STOCK -->
+    <h2 id="stock">2. Cambiar stock</h2>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Stock</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Click en el boton azul <strong>Stock</strong> del perfume</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Elegir estado: <strong>En stock</strong>, <strong>Ultimo disponible</strong> o <strong>Sin stock</strong></span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Confirmar escribiendo el nombre</span></div>
+    <div class="warning"><p><strong>Importante:</strong> "Sin stock" oculta el perfume del catalogo. Los clientes no lo ven.</p></div>
+
+    <!-- 3. EDITAR -->
+    <h2 id="editar">3. Editar perfumes</h2>
+    <p>En la pestana <strong>Editar</strong> podes modificar los datos de cualquier perfume: nombre, marca, categoria, perfil, notas olfativas y foto.</p>
+    <div class="tip"><p><strong>Como subir la foto:</strong> Abri la imagen del perfume en Tiendanube o Google, click derecho > "Copiar direccion de imagen" y pegala en el campo foto.</p></div>
+
+    <!-- 4. NUEVO -->
+    <h2 id="nuevo">4. Agregar perfume nuevo</h2>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>+ Perfume</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Completar todos los campos (nombre, marca real, categoria, precio, etc.)</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Click en <strong>Agregar perfume</strong></span></div>
+    <p>El perfume aparece inmediatamente en el catalogo para todos los visitantes.</p>
+
+    <!-- 5. DESTACADOS -->
+    <h2 id="destacados">5. Destacados (Seleccion ST)</h2>
+    <p>La seccion "Seleccion ST" muestra los perfumes mas vendidos en la home.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Destacados</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Elegir hasta 5 perfumes del catalogo</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Guardar. Los cambios se ven al instante.</span></div>
+
+    <!-- 6. COMBOS -->
+    <h2 id="combos">6. Combos y sets</h2>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Combos</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Click en <strong>+ Nuevo combo</strong></span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Completar nombre, tipo (Pack/Mini/Regalo), precios</span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Agregar los perfumes que incluye el combo (elegir del catalogo o poner nombre custom)</span></div>
+    <div class="step"><span class="step-num">5</span><span class="step-text">Click en <strong>Guardar combo</strong></span></div>
+    <p>Los combos aparecen en la seccion "Packs & Sets" del catalogo.</p>
+
+    <!-- 7. HORARIO -->
+    <h2 id="horario">7. Horarios y cierres especiales</h2>
+    <p>En la pestana <strong>Horario</strong> podes programar cierres especiales (feriados, vacaciones, etc.). El cartel de "Abierto/Cerrado" en la web se actualiza automaticamente segun los horarios configurados.</p>
+
+    <!-- 8. OPINIONES -->
+    <h2 id="opiniones">8. Opiniones</h2>
+    <p>En la pestana <strong>Opiniones</strong> ves todos los mensajes que dejan los clientes en "Espacio para ustedes". Podes eliminar los que sean spam o inapropiados.</p>
+
+    <!-- 9. CLIENTES -->
+    <h2 id="clientes">9. Gestion de clientes</h2>
+    <p>En la pestana <strong>Clientes</strong> ves a todos los usuarios registrados.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text"><strong>Editar tel:</strong> Cambia el telefono del cliente</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text"><strong>Bloquear:</strong> Marca al cliente como bloqueado (badge rojo)</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text"><strong>Eliminar:</strong> Borra la cuenta (pide confirmacion con nombre exacto)</span></div>
+    <div class="tip"><p><strong>Tip:</strong> Podes buscar clientes por nombre o telefono desde el buscador.</p></div>
+
+    <!-- 10. COMPARTIR -->
+    <h2 id="compartir">10. Compartir perfumes</h2>
+    <p>Cada perfume tiene un boton de compartir (icono de link) en su card. Al tocarlo, genera un link unico que al compartir por WhatsApp o redes muestra:</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Foto del perfume como imagen de previsualizacion</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Nombre + marca + precio en la descripcion</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Al abrir el link, la pagina scrollea directo al perfume</span></div>
+    <div class="tip"><p><strong>Formato del link:</strong> <code>st-perfumeria.vercel.app/perfume/khamrah</code></p></div>
+
+    <div style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.08);text-align:center;">
+      <p style="font-size:.65rem;color:var(--gris);letter-spacing:.1em;text-transform:uppercase;">ST Scent & Textures — Equipo interno</p>
+      <a href="admin.html" class="back-btn">Ir al panel admin</a>
+    </div>
+
+  </div>
+</body>
+</html>

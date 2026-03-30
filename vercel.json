@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/perfume/:slug", "destination": "/api/share?slug=:slug" }
+  ]
+}

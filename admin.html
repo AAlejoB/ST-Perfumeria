@@ -106,16 +106,16 @@
 
     /* ACTIONS */
     .action-btn {
-      font-family: inherit; font-size: .65rem; font-weight: 600; letter-spacing: .05em;
-      padding: .3rem .6rem; border-radius: 3px; cursor: pointer; transition: all .2s;
+      font-family: inherit; font-size: .68rem; font-weight: 700; letter-spacing: .05em;
+      padding: .35rem .7rem; border-radius: 4px; cursor: pointer; transition: all .2s;
       border: none; margin-right: .3rem;
     }
-    .btn-price { background: rgba(232,184,0,.15); color: var(--amarillo); }
-    .btn-price:hover { background: rgba(232,184,0,.3); }
-    .btn-stock { background: rgba(52,152,219,.15); color: #3498db; }
-    .btn-stock:hover { background: rgba(52,152,219,.3); }
-    .btn-hide { background: rgba(231,76,60,.15); color: #e74c3c; }
-    .btn-hide:hover { background: rgba(231,76,60,.3); }
+    .btn-price { background: var(--amarillo); color: #000; }
+    .btn-price:hover { background: #ffd633; }
+    .btn-stock { background: #3498db; color: #fff; }
+    .btn-stock:hover { background: #5dade2; }
+    .btn-hide { background: #e74c3c; color: #fff; }
+    .btn-hide:hover { background: #f1948a; }
 
     /* MODAL */
     .modal-overlay {
@@ -165,6 +165,94 @@
     .modal-btn-danger:hover:not(:disabled) { background: #c0392b; }
     .modal-success {
       font-size: .75rem; color: #2ecc71; text-align: center; margin-top: .5rem; min-height: 1.2rem;
+    }
+
+    /* COMBOS */
+    .combo-card {
+      background: #111; border: 1px solid var(--borde); border-radius: 8px;
+      padding: 1rem 1.2rem; margin-bottom: .6rem; transition: border-color .2s;
+    }
+    .combo-card:hover { border-color: rgba(232,184,0,.3); }
+    .combo-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+    .combo-name { font-size: .9rem; font-weight: 700; color: #fff; }
+    .combo-badge {
+      font-size: .55rem; font-weight: 700; padding: .2rem .5rem; border-radius: 3px;
+      text-transform: uppercase; letter-spacing: .06em; margin-left: .4rem;
+    }
+    .combo-badge-pack { background: var(--amarillo); color: #000; }
+    .combo-badge-mini { background: #3498db; color: #fff; }
+    .combo-badge-regalo { background: #e74c3c; color: #fff; }
+    .combo-items-list { font-size: .7rem; color: var(--gris-claro); margin-top: .4rem; padding-left: 1.2rem; }
+    .combo-items-list li { margin-bottom: .15rem; }
+    .combo-pricing { margin-top: .4rem; font-size: .8rem; }
+    .combo-pricing-promo { color: var(--amarillo); font-weight: 700; }
+    .combo-pricing-original { color: var(--gris); text-decoration: line-through; font-size: .7rem; margin-left: .4rem; }
+    .combo-actions { display: flex; gap: .4rem; margin-top: .6rem; padding-top: .5rem; border-top: 1px solid var(--borde); }
+    .combo-item-row {
+      display: flex; gap: .4rem; align-items: center;
+    }
+    .combo-item-row input, .combo-item-row select {
+      font-family: inherit; font-size: .78rem; padding: .4rem .6rem;
+      background: rgba(255,255,255,.06); border: 1px solid var(--borde); border-radius: 4px;
+      color: #fff; outline: none;
+    }
+    .combo-item-row input:focus, .combo-item-row select:focus { border-color: var(--amarillo); }
+    .combo-item-remove {
+      background: none; border: none; color: #e74c3c; font-size: 1rem; cursor: pointer; padding: 0 .3rem;
+    }
+
+    /* CLIENTES PANEL */
+    .clients-search-bar {
+      display: flex; gap: .5rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap;
+    }
+    .clients-search-bar .admin-search { margin-bottom: 0; flex: 1; min-width: 180px; }
+    .client-count {
+      font-size: .65rem; color: var(--gris); letter-spacing: .08em;
+    }
+    .client-card {
+      background: #111; border: 1px solid var(--borde); border-radius: 8px;
+      padding: 1rem 1.2rem; margin-bottom: .6rem; transition: border-color .2s;
+    }
+    .client-card:hover { border-color: rgba(232,184,0,.3); }
+    .client-top {
+      display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap;
+    }
+    .client-name {
+      font-size: .9rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: .4rem;
+    }
+    .client-name-icon {
+      width: 28px; height: 28px; border-radius: 50%; background: rgba(232,184,0,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; color: var(--amarillo); font-weight: 700; flex-shrink: 0;
+    }
+    .client-date { font-size: .6rem; color: var(--gris); letter-spacing: .08em; }
+    .client-details {
+      display: flex; gap: 1.5rem; margin-top: .6rem; flex-wrap: wrap; align-items: center;
+    }
+    .client-detail {
+      font-size: .72rem; color: var(--gris-claro); display: flex; align-items: center; gap: .3rem;
+    }
+    .client-detail-icon { font-size: .8rem; }
+    .client-detail-value { font-weight: 600; color: #fff; }
+    .client-actions {
+      display: flex; gap: .4rem; margin-top: .7rem; padding-top: .6rem;
+      border-top: 1px solid var(--borde);
+    }
+    .client-btn {
+      font-family: inherit; font-size: .62rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: .35rem .7rem; border-radius: 4px;
+      border: none; cursor: pointer; transition: all .2s;
+    }
+    .client-btn-edit { background: #3498db; color: #fff; }
+    .client-btn-edit:hover { background: #5dade2; }
+    .client-btn-block { background: rgba(243,156,18,.15); color: #f39c12; }
+    .client-btn-block:hover { background: rgba(243,156,18,.3); }
+    .client-btn-blocked { background: #f39c12; color: #000; }
+    .client-btn-delete { background: rgba(231,76,60,.15); color: #e74c3c; }
+    .client-btn-delete:hover { background: rgba(231,76,60,.3); }
+    .client-blocked-badge {
+      font-size: .55rem; font-weight: 700; background: #e74c3c; color: #fff;
+      padding: .15rem .5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .06em;
     }
 
     /* STATS */
@@ -244,6 +332,7 @@
       <button class="tab-btn" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" onclick="switchTab('opiniones',this)">Opiniones</button>
       <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
+      <button class="tab-btn" onclick="switchTab('combos',this)">&#127873; Combos</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -527,10 +616,47 @@
 
     <!-- TAB: CLIENTES -->
     <div class="tab-content" id="tab-clientes">
-      <table class="admin-table">
-        <thead><tr><th>Nombre</th><th>Telefono</th><th>Fecha</th></tr></thead>
-        <tbody id="tbodyClientes"></tbody>
-      </table>
+      <div class="clients-search-bar">
+        <input type="text" class="admin-search" id="searchClientes" placeholder="Buscar cliente..." oninput="filterClientes()"/>
+        <span class="client-count" id="clientCount">0 clientes</span>
+      </div>
+      <div id="clientsList"></div>
+    </div>
+
+    <!-- TAB: COMBOS -->
+    <div class="tab-content" id="tab-combos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+        <span class="client-count" id="comboCount">0 combos</span>
+        <button class="action-btn btn-price" onclick="openComboCreator()" style="font-size:.72rem;padding:.5rem 1rem;">+ NUEVO COMBO</button>
+      </div>
+      <div id="combosList"></div>
+
+      <!-- Formulario crear/editar combo -->
+      <div id="comboForm" style="display:none;background:#111;border:1px solid var(--amarillo);border-radius:8px;padding:1.5rem;margin-top:1rem;">
+        <p style="font-size:.8rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--amarillo);margin-bottom:1rem;text-align:center;" id="comboFormTitle">Nuevo combo</p>
+        <label class="modal-label">Nombre del combo</label>
+        <input type="text" class="modal-input" id="comboName" placeholder="Ej: SET YARA MINI x4"/>
+        <div style="display:flex;gap:.5rem;">
+          <div style="flex:1"><label class="modal-label">Categor&iacute;a</label>
+            <select class="modal-input" id="comboCat" style="cursor:pointer;"><option value="Unisex">Unisex</option><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select>
+          </div>
+          <div style="flex:1"><label class="modal-label">Tipo</label>
+            <select class="modal-input" id="comboTipo" style="cursor:pointer;"><option value="pack">Pack</option><option value="mini-collection">Mini Collection</option><option value="regalo">Regalo</option></select>
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+          <div style="flex:1"><label class="modal-label">Precio original</label><input type="number" class="modal-input" id="comboPrice" placeholder="99000"/></div>
+          <div style="flex:1"><label class="modal-label">Precio promo (opcional)</label><input type="number" class="modal-input" id="comboPromo" placeholder="89100"/></div>
+        </div>
+        <label class="modal-label">Perfumes del combo</label>
+        <div id="comboItems" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem;"></div>
+        <button class="action-btn btn-stock" onclick="addComboItem()" style="margin-bottom:1rem;font-size:.68rem;">+ Agregar perfume</button>
+        <div style="display:flex;gap:.5rem;">
+          <button class="modal-btn modal-btn-price" onclick="saveCombo()" style="flex:1;">Guardar combo</button>
+          <button class="modal-btn" onclick="cancelCombo()" style="flex:.4;background:rgba(255,255,255,.1);color:var(--gris-claro);">Cancelar</button>
+        </div>
+        <p class="modal-success" id="comboMsg"></p>
+      </div>
     </div>
   </div>
 
@@ -567,6 +693,35 @@
       <input type="text" class="modal-input" id="modalStockConfirm" placeholder="Nombre del perfume..." oninput="checkStockConfirm()"/>
       <button class="modal-btn modal-btn-price" id="modalStockBtn" disabled onclick="saveStock()">Confirmar cambio</button>
       <p class="modal-success" id="modalStockMsg"></p>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR TELEFONO CLIENTE -->
+  <div class="modal-overlay" id="modalClientEdit" onclick="closeModal('modalClientEdit',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalClientEdit')">&times;</button>
+      <p class="modal-title">Editar tel&eacute;fono</p>
+      <p id="modalClientName" style="text-align:center;font-weight:600;margin-bottom:1rem;"></p>
+      <label class="modal-label">Tel&eacute;fono actual</label>
+      <input type="text" class="modal-input" id="modalClientOldTel" disabled style="opacity:.5;"/>
+      <label class="modal-label">Nuevo tel&eacute;fono</label>
+      <input type="text" class="modal-input" id="modalClientNewTel" placeholder="Ej: 2975-123456" oninput="checkClientEdit()"/>
+      <button class="modal-btn modal-btn-price" id="modalClientEditBtn" disabled onclick="saveClientPhone()">Guardar cambio</button>
+      <p class="modal-success" id="modalClientEditMsg"></p>
+    </div>
+  </div>
+
+  <!-- MODAL: ELIMINAR CLIENTE -->
+  <div class="modal-overlay" id="modalClientDelete" onclick="closeModal('modalClientDelete',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalClientDelete')">&times;</button>
+      <p class="modal-title">Eliminar cliente</p>
+      <p id="modalDeleteName" style="text-align:center;font-weight:600;margin-bottom:.5rem;"></p>
+      <p style="text-align:center;font-size:.75rem;color:#e74c3c;margin-bottom:1rem;">Esta acci&oacute;n no se puede deshacer</p>
+      <p class="modal-confirm-text">Para confirmar, escrib&iacute; el nombre exacto:</p>
+      <input type="text" class="modal-input" id="modalDeleteConfirm" placeholder="Nombre del cliente..." oninput="checkClientDelete()"/>
+      <button class="modal-btn modal-btn-danger" id="modalClientDeleteBtn" disabled onclick="deleteClient()">Eliminar definitivamente</button>
+      <p class="modal-success" id="modalClientDeleteMsg"></p>
     </div>
   </div>
 
@@ -778,19 +933,143 @@
       }
     }
 
+    var allClientes = [];
+    var editingClientId = null;
+    var deletingClientId = null;
+    var deletingClientName = '';
+
     async function loadClientes() {
-      var tbody = document.getElementById('tbodyClientes');
+      var container = document.getElementById('clientsList');
+      container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</p>';
       var { data } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
-      if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gris);">Sin clientes registrados</td></tr>';
+      allClientes = data || [];
+      renderClientes(allClientes);
+    }
+
+    function renderClientes(list) {
+      var container = document.getElementById('clientsList');
+      document.getElementById('clientCount').textContent = list.length + ' cliente' + (list.length !== 1 ? 's' : '');
+      if (!list || list.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Sin clientes registrados</p>';
         return;
       }
       var html = '';
-      data.forEach(function(c) {
+      list.forEach(function(c) {
         var fecha = new Date(c.created_at).toLocaleDateString('es-AR');
-        html += '<tr><td>' + c.nombre + '</td><td>' + c.telefono + '</td><td>' + fecha + '</td></tr>';
+        var initials = (c.nombre || '?').charAt(0).toUpperCase();
+        var isBlocked = c.bloqueado === true;
+        var blockedBadge = isBlocked ? ' <span class="client-blocked-badge">Bloqueado</span>' : '';
+        var blockBtnClass = isBlocked ? 'client-btn client-btn-blocked' : 'client-btn client-btn-block';
+        var blockBtnText = isBlocked ? 'Desbloquear' : 'Bloquear';
+
+        html += '<div class="client-card" data-name="' + (c.nombre || '').toLowerCase() + '">'
+          + '<div class="client-top">'
+            + '<div class="client-name"><span class="client-name-icon">' + initials + '</span> ' + c.nombre + blockedBadge + '</div>'
+            + '<span class="client-date">' + fecha + '</span>'
+          + '</div>'
+          + '<div class="client-details">'
+            + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + c.telefono + '</span></span>'
+            + (c.telefono2 ? '<span class="client-detail"><span class="client-detail-icon">📞</span> <span class="client-detail-value">' + c.telefono2 + '</span></span>' : '')
+          + '</div>'
+          + '<div class="client-actions">'
+            + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar tel</button>'
+            + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
+            + '<button class="client-btn client-btn-delete" onclick="openClientDeleteModal(\'' + c.id + '\')">🗑️ Eliminar</button>'
+          + '</div>'
+        + '</div>';
       });
-      tbody.innerHTML = html;
+      container.innerHTML = html;
+    }
+
+    function filterClientes() {
+      var q = document.getElementById('searchClientes').value.trim().toLowerCase();
+      if (!q) { renderClientes(allClientes); return; }
+      var filtered = allClientes.filter(function(c) {
+        return (c.nombre || '').toLowerCase().indexOf(q) !== -1 || (c.telefono || '').indexOf(q) !== -1;
+      });
+      renderClientes(filtered);
+    }
+
+    function openClientEditModal(id) {
+      var c = allClientes.find(function(cl) { return cl.id == id; });
+      if (!c) return;
+      editingClientId = id;
+      document.getElementById('modalClientName').textContent = c.nombre;
+      document.getElementById('modalClientOldTel').value = c.telefono;
+      document.getElementById('modalClientNewTel').value = '';
+      document.getElementById('modalClientEditBtn').disabled = true;
+      document.getElementById('modalClientEditMsg').textContent = '';
+      document.getElementById('modalClientEdit').classList.add('active');
+    }
+
+    function checkClientEdit() {
+      var val = document.getElementById('modalClientNewTel').value.trim();
+      document.getElementById('modalClientEditBtn').disabled = val.length < 6;
+    }
+
+    async function saveClientPhone() {
+      var newTel = document.getElementById('modalClientNewTel').value.trim();
+      if (!newTel || !editingClientId) return;
+      var btn = document.getElementById('modalClientEditBtn');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      var { error } = await sb.from('clientes').update({ telefono: newTel }).eq('id', editingClientId);
+      if (error) {
+        document.getElementById('modalClientEditMsg').style.color = '#e74c3c';
+        document.getElementById('modalClientEditMsg').textContent = 'Error: ' + error.message;
+      } else {
+        document.getElementById('modalClientEditMsg').style.color = '#2ecc71';
+        document.getElementById('modalClientEditMsg').textContent = 'Teléfono actualizado ✓';
+        var c = allClientes.find(function(cl) { return cl.id == editingClientId; });
+        if (c) notifyTelegram('📱 Teléfono editado: ' + c.nombre + ' → ' + newTel);
+        loadClientes();
+        setTimeout(function() { closeModal('modalClientEdit'); }, 1200);
+      }
+      btn.textContent = 'Guardar cambio'; btn.disabled = false;
+    }
+
+    async function toggleBlockClient(id, block) {
+      var c = allClientes.find(function(cl) { return cl.id == id; });
+      if (!c) return;
+      var { error } = await sb.from('clientes').update({ bloqueado: block }).eq('id', id);
+      if (!error) {
+        notifyTelegram((block ? '🚫 Cliente bloqueado' : '✅ Cliente desbloqueado') + ': ' + c.nombre);
+        loadClientes();
+      }
+    }
+
+    function openClientDeleteModal(id) {
+      var c = allClientes.find(function(cl) { return cl.id == id; });
+      if (!c) return;
+      deletingClientId = id;
+      deletingClientName = c.nombre;
+      document.getElementById('modalDeleteName').textContent = c.nombre;
+      document.getElementById('modalDeleteConfirm').value = '';
+      document.getElementById('modalClientDeleteBtn').disabled = true;
+      document.getElementById('modalClientDeleteMsg').textContent = '';
+      document.getElementById('modalClientDelete').classList.add('active');
+    }
+
+    function checkClientDelete() {
+      var val = document.getElementById('modalDeleteConfirm').value.trim().toLowerCase();
+      document.getElementById('modalClientDeleteBtn').disabled = val !== deletingClientName.toLowerCase();
+    }
+
+    async function deleteClient() {
+      if (!deletingClientId) return;
+      var btn = document.getElementById('modalClientDeleteBtn');
+      btn.disabled = true; btn.textContent = 'Eliminando...';
+      var { error } = await sb.from('clientes').delete().eq('id', deletingClientId);
+      if (error) {
+        document.getElementById('modalClientDeleteMsg').style.color = '#e74c3c';
+        document.getElementById('modalClientDeleteMsg').textContent = 'Error: ' + error.message;
+      } else {
+        document.getElementById('modalClientDeleteMsg').style.color = '#2ecc71';
+        document.getElementById('modalClientDeleteMsg').textContent = 'Cliente eliminado';
+        notifyTelegram('🗑️ Cliente eliminado: ' + deletingClientName);
+        loadClientes();
+        setTimeout(function() { closeModal('modalClientDelete'); }, 1000);
+      }
+      btn.textContent = 'Eliminar definitivamente'; btn.disabled = false;
     }
 
     // ============================================================
@@ -1508,6 +1787,258 @@
       await sb.from('cierres_especiales').delete().eq('id', id);
       loadCierres();
     }
+
+    // ============================================================
+    // COMBOS / SETS
+    // ============================================================
+    var editingComboSlug = null;
+
+    function loadCombos() {
+      var container = document.getElementById('combosList');
+      var sets = PERFUMES.filter(function(p) { return p.esSet; });
+      document.getElementById('comboCount').textContent = sets.length + ' combo' + (sets.length !== 1 ? 's' : '');
+
+      if (sets.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">No hay combos creados</p>';
+        return;
+      }
+
+      var html = '';
+      sets.forEach(function(s) {
+        var items = s.items || [];
+        var badgeClass = s.setTipo === 'mini-collection' ? 'combo-badge-mini' : (s.setTipo === 'regalo' ? 'combo-badge-regalo' : 'combo-badge-pack');
+        var badgeText = s.setTipo === 'mini-collection' ? 'MINI' : (s.setTipo === 'regalo' ? 'REGALO' : 'PACK');
+
+        var listHTML = '';
+        items.forEach(function(item) {
+          var ref = item.slug ? PERFUMES.find(function(pf) { return pf.slug === item.slug; }) : null;
+          var nombre = item.nombre || (ref ? ref.name : '?');
+          var mlText = item.ml ? ' (' + item.ml + 'ml)' : '';
+          listHTML += '<li>' + nombre + mlText + '</li>';
+        });
+
+        var promoHTML = s.promo ? '$' + formatPriceAdmin(s.promo) : '';
+        var priceHTML = '$' + formatPriceAdmin(s.price);
+
+        html += '<div class="combo-card">'
+          + '<div class="combo-top">'
+            + '<span class="combo-name">' + s.name + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span></span>'
+            + '<span style="font-size:.65rem;color:var(--gris);">' + s.cat + '</span>'
+          + '</div>'
+          + '<ul class="combo-items-list">' + listHTML + '</ul>'
+          + '<div class="combo-pricing">'
+            + (promoHTML ? '<span class="combo-pricing-promo">' + promoHTML + '</span><span class="combo-pricing-original">' + priceHTML + '</span>' : '<span class="combo-pricing-promo">' + priceHTML + '</span>')
+          + '</div>'
+          + '<div class="combo-actions">'
+            + '<button class="client-btn client-btn-edit" onclick="editCombo(\'' + s.slug + '\')">✏️ Editar</button>'
+            + '<button class="client-btn client-btn-delete" onclick="deleteCombo(\'' + s.slug + '\')">🗑️ Eliminar</button>'
+          + '</div>'
+        + '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function formatPriceAdmin(p) {
+      var n = parseFloat(String(p).replace(/,/g, ''));
+      return isNaN(n) ? p : Math.round(n).toLocaleString('es-AR').replace(/,/g, '.');
+    }
+
+    function openComboCreator() {
+      editingComboSlug = null;
+      document.getElementById('comboFormTitle').textContent = 'Nuevo combo';
+      document.getElementById('comboName').value = '';
+      document.getElementById('comboCat').value = 'Unisex';
+      document.getElementById('comboTipo').value = 'pack';
+      document.getElementById('comboPrice').value = '';
+      document.getElementById('comboPromo').value = '';
+      document.getElementById('comboItems').innerHTML = '';
+      document.getElementById('comboMsg').textContent = '';
+      addComboItem();
+      addComboItem();
+      document.getElementById('comboForm').style.display = 'block';
+      document.getElementById('comboForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function addComboItem() {
+      var container = document.getElementById('comboItems');
+      var perfOptions = PERFUMES.filter(function(p) { return !p.esSet; }).map(function(p) {
+        return '<option value="' + p.slug + '">' + p.name + '</option>';
+      }).join('');
+
+      var row = document.createElement('div');
+      row.className = 'combo-item-row';
+      row.innerHTML = '<select style="flex:2;">'
+        + '<option value="">-- Elegir perfume --</option>'
+        + '<option value="__custom">✏️ Nombre personalizado</option>'
+        + perfOptions
+        + '</select>'
+        + '<input type="text" placeholder="Nombre custom" style="flex:1.5;display:none;" class="combo-custom-name"/>'
+        + '<input type="number" placeholder="ml" style="width:60px;"/>'
+        + '<button class="combo-item-remove" onclick="this.parentElement.remove()">&times;</button>';
+
+      // Show/hide custom name field
+      var sel = row.querySelector('select');
+      var customInput = row.querySelector('.combo-custom-name');
+      sel.addEventListener('change', function() {
+        customInput.style.display = sel.value === '__custom' ? 'block' : 'none';
+      });
+
+      container.appendChild(row);
+    }
+
+    function editCombo(slug) {
+      var s = PERFUMES.find(function(p) { return p.slug === slug; });
+      if (!s) return;
+      editingComboSlug = slug;
+      document.getElementById('comboFormTitle').textContent = 'Editar: ' + s.name;
+      document.getElementById('comboName').value = s.name;
+      document.getElementById('comboCat').value = s.cat || 'Unisex';
+      document.getElementById('comboTipo').value = s.setTipo || 'pack';
+      document.getElementById('comboPrice').value = parseFloat(String(s.price).replace(/,/g, '')) || '';
+      document.getElementById('comboPromo').value = s.promo ? parseFloat(String(s.promo).replace(/,/g, '')) : '';
+      document.getElementById('comboMsg').textContent = '';
+
+      var container = document.getElementById('comboItems');
+      container.innerHTML = '';
+      (s.items || []).forEach(function(item) {
+        addComboItem();
+        var row = container.lastElementChild;
+        var sel = row.querySelector('select');
+        var customInput = row.querySelector('.combo-custom-name');
+        var mlInput = row.querySelector('input[type="number"]');
+        if (item.slug) {
+          sel.value = item.slug;
+        } else if (item.nombre) {
+          sel.value = '__custom';
+          customInput.value = item.nombre;
+          customInput.style.display = 'block';
+        }
+        if (item.ml) mlInput.value = item.ml;
+      });
+
+      document.getElementById('comboForm').style.display = 'block';
+      document.getElementById('comboForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function saveCombo() {
+      var name = document.getElementById('comboName').value.trim();
+      var cat = document.getElementById('comboCat').value;
+      var tipo = document.getElementById('comboTipo').value;
+      var price = document.getElementById('comboPrice').value;
+      var promo = document.getElementById('comboPromo').value;
+      var msgEl = document.getElementById('comboMsg');
+
+      if (!name || !price) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Completá nombre y precio';
+        return;
+      }
+
+      // Collect items
+      var rows = document.querySelectorAll('#comboItems .combo-item-row');
+      var items = [];
+      rows.forEach(function(row) {
+        var sel = row.querySelector('select');
+        var customName = row.querySelector('.combo-custom-name').value.trim();
+        var ml = row.querySelector('input[type="number"]').value;
+        if (sel.value === '__custom' && customName) {
+          items.push({ nombre: customName, ml: ml ? parseInt(ml) : null });
+        } else if (sel.value && sel.value !== '__custom') {
+          items.push({ slug: sel.value, ml: ml ? parseInt(ml) : null });
+        }
+      });
+
+      if (items.length === 0) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Agregá al menos un perfume al combo';
+        return;
+      }
+
+      var slug = editingComboSlug || 'set-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+      var priceFormatted = parseFloat(price).toLocaleString('en-US', { minimumFractionDigits: 2 });
+      var promoFormatted = promo ? parseFloat(promo).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '';
+
+      var comboData = {
+        slug: slug,
+        name: name,
+        cat: cat,
+        marca: 'ST Perfumería',
+        perfil: 'Versátil',
+        price: priceFormatted,
+        promo: promoFormatted || null,
+        foto: '',
+        esSet: true,
+        setTipo: tipo,
+        items: items
+      };
+
+      // Save to Supabase
+      try {
+        if (editingComboSlug) {
+          await sb.from('combos').update(comboData).eq('slug', editingComboSlug);
+        } else {
+          await sb.from('combos').insert(comboData);
+        }
+        msgEl.style.color = '#2ecc71';
+        msgEl.textContent = editingComboSlug ? 'Combo actualizado ✓' : 'Combo creado ✓';
+        notifyTelegram((editingComboSlug ? '✏️ Combo editado' : '🎁 Nuevo combo creado') + ': ' + name);
+
+        // Reload combos from Supabase into PERFUMES
+        await loadCombosFromDB();
+        loadCombos();
+        setTimeout(function() { cancelCombo(); }, 1200);
+      } catch(e) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Error: ' + (e.message || 'No se pudo guardar');
+      }
+    }
+
+    async function deleteCombo(slug) {
+      var s = PERFUMES.find(function(p) { return p.slug === slug; });
+      if (!s) return;
+      if (!confirm('¿Eliminar el combo "' + s.name + '"?')) return;
+      try {
+        await sb.from('combos').delete().eq('slug', slug);
+        // Remove from PERFUMES array
+        PERFUMES = PERFUMES.filter(function(p) { return p.slug !== slug; });
+        notifyTelegram('🗑️ Combo eliminado: ' + s.name);
+        loadCombos();
+      } catch(e) {
+        alert('Error al eliminar: ' + (e.message || ''));
+      }
+    }
+
+    function cancelCombo() {
+      editingComboSlug = null;
+      document.getElementById('comboForm').style.display = 'none';
+    }
+
+    async function loadCombosFromDB() {
+      try {
+        var { data } = await sb.from('combos').select('*');
+        if (data && data.length > 0) {
+          // Remove old DB combos from PERFUMES
+          PERFUMES = PERFUMES.filter(function(p) { return !p._fromDB || !p.esSet; });
+          data.forEach(function(c) {
+            c._fromDB = true;
+            // Check if already exists (hardcoded)
+            var idx = PERFUMES.findIndex(function(p) { return p.slug === c.slug; });
+            if (idx !== -1) {
+              PERFUMES[idx] = c;
+            } else {
+              PERFUMES.push(c);
+            }
+          });
+        }
+      } catch(e) {}
+    }
+
+    // Load combos on tab switch
+    var origSwitchTab = switchTab;
+    switchTab = function(tab, btn) {
+      origSwitchTab(tab, btn);
+      if (tab === 'combos') loadCombos();
+    };
   </script>
 </body>
 </html>

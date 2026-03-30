@@ -1072,6 +1072,30 @@
     body.dark-mode .nav-dark-toggle { border-color: var(--amarillo); background: rgba(232,184,0,.1); }
     body.dark-mode .nav-dark-toggle .dark-toggle-icon { transform: rotate(0); }
 
+    /* Botón flotante dark mode — solo mobile */
+    .dark-float {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      .dark-float {
+        display: flex; align-items: center; justify-content: center;
+        position: fixed; bottom: 20px; left: 16px; z-index: 9990;
+        width: 46px; height: 46px; border-radius: 50%;
+        background: rgba(20,20,20,.92); border: 2px solid var(--amarillo);
+        box-shadow: 0 4px 20px rgba(232,184,0,.3), 0 0 12px rgba(232,184,0,.1);
+        cursor: pointer; transition: all .3s ease;
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      }
+      .dark-float:active { transform: scale(.9); }
+      .dark-float-icon { font-size: 1.3rem; transition: transform .4s ease; }
+      .dark-float:hover { box-shadow: 0 4px 24px rgba(232,184,0,.5); }
+      body.dark-mode .dark-float {
+        background: rgba(232,184,0,.15);
+        border-color: var(--amarillo);
+        box-shadow: 0 4px 20px rgba(232,184,0,.35), 0 0 16px rgba(232,184,0,.15);
+      }
+    }
+
     body.dark-mode .catalog-section { background: #121212; }
     body.dark-mode .product-card { background: #1a1a1a; border-color: #2a2a2a; }
     body.dark-mode .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); }
@@ -1286,25 +1310,25 @@
 
     /* ESPEJO — columna izquierda: TEXTO | FOTO, reveal entra desde la izq */
     @media (min-width: 768px) {
-      .product-card:nth-child(odd) {
+      .product-card.mirror {
         flex-direction: row-reverse;
       }
-      .product-card:nth-child(odd) .card-info {
+      .product-card.mirror .card-info {
         text-align: right;
       }
-      .product-card:nth-child(odd) .card-pricing {
+      .product-card.mirror .card-pricing {
         justify-content: flex-end;
       }
-      .product-card:nth-child(odd) .card-reveal {
+      .product-card.mirror .card-reveal {
         left: 0;
         right: 30%;
         border-radius: 5px 0 0 5px;
         transform: translateX(-100%);
       }
-      .product-card:nth-child(odd):hover .card-reveal {
+      .product-card.mirror:hover .card-reveal {
         transform: translateX(0);
       }
-      .product-card:nth-child(odd) .fav-heart {
+      .product-card.mirror .fav-heart {
         right: auto;
         left: 10px;
       }
@@ -1609,7 +1633,11 @@
       gap: 1.5rem;
     }
     @media (min-width: 768px) {
-      .tu-sector-grid { flex-direction: row; align-items: flex-start; }
+      .tu-sector-grid { flex-direction: row; align-items: stretch; flex-wrap: wrap; }
+    }
+    /* Sector: Mi Selección row completa en desktop */
+    .sector-card-miseleccion {
+      flex-basis: 100% !important;
     }
 
     .sector-card {
@@ -2202,6 +2230,57 @@
       font-size: .65rem; font-weight: 800;
     }
     @keyframes cartBounce { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+
+    /* Toast mini-splash al agregar al carrito */
+    .cart-toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(.85);
+      z-index: 99998; background: rgba(10,10,10,.96); border: 1px solid var(--amarillo);
+      border-radius: 14px; padding: 1.2rem 1.5rem; display: none;
+      align-items: center; gap: 1rem; max-width: 380px; width: 90%;
+      box-shadow: 0 12px 60px rgba(0,0,0,.7), 0 0 30px rgba(232,184,0,.15);
+      opacity: 0; transition: none;
+    }
+    .cart-toast.active {
+      display: flex;
+      animation: toastIn .45s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    .cart-toast.leaving {
+      animation: toastOut .3s ease forwards;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(.7); }
+      to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      to   { opacity: 0; transform: translate(-50%, -50%) scale(.85) translateY(10px); }
+    }
+    .cart-toast-img {
+      width: 60px; height: 80px; object-fit: cover; border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.5);
+    }
+    .cart-toast-img-placeholder {
+      width: 60px; height: 80px; border-radius: 6px; background: #1a1a1a;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: rgba(232,184,0,.2);
+    }
+    .cart-toast-info { flex: 1; }
+    .cart-toast-label {
+      font-size: .55rem; font-weight: 600; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--amarillo); margin-bottom: .15rem;
+    }
+    .cart-toast-name {
+      font-family: var(--font-display); font-size: 1rem; font-weight: 600;
+      color: #fff; line-height: 1.2;
+    }
+    .cart-toast-check {
+      font-size: 1.4rem; animation: toastCheck .4s ease .2s both;
+    }
+    @keyframes toastCheck {
+      from { opacity: 0; transform: scale(0); }
+      50%  { transform: scale(1.3); }
+      to   { opacity: 1; transform: scale(1); }
+    }
     @media (min-width: 768px) { .cart-float { bottom: 110px; right: 30px; } }
 
     /* Panel carrito */
@@ -2328,6 +2407,181 @@
       .splash-name { font-size: 1.4rem; }
       .splash-line { margin: .5rem auto; }
     }
+
+    /* ================================================
+       FAQ — PREGUNTAS FRECUENTES
+    ================================================ */
+    .section-faq {
+      padding: 3rem 1.2rem;
+      border-top: 1px solid var(--borde);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) { .section-faq { padding: 5rem 2rem; } }
+    .faq-header { margin-bottom: 2rem; }
+    .faq-item {
+      border-bottom: 1px solid var(--borde);
+    }
+    .faq-question {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 1rem 0; background: none; border: none;
+      cursor: pointer; font-family: var(--font-body); font-size: .85rem;
+      font-weight: 600; color: var(--gris-claro); text-align: left;
+      transition: color .2s; gap: .5rem;
+    }
+    .faq-question:hover { color: var(--amarillo); }
+    .faq-chevron {
+      width: 18px; height: 18px; flex-shrink: 0;
+      transition: transform .3s ease; color: var(--gris);
+    }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); color: var(--amarillo); }
+    .faq-answer {
+      max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .35s ease;
+      padding: 0 0;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 300px; padding: 0 0 1rem;
+    }
+    .faq-answer p {
+      font-size: .78rem; color: var(--gris); line-height: 1.6; margin: 0;
+    }
+    .faq-answer p + p { margin-top: .5rem; }
+    body.dark-mode .faq-question { color: #e0e0e0; }
+    body.dark-mode .faq-question:hover { color: var(--amarillo); }
+    body.dark-mode .faq-answer p { color: #aaa; }
+
+    /* ================================================
+       MI SELECCIÓN ST — Mazo de cartas
+    ================================================ */
+    .misel-section {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      padding: 2rem 1.5rem;
+      max-width: 700px;
+      width: 100%;
+    }
+    @media (max-width: 767px) { .misel-section { padding: 1.5rem 1rem; } }
+    .misel-content { display: flex; gap: 1.2rem; align-items: flex-start; flex-wrap: wrap; }
+    @media (min-width: 768px) { .misel-content { flex-wrap: nowrap; } }
+
+    /* Selector de perfumes */
+    .misel-picker { flex: 1; min-width: 220px; }
+    .misel-slots { display: flex; gap: .4rem; margin-bottom: .8rem; flex-wrap: wrap; }
+    .misel-slot {
+      width: 52px; height: 68px; border-radius: 6px; border: 2px dashed rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center; position: relative;
+      overflow: hidden; cursor: pointer; transition: all .2s; background: rgba(255,255,255,.03);
+    }
+    .misel-slot.filled { border-style: solid; border-color: var(--amarillo); }
+    .misel-slot img { width: 100%; height: 100%; object-fit: cover; }
+    .misel-slot-num {
+      font-size: .6rem; color: var(--gris); font-weight: 700;
+    }
+    .misel-slot-remove {
+      position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; border-radius: 50%;
+      background: #e74c3c; color: #fff; font-size: .55rem; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
+    }
+    .misel-search-wrap { position: relative; margin-bottom: .5rem; }
+    .misel-search {
+      width: 100%; padding: .5rem .7rem; font-family: inherit; font-size: .75rem;
+      background: rgba(255,255,255,.06); border: 1px solid var(--borde-sutil); border-radius: 5px;
+      color: #fff; outline: none;
+    }
+    .misel-search:focus { border-color: var(--amarillo); }
+    .misel-search::placeholder { color: var(--gris); }
+    .misel-dropdown {
+      position: absolute; top: 100%; left: 0; right: 0; max-height: 180px; overflow-y: auto;
+      background: #1a1a1a; border: 1px solid var(--amarillo); border-radius: 0 0 6px 6px;
+      z-index: 50; display: none;
+      scrollbar-width: thin; scrollbar-color: var(--amarillo) transparent;
+    }
+    .misel-dropdown.open { display: block; }
+    .misel-dropdown-item {
+      display: flex; align-items: center; gap: .5rem; padding: .45rem .7rem; cursor: pointer;
+      font-size: .72rem; color: var(--gris-claro); transition: background .15s;
+    }
+    .misel-dropdown-item:hover { background: rgba(232,184,0,.1); color: #fff; }
+    .misel-dropdown-item img { width: 28px; height: 36px; object-fit: cover; border-radius: 3px; }
+    .misel-dropdown-item .misel-dd-letter {
+      width: 28px; height: 36px; border-radius: 3px; background: rgba(232,184,0,.08);
+      display: flex; align-items: center; justify-content: center; font-size: .7rem; color: var(--amarillo);
+    }
+    .misel-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .misel-btn-save {
+      padding: .45rem .8rem; font-family: inherit; font-size: .65rem; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase; border: none; border-radius: 4px;
+      cursor: pointer; background: var(--amarillo); color: #000; transition: all .2s;
+    }
+    .misel-btn-save:hover { background: var(--amarillo-claro); }
+    .misel-btn-save:disabled { opacity: .35; cursor: not-allowed; }
+    .misel-btn-similar {
+      padding: .45rem .8rem; font-family: inherit; font-size: .65rem; font-weight: 600;
+      letter-spacing: .06em; border: 1px solid var(--amarillo); border-radius: 4px;
+      cursor: pointer; background: none; color: var(--amarillo); transition: all .2s;
+    }
+    .misel-btn-similar:hover { background: rgba(232,184,0,.1); }
+    .misel-msg { font-size: .7rem; margin-top: .4rem; min-height: 1rem; }
+
+    /* Mazo de cartas */
+    .misel-deck { flex: 0 0 160px; height: 220px; position: relative; perspective: 600px; }
+    @media (max-width: 767px) { .misel-deck { flex: 0 0 100%; height: 240px; display: flex; justify-content: center; order: -1; } }
+    .misel-card-stack {
+      position: relative; width: 140px; height: 190px;
+    }
+    .misel-card {
+      position: absolute; top: 0; left: 0; width: 140px; height: 190px;
+      border-radius: 10px; overflow: hidden; background: #111;
+      border: 2px solid var(--amarillo);
+      box-shadow: 0 6px 20px rgba(0,0,0,.5);
+      transition: all .5s cubic-bezier(.4, 0, .2, 1);
+      backface-visibility: hidden;
+    }
+    .misel-card img { width: 100%; height: 65%; object-fit: cover; }
+    .misel-card-placeholder {
+      width: 100%; height: 65%; background: #1a1a1a; display: flex;
+      align-items: center; justify-content: center; font-size: 2rem; color: rgba(232,184,0,.15);
+    }
+    .misel-card-info {
+      padding: .5rem .6rem; text-align: center;
+    }
+    .misel-card-name {
+      font-family: var(--font-display); font-size: .72rem; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .misel-card-brand {
+      font-size: .55rem; color: var(--gris); margin-top: .1rem;
+    }
+    .misel-card-rank {
+      position: absolute; top: 6px; left: 6px; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--amarillo); color: #000; font-size: .6rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Animación del mazo */
+    .misel-card.card-exit {
+      animation: cardExit .6s ease forwards;
+    }
+    @keyframes cardExit {
+      0%   { transform: translateY(0) scale(1); opacity: 1; }
+      40%  { transform: translateY(-30px) scale(1.03); opacity: 1; }
+      100% { transform: translateY(200px) scale(.9); opacity: 0; }
+    }
+    .misel-card.card-enter {
+      animation: cardEnter .4s ease .2s both;
+    }
+    @keyframes cardEnter {
+      from { transform: scale(.9); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .misel-empty-msg {
+      font-size: .75rem; color: var(--gris); text-align: center; padding: 2rem 0;
+    }
+    .misel-lock { text-align: center; padding: .6rem; cursor: pointer; font-size: .72rem; color: var(--gris); border-top: 1px solid var(--borde-sutil); margin-top: auto; }
+    .misel-lock:hover { color: var(--amarillo); }
+    .misel-global-stat { font-size: .62rem; color: var(--gris); text-align: center; margin-top: .5rem; }
 
     /* ================================================
        SOBRE NOSOTROS — BASE (mobile)
@@ -2589,9 +2843,17 @@
       display: flex;
       flex-direction: column;
       gap: .4rem;
-      max-height: 80px;
+      min-height: 80px;
+      max-height: 200px;
       overflow-y: auto;
+      flex: 1;
+      scrollbar-width: thin;
+      scrollbar-color: var(--amarillo) rgba(255,255,255,.05);
     }
+    .board-messages::-webkit-scrollbar { width: 5px; }
+    .board-messages::-webkit-scrollbar-track { background: rgba(255,255,255,.05); border-radius: 10px; }
+    .board-messages::-webkit-scrollbar-thumb { background: var(--amarillo); border-radius: 10px; }
+    .board-messages::-webkit-scrollbar-thumb:hover { background: var(--amarillo-claro); }
     .board-msg {
       font-size: .7rem;
       color: var(--gris-claro);
@@ -2944,6 +3206,8 @@
           <button onclick="sortCards('alpha-desc')">Z &rarr; A</button>
           <button onclick="sortCards('price-asc')">Precio: menor a mayor</button>
           <button onclick="sortCards('price-desc')">Precio: mayor a menor</button>
+          <button onclick="sortCards('views-desc')">&#128065; M&aacute;s visitados</button>
+          <button onclick="sortCards('views-asc')">&#128065; Menos visitados</button>
         </div>
       </div>
       <span class="filter-count" id="filterCount">6 fragancias</span>
@@ -3104,6 +3368,114 @@
       </div>
     </div>
 
+    <!-- Mi Selección ST -->
+    <div class="misel-section">
+      <p class="section-eyebrow" style="margin-bottom:.5rem">Tu espacio</p>
+      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#11088; Mi Selecci&#243;n ST</h3>
+      <p style="font-size:.78rem;color:var(--gris);margin-bottom:1rem;font-style:italic;">Arm&#225; tu top 5 fragancias. Descubr&#237; qu&#233; eligen los dem&#225;s.</p>
+
+      <div class="misel-content" id="miselContent" style="display:none;">
+        <!-- Mazo de cartas -->
+        <div class="misel-deck" id="miselDeck">
+          <div class="misel-card-stack" id="miselStack">
+            <div class="misel-empty-msg" id="miselEmptyDeck">Eleg&#237; tus perfumes<br>para ver tu mazo</div>
+          </div>
+        </div>
+
+        <!-- Picker -->
+        <div class="misel-picker">
+          <div class="misel-slots" id="miselSlots">
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">4</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">5</span></div>
+          </div>
+          <div class="misel-search-wrap">
+            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume para agregar..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
+            <div class="misel-dropdown" id="miselDropdown"></div>
+          </div>
+          <div class="misel-actions">
+            <button class="misel-btn-save" id="miselSaveBtn" disabled onclick="saveMiSeleccion()">Guardar selecci&#243;n</button>
+            <button class="misel-btn-similar" id="miselSimilarBtn" style="display:none;" onclick="showMiselSimilares()">&#10024; Ver similares</button>
+          </div>
+          <p class="misel-msg" id="miselMsg"></p>
+          <p class="misel-global-stat" id="miselGlobalStat"></p>
+        </div>
+      </div>
+
+      <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
+        <span>&#128274; Registrate para armar tu selecci&#243;n</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ========== FAQ ========== -->
+  <section class="section-faq" id="faq">
+    <div class="faq-header">
+      <p class="section-eyebrow">FAQ</p>
+      <h2 class="section-title">Preguntas frecuentes</h2>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Los perfumes son originales?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>Sí, todos nuestros perfumes son 100% originales de marcas árabes reconocidas como Lattafa, Afnan, Maison Alhambra, Armaf, entre otras. No vendemos imitaciones ni réplicas.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Cuánto duran en piel?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>La mayoría de nuestros perfumes tienen una duración de entre 8 y 12+ horas. Los perfumes árabes se destacan justamente por su larga duración y excelente proyección.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Hacen envíos?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>Sí, hacemos envíos a todo Comodoro Rivadavia y alrededores. También realizamos envíos nacionales por correo. Consultanos por WhatsApp para conocer las opciones y costos.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Puedo probar los perfumes antes de comprar?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>¡Por supuesto! Podés venir al local y probar todos los que quieras. Te asesoramos sin compromiso y sin presión. La prueba en piel es la mejor forma de elegir tu fragancia.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Qué medios de pago aceptan?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>Aceptamos efectivo, transferencia bancaria, y tarjetas de crédito/débito (hasta 3 cuotas sin interés). Por transferencia o efectivo tenés un 10% de descuento.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Qué diferencia hay entre perfume árabe y uno de diseñador?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer">
+        <p>Los perfumes árabes suelen tener mayor concentración de aceites esenciales, lo que les da más duración y proyección. Muchos son inspirados en fragancias de diseñador pero con su propia identidad.</p>
+        <p>Además, la relación precio-calidad es muy superior: conseguís un perfume potente y duradero a una fracción del precio de un diseñador.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Dónde están ubicados?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>Estamos en el centro de Comodoro Rivadavia, Chubut. Podés ver nuestros horarios en el footer de la página o consultarnos por WhatsApp para coordinar tu visita.</p></div>
+    </div>
   </section>
 
   <!-- ========== TU SECTOR ========== -->
@@ -3268,6 +3640,16 @@
   </div>
 
   <!-- Splash screen -->
+  <!-- Toast carrito -->
+  <div class="cart-toast" id="cartToast">
+    <div id="cartToastImgWrap"></div>
+    <div class="cart-toast-info">
+      <p class="cart-toast-label">Agregado al pedido</p>
+      <p class="cart-toast-name" id="cartToastName"></p>
+    </div>
+    <span class="cart-toast-check">✓</span>
+  </div>
+
   <div class="splash-overlay" id="splashOverlay">
     <div class="splash-content">
       <div id="splashImgWrap"></div>
@@ -3284,6 +3666,11 @@
   <!-- Scroll to top -->
   <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Volver arriba">
     <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- Dark mode flotante mobile -->
+  <button class="dark-float" id="darkFloat" onclick="toggleDarkMode()" aria-label="Cambiar tema">
+    <span class="dark-float-icon" id="darkFloatIcon">🌙</span>
   </button>
 
   <!-- Botón flotante WhatsApp -->
@@ -3566,6 +3953,7 @@
       if (bi) bi.placeholder = 'Ej: El 9 AM me dura todo el día, increíble...';
       loadFavsFromSupabase();
       unlockVoting();
+      setTimeout(initMiSeleccion, 500);
     }
 
     function onLogout() {
@@ -3576,6 +3964,7 @@
       var bi = document.getElementById('boardInput');
       if (bi) bi.placeholder = 'Registrate para dejar tu opinión...';
       lockVoting();
+      initMiSeleccion();
       renderCatalog();
     }
 
@@ -4138,6 +4527,21 @@
       } catch(e) {}
     })();
 
+    // Cargar combos desde Supabase
+    (async function loadCombosFromDB() {
+      try {
+        var { data } = await sb.from('combos').select('*');
+        if (data && data.length > 0) {
+          data.forEach(function(c) {
+            c.esSet = true;
+            var idx = PERFUMES.findIndex(function(p) { return p.slug === c.slug; });
+            if (idx !== -1) { PERFUMES[idx] = c; } else { PERFUMES.push(c); }
+          });
+          renderSets();
+        }
+      } catch(e) {}
+    })();
+
     function renderSeleccionST() {
       var grid = document.getElementById('seleccionGrid');
       if (!grid) return;
@@ -4147,7 +4551,7 @@
         if (!p) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var imgHTML = p.foto
-          ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
+          ? '<img src="' + fotoSrc + '" alt="' + p.name + '" fetchpriority="high">'
           : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + p.name.charAt(0) + '</div>';
         html += '<div class="collectible-card" onclick="scrollToPerfume(\'' + slug + '\')">'
           + '<div class="collectible-card-inner">'
@@ -4161,6 +4565,9 @@
       });
       grid.innerHTML = html;
     }
+
+    // Pre-renderizar con defaults inmediatamente
+    renderSeleccionST();
 
     function scrollToPerfume(slug) {
       var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
@@ -4342,7 +4749,7 @@
       if (e) { e.preventDefault(); e.stopPropagation(); }
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
-      var url = 'https://st-perfumeria.vercel.app/?p=' + slug;
+      var url = 'https://st-perfumeria.vercel.app/perfume/' + slug;
       var text = p.name + ' — ST Perfumería\n' + (p.notas_salida ? 'Notas: ' + p.notas_salida : '') + '\n' + url;
 
       if (navigator.share) {
@@ -4465,7 +4872,7 @@
     // ============================================================
     function checkDeepLink() {
       var params = new URLSearchParams(window.location.search);
-      var slug = params.get('p');
+      var slug = params.get('p') || params.get('perfume');
       if (slug) {
         setTimeout(function() { scrollToPerfume(slug); }, 500);
       }
@@ -4536,6 +4943,19 @@
       var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
       document.getElementById('filterCount').textContent = label;
       updateLoadMoreBtn(matchIndex, totalMatch);
+      applyMirrorClasses();
+    }
+
+    function applyMirrorClasses() {
+      var cards = document.querySelectorAll('.product-card');
+      var visibleIdx = 0;
+      cards.forEach(function(card) {
+        card.classList.remove('mirror');
+        if (card.style.display !== 'none') {
+          if (visibleIdx % 2 === 0) card.classList.add('mirror');
+          visibleIdx++;
+        }
+      });
     }
 
     function updateLoadMoreBtn(shown, total) {
@@ -4567,12 +4987,18 @@
         });
       });
 
+      function roundDown(n) {
+        if (n >= 100) return '+' + (Math.floor(n / 10) * 10);
+        if (n >= 10) return '+' + (Math.floor(n / 10) * 10);
+        return '+' + n;
+      }
+
       const catGrid = document.getElementById('catGrid');
       catGrid.innerHTML = ['Unisex', 'Hombre', 'Mujer'].map(cat =>
         '<a href="#catalogo" class="cat-card" onclick="filterByCat(\'' + cat + '\')">'
-        + '<span class="cat-number">' + counts[cat] + '</span>'
+        + '<span class="cat-number">' + roundDown(counts[cat]) + '</span>'
         + '<p class="cat-name">' + cat + '</p>'
-        + '<p class="cat-count">' + counts[cat] + ' fragancias</p>'
+        + '<p class="cat-count">' + roundDown(counts[cat]) + ' fragancias</p>'
         + '</a>'
       ).join('');
     }
@@ -4585,10 +5011,8 @@
         if (b.textContent.trim().startsWith(cat)) b.classList.add('active');
       });
       applyFilter(cat);
-      // Auto-scroll al catálogo para que el usuario vea los resultados
-      setTimeout(function() {
-        document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      // Scroll directo a donde empiezan las cards (como favoritos)
+      setTimeout(function() { scrollToCatalog(); }, 100);
     }
 
     // ============================================================
@@ -4680,6 +5104,11 @@
           const na = a.querySelector('.card-name').textContent.trim().toLowerCase();
           const nb = b.querySelector('.card-name').textContent.trim().toLowerCase();
           return mode === 'alpha-asc' ? na.localeCompare(nb) : nb.localeCompare(na);
+        }
+        if (mode === 'views-desc' || mode === 'views-asc') {
+          const va = perfumeViews[a.dataset.slug] || 0;
+          const vb = perfumeViews[b.dataset.slug] || 0;
+          return mode === 'views-desc' ? vb - va : va - vb;
         }
         const pa = parseInt(a.querySelector('.price-promo').textContent.replace(/\D/g, '')) || 0;
         const pb = parseInt(b.querySelector('.price-promo').textContent.replace(/\D/g, '')) || 0;
@@ -5044,6 +5473,29 @@
       setTimeout(function() { el.style.display = 'none'; }, 4000);
     }
 
+    var cartToastTimer = null;
+    function showCartToast(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      var toast = document.getElementById('cartToast');
+      var imgWrap = document.getElementById('cartToastImgWrap');
+      var nameEl = document.getElementById('cartToastName');
+      var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+      imgWrap.innerHTML = fotoSrc
+        ? '<img class="cart-toast-img" src="' + fotoSrc + '" alt="' + p.name + '">'
+        : '<div class="cart-toast-img-placeholder">' + p.name.charAt(0) + '</div>';
+      nameEl.textContent = p.name;
+      if (cartToastTimer) clearTimeout(cartToastTimer);
+      toast.classList.remove('leaving');
+      toast.classList.add('active');
+      cartToastTimer = setTimeout(function() {
+        toast.classList.add('leaving');
+        setTimeout(function() {
+          toast.classList.remove('active', 'leaving');
+        }, 300);
+      }, 1500);
+    }
+
     function addToCart(slug, btn, e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
       if (cart.indexOf(slug) !== -1) {
@@ -5057,6 +5509,7 @@
         }
         cart.push(slug);
         if (btn) { btn.textContent = '✓ Agregado'; btn.classList.add('added'); }
+        showCartToast(slug);
       }
       updateCartUI();
     }
@@ -5496,12 +5949,324 @@
     // ============================================================
     // DARK MODE
     // ============================================================
+    // ============================================================
+    // MI SELECCIÓN ST
+    // ============================================================
+    function getCurrentUser() { return currentUser; }
+    var miselSlugs = [];
+    var miselDeckTimer = null;
+    var miselDeckIndex = 0;
+
+    function initMiSeleccion() {
+      try {
+        var user = getCurrentUser();
+        var lock = document.getElementById('miselLock');
+        var content = document.getElementById('miselContent');
+        if (!user) {
+          if (lock) lock.style.display = 'block';
+          if (content) content.style.display = 'none';
+          return;
+        }
+        if (lock) lock.style.display = 'none';
+        if (content) { content.style.display = ''; content.style.display = 'flex'; }
+
+        // Load saved selection
+        loadMiSeleccion();
+        loadMiselGlobalStats();
+      } catch(e) {
+        console.error('initMiSeleccion error:', e);
+      }
+    }
+
+    async function loadMiSeleccion() {
+      var user = getCurrentUser();
+      if (!user) return;
+      try {
+        var { data } = await sb.from('mi_seleccion').select('slugs').eq('user_id', user.id).single();
+        if (data && data.slugs) {
+          miselSlugs = data.slugs;
+          renderMiselSlots();
+          renderMiselDeck();
+        }
+      } catch(e) {}
+    }
+
+    function renderMiselSlots() {
+      var container = document.getElementById('miselSlots');
+      var html = '';
+      for (var i = 0; i < 5; i++) {
+        if (miselSlugs[i]) {
+          var p = PERFUMES.find(function(pf) { return pf.slug === miselSlugs[i]; });
+          if (p) {
+            var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+            var imgHTML = fotoSrc
+              ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
+              : '<span class="misel-slot-num" style="color:var(--amarillo);">' + p.name.charAt(0) + '</span>';
+            html += '<div class="misel-slot filled" title="' + p.name + '">'
+              + imgHTML
+              + '<button class="misel-slot-remove" onclick="removeMiselSlot(' + i + ')">&times;</button>'
+              + '</div>';
+          } else {
+            html += '<div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">' + (i+1) + '</span></div>';
+          }
+        } else {
+          html += '<div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">' + (i+1) + '</span></div>';
+        }
+      }
+      container.innerHTML = html;
+
+      // Toggle save button
+      document.getElementById('miselSaveBtn').disabled = miselSlugs.length === 0;
+      // Show similar button if 3+
+      document.getElementById('miselSimilarBtn').style.display = miselSlugs.length >= 3 ? 'inline-block' : 'none';
+    }
+
+    function renderMiselDeck() {
+      var stack = document.getElementById('miselStack');
+      var emptyMsg = document.getElementById('miselEmptyDeck');
+
+      if (miselSlugs.length === 0) {
+        stack.innerHTML = '<div class="misel-empty-msg">Elegí tus perfumes<br>para ver tu mazo</div>';
+        if (miselDeckTimer) { clearInterval(miselDeckTimer); miselDeckTimer = null; }
+        return;
+      }
+
+      miselDeckIndex = 0;
+      buildDeckCard(0);
+
+      // Auto-rotate every 3.5s
+      if (miselDeckTimer) clearInterval(miselDeckTimer);
+      if (miselSlugs.length > 1) {
+        miselDeckTimer = setInterval(rotateDeck, 3500);
+      }
+    }
+
+    function buildDeckCard(idx) {
+      var stack = document.getElementById('miselStack');
+      var slug = miselSlugs[idx];
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+
+      var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+      var imgHTML = fotoSrc
+        ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
+        : '<div class="misel-card-placeholder">' + p.name.charAt(0) + '</div>';
+
+      var brand = p.marca_real || p.marca || '';
+
+      // Shadow cards behind
+      var shadowHTML = '';
+      if (miselSlugs.length > 1) {
+        shadowHTML += '<div class="misel-card" style="transform:translateY(6px) scale(.96);opacity:.5;z-index:1;border-color:rgba(232,184,0,.4);"></div>';
+      }
+      if (miselSlugs.length > 2) {
+        shadowHTML += '<div class="misel-card" style="transform:translateY(12px) scale(.92);opacity:.3;z-index:0;border-color:rgba(232,184,0,.2);"></div>';
+      }
+
+      stack.innerHTML = shadowHTML
+        + '<div class="misel-card card-enter" style="z-index:2;">'
+          + '<div class="misel-card-rank">' + (idx + 1) + '</div>'
+          + imgHTML
+          + '<div class="misel-card-info">'
+            + '<p class="misel-card-name">' + p.name + '</p>'
+            + '<p class="misel-card-brand">' + brand + '</p>'
+          + '</div>'
+        + '</div>';
+    }
+
+    function rotateDeck() {
+      var stack = document.getElementById('miselStack');
+      var topCard = stack.querySelector('.misel-card[style*="z-index:2"]') || stack.querySelector('.misel-card.card-enter');
+      if (!topCard) return;
+
+      // Animate exit
+      topCard.classList.remove('card-enter');
+      topCard.classList.add('card-exit');
+
+      setTimeout(function() {
+        miselDeckIndex = (miselDeckIndex + 1) % miselSlugs.length;
+        buildDeckCard(miselDeckIndex);
+      }, 500);
+    }
+
+    function focusMiselSearch() {
+      document.getElementById('miselSearch').focus();
+    }
+
+    function filterMiselDropdown(q) {
+      var dropdown = document.getElementById('miselDropdown');
+      q = q.trim().toLowerCase();
+      if (q.length < 1) { dropdown.classList.remove('open'); return; }
+
+      var results = PERFUMES.filter(function(p) {
+        if (p.esSet) return false;
+        if (miselSlugs.indexOf(p.slug) !== -1) return false;
+        return p.name.toLowerCase().indexOf(q) !== -1 || (p.marca_real || p.marca || '').toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 8);
+
+      if (results.length === 0) {
+        dropdown.innerHTML = '<div class="misel-dropdown-item" style="color:var(--gris);cursor:default;">Sin resultados</div>';
+      } else {
+        dropdown.innerHTML = results.map(function(p) {
+          var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+          var imgHTML = fotoSrc
+            ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
+            : '<div class="misel-dd-letter">' + p.name.charAt(0) + '</div>';
+          return '<div class="misel-dropdown-item" onclick="addMiselPerfume(\'' + p.slug + '\')">'
+            + imgHTML + '<span>' + p.name + '</span></div>';
+        }).join('');
+      }
+      dropdown.classList.add('open');
+    }
+
+    function addMiselPerfume(slug) {
+      if (miselSlugs.length >= 5) return;
+      if (miselSlugs.indexOf(slug) !== -1) return;
+      miselSlugs.push(slug);
+      document.getElementById('miselSearch').value = '';
+      document.getElementById('miselDropdown').classList.remove('open');
+      renderMiselSlots();
+      renderMiselDeck();
+    }
+
+    function removeMiselSlot(idx) {
+      miselSlugs.splice(idx, 1);
+      renderMiselSlots();
+      renderMiselDeck();
+    }
+
+    async function saveMiSeleccion() {
+      var user = getCurrentUser();
+      if (!user || miselSlugs.length === 0) return;
+      var btn = document.getElementById('miselSaveBtn');
+      var msg = document.getElementById('miselMsg');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+
+      try {
+        await sb.from('mi_seleccion').upsert({
+          user_id: user.id,
+          slugs: miselSlugs,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+        msg.style.color = '#2ecc71';
+        msg.textContent = 'Selección guardada ✓';
+        setTimeout(function() { msg.textContent = ''; }, 3000);
+      } catch(e) {
+        msg.style.color = '#e74c3c';
+        msg.textContent = 'Error al guardar';
+      }
+      btn.disabled = false; btn.textContent = 'Guardar selección';
+    }
+
+    function showMiselSimilares() {
+      // Get notes from selected perfumes and find similar ones
+      var selectedNotes = [];
+      miselSlugs.forEach(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!p) return;
+        [p.notas_salida, p.notas_corazon, p.notas_base].forEach(function(n) {
+          if (n) n.split(',').forEach(function(note) {
+            var trimmed = note.trim().toLowerCase();
+            if (trimmed && selectedNotes.indexOf(trimmed) === -1) selectedNotes.push(trimmed);
+          });
+        });
+      });
+
+      // Score other perfumes by matching notes
+      var scored = PERFUMES.filter(function(p) {
+        return !p.esSet && miselSlugs.indexOf(p.slug) === -1;
+      }).map(function(p) {
+        var score = 0;
+        var allNotes = ((p.notas_salida || '') + ',' + (p.notas_corazon || '') + ',' + (p.notas_base || '')).toLowerCase();
+        selectedNotes.forEach(function(n) { if (allNotes.indexOf(n) !== -1) score++; });
+        return { perfume: p, score: score };
+      }).filter(function(s) { return s.score > 0; });
+
+      scored.sort(function(a, b) { return b.score - a.score; });
+      var top5 = scored.slice(0, 5);
+
+      if (top5.length === 0) {
+        document.getElementById('miselMsg').style.color = 'var(--gris)';
+        document.getElementById('miselMsg').textContent = 'No encontramos similares por ahora';
+        return;
+      }
+
+      // Build similar overlay (reuse similares modal if exists)
+      var overlay = document.getElementById('similaresOverlay');
+      if (overlay) {
+        var title = document.getElementById('similaresTitle');
+        if (title) title.textContent = 'Basado en tu selección, te van a gustar:';
+        var grid = document.getElementById('similaresGrid');
+        if (grid) {
+          grid.innerHTML = top5.map(function(s) {
+            var p = s.perfume;
+            var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+            var imgHTML = fotoSrc
+              ? '<img src="' + fotoSrc + '" style="width:100%;height:100%;object-fit:cover;">'
+              : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a1a;color:rgba(232,184,0,.2);font-size:1.5rem;">' + p.name.charAt(0) + '</div>';
+            return '<div class="similar-card" onclick="scrollToPerfume(\'' + p.slug + '\');closeSimilares();">'
+              + '<div class="similar-img">' + imgHTML + '</div>'
+              + '<p class="similar-name">' + p.name + '</p>'
+              + '<p class="similar-brand">' + (p.marca_real || p.marca) + '</p>'
+              + '<p style="font-size:.55rem;color:var(--amarillo);">' + s.score + ' notas en común</p>'
+              + '</div>';
+          }).join('');
+        }
+        overlay.classList.add('active');
+      }
+    }
+
+    async function loadMiselGlobalStats() {
+      try {
+        var { data } = await sb.from('mi_seleccion').select('slugs');
+        if (!data || data.length === 0) return;
+        var statEl = document.getElementById('miselGlobalStat');
+        var allSlugs = {};
+        data.forEach(function(row) {
+          (row.slugs || []).forEach(function(s) {
+            allSlugs[s] = (allSlugs[s] || 0) + 1;
+          });
+        });
+        // Find top
+        var topSlug = null; var topCount = 0;
+        Object.keys(allSlugs).forEach(function(s) {
+          if (allSlugs[s] > topCount) { topCount = allSlugs[s]; topSlug = s; }
+        });
+        var topP = topSlug ? PERFUMES.find(function(p) { return p.slug === topSlug; }) : null;
+        var topName = topP ? topP.name : topSlug;
+        statEl.textContent = data.length + ' personas armaron su selección · Top: ' + topName + ' (' + topCount + ')';
+      } catch(e) {}
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+      var dd = document.getElementById('miselDropdown');
+      if (dd && !e.target.closest('.misel-search-wrap')) dd.classList.remove('open');
+    });
+
+    // Init on page load (after auth check)
+    setTimeout(initMiSeleccion, 1500);
+
+    function toggleFaq(btn) {
+      var item = btn.parentElement;
+      var wasOpen = item.classList.contains('open');
+      // Cerrar todos
+      document.querySelectorAll('.faq-item.open').forEach(function(el) {
+        el.classList.remove('open');
+      });
+      // Si no estaba abierto, abrir este
+      if (!wasOpen) item.classList.add('open');
+    }
+
     function toggleDarkMode() {
       var body = document.body;
-      var icon = document.querySelector('.dark-toggle-icon');
       body.classList.toggle('dark-mode');
       var isDark = body.classList.contains('dark-mode');
-      if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+      var emoji = isDark ? '☀️' : '🌙';
+      var icon = document.querySelector('.dark-toggle-icon');
+      var floatIcon = document.getElementById('darkFloatIcon');
+      if (icon) icon.textContent = emoji;
+      if (floatIcon) floatIcon.textContent = emoji;
       localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
     }
 
@@ -5510,8 +6275,11 @@
       var saved = localStorage.getItem('st_dark_mode');
       if (saved === '1') {
         document.body.classList.add('dark-mode');
+        var emoji = '☀️';
         var icon = document.querySelector('.dark-toggle-icon');
-        if (icon) icon.textContent = '☀️';
+        var floatIcon = document.getElementById('darkFloatIcon');
+        if (icon) icon.textContent = emoji;
+        if (floatIcon) floatIcon.textContent = emoji;
       }
     })();
   </script>
