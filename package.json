@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "exceljs": "^4.4.0",
+    "http-server": "^14.1.1"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5",
+    "xlsx": "^0.18.5"
+  },
+  "name": "st_perfumeria",
+  "version": "1.0.0",
+  "description": "",
+  "main": "add-marca-real.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webp": "node convertir-webp.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AAlejoB/ST-Perfumeria.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AAlejoB/ST-Perfumeria/issues"
+  },
+  "homepage": "https://github.com/AAlejoB/ST-Perfumeria#readme"
+}
