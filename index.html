@@ -2463,6 +2463,19 @@
       width: 100%;
       text-align: center;
     }
+    .misel-section .misel-content {
+      flex-direction: column;
+      align-items: center;
+    }
+    .misel-section .misel-deck {
+      flex: 0 0 auto;
+      height: 210px;
+      display: flex;
+      justify-content: center;
+    }
+    .misel-section .misel-picker {
+      width: 100%;
+    }
     @media (max-width: 767px) { .misel-section { padding: 1.5rem 1rem; } }
     @media (min-width: 768px) { .misel-section { max-width: 50%; } }
     .misel-content { display: flex; gap: 1.2rem; align-items: flex-start; flex-wrap: wrap; }
@@ -2717,7 +2730,7 @@
     @media (min-width: 768px) {
       .cultura-misel-row {
         flex-direction: row;
-        align-items: stretch;
+        align-items: center;
         gap: 1.5rem;
       }
     }
