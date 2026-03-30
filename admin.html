@@ -710,6 +710,10 @@
       <input type="text" class="modal-input" id="modalPriceConfirm" placeholder="Nombre del perfume..." oninput="checkPriceConfirm()"/>
       <button class="modal-btn modal-btn-price" id="modalPriceBtn" disabled onclick="savePrice()">Confirmar cambio</button>
       <p class="modal-success" id="modalPriceMsg"></p>
+      <div id="priceHistoryBox" style="margin-top:1.2rem;display:none;">
+        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">📊 Historial de cambios</p>
+        <div id="priceHistoryList" style="max-height:160px;overflow-y:auto;font-size:.75rem;color:var(--gris-claro);display:flex;flex-direction:column;gap:.35rem;"></div>
+      </div>
     </div>
   </div>
 
@@ -1122,6 +1126,28 @@
       document.getElementById('modalPriceConfirm').value = '';
       document.getElementById('modalPriceBtn').disabled = true;
       document.getElementById('modalPriceMsg').textContent = '';
+      // Cargar historial
+      var histBox = document.getElementById('priceHistoryBox');
+      var histList = document.getElementById('priceHistoryList');
+      var history = JSON.parse(localStorage.getItem('st_price_history') || '{}');
+      var entries = history[slug] || [];
+      if (entries.length > 0) {
+        histBox.style.display = 'block';
+        histList.innerHTML = entries.slice().reverse().map(function(h) {
+          var d = new Date(h.date);
+          var fecha = d.toLocaleDateString('es-AR') + ' ' + d.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
+          var fromStr = '$' + Number(h.from).toLocaleString('es-AR');
+          var toStr = '$' + Number(h.to).toLocaleString('es-AR');
+          var promoStr = h.promo ? ' (promo: $' + Number(h.promo).toLocaleString('es-AR') + ')' : '';
+          return '<div style="padding:.35rem .5rem;background:rgba(255,255,255,.04);border-radius:4px;border-left:2px solid var(--amarillo);">'
+            + '<span style="color:var(--gris);">' + fecha + '</span><br>'
+            + fromStr + ' → <span style="color:var(--amarillo);font-weight:600;">' + toStr + '</span>' + promoStr
+            + '</div>';
+        }).join('');
+      } else {
+        histBox.style.display = 'none';
+        histList.innerHTML = '';
+      }
       document.getElementById('modalPrice').classList.add('active');
     }
 
@@ -1175,8 +1201,15 @@
 
       // Guardar en localStorage (temporal hasta que se actualice perfumes.js)
       var changes = JSON.parse(localStorage.getItem('st_price_changes') || '{}');
-      changes[editingSlug] = { price: newPrice, promo: newPromo };
+      var oldPrice = changes[editingSlug] ? changes[editingSlug].price : p.price;
+      changes[editingSlug] = { price: newPrice, promo: newPromo, updated: new Date().toISOString() };
       localStorage.setItem('st_price_changes', JSON.stringify(changes));
+
+      // Historial de precios
+      var history = JSON.parse(localStorage.getItem('st_price_history') || '{}');
+      if (!history[editingSlug]) history[editingSlug] = [];
+      history[editingSlug].push({ from: oldPrice, to: newPrice, promo: newPromo, date: new Date().toISOString() });
+      localStorage.setItem('st_price_history', JSON.stringify(history));
 
       // Actualizar en memoria
       p.price = newPrice;

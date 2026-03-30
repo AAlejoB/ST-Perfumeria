@@ -2610,6 +2610,12 @@
       cursor: pointer; letter-spacing: .04em; text-decoration: none; transition: background .2s;
     }
     .desafio-btn-decant:hover { background: #1da851; }
+    .desafio-btn-share {
+      display: inline-block; background: none; border: 1px solid #25d366; border-radius: 4px;
+      padding: .4rem 1rem; font-family: inherit; font-size: .65rem; font-weight: 600;
+      color: #25d366; cursor: pointer; transition: all .2s; letter-spacing: .04em;
+    }
+    .desafio-btn-share:hover { background: rgba(37,211,102,.1); }
     .desafio-btn-retry {
       background: none; border: 1px solid rgba(255,255,255,.15); border-radius: 4px;
       padding: .35rem 1rem; font-family: inherit; font-size: .6rem; color: var(--gris);
@@ -3304,6 +3310,7 @@
       <button class="filter-btn" onclick="filterBy('Unisex',this)">Unisex</button>
       <button class="filter-btn" onclick="filterBy('Hombre',this)">Hombre</button>
       <button class="filter-btn" onclick="filterBy('Mujer',this)">Mujer</button>
+      <button class="filter-btn" onclick="filterByNew(this)">&#128293; Nuevos</button>
       <button class="filter-btn fav-filter-btn" id="btnFavFilter" onclick="filterByFavs(this)">&#9829;</button>
     </div>
     <div class="filter-zone filter-zone--center">
@@ -3510,6 +3517,7 @@
           <div class="desafio-actions" id="desafioActions" style="display:none;">
             <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
             <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
+            <button class="desafio-btn-share" onclick="shareDesafio()">&#128172; Compartir resultado</button>
             <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
           </div>
           <p class="misel-global-stat" id="miselGlobalStat"></p>
@@ -5064,6 +5072,9 @@
         var catMatch;
         if (currentFilter === 'favs') {
           catMatch = favs.indexOf(card.dataset.slug) !== -1;
+        } else if (currentFilter === 'nuevos') {
+          var pf = PERFUMES.find(function(x) { return x.slug === card.dataset.slug; });
+          catMatch = pf && pf._isNew;
         } else {
           catMatch = matchesCat(card.dataset.cat, currentFilter);
         }
@@ -5094,7 +5105,7 @@
           card.style.display = 'none';
         }
       });
-      var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
+      var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : currentFilter === 'nuevos' ? totalMatch + ' nuevos' : totalMatch + ' fragancias';
       document.getElementById('filterCount').textContent = label;
       updateLoadMoreBtn(matchIndex, totalMatch);
       applyMirrorClasses();
@@ -5219,6 +5230,16 @@
       document.getElementById('searchInput').value = '';
       document.getElementById('searchClear').classList.remove('visible');
       applyFilters();
+    }
+
+    function filterByNew(btn) {
+      document.querySelectorAll('.filter-zone--left .filter-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      currentFilter = 'nuevos';
+      applyFilters();
+      scrollToCatalog();
     }
 
     function filterByFavs(btn) {
@@ -6286,6 +6307,21 @@
       setTimeout(function() {
         document.getElementById('desafioActions').style.display = 'flex';
       }, 600);
+    }
+
+    function shareDesafio() {
+      if (!desafioRecommended) return;
+      var p = desafioRecommended;
+      var elegidos = miselSlugs.map(function(s) {
+        var pf = PERFUMES.find(function(x) { return x.slug === s; });
+        return pf ? pf.name : s;
+      }).join(', ');
+      var texto = '🎴 *Desafío ST — Scent & Textures*\n\n'
+        + 'Elegí mis 3 perfumes favoritos: ' + elegidos + '\n\n'
+        + '🔮 Me recomendaron: *' + p.name + '* de ' + (p.marca_real || p.marca || '') + '\n\n'
+        + '¿Vos cuáles elegirías? Probá acá 👇\nhttps://st-perfumeria.vercel.app';
+      var url = 'https://wa.me/?text=' + encodeURIComponent(texto);
+      window.open(url, '_blank');
     }
 
     function resetDesafio() {
