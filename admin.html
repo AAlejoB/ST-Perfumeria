@@ -948,13 +948,14 @@
           + '<td>' + (o.perfume_slug || '-') + '</td>'
           + '<td style="max-width:200px;font-size:.7rem;color:var(--gris-claro);" title="' + (o.texto || '').replace(/"/g, '&quot;') + '">' + textoCorto + '</td>'
           + '<td>' + fecha + '</td>'
-          + '<td><button class="action-btn btn-hide" onclick="deleteOpinion(' + o.id + ', this)">Eliminar</button></td>'
+          + '<td><button class="action-btn btn-hide" onclick="deleteOpinion(\'' + o.id + '\', this)">Eliminar</button></td>'
         + '</tr>';
       });
       tbody.innerHTML = html;
     }
 
     async function deleteOpinion(id, btn) {
+      if (!id || id === 'undefined' || id === 'null') { alert('Error: esta opinión no tiene ID válido'); return; }
       if (!confirm('¿Seguro que querés eliminar esta opinión?')) return;
       btn.textContent = '...';
       btn.disabled = true;

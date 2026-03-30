@@ -5040,19 +5040,21 @@
       renderSets();
       renderNoteFilters();
 
-      // Track clicks en cards
-      var tracked = {};
-      grid.querySelectorAll('.product-card').forEach(function(card) {
-        card.addEventListener('mouseenter', function() {
-          var slug = card.dataset.slug;
-          if (!tracked[slug]) { tracked[slug] = true; trackClick(slug); }
-        });
-        card.addEventListener('touchstart', function() {
-          var slug = card.dataset.slug;
-          if (!tracked[slug]) { tracked[slug] = true; trackClick(slug); }
-        }, { passive: true });
-      });
     }
+
+    // Event delegation — 1 solo listener para todos los cards (no se duplica)
+    (function() {
+      var tracked = {};
+      var grid = document.getElementById('catalogGrid');
+      function handleTrack(e) {
+        var card = e.target.closest('.product-card');
+        if (!card) return;
+        var slug = card.dataset.slug;
+        if (!tracked[slug]) { tracked[slug] = true; trackClick(slug); }
+      }
+      grid.addEventListener('mouseenter', handleTrack, true);
+      grid.addEventListener('touchstart', handleTrack, { passive: true, capture: true });
+    })();
 
     function applyCardVisibility() {
       var cards = document.querySelectorAll('.product-card');
