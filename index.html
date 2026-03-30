@@ -6525,14 +6525,17 @@
 
         var subJSON = JSON.stringify(subscription);
 
-        // Guardar en Supabase
-        var res = await sb.from('push_subscriptions').upsert({
-          endpoint: subscription.endpoint,
-          subscription: subJSON,
-          created_at: new Date().toISOString()
-        }, { onConflict: 'endpoint' });
+        // Guardar via API (tiene rate-limit anti-spam)
+        var res = await fetch('/api/push-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            endpoint: subscription.endpoint,
+            subscription: subJSON
+          })
+        });
 
-        if (!res.error) {
+        if (res.ok) {
           localStorage.setItem('st_push_subscribed', '1');
         }
       } catch (err) {

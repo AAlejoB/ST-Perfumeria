@@ -40,6 +40,25 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Faltan title y body' });
     }
 
+    // Rate limit: máximo 5 envíos masivos por día
+    const MAX_SENDS_PER_DAY = 5;
+    const today = new Date().toISOString().slice(0, 10);
+    const logRes = await fetch(
+      SUPABASE_URL + '/rest/v1/push_send_log?select=id&sent_date=eq.' + today,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        }
+      }
+    );
+    if (logRes.ok) {
+      const todayLogs = await logRes.json();
+      if (todayLogs.length >= MAX_SENDS_PER_DAY) {
+        return res.status(429).json({ error: 'Límite de ' + MAX_SENDS_PER_DAY + ' envíos por día alcanzado' });
+      }
+    }
+
     // Obtener suscripciones de Supabase
     const response = await fetch(SUPABASE_URL + '/rest/v1/push_subscriptions?select=*', {
       headers: {
@@ -98,6 +117,23 @@ module.exports = async (req, res) => {
         }
       });
     }
+
+    // Registrar envío en log
+    await fetch(SUPABASE_URL + '/rest/v1/push_send_log', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: title,
+        body: body,
+        sent_count: sent,
+        failed_count: failed,
+        sent_date: new Date().toISOString().slice(0, 10)
+      })
+    });
 
     return res.status(200).json({
       sent: sent,
