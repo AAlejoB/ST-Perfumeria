@@ -2541,7 +2541,83 @@
 
     .misel-msg { font-size: .7rem; margin-top: .4rem; min-height: 1rem; }
 
-    /* Mazo de cartas */
+    /* Desafío ST — carta misteriosa */
+    .desafio-reveal { text-align: center; margin-top: .8rem; }
+    .desafio-card-flip {
+      width: 150px; height: 210px;
+      perspective: 800px;
+      margin: 0 auto 1rem;
+      cursor: pointer;
+    }
+    .desafio-card-inner {
+      position: relative; width: 100%; height: 100%;
+      transition: transform .8s cubic-bezier(.4,0,.2,1);
+      transform-style: preserve-3d;
+    }
+    .desafio-card-inner.flipped { transform: rotateY(180deg); }
+    .desafio-card-front, .desafio-card-back {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      backface-visibility: hidden; border-radius: 12px; overflow: hidden;
+    }
+    .desafio-card-front {
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      border: 2px solid var(--amarillo);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: .5rem;
+    }
+    .desafio-question {
+      font-size: 3rem; font-weight: 800; color: var(--amarillo);
+      text-shadow: 0 0 20px rgba(232,184,0,.4);
+      animation: desafioPulse 2s ease-in-out infinite;
+    }
+    @keyframes desafioPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: .7; }
+    }
+    .desafio-tap { font-size: .6rem; color: var(--gris); letter-spacing: .05em; }
+    .desafio-card-back {
+      background: #111; border: 2px solid var(--amarillo);
+      transform: rotateY(180deg);
+      display: flex; flex-direction: column;
+    }
+    .desafio-card-back img {
+      width: 100%; height: 60%; object-fit: cover;
+    }
+    .desafio-card-back-info {
+      padding: .5rem; flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .desafio-card-back-name {
+      font-family: var(--font-display); font-size: .75rem; font-weight: 600;
+      color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;
+    }
+    .desafio-card-back-brand { font-size: .55rem; color: var(--gris); margin-top: .15rem; }
+    .desafio-card-back-badge {
+      position: absolute; top: 6px; right: 6px;
+      background: var(--amarillo); color: #000; font-size: .5rem; font-weight: 800;
+      padding: 2px 6px; border-radius: 3px; letter-spacing: .04em;
+    }
+    .desafio-actions { display: flex; flex-direction: column; gap: .5rem; align-items: center; margin-top: .5rem; }
+    .desafio-btn-local {
+      background: var(--amarillo); color: #000; border: none; border-radius: 4px;
+      padding: .5rem 1.2rem; font-family: inherit; font-size: .7rem; font-weight: 700;
+      cursor: pointer; letter-spacing: .04em; transition: background .2s;
+    }
+    .desafio-btn-local:hover { background: var(--amarillo-claro); }
+    .desafio-btn-decant {
+      display: inline-block; background: #25d366; color: #fff; border: none; border-radius: 4px;
+      padding: .5rem 1.2rem; font-family: inherit; font-size: .7rem; font-weight: 700;
+      cursor: pointer; letter-spacing: .04em; text-decoration: none; transition: background .2s;
+    }
+    .desafio-btn-decant:hover { background: #1da851; }
+    .desafio-btn-retry {
+      background: none; border: 1px solid rgba(255,255,255,.15); border-radius: 4px;
+      padding: .35rem 1rem; font-family: inherit; font-size: .6rem; color: var(--gris);
+      cursor: pointer; transition: all .2s;
+    }
+    .desafio-btn-retry:hover { border-color: var(--amarillo); color: var(--amarillo); }
+
+    /* Mazo de cartas (legacy — deck animation) */
     .misel-deck { flex: 0 0 160px; height: 220px; position: relative; perspective: 600px; }
     @media (max-width: 767px) { .misel-deck { flex: 0 0 100%; height: 240px; display: flex; justify-content: center; order: -1; } }
     .misel-card-stack {
@@ -3399,43 +3475,49 @@
       </div>
     </div>
 
-    <!-- Mi Selección ST -->
+    <!-- Desafío ST -->
     <div class="misel-section">
-      <p class="section-eyebrow" style="margin-bottom:.5rem">Tu espacio</p>
-      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#11088; Mi Selecci&#243;n ST</h3>
-      <p style="font-size:.78rem;color:var(--gris);margin-bottom:1rem;font-style:italic;">Arm&#225; tu top 5 fragancias. Descubr&#237; qu&#233; eligen los dem&#225;s.</p>
+      <p class="section-eyebrow" style="margin-bottom:.5rem">Desaf&#237;o</p>
+      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
+      <p style="font-size:.78rem;color:var(--gris);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
 
       <div class="misel-content" id="miselContent" style="display:none;">
-        <!-- Mazo de cartas -->
-        <div class="misel-deck" id="miselDeck">
-          <div class="misel-card-stack" id="miselStack">
-            <div class="misel-empty-msg" id="miselEmptyDeck">Eleg&#237; tus perfumes<br>para ver tu mazo</div>
-          </div>
-        </div>
-
-        <!-- Picker -->
         <div class="misel-picker">
           <div class="misel-slots" id="miselSlots">
             <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
             <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
             <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">4</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">5</span></div>
           </div>
           <div class="misel-search-wrap">
-            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume para agregar..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
+            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
             <div class="misel-dropdown" id="miselDropdown"></div>
           </div>
-          <div class="misel-actions">
-            <button class="misel-btn-save" id="miselSaveBtn" disabled onclick="saveMiSeleccion()">Guardar selecci&#243;n</button>
-          </div>
           <p class="misel-msg" id="miselMsg"></p>
+        </div>
+
+        <!-- Carta misteriosa -->
+        <div class="desafio-reveal" id="desafioReveal" style="display:none;">
+          <div class="desafio-card-flip" id="desafioCard" onclick="flipDesafioCard()">
+            <div class="desafio-card-inner" id="desafioCardInner">
+              <div class="desafio-card-front">
+                <span class="desafio-question">?</span>
+                <p class="desafio-tap">Toc&#225; para descubrir</p>
+              </div>
+              <div class="desafio-card-back" id="desafioCardBack">
+              </div>
+            </div>
+          </div>
+          <div class="desafio-actions" id="desafioActions" style="display:none;">
+            <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
+            <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
+            <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
+          </div>
           <p class="misel-global-stat" id="miselGlobalStat"></p>
         </div>
       </div>
 
       <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
-        <span>&#128274; Registrate para armar tu selecci&#243;n</span>
+        <span>&#128274; Registrate para jugar</span>
       </div>
     </div>
     </div><!-- /cultura-misel-row -->
@@ -5981,12 +6063,11 @@
     // DARK MODE
     // ============================================================
     // ============================================================
-    // MI SELECCIÓN ST
+    // DESAFÍO ST
     // ============================================================
     function getCurrentUser() { return currentUser; }
     var miselSlugs = [];
-    var miselDeckTimer = null;
-    var miselDeckIndex = 0;
+    var desafioRecommended = null;
 
     function initMiSeleccion() {
       try {
@@ -6000,32 +6081,16 @@
         }
         if (lock) lock.style.display = 'none';
         if (content) { content.style.display = ''; content.style.display = 'flex'; }
-
-        // Load saved selection
-        loadMiSeleccion();
         loadMiselGlobalStats();
       } catch(e) {
         console.error('initMiSeleccion error:', e);
       }
     }
 
-    async function loadMiSeleccion() {
-      var user = getCurrentUser();
-      if (!user) return;
-      try {
-        var { data } = await sb.from('mi_seleccion').select('slugs').eq('user_id', user.id).single();
-        if (data && data.slugs) {
-          miselSlugs = data.slugs;
-          renderMiselSlots();
-          renderMiselDeck();
-        }
-      } catch(e) {}
-    }
-
     function renderMiselSlots() {
       var container = document.getElementById('miselSlots');
       var html = '';
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < 3; i++) {
         if (miselSlugs[i]) {
           var p = PERFUMES.find(function(pf) { return pf.slug === miselSlugs[i]; });
           if (p) {
@@ -6046,77 +6111,10 @@
       }
       container.innerHTML = html;
 
-      // Toggle save button
-      document.getElementById('miselSaveBtn').disabled = miselSlugs.length === 0;
-      // Show similar button if 3+
-    }
-
-    function renderMiselDeck() {
-      var stack = document.getElementById('miselStack');
-      var emptyMsg = document.getElementById('miselEmptyDeck');
-
-      if (miselSlugs.length === 0) {
-        stack.innerHTML = '<div class="misel-empty-msg">Elegí tus perfumes<br>para ver tu mazo</div>';
-        if (miselDeckTimer) { clearInterval(miselDeckTimer); miselDeckTimer = null; }
-        return;
+      // Al completar 3, lanzar el desafío
+      if (miselSlugs.length === 3) {
+        triggerDesafio();
       }
-
-      miselDeckIndex = 0;
-      buildDeckCard(0);
-
-      // Auto-rotate every 3.5s
-      if (miselDeckTimer) clearInterval(miselDeckTimer);
-      if (miselSlugs.length > 1) {
-        miselDeckTimer = setInterval(rotateDeck, 3500);
-      }
-    }
-
-    function buildDeckCard(idx) {
-      var stack = document.getElementById('miselStack');
-      var slug = miselSlugs[idx];
-      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-      if (!p) return;
-
-      var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-      var imgHTML = fotoSrc
-        ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
-        : '<div class="misel-card-placeholder">' + p.name.charAt(0) + '</div>';
-
-      var brand = p.marca_real || p.marca || '';
-
-      // Shadow cards behind
-      var shadowHTML = '';
-      if (miselSlugs.length > 1) {
-        shadowHTML += '<div class="misel-card" style="transform:translateY(6px) scale(.96);opacity:.5;z-index:1;border-color:rgba(232,184,0,.4);"></div>';
-      }
-      if (miselSlugs.length > 2) {
-        shadowHTML += '<div class="misel-card" style="transform:translateY(12px) scale(.92);opacity:.3;z-index:0;border-color:rgba(232,184,0,.2);"></div>';
-      }
-
-      stack.innerHTML = shadowHTML
-        + '<div class="misel-card card-enter" style="z-index:2;">'
-          + '<div class="misel-card-rank">' + (idx + 1) + '</div>'
-          + imgHTML
-          + '<div class="misel-card-info">'
-            + '<p class="misel-card-name">' + p.name + '</p>'
-            + '<p class="misel-card-brand">' + brand + '</p>'
-          + '</div>'
-        + '</div>';
-    }
-
-    function rotateDeck() {
-      var stack = document.getElementById('miselStack');
-      var topCard = stack.querySelector('.misel-card[style*="z-index:2"]') || stack.querySelector('.misel-card.card-enter');
-      if (!topCard) return;
-
-      // Animate exit
-      topCard.classList.remove('card-enter');
-      topCard.classList.add('card-exit');
-
-      setTimeout(function() {
-        miselDeckIndex = (miselDeckIndex + 1) % miselSlugs.length;
-        buildDeckCard(miselDeckIndex);
-      }, 500);
     }
 
     function focusMiselSearch() {
@@ -6150,44 +6148,124 @@
     }
 
     function addMiselPerfume(slug) {
-      if (miselSlugs.length >= 5) return;
+      if (miselSlugs.length >= 3) return;
       if (miselSlugs.indexOf(slug) !== -1) return;
       miselSlugs.push(slug);
       document.getElementById('miselSearch').value = '';
       document.getElementById('miselDropdown').classList.remove('open');
       renderMiselSlots();
-      renderMiselDeck();
     }
 
     function removeMiselSlot(idx) {
       miselSlugs.splice(idx, 1);
+      desafioRecommended = null;
+      document.getElementById('desafioReveal').style.display = 'none';
+      document.getElementById('desafioActions').style.display = 'none';
+      var inner = document.getElementById('desafioCardInner');
+      if (inner) inner.classList.remove('flipped');
       renderMiselSlots();
-      renderMiselDeck();
+    }
+
+    function triggerDesafio() {
+      // Analizar notas de los 3 perfumes elegidos
+      var selectedNotes = [];
+      miselSlugs.forEach(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!p) return;
+        [p.notas_salida, p.notas_corazon, p.notas_base].forEach(function(n) {
+          if (n) n.split(',').forEach(function(note) {
+            var trimmed = note.trim().toLowerCase();
+            if (trimmed && trimmed !== '\u2014' && selectedNotes.indexOf(trimmed) === -1) selectedNotes.push(trimmed);
+          });
+        });
+      });
+
+      // Puntuar perfumes por notas en común
+      var scored = PERFUMES.filter(function(p) {
+        return !p.esSet && miselSlugs.indexOf(p.slug) === -1 && !p.oculto;
+      }).map(function(p) {
+        var score = 0;
+        var allNotes = ((p.notas_salida || '') + ',' + (p.notas_corazon || '') + ',' + (p.notas_base || '')).toLowerCase();
+        selectedNotes.forEach(function(n) { if (allNotes.indexOf(n) !== -1) score++; });
+        return { perfume: p, score: score };
+      }).filter(function(s) { return s.score > 0; });
+
+      scored.sort(function(a, b) { return b.score - a.score; });
+
+      if (scored.length === 0) {
+        document.getElementById('miselMsg').style.color = 'var(--gris)';
+        document.getElementById('miselMsg').textContent = 'No encontramos una recomendaci\u00f3n, prob\u00e1 con otros perfumes';
+        return;
+      }
+
+      // Elegir entre los top 3 para variedad
+      var topN = scored.slice(0, Math.min(3, scored.length));
+      var pick = topN[Math.floor(Math.random() * topN.length)];
+      desafioRecommended = pick.perfume;
+
+      // Preparar la carta trasera
+      var p = desafioRecommended;
+      var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+      var imgHTML = fotoSrc
+        ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
+        : '<div style="width:100%;height:60%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:2rem;color:rgba(232,184,0,.2);">' + p.name.charAt(0) + '</div>';
+      var brand = p.marca_real || p.marca || '';
+
+      document.getElementById('desafioCardBack').innerHTML =
+        '<div class="desafio-card-back-badge">' + pick.score + ' notas en com\u00fan</div>'
+        + imgHTML
+        + '<div class="desafio-card-back-info">'
+          + '<p class="desafio-card-back-name">' + p.name + '</p>'
+          + '<p class="desafio-card-back-brand">' + brand + '</p>'
+        + '</div>';
+
+      // Configurar botones
+      document.getElementById('btnVerLocal').onclick = function() {
+        scrollToPerfume(p.slug);
+      };
+      var tel = '5492974564545';
+      var msg = encodeURIComponent('Hola ST! Me interesa un decant de 5ml de *' + p.name + '* (' + brand + '). \u00bfTienen disponible?');
+      document.getElementById('btnDecant').href = 'https://wa.me/' + tel + '?text=' + msg;
+
+      // Mostrar carta (sin dar vuelta todavía)
+      document.getElementById('desafioReveal').style.display = 'block';
+      document.getElementById('desafioCardInner').classList.remove('flipped');
+      document.getElementById('desafioActions').style.display = 'none';
+      document.getElementById('miselMsg').textContent = '';
+
+      // Guardar en Supabase
+      saveMiSeleccion();
+    }
+
+    function flipDesafioCard() {
+      var inner = document.getElementById('desafioCardInner');
+      if (inner.classList.contains('flipped')) return;
+      inner.classList.add('flipped');
+      setTimeout(function() {
+        document.getElementById('desafioActions').style.display = 'flex';
+      }, 600);
+    }
+
+    function resetDesafio() {
+      miselSlugs = [];
+      desafioRecommended = null;
+      document.getElementById('desafioReveal').style.display = 'none';
+      document.getElementById('desafioActions').style.display = 'none';
+      document.getElementById('desafioCardInner').classList.remove('flipped');
+      renderMiselSlots();
     }
 
     async function saveMiSeleccion() {
       var user = getCurrentUser();
       if (!user || miselSlugs.length === 0) return;
-      var btn = document.getElementById('miselSaveBtn');
-      var msg = document.getElementById('miselMsg');
-      btn.disabled = true; btn.textContent = 'Guardando...';
-
       try {
         await sb.from('mi_seleccion').upsert({
           user_id: user.id,
           slugs: miselSlugs,
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
-        msg.style.color = '#2ecc71';
-        msg.textContent = 'Selección guardada ✓';
-        setTimeout(function() { msg.textContent = ''; }, 3000);
-      } catch(e) {
-        msg.style.color = '#e74c3c';
-        msg.textContent = 'Error al guardar';
-      }
-      btn.disabled = false; btn.textContent = 'Guardar selección';
+      } catch(e) {}
     }
-
 
     async function loadMiselGlobalStats() {
       try {
@@ -6200,14 +6278,13 @@
             allSlugs[s] = (allSlugs[s] || 0) + 1;
           });
         });
-        // Find top
         var topSlug = null; var topCount = 0;
         Object.keys(allSlugs).forEach(function(s) {
           if (allSlugs[s] > topCount) { topCount = allSlugs[s]; topSlug = s; }
         });
         var topP = topSlug ? PERFUMES.find(function(p) { return p.slug === topSlug; }) : null;
         var topName = topP ? topP.name : topSlug;
-        statEl.textContent = data.length + ' personas armaron su selección · Top: ' + topName + ' (' + topCount + ')';
+        statEl.textContent = data.length + ' desaf\u00edos completados \u00b7 Favorito: ' + topName;
       } catch(e) {}
     }
 
