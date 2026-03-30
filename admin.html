@@ -333,6 +333,7 @@
       <button class="tab-btn" onclick="switchTab('opiniones',this)">Opiniones</button>
       <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
       <button class="tab-btn" onclick="switchTab('combos',this)">&#127873; Combos</button>
+      <button class="tab-btn" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -658,6 +659,41 @@
         <p class="modal-success" id="comboMsg"></p>
       </div>
     </div>
+  </div>
+
+  <!-- TAB: VOTACIÓN -->
+  <div class="tab-content" id="tab-votacion">
+    <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Configur&#225; los candidatos para la votaci&#243;n del perfume del mes. Se cierra autom&#225;ticamente el 1ro del mes siguiente.</p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+      <div style="flex:1;min-width:200px;">
+        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">MES ACTUAL</p>
+        <p id="votacionMesActual" style="font-size:.85rem;color:#fff;"></p>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">ESTADO</p>
+        <p id="votacionEstado" style="font-size:.85rem;"></p>
+      </div>
+    </div>
+    <div id="votacionGanadorPrev" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+      <p style="font-size:.7rem;color:var(--amarillo);font-weight:600;letter-spacing:.1em;margin-bottom:.5rem;">&#127942; GANADOR MES ANTERIOR</p>
+      <p id="ganadorPrevText" style="font-size:.8rem;color:#fff;"></p>
+    </div>
+    <p style="font-size:.75rem;font-weight:600;color:#fff;margin-bottom:.5rem;letter-spacing:.08em;">CANDIDATOS MASCULINOS (4)</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+      <input type="text" class="modal-input" id="votoM1" placeholder="Perfume 1" style="flex:1;min-width:150px;"/>
+      <input type="text" class="modal-input" id="votoM2" placeholder="Perfume 2" style="flex:1;min-width:150px;"/>
+      <input type="text" class="modal-input" id="votoM3" placeholder="Perfume 3" style="flex:1;min-width:150px;"/>
+      <input type="text" class="modal-input" id="votoM4" placeholder="Perfume 4" style="flex:1;min-width:150px;"/>
+    </div>
+    <p style="font-size:.75rem;font-weight:600;color:#fff;margin-bottom:.5rem;letter-spacing:.08em;">CANDIDATOS FEMENINOS (4)</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+      <input type="text" class="modal-input" id="votoF1" placeholder="Perfume 1" style="flex:1;min-width:150px;"/>
+      <input type="text" class="modal-input" id="votoF2" placeholder="Perfume 2" style="flex:1;min-width:150px;"/>
+      <input type="text" class="modal-input" id="votoF3" placeholder="Perfume 3" style="flex:1;min-width:150px;"/>
+      <input type="text" class="modal-input" id="votoF4" placeholder="Perfume 4" style="flex:1;min-width:150px;"/>
+    </div>
+    <button class="action-btn btn-price" onclick="saveVotacionConfig()" style="font-size:.72rem;padding:.6rem 1.5rem;">GUARDAR CANDIDATOS</button>
+    <p class="modal-success" id="votacionMsg" style="margin-top:.5rem;"></p>
   </div>
 
   <!-- MODAL: CAMBIAR PRECIO -->
@@ -2033,11 +2069,95 @@
       } catch(e) {}
     }
 
-    // Load combos on tab switch
+    // ============================================================
+    // VOTACIÓN DEL MES — Admin
+    // ============================================================
+    var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    var adminMes = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+
+    async function loadVotacionConfig() {
+      var mesLabel = meses[new Date().getMonth()] + ' ' + new Date().getFullYear();
+      document.getElementById('votacionMesActual').textContent = mesLabel;
+
+      try {
+        // Cargar config del mes actual
+        var { data } = await sb.from('votacion_config').select('*').eq('mes', adminMes).single();
+        if (data) {
+          var masc = data.candidatos_masc || [];
+          var fem = data.candidatos_fem || [];
+          for (var i = 0; i < 4; i++) {
+            document.getElementById('votoM' + (i+1)).value = masc[i] || '';
+            document.getElementById('votoF' + (i+1)).value = fem[i] || '';
+          }
+          document.getElementById('votacionEstado').innerHTML = '<span style="color:#2ecc71;">&#9679; Activa</span>';
+        } else {
+          document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--gris);">Sin configurar</span>';
+        }
+
+        // Cargar ganador del mes anterior
+        var prevDate = new Date();
+        prevDate.setMonth(prevDate.getMonth() - 1);
+        var prevMes = prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0');
+        var prevRes = await sb.from('votos').select('categoria, slug').eq('mes', prevMes);
+        if (prevRes.data && prevRes.data.length > 0) {
+          var counts = { masculino: {}, femenino: {} };
+          prevRes.data.forEach(function(v) {
+            if (!counts[v.categoria]) counts[v.categoria] = {};
+            counts[v.categoria][v.slug] = (counts[v.categoria][v.slug] || 0) + 1;
+          });
+          var ganadores = [];
+          ['masculino', 'femenino'].forEach(function(cat) {
+            var top = null, topN = 0;
+            Object.keys(counts[cat] || {}).forEach(function(s) {
+              if (counts[cat][s] > topN) { topN = counts[cat][s]; top = s; }
+            });
+            if (top) ganadores.push(cat.charAt(0).toUpperCase() + cat.slice(1) + ': ' + top + ' (' + topN + ' votos)');
+          });
+          if (ganadores.length > 0) {
+            document.getElementById('votacionGanadorPrev').style.display = 'block';
+            document.getElementById('ganadorPrevText').textContent = ganadores.join(' | ');
+          }
+        }
+      } catch(e) {}
+    }
+
+    async function saveVotacionConfig() {
+      var masc = [], fem = [];
+      for (var i = 1; i <= 4; i++) {
+        var m = document.getElementById('votoM' + i).value.trim();
+        var f = document.getElementById('votoF' + i).value.trim();
+        if (m) masc.push(m);
+        if (f) fem.push(f);
+      }
+      if (masc.length === 0 && fem.length === 0) {
+        document.getElementById('votacionMsg').textContent = 'Agregá al menos un candidato';
+        document.getElementById('votacionMsg').style.color = '#e74c3c';
+        return;
+      }
+      var { error } = await sb.from('votacion_config').upsert({
+        mes: adminMes,
+        candidatos_masc: masc,
+        candidatos_fem: fem
+      }, { onConflict: 'mes' });
+      var msg = document.getElementById('votacionMsg');
+      if (error) {
+        msg.textContent = 'Error: ' + error.message;
+        msg.style.color = '#e74c3c';
+      } else {
+        msg.textContent = 'Candidatos guardados para ' + meses[new Date().getMonth()];
+        msg.style.color = '#2ecc71';
+        notifyTelegram('🗳️ Votación actualizada: ' + masc.length + ' masc + ' + fem.length + ' fem');
+        document.getElementById('votacionEstado').innerHTML = '<span style="color:#2ecc71;">&#9679; Activa</span>';
+      }
+      setTimeout(function() { msg.textContent = ''; }, 3000);
+    }
+
+    // Load combos/votacion on tab switch
     var origSwitchTab = switchTab;
     switchTab = function(tab, btn) {
       origSwitchTab(tab, btn);
       if (tab === 'combos') loadCombos();
+      if (tab === 'votacion') loadVotacionConfig();
     };
   </script>
 </body>

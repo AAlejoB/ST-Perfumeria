@@ -3613,24 +3613,22 @@
         <!-- BLOQUE 2: Votaciones (requiere registro) -->
         <div class="sector-card sector-votacion">
           <p class="sector-card-eyebrow">&#127942; Vot&#225; el perfume del mes</p>
-          <p class="sector-card-desc">Eleg&#237; tu favorito en cada categor&#237;a. &#161;Solo usuarios registrados pueden votar!</p>
+          <div id="votoGanadorBanner" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.6rem .8rem;margin-bottom:.6rem;text-align:center;">
+            <p style="font-size:.6rem;color:var(--amarillo);letter-spacing:.1em;font-weight:600;margin-bottom:.2rem;">&#127942; GANADOR DEL MES PASADO</p>
+            <p id="votoGanadorText" style="font-size:.7rem;color:#fff;line-height:1.4;"></p>
+          </div>
+          <p class="sector-card-desc" id="votoDesc">Eleg&#237; tu favorito en cada categor&#237;a. &#161;Solo usuarios registrados pueden votar!</p>
           <div class="voto-categorias">
             <div class="voto-cat">
               <p class="voto-cat-title">Perfume masculino</p>
               <div class="voto-grid" id="votoMasc">
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
+                <p style="font-size:.7rem;color:var(--gris);text-align:center;">Cargando...</p>
               </div>
             </div>
             <div class="voto-cat">
               <p class="voto-cat-title">Perfume femenino</p>
               <div class="voto-grid" id="votoFem">
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
-                <button class="voto-opt" disabled>Pr&#243;ximamente</button>
+                <p style="font-size:.7rem;color:var(--gris);text-align:center;">Cargando...</p>
               </div>
             </div>
           </div>
@@ -4391,13 +4389,54 @@
     }
 
     // ============================================================
-    // VOTACIÓN — independiente por categoría, Supabase
+    // VOTACIÓN — carga dinámica desde Supabase + auto-cierre mensual
     // ============================================================
     var currentMes = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+    var candidatosMasc = [];
+    var candidatosFem = [];
 
-    // Candidatos del mes (editá estos nombres para cambiar las opciones)
-    var candidatosMasc = ['9 AM DIVE', 'BADEE AL OUD HONOR & GLORY', 'CLUB DE NUIT INTENSE MAN', 'YARA'];
-    var candidatosFem = ['CANDY VANILLA', 'EMAAN', 'LA VIVACITÉ', 'VELVET ROSE'];
+    async function loadVotacionFromDB() {
+      try {
+        // Cargar ganador del mes anterior
+        var prevDate = new Date();
+        prevDate.setMonth(prevDate.getMonth() - 1);
+        var prevMes = prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0');
+        var prevRes = await sb.from('votos').select('categoria, slug').eq('mes', prevMes);
+        if (prevRes.data && prevRes.data.length > 0) {
+          var counts = { masculino: {}, femenino: {} };
+          prevRes.data.forEach(function(v) {
+            if (!counts[v.categoria]) counts[v.categoria] = {};
+            counts[v.categoria][v.slug] = (counts[v.categoria][v.slug] || 0) + 1;
+          });
+          var ganadores = [];
+          ['masculino', 'femenino'].forEach(function(cat) {
+            var top = null, topN = 0;
+            Object.keys(counts[cat] || {}).forEach(function(s) {
+              if (counts[cat][s] > topN) { topN = counts[cat][s]; top = s; }
+            });
+            if (top) ganadores.push((cat === 'masculino' ? '\ud83d\udc51 ' : '\ud83d\udc51 ') + top);
+          });
+          if (ganadores.length > 0) {
+            document.getElementById('votoGanadorBanner').style.display = 'block';
+            document.getElementById('votoGanadorText').textContent = ganadores.join('  |  ');
+          }
+        }
+
+        // Cargar candidatos del mes actual
+        var { data } = await sb.from('votacion_config').select('*').eq('mes', currentMes).single();
+        if (data) {
+          candidatosMasc = data.candidatos_masc || [];
+          candidatosFem = data.candidatos_fem || [];
+          renderVotoButtons();
+        } else {
+          document.getElementById('votoMasc').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
+          document.getElementById('votoFem').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
+        }
+      } catch(e) {
+        document.getElementById('votoMasc').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
+        document.getElementById('votoFem').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
+      }
+    }
 
     function renderVotoButtons() {
       var gridMasc = document.getElementById('votoMasc');
@@ -5313,7 +5352,7 @@
       checkDeepLink();
     });
     renderCategories();
-    renderVotoButtons();
+    loadVotacionFromDB();
     checkStoreStatus();
 
     // ============================================================
