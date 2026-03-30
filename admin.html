@@ -334,6 +334,7 @@
       <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
       <button class="tab-btn" onclick="switchTab('combos',this)">&#127873; Combos</button>
       <button class="tab-btn" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
+      <button class="tab-btn" onclick="switchTab('push',this)">🔔 Notificaciones</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -694,6 +695,45 @@
     </div>
     <button class="action-btn btn-price" onclick="saveVotacionConfig()" style="font-size:.72rem;padding:.6rem 1.5rem;">GUARDAR CANDIDATOS</button>
     <p class="modal-success" id="votacionMsg" style="margin-top:.5rem;"></p>
+  </div>
+
+  <!-- TAB: PUSH NOTIFICATIONS -->
+  <div class="tab-content" id="tab-push">
+    <div style="background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.3rem;">📊 Suscriptores</p>
+      <p style="font-size:2rem;font-weight:700;" id="pushSubCount">—</p>
+      <p style="font-size:.7rem;color:var(--gris);">usuarios aceptaron recibir notificaciones</p>
+    </div>
+
+    <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.8rem;letter-spacing:.08em;text-transform:uppercase;">Enviar notificación</p>
+
+    <label class="modal-label">Título</label>
+    <input type="text" class="modal-input" id="pushTitle" placeholder="Ej: ¡Nuevos perfumes!" maxlength="60"/>
+
+    <label class="modal-label">Mensaje</label>
+    <textarea class="modal-input" id="pushBody" placeholder="Ej: Llegaron 5 fragancias nuevas. Pasá a conocerlas..." rows="3" maxlength="200" style="resize:vertical;font-family:inherit;"></textarea>
+
+    <label class="modal-label">URL destino (opcional)</label>
+    <input type="text" class="modal-input" id="pushUrl" placeholder="/ (por defecto va al inicio)" value="/"/>
+
+    <div style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:8px;padding:1rem;margin:1rem 0;">
+      <p style="font-size:.72rem;font-weight:600;margin-bottom:.5rem;">Vista previa</p>
+      <div style="display:flex;align-items:flex-start;gap:.8rem;background:#222;border-radius:8px;padding:.8rem;">
+        <div style="width:36px;height:36px;background:var(--amarillo);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">🔔</div>
+        <div style="min-width:0;">
+          <p style="font-size:.75rem;font-weight:600;color:#fff;" id="pushPreviewTitle">ST Perfumería</p>
+          <p style="font-size:.7rem;color:var(--gris);overflow:hidden;text-overflow:ellipsis;" id="pushPreviewBody">Tu mensaje aparece acá...</p>
+        </div>
+      </div>
+    </div>
+
+    <button class="action-btn btn-price" onclick="sendPushNotification()" id="pushSendBtn" style="font-size:.72rem;padding:.6rem 1.5rem;width:100%;">🚀 ENVIAR A TODOS</button>
+    <p class="modal-success" id="pushMsg" style="margin-top:.5rem;"></p>
+
+    <div style="margin-top:1.5rem;border-top:1px solid var(--borde);padding-top:1rem;">
+      <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">Historial de envíos</p>
+      <div id="pushHistory" style="font-size:.72rem;color:var(--gris);">Sin envíos registrados</div>
+    </div>
   </div>
 
   <!-- MODAL: CAMBIAR PRECIO -->
@@ -2186,12 +2226,121 @@
       setTimeout(function() { msg.textContent = ''; }, 3000);
     }
 
-    // Load combos/votacion on tab switch
+    // ============================================================
+    // PUSH NOTIFICATIONS
+    // ============================================================
+    async function loadPushStats() {
+      try {
+        var res = await sb.from('push_subscriptions').select('id', { count: 'exact', head: true });
+        document.getElementById('pushSubCount').textContent = (res.count || 0);
+      } catch (e) {
+        document.getElementById('pushSubCount').textContent = '?';
+      }
+
+      // Historial de envíos
+      var history = JSON.parse(localStorage.getItem('st_push_history') || '[]');
+      var box = document.getElementById('pushHistory');
+      if (history.length === 0) {
+        box.innerHTML = 'Sin envíos registrados';
+      } else {
+        box.innerHTML = history.slice().reverse().map(function(h) {
+          var d = new Date(h.date);
+          var fecha = d.toLocaleDateString('es-AR') + ' ' + d.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
+          return '<div style="padding:.4rem .6rem;background:rgba(255,255,255,.04);border-radius:4px;margin-bottom:.3rem;border-left:2px solid var(--amarillo);">'
+            + '<span style="color:var(--gris);">' + fecha + '</span> — '
+            + '<strong style="color:#fff;">' + escapeHtml(h.title) + '</strong><br>'
+            + '<span>' + escapeHtml(h.body) + '</span><br>'
+            + '<span style="color:var(--amarillo);">✅ ' + h.sent + ' enviadas, ❌ ' + h.failed + ' fallidas</span>'
+            + '</div>';
+        }).join('');
+      }
+    }
+
+    // Vista previa en tiempo real
+    document.getElementById('pushTitle').addEventListener('input', function() {
+      document.getElementById('pushPreviewTitle').textContent = this.value || 'ST Perfumería';
+    });
+    document.getElementById('pushBody').addEventListener('input', function() {
+      document.getElementById('pushPreviewBody').textContent = this.value || 'Tu mensaje aparece acá...';
+    });
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function sendPushNotification() {
+      var title = document.getElementById('pushTitle').value.trim();
+      var body = document.getElementById('pushBody').value.trim();
+      var url = document.getElementById('pushUrl').value.trim() || '/';
+      var msg = document.getElementById('pushMsg');
+      var btn = document.getElementById('pushSendBtn');
+
+      if (!title || !body) {
+        msg.textContent = '⚠️ Completá título y mensaje';
+        msg.style.color = '#e74c3c';
+        return;
+      }
+
+      if (!confirm('¿Enviar notificación a TODOS los suscriptores?\n\nTítulo: ' + title + '\nMensaje: ' + body)) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      msg.textContent = '';
+
+      try {
+        var res = await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title,
+            body: body,
+            url: url,
+            adminPass: ADMIN_PASS
+          })
+        });
+
+        var data = await res.json();
+
+        if (res.ok) {
+          msg.textContent = '✅ Enviada a ' + data.sent + ' usuarios (' + data.failed + ' fallidas)';
+          msg.style.color = '#2ecc71';
+
+          // Guardar en historial local
+          var history = JSON.parse(localStorage.getItem('st_push_history') || '[]');
+          history.push({ title: title, body: body, url: url, sent: data.sent, failed: data.failed, date: new Date().toISOString() });
+          localStorage.setItem('st_push_history', JSON.stringify(history));
+
+          // Limpiar campos
+          document.getElementById('pushTitle').value = '';
+          document.getElementById('pushBody').value = '';
+          document.getElementById('pushUrl').value = '/';
+          document.getElementById('pushPreviewTitle').textContent = 'ST Perfumería';
+          document.getElementById('pushPreviewBody').textContent = 'Tu mensaje aparece acá...';
+
+          notifyTelegram('🔔 Notificación push enviada\n📌 ' + title + '\n💬 ' + body + '\n📊 ' + data.sent + ' enviadas, ' + data.failed + ' fallidas');
+
+          loadPushStats();
+        } else {
+          msg.textContent = '❌ Error: ' + (data.error || 'desconocido');
+          msg.style.color = '#e74c3c';
+        }
+      } catch (e) {
+        msg.textContent = '❌ Error de conexión: ' + e.message;
+        msg.style.color = '#e74c3c';
+      }
+
+      btn.disabled = false;
+      btn.textContent = '🚀 ENVIAR A TODOS';
+      setTimeout(function() { msg.textContent = ''; }, 5000);
+    }
+
+    // Load combos/votacion/push on tab switch
     var origSwitchTab = switchTab;
     switchTab = function(tab, btn) {
       origSwitchTab(tab, btn);
       if (tab === 'combos') loadCombos();
       if (tab === 'votacion') loadVotacionConfig();
+      if (tab === 'push') loadPushStats();
     };
   </script>
 </body>

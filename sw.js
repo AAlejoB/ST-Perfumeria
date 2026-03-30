@@ -1,41 +1,55 @@
-var CACHE_NAME = 'st-perfumeria-v1';
-var PRECACHE = ['/', '/index.html', '/perfumes.js', '/img/logo-st.webp'];
+/**
+ * Service Worker — ST Perfumería
+ * Maneja notificaciones push
+ */
 
-self.addEventListener('install', function(e) {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(PRECACHE);
-    })
+self.addEventListener('push', function(event) {
+  var data = { title: 'ST Perfumería', body: '', icon: '/img/logo-st.webp', url: '/' };
+
+  try {
+    if (event.data) {
+      var payload = event.data.json();
+      data.title = payload.title || data.title;
+      data.body = payload.body || data.body;
+      data.icon = payload.icon || data.icon;
+      data.url = payload.url || data.url;
+    }
+  } catch (e) {
+    if (event.data) data.body = event.data.text();
+  }
+
+  var options = {
+    body: data.body,
+    icon: data.icon,
+    badge: '/img/logo-st.webp',
+    vibrate: [200, 100, 200],
+    data: { url: data.url },
+    actions: [
+      { action: 'open', title: 'Ver ahora' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
   );
-  self.skipWaiting();
 });
 
-self.addEventListener('activate', function(e) {
-  e.waitUntil(
-    caches.keys().then(function(names) {
-      return Promise.all(
-        names.filter(function(n) { return n !== CACHE_NAME; })
-             .map(function(n) { return caches.delete(n); })
-      );
-    })
-  );
-  self.clients.claim();
-});
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
 
-self.addEventListener('fetch', function(e) {
-  // Network first, fallback to cache
-  e.respondWith(
-    fetch(e.request).then(function(res) {
-      // Cache successful responses
-      if (res.ok && e.request.method === 'GET') {
-        var clone = res.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(e.request, clone);
-        });
+  var url = event.notification.data && event.notification.data.url
+    ? event.notification.data.url
+    : '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        if (clientList[i].url.indexOf('st-perfumeria') !== -1 && 'focus' in clientList[i]) {
+          clientList[i].navigate(url);
+          return clientList[i].focus();
+        }
       }
-      return res;
-    }).catch(function() {
-      return caches.match(e.request);
+      return clients.openWindow(url);
     })
   );
 });

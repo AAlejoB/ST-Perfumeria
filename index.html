@@ -2040,6 +2040,41 @@
     .wa-float:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(0,0,0,.4); }
     @media (min-width: 768px) { .wa-float { width: 62px; height: 62px; bottom: 30px; right: 30px; } }
 
+    /* Push notification banner */
+    .push-banner {
+      position: fixed; bottom: 90px; right: 24px; z-index: 998;
+      background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+      border: 1px solid rgba(232,184,0,.3); border-radius: 14px;
+      padding: 1rem 1.2rem; max-width: 300px; width: calc(100vw - 48px);
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
+      animation: pushSlideIn .4s ease-out;
+      font-family: 'Inter', sans-serif;
+    }
+    @keyframes pushSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .push-banner-title {
+      font-size: .8rem; font-weight: 600; color: var(--amarillo);
+      margin-bottom: .3rem; display: flex; align-items: center; gap: .4rem;
+    }
+    .push-banner-text { font-size: .72rem; color: #bbb; line-height: 1.4; margin-bottom: .8rem; }
+    .push-banner-btns { display: flex; gap: .5rem; }
+    .push-banner-btn {
+      flex: 1; font-family: inherit; font-size: .68rem; font-weight: 600;
+      letter-spacing: .05em; text-transform: uppercase; padding: .55rem .8rem;
+      border-radius: 6px; cursor: pointer; transition: all .2s; border: none;
+    }
+    .push-banner-btn--yes {
+      background: var(--amarillo); color: #000;
+    }
+    .push-banner-btn--yes:hover { background: var(--amarillo-claro); }
+    .push-banner-btn--no {
+      background: rgba(255,255,255,.06); color: var(--gris); border: 1px solid rgba(255,255,255,.1);
+    }
+    .push-banner-btn--no:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+    @media (min-width: 768px) { .push-banner { bottom: 100px; right: 30px; } }
+
     /* Tooltip horario sobre WhatsApp */
     .wa-status {
       position: fixed;
@@ -3806,6 +3841,16 @@
   <a href="https://wa.me/5492975416017?text=Hola!%20Quiero%20consultar%20por%20un%20perfume" target="_blank" class="wa-float" aria-label="WhatsApp">
     <svg viewBox="0 0 32 32" width="28" height="28"><path fill="#fff" d="M16.01 2.93A13.07 13.07 0 0 0 2.93 16a12.94 12.94 0 0 0 1.74 6.51L2.93 29.07l6.73-1.74A13.06 13.06 0 1 0 16.01 2.93Zm0 23.9a10.8 10.8 0 0 1-5.52-1.5l-.4-.24-4.12 1.08 1.1-4.03-.26-.41a10.83 10.83 0 1 1 9.2 5.1Zm5.93-8.1c-.33-.16-1.93-.95-2.23-1.06-.3-.11-.52-.16-.74.17-.22.32-.85 1.06-1.04 1.28-.2.22-.39.24-.72.08-.33-.16-1.38-.51-2.63-1.62-.97-.87-1.63-1.94-1.82-2.27-.19-.33-.02-.5.14-.67.15-.15.33-.39.5-.59.16-.2.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.17-.73-1.77-1-2.42-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.72 0 1.6 1.17 3.15 1.33 3.37.17.22 2.3 3.51 5.57 4.92.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.1 1.93-.79 2.2-1.55.28-.76.28-1.41.2-1.55-.09-.14-.31-.22-.64-.38Z"/></svg>
   </a>
+
+  <!-- Push notification banner -->
+  <div class="push-banner" id="pushBanner" style="display:none;">
+    <p class="push-banner-title">🔔 ¿Querés recibir novedades?</p>
+    <p class="push-banner-text">Te avisamos cuando lleguen perfumes nuevos, promos o eventos. Sin spam, lo prometemos.</p>
+    <div class="push-banner-btns">
+      <button class="push-banner-btn push-banner-btn--yes" onclick="acceptPush()">Activar</button>
+      <button class="push-banner-btn push-banner-btn--no" onclick="dismissPush()">Ahora no</button>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="perfumes.js"></script>
@@ -6411,6 +6456,89 @@
         if (floatIcon) floatIcon.textContent = emoji;
       }
     })();
+
+    // ============================================================
+    // PUSH NOTIFICATIONS
+    // ============================================================
+    var VAPID_PUBLIC_KEY = 'BE8ARD1FYFJs4w3gTB1IDoWNoypFd0duqUuOq0o6sNy7coKTqMcOS-kX3DuFrjdtn2pec30-QhouO0ADZ9nW8K8';
+
+    function urlBase64ToUint8Array(base64String) {
+      var padding = '='.repeat((4 - base64String.length % 4) % 4);
+      var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      var rawData = window.atob(base64);
+      var outputArray = new Uint8Array(rawData.length);
+      for (var i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+      return outputArray;
+    }
+
+    // Mostrar banner de push después de 15 segundos si no se pidió antes
+    (function() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+      // Registrar Service Worker siempre
+      navigator.serviceWorker.register('/sw.js').catch(function(err) {
+        console.log('SW register error:', err);
+      });
+
+      // Si ya dijo que no o ya está suscrito, no mostrar banner
+      var pushDismissed = localStorage.getItem('st_push_dismissed');
+      var pushSubscribed = localStorage.getItem('st_push_subscribed');
+      if (pushDismissed || pushSubscribed) return;
+
+      // Mostrar banner después de 15s de navegación
+      setTimeout(function() {
+        // Verificar que no haya permiso ya concedido
+        if (Notification.permission === 'granted') {
+          // Ya tiene permiso, intentar suscribir silenciosamente
+          subscribeToPush();
+          return;
+        }
+        if (Notification.permission === 'denied') return; // Bloqueó las notificaciones
+
+        var banner = document.getElementById('pushBanner');
+        if (banner) banner.style.display = 'block';
+      }, 15000);
+    })();
+
+    function acceptPush() {
+      var banner = document.getElementById('pushBanner');
+      if (banner) banner.style.display = 'none';
+      subscribeToPush();
+    }
+
+    function dismissPush() {
+      var banner = document.getElementById('pushBanner');
+      if (banner) banner.style.display = 'none';
+      localStorage.setItem('st_push_dismissed', Date.now());
+    }
+
+    async function subscribeToPush() {
+      try {
+        var permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+
+        var reg = await navigator.serviceWorker.ready;
+        var subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+
+        var subJSON = JSON.stringify(subscription);
+
+        // Guardar en Supabase
+        var res = await sb.from('push_subscriptions').upsert({
+          endpoint: subscription.endpoint,
+          subscription: subJSON,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'endpoint' });
+
+        if (!res.error) {
+          localStorage.setItem('st_push_subscribed', '1');
+        }
+      } catch (err) {
+        console.log('Push subscription error:', err);
+      }
+    }
   </script>
 </body>
 </html>
