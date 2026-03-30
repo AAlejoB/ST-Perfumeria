@@ -922,6 +922,8 @@
       background: var(--amarillo);
       padding: .4rem .8rem;
       border-radius: 3px;
+      border: none;
+      cursor: pointer;
       text-decoration: none;
       margin-top: .4rem;
       display: inline-block;
@@ -1301,15 +1303,8 @@
       pointer-events: none;
       border-radius: 0 5px 5px 0;
       box-sizing: border-box;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(232,184,0,.3) transparent;
+      overflow: hidden;
     }
-    .card-reveal::-webkit-scrollbar { width: 4px; }
-    .card-reveal::-webkit-scrollbar-track { background: transparent; }
-    .card-reveal::-webkit-scrollbar-thumb { background: rgba(232,184,0,.3); border-radius: 2px; }
-    .card-reveal::-webkit-scrollbar-thumb:hover { background: rgba(232,184,0,.5); }
     .product-card:hover .card-reveal { transform: translateX(0); opacity: 1; pointer-events: auto; }
 
     /* ESPEJO — columna izquierda: TEXTO | FOTO, reveal entra desde la izq */
@@ -1338,14 +1333,14 @@
       }
     }
 
-    .reveal-name { font-family: var(--font-display); font-size: .95rem; font-weight: 600; color: #fff; margin-bottom: .15rem; line-height: 1.2; text-transform: uppercase; }
-    .reveal-brand { font-size: .55rem; font-weight: 400; color: var(--gris); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .4rem; }
-    .reveal-divider { width: 100%; height: 1px; background: linear-gradient(90deg, var(--amarillo), transparent); margin-bottom: .5rem; }
-    .reveal-actions { display: flex; gap: .3rem; margin-top: .3rem; }
+    .reveal-name { font-family: var(--font-display); font-size: .85rem; font-weight: 600; color: #fff; margin-bottom: .1rem; line-height: 1.15; text-transform: uppercase; }
+    .reveal-brand { font-size: .5rem; font-weight: 400; color: var(--gris); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .25rem; }
+    .reveal-divider { width: 100%; height: 1px; background: linear-gradient(90deg, var(--amarillo), transparent); margin-bottom: .3rem; }
+    .reveal-actions { display: flex; gap: .3rem; margin-top: auto; }
     .reveal-actions .cart-add-btn { flex: 1; margin-top: 0; }
     .reveal-actions .reveal-share { flex-shrink: 0; width: 36px; margin-top: 0; padding: .4rem; font-size: .75rem; display: flex; align-items: center; justify-content: center; }
-    .scent-notes  { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .6rem; }
-    .scent-note   { font-size: .68rem; font-weight: 300; color: #e0e0e0; line-height: 1.4; }
+    .scent-notes  { display: flex; flex-direction: column; gap: .2rem; margin-bottom: .4rem; flex: 1; min-height: 0; }
+    .scent-note   { font-size: .62rem; font-weight: 300; color: #e0e0e0; line-height: 1.3; }
     .scent-note strong  { font-weight: 600; color: #fff; }
     .note-label { font-weight: 700; color: var(--amarillo); font-size: .55rem; letter-spacing: .1em; margin-right: .3rem; }
 
@@ -1448,12 +1443,12 @@
     }
     .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .65rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .55rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
     @media (min-width: 768px) {
-      .reveal-name { font-size: 1.1rem; }
-      .reveal-brand { font-size: .6rem; margin-bottom: .5rem; }
-      .reveal-divider { margin-bottom: .6rem; }
-      .scent-notes { gap: .5rem; margin-bottom: 1rem; }
-      .scent-note { font-size: .8rem; }
-      .reveal-cta { font-size: .72rem; padding: .65rem; }
+      .reveal-name { font-size: .95rem; }
+      .reveal-brand { font-size: .55rem; margin-bottom: .3rem; }
+      .reveal-divider { margin-bottom: .35rem; }
+      .scent-notes { gap: .25rem; margin-bottom: .5rem; }
+      .scent-note { font-size: .65rem; }
+      .reveal-cta { font-size: .65rem; padding: .5rem; }
     }
     .reveal-cta:hover { background: var(--amarillo-claro); }
     .reveal-similares {
@@ -4376,7 +4371,7 @@
           + '<p class="quiz-result-name">'+p.name+'</p>'
           + '<p class="quiz-result-marca">'+p.marca+'</p>'
           + (notasPreview ? '<p class="quiz-result-notas">'+notasPreview+'</p>' : '')
-          + '<a href="https://wa.me/5492975416017?text='+encodeURIComponent('Hola! Me interesa el '+p.name+'. ¿Tienen disponibilidad?')+'" target="_blank" class="quiz-result-cta">Consultar &#8594;</a>'
+          + '<button class="quiz-result-cta" onclick="scrollToPerfume(\'' + p.slug + '\')">Ver en catálogo &#8594;</button>'
           + '</div></div>';
       });
 
@@ -4384,6 +4379,30 @@
       resultsEl.innerHTML = html;
       resultsEl.classList.add('active');
       document.getElementById('quizProgress').style.display = 'none';
+    }
+
+    function scrollToPerfume(slug) {
+      // Limpiar filtros para que la card sea visible
+      currentFilter = '';
+      currentBrand = '';
+      currentPerfil = '';
+      document.getElementById('searchInput').value = '';
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      applyCardVisibility();
+
+      // Buscar la card y scrollear
+      var card = document.querySelector('[data-slug="' + slug + '"]');
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Highlight temporal
+        card.style.boxShadow = '0 0 0 3px var(--amarillo), 0 8px 30px rgba(232,184,0,.3)';
+        card.style.transition = 'box-shadow .3s';
+        setTimeout(function() { card.style.boxShadow = ''; }, 3000);
+        // En mobile abrir bottom sheet después del scroll
+        if (window.innerWidth < 768) {
+          setTimeout(function() { openBottomSheet(slug); }, 800);
+        }
+      }
     }
 
     function restartQuiz() {
@@ -6075,15 +6094,26 @@
     }
 
     // Click en cards → bottom sheet (mobile)
-    document.addEventListener('click', function(e) {
+    // Usamos touchend + click para máxima compatibilidad
+    var _bsTapHandled = false;
+    function handleCardTap(e) {
       if (window.innerWidth >= 768) return;
       var card = e.target.closest('.product-card');
       if (!card) return;
       // No interceptar clicks en botones internos
-      if (e.target.closest('.fav-heart') || e.target.closest('a') || e.target.closest('button')) return;
+      if (e.target.closest('.fav-heart') || e.target.closest('.compare-btn') || e.target.closest('.cart-add-btn') || e.target.closest('.reveal-share') || e.target.closest('a[onclick]')) return;
       var slug = card.dataset.slug;
-      if (slug) openBottomSheet(slug);
-    });
+      if (!slug) return;
+      if (e.type === 'touchend') {
+        _bsTapHandled = true;
+        setTimeout(function() { _bsTapHandled = false; }, 300);
+        openBottomSheet(slug);
+      } else if (e.type === 'click' && !_bsTapHandled) {
+        openBottomSheet(slug);
+      }
+    }
+    document.getElementById('catalogGrid').addEventListener('touchend', handleCardTap, { passive: true });
+    document.getElementById('catalogGrid').addEventListener('click', handleCardTap);
 
     // ============================================================
     // COMPARADOR DE PERFUMES (hasta 3)
