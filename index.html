@@ -2458,10 +2458,13 @@
       border: 1px solid rgba(255,255,255,.06);
       border-radius: 18px;
       padding: 2rem 1.5rem;
-      max-width: 700px;
+      flex: 1;
+      min-width: 0;
       width: 100%;
+      text-align: center;
     }
     @media (max-width: 767px) { .misel-section { padding: 1.5rem 1rem; } }
+    @media (min-width: 768px) { .misel-section { max-width: 50%; } }
     .misel-content { display: flex; gap: 1.2rem; align-items: flex-start; flex-wrap: wrap; }
     @media (min-width: 768px) { .misel-content { flex-wrap: nowrap; } }
 
@@ -2702,15 +2705,32 @@
     }
 
     /* Cultura */
+    .cultura-misel-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      .cultura-misel-row {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 1.5rem;
+      }
+    }
     .nosotros-cultura {
       background: var(--negro-card);
       padding: 2rem 1.5rem;
       border: 1px solid var(--borde-sutil);
+      border-radius: 18px;
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-      max-width: 1100px;
-      margin: 0 auto;
+      flex: 1;
+      min-width: 0;
     }
     @media (min-width: 768px) {
       .nosotros-cultura {
@@ -3343,7 +3363,8 @@
       </div>
     </div>
 
-    <!-- Cultura: chips de valores -->
+    <!-- Cultura + Mi Selección ST (side by side desktop) -->
+    <div class="cultura-misel-row">
     <div class="nosotros-cultura">
       <div class="cultura-left">
         <p class="section-eyebrow" style="margin-bottom:1rem">Nuestra cultura</p>
@@ -3408,6 +3429,7 @@
         <span>&#128274; Registrate para armar tu selecci&#243;n</span>
       </div>
     </div>
+    </div><!-- /cultura-misel-row -->
 
   </section>
 
