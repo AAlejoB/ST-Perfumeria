@@ -2462,16 +2462,22 @@
       min-width: 0;
       width: 100%;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     .misel-section .misel-content {
       flex-direction: column;
       align-items: center;
+      gap: .8rem;
     }
     .misel-section .misel-deck {
       flex: 0 0 auto;
-      height: 210px;
       display: flex;
       justify-content: center;
+    }
+    .misel-section .misel-empty-msg {
+      padding: 1.5rem 0;
     }
     .misel-section .misel-picker {
       width: 100%;
@@ -2730,7 +2736,7 @@
     @media (min-width: 768px) {
       .cultura-misel-row {
         flex-direction: row;
-        align-items: center;
+        align-items: stretch;
         gap: 1.5rem;
       }
     }
@@ -2744,6 +2750,13 @@
       gap: 1rem;
       flex: 1;
       min-width: 0;
+      justify-content: center;
+    }
+    .nosotros-cultura .cultura-poll {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     @media (min-width: 768px) {
       .nosotros-cultura { padding: 2.5rem 2rem; }
