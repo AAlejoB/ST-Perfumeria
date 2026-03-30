@@ -6268,7 +6268,8 @@
       var msg = encodeURIComponent('Hola ST! Me interesa un decant de 5ml de *' + p.name + '* (' + brand + '). \u00bfTienen disponible?');
       document.getElementById('btnDecant').href = 'https://wa.me/' + tel + '?text=' + msg;
 
-      // Mostrar carta (sin dar vuelta todavía)
+      // Ocultar picker, mostrar carta
+      document.querySelector('.misel-picker').style.display = 'none';
       document.getElementById('desafioReveal').style.display = 'block';
       document.getElementById('desafioCardInner').classList.remove('flipped');
       document.getElementById('desafioActions').style.display = 'none';
@@ -6290,6 +6291,7 @@
     function resetDesafio() {
       miselSlugs = [];
       desafioRecommended = null;
+      document.querySelector('.misel-picker').style.display = '';
       document.getElementById('desafioReveal').style.display = 'none';
       document.getElementById('desafioActions').style.display = 'none';
       document.getElementById('desafioCardInner').classList.remove('flipped');
