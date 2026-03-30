@@ -2538,12 +2538,7 @@
     }
     .misel-btn-save:hover { background: var(--amarillo-claro); }
     .misel-btn-save:disabled { opacity: .35; cursor: not-allowed; }
-    .misel-btn-similar {
-      padding: .45rem .8rem; font-family: inherit; font-size: .65rem; font-weight: 600;
-      letter-spacing: .06em; border: 1px solid var(--amarillo); border-radius: 4px;
-      cursor: pointer; background: none; color: var(--amarillo); transition: all .2s;
-    }
-    .misel-btn-similar:hover { background: rgba(232,184,0,.1); }
+
     .misel-msg { font-size: .7rem; margin-top: .4rem; min-height: 1rem; }
 
     /* Mazo de cartas */
@@ -2908,16 +2903,18 @@
     .cultura-poll {
       background: rgba(255,255,255,.04);
       border: 1px solid var(--borde-sutil);
-      border-radius: 6px;
+      border-radius: 10px;
       padding: 1.5rem;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       gap: .8rem;
       width: 100%;
+      flex: 1;
       justify-content: center;
     }
     @media (min-width: 768px) {
-      .cultura-poll { width: 300px; flex-shrink: 0; align-self: stretch; }
+      .cultura-poll { flex-shrink: 0; align-self: stretch; }
     }
 
     .poll-question {
@@ -3388,8 +3385,8 @@
     <!-- Cultura + Mi Selección ST (side by side desktop) -->
     <div class="cultura-misel-row">
     <div class="nosotros-cultura">
-      <p class="section-eyebrow" style="margin-bottom:.8rem">Nuestra cultura</p>
       <div class="cultura-poll" id="culturaPoll">
+        <p class="section-eyebrow" style="margin-bottom:.3rem">Nuestra cultura</p>
         <p class="poll-question">&#191;Cu&#225;l de estas palabras sent&#237;s que nos identifica m&#225;s?</p>
         <div class="poll-options" id="pollOptions">
           <button class="poll-opt" onclick="votePoll(this,'Cercano')">Cercano</button>
@@ -3431,7 +3428,6 @@
           </div>
           <div class="misel-actions">
             <button class="misel-btn-save" id="miselSaveBtn" disabled onclick="saveMiSeleccion()">Guardar selecci&#243;n</button>
-            <button class="misel-btn-similar" id="miselSimilarBtn" style="display:none;" onclick="showMiselSimilares()">&#10024; Ver similares</button>
           </div>
           <p class="misel-msg" id="miselMsg"></p>
           <p class="misel-global-stat" id="miselGlobalStat"></p>
@@ -6053,7 +6049,6 @@
       // Toggle save button
       document.getElementById('miselSaveBtn').disabled = miselSlugs.length === 0;
       // Show similar button if 3+
-      document.getElementById('miselSimilarBtn').style.display = miselSlugs.length >= 3 ? 'inline-block' : 'none';
     }
 
     function renderMiselDeck() {
@@ -6193,63 +6188,6 @@
       btn.disabled = false; btn.textContent = 'Guardar selección';
     }
 
-    function showMiselSimilares() {
-      // Get notes from selected perfumes and find similar ones
-      var selectedNotes = [];
-      miselSlugs.forEach(function(slug) {
-        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-        if (!p) return;
-        [p.notas_salida, p.notas_corazon, p.notas_base].forEach(function(n) {
-          if (n) n.split(',').forEach(function(note) {
-            var trimmed = note.trim().toLowerCase();
-            if (trimmed && selectedNotes.indexOf(trimmed) === -1) selectedNotes.push(trimmed);
-          });
-        });
-      });
-
-      // Score other perfumes by matching notes
-      var scored = PERFUMES.filter(function(p) {
-        return !p.esSet && miselSlugs.indexOf(p.slug) === -1;
-      }).map(function(p) {
-        var score = 0;
-        var allNotes = ((p.notas_salida || '') + ',' + (p.notas_corazon || '') + ',' + (p.notas_base || '')).toLowerCase();
-        selectedNotes.forEach(function(n) { if (allNotes.indexOf(n) !== -1) score++; });
-        return { perfume: p, score: score };
-      }).filter(function(s) { return s.score > 0; });
-
-      scored.sort(function(a, b) { return b.score - a.score; });
-      var top5 = scored.slice(0, 5);
-
-      if (top5.length === 0) {
-        document.getElementById('miselMsg').style.color = 'var(--gris)';
-        document.getElementById('miselMsg').textContent = 'No encontramos similares por ahora';
-        return;
-      }
-
-      // Build similar overlay (reuse similares modal if exists)
-      var overlay = document.getElementById('similaresOverlay');
-      if (overlay) {
-        var title = document.getElementById('similaresTitle');
-        if (title) title.textContent = 'Basado en tu selección, te van a gustar:';
-        var grid = document.getElementById('similaresGrid');
-        if (grid) {
-          grid.innerHTML = top5.map(function(s) {
-            var p = s.perfume;
-            var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-            var imgHTML = fotoSrc
-              ? '<img src="' + fotoSrc + '" style="width:100%;height:100%;object-fit:cover;">'
-              : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a1a;color:rgba(232,184,0,.2);font-size:1.5rem;">' + p.name.charAt(0) + '</div>';
-            return '<div class="similar-card" onclick="scrollToPerfume(\'' + p.slug + '\');closeSimilares();">'
-              + '<div class="similar-img">' + imgHTML + '</div>'
-              + '<p class="similar-name">' + p.name + '</p>'
-              + '<p class="similar-brand">' + (p.marca_real || p.marca) + '</p>'
-              + '<p style="font-size:.55rem;color:var(--amarillo);">' + s.score + ' notas en común</p>'
-              + '</div>';
-          }).join('');
-        }
-        overlay.classList.add('active');
-      }
-    }
 
     async function loadMiselGlobalStats() {
       try {
