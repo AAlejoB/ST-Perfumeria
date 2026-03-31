@@ -967,26 +967,6 @@
         transform: translateY(-2px);
       }
     }
-    /* card-image y card-info son <a> tags — reset link styles */
-    a.card-image, a.card-info {
-      text-decoration: none; color: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-    /* Botón visible "Ver detalles" — solo mobile */
-    .card-mobile-btn {
-      display: none;
-    }
-    @media (max-width: 767px) {
-      .card-mobile-btn {
-        display: block; width: 100%; text-align: center;
-        margin-top: 8px; padding: 10px 0;
-        font-family: var(--font-body); font-size: .72rem; font-weight: 700;
-        letter-spacing: .1em; text-transform: uppercase;
-        color: #000; background: var(--amarillo);
-        border-radius: 6px; text-decoration: none;
-        -webkit-tap-highlight-color: rgba(232,184,0,.3);
-      }
-    }
 
     .card-image {
       width: 30%;
@@ -4801,8 +4781,8 @@
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
-        + '<a href="#bs-' + p.slug + '" class="card-image">' + imageHTML + '</a>'
-        + '<a href="#bs-' + p.slug + '" class="card-info">'
+        + '<div class="card-image">' + imageHTML + '</div>'
+        + '<div class="card-info">'
           + '<p class="card-name">' + p.name + '</p>'
           + '<p class="card-brand-st">ST PERFUMER\u00cdA</p>'
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
@@ -4820,8 +4800,7 @@
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
-          + '<a href="#bs-' + p.slug + '" class="card-mobile-btn">Ver detalles &#8594;</a>'
-        + '</a>'
+        + '</div>'
         + '<div class="card-reveal">'
           + '<p class="reveal-name">' + p.name + '</p>'
           + '<p class="reveal-brand">' + (p.marca_real || p.marca) + '</p>'
@@ -6192,18 +6171,34 @@
       }, { passive: true });
     })();
 
-    // Mobile: al tocar card navega a #bs-slug → hashchange abre bottom sheet
-    window.addEventListener('hashchange', function() {
-      var hash = window.location.hash;
-      if (hash.indexOf('#bs-') === 0) {
-        var slug = hash.slice(4);
-        if (slug && window.innerWidth < 768) {
-          openBottomSheet(slug);
-        }
-        // Limpiar hash sin scroll
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-      }
-    });
+    // Mobile: tap en card abre bottom sheet
+    (function() {
+      var grid = document.getElementById('catalogGrid');
+      var startX, startY, startTime;
+
+      grid.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        startTime = Date.now();
+      }, { passive: true });
+
+      grid.addEventListener('touchend', function(e) {
+        if (window.innerWidth >= 768) return;
+        // Ignorar si fue scroll
+        var dx = Math.abs(e.changedTouches[0].clientX - startX);
+        var dy = Math.abs(e.changedTouches[0].clientY - startY);
+        var dt = Date.now() - startTime;
+        if (dx > 15 || dy > 15 || dt > 500) return;
+        // Ignorar si tocó un botón
+        var t = e.target;
+        if (t.closest('button') || t.closest('a') || t.tagName === 'BUTTON' || t.tagName === 'A') return;
+        // Buscar card
+        var card = t.closest('.product-card');
+        if (!card) return;
+        var slug = card.dataset.slug;
+        if (slug) openBottomSheet(slug);
+      }, { passive: true });
+    })();
 
     // ============================================================
     // COMPARADOR DE PERFUMES (hasta 3)
