@@ -961,9 +961,11 @@
       overflow: hidden;
       position: relative;
     }
-    .product-card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,.12);
-      transform: translateY(-2px);
+    @media (hover: hover) {
+      .product-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,.12);
+        transform: translateY(-2px);
+      }
     }
     /* card-image y card-info son <a> tags — reset link styles */
     a.card-image, a.card-info {
