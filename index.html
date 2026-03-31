@@ -960,6 +960,9 @@
       transition: box-shadow .3s ease, transform .2s ease, border-color .3s;
       overflow: hidden;
       position: relative;
+      text-decoration: none;
+      color: inherit;
+      -webkit-tap-highlight-color: transparent;
     }
     @media (hover: hover) {
       .product-card:hover {
@@ -4777,7 +4780,7 @@
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
-      return '<div class="product-card card-lateral" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
+      return '<a href="#bs-' + p.slug + '" class="product-card card-lateral" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
@@ -4823,14 +4826,14 @@
                   + '<p class="scent-note">Precio: ' + pricingHTML + '</p>'
             )
           + '</div>'
-          + '<a href="#" onclick="goToWA(\'' + p.slug + '\', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</a>'
+          + '<button onclick="goToWA(\'' + p.slug + '\', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</button>'
           + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base)) ? '<button class="reveal-similares" onclick="showSimilares(\'' + p.slug + '\', event)">&#9830; Ver similares</button>' : '')
           + '<div class="reveal-actions">'
             + '<button class="cart-add-btn" onclick="addToCart(\'' + p.slug + '\', this, event)">&#128722; Agregar</button>'
             + '<button class="reveal-share" onclick="sharePerfume(\'' + p.slug + '\', this, event)">&#128279;</button>'
           + '</div>'
         + '</div>'
-      + '</div>';
+      + '</a>';
     }
 
     var CARDS_INITIAL = 20;
@@ -6171,34 +6174,20 @@
       }, { passive: true });
     })();
 
-    // Mobile: tap en card abre bottom sheet
-    (function() {
-      var grid = document.getElementById('catalogGrid');
-      var startX, startY, startTime;
-
-      grid.addEventListener('touchstart', function(e) {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        startTime = Date.now();
-      }, { passive: true });
-
-      grid.addEventListener('touchend', function(e) {
-        if (window.innerWidth >= 768) return;
-        // Ignorar si fue scroll
-        var dx = Math.abs(e.changedTouches[0].clientX - startX);
-        var dy = Math.abs(e.changedTouches[0].clientY - startY);
-        var dt = Date.now() - startTime;
-        if (dx > 15 || dy > 15 || dt > 500) return;
-        // Ignorar si tocó un botón
-        var t = e.target;
-        if (t.closest('button') || t.closest('a') || t.tagName === 'BUTTON' || t.tagName === 'A') return;
-        // Buscar card
-        var card = t.closest('.product-card');
-        if (!card) return;
-        var slug = card.dataset.slug;
-        if (slug) openBottomSheet(slug);
-      }, { passive: true });
-    })();
+    // Mobile: card es un <a href="#bs-slug"> → hashchange abre bottom sheet
+    function checkHash() {
+      var hash = window.location.hash;
+      if (hash.indexOf('#bs-') === 0) {
+        var slug = hash.slice(4);
+        if (slug && window.innerWidth < 768) {
+          openBottomSheet(slug);
+        }
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+    window.addEventListener('hashchange', checkHash);
+    // También checar al cargar (por si llegan con hash directo)
+    checkHash();
 
     // ============================================================
     // COMPARADOR DE PERFUMES (hasta 3)
