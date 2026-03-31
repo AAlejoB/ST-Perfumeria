@@ -965,6 +965,14 @@
       box-shadow: 0 4px 16px rgba(0,0,0,.12);
       transform: translateY(-2px);
     }
+    /* Link invisible que cubre la card — funciona en todos los móviles */
+    .card-tap-zone {
+      display: none; position: absolute; inset: 0; z-index: 5;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (max-width: 767px) {
+      .card-tap-zone { display: block; }
+    }
 
     .card-image {
       width: 30%;
@@ -4779,6 +4787,7 @@
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
+        + '<a href="javascript:void(0)" class="card-tap-zone" onclick="openBottomSheet(\'' + p.slug + '\')"></a>'
         + '<div class="card-image">' + imageHTML + '</div>'
         + '<div class="card-info">'
           + '<p class="card-name">' + p.name + '</p>'
@@ -6169,41 +6178,7 @@
       }, { passive: true });
     })();
 
-    // Mobile: touchend en el grid abre bottom sheet
-    (function() {
-      var grid = document.getElementById('catalogGrid');
-      var touchStartY = 0;
-      var touchStartX = 0;
-
-      grid.addEventListener('touchstart', function(e) {
-        touchStartY = e.touches[0].clientY;
-        touchStartX = e.touches[0].clientX;
-      }, { passive: true });
-
-      grid.addEventListener('touchend', function(e) {
-        if (window.innerWidth >= 768) return;
-
-        // Ignorar si fue un scroll (movió más de 10px)
-        var touch = e.changedTouches[0];
-        var diffY = Math.abs(touch.clientY - touchStartY);
-        var diffX = Math.abs(touch.clientX - touchStartX);
-        if (diffY > 10 || diffX > 10) return;
-
-        // Ignorar si tocó un botón o link (fav, compare, carrito, etc)
-        var tgt = e.target;
-        if (tgt.closest('button') || tgt.closest('a') || tgt.tagName === 'BUTTON' || tgt.tagName === 'A') return;
-
-        // Buscar la card
-        var card = tgt.closest('.product-card');
-        if (!card) return;
-
-        var slug = card.dataset.slug;
-        if (slug) {
-          e.preventDefault();
-          openBottomSheet(slug);
-        }
-      }, { passive: false });
-    })();
+    // Mobile: card-tap-zone (<a> tag) abre bottom sheet al tocar la card
 
     // ============================================================
     // COMPARADOR DE PERFUMES (hasta 3)
