@@ -972,6 +972,21 @@
       text-decoration: none; color: inherit;
       -webkit-tap-highlight-color: transparent;
     }
+    /* Botón visible "Ver detalles" — solo mobile */
+    .card-mobile-btn {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      .card-mobile-btn {
+        display: block; width: 100%; text-align: center;
+        margin-top: 8px; padding: 10px 0;
+        font-family: var(--font-body); font-size: .72rem; font-weight: 700;
+        letter-spacing: .1em; text-transform: uppercase;
+        color: #000; background: var(--amarillo);
+        border-radius: 6px; text-decoration: none;
+        -webkit-tap-highlight-color: rgba(232,184,0,.3);
+      }
+    }
 
     .card-image {
       width: 30%;
@@ -4805,6 +4820,7 @@
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
+          + '<a href="#bs-' + p.slug + '" class="card-mobile-btn">Ver detalles &#8594;</a>'
         + '</a>'
         + '<div class="card-reveal">'
           + '<p class="reveal-name">' + p.name + '</p>'
