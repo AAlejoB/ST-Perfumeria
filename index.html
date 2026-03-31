@@ -2424,6 +2424,16 @@
       cursor: pointer; transition: background .2s;
     }
     .cart-wa-btn:hover { background: #20bd5a; }
+    .cart-mp-info {
+      margin-top: .8rem; padding: .7rem .8rem;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+    }
+    .cart-mp-text, .cart-mp-envios {
+      font-size: .68rem; color: var(--gris-claro); line-height: 1.5; margin: 0;
+    }
+    .cart-mp-text strong, .cart-mp-envios strong { color: #fff; }
+    .cart-mp-envios { margin-top: .4rem; padding-top: .4rem; border-top: 1px solid rgba(255,255,255,.06); }
     .cart-clear-btn {
       display: block; width: 100%; margin-top: .5rem; padding: .5rem;
       font-family: var(--font-body); font-size: .65rem; font-weight: 500;
@@ -3786,6 +3796,10 @@
       </div>
       <p class="cart-cash" id="cartCash"></p>
       <button class="cart-wa-btn" onclick="sendCartToWA()">📲 Consultar por WhatsApp</button>
+      <div class="cart-mp-info">
+        <p class="cart-mp-text">💳 <strong>¿Pagás con tarjeta?</strong> Aceptamos todas las tarjetas vía Mercado Pago. Te mandamos el link de pago por WhatsApp.</p>
+        <p class="cart-mp-envios">📦 <strong>¿No sos de Comodoro?</strong> Hacemos envíos a todo el país. Consultanos por WhatsApp.</p>
+      </div>
       <button class="cart-favs-btn" onclick="addFavsToCart()">❤️ Agregar mis favoritos al pedido</button>
       <button class="cart-clear-btn" onclick="clearCart()">Vaciar pedido</button>
       <div class="cart-limit-msg" id="cartLimitMsg" style="display:none;"></div>
