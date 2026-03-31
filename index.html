@@ -4787,7 +4787,7 @@
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
-        + '<a href="javascript:void(0)" class="card-tap-zone" onclick="openBottomSheet(\'' + p.slug + '\')"></a>'
+        + '<a href="#" class="card-tap-zone" onclick="event.preventDefault();openBottomSheet(\'' + p.slug + '\')">&#8203;</a>'
         + '<div class="card-image">' + imageHTML + '</div>'
         + '<div class="card-info">'
           + '<p class="card-name">' + p.name + '</p>'
