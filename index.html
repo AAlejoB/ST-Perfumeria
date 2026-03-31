@@ -4775,12 +4775,12 @@
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
-      return '<div class="product-card card-lateral" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '" onclick="cardTap(\'' + p.slug + '\', event)">'
+      return '<div class="product-card card-lateral" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
-        + '<div class="card-image">' + imageHTML + '</div>'
-        + '<div class="card-info">'
+        + '<div class="card-image" onclick="openBottomSheet(\'' + p.slug + '\')">' + imageHTML + '</div>'
+        + '<div class="card-info" onclick="openBottomSheet(\'' + p.slug + '\')">'
           + '<p class="card-name">' + p.name + '</p>'
           + '<p class="card-brand-st">ST PERFUMER\u00cdA</p>'
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
@@ -6169,13 +6169,7 @@
       }, { passive: true });
     })();
 
-    // Click/tap en cards → bottom sheet (mobile)
-    function cardTap(slug, e) {
-      if (window.innerWidth >= 768) return;
-      // No interceptar si tocó un botón interno
-      if (e.target.closest('button') || e.target.closest('a')) return;
-      openBottomSheet(slug);
-    }
+    // Cards: onclick en card-image y card-info llaman openBottomSheet directamente
 
     // ============================================================
     // COMPARADOR DE PERFUMES (hasta 3)
