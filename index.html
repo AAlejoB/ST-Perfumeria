@@ -4784,8 +4784,8 @@
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
-        + '<a href="#" class="card-image" onclick="event.preventDefault();openBottomSheet(\'' + p.slug + '\')">' + imageHTML + '</a>'
-        + '<a href="#" class="card-info" onclick="event.preventDefault();openBottomSheet(\'' + p.slug + '\')">'
+        + '<a href="#bs-' + p.slug + '" class="card-image">' + imageHTML + '</a>'
+        + '<a href="#bs-' + p.slug + '" class="card-info">'
           + '<p class="card-name">' + p.name + '</p>'
           + '<p class="card-brand-st">ST PERFUMER\u00cdA</p>'
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
@@ -6174,7 +6174,18 @@
       }, { passive: true });
     })();
 
-    // Mobile: card-tap-zone (<a> tag) abre bottom sheet al tocar la card
+    // Mobile: al tocar card navega a #bs-slug → hashchange abre bottom sheet
+    window.addEventListener('hashchange', function() {
+      var hash = window.location.hash;
+      if (hash.indexOf('#bs-') === 0) {
+        var slug = hash.slice(4);
+        if (slug && window.innerWidth < 768) {
+          openBottomSheet(slug);
+        }
+        // Limpiar hash sin scroll
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    });
 
     // ============================================================
     // COMPARADOR DE PERFUMES (hasta 3)
