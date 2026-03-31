@@ -965,13 +965,10 @@
       box-shadow: 0 4px 16px rgba(0,0,0,.12);
       transform: translateY(-2px);
     }
-    /* Link invisible que cubre la card — funciona en todos los móviles */
-    .card-tap-zone {
-      display: none; position: absolute; inset: 0; z-index: 5;
+    /* card-image y card-info son <a> tags — reset link styles */
+    a.card-image, a.card-info {
+      text-decoration: none; color: inherit;
       -webkit-tap-highlight-color: transparent;
-    }
-    @media (max-width: 767px) {
-      .card-tap-zone { display: block; }
     }
 
     .card-image {
@@ -4787,9 +4784,8 @@
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
-        + '<a href="#" class="card-tap-zone" onclick="event.preventDefault();openBottomSheet(\'' + p.slug + '\')">&#8203;</a>'
-        + '<div class="card-image">' + imageHTML + '</div>'
-        + '<div class="card-info">'
+        + '<a href="#" class="card-image" onclick="event.preventDefault();openBottomSheet(\'' + p.slug + '\')">' + imageHTML + '</a>'
+        + '<a href="#" class="card-info" onclick="event.preventDefault();openBottomSheet(\'' + p.slug + '\')">'
           + '<p class="card-name">' + p.name + '</p>'
           + '<p class="card-brand-st">ST PERFUMER\u00cdA</p>'
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
@@ -4807,7 +4803,7 @@
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
-        + '</div>'
+        + '</a>'
         + '<div class="card-reveal">'
           + '<p class="reveal-name">' + p.name + '</p>'
           + '<p class="reveal-brand">' + (p.marca_real || p.marca) + '</p>'
