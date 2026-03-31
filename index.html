@@ -960,9 +960,21 @@
       transition: box-shadow .3s ease, transform .2s ease, border-color .3s;
       overflow: hidden;
       position: relative;
-      text-decoration: none;
-      color: inherit;
-      -webkit-tap-highlight-color: transparent;
+    }
+    /* CTA mobile en cards — copia exacta de .set-cta */
+    .card-cta-mobile {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      .card-cta-mobile {
+        display: inline-block; text-align: center; width: 100%;
+        font-family: var(--font-body); font-size: .65rem; font-weight: 700;
+        letter-spacing: .12em; text-transform: uppercase;
+        color: #000; background: var(--amarillo);
+        padding: .5rem .8rem; margin-top: 6px;
+        border-radius: 4px; text-decoration: none;
+        transition: background .2s;
+      }
     }
     @media (hover: hover) {
       .product-card:hover {
@@ -4780,7 +4792,7 @@
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
-      return '<a href="#bs-' + p.slug + '" class="product-card card-lateral" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
+      return '<div class="product-card card-lateral" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
@@ -4803,6 +4815,7 @@
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
+          + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + p.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
         + '</div>'
         + '<div class="card-reveal">'
           + '<p class="reveal-name">' + p.name + '</p>'
@@ -4833,7 +4846,7 @@
             + '<button class="reveal-share" onclick="sharePerfume(\'' + p.slug + '\', this, event)">&#128279;</button>'
           + '</div>'
         + '</div>'
-      + '</a>';
+      + '</div>';
     }
 
     var CARDS_INITIAL = 20;
@@ -6174,20 +6187,7 @@
       }, { passive: true });
     })();
 
-    // Mobile: card es un <a href="#bs-slug"> → hashchange abre bottom sheet
-    function checkHash() {
-      var hash = window.location.hash;
-      if (hash.indexOf('#bs-') === 0) {
-        var slug = hash.slice(4);
-        if (slug && window.innerWidth < 768) {
-          openBottomSheet(slug);
-        }
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-      }
-    }
-    window.addEventListener('hashchange', checkHash);
-    // También checar al cargar (por si llegan con hash directo)
-    checkHash();
+    // Mobile: cards tienen <a> directo a WhatsApp (como sets)
 
     // ============================================================
     // COMPARADOR DE PERFUMES (hasta 3)
