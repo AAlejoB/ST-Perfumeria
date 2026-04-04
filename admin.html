@@ -20,7 +20,7 @@
 
     /* LOGIN */
     .login-wrap {
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center; /* para centrar */
       min-height: 100vh; padding: 2rem;
     }
     .login-box {
@@ -103,6 +103,7 @@
     .badge-ok { background: #2ecc71; color: #fff; }
     .badge-low { background: #f39c12; color: #fff; }
     .badge-out { background: #e74c3c; color: #fff; }
+    .badge-paused { background: #95a5a6; color: #fff; }
 
     /* ACTIONS */
     .action-btn {
@@ -193,9 +194,10 @@
     }
     .combo-item-row input, .combo-item-row select {
       font-family: inherit; font-size: .78rem; padding: .4rem .6rem;
-      background: rgba(255,255,255,.06); border: 1px solid var(--borde); border-radius: 4px;
+      background: #1a1a1a; border: 1px solid var(--borde); border-radius: 4px;
       color: #fff; outline: none;
     }
+    .combo-item-row select option { background: #222; color: #fff; padding: .5rem; }
     .combo-item-row input:focus, .combo-item-row select:focus { border-color: var(--amarillo); }
     .combo-item-remove {
       background: none; border: none; color: #e74c3c; font-size: 1rem; cursor: pointer; padding: 0 .3rem;
@@ -294,11 +296,166 @@
     .dest-search-item:hover { background: rgba(232,184,0,.1); }
     .dest-search-item:last-child { border-bottom: none; }
 
-    /* RESPONSIVE */
+    /* PRESETS DE NOTIFICACIONES */
+    .push-presets { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1.2rem; }
+    .push-preset {
+      background: rgba(255,255,255,.04); border: 1px solid var(--borde); border-radius: 6px;
+      padding: .7rem .9rem; cursor: pointer; transition: all .2s; display: flex;
+      align-items: center; justify-content: space-between; gap: .5rem;
+    }
+    .push-preset:hover { border-color: rgba(232,184,0,.3); background: rgba(232,184,0,.04); }
+    .push-preset-info { flex: 1; min-width: 0; }
+    .push-preset-title { font-size: .72rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .push-preset-body { font-size: .62rem; color: var(--gris); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .15rem; }
+    .push-preset-actions { display: flex; gap: .3rem; flex-shrink: 0; }
+    .push-preset-btn {
+      font-family: inherit; font-size: .6rem; font-weight: 700; padding: .25rem .5rem;
+      border-radius: 3px; border: none; cursor: pointer; transition: all .2s;
+    }
+    .push-preset-use { background: var(--amarillo); color: #000; }
+    .push-preset-use:hover { background: var(--amarillo-claro); }
+    .push-preset-del { background: rgba(231,76,60,.15); color: #e74c3c; }
+    .push-preset-del:hover { background: rgba(231,76,60,.3); }
+    .push-preset-save {
+      font-family: inherit; font-size: .65rem; font-weight: 600; letter-spacing: .06em;
+      padding: .4rem .8rem; border-radius: 4px; border: 1px dashed var(--gris);
+      background: none; color: var(--gris); cursor: pointer; transition: all .2s; width: 100%;
+    }
+    .push-preset-save:hover { border-color: var(--amarillo); color: var(--amarillo); }
+
+    /* ================================================
+       RESPONSIVE — Admin mobile-friendly
+
+       Todo lo que va acá aplica SOLO en pantallas
+       de 600px o menos (celulares).
+    ================================================ */
     @media (max-width: 600px) {
-      .admin-table { font-size: .7rem; }
-      .admin-table th, .admin-table td { padding: .4rem .5rem; }
-      .td-name { max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      /* --- LAYOUT GENERAL --- */
+      /* Más padding para que nada quede pegado al borde */
+      .panel { padding: 1.2rem 1rem; }
+      .tab-content { padding: 0 .15rem; }
+      .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .6rem;
+        padding-bottom: .8rem;
+        margin-bottom: 1rem;
+      }
+      .panel-title { font-size: 1.1rem; }
+      .panel-logout { align-self: flex-end; margin-top: -.5rem; }
+
+      /* --- TABS: centradas y con mejor espaciado --- */
+      .tabs {
+        gap: .4rem;
+        justify-content: center;
+        padding: 0 .2rem;
+        margin-bottom: 1.2rem;
+      }
+      .tab-btn {
+        padding: .5rem .65rem;
+        font-size: .58rem;
+        letter-spacing: .06em;
+        flex-grow: 0;
+      }
+
+      /* --- TABLAS: compactas y legibles --- */
+      .admin-table { font-size: .68rem; }
+      .admin-table th, .admin-table td { padding: .5rem .4rem; }
+      .admin-table th { font-size: .58rem; }
+      .td-name { max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* Botones de acción en tabla: apilados */
+      .admin-table .action-btn {
+        display: block;
+        margin-bottom: .25rem;
+        margin-right: 0;
+        text-align: center;
+        width: 100%;
+      }
+
+      /* --- FORMULARIOS: todo a 1 columna y centrado --- */
+      .admin-form-grid {
+        grid-template-columns: 1fr !important;
+      }
+      /* Labels más visibles */
+      .modal-label {
+        font-size: .72rem;
+        margin-bottom: .2rem;
+        margin-top: .3rem;
+      }
+      /* Inputs: 16px para evitar zoom en iOS */
+      .modal-input, .admin-search, select.modal-input, textarea.modal-input {
+        font-size: 16px !important;
+        padding: .7rem .8rem;
+      }
+
+      /* --- BOTONES: apilados verticalmente --- */
+      .admin-btn-row {
+        flex-direction: column !important;
+      }
+      .admin-btn-row .modal-btn,
+      .admin-btn-row .action-btn {
+        flex: auto !important;
+        width: 100%;
+      }
+
+      /* --- CARDS internas del admin (combos, clientes, etc) --- */
+      .combo-card, .client-card {
+        padding: .8rem;
+      }
+      .combo-top, .client-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .3rem;
+      }
+      .combo-actions, .client-actions {
+        flex-wrap: wrap;
+      }
+      .client-details {
+        gap: .8rem;
+      }
+
+      /* --- SECCIONES con fondo (bloques info, stats) --- */
+      /* Los divs con background y padding inline se ven mejor con esto */
+      .tab-content > div[style*="background"],
+      .tab-content > div > div[style*="background"] {
+        border-radius: 6px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      /* --- STATS GRID --- */
+      .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: .6rem;
+      }
+      .stat-card { padding: .8rem; }
+      .stat-value { font-size: 1.4rem; }
+
+      /* --- MODALES: más cómodos en celu --- */
+      .modal-box {
+        padding: 1.5rem 1.2rem;
+        margin: .5rem;
+        max-width: 100%;
+      }
+      .modal-title { font-size: .75rem; }
+      .modal-btn {
+        padding: .8rem;
+        font-size: .72rem;
+      }
+
+      /* --- BÚSQUEDA de perfumes (search bars) --- */
+      .clients-search-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .clients-search-bar .admin-search { min-width: 100%; }
+
+      /* --- PRESETS de notificaciones --- */
+      .push-preset {
+        padding: .6rem .7rem;
+      }
+      .push-preset-title { font-size: .68rem; }
     }
   </style>
 </head>
@@ -384,7 +541,7 @@
         <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Editando: <span id="editingName"></span></p>
         <input type="hidden" id="editSlug"/>
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+          <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
               <label class="modal-label">Nombre</label>
               <input type="text" class="modal-input" id="editName" style="margin-bottom:0;"/>
@@ -437,6 +594,29 @@
               <p id="editFotoMsg" style="font-size:.6rem;color:var(--gris);margin-top:4px;min-height:.8rem;"></p>
             </div>
             <div style="grid-column:1/-1;">
+              <label class="modal-label">📸 Fotos extra (se ven como galería swipeable en la card)</label>
+              <input type="text" class="modal-input" id="editFotosExtra" placeholder="URLs separadas por coma: url1, url2, url3" style="margin-bottom:0;font-size:.65rem;"/>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Máx. 3 fotos extra. Podés subir fotos arriba y copiar la URL acá.</p>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">🏷️ Etiqueta de cinta (aparece arriba de la card)</label>
+              <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem;">
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#2ecc71;color:#fff;" onclick="setEtiqueta('NUEVO','#2ecc71')">NUEVO</button>
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:var(--amarillo);color:#000;" onclick="setEtiqueta('PERFUME DEL MES','#E8B800')">PERFUME DEL MES</button>
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#e67e22;color:#fff;" onclick="setEtiqueta('MÁS VENDIDO','#e67e22')">MÁS VENDIDO</button>
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#e74c3c;color:#fff;" onclick="setEtiqueta('ÚLTIMAS UNIDADES','#e74c3c')">ÚLTIMAS UNIDADES</button>
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#8e44ad;color:#fff;" onclick="setEtiqueta('EXCLUSIVO ST','#8e44ad')">EXCLUSIVO ST</button>
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#c0392b;color:#fff;" onclick="setEtiqueta('EDICIÓN LIMITADA','#c0392b')">ED. LIMITADA</button>
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#3498db;color:#fff;" onclick="setEtiqueta('RECOMENDADO','#3498db')">RECOMENDADO</button>
+                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#333;color:#e74c3c;border:1px solid #e74c3c;" onclick="setEtiqueta('','')">✕ QUITAR</button>
+              </div>
+              <div style="display:flex;gap:.4rem;">
+                <input type="text" class="modal-input" id="editEtiqueta" placeholder="O escribí un texto libre..." style="margin-bottom:0;flex:1;" maxlength="25"/>
+                <input type="color" id="editEtiquetaColor" value="#E8B800" style="width:36px;height:36px;border:1px solid var(--borde);border-radius:4px;background:none;cursor:pointer;padding:2px;"/>
+              </div>
+              <div id="editEtiquetaPreview" style="margin-top:.5rem;min-height:1.5rem;"></div>
+            </div>
+            <div style="grid-column:1/-1;">
               <label class="modal-label">Notas de salida</label>
               <input type="text" class="modal-input" id="editSalida" style="margin-bottom:0;"/>
             </div>
@@ -449,9 +629,9 @@
               <input type="text" class="modal-input" id="editBase" style="margin-bottom:0;"/>
             </div>
           </div>
-          <div style="display:flex;gap:.5rem;margin-top:1rem;">
-            <button class="modal-btn modal-btn-price" onclick="saveEditPerfume()" style="flex:1;">Guardar cambios</button>
-            <button class="modal-btn" onclick="cancelEdit()" style="flex:0 0 auto;background:#333;color:#fff;">Cancelar</button>
+          <div class="admin-btn-row" style="display:flex;gap:.5rem;margin-top:1rem;">
+            <button class="modal-btn modal-btn-price" onclick="saveEditPerfume()" style="flex:3;min-width:0;">Guardar cambios</button>
+            <button class="modal-btn" onclick="cancelEdit()" style="flex:1;min-width:0;background:#333;color:#fff;">Cancelar</button>
           </div>
           <p class="modal-success" id="editMsg" style="margin-top:.5rem;"></p>
         </div>
@@ -465,10 +645,11 @@
         <div style="flex:1;min-width:300px;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
           <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;" id="formNuevoTitle">Agregar perfume</p>
           <input type="hidden" id="nuevoEditId" value=""/>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+          <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
               <label class="modal-label">Nombre *</label>
               <input type="text" class="modal-input" id="nuevoName" placeholder="Ej: EMEER GOLD" style="margin-bottom:0;"/>
+              <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;">Si no es perfume, inclui el tipo en el nombre: <span style="color:var(--amarillo);">ASAD DESODORANTE</span>, <span style="color:var(--amarillo);">KHAMRAH BODY SPLASH</span>, <span style="color:var(--amarillo);">YARA CREMA</span>, etc.</p>
             </div>
             <div>
               <label class="modal-label">Marca</label>
@@ -705,6 +886,13 @@
       <p style="font-size:.7rem;color:var(--gris);">usuarios aceptaron recibir notificaciones</p>
     </div>
 
+    <!-- MENSAJES PREDETERMINADOS (hasta 3) -->
+    <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">📋 Mensajes predeterminados</p>
+    <p style="font-size:.65rem;color:var(--gris);margin-bottom:.6rem;">Guardá hasta 3 mensajes para reutilizar rápido. Clic en "Usar" para cargar el mensaje.</p>
+    <div class="push-presets" id="pushPresets"></div>
+    <button class="push-preset-save" id="pushPresetSaveBtn" onclick="savePushPreset()">＋ Guardar mensaje actual como predeterminado</button>
+    <div style="height:1.2rem;margin-bottom:.8rem;"><p id="pushPresetMsg" style="font-size:.65rem;text-align:center;"></p></div>
+
     <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.8rem;letter-spacing:.08em;text-transform:uppercase;">Enviar notificación</p>
 
     <label class="modal-label">Título</label>
@@ -727,7 +915,10 @@
       </div>
     </div>
 
-    <button class="action-btn btn-price" onclick="sendPushNotification()" id="pushSendBtn" style="font-size:.72rem;padding:.6rem 1.5rem;width:100%;">🚀 ENVIAR A TODOS</button>
+    <div class="admin-btn-row" style="display:flex;gap:.5rem;">
+      <button class="action-btn btn-price" onclick="sendPushNotification()" id="pushSendBtn" style="font-size:.72rem;padding:.6rem 1.5rem;flex:1;">🚀 ENVIAR PUSH</button>
+      <button class="action-btn btn-stock" onclick="copyForWhatsApp()" id="pushWaBtn" style="font-size:.72rem;padding:.6rem 1rem;white-space:nowrap;">📋 Copiar p/ WhatsApp</button>
+    </div>
     <p class="modal-success" id="pushMsg" style="margin-top:.5rem;"></p>
 
     <div style="margin-top:1.5rem;border-top:1px solid var(--borde);padding-top:1rem;">
@@ -767,7 +958,8 @@
       <select class="modal-input" id="modalStockSelect" style="cursor:pointer;">
         <option value="ok">En stock</option>
         <option value="low">Ultimo disponible</option>
-        <option value="out">Sin stock (ocultar)</option>
+        <option value="out">Sin stock</option>
+        <option value="pausado">Pausado (oculto en catálogo)</option>
       </select>
       <p class="modal-confirm-text">Para confirmar, escribi el nombre exacto del perfume:</p>
       <input type="text" class="modal-input" id="modalStockConfirm" placeholder="Nombre del perfume..." oninput="checkStockConfirm()"/>
@@ -821,11 +1013,12 @@
     // ============================================================
     // LOGIN
     // ============================================================
-    function doLogin() {
+    async function doLogin() {
       var pass = document.getElementById('loginPass').value;
       if (pass === ADMIN_PASS) {
         document.getElementById('loginWrap').style.display = 'none';
         document.getElementById('adminPanel').classList.add('active');
+        await loadStockFromDB();
         renderPrecios();
         renderStock();
         loadDestacados();
@@ -867,9 +1060,22 @@
     // ============================================================
     // PRECIOS
     // ============================================================
+    async function loadStockFromDB() {
+      try {
+        var { data } = await sb.from('perfume_overrides').select('slug, stock_status');
+        if (data) {
+          data.forEach(function(row) {
+            if (!row.stock_status) return;
+            var p = PERFUMES.find(function(pf) { return pf.slug === row.slug; });
+            if (p) p._stockStatus = row.stock_status;
+          });
+        }
+      } catch(e) { console.error('loadStockFromDB:', e); }
+    }
+
     function getStockStatus(slug) {
-      var s = localStorage.getItem('st_stock_' + slug);
-      return s || 'ok';
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      return (p && p._stockStatus) || 'ok';
     }
 
     function sortPerfumes(list, sortKey) {
@@ -879,8 +1085,8 @@
         case 'name-desc': sorted.sort(function(a, b) { return b.name.localeCompare(a.name); }); break;
         case 'price-asc': sorted.sort(function(a, b) { return (a.price || 0) - (b.price || 0); }); break;
         case 'price-desc': sorted.sort(function(a, b) { return (b.price || 0) - (a.price || 0); }); break;
-        case 'stock-ok': sorted.sort(function(a, b) { var order = { ok: 0, low: 1, out: 2 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
-        case 'stock-out': sorted.sort(function(a, b) { var order = { out: 0, low: 1, ok: 2 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
+        case 'stock-ok': sorted.sort(function(a, b) { var order = { ok: 0, low: 1, out: 2, pausado: 3 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
+        case 'stock-out': sorted.sort(function(a, b) { var order = { pausado: 0, out: 1, low: 2, ok: 3 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
       }
       return sorted;
     }
@@ -914,8 +1120,8 @@
       var html = '';
       list.forEach(function(p) {
         var status = getStockStatus(p.slug);
-        var badgeClass = status === 'ok' ? 'badge-ok' : status === 'low' ? 'badge-low' : 'badge-out';
-        var badgeText = status === 'ok' ? 'En stock' : status === 'low' ? 'Ultimo' : 'Sin stock';
+        var badgeClass = status === 'ok' ? 'badge-ok' : status === 'low' ? 'badge-low' : status === 'pausado' ? 'badge-paused' : 'badge-out';
+        var badgeText = status === 'ok' ? 'En stock' : status === 'low' ? 'Ultimo' : status === 'pausado' ? 'Pausado' : 'Sin stock';
         html += '<tr data-search="' + p.name.toLowerCase() + '">'
           + '<td class="td-name">' + p.name + '</td>'
           + '<td class="td-stock"><span class="badge-stock ' + badgeClass + '">' + badgeText + '</span></td>'
@@ -1264,16 +1470,30 @@
       setTimeout(function() { closeModal('modalPrice'); }, 1500);
     }
 
-    function saveStock() {
+    async function saveStock() {
       var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
       if (!p) return;
       var status = document.getElementById('modalStockSelect').value;
+      var msgEl = document.getElementById('modalStockMsg');
 
-      localStorage.setItem('st_stock_' + editingSlug, status);
+      // Guardar en Supabase (persistente, visible para todos)
+      var result = await sb.from('perfume_overrides').upsert(
+        { slug: editingSlug, stock_status: status },
+        { onConflict: 'slug' }
+      );
 
-      var labels = { ok: 'En stock', low: '\u00daltimo disponible', out: 'Sin stock' };
-      document.getElementById('modalStockMsg').textContent = 'Stock actualizado: ' + labels[status];
-      document.getElementById('modalStockMsg').style.color = '#2ecc71';
+      if (result.error) {
+        msgEl.textContent = 'Error: ' + result.error.message;
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      // Actualizar en memoria
+      p._stockStatus = status;
+
+      var labels = { ok: 'En stock', low: '\u00daltimo disponible', out: 'Sin stock', pausado: '\u23f8 Pausado' };
+      msgEl.textContent = 'Stock actualizado: ' + labels[status];
+      msgEl.style.color = '#2ecc71';
 
       notifyTelegram('\ud83d\udce6 Stock actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcca Estado: ' + labels[status]);
 
@@ -1380,6 +1600,14 @@
       document.getElementById('editCorazon').value = p.notas_corazon || '';
       document.getElementById('editBase').value = p.notas_base || '';
 
+      // Fotos extra
+      document.getElementById('editFotosExtra').value = p.fotos_extra || '';
+
+      // Etiqueta
+      document.getElementById('editEtiqueta').value = p.etiqueta || '';
+      document.getElementById('editEtiquetaColor').value = p.etiqueta_color || '#E8B800';
+      updateEtiquetaPreview();
+
       // Preview foto
       var previewWrap = document.getElementById('editFotoPreview');
       var previewImg = document.getElementById('editFotoPreviewImg');
@@ -1412,7 +1640,10 @@
         foto: document.getElementById('editFoto').value.trim(),
         notas_salida: document.getElementById('editSalida').value.trim(),
         notas_corazon: document.getElementById('editCorazon').value.trim(),
-        notas_base: document.getElementById('editBase').value.trim()
+        notas_base: document.getElementById('editBase').value.trim(),
+        fotos_extra: document.getElementById('editFotosExtra').value.trim(),
+        etiqueta: document.getElementById('editEtiqueta').value.trim(),
+        etiqueta_color: document.getElementById('editEtiquetaColor').value
       };
 
       var msgEl = document.getElementById('editMsg');
@@ -1438,6 +1669,33 @@
       document.getElementById('editSlug').value = '';
       document.getElementById('editMsg').textContent = '';
     }
+
+    // ============================================================
+    // ETIQUETAS DE CINTA — Se muestran como banner arriba de la card
+    // ============================================================
+
+    // setEtiqueta: al hacer clic en un botón predefinido, carga el texto y color
+    function setEtiqueta(text, color) {
+      document.getElementById('editEtiqueta').value = text;
+      if (color) document.getElementById('editEtiquetaColor').value = color;
+      updateEtiquetaPreview();
+    }
+
+    // updateEtiquetaPreview: muestra cómo va a quedar la cinta
+    function updateEtiquetaPreview() {
+      var text = document.getElementById('editEtiqueta').value.trim();
+      var color = document.getElementById('editEtiquetaColor').value;
+      var preview = document.getElementById('editEtiquetaPreview');
+      if (!text) {
+        preview.innerHTML = '<span style="font-size:.6rem;color:var(--gris);">Sin etiqueta</span>';
+        return;
+      }
+      preview.innerHTML = '<div style="display:inline-block;background:' + color + ';color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .8rem;border-radius:3px;">' + escapeHtml(text) + '</div>';
+    }
+
+    // Preview en tiempo real al escribir
+    document.getElementById('editEtiqueta').addEventListener('input', updateEtiquetaPreview);
+    document.getElementById('editEtiquetaColor').addEventListener('input', updateEtiquetaPreview);
 
     async function uploadEditFoto(input) {
       var file = input.files[0];
@@ -1930,9 +2188,15 @@
         var promoHTML = s.promo ? '$' + formatPriceAdmin(s.promo) : '';
         var priceHTML = '$' + formatPriceAdmin(s.price);
 
-        html += '<div class="combo-card">'
+        var isPaused = getStockStatus(s.slug) === 'pausado';
+        var pauseBtn = isPaused
+          ? '<button class="client-btn" style="background:#2ecc71;color:#fff;" onclick="toggleComboStock(\'' + s.slug + '\')">▶ Activar</button>'
+          : '<button class="client-btn" style="background:#95a5a6;color:#fff;" onclick="toggleComboStock(\'' + s.slug + '\')">⏸ Pausar</button>';
+        var pausedLabel = isPaused ? ' <span style="color:#95a5a6;font-size:.6rem;font-weight:600;">⏸ PAUSADO</span>' : '';
+
+        html += '<div class="combo-card" style="' + (isPaused ? 'opacity:.5;' : '') + '">'
           + '<div class="combo-top">'
-            + '<span class="combo-name">' + s.name + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span></span>'
+            + '<span class="combo-name">' + s.name + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + pausedLabel + '</span>'
             + '<span style="font-size:.65rem;color:var(--gris);">' + s.cat + '</span>'
           + '</div>'
           + '<ul class="combo-items-list">' + listHTML + '</ul>'
@@ -1940,6 +2204,7 @@
             + (promoHTML ? '<span class="combo-pricing-promo">' + promoHTML + '</span><span class="combo-pricing-original">' + priceHTML + '</span>' : '<span class="combo-pricing-promo">' + priceHTML + '</span>')
           + '</div>'
           + '<div class="combo-actions">'
+            + pauseBtn
             + '<button class="client-btn client-btn-edit" onclick="editCombo(\'' + s.slug + '\')">✏️ Editar</button>'
             + '<button class="client-btn client-btn-delete" onclick="deleteCombo(\'' + s.slug + '\')">🗑️ Eliminar</button>'
           + '</div>'
@@ -2082,13 +2347,10 @@
         items: items
       };
 
-      // Save to Supabase
+      // Save to Supabase (upsert para que funcione tanto con combos nuevos como hardcodeados)
       try {
-        if (editingComboSlug) {
-          await sb.from('combos').update(comboData).eq('slug', editingComboSlug);
-        } else {
-          await sb.from('combos').insert(comboData);
-        }
+        var result = await sb.from('combos').upsert(comboData, { onConflict: 'slug' });
+        if (result.error) throw result.error;
         msgEl.style.color = '#2ecc71';
         msgEl.textContent = editingComboSlug ? 'Combo actualizado ✓' : 'Combo creado ✓';
         notifyTelegram((editingComboSlug ? '✏️ Combo editado' : '🎁 Nuevo combo creado') + ': ' + name);
@@ -2109,13 +2371,36 @@
       if (!confirm('¿Eliminar el combo "' + s.name + '"?')) return;
       try {
         await sb.from('combos').delete().eq('slug', slug);
-        // Remove from PERFUMES array
-        PERFUMES = PERFUMES.filter(function(p) { return p.slug !== slug; });
+        // Remove from PERFUMES array in-place (const)
+        var delIdx = PERFUMES.findIndex(function(p) { return p.slug === slug; });
+        if (delIdx !== -1) PERFUMES.splice(delIdx, 1);
         notifyTelegram('🗑️ Combo eliminado: ' + s.name);
         loadCombos();
       } catch(e) {
         alert('Error al eliminar: ' + (e.message || ''));
       }
+    }
+
+    async function toggleComboStock(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      var current = getStockStatus(slug);
+      var newStatus = current === 'pausado' ? 'ok' : 'pausado';
+
+      var result = await sb.from('perfume_overrides').upsert(
+        { slug: slug, stock_status: newStatus },
+        { onConflict: 'slug' }
+      );
+
+      if (result.error) {
+        alert('Error: ' + result.error.message);
+        return;
+      }
+
+      p._stockStatus = newStatus;
+      var label = newStatus === 'pausado' ? '⏸ Pausado' : '▶ Activado';
+      notifyTelegram('📦 Combo ' + label + ': ' + p.name);
+      loadCombos();
     }
 
     function cancelCombo() {
@@ -2127,11 +2412,13 @@
       try {
         var { data } = await sb.from('combos').select('*');
         if (data && data.length > 0) {
-          // Remove old DB combos from PERFUMES
-          PERFUMES = PERFUMES.filter(function(p) { return !p._fromDB || !p.esSet; });
+          // Remove old DB combos in-place (no reasignar const)
+          for (var i = PERFUMES.length - 1; i >= 0; i--) {
+            if (PERFUMES[i]._fromDB && PERFUMES[i].esSet) PERFUMES.splice(i, 1);
+          }
           data.forEach(function(c) {
             c._fromDB = true;
-            // Check if already exists (hardcoded)
+            c.esSet = true;
             var idx = PERFUMES.findIndex(function(p) { return p.slug === c.slug; });
             if (idx !== -1) {
               PERFUMES[idx] = c;
@@ -2140,7 +2427,7 @@
             }
           });
         }
-      } catch(e) {}
+      } catch(e) { console.error('loadCombosFromDB error:', e); }
     }
 
     // ============================================================
@@ -2227,17 +2514,29 @@
     }
 
     // ============================================================
-    // PUSH NOTIFICATIONS
+    // PUSH NOTIFICATIONS — Sistema de notificaciones push
+    //
+    // ¿Cómo funciona el sistema de notificaciones?
+    // 1. Los usuarios del sitio ACEPTAN recibir notificaciones
+    //    → se guardan en la tabla "push_subscriptions" de Supabase
+    // 2. Desde este panel, escribís título + mensaje
+    // 3. Al enviar, se llama a /api/send-notification (backend)
+    // 4. El backend lee TODOS los suscriptores y les manda la push
+    // 5. Se guarda un historial en localStorage del admin
+    //
+    // loadPushStats: carga cuántos suscriptores hay + historial
     // ============================================================
     async function loadPushStats() {
       try {
+        // Consultar Supabase: contar suscriptores (sin traer datos, solo el count)
+        // "head: true" = no traer filas, solo metadata (más rápido)
         var res = await sb.from('push_subscriptions').select('id', { count: 'exact', head: true });
         document.getElementById('pushSubCount').textContent = (res.count || 0);
       } catch (e) {
         document.getElementById('pushSubCount').textContent = '?';
       }
 
-      // Historial de envíos
+      // Historial de envíos — se guarda en localStorage (solo visible para el admin)
       var history = JSON.parse(localStorage.getItem('st_push_history') || '[]');
       var box = document.getElementById('pushHistory');
       if (history.length === 0) {
@@ -2268,12 +2567,14 @@
       return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    // sendPushNotification: envía la notificación a TODOS los suscriptores
+    // Flujo: validar → confirmar → POST al backend → guardar historial → limpiar
     async function sendPushNotification() {
       var title = document.getElementById('pushTitle').value.trim();
       var body = document.getElementById('pushBody').value.trim();
       var url = document.getElementById('pushUrl').value.trim() || '/';
-      var msg = document.getElementById('pushMsg');
-      var btn = document.getElementById('pushSendBtn');
+      var msg = document.getElementById('pushMsg');     // elemento para mostrar resultado
+      var btn = document.getElementById('pushSendBtn'); // botón de enviar
 
       if (!title || !body) {
         msg.textContent = '⚠️ Completá título y mensaje';
@@ -2330,9 +2631,169 @@
       }
 
       btn.disabled = false;
-      btn.textContent = '🚀 ENVIAR A TODOS';
+      btn.textContent = '🚀 ENVIAR PUSH';
       setTimeout(function() { msg.textContent = ''; }, 5000);
     }
+
+    // ============================================================
+    // COPIAR PARA WHATSAPP — Genera el mensaje formateado lindo
+    // para que los chicos lo peguen en una difusión de WhatsApp.
+    //
+    // WhatsApp soporta formato básico:
+    //   *negrita*   _cursiva_   ~tachado~   ```código```
+    //
+    // La función arma el mensaje con emojis y formato, lo copia
+    // al portapapeles y muestra confirmación.
+    // ============================================================
+    function copyForWhatsApp() {
+      var title = document.getElementById('pushTitle').value.trim();
+      var body = document.getElementById('pushBody').value.trim();
+      var url = document.getElementById('pushUrl').value.trim() || '';
+      var msg = document.getElementById('pushMsg');
+
+      if (!title || !body) {
+        msg.textContent = '⚠️ Completá título y mensaje primero';
+        msg.style.color = '#e74c3c';
+        setTimeout(function() { msg.textContent = ''; }, 3000);
+        return;
+      }
+
+      // Armar el mensaje con formato WhatsApp
+      var waMsg = '✨ *' + title + '* ✨\n\n'
+        + body + '\n';
+
+      // Si hay URL y no es solo "/", agregar link al sitio
+      if (url && url !== '/') {
+        waMsg += '\n🔗 ' + (url.startsWith('http') ? url : 'https://st-perfumeria.vercel.app' + url);
+      } else {
+        waMsg += '\n🔗 st-perfumeria.vercel.app';
+      }
+
+      waMsg += '\n\n— *ST Scent & Textures* 🖤';
+
+      // Copiar al portapapeles
+      navigator.clipboard.writeText(waMsg).then(function() {
+        msg.textContent = '✅ Mensaje copiado — pegalo en la difusión de WhatsApp';
+        msg.style.color = '#25D366'; // verde WhatsApp
+        setTimeout(function() { msg.textContent = ''; }, 4000);
+      }).catch(function() {
+        // Fallback para navegadores más viejos
+        var ta = document.createElement('textarea');
+        ta.value = waMsg;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        msg.textContent = '✅ Mensaje copiado — pegalo en la difusión de WhatsApp';
+        msg.style.color = '#25D366';
+        setTimeout(function() { msg.textContent = ''; }, 4000);
+      });
+    }
+
+    // ============================================================
+    // PRESETS DE NOTIFICACIONES (hasta 3 mensajes guardados)
+    //
+    // ¿Para qué sirve esto?
+    // Si los chicos mandan seguido el mismo tipo de mensaje
+    // (ej: "Llegaron decants nuevos"), pueden guardarlo como
+    // "predeterminado" y la próxima vez solo tocan "Usar",
+    // cambian lo que necesiten, y listo.
+    //
+    // Se guardan en localStorage (máximo 3).
+    // Cada preset tiene: título, mensaje y URL destino.
+    // ============================================================
+    var PUSH_PRESETS_KEY = 'st_push_presets';  // clave en localStorage
+
+    // getPushPresets: lee los presets guardados (o array vacío si no hay)
+    function getPushPresets() {
+      return JSON.parse(localStorage.getItem(PUSH_PRESETS_KEY) || '[]');
+    }
+
+    // renderPushPresets: dibuja la lista de presets en pantalla
+    function renderPushPresets() {
+      var presets = getPushPresets();
+      var container = document.getElementById('pushPresets');
+      var saveBtn = document.getElementById('pushPresetSaveBtn');
+
+      if (presets.length === 0) {
+        container.innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;padding:.5rem;">No hay mensajes guardados todavía.</p>';
+      } else {
+        container.innerHTML = presets.map(function(pr, i) {
+          return '<div class="push-preset">'
+            + '<div class="push-preset-info">'
+              + '<p class="push-preset-title">' + escapeHtml(pr.title) + '</p>'
+              + '<p class="push-preset-body">' + escapeHtml(pr.body) + '</p>'
+            + '</div>'
+            + '<div class="push-preset-actions">'
+              + '<button class="push-preset-btn push-preset-use" onclick="usePushPreset(' + i + ')">Usar</button>'
+              + '<button class="push-preset-btn push-preset-del" onclick="deletePushPreset(' + i + ')">✕</button>'
+            + '</div>'
+          + '</div>';
+        }).join('');
+      }
+
+      // Ocultar botón guardar si ya hay 3
+      saveBtn.style.display = presets.length >= 3 ? 'none' : 'block';
+    }
+
+    // savePushPreset: guarda el mensaje actual como predeterminado
+    // Valida que haya título y mensaje, y que no haya más de 3
+    function savePushPreset() {
+      var title = document.getElementById('pushTitle').value.trim();
+      var body = document.getElementById('pushBody').value.trim();
+      var url = document.getElementById('pushUrl').value.trim() || '/';
+      var msg = document.getElementById('pushPresetMsg');
+
+      if (!title || !body) {
+        msg.textContent = '⚠️ Escribí título y mensaje primero';
+        msg.style.color = '#e74c3c';
+        setTimeout(function() { msg.textContent = ''; }, 3000);
+        return;
+      }
+
+      var presets = getPushPresets();
+      if (presets.length >= 3) {
+        msg.textContent = '⚠️ Máximo 3 predeterminados. Eliminá uno primero.';
+        msg.style.color = '#e74c3c';
+        setTimeout(function() { msg.textContent = ''; }, 3000);
+        return;
+      }
+
+      presets.push({ title: title, body: body, url: url });
+      localStorage.setItem(PUSH_PRESETS_KEY, JSON.stringify(presets));
+      renderPushPresets();
+
+      msg.textContent = '✅ Mensaje guardado como predeterminado';
+      msg.style.color = '#2ecc71';
+      setTimeout(function() { msg.textContent = ''; }, 3000);
+    }
+
+    // usePushPreset: carga un preset en los campos de título/mensaje/url
+    // para que el admin solo tenga que editar lo que quiera y enviar
+    function usePushPreset(index) {
+      var presets = getPushPresets();
+      if (!presets[index]) return;
+
+      document.getElementById('pushTitle').value = presets[index].title;
+      document.getElementById('pushBody').value = presets[index].body;
+      document.getElementById('pushUrl').value = presets[index].url || '/';
+      // Actualizar vista previa
+      document.getElementById('pushPreviewTitle').textContent = presets[index].title;
+      document.getElementById('pushPreviewBody').textContent = presets[index].body;
+    }
+
+    function deletePushPreset(index) {
+      if (!confirm('¿Eliminar este mensaje predeterminado?')) return;
+      var presets = getPushPresets();
+      presets.splice(index, 1);
+      localStorage.setItem(PUSH_PRESETS_KEY, JSON.stringify(presets));
+      renderPushPresets();
+    }
+
+    // Renderizar presets al cargar
+    renderPushPresets();
 
     // Load combos/votacion/push on tab switch
     var origSwitchTab = switchTab;
@@ -2340,7 +2801,7 @@
       origSwitchTab(tab, btn);
       if (tab === 'combos') loadCombos();
       if (tab === 'votacion') loadVotacionConfig();
-      if (tab === 'push') loadPushStats();
+      if (tab === 'push') { loadPushStats(); renderPushPresets(); }
     };
   </script>
 </body>

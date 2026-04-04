@@ -6,12 +6,12 @@
 
 const webpush = require('web-push');
 
-const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY || 'BE8ARD1FYFJs4w3gTB1IDoWNoypFd0duqUuOq0o6sNy7coKTqMcOS-kX3DuFrjdtn2pec30-QhouO0ADZ9nW8K8';
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || '4AQfIKVgxmyh8lebQrstos0UHa0Zj9c9oIbFZfNWiKM';
-const ADMIN_PASS = process.env.ADMIN_PASS || 'GUANACO _ \u00d1ANDU _ YACARE _ 10';
+const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
+const ADMIN_PASS = process.env.ADMIN_PASS;
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rtgjzzkjrwbkdhkslxix.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || '';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
 
 webpush.setVapidDetails(
   'mailto:st.perfumeria.cr@gmail.com',

@@ -87,20 +87,34 @@
     ================================================
     */
 
-    /* --- VARIABLES (igual en todos los tamaños) --- */
+    /*
+    ================================================
+      VARIABLES CSS (Custom Properties)
+
+      Son como "constantes" de colores y fuentes
+      que usamos en TODO el sitio. Si querés cambiar
+      el amarillo de la marca, lo cambiás ACÁ y se
+      actualiza en todos lados automáticamente.
+
+      Se definen en :root (= el <html>) para que
+      estén disponibles en cualquier selector.
+
+      Se usan así: color: var(--amarillo);
+    ================================================
+    */
     :root {
-      --negro:          #121214;
-      --negro-card:     #1a1a1d;
-      --negro-hover:    #222225;
-      --amarillo:       #E8B800;
-      --amarillo-claro: #F5CD3D;
-      --blanco:         #f0ede8;
-      --gris:           #777777;
-      --gris-claro:     #bbbbbb;
-      --borde:          rgba(232, 184, 0, 0.18);
-      --borde-sutil:    rgba(255,255,255,0.06);
-      --font-display:   'Playfair Display', serif;
-      --font-body:      'Inter', sans-serif;
+      --negro:          #121214;       /* fondo principal del sitio */
+      --negro-card:     #1a1a1d;       /* fondo de tarjetas/cards */
+      --negro-hover:    #222225;       /* fondo cuando pasás el mouse */
+      --amarillo:       #E8B800;       /* color principal de la marca ST */
+      --amarillo-claro: #F5CD3D;       /* versión más clara para hovers */
+      --blanco:         #f0ede8;       /* texto principal (no es blanco puro, es más cálido) */
+      --gris:           #777777;       /* texto secundario/apagado */
+      --gris-claro:     #bbbbbb;       /* texto terciario, subtítulos */
+      --borde:          rgba(232, 184, 0, 0.18);  /* bordes dorados sutiles */
+      --borde-sutil:    rgba(255,255,255,0.06);    /* bordes casi invisibles */
+      --font-display:   'Playfair Display', serif;  /* tipografía elegante para títulos */
+      --font-body:      'Inter', sans-serif;         /* tipografía limpia para texto */
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -114,20 +128,30 @@
     }
 
     /* ================================================
-       NAV — BASE (mobile)
+       NAV — Barra de navegación superior
+
+       "sticky" = se queda pegada arriba cuando
+       scrolleás, a diferencia de "fixed" que siempre
+       está ahí. sticky respeta el flujo del documento.
+
+       "z-index: 100" = se pone por encima de todo
+       (cuanto más alto el número, más "arriba" está).
+
+       "backdrop-filter: blur" = el fondo se ve
+       borroso detrás del nav (efecto vidrio/glass).
     ================================================ */
     nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 1.2rem;       /* mobile: padding chico */
-      height: 58px;            /* mobile: nav más compacto */
-      background: rgba(8,8,8,.94);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--borde);
+      position: sticky;          /* se pega arriba al scrollear */
+      top: 0;                    /* pegado al tope */
+      z-index: 100;              /* por encima de todo el contenido */
+      display: flex;             /* flexbox: distribuye hijos en fila */
+      justify-content: space-between; /* hamburguesa a la izq, logo centro, íconos derecha */
+      align-items: center;       /* centrado vertical */
+      padding: 0 1.2rem;        /* mobile: padding chico a los costados */
+      height: 58px;             /* mobile: nav compacto */
+      background: rgba(8,8,8,.94); /* negro casi opaco (el .94 = 94% opacidad) */
+      backdrop-filter: blur(14px); /* efecto vidrio esmerilado */
+      border-bottom: 1px solid var(--borde); /* línea dorada sutil abajo */
     }
 
     /* En tablet/desktop el nav crece un poco */
@@ -306,23 +330,109 @@
 
     /* Zonas */
     .filter-zone { display: flex; align-items: center; gap: .5rem; }
+
+    /*
+    ================================================
+      MAZO DE CARTAS — Filtros apilados (mobile)
+
+      Los botones se apilan como un mazo de cartas.
+      Solo se ven bordecitos de cada uno. Al tocar
+      (mobile) o hacer hover (desktop) se despliegan.
+      Al elegir un filtro, el mazo se cierra.
+    ================================================
+    */
     .filter-zone--left {
-      flex-wrap: nowrap;
-      justify-content: center;
-      gap: .3rem;
+      position: relative;
       order: 1;
-      width: 100%;
+      width: 160px;
+      min-height: 55px;
+      margin: 0 auto;
+      padding-top: 20px;   /* espacio para el deck-label arriba */
+      /* No flex en mobile, usamos position absolute */
     }
     .filter-zone--left .filter-btn {
-      flex: 1;
+      position: absolute;
+      left: 0;
+      width: 160px;
       justify-content: center;
       padding: .5rem .3rem;
       font-size: .65rem;
       min-width: 0;
+      text-align: center;
+      transition: all .35s cubic-bezier(.25,.8,.25,1);
+      box-shadow: 0 1px 4px rgba(0,0,0,.3);
     }
+    /*
+      DECK LABEL — Etiqueta visible encima del mazo
+      Muestra icono de filtro + nombre del filtro activo + chevron.
+      Así el usuario sabe que es un botón de filtros.
+    */
+    .deck-label {
+      position: absolute;
+      top: -22px;
+      left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .3rem;
+      font-family: var(--font-body);
+      font-size: .55rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      pointer-events: none;
+      z-index: 30;
+    }
+    .deck-label-text { opacity: .8; }
+    .deck-chevron {
+      transition: transform .3s ease;
+    }
+    .filter-zone--left.deck-open .deck-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* Micro-animación de pulso para llamar la atención */
+    @keyframes deck-hint {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(2px); }
+    }
+    .filter-zone--left:not(.deck-open) .filter-btn.active {
+      animation: deck-hint 2s ease-in-out 3; /* pulsa 3 veces al cargar */
+    }
+
+    /* Estado cerrado: todas apiladas con 3px entre cada una */
+    /* nth-child empieza en 2 porque el 1 es .deck-label */
+    .filter-zone--left .filter-btn:nth-of-type(1) { top: 0;    z-index: 1; }
+    .filter-zone--left .filter-btn:nth-of-type(2) { top: 3px;  z-index: 2; }
+    .filter-zone--left .filter-btn:nth-of-type(3) { top: 6px;  z-index: 3; }
+    .filter-zone--left .filter-btn:nth-of-type(4) { top: 9px;  z-index: 4; }
+    .filter-zone--left .filter-btn:nth-of-type(5) { top: 12px; z-index: 5; }
+    .filter-zone--left .filter-btn:nth-of-type(6) { top: 15px; z-index: 6; }
+    /* La activa siempre queda arriba del stack */
+    .filter-zone--left .filter-btn.active { z-index: 15; }
+
+    /* Estado abierto: se despliegan verticalmente */
+    .filter-zone--left.deck-open .filter-btn:nth-of-type(1) { top: 0; }
+    .filter-zone--left.deck-open .filter-btn:nth-of-type(2) { top: 38px; }
+    .filter-zone--left.deck-open .filter-btn:nth-of-type(3) { top: 76px; }
+    .filter-zone--left.deck-open .filter-btn:nth-of-type(4) { top: 114px; }
+    .filter-zone--left.deck-open .filter-btn:nth-of-type(5) { top: 152px; }
+    .filter-zone--left.deck-open .filter-btn:nth-of-type(6) { top: 190px; }
+    .filter-zone--left.deck-open { min-height: 225px; }
+
+    .filter-zone--left .filter-btn:hover {
+      background: var(--amarillo);
+      color: var(--negro);
+      border-color: var(--amarillo);
+      z-index: 20 !important;
+    }
+
     .filter-zone--center {
       order: 2;
       width: 100%;
+      position: relative;
+      z-index: 2;           /* sobre la zona de Ordenar para que el dropdown no quede tapado */
     }
     .filter-zone--right {
       order: 3;
@@ -330,9 +440,29 @@
       justify-content: center;
       gap: .5rem;
     }
+
+    /* Desktop: botones en fila normal (sin mazo) */
     @media (min-width: 768px) {
-      .filter-zone--left  { width: auto; flex-wrap: nowrap; flex-shrink: 0; }
-      .filter-zone--left .filter-btn { flex: unset; padding: .45rem 1.1rem; font-size: .75rem; }
+      .filter-zone--left {
+        width: auto;
+        min-height: unset;
+        padding-top: 0;
+        flex-shrink: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: nowrap;
+        gap: .4rem;
+      }
+      .filter-zone--left .deck-label { display: none; }
+      .filter-zone--left .filter-btn {
+        position: static;
+        width: auto;
+        padding: .45rem 1.1rem;
+        font-size: .75rem;
+        box-shadow: none;
+        animation: none;
+      }
+
       .filter-zone--center { flex: 1; min-width: 0; }
       .filter-zone--right  { width: auto; flex-shrink: 0; margin-left: auto; }
     }
@@ -357,6 +487,7 @@
     .search-wrapper {
       position: relative;
       width: 100%;
+      z-index: 91;        /* por encima del filter-bar (z-index: 90) */
     }
     .search-icon {
       position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
@@ -386,6 +517,72 @@
     }
     .search-clear.visible { display: block; }
     .search-clear:hover { color: #fff; }
+
+    /*
+    ================================================
+      AUTOCOMPLETADO — Dropdown de sugerencias
+
+      Aparece debajo del buscador cuando escribís
+      2+ caracteres. Muestra hasta 5 perfumes que
+      matchean, con foto mini, nombre y marca.
+
+      Clic en una sugerencia → scrollea hasta la card.
+    ================================================
+    */
+    .search-suggestions {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      z-index: 95;         /* por encima del filter-bar y catálogo */
+      background: rgba(18,18,20,.98);
+      border: 1px solid var(--borde);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      box-shadow: 0 8px 30px rgba(0,0,0,.5);
+      backdrop-filter: blur(10px);
+    }
+    .search-suggestions.active { display: block; }
+    .search-sug-item {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .55rem .8rem;
+      cursor: pointer;
+      transition: background .15s;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .search-sug-item:last-child { border-bottom: none; }
+    .search-sug-item:hover, .search-sug-item.active {
+      background: rgba(232,184,0,.1);
+    }
+    .search-sug-img {
+      width: 32px; height: 42px; border-radius: 4px;
+      object-fit: cover; background: #1a1a1a; flex-shrink: 0;
+    }
+    .search-sug-img-placeholder {
+      width: 32px; height: 42px; border-radius: 4px;
+      background: #1a1a1a; display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; color: rgba(232,184,0,.3); flex-shrink: 0;
+    }
+    .search-sug-info { flex: 1; min-width: 0; }
+    .search-sug-name {
+      font-size: .72rem; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .search-sug-name mark {
+      background: none; color: var(--amarillo); font-weight: 700;
+    }
+    .search-sug-brand {
+      font-size: .58rem; color: var(--gris); margin-top: 1px;
+    }
+    .search-sug-price {
+      font-size: .7rem; font-weight: 700; color: var(--amarillo);
+      white-space: nowrap;
+    }
+    .search-sug-empty {
+      padding: .8rem; text-align: center; font-size: .7rem; color: var(--gris);
+    }
 
     /* Ordenar */
     .sort-wrapper { position: relative; }
@@ -418,21 +615,70 @@
       background: #f8f9fa;
     }
 
+    /*
+    ================================================
+      GRID DEL CATÁLOGO
+
+      CSS Grid es el sistema de layout más potente
+      de CSS. Pensalo como una grilla/tabla invisible
+      donde ponés las cards.
+
+      - "grid-template-columns: 1fr" = 1 columna
+        que ocupa todo el ancho (fr = fracción).
+      - "repeat(2, 1fr)" = 2 columnas iguales.
+      - "gap" = espacio ENTRE las cards (no padding).
+
+      Es mobile-first: arranca con 1 columna y
+      en @media (pantalla más grande) pasa a 2.
+    ================================================
+    */
     .catalog-grid {
-      display: grid;
-      grid-template-columns: 1fr;           /* mobile: 1 columna */
-      gap: 1rem;
-      min-height: 400px;
-      transition: all .3s ease;
+      display: grid;                         /* activar CSS Grid */
+      grid-template-columns: 1fr;            /* mobile: 1 sola columna */
+      gap: 1rem;                             /* espacio entre cards */
+      min-height: 400px;                     /* altura mínima para no colapsar */
+      transition: all .3s ease;              /* transición suave al cambiar */
     }
 
+    /* Tablet (768px+): 2 columnas, más gap para que respiren */
     @media (min-width: 768px) {
-      .catalog-grid { grid-template-columns: repeat(2, 1fr); }
+      .catalog-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas iguales */
+        gap: 1.5rem;                           /* más separación entre cards */
+      }
       .catalog-section { padding: 2rem 2.5rem 4rem; }
     }
 
+    /* Desktop grande: más padding lateral y gap generoso */
     @media (min-width: 1200px) {
-      .catalog-section { padding: 2.5rem 4rem 5rem; }
+      .catalog-grid {
+        gap: 2rem;                /* aún más respiro entre cards */
+      }
+      .catalog-section { padding: 2.5rem 5rem 5rem; }
+    }
+
+    /*
+    ================================================
+      CARD ÚNICA — Caso especial
+
+      :only-child = selector CSS que aplica SOLO
+      cuando hay UN SOLO elemento hijo dentro del
+      contenedor. Así, si queda 1 sola card visible
+      (por filtros o búsqueda), no se estira raro.
+
+      "grid-column: 1 / -1" = que ocupe todas las
+      columnas del grid (de la primera a la última).
+
+      "max-width + margin auto" = centrarla sin
+      que se estire a pantalla completa.
+    ================================================
+    */
+    @media (min-width: 768px) {
+      .catalog-grid .product-card:only-child {
+        grid-column: 1 / -1;         /* ocupa todo el ancho del grid */
+        max-width: 560px;            /* pero no se estira infinitamente */
+        margin: 0 auto;             /* centrada horizontalmente */
+      }
     }
 
     /* Botón Ver más */
@@ -458,7 +704,7 @@
       cursor: pointer;
       transition: all .25s;
     }
-    .load-more-btn:hover { background: var(--amarillo-claro); transform: translateY(-2px); }
+    @media (hover: hover) { .load-more-btn:hover { background: var(--amarillo-claro); transform: translateY(-2px); } }
     .load-more-count {
       font-size: .7rem;
       color: #888;
@@ -946,20 +1192,36 @@
     .quiz-restart:hover { border-color: var(--amarillo); color: var(--amarillo); }
 
     /* ================================================
-       CARD — Estilo horizontal (imagen izq, info der)
+       CARD DE PRODUCTO — Layout horizontal
+
+       Cada perfume se muestra en una "card" con:
+       - Imagen a la IZQUIERDA (30% del ancho)
+       - Info a la DERECHA (70% del ancho)
+
+       Usa Flexbox (display: flex) para poner
+       los dos bloques uno al lado del otro.
+
+       "cursor: pointer" = el mouse se vuelve manito
+       para indicar que es clickeable.
+
+       "transition" = animaciones suaves cuando
+       cambian propiedades (sombra, posición, borde).
+
+       "overflow: hidden" = si algo se sale de la
+       card, se corta y no se muestra.
     ================================================ */
     .product-card {
-      background: #ffffff;
-      border-radius: 5px;
-      border: 1px solid #e0e0e0;
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      cursor: pointer;
+      background: #ffffff;         /* fondo blanco (las cards son claras) */
+      border-radius: 5px;         /* esquinas levemente redondeadas */
+      border: 1px solid #e0e0e0;  /* borde gris claro */
+      padding: 15px;              /* espacio interior */
+      display: flex;              /* flexbox: imagen + info en fila */
+      align-items: center;        /* centrado vertical del contenido */
+      gap: 20px;                  /* espacio entre imagen e info */
+      cursor: pointer;            /* manito al pasar el mouse */
       transition: box-shadow .3s ease, transform .2s ease, border-color .3s;
-      overflow: hidden;
-      position: relative;
+      overflow: hidden;           /* corta contenido que se desborde */
+      position: relative;         /* para posicionar badges absolutos dentro */
     }
     /* CTA mobile en cards — copia exacta de .set-cta */
     .card-cta-mobile {
@@ -987,11 +1249,59 @@
       width: 30%;
       flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
+      position: relative;
     }
     .card-image img {
       width: 100%;
       max-height: 250px;
       object-fit: contain;
+    }
+
+    /*
+    ================================================
+      GALERÍA DE FOTOS — Carrusel horizontal
+
+      Si un perfume tiene fotos extra, se muestra
+      un mini carrusel dentro del card-image.
+      El usuario puede swipear (mobile) o usar
+      los dots para navegar.
+
+      overflow-x: auto + scroll-snap = carrusel
+      nativo CSS sin JavaScript para el swipe.
+    ================================================
+    */
+    .card-gallery {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;       /* Firefox */
+      width: 100%;
+    }
+    .card-gallery::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+    .card-gallery-slide {
+      flex: 0 0 100%;
+      scroll-snap-align: center;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-gallery-slide img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+    }
+    .card-gallery-dots {
+      position: absolute;
+      bottom: 4px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 4px; z-index: 2;
+    }
+    .card-gallery-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,.3);
+      transition: background .2s, transform .2s;
+    }
+    .card-gallery-dot.active {
+      background: var(--amarillo);
+      transform: scale(1.3);
     }
 
     /* Frasco placeholder (para productos sin foto) */
@@ -1000,7 +1310,7 @@
       position: relative; opacity: .45;
       transition: opacity .3s ease;
     }
-    .product-card:hover .bottle-placeholder { opacity: .7; }
+    @media (hover: hover) { .product-card:hover .bottle-placeholder { opacity: .7; } }
 
     .bottle-body { width: 100%; height: 80%; border: 1.5px solid #ccc; border-radius: 4px 4px 6px 6px; position: absolute; bottom: 0; background: rgba(0,0,0,.03); }
     .bottle-neck { width: 40%; height: 22%; border: 1.5px solid #ccc; border-bottom: none; border-radius: 3px 3px 0 0; position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.03); }
@@ -1021,7 +1331,19 @@
       line-height: 1.2;
       margin: 0;
     }
-    @media (min-width: 768px) { .card-name { font-size: 1.5rem; } }
+    /* Desktop: cards más generosas, con más padding e imagen más grande */
+    @media (min-width: 768px) {
+      .product-card { padding: 22px 24px; gap: 24px; }
+      .card-image img { max-height: 300px; }
+      .bottle-placeholder { width: 72px; height: 98px; }
+      .card-name { font-size: 1.5rem; }
+      .card-info { gap: 4px; }
+    }
+    @media (min-width: 1200px) {
+      .product-card { padding: 26px 30px; gap: 28px; }
+      .card-image img { max-height: 340px; }
+      .bottle-placeholder { width: 80px; height: 110px; }
+    }
 
     .card-brand-st {
       font-size: .7rem;
@@ -1072,27 +1394,43 @@
        DARK MODE
     ================================================ */
     .nav-dark-toggle {
-      background: none;
-      border: 1px solid rgba(255,255,255,.15);
-      border-radius: 20px;
-      padding: .25rem .6rem;
+      background: rgba(232,184,0,.08);
+      border: 1.5px solid rgba(232,184,0,.4);
+      border-radius: 24px;
+      padding: .35rem .9rem;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       transition: all .3s;
       font-family: inherit;
-      font-size: .7rem;
-      color: var(--gris-claro);
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      color: var(--amarillo);
+      animation: theme-glow 3s ease-in-out 2;  /* brilla 2 veces al cargar */
     }
-    .nav-dark-toggle:hover { border-color: var(--amarillo); background: rgba(232,184,0,.08); }
+    @keyframes theme-glow {
+      0%, 100% { box-shadow: none; }
+      50% { box-shadow: 0 0 12px rgba(232,184,0,.3); }
+    }
+    .nav-dark-toggle-label {
+      font-size: .55rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    @media (hover: hover) {
+      .nav-dark-toggle:hover { border-color: var(--amarillo); background: rgba(232,184,0,.15); box-shadow: 0 0 14px rgba(232,184,0,.2); }
+    }
     .dark-toggle-icon {
-      font-size: .9rem;
+      font-size: 1rem;
       display: inline-block;
       transition: transform .4s ease;
     }
-    .nav-dark-toggle:hover .dark-toggle-icon { transform: rotate(25deg) scale(1.15); }
-    body.dark-mode .nav-dark-toggle { border-color: var(--amarillo); background: rgba(232,184,0,.1); }
+    @media (hover: hover) {
+      .nav-dark-toggle:hover .dark-toggle-icon { transform: rotate(25deg) scale(1.2); }
+    }
+    body.dark-mode .nav-dark-toggle { border-color: var(--amarillo); background: rgba(232,184,0,.12); }
     body.dark-mode .nav-dark-toggle .dark-toggle-icon { transform: rotate(0); }
 
     /* Botón flotante dark mode — solo mobile */
@@ -1111,7 +1449,7 @@
       }
       .dark-float:active { transform: scale(.9); }
       .dark-float-icon { font-size: 1.3rem; transition: transform .4s ease; }
-      .dark-float:hover { box-shadow: 0 4px 24px rgba(232,184,0,.5); }
+      @media (hover: hover) { .dark-float:hover { box-shadow: 0 4px 24px rgba(232,184,0,.5); } }
       body.dark-mode .dark-float {
         background: rgba(232,184,0,.15);
         border-color: var(--amarillo);
@@ -1121,7 +1459,7 @@
 
     body.dark-mode .catalog-section { background: #121212; }
     body.dark-mode .product-card { background: #1a1a1a; border-color: #2a2a2a; }
-    body.dark-mode .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+    @media (hover: hover) { body.dark-mode .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); } }
     body.dark-mode .card-name { color: #f0f0f0; }
     body.dark-mode .card-brand { color: #888; }
     body.dark-mode .card-brand-st { color: var(--amarillo); }
@@ -1144,8 +1482,8 @@
     body.dark-mode .load-more-btn { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: rgba(232,184,0,.3); }
     body.dark-mode .load-more-btn:hover { background: var(--amarillo); color: #000; }
     body.dark-mode .filter-bar { background: #0e0e0e; }
-    body.dark-mode .note-chip { background: rgba(255,255,255,.06); color: #aaa; border-color: rgba(255,255,255,.1); }
-    body.dark-mode .note-chip:hover, body.dark-mode .note-chip.active { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: var(--amarillo); }
+    body.dark-mode .note-chip { background: rgba(232,184,0,.06); color: var(--amarillo); border-color: rgba(232,184,0,.35); }
+    body.dark-mode .note-chip:hover, body.dark-mode .note-chip.active { background: rgba(232,184,0,.18); color: var(--amarillo); border-color: var(--amarillo); box-shadow: 0 0 8px rgba(232,184,0,.15); }
     body.dark-mode .occasion-label { color: #666; }
 
     /* Botón favorito (corazón) */
@@ -1159,10 +1497,10 @@
       padding: 0;
       box-shadow: 0 1px 4px rgba(0,0,0,.15);
     }
-    .fav-heart:hover { transform: scale(1.15); color: #e74c3c; }
+    @media (hover: hover) { .fav-heart:hover { transform: scale(1.15); color: #e74c3c; } }
     .fav-heart.liked { color: #e74c3c; background: rgba(255,255,255,.95); }
 
-    /* Botón comparar (balanza) */
+    /* Botón comparar (balanza) — debajo del corazón, mismo lado (derecha/foto) */
     .compare-btn {
       position: absolute; top: 46px; right: 10px; z-index: 15;
       background: rgba(255,255,255,.85); border: none; border-radius: 50%;
@@ -1173,7 +1511,7 @@
       padding: 0;
       box-shadow: 0 1px 4px rgba(0,0,0,.15);
     }
-    .compare-btn:hover { transform: scale(1.1); color: var(--amarillo); }
+    @media (hover: hover) { .compare-btn:hover { transform: scale(1.1); color: var(--amarillo); } }
     .compare-btn.active { color: #fff; background: var(--amarillo); }
     body.dark-mode .compare-btn { background: rgba(40,40,40,.85); }
     body.dark-mode .compare-btn.active { background: var(--amarillo); color: #000; }
@@ -1322,7 +1660,7 @@
       box-sizing: border-box;
       overflow: hidden;
     }
-    .product-card:hover .card-reveal { transform: translateX(0); opacity: 1; pointer-events: auto; }
+    @media (hover: hover) { .product-card:hover .card-reveal { transform: translateX(0); opacity: 1; pointer-events: auto; } }
 
     /* ESPEJO — columna izquierda: TEXTO | FOTO, reveal entra desde la izq */
     @media (min-width: 768px) {
@@ -1341,9 +1679,13 @@
         border-radius: 5px 0 0 5px;
         transform: translateX(-100%);
       }
+    }
+    @media (hover: hover) and (min-width: 768px) {
       .product-card.mirror:hover .card-reveal {
         transform: translateX(0);
       }
+    }
+    @media (min-width: 768px) {
       .product-card.mirror .fav-heart {
         right: auto;
         left: 10px;
@@ -1356,8 +1698,8 @@
     .reveal-actions { display: flex; gap: .3rem; margin-top: auto; }
     .reveal-actions .cart-add-btn { flex: 1; margin-top: 0; }
     .reveal-actions .reveal-share { flex-shrink: 0; width: 36px; margin-top: 0; padding: .4rem; font-size: .75rem; display: flex; align-items: center; justify-content: center; }
-    .scent-notes  { display: flex; flex-direction: column; gap: .2rem; margin-bottom: .4rem; flex: 1; min-height: 0; }
-    .scent-note   { font-size: .62rem; font-weight: 300; color: #e0e0e0; line-height: 1.3; }
+    .scent-notes  { display: flex; flex-direction: column; gap: .2rem; margin-bottom: .4rem; flex: 1; min-height: 0; overflow: hidden; }
+    .scent-note   { font-size: .62rem; font-weight: 300; color: #e0e0e0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .scent-note strong  { font-weight: 600; color: #fff; }
     .note-label { font-weight: 700; color: var(--amarillo); font-size: .55rem; letter-spacing: .1em; margin-right: .3rem; }
 
@@ -1567,8 +1909,10 @@
     .section-title em { font-style: italic; color: var(--amarillo); }
     .section-link { font-size: .7rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--gris-claro); text-decoration: none; display: flex; align-items: center; gap: .4rem; transition: color .3s; }
     .section-link::after { content: '\2192'; transition: transform .3s; }
-    .section-link:hover { color: var(--amarillo); }
-    .section-link:hover::after { transform: translateX(4px); }
+    @media (hover: hover) {
+      .section-link:hover { color: var(--amarillo); }
+      .section-link:hover::after { transform: translateX(4px); }
+    }
 
     .cat-grid {
       display: grid;
@@ -1588,13 +1932,15 @@
 
     .cat-card { background: var(--negro-card); padding: 1.8rem 1.5rem; text-decoration: none; display: flex; flex-direction: column; gap: .7rem; transition: background .3s; position: relative; overflow: hidden; }
     .cat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--amarillo); transform: scaleX(0); transform-origin: left; transition: transform .4s; }
-    .cat-card:hover { background: var(--negro-hover); }
-    .cat-card:hover::after { transform: scaleX(1); }
+    @media (hover: hover) {
+      .cat-card:hover { background: var(--negro-hover); }
+      .cat-card:hover::after { transform: scaleX(1); }
+    }
 
     @media (min-width: 768px) { .cat-card { padding: 2.5rem 2rem; } }
 
     .cat-number { font-family: var(--font-display); font-size: 2.5rem; font-weight: 300; color: transparent; -webkit-text-stroke: 1px rgba(232,184,0,.35); line-height: 1; transition: -webkit-text-stroke .3s; }
-    .cat-card:hover .cat-number { -webkit-text-stroke-color: var(--amarillo); }
+    @media (hover: hover) { .cat-card:hover .cat-number { -webkit-text-stroke-color: var(--amarillo); } }
     .cat-name  { font-family: var(--font-display); font-size: 1.5rem; font-weight: 400; color: var(--blanco); letter-spacing: .04em; }
     .cat-count { font-size: .68rem; color: var(--gris); letter-spacing: .1em; text-transform: uppercase; }
 
@@ -1816,7 +2162,7 @@
       position: relative; z-index: 1;
       box-shadow: 0 2px 12px rgba(232,184,0,.3);
     }
-    .cta-register-btn:hover { background: var(--amarillo-claro); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(232,184,0,.4); }
+    @media (hover: hover) { .cta-register-btn:hover { background: var(--amarillo-claro); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(232,184,0,.4); } }
     .cta-register.logged { display: none; }
 
     /* Scroll to top */
@@ -1830,7 +2176,7 @@
       box-shadow: 0 3px 12px rgba(0,0,0,.3);
     }
     .scroll-top.visible { opacity: 1; pointer-events: auto; }
-    .scroll-top:hover { transform: scale(1.1); }
+    @media (hover: hover) { .scroll-top:hover { transform: scale(1.1); } }
     .scroll-top svg { width: 18px; height: 18px; stroke: #080808; stroke-width: 2.5; fill: none; }
     @media (min-width: 768px) { .scroll-top { bottom: 102px; left: 30px; } }
 
@@ -2066,7 +2412,7 @@
       transition: transform .25s, box-shadow .25s;
       text-decoration: none;
     }
-    .wa-float:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(0,0,0,.4); }
+    @media (hover: hover) { .wa-float:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(0,0,0,.4); } }
     @media (min-width: 768px) { .wa-float { width: 62px; height: 62px; bottom: 30px; right: 30px; } }
 
     /* Push notification banner */
@@ -2150,7 +2496,7 @@
       padding: .7rem 2rem; border-radius: 8px; cursor: pointer;
       transition: all .2s; text-decoration: none;
     }
-    .welcome-cta:hover { background: var(--amarillo-claro); transform: translateY(-1px); }
+    @media (hover: hover) { .welcome-cta:hover { background: var(--amarillo-claro); transform: translateY(-1px); } }
     .welcome-city {
       font-size: .6rem; color: rgba(255,255,255,.25); margin-top: 1rem;
       letter-spacing: .08em;
@@ -2218,6 +2564,54 @@
       font-size: .55rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
       background: var(--amarillo); color: #000; padding: 2px 7px; border-radius: 3px;
       pointer-events: none;
+    }
+    .badge-tipo {
+      display: inline-block;
+      font-size: .5rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      background: rgba(232,184,0,.15); color: var(--amarillo); padding: 2px 6px; border-radius: 3px;
+      border: 1px solid rgba(232,184,0,.3);
+    }
+    .product-card.pausado { opacity: .5; pointer-events: none; position: relative; }
+    .product-card.pausado .card-cta-mobile,
+    .product-card.pausado .cart-add-btn,
+    .product-card.pausado .reveal-cta { display: none; }
+    .badge-proximamente {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-8deg); z-index: 20;
+      background: rgba(0,0,0,.85); color: var(--amarillo);
+      font-family: var(--font-display); font-size: .75rem; font-weight: 700;
+      letter-spacing: .15em; text-transform: uppercase;
+      padding: .5rem 1.2rem; border-radius: 4px;
+      border: 1.5px solid var(--amarillo);
+      pointer-events: none; white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    }
+
+    /*
+    ================================================
+      CINTA DE ETIQUETA PERSONALIZADA
+
+      Es una barra horizontal que aparece arriba
+      de la card, de punta a punta. El color de
+      fondo se define inline desde el admin.
+
+      "pointer-events: none" = no intercepta clicks,
+      así la card sigue siendo clickeable debajo.
+    ================================================
+    */
+    .card-ribbon {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 4;
+      font-size: .55rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      text-align: center;
+      color: #fff;
+      padding: 4px 8px;
+      pointer-events: none;
+      line-height: 1.3;
+      text-shadow: 0 1px 2px rgba(0,0,0,.3);
     }
 
     /* Botón compartir en reveal */
@@ -2287,15 +2681,21 @@
       color: #555; cursor: pointer; transition: all .2s;
       white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,.06);
     }
-    .notes-expand-btn:hover { border-color: var(--amarillo); color: #333; }
+    @media (hover: hover) {
+      .notes-expand-btn:hover { border-color: var(--amarillo); color: #333; }
+    }
     .notes-expand-btn.open { background: #fffde6; border-color: var(--amarillo); color: #b8960a; }
     body.dark-mode .notes-expand-btn { background: rgba(255,255,255,.06); color: #aaa; border-color: rgba(255,255,255,.1); }
-    body.dark-mode .notes-expand-btn:hover, body.dark-mode .notes-expand-btn.open { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: var(--amarillo); }
+    body.dark-mode .notes-expand-btn.open { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: var(--amarillo); }
+    @media (hover: hover) {
+      body.dark-mode .notes-expand-btn:hover { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: var(--amarillo); }
+    }
 
     /* Notas colapsables */
     .note-filter-wrap {
-      display: none; gap: .4rem; flex-wrap: wrap;
-      padding: .6rem 1.2rem 0;
+      display: none; gap: .5rem; flex-wrap: wrap;
+      padding: .8rem 1.2rem 1.2rem;
+      margin-bottom: 1rem;           /* espacio de respiración antes de las cards */
       justify-content: center;
       animation: noteSlide .25s ease;
     }
@@ -2305,13 +2705,16 @@
     .note-chip {
       font-family: var(--font-body); font-size: .62rem; font-weight: 600;
       letter-spacing: .05em; padding: .35rem .8rem; border-radius: 20px;
-      background: #fff; border: 1.5px solid #ccc;
-      color: #555; cursor: pointer; transition: all .2s;
+      background: rgba(232,184,0,.05);
+      border: 1.5px solid rgba(232,184,0,.4);
+      color: var(--amarillo); cursor: pointer; transition: all .2s;
       white-space: nowrap;
       box-shadow: 0 1px 3px rgba(0,0,0,.06);
     }
-    .note-chip:hover { border-color: var(--amarillo); color: #333; background: #fffde6; }
-    .note-chip.active { background: #fff8d6; border-color: var(--amarillo); color: #b8960a; font-weight: 700; }
+    @media (hover: hover) {
+      .note-chip:hover { border-color: var(--amarillo); color: #fff; background: rgba(232,184,0,.15); }
+    }
+    .note-chip.active { background: rgba(232,184,0,.2); border-color: var(--amarillo); color: var(--amarillo); font-weight: 700; box-shadow: 0 0 8px rgba(232,184,0,.2); }
 
 
     /* ================================================
@@ -2338,7 +2741,7 @@
       transition: transform .25s, box-shadow .25s;
       animation: cartBounce .4s ease;
     }
-    .cart-float:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(232,184,0,.5); }
+    @media (hover: hover) { .cart-float:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(232,184,0,.5); } }
     .cart-float.visible { display: flex; }
     .cart-float-count {
       background: #000; color: var(--amarillo); width: 22px; height: 22px;
@@ -2478,6 +2881,14 @@
       border-radius: 6px; cursor: pointer; text-align: center; transition: all .2s;
     }
     .cart-favs-btn:hover { background: rgba(231,76,60,.15); }
+    .cart-note {
+      display: block; width: 100%; margin-top: .8rem; padding: .6rem .8rem;
+      font-family: var(--font-body); font-size: .72rem; color: var(--blanco);
+      background: rgba(255,255,255,.04); border: 1px solid var(--borde-sutil);
+      border-radius: 6px; resize: none; outline: none; transition: border-color .2s;
+    }
+    .cart-note:focus { border-color: var(--amarillo); }
+    .cart-note::placeholder { color: var(--gris); font-size: .65rem; }
     .cart-limit-msg {
       text-align: center; font-size: .65rem; color: var(--amarillo); padding: .4rem;
       background: rgba(232,184,0,.08); border-radius: 6px; margin-top: .5rem;
@@ -3329,6 +3740,7 @@
     <div class="nav-icons">
       <button class="nav-dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Cambiar tema">
         <span class="dark-toggle-icon">🌙</span>
+        <span class="nav-dark-toggle-label">Tema</span>
       </button>
       <a href="#catalogo" class="nav-icon-btn nav-fav-btn" title="Favoritos" onclick="showFavorites(event)">
         <span class="nav-fav-wrap">
@@ -3431,7 +3843,12 @@
     queden centrados en mobile y alineados a la izquierda en desktop
   -->
   <div class="filter-bar" id="catalogo">
-    <div class="filter-zone filter-zone--left">
+    <div class="filter-zone filter-zone--left" id="filterDeck">
+      <div class="deck-label" id="deckLabel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/></svg>
+        <span class="deck-label-text">Todos</span>
+        <svg class="deck-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
       <button class="filter-btn active" onclick="filterBy('all',this)">Todos</button>
       <button class="filter-btn" onclick="filterBy('Unisex',this)">Unisex</button>
       <button class="filter-btn" onclick="filterBy('Hombre',this)">Hombre</button>
@@ -3442,8 +3859,9 @@
     <div class="filter-zone filter-zone--center">
       <div class="search-wrapper">
         <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, marca o nota..." oninput="applySearch(this.value)">
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, marca o nota..." oninput="applySearch(this.value)" autocomplete="off">
         <button class="search-clear" id="searchClear" onclick="clearSearch()">&times;</button>
+        <div class="search-suggestions" id="searchSuggestions"></div>
       </div>
     </div>
     <div class="filter-zone filter-zone--right">
@@ -3825,7 +4243,8 @@
         <span class="cart-total-amount" id="cartTotal">$0</span>
       </div>
       <p class="cart-cash" id="cartCash"></p>
-      <button class="cart-wa-btn" onclick="sendCartToWA()">📲 Consultar por WhatsApp</button>
+      <textarea class="cart-note" id="cartNote" placeholder="¿Algún comentario? Ej: Retiro el jueves, es para regalo, quiero pagar con tarjeta..." rows="2" maxlength="200"></textarea>
+      <button class="cart-wa-btn" onclick="sendCartToWA()">📲 Enviar pedido por WhatsApp</button>
       <div class="cart-mp-info">
         <p class="cart-mp-text">💳 <strong>¿Pagás con tarjeta?</strong> Aceptamos todas las tarjetas vía Mercado Pago. Te mandamos el link de pago por WhatsApp.</p>
         <p class="cart-mp-envios">📦 <strong>¿No sos de Comodoro?</strong> Hacemos envíos a todo el país. Consultanos por WhatsApp.</p>
@@ -4430,9 +4849,9 @@
 
     function scrollToPerfume(slug) {
       // Limpiar filtros para que la card sea visible
-      currentFilter = '';
-      currentBrand = '';
-      currentPerfil = '';
+      currentFilter = 'all';
+      currentNoteFilter = '';
+      currentOccasion = '';
       document.getElementById('searchInput').value = '';
       document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       applyCardVisibility();
@@ -4516,28 +4935,36 @@
       } catch(e) {}
     }
 
+    // saveFavs: guarda la lista de favoritos en localStorage
+    // localStorage = almacenamiento del navegador que persiste
+    // aunque cierres la pestaña. Se guarda como texto (JSON).
     function saveFavs() {
       localStorage.setItem('st_favs', JSON.stringify(favs));
       updateFavBadge();
     }
 
+    // updateFavBadge: actualiza el numerito rojo en el ícono de corazón del nav
     function updateFavBadge() {
       var badge = document.getElementById('favBadge');
       if (!badge) return;
       badge.textContent = favs.length;
+      // "toggle" agrega o quita la clase según si hay favs o no
       badge.classList.toggle('visible', favs.length > 0);
     }
 
+    // toggleFav: agrega o quita un perfume de favoritos
+    // Se ejecuta al tocar el corazón ♡/♥ en cada card
     async function toggleFav(btn, event) {
-      event.stopPropagation();
-      event.preventDefault();
-      var card = btn.closest('.product-card');
-      var slug = card.dataset.slug;
-      var idx = favs.indexOf(slug);
+      event.stopPropagation();   // evita que el click "suba" al card
+      event.preventDefault();    // evita comportamiento por defecto
+      var card = btn.closest('.product-card');  // busca la card padre
+      var slug = card.dataset.slug;             // obtiene el identificador
+      var idx = favs.indexOf(slug);             // ¿ya está en favoritos?
       if (idx !== -1) {
-        favs.splice(idx, 1);
-        btn.classList.remove('liked');
-        btn.innerHTML = '\u2661';
+        // YA ERA FAVORITO → lo saca
+        favs.splice(idx, 1);           // eliminar del array
+        btn.classList.remove('liked');  // quitar estilo rojo
+        btn.innerHTML = '\u2661';      // corazón vacío ♡
         if (currentUser) {
           sb.from('favoritos').delete().eq('user_id', currentUser.id).eq('slug', slug).then(function(){});
         }
@@ -4717,21 +5144,25 @@
     }
 
     // ============================================================
-    // UTILIDADES
+    // UTILIDADES — Funciones helper que se usan en muchos lados
     // ============================================================
 
+    // formatPrice: convierte el precio de la base de datos a formato argentino
+    // La DB guarda "67,500.00" (formato US) → esto lo convierte a "$67.500"
     function formatPrice(str) {
-      // "67,500.00" → "$67.500"  |  "109,000.00" → "$109.000"
       if (!str) return '';
-      const num = Math.round(parseFloat(str.replace(/,/g, '')));
-      return '$' + num.toLocaleString('es-AR').replace(/,/g, '.');
+      const num = Math.round(parseFloat(str.replace(/,/g, '')));  // quitar comas US, parsear número
+      return '$' + num.toLocaleString('es-AR').replace(/,/g, '.'); // formato AR con punto de miles
     }
 
+    // primaryCat: de una cadena "Unisex, Hombre" saca solo la primera categoría
+    // Útil porque algunos perfumes tienen múltiples categorías
     function primaryCat(catStr) {
-      // "Unisex, Hombre" → "Unisex"  (primera categoría)
       return catStr.split(',')[0].trim();
     }
 
+    // catClass: devuelve la clase CSS del tag según la categoría
+    // Esto determina si el tag se muestra azul (hombre), rosa (mujer) o dorado (unisex)
     function catClass(cat) {
       const c = primaryCat(cat).toLowerCase();
       if (c === 'hombre') return 'tag-hombre';
@@ -4740,7 +5171,6 @@
     }
 
     function catLabel(cat) {
-      // Para el tag visible: si tiene dos categorías, muestra la primera
       return primaryCat(cat);
     }
 
@@ -4754,6 +5184,36 @@
     // GENERAR CARDS
     // ============================================================
 
+    var PRODUCT_TYPES = [
+      { keyword: 'desodorante', label: 'Desodorante' },
+      { keyword: 'body spray', label: 'Body Spray' },
+      { keyword: 'body splash', label: 'Body Splash' },
+      { keyword: 'crema', label: 'Crema' },
+      { keyword: 'aceite', label: 'Aceite' },
+      { keyword: 'locion', label: 'Loción' },
+      { keyword: 'jabon', label: 'Jabón' },
+    ];
+
+    function detectProductType(name) {
+      var n = stripAccents(name.toLowerCase());
+      for (var i = 0; i < PRODUCT_TYPES.length; i++) {
+        if (n.indexOf(PRODUCT_TYPES[i].keyword) !== -1) return PRODUCT_TYPES[i].label;
+      }
+      return null;
+    }
+
+    // updateGalleryDots: actualiza los puntitos del carrusel de fotos
+    // al scrollear. Detecta qué slide está visible y marca su dot.
+    function updateGalleryDots(gallery) {
+      var slides = gallery.querySelectorAll('.card-gallery-slide');
+      if (slides.length === 0) return;
+      var scrollLeft = gallery.scrollLeft;
+      var slideWidth = slides[0].offsetWidth;
+      var activeIdx = Math.round(scrollLeft / slideWidth);
+      var dots = gallery.parentElement.querySelectorAll('.card-gallery-dot');
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === activeIdx); });
+    }
+
     function buildCard(p) {
       const letter = p.name.charAt(0).toUpperCase();
       const priceFormatted = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
@@ -4761,9 +5221,27 @@
       const pCat = catLabel(p.cat);
 
       const fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-      const imageHTML = p.foto
-        ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
-        : '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
+
+      // Galería: si tiene fotos_extra, armar carrusel; si no, foto simple
+      var imageHTML;
+      var extraFotos = p.fotos_extra ? p.fotos_extra.split(',').map(function(u) { return u.trim(); }).filter(Boolean) : [];
+
+      if (p.foto && extraFotos.length > 0) {
+        // Carrusel con foto principal + extras (máx 4 total)
+        var allFotos = [fotoSrc].concat(extraFotos.slice(0, 3));
+        var slides = allFotos.map(function(url) {
+          return '<div class="card-gallery-slide"><img src="' + url.replace(/ /g, '%20') + '" alt="' + p.name + '" loading="lazy"></div>';
+        }).join('');
+        var dots = allFotos.map(function(_, i) {
+          return '<span class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></span>';
+        }).join('');
+        imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>'
+          + '<div class="card-gallery-dots">' + dots + '</div>';
+      } else if (p.foto) {
+        imageHTML = '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">';
+      } else {
+        imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
+      }
 
       const effectivePrice = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
       const cashPrice = Math.round(effectivePrice * 0.9);
@@ -4780,20 +5258,37 @@
       var isFav = favs.indexOf(p.slug) !== -1;
 
       // Stock badge
-      var stockStatus = localStorage.getItem('st_stock_' + p.slug) || 'ok';
+      var stockStatus = p._stockStatus || 'ok';
+      var isPaused = stockStatus === 'pausado';
       var stockBadge = '';
       if (stockStatus === 'low') stockBadge = '<span class="badge-ultimo">Último</span>';
+      if (stockStatus === 'out') stockBadge = '<span class="badge-sin-stock">Sin stock</span>';
+      if (isPaused) stockBadge = '<span class="badge-proximamente">Próximamente</span>';
 
       // Nuevo badge (últimos 10 del array = recién agregados)
       var nuevoBadge = '';
       if (p._isNew) nuevoBadge = '<span class="badge-nuevo">Nuevo</span>';
 
+      // Tipo de producto (detección por nombre)
+      var prodType = detectProductType(p.name);
+      var tipoBadge = prodType ? '<span class="badge-tipo">' + prodType + '</span>' : '';
+
+      // Cinta de etiqueta personalizada (se configura desde el admin)
+      var ribbonHTML = '';
+      if (p.etiqueta) {
+        var ribbonColor = p.etiqueta_color || '#E8B800';
+        ribbonHTML = '<div class="card-ribbon" style="background:' + ribbonColor + ';">' + p.etiqueta + '</div>';
+      }
+
+      // ML del producto
+      var mlText = (p.ml || 100) + ' ml';
+
       // Visitas
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
-      return '<div class="product-card card-lateral" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
-        + stockBadge + nuevoBadge
+      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
+        + ribbonHTML + stockBadge + nuevoBadge
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
         + '<div class="card-image">' + imageHTML + '</div>'
@@ -4803,8 +5298,9 @@
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
           + '<div class="card-tags">'
             + '<span class="card-tag tag-cat">' + pCat + '</span>'
-            + '<span class="card-tag tag-ml">100 ml</span>'
+            + '<span class="card-tag tag-ml">' + mlText + '</span>'
             + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+            + tipoBadge
           + '</div>'
           + ((p.notas_salida || p.notas_corazon || p.notas_base)
             ? '<div class="card-notes-preview">'
@@ -4823,8 +5319,9 @@
           + '<div class="reveal-divider"></div>'
           + '<div class="reveal-tags">'
             + '<span class="card-tag tag-cat">' + pCat + '</span>'
-            + '<span class="card-tag tag-ml">100 ml</span>'
+            + '<span class="card-tag tag-ml">' + mlText + '</span>'
             + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+            + tipoBadge
           + '</div>'
           + '<div class="scent-notes">'
             + (p.esSet
@@ -4972,7 +5469,9 @@
         if (s.setTipo === 'regalo') badgeText = 'REGALO';
         if (s.setTipo === 'mini-collection') badgeText = 'MINI x' + itemCount;
 
-        html += '<div class="set-card">'
+        var setPaused = s._stockStatus === 'pausado';
+        html += '<div class="set-card" style="' + (setPaused ? 'opacity:.45;pointer-events:none;position:relative;' : '') + '">'
+          + (setPaused ? '<span class="badge-proximamente">Próximamente</span>' : '')
           + '<div class="set-images ' + itemsClass + '">' + imgsHTML + '</div>'
           + '<div class="set-info">'
             + '<span class="set-badge">' + badgeText + '</span>'
@@ -4982,7 +5481,7 @@
               + '<span class="set-price-promo">' + promoHTML + '</span>'
               + (origHTML ? '<span class="set-price-original">' + origHTML + '</span>' : '')
             + '</div>'
-            + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + s.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="set-cta">Consultar &#8594;</a>'
+            + (setPaused ? '' : '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + s.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="set-cta">Consultar &#8594;</a>')
           + '</div>'
         + '</div>';
       });
@@ -4997,41 +5496,74 @@
     }
 
     // ============================================================
-    // VER SIMILARES
+    // VER SIMILARES — Busca perfumes parecidos por notas
+    //
+    // ¿Cómo funciona?
+    // 1. Toma un perfume y extrae TODAS sus notas (salida, corazón, base)
+    // 2. Compara esas notas con las de CADA OTRO perfume del catálogo
+    // 3. Cuenta cuántas notas tienen en común
+    // 4. Calcula un porcentaje: (notas en común / total notas del original) × 100
+    // 5. Solo muestra los que tengan MÁS DEL 60% de coincidencia
+    // 6. Devuelve los 5 mejores resultados, ordenados de mayor a menor
     // ============================================================
+
+    // getNotas: extrae todas las notas de un perfume y las junta en un array
+    // Ejemplo: si un perfume tiene notas_salida="bergamota, limón" y
+    //          notas_corazon="rosa, jazmín", devuelve:
+    //          ["bergamota", "limón", "rosa", "jazmín"]
     function getNotas(p) {
       var all = [];
+      // Recorre los 3 tipos de notas: salida, corazón y base
       [p.notas_salida, p.notas_corazon, p.notas_base].forEach(function(n) {
-        if (!n) return;
+        if (!n) return;  // si no tiene esa nota, saltear
+        // Separa por comas y limpia cada una
         n.split(',').forEach(function(s) {
-          var nota = s.trim().toLowerCase();
+          var nota = s.trim().toLowerCase();  // "  Bergamota " → "bergamota"
           if (nota) all.push(nota);
         });
       });
       return all;
     }
 
+    // findSimilares: busca los perfumes más parecidos a uno dado
+    // Recibe el "slug" (identificador único) del perfume
     function findSimilares(slug) {
+      // Buscar el perfume original en el array PERFUMES
       var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
       if (!perfume) return [];
-      var notasOrigen = getNotas(perfume);
-      if (notasOrigen.length === 0) return [];
 
-      var scores = [];
+      // Sacar sus notas
+      var notasOrigen = getNotas(perfume);
+      if (notasOrigen.length === 0) return [];  // si no tiene notas, no puede comparar
+
+      var scores = [];  // acá se guardan los candidatos
+
+      // Recorrer TODOS los perfumes del catálogo
       PERFUMES.forEach(function(p) {
+        // Saltear el mismo perfume y los sets (no son perfumes individuales)
         if (p.slug === slug || p.esSet) return;
+
         var notasP = getNotas(p);
-        if (notasP.length === 0) return;
+        if (notasP.length === 0) return;  // sin notas = no se puede comparar
+
+        // Contar cuántas notas del original aparecen en este perfume
         var shared = 0;
         notasOrigen.forEach(function(n) {
-          if (notasP.indexOf(n) !== -1) shared++;
+          if (notasP.indexOf(n) !== -1) shared++;  // ¡coincide!
         });
+
+        // Solo incluir si hay al menos 1 nota en común Y más del 60% de match
         if (shared > 0) {
-          scores.push({ perfume: p, shared: shared, total: notasOrigen.length });
+          var pct = Math.round((shared / notasOrigen.length) * 100);
+          if (pct > 60) {
+            scores.push({ perfume: p, shared: shared, total: notasOrigen.length });
+          }
         }
       });
 
+      // Ordenar: el que más notas comparte primero
       scores.sort(function(a, b) { return b.shared - a.shared; });
+      // Devolver máximo 5 resultados
       return scores.slice(0, 5);
     }
 
@@ -5046,7 +5578,12 @@
 
       var content = document.getElementById('similaresContent');
       if (similares.length === 0) {
-        content.innerHTML = '<p style="text-align:center;color:var(--gris-claro);font-size:.8rem;">No se encontraron perfumes similares.</p>';
+        content.innerHTML = '<div style="text-align:center;padding:1.5rem .5rem;">'
+          + '<p style="font-size:1.8rem;margin-bottom:.6rem;">🔮</p>'
+          + '<p style="color:#fff;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">¡Este perfume es único!</p>'
+          + '<p style="color:var(--gris);font-size:.72rem;line-height:1.5;">Ningún otro perfume de nuestro catálogo comparte más del 60% de sus notas con <strong style="color:var(--amarillo);">' + perfume.name + '</strong>.</p>'
+          + '<p style="color:var(--gris);font-size:.65rem;margin-top:.8rem;opacity:.7;">Estamos sumando nuevas fragancias constantemente 👀</p>'
+          + '</div>';
       } else {
         var html = '';
         similares.forEach(function(s) {
@@ -5208,7 +5745,14 @@
     }
 
     // ============================================================
-    // DEEP LINK — ?p=slug abre directo un perfume
+    // DEEP LINK — Enlaces directos a un perfume
+    //
+    // Si alguien comparte un link como:
+    //   st-perfumeria.vercel.app/?p=khamrah
+    // el sitio se abre y scrollea automáticamente hasta ese perfume.
+    //
+    // URLSearchParams lee los parámetros de la URL (lo que va después de ?)
+    // El setTimeout de 500ms es para darle tiempo al catálogo a renderizar
     // ============================================================
     function checkDeepLink() {
       var params = new URLSearchParams(window.location.search);
@@ -5218,52 +5762,84 @@
       }
     }
 
+    // renderCatalog: función PRINCIPAL que dibuja todas las cards en pantalla
+    // Se ejecuta una sola vez al cargar los datos de Supabase.
+    // Después, la visibilidad de cada card se controla con applyCardVisibility()
     function renderCatalog() {
       const grid = document.getElementById('catalogGrid');
+      // 1. Filtrar: solo perfumes individuales (no sets/combos)
+      // 2. Mapear: convertir cada perfume a HTML con buildCard()
+      // 3. Join: unir todo el HTML en un solo string
       grid.innerHTML = PERFUMES.filter(function(p) { return !p.esSet; }).map(buildCard).join('');
-      cardsShown = CARDS_INITIAL;
-      applyCardVisibility();
-      updateFavBadge();
-      renderSeleccionST();
-      renderSets();
-      renderNoteFilters();
+      cardsShown = CARDS_INITIAL;    // mostrar solo las primeras N cards
+      applyCardVisibility();          // aplicar filtros y mostrar/ocultar
+      updateFavBadge();               // actualizar contador de favoritos
+      renderSeleccionST();            // renderizar sección "Selección ST"
+      renderSets();                   // renderizar sets/combos
+      renderNoteFilters();            // renderizar filtros por notas
 
     }
 
-    // Event delegation — 1 solo listener para todos los cards (no se duplica)
+    // Event delegation — Patrón de rendimiento importante
+    // En vez de poner un listener en CADA card (podrían ser 200+),
+    // ponemos UNO SOLO en el grid contenedor. Cuando ocurre un evento,
+    // "sube" (bubbling) hasta el grid y ahí lo capturamos.
+    // Esto es mucho más eficiente y no se rompe al re-renderizar.
     (function() {
-      var tracked = {};
+      var tracked = {};  // registro de qué cards ya se trackearon
       var grid = document.getElementById('catalogGrid');
       function handleTrack(e) {
-        var card = e.target.closest('.product-card');
+        var card = e.target.closest('.product-card'); // buscar la card padre
         if (!card) return;
         var slug = card.dataset.slug;
+        // Solo trackear la primera vez que el usuario interactúa
         if (!tracked[slug]) { tracked[slug] = true; trackClick(slug); }
       }
-      grid.addEventListener('mouseenter', handleTrack, true);
-      grid.addEventListener('touchstart', handleTrack, { passive: true, capture: true });
+      grid.addEventListener('mouseenter', handleTrack, true);       // desktop: mouse
+      grid.addEventListener('touchstart', handleTrack, { passive: true, capture: true }); // mobile: touch
     })();
 
+    // applyCardVisibility: el "cerebro" del filtrado
+    //
+    // Esta función decide qué cards se VEN y cuáles se OCULTAN.
+    // Se ejecuta cada vez que el usuario:
+    //   - Busca algo en el buscador
+    //   - Filtra por categoría (Hombre/Mujer/Unisex)
+    //   - Filtra por nota olfativa
+    //   - Filtra por ocasión
+    //   - Toca "Ver favoritos"
+    //
+    // Para que una card se muestre, tiene que pasar TODOS los filtros:
+    //   ✅ categoría correcta (catMatch)
+    //   ✅ coincide con búsqueda (searchMatch)
+    //   ✅ tiene la nota seleccionada (noteMatch)
+    //   ✅ es para la ocasión elegida (occasionMatch)
+    //
+    // Además controla el "Ver más": solo muestra las primeras N cards
     function applyCardVisibility() {
       var cards = document.querySelectorAll('.product-card');
-      var matchIndex = 0;
-      var totalMatch = 0;
+      var matchIndex = 0;   // contador de cards que matchean
+      var totalMatch = 0;   // total de cards que pasan todos los filtros
       cards.forEach(function(card) {
+        // FILTRO 1: Categoría (todos / hombre / mujer / unisex / favs / nuevos)
         var catMatch;
         if (currentFilter === 'favs') {
-          catMatch = favs.indexOf(card.dataset.slug) !== -1;
+          catMatch = favs.indexOf(card.dataset.slug) !== -1;  // ¿está en favoritos?
         } else if (currentFilter === 'nuevos') {
           var pf = PERFUMES.find(function(x) { return x.slug === card.dataset.slug; });
-          catMatch = pf && pf._isNew;
+          catMatch = pf && pf._isNew;  // ¿es nuevo (menos de 15 días)?
         } else {
           catMatch = matchesCat(card.dataset.cat, currentFilter);
         }
+        // FILTRO 2: Búsqueda por texto (nombre, marca, notas)
         var searchMatch = !currentSearch || card.dataset.search.indexOf(currentSearch) !== -1;
+        // FILTRO 3: Nota olfativa específica
         var noteMatch = true;
         if (currentNoteFilter) {
           var noteNorm = stripAccents(currentNoteFilter.toLowerCase());
           noteMatch = card.dataset.search.indexOf(noteNorm) !== -1;
         }
+        // FILTRO 4: Ocasión (casual, formal, nocturno, etc.)
         var occasionMatch = true;
         if (currentOccasion) {
           var perfil = (card.dataset.perfil || '').toLowerCase();
@@ -5387,8 +5963,67 @@
       document.getElementById('searchInput').value = '';
       document.getElementById('searchClear').classList.remove('visible');
       applyFilter(cat);
+      closeDeck();
+      updateDeckLabel();
       document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // ============================================================
+    // MAZO DE CARTAS — abrir/cerrar en mobile (tap)
+    //
+    // En mobile no hay hover, así que usamos tap:
+    // - Tap en el mazo cerrado → se abre (deck-open)
+    // - Tap en un filtro → aplica filtro + cierra
+    // - Tap fuera del mazo → cierra
+    // En desktop el hover del CSS se encarga solo.
+    // ============================================================
+    function closeDeck() {
+      document.querySelector('.filter-zone--left').classList.remove('deck-open');
+    }
+
+    // Actualizar el texto del label con el filtro activo
+    function updateDeckLabel() {
+      var activeBtn = document.querySelector('.filter-zone--left .filter-btn.active');
+      var labelText = document.getElementById('deckLabel');
+      if (activeBtn && labelText) {
+        var txt = activeBtn.textContent.trim();
+        labelText.querySelector('.deck-label-text').textContent = txt;
+      }
+    }
+
+    (function() {
+      var deck = document.querySelector('.filter-zone--left');
+      var isMobile = function() { return window.innerWidth < 768; };
+
+      // En mobile: interceptar clicks en los botones del mazo.
+      // Usamos "capture: true" para atrapar el click ANTES que el onclick del botón.
+      deck.addEventListener('click', function(e) {
+        if (!isMobile()) return;
+
+        if (!deck.classList.contains('deck-open')) {
+          // Mazo cerrado → abrir y NO ejecutar el filtro
+          e.stopPropagation();
+          // Evitar que el onclick="filterBy(...)" del botón se ejecute
+          var btn = e.target.closest('.filter-btn');
+          if (btn) {
+            e.preventDefault();
+            // Remover momentáneamente el onclick para que no se dispare
+            // (el stopPropagation en capture debería bastar)
+          }
+          deck.classList.add('deck-open');
+          return;
+        }
+        // Si está abierto, dejar que el onclick del botón haga lo suyo
+        // (filterBy/filterByNew/filterByFavs llaman a closeDeck)
+      }, true); // ← capture phase: se ejecuta ANTES que el onclick
+
+      // Tap fuera del mazo → cerrar
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.filter-zone--left')) {
+          closeDeck();
+        }
+      });
+    })();
 
     // ============================================================
     // BUSCAR
@@ -5398,19 +6033,174 @@
     }
     var currentSearch = '';
 
+    // applySearch: filtra las cards Y muestra sugerencias de autocompletado
     function applySearch(query) {
       currentSearch = stripAccents(query.trim().toLowerCase());
       var clearBtn = document.getElementById('searchClear');
       clearBtn.classList.toggle('visible', currentSearch.length > 0);
       applyFilters();
+      showSearchSuggestions(query.trim());
     }
 
     function clearSearch() {
       currentSearch = '';
       document.getElementById('searchInput').value = '';
       document.getElementById('searchClear').classList.remove('visible');
+      hideSearchSuggestions();
       applyFilters();
     }
+
+    // ============================================================
+    // AUTOCOMPLETADO — Sugerencias al escribir en el buscador
+    //
+    // Busca perfumes que coincidan con lo que escribiste (nombre,
+    // marca o notas). Muestra hasta 5 resultados con foto, nombre,
+    // marca y precio. Al hacer clic scrollea hasta la card.
+    // ============================================================
+    var sugActiveIndex = -1; // para navegar con flechas
+
+    function showSearchSuggestions(query) {
+      var box = document.getElementById('searchSuggestions');
+      var norm = stripAccents(query.toLowerCase());
+
+      // Ocultar si menos de 2 caracteres
+      if (norm.length < 2) { hideSearchSuggestions(); return; }
+
+      // Buscar matches (nombre y marca tienen prioridad)
+      var matches = [];
+      PERFUMES.forEach(function(p) {
+        if (p.esSet) return;
+        var nameNorm = stripAccents(p.name.toLowerCase());
+        var marcaNorm = stripAccents((p.marca_real || p.marca || '').toLowerCase());
+        var notasNorm = stripAccents(((p.notas_salida || '') + ' ' + (p.notas_corazon || '') + ' ' + (p.notas_base || '')).toLowerCase());
+
+        var score = 0;
+        if (nameNorm.indexOf(norm) === 0) score = 3;         // empieza con
+        else if (nameNorm.indexOf(norm) !== -1) score = 2;    // contiene en nombre
+        else if (marcaNorm.indexOf(norm) !== -1) score = 1;   // contiene en marca
+        else if (notasNorm.indexOf(norm) !== -1) score = 0.5; // contiene en notas
+        else return;
+
+        matches.push({ perfume: p, score: score, nameNorm: nameNorm });
+      });
+
+      // Ordenar: mejor match primero
+      matches.sort(function(a, b) { return b.score - a.score || a.nameNorm.localeCompare(b.nameNorm); });
+      matches = matches.slice(0, 5);
+
+      if (matches.length === 0) {
+        box.innerHTML = '<div class="search-sug-empty">No se encontraron resultados</div>';
+        box.classList.add('active');
+        sugActiveIndex = -1;
+        return;
+      }
+
+      var html = '';
+      matches.forEach(function(m, i) {
+        var p = m.perfume;
+        var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+        var imgHTML = fotoSrc
+          ? '<img class="search-sug-img" src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
+          : '<div class="search-sug-img-placeholder">' + p.name.charAt(0) + '</div>';
+
+        // Resaltar la parte que coincide en el nombre
+        var displayName = highlightMatch(p.name, query);
+        var price = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
+
+        html += '<div class="search-sug-item" data-slug="' + p.slug + '" onclick="selectSuggestion(\'' + p.slug + '\')">'
+          + imgHTML
+          + '<div class="search-sug-info">'
+            + '<p class="search-sug-name">' + displayName + '</p>'
+            + '<p class="search-sug-brand">' + (p.marca_real || p.marca) + '</p>'
+          + '</div>'
+          + '<span class="search-sug-price">' + price + '</span>'
+        + '</div>';
+      });
+
+      box.innerHTML = html;
+      box.classList.add('active');
+      sugActiveIndex = -1;
+    }
+
+    // highlightMatch: resalta la parte del texto que coincide con la búsqueda
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      var idx = text.toLowerCase().indexOf(query.toLowerCase());
+      if (idx === -1) return text;
+      return text.substring(0, idx) + '<mark>' + text.substring(idx, idx + query.length) + '</mark>' + text.substring(idx + query.length);
+    }
+
+    function hideSearchSuggestions() {
+      var box = document.getElementById('searchSuggestions');
+      box.classList.remove('active');
+      sugActiveIndex = -1;
+    }
+
+    // selectSuggestion: al hacer clic en una sugerencia
+    function selectSuggestion(slug) {
+      hideSearchSuggestions();
+
+      // 1) Cerrar teclado mobile
+      document.getElementById('searchInput').blur();
+
+      // 2) Buscar el perfume
+      var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
+      if (perfume) {
+        document.getElementById('searchInput').value = perfume.name;
+        currentSearch = stripAccents(perfume.name.toLowerCase());
+        document.getElementById('searchClear').classList.add('visible');
+      }
+
+      applyFilters();
+
+      // 3) Esperar a que el teclado se cierre del todo (resize del viewport)
+      //    Scrollear al catalogGrid (NO al filter-bar que es sticky)
+      setTimeout(function() {
+        var grid = document.getElementById('catalogGrid');
+        var gridTop = grid.getBoundingClientRect().top + window.pageYOffset - 130;
+        window.scrollTo(0, gridTop); // scroll instantáneo
+
+        // 4) Highlight la card
+        setTimeout(function() {
+          var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
+          if (card) {
+            card.style.boxShadow = '0 0 20px rgba(232,184,0,.5)';
+            setTimeout(function() { card.style.boxShadow = ''; }, 2000);
+          }
+        }, 200);
+      }, 500);
+    }
+
+    // Navegación con flechas y Enter en las sugerencias
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      var box = document.getElementById('searchSuggestions');
+      if (!box.classList.contains('active')) return;
+      var items = box.querySelectorAll('.search-sug-item');
+      if (items.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        sugActiveIndex = Math.min(sugActiveIndex + 1, items.length - 1);
+        items.forEach(function(it, i) { it.classList.toggle('active', i === sugActiveIndex); });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        sugActiveIndex = Math.max(sugActiveIndex - 1, 0);
+        items.forEach(function(it, i) { it.classList.toggle('active', i === sugActiveIndex); });
+      } else if (e.key === 'Enter' && sugActiveIndex >= 0) {
+        e.preventDefault();
+        var slug = items[sugActiveIndex].dataset.slug;
+        selectSuggestion(slug);
+      } else if (e.key === 'Escape') {
+        hideSearchSuggestions();
+      }
+    });
+
+    // Cerrar sugerencias al hacer clic fuera
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.search-wrapper')) {
+        hideSearchSuggestions();
+      }
+    });
 
     function filterByNew(btn) {
       document.querySelectorAll('.filter-zone--left .filter-btn').forEach(function(b) {
@@ -5419,6 +6209,8 @@
       btn.classList.add('active');
       currentFilter = 'nuevos';
       applyFilters();
+      closeDeck();
+      updateDeckLabel();
       scrollToCatalog();
     }
 
@@ -5429,6 +6221,8 @@
       btn.classList.add('active');
       currentFilter = 'favs';
       applyFilters();
+      closeDeck();
+      updateDeckLabel();
       scrollToCatalog();
     }
 
@@ -5539,6 +6333,12 @@
             if (o.notas_salida) p.notas_salida = o.notas_salida;
             if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
             if (o.notas_base) p.notas_base = o.notas_base;
+            if (o.stock_status) p._stockStatus = o.stock_status;
+            // Fotos extra para galería
+            if (o.fotos_extra) p.fotos_extra = o.fotos_extra;
+            // Etiqueta de cinta personalizada (se puede poner y quitar)
+            if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';
+            if (o.etiqueta_color) p.etiqueta_color = o.etiqueta_color;
           });
         }
       } catch(e) {}
@@ -5953,20 +6753,43 @@
       closeCartPanel();
     }
 
+    // sendCartToWA: arma un mensaje profesional y lo manda por WhatsApp
+    // Incluye: lista de perfumes, marca, precio, total en cuotas,
+    // total en efectivo, cantidad de items, y nota del cliente si hay.
     function sendCartToWA() {
       if (cart.length === 0) return;
-      var lines = ['Hola! Me interesan estos perfumes:'];
+      var note = document.getElementById('cartNote').value.trim();
+
+      var lines = [];
+      lines.push('Hola! 👋 Me interesan estos perfumes:');
+      lines.push('');
+
       var total = 0;
+      var num = 0;
       cart.forEach(function(slug) {
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         if (!p) return;
         var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
         total += priceNum;
-        lines.push('• ' + p.name + ' — $' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.'));
+        num++;
+        var marca = p.marca_real || p.marca;
+        lines.push(num + '. *' + p.name + '* — ' + marca);
+        lines.push('   💰 $' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.'));
       });
+
       lines.push('');
-      lines.push('Total: $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.'));
-      lines.push('¿Tienen disponibilidad?');
+      lines.push('📦 *' + num + (num === 1 ? ' perfume' : ' perfumes') + '*');
+      lines.push('💳 Total 3 cuotas: *$' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + '*');
+      var cashTotal = Math.round(total * 0.9);
+      lines.push('💵 Efectivo/transf: *$' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + '* (10% off)');
+
+      if (note) {
+        lines.push('');
+        lines.push('📝 _' + note + '_');
+      }
+
+      lines.push('');
+      lines.push('¿Tienen disponibilidad? 🙏');
 
       var msg = lines.join('\n');
       closeCartPanel();
@@ -5976,6 +6799,7 @@
       showSplash(firstP, function() {
         window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
         cart = [];
+        document.getElementById('cartNote').value = '';
         updateCartUI();
         resetCartButtons();
       });
@@ -6043,10 +6867,13 @@
 
       // Tags
       var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
+      var prodType = detectProductType(p.name);
+      var tipoBadge = prodType ? '<span class="badge-tipo">' + prodType + '</span>' : '';
       document.getElementById('bsTags').innerHTML =
         '<span class="card-tag tag-cat">' + pCat + '</span>'
-        + '<span class="card-tag tag-ml">100 ml</span>'
-        + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>';
+        + '<span class="card-tag tag-ml">' + (p.ml || 100) + ' ml</span>'
+        + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+        + tipoBadge;
 
       // Precio
       var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
@@ -6616,10 +7443,11 @@
       localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
     }
 
-    // Restaurar preferencia guardada
+    // Restaurar preferencia guardada (dark mode por defecto)
     (function() {
       var saved = localStorage.getItem('st_dark_mode');
-      if (saved === '1') {
+      // Si nunca eligió (null) o eligió oscuro ('1') → dark mode
+      if (saved !== '0') {
         document.body.classList.add('dark-mode');
         var emoji = '☀️';
         var icon = document.querySelector('.dark-toggle-icon');

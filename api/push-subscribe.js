@@ -6,8 +6,8 @@
  * Protección anti-spam: máximo 3 suscripciones por IP por día
  */
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://rtgjzzkjrwbkdhkslxix.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || '';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
