@@ -492,6 +492,7 @@
       <button class="tab-btn" onclick="switchTab('combos',this)">&#127873; Combos</button>
       <button class="tab-btn" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
       <button class="tab-btn" onclick="switchTab('push',this)">🔔 Notificaciones</button>
+      <button class="tab-btn" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -578,6 +579,10 @@
             <div>
               <label class="modal-label">Precio promo</label>
               <input type="text" class="modal-input" id="editPromo" placeholder="Vacío si no hay" style="margin-bottom:0;"/>
+            </div>
+            <div>
+              <label class="modal-label">Tamaño (ml)</label>
+              <input type="number" class="modal-input" id="editMl" placeholder="100" style="margin-bottom:0;"/>
             </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">Foto</label>
@@ -925,6 +930,40 @@
       <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">Historial de envíos</p>
       <div id="pushHistory" style="font-size:.72rem;color:var(--gris);">Sin envíos registrados</div>
     </div>
+  </div>
+
+  <!-- TAB: DOCTOR DE CATÁLOGO -->
+  <div class="tab-content" id="tab-doctor">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <p style="font-size:2rem;margin-bottom:.3rem;">🩺</p>
+      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Doctor de Catálogo</p>
+      <p style="font-size:.7rem;color:var(--gris);">Chequeo automático de todos tus perfumes</p>
+    </div>
+
+    <!-- Barra de salud general -->
+    <div id="doctorHealthBar" style="margin-bottom:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+        <span style="font-size:.7rem;font-weight:600;color:var(--gris-claro);letter-spacing:.08em;text-transform:uppercase;">Salud del catálogo</span>
+        <span id="doctorHealthPct" style="font-size:1.1rem;font-weight:700;color:var(--amarillo);">--</span>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:8px;height:10px;overflow:hidden;">
+        <div id="doctorHealthFill" style="height:100%;border-radius:8px;background:var(--amarillo);width:0%;transition:width .8s ease;"></div>
+      </div>
+    </div>
+
+    <!-- Resumen rápido -->
+    <div id="doctorSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1.5rem;"></div>
+
+    <!-- Filtros -->
+    <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
+      <button class="action-btn" onclick="filterDoctor('all')" id="docFilterAll" style="font-size:.65rem;padding:.35rem .7rem;background:var(--amarillo);color:#000;">Todos</button>
+      <button class="action-btn" onclick="filterDoctor('critical')" id="docFilterCrit" style="font-size:.65rem;padding:.35rem .7rem;">🔴 Críticos</button>
+      <button class="action-btn" onclick="filterDoctor('warning')" id="docFilterWarn" style="font-size:.65rem;padding:.35rem .7rem;">🟡 Avisos</button>
+      <button class="action-btn" onclick="filterDoctor('ok')" id="docFilterOk" style="font-size:.65rem;padding:.35rem .7rem;">🟢 Sanos</button>
+    </div>
+
+    <!-- Lista de resultados -->
+    <div id="doctorResults" style="display:flex;flex-direction:column;gap:.6rem;"></div>
   </div>
 
   <!-- MODAL: CAMBIAR PRECIO -->
@@ -1595,6 +1634,7 @@
       document.getElementById('editPerfil').value = p.perfil || 'Versátil';
       document.getElementById('editPrice').value = p.price || '';
       document.getElementById('editPromo').value = p.promo || '';
+      document.getElementById('editMl').value = p.ml || '';
       document.getElementById('editFoto').value = p.foto || '';
       document.getElementById('editSalida').value = p.notas_salida || '';
       document.getElementById('editCorazon').value = p.notas_corazon || '';
@@ -1637,6 +1677,7 @@
         perfil: document.getElementById('editPerfil').value,
         price: document.getElementById('editPrice').value.trim(),
         promo: document.getElementById('editPromo').value.trim(),
+        ml: document.getElementById('editMl').value.trim(),
         foto: document.getElementById('editFoto').value.trim(),
         notas_salida: document.getElementById('editSalida').value.trim(),
         notas_corazon: document.getElementById('editCorazon').value.trim(),
@@ -2803,6 +2844,199 @@
       if (tab === 'votacion') loadVotacionConfig();
       if (tab === 'push') { loadPushStats(); renderPushPresets(); }
     };
+
+    // ============================================================
+    // 🩺 DOCTOR DE CATÁLOGO
+    //
+    // Escanea todos los perfumes y detecta problemas:
+    // - Sin foto, sin precio, sin notas, sin marca, sin categoría, sin ml
+    // Genera un reporte con puntaje de salud y lista de ajustes.
+    // ============================================================
+    var doctorResults = [];
+    var doctorFilter = 'all';
+
+    function runCatalogDoctor() {
+      doctorResults = [];
+
+      PERFUMES.forEach(function(p) {
+        if (p.esSet) return; // saltear sets/packs
+
+        var issues = [];
+
+        // 📸 Sin foto
+        if (!p.foto) {
+          issues.push({ type: 'critical', icon: '📸', msg: 'Sin foto — no se muestra imagen en la card' });
+        }
+
+        // 💰 Sin precio
+        if (!p.price || p.price <= 0) {
+          issues.push({ type: 'critical', icon: '💰', msg: 'Sin precio — el cliente no puede saber cuánto sale' });
+        }
+
+        // 🎵 Notas incompletas
+        if (!p.notas_salida || p.notas_salida.trim() === '') {
+          issues.push({ type: 'warning', icon: '🎵', msg: 'Sin notas de salida' });
+        }
+        if (!p.notas_corazon || p.notas_corazon.trim() === '') {
+          issues.push({ type: 'warning', icon: '🎵', msg: 'Sin notas de corazón' });
+        }
+        if (!p.notas_base || p.notas_base.trim() === '') {
+          issues.push({ type: 'warning', icon: '🎵', msg: 'Sin notas de base' });
+        }
+
+        // 🏭 Sin marca
+        if (!p.marca && !p.marca_real) {
+          issues.push({ type: 'warning', icon: '🏭', msg: 'Sin marca — queda como genérico' });
+        }
+
+        // 🏷️ Sin categoría
+        if (!p.cat || p.cat.trim() === '') {
+          issues.push({ type: 'critical', icon: '🏷️', msg: 'Sin categoría — los filtros no lo encuentran' });
+        }
+
+        // 📏 Sin ml
+        if (!p.ml) {
+          issues.push({ type: 'warning', icon: '📏', msg: 'Sin ml — el cliente no sabe el tamaño' });
+        }
+
+        // 🔗 Sin slug
+        if (!p.slug || p.slug.trim() === '') {
+          issues.push({ type: 'critical', icon: '🔗', msg: 'Sin slug — puede causar errores' });
+        }
+
+        // Determinar estado general del perfume
+        var hasCritical = issues.some(function(i) { return i.type === 'critical'; });
+        var hasWarning = issues.some(function(i) { return i.type === 'warning'; });
+        var status = hasCritical ? 'critical' : (hasWarning ? 'warning' : 'ok');
+
+        doctorResults.push({
+          name: p.name,
+          slug: p.slug,
+          foto: p.foto,
+          marca: p.marca_real || p.marca || '',
+          status: status,
+          issues: issues
+        });
+      });
+
+      // Ordenar: críticos primero, luego avisos, luego sanos
+      var order = { critical: 0, warning: 1, ok: 2 };
+      doctorResults.sort(function(a, b) { return order[a.status] - order[b.status]; });
+
+      renderDoctorSummary();
+      renderDoctorResults();
+    }
+
+    function renderDoctorSummary() {
+      var total = doctorResults.length;
+      var critical = doctorResults.filter(function(r) { return r.status === 'critical'; }).length;
+      var warning = doctorResults.filter(function(r) { return r.status === 'warning'; }).length;
+      var ok = doctorResults.filter(function(r) { return r.status === 'ok'; }).length;
+
+      // Puntaje: perfumes sanos = 100%, warning = 50%, critical = 0%
+      var score = total > 0 ? Math.round(((ok * 100) + (warning * 50)) / total) : 0;
+
+      // Barra de salud
+      var fill = document.getElementById('doctorHealthFill');
+      var pct = document.getElementById('doctorHealthPct');
+      pct.textContent = score + '%';
+      fill.style.width = score + '%';
+      fill.style.background = score >= 80 ? '#2ecc71' : (score >= 50 ? '#f1c40f' : '#e74c3c');
+
+      // Cards de resumen
+      var summary = document.getElementById('doctorSummary');
+      summary.innerHTML =
+        '<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:.7rem;text-align:center;">'
+          + '<p style="font-size:1.3rem;font-weight:700;color:#e74c3c;">' + critical + '</p>'
+          + '<p style="font-size:.6rem;color:#e74c3c;font-weight:600;letter-spacing:.06em;text-transform:uppercase;">Críticos</p>'
+        + '</div>'
+        + '<div style="background:rgba(241,196,15,.12);border:1px solid rgba(241,196,15,.3);border-radius:8px;padding:.7rem;text-align:center;">'
+          + '<p style="font-size:1.3rem;font-weight:700;color:#f1c40f;">' + warning + '</p>'
+          + '<p style="font-size:.6rem;color:#f1c40f;font-weight:600;letter-spacing:.06em;text-transform:uppercase;">Con avisos</p>'
+        + '</div>'
+        + '<div style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);border-radius:8px;padding:.7rem;text-align:center;">'
+          + '<p style="font-size:1.3rem;font-weight:700;color:#2ecc71;">' + ok + '</p>'
+          + '<p style="font-size:.6rem;color:#2ecc71;font-weight:600;letter-spacing:.06em;text-transform:uppercase;">Sanos</p>'
+        + '</div>';
+    }
+
+    function renderDoctorResults() {
+      var container = document.getElementById('doctorResults');
+      var filtered = doctorFilter === 'all'
+        ? doctorResults
+        : doctorResults.filter(function(r) { return r.status === doctorFilter; });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);font-size:.75rem;padding:2rem 0;">'
+          + (doctorFilter === 'ok' ? '🎉 ¡No hay perfumes 100% sanos todavía!' : 'No hay perfumes en esta categoría')
+          + '</p>';
+        return;
+      }
+
+      var html = '';
+      filtered.forEach(function(r) {
+        var statusColor = r.status === 'critical' ? '#e74c3c' : (r.status === 'warning' ? '#f1c40f' : '#2ecc71');
+        var statusIcon = r.status === 'critical' ? '🔴' : (r.status === 'warning' ? '🟡' : '🟢');
+        var statusBg = r.status === 'critical' ? 'rgba(231,76,60,.06)' : (r.status === 'warning' ? 'rgba(241,196,15,.06)' : 'rgba(46,204,113,.06)');
+
+        // Imagen o placeholder
+        var imgHTML = r.foto
+          ? '<img src="' + r.foto.replace(/ /g, '%20') + '" style="width:36px;height:46px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
+          : '<div style="width:36px;height:46px;border-radius:4px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:rgba(232,184,0,.3);flex-shrink:0;">' + (r.name ? r.name.charAt(0) : '?') + '</div>';
+
+        html += '<div style="background:' + statusBg + ';border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:.7rem .8rem;border-left:3px solid ' + statusColor + ';">';
+        html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:' + (r.issues.length > 0 ? '.5rem' : '0') + ';">';
+        html += imgHTML;
+        html += '<div style="flex:1;min-width:0;">';
+        html += '<p style="font-size:.75rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + statusIcon + ' ' + r.name + '</p>';
+        html += '<p style="font-size:.6rem;color:var(--gris);">' + r.marca + '</p>';
+        html += '</div>';
+
+        if (r.status === 'ok') {
+          html += '<span style="font-size:.6rem;color:#2ecc71;font-weight:600;">✓ Completo</span>';
+        } else {
+          html += '<button onclick="doctorGoEdit(\'' + r.slug + '\')" style="flex-shrink:0;background:var(--amarillo);color:#000;border:none;border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer;letter-spacing:.05em;">✏️ CORREGIR</button>';
+        }
+        html += '</div>';
+
+        // Lista de issues
+        if (r.issues.length > 0) {
+          r.issues.forEach(function(issue) {
+            var issueColor = issue.type === 'critical' ? '#e74c3c' : '#f1c40f';
+            html += '<p style="font-size:.65rem;color:' + issueColor + ';padding-left:42px;margin-top:.2rem;">'
+              + issue.icon + ' ' + issue.msg + '</p>';
+          });
+        }
+
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Ir directo a editar el perfume desde el doctor
+    function doctorGoEdit(slug) {
+      // Cambiar a la pestaña Editar
+      var editBtn = document.querySelector('.tab-btn[onclick*="editar"]');
+      if (editBtn) switchTab('editar', editBtn);
+      // Cargar el perfume en el formulario
+      loadEditPerfume(slug);
+      // Scroll arriba para ver el formulario
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function filterDoctor(filter) {
+      doctorFilter = filter;
+      // Actualizar botones activos
+      ['all', 'critical', 'warning', 'ok'].forEach(function(f) {
+        var btn = document.getElementById('docFilter' + (f === 'all' ? 'All' : (f === 'critical' ? 'Crit' : (f === 'warning' ? 'Warn' : 'Ok'))));
+        if (btn) {
+          btn.style.background = (f === filter) ? 'var(--amarillo)' : '';
+          btn.style.color = (f === filter) ? '#000' : '';
+        }
+      });
+      renderDoctorResults();
+    }
   </script>
 </body>
 </html>
