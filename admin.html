@@ -785,12 +785,39 @@
 
     <!-- TAB: STATS -->
     <div class="tab-content" id="tab-stats">
+      <!-- Resumen general -->
       <div class="stats-grid" id="statsGrid"></div>
-      <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Top perfumes mas vistos</h3>
-      <table class="admin-table">
-        <thead><tr><th>#</th><th>Perfume</th><th>Visitas</th></tr></thead>
-        <tbody id="tbodyStats"></tbody>
-      </table>
+
+      <!-- Gráfico de barras: Top 10 más vistos -->
+      <div style="margin-bottom:2rem;">
+        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">🏆 Top 10 más vistos</h3>
+        <div id="statsBarChart" style="display:flex;flex-direction:column;gap:.4rem;"></div>
+      </div>
+
+      <!-- Perfumes sin visitas (los olvidados) -->
+      <div style="margin-bottom:2rem;">
+        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">👻 Los olvidados (0 visitas)</h3>
+        <p style="font-size:.62rem;color:var(--gris);margin-bottom:.8rem;">Estos perfumes no recibieron ni un clic. Considerá destacarlos o mejorar su foto/nombre.</p>
+        <div id="statsZeroVisits" style="display:flex;flex-wrap:wrap;gap:.4rem;"></div>
+      </div>
+
+      <!-- Métricas de catálogo -->
+      <div style="margin-bottom:2rem;">
+        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📊 Métricas del catálogo</h3>
+        <div class="stats-grid" id="statsCatalogGrid"></div>
+      </div>
+
+      <!-- Distribución por categoría -->
+      <div style="margin-bottom:2rem;">
+        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📦 Distribución por categoría</h3>
+        <div id="statsCatDistrib" style="display:flex;flex-direction:column;gap:.4rem;"></div>
+      </div>
+
+      <!-- Rango de precios -->
+      <div>
+        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">💰 Rango de precios</h3>
+        <div id="statsPriceRange" style="display:flex;flex-direction:column;gap:.4rem;"></div>
+      </div>
     </div>
 
     <!-- TAB: OPINIONES -->
@@ -1175,44 +1202,158 @@
     // ============================================================
     async function loadStats() {
       var statsGrid = document.getElementById('statsGrid');
-      var tbody = document.getElementById('tbodyStats');
+      var perfumes = PERFUMES.filter(function(p) { return !p.esSet; });
+      var totalPerfumes = perfumes.length;
 
-      // Total perfumes
-      var totalPerfumes = PERFUMES.filter(function(p) { return !p.esSet; }).length;
-
-      // Total clientes
+      // Datos de Supabase
       var { data: clientes } = await sb.from('clientes').select('id');
       var totalClientes = clientes ? clientes.length : 0;
-
-      // Total opiniones
       var { data: opiniones } = await sb.from('opiniones').select('id');
       var totalOpiniones = opiniones ? opiniones.length : 0;
-
-      // Total clicks
       var { data: clicks } = await sb.from('perfume_clicks').select('slug');
       var totalClicks = clicks ? clicks.length : 0;
 
-      statsGrid.innerHTML = ''
-        + '<div class="stat-card"><p class="stat-label">Perfumes</p><p class="stat-value">' + totalPerfumes + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">Clientes</p><p class="stat-value">' + totalClientes + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">Opiniones</p><p class="stat-value">' + totalOpiniones + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">Visitas totales</p><p class="stat-value">' + totalClicks + '</p></div>';
+      // Promedio visitas por perfume
+      var avgViews = totalPerfumes > 0 ? Math.round(totalClicks / totalPerfumes) : 0;
 
-      // Top perfumes
-      if (clicks && clicks.length > 0) {
-        var counts = {};
-        clicks.forEach(function(c) { counts[c.slug] = (counts[c.slug] || 0) + 1; });
-        var sorted = Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; });
-        var html = '';
+      // === CARDS RESUMEN ===
+      statsGrid.innerHTML = ''
+        + '<div class="stat-card"><p class="stat-label">🧴 Perfumes</p><p class="stat-value">' + totalPerfumes + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">👥 Clientes</p><p class="stat-value">' + totalClientes + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">💬 Opiniones</p><p class="stat-value">' + totalOpiniones + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">👁️ Visitas totales</p><p class="stat-value">' + totalClicks + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">📊 Promedio/perfume</p><p class="stat-value">' + avgViews + '</p></div>';
+
+      // === TOP 10 — Gráfico de barras ===
+      var barChart = document.getElementById('statsBarChart');
+      var counts = {};
+      if (clicks) clicks.forEach(function(c) { counts[c.slug] = (counts[c.slug] || 0) + 1; });
+      var sorted = Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; });
+      var topMax = sorted.length > 0 ? counts[sorted[0]] : 1;
+
+      if (sorted.length > 0) {
+        var barHTML = '';
         sorted.slice(0, 10).forEach(function(slug, i) {
           var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
           var name = p ? p.name : slug;
-          html += '<tr><td>' + (i + 1) + '</td><td>' + name + '</td><td class="td-price">' + counts[slug] + '</td></tr>';
+          var pct = Math.round((counts[slug] / topMax) * 100);
+          var medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1)));
+          barHTML += '<div style="display:flex;align-items:center;gap:.5rem;">'
+            + '<span style="font-size:.65rem;width:22px;text-align:center;flex-shrink:0;">' + medal + '</span>'
+            + '<div style="flex:1;min-width:0;">'
+              + '<div style="display:flex;justify-content:space-between;margin-bottom:2px;">'
+                + '<span style="font-size:.62rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</span>'
+                + '<span style="font-size:.6rem;color:var(--amarillo);font-weight:700;flex-shrink:0;margin-left:.3rem;">' + counts[slug] + '</span>'
+              + '</div>'
+              + '<div style="background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden;">'
+                + '<div style="height:100%;background:var(--amarillo);border-radius:4px;width:' + pct + '%;transition:width .5s;"></div>'
+              + '</div>'
+            + '</div>'
+          + '</div>';
         });
-        tbody.innerHTML = html;
+        barChart.innerHTML = barHTML;
       } else {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gris);">Sin datos aun</td></tr>';
+        barChart.innerHTML = '<p style="text-align:center;color:var(--gris);font-size:.72rem;">Sin datos aún</p>';
       }
+
+      // === PERFUMES SIN VISITAS ===
+      var zeroDiv = document.getElementById('statsZeroVisits');
+      var visitedSlugs = Object.keys(counts);
+      var zeroVisits = perfumes.filter(function(p) { return visitedSlugs.indexOf(p.slug) === -1; });
+
+      if (zeroVisits.length === 0) {
+        zeroDiv.innerHTML = '<p style="color:#2ecc71;font-size:.7rem;">🎉 ¡Todos los perfumes recibieron al menos 1 visita!</p>';
+      } else {
+        var zHTML = '';
+        zeroVisits.forEach(function(p) {
+          zHTML += '<span style="font-size:.58rem;padding:.25rem .5rem;border-radius:12px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:#e74c3c;white-space:nowrap;">' + p.name + '</span>';
+        });
+        zHTML += '<p style="width:100%;font-size:.58rem;color:var(--gris);margin-top:.3rem;">' + zeroVisits.length + ' perfumes sin visitas de ' + totalPerfumes + ' totales</p>';
+        zeroDiv.innerHTML = zHTML;
+      }
+
+      // === MÉTRICAS DEL CATÁLOGO ===
+      var catalogGrid = document.getElementById('statsCatalogGrid');
+      var conFoto = perfumes.filter(function(p) { return p.foto; }).length;
+      var conNotas = perfumes.filter(function(p) { return p.notas_salida && p.notas_corazon && p.notas_base; }).length;
+      var conPromo = perfumes.filter(function(p) { return p.promo; }).length;
+      var precioMax = 0, precioMin = Infinity, precioSum = 0, precioCount = 0;
+      perfumes.forEach(function(p) {
+        if (p.price) {
+          var val = parseFloat(String(p.price).replace(/\./g, '').replace(',', '.'));
+          if (!isNaN(val) && val > 0) {
+            if (val > precioMax) precioMax = val;
+            if (val < precioMin) precioMin = val;
+            precioSum += val;
+            precioCount++;
+          }
+        }
+      });
+      var precioAvg = precioCount > 0 ? Math.round(precioSum / precioCount) : 0;
+      if (precioMin === Infinity) precioMin = 0;
+
+      catalogGrid.innerHTML = ''
+        + '<div class="stat-card"><p class="stat-label">📸 Con foto</p><p class="stat-value">' + conFoto + '/' + totalPerfumes + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">🎵 Notas completas</p><p class="stat-value">' + conNotas + '/' + totalPerfumes + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">🏷️ Con promo</p><p class="stat-value">' + conPromo + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">💰 Precio promedio</p><p class="stat-value">$' + precioAvg.toLocaleString('es-AR') + '</p></div>';
+
+      // === DISTRIBUCIÓN POR CATEGORÍA ===
+      var catDiv = document.getElementById('statsCatDistrib');
+      var catCounts = { Unisex: 0, Hombre: 0, Mujer: 0 };
+      perfumes.forEach(function(p) {
+        if (p.cat) {
+          p.cat.split(',').map(function(c) { return c.trim(); }).forEach(function(c) {
+            if (catCounts[c] !== undefined) catCounts[c]++;
+          });
+        }
+      });
+      var catHTML = '';
+      ['Unisex', 'Hombre', 'Mujer'].forEach(function(cat) {
+        var pct = totalPerfumes > 0 ? Math.round((catCounts[cat] / totalPerfumes) * 100) : 0;
+        var color = cat === 'Unisex' ? '#E8B800' : (cat === 'Hombre' ? '#3498db' : '#e91e63');
+        catHTML += '<div style="display:flex;align-items:center;gap:.6rem;">'
+          + '<span style="font-size:.65rem;color:' + color + ';font-weight:600;width:60px;">' + cat + '</span>'
+          + '<div style="flex:1;background:rgba(255,255,255,.08);border-radius:4px;height:8px;overflow:hidden;">'
+            + '<div style="height:100%;background:' + color + ';border-radius:4px;width:' + pct + '%;"></div>'
+          + '</div>'
+          + '<span style="font-size:.6rem;color:var(--gris);">' + catCounts[cat] + ' (' + pct + '%)</span>'
+        + '</div>';
+      });
+      catDiv.innerHTML = catHTML;
+
+      // === RANGO DE PRECIOS ===
+      var priceDiv = document.getElementById('statsPriceRange');
+      var rangos = [
+        { label: '$0 - $80k', min: 0, max: 80000, count: 0 },
+        { label: '$80k - $100k', min: 80000, max: 100000, count: 0 },
+        { label: '$100k - $130k', min: 100000, max: 130000, count: 0 },
+        { label: '$130k - $160k', min: 130000, max: 160000, count: 0 },
+        { label: '$160k+', min: 160000, max: Infinity, count: 0 }
+      ];
+      perfumes.forEach(function(p) {
+        if (p.price) {
+          var val = parseFloat(String(p.price).replace(/\./g, '').replace(',', '.'));
+          if (!isNaN(val) && val > 0) {
+            rangos.forEach(function(r) {
+              if (val >= r.min && val < r.max) r.count++;
+            });
+          }
+        }
+      });
+      var rangoMax = Math.max.apply(null, rangos.map(function(r) { return r.count; })) || 1;
+      var priceHTML = '';
+      rangos.forEach(function(r) {
+        var pct = Math.round((r.count / rangoMax) * 100);
+        priceHTML += '<div style="display:flex;align-items:center;gap:.6rem;">'
+          + '<span style="font-size:.6rem;color:var(--gris-claro);font-weight:600;width:80px;white-space:nowrap;">' + r.label + '</span>'
+          + '<div style="flex:1;background:rgba(255,255,255,.08);border-radius:4px;height:8px;overflow:hidden;">'
+            + '<div style="height:100%;background:#2ecc71;border-radius:4px;width:' + pct + '%;"></div>'
+          + '</div>'
+          + '<span style="font-size:.6rem;color:var(--gris);">' + r.count + '</span>'
+        + '</div>';
+      });
+      priceDiv.innerHTML = priceHTML;
     }
 
     // ============================================================
