@@ -4479,7 +4479,7 @@
       <p class="cart-panel-title">Tu pedido</p>
       <div id="cartItems"></div>
       <div class="cart-total">
-        <span>Total 3 cuotas sin interés:</span>
+        <span>3 cuotas sin interés de:</span>
         <span class="cart-total-amount" id="cartTotal">$0</span>
       </div>
       <p class="cart-cash" id="cartCash"></p>
@@ -5116,29 +5116,7 @@
       document.getElementById('quizProgress').style.display = 'none';
     }
 
-    function scrollToPerfume(slug) {
-      // Limpiar filtros para que la card sea visible
-      currentFilter = 'all';
-      currentNoteFilter = '';
-      currentOccasion = '';
-      document.getElementById('searchInput').value = '';
-      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-      applyCardVisibility();
-
-      // Buscar la card y scrollear
-      var card = document.querySelector('[data-slug="' + slug + '"]');
-      if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Highlight temporal
-        card.style.boxShadow = '0 0 0 3px var(--amarillo), 0 8px 30px rgba(232,184,0,.3)';
-        card.style.transition = 'box-shadow .3s';
-        setTimeout(function() { card.style.boxShadow = ''; }, 3000);
-        // En mobile abrir bottom sheet después del scroll
-        if (window.innerWidth < 768) {
-          setTimeout(function() { openBottomSheet(slug); }, 800);
-        }
-      }
-    }
+    // scrollToPerfume del quiz — eliminada, se usa la versión unificada más abajo
 
     function restartQuiz() {
       quizAnswers = {};
@@ -5726,16 +5704,37 @@
     renderSeleccionST();
 
     function scrollToPerfume(slug) {
+      // Limpiar TODOS los filtros para que la card sea visible
+      currentFilter = 'all';
+      currentSearch = '';
+      currentNoteFilter = '';
+      currentOccasion = '';
+      priceFilterActive = false;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchClear').classList.remove('visible');
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      var allBtn = document.querySelector('.filter-btn');
+      if (allBtn) allBtn.classList.add('active');
+      document.querySelectorAll('.note-chip').forEach(function(c) { c.classList.remove('active'); });
+      var occasionToggle = document.getElementById('occasionToggle');
+      if (occasionToggle) occasionToggle.classList.remove('active');
+      var labelDia = document.getElementById('labelDia');
+      var labelNoche = document.getElementById('labelNoche');
+      if (labelDia) labelDia.classList.remove('active');
+      if (labelNoche) labelNoche.classList.remove('active');
+      updatePriceExpandBtn();
+
+      // Mostrar todas las cards
+      cardsShown = PERFUMES.length;
+      applyCardVisibility();
+
       var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
       if (card) {
-        // Reset filters to show all
-        filterBy('all', document.querySelector('.filter-btn'));
-        cardsShown = PERFUMES.length;
-        applyCardVisibility();
         setTimeout(function() {
           card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          card.style.boxShadow = '0 0 20px rgba(232,184,0,.5)';
-          setTimeout(function() { card.style.boxShadow = ''; }, 2000);
+          card.style.boxShadow = '0 0 0 3px var(--amarillo), 0 8px 30px rgba(232,184,0,.3)';
+          card.style.transition = 'box-shadow .3s';
+          setTimeout(function() { card.style.boxShadow = ''; }, 3000);
         }, 100);
       }
     }
@@ -7400,9 +7399,10 @@
           + '</div>';
         });
         container.innerHTML = html;
-        totalEl.textContent = '$' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.');
+        var cuota = Math.round(total / 3);
+        totalEl.textContent = '$' + cuota.toLocaleString('es-AR').replace(/,/g, '.');
         var cashTotal = Math.round(total * 0.9);
-        cashEl.textContent = 'Efectivo/transferencia: $' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + ' (10% off)';
+        cashEl.textContent = 'Efectivo/transf: $' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + ' (total $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + ' con 10% off)';
       }
       document.getElementById('cartPanelOverlay').classList.add('active');
     }
@@ -7451,7 +7451,8 @@
 
       lines.push('');
       lines.push('📦 *' + num + (num === 1 ? ' perfume' : ' perfumes') + '*');
-      lines.push('💳 Total 3 cuotas: *$' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + '*');
+      var cuota = Math.round(total / 3);
+      lines.push('💳 3 cuotas sin interés de *$' + cuota.toLocaleString('es-AR').replace(/,/g, '.') + '* (total $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + ')');
       var cashTotal = Math.round(total * 0.9);
       lines.push('💵 Efectivo/transf: *$' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + '* (10% off)');
 
