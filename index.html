@@ -2571,10 +2571,91 @@
       background: rgba(232,184,0,.15); color: var(--amarillo); padding: 2px 6px; border-radius: 3px;
       border: 1px solid rgba(232,184,0,.3);
     }
-    .product-card.pausado { opacity: .5; pointer-events: none; position: relative; }
+    .product-card.pausado { opacity: .55; position: relative; pointer-events: none; }
+    .product-card.pausado .waitlist-btn,
+    .product-card.pausado .fav-heart { pointer-events: auto; }
     .product-card.pausado .card-cta-mobile,
     .product-card.pausado .cart-add-btn,
     .product-card.pausado .reveal-cta { display: none; }
+    .product-card.sin-stock .card-cta-mobile,
+    .product-card.sin-stock .cart-add-btn,
+    .product-card.sin-stock .reveal-cta { display: none; }
+
+    /* LISTA DE ESPERA — botón en cards sin stock/pausadas */
+    .waitlist-btn {
+      display: block; width: 100%; padding: .55rem .8rem;
+      font-family: inherit; font-size: .65rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; text-align: center;
+      background: transparent; color: var(--amarillo);
+      border: 1.5px solid var(--amarillo); border-radius: 6px;
+      cursor: pointer; transition: all .25s; margin-top: .5rem;
+    }
+    .waitlist-btn:hover { background: var(--amarillo); color: #000; }
+    .waitlist-btn.subscribed {
+      background: rgba(39,174,96,.15); color: #27ae60;
+      border-color: #27ae60; pointer-events: none;
+    }
+
+    /* OVERLAY LISTA DE ESPERA */
+    .waitlist-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.75); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .3s;
+    }
+    .waitlist-overlay.active { opacity: 1; pointer-events: auto; }
+    .waitlist-box {
+      background: #111; border: 1px solid rgba(232,184,0,.3);
+      border-radius: 12px; padding: 2rem 1.5rem; max-width: 380px; width: 90%;
+      text-align: center; position: relative;
+    }
+    .waitlist-close {
+      position: absolute; top: .6rem; right: .8rem;
+      background: none; border: none; color: var(--gris); font-size: 1.3rem;
+      cursor: pointer; transition: color .2s;
+    }
+    .waitlist-close:hover { color: #fff; }
+    .waitlist-icon { font-size: 2.2rem; margin-bottom: .6rem; }
+    .waitlist-title {
+      font-size: .9rem; font-weight: 700; color: #fff; margin-bottom: .3rem;
+    }
+    .waitlist-perfume-name {
+      font-size: .75rem; color: var(--amarillo); font-weight: 600;
+      margin-bottom: .8rem;
+    }
+    .waitlist-desc {
+      font-size: .7rem; color: var(--gris); line-height: 1.5;
+      margin-bottom: 1.2rem;
+    }
+    .waitlist-input-wrap {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 6px; margin-bottom: .6rem; transition: border-color .2s;
+    }
+    .waitlist-input-wrap:focus-within { border-color: var(--amarillo); }
+    .waitlist-prefix {
+      padding: .7rem 0 .7rem .8rem; font-size: .82rem; font-weight: 600;
+      color: var(--amarillo); white-space: nowrap; user-select: none;
+    }
+    .waitlist-input {
+      flex: 1; padding: .7rem .8rem .7rem .4rem; font-family: inherit; font-size: .82rem;
+      background: transparent; border: none; color: #fff; outline: none;
+    }
+    .waitlist-input::placeholder { color: #555; }
+    .waitlist-phone-preview {
+      font-size: .65rem; min-height: 1rem; margin-bottom: .8rem;
+    }
+    .waitlist-submit {
+      width: 100%; padding: .7rem; font-family: inherit; font-size: .75rem;
+      font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      background: var(--amarillo); color: #000; border: none; border-radius: 6px;
+      cursor: pointer; transition: background .2s;
+    }
+    .waitlist-submit:hover { background: var(--amarillo-claro, #f5d442); }
+    .waitlist-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .waitlist-msg {
+      font-size: .7rem; margin-top: .6rem; min-height: 1rem;
+    }
     .badge-proximamente {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-8deg); z-index: 20;
       background: rgba(0,0,0,.85); color: var(--amarillo);
@@ -2612,6 +2693,51 @@
       pointer-events: none;
       line-height: 1.3;
       text-shadow: 0 1px 2px rgba(0,0,0,.3);
+    }
+
+    /* Badge descuento temporal */
+    .card-discount-badge {
+      position: absolute;
+      bottom: 8px; left: 8px;
+      z-index: 5;
+      background: #e74c3c;
+      color: #fff;
+      font-size: .55rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      letter-spacing: .05em;
+      box-shadow: 0 2px 8px rgba(231,76,60,.4);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .card-discount-badge .discount-pct {
+      font-size: .7rem;
+    }
+    .card-discount-timer {
+      position: absolute;
+      bottom: 8px; right: 8px;
+      z-index: 5;
+      background: rgba(0,0,0,.75);
+      color: var(--amarillo);
+      font-size: .5rem;
+      font-weight: 600;
+      padding: 3px 6px;
+      border-radius: 3px;
+      letter-spacing: .03em;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+    }
+    .card-price-original-discount {
+      text-decoration: line-through;
+      color: #999 !important;
+      font-size: .7rem !important;
+    }
+    .card-price-discount {
+      color: #e74c3c !important;
+      font-weight: 700;
     }
 
     /* Botón compartir en reveal */
@@ -2692,6 +2818,76 @@
     }
 
     /* Notas colapsables */
+    /* FILTRO POR RANGO DE PRECIO */
+    .price-expand-btn {
+      font-family: inherit; font-size: .6rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      background: rgba(255,255,255,.06); color: #aaa;
+      border: 1px solid rgba(255,255,255,.1); border-radius: 6px;
+      padding: .3rem .7rem; cursor: pointer; transition: all .2s;
+      white-space: nowrap;
+    }
+    .price-expand-btn:hover { border-color: var(--amarillo); color: var(--amarillo); background: rgba(232,184,0,.15); }
+    .price-expand-btn.open { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: var(--amarillo); }
+    .price-expand-btn.has-filter { background: rgba(232,184,0,.2); color: var(--amarillo); border-color: var(--amarillo); font-weight: 700; }
+    body.dark-mode .price-expand-btn { background: rgba(255,255,255,.06); color: #aaa; border-color: rgba(255,255,255,.1); }
+    body.dark-mode .price-expand-btn:hover, body.dark-mode .price-expand-btn.open { background: rgba(232,184,0,.15); color: var(--amarillo); border-color: var(--amarillo); }
+
+    .price-filter-wrap {
+      display: none; padding: .8rem 1rem;
+      background: rgba(0,0,0,.5); border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .price-filter-wrap.open { display: block; }
+    .price-slider-row {
+      display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+      max-width: 500px; margin: 0 auto;
+    }
+    .price-slider-label {
+      font-size: .7rem; font-weight: 600; color: var(--amarillo);
+      min-width: 75px; text-align: center;
+    }
+    .price-slider-track {
+      flex: 1; min-width: 140px; position: relative; height: 36px;
+      display: flex; align-items: center;
+    }
+    .price-slider-track input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      position: absolute; width: 100%; height: 4px;
+      background: transparent; pointer-events: none; margin: 0;
+    }
+    .price-slider-track input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--amarillo); border: 2px solid #000;
+      cursor: pointer; pointer-events: auto;
+      box-shadow: 0 2px 8px rgba(232,184,0,.4);
+      transition: transform .15s;
+    }
+    .price-slider-track input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    .price-slider-track input[type="range"]::-moz-range-thumb {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--amarillo); border: 2px solid #000;
+      cursor: pointer; pointer-events: auto;
+      box-shadow: 0 2px 8px rgba(232,184,0,.4);
+    }
+    .price-slider-bar {
+      position: absolute; height: 4px; background: rgba(255,255,255,.12);
+      width: 100%; border-radius: 4px; top: 50%; transform: translateY(-50%);
+    }
+    .price-slider-fill {
+      position: absolute; height: 4px; background: var(--amarillo);
+      border-radius: 4px; top: 50%; transform: translateY(-50%);
+    }
+    .price-clear-btn {
+      font-family: inherit; font-size: .6rem; font-weight: 600;
+      color: var(--gris); background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1); border-radius: 4px;
+      padding: .25rem .6rem; cursor: pointer; transition: all .2s;
+    }
+    .price-clear-btn:hover { color: #e74c3c; border-color: #e74c3c; }
+
     .note-filter-wrap {
       display: none; gap: .5rem; flex-wrap: wrap;
       padding: .8rem 1.2rem 1.2rem;
@@ -2800,6 +2996,36 @@
       50%  { transform: scale(1.3); }
       to   { opacity: 1; transform: scale(1); }
     }
+    /* Fly-to-cart animation */
+    .fly-to-cart {
+      position: fixed; z-index: 99999; pointer-events: none;
+      border-radius: 8px; box-shadow: 0 8px 30px rgba(232,184,0,.4);
+      transition: none;
+    }
+    .fly-to-cart.flying {
+      transition: transform .65s cubic-bezier(.2,.8,.3,1), opacity .65s ease, width .65s ease, height .65s ease, border-radius .65s ease;
+    }
+    @keyframes cartPop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.3); }
+      60%  { transform: scale(.9); }
+      80%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .cart-float.cart-pop { animation: cartPop .5s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes btnAddPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(39,174,96,.6); }
+      70%  { box-shadow: 0 0 0 10px rgba(39,174,96,0); }
+      100% { box-shadow: 0 0 0 0 rgba(39,174,96,0); }
+    }
+    .cart-add-btn.added { animation: btnAddPulse .6s ease; background: rgba(39,174,96,.2) !important; border-color: #27ae60 !important; color: #27ae60 !important; }
+
+    /* Partículas de confetti al agregar */
+    .cart-particle {
+      position: fixed; z-index: 99998; pointer-events: none;
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+
     @media (min-width: 768px) { .cart-float { bottom: 110px; right: 30px; } }
 
     /* Panel carrito */
@@ -3916,6 +4142,20 @@
       </div>
       <div class="filter-sep"></div>
       <button class="notes-expand-btn" id="notesExpandBtn" onclick="toggleNotesPanel()">🎵 Notas ▾</button>
+      <button class="price-expand-btn" id="priceExpandBtn" onclick="togglePricePanel()">&#128176; Precio ▾</button>
+    </div>
+    <div class="price-filter-wrap" id="priceFilterWrap">
+      <div class="price-slider-row">
+        <span class="price-slider-label" id="priceMinLabel">$0</span>
+        <div class="price-slider-track" id="priceSliderTrack">
+          <div class="price-slider-bar"></div>
+          <div class="price-slider-fill" id="priceSliderFill"></div>
+          <input type="range" id="priceRangeMin" min="0" max="200000" step="5000" value="0" oninput="onPriceSlider()"/>
+          <input type="range" id="priceRangeMax" min="0" max="200000" step="5000" value="200000" oninput="onPriceSlider()"/>
+        </div>
+        <span class="price-slider-label" id="priceMaxLabel">$200.000</span>
+        <button class="price-clear-btn" onclick="clearPriceFilter()">&times; Limpiar</button>
+      </div>
     </div>
     <div class="note-filter-wrap" id="noteFilterWrap"></div>
     <div class="catalog-grid" id="catalogGrid">
@@ -4354,6 +4594,25 @@
     </div>
   </div>
 
+  <!-- OVERLAY LISTA DE ESPERA -->
+  <div class="waitlist-overlay" id="waitlistOverlay" onclick="closeWaitlist(event)">
+    <div class="waitlist-box" onclick="event.stopPropagation()">
+      <button class="waitlist-close" onclick="closeWaitlist()">&times;</button>
+      <p class="waitlist-icon">&#128276;</p>
+      <p class="waitlist-title">Avisame cuando vuelva</p>
+      <p class="waitlist-perfume-name" id="waitlistPerfumeName"></p>
+      <p class="waitlist-desc">Dej&#225; tu WhatsApp y te avisamos apenas vuelva a estar disponible.</p>
+      <input type="hidden" id="waitlistSlug"/>
+      <div class="waitlist-input-wrap">
+        <span class="waitlist-prefix">+54 9</span>
+        <input type="tel" class="waitlist-input" id="waitlistPhone" placeholder="2975416017" oninput="previewWaitlistPhone()"/>
+      </div>
+      <p class="waitlist-phone-preview" id="waitlistPhonePreview"></p>
+      <button class="waitlist-submit" id="waitlistSubmitBtn" onclick="submitWaitlist()">&#128227; Avisame</button>
+      <p class="waitlist-msg" id="waitlistMsg"></p>
+    </div>
+  </div>
+
   <div class="wa-status" id="waStatus"></div>
   <a href="https://wa.me/5492975416017?text=Hola!%20Quiero%20consultar%20por%20un%20perfume" target="_blank" class="wa-float" aria-label="WhatsApp">
     <svg viewBox="0 0 32 32" width="28" height="28"><path fill="#fff" d="M16.01 2.93A13.07 13.07 0 0 0 2.93 16a12.94 12.94 0 0 0 1.74 6.51L2.93 29.07l6.73-1.74A13.06 13.06 0 1 0 16.01 2.93Zm0 23.9a10.8 10.8 0 0 1-5.52-1.5l-.4-.24-4.12 1.08 1.1-4.03-.26-.41a10.83 10.83 0 1 1 9.2 5.1Zm5.93-8.1c-.33-.16-1.93-.95-2.23-1.06-.3-.11-.52-.16-.74.17-.22.32-.85 1.06-1.04 1.28-.2.22-.39.24-.72.08-.33-.16-1.38-.51-2.63-1.62-.97-.87-1.63-1.94-1.82-2.27-.19-.33-.02-.5.14-.67.15-.15.33-.39.5-.59.16-.2.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.17-.73-1.77-1-2.42-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.72 0 1.6 1.17 3.15 1.33 3.37.17.22 2.3 3.51 5.57 4.92.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.1 1.93-.79 2.2-1.55.28-.76.28-1.41.2-1.55-.09-.14-.31-.22-.64-.38Z"/></svg>
@@ -4417,10 +4676,20 @@
       var digits = raw.replace(/[^0-9]/g, '');
       // Si empieza con 0, quitarlo (ej: 02975 -> 2975)
       if (digits.charAt(0) === '0') digits = digits.substring(1);
-      // Si NO empieza con 54 (código Argentina), agregarlo
-      if (digits.substring(0, 2) !== '54') digits = '54' + digits;
       // Si tiene 549 seguido de 15, quitar el 15 (formato viejo)
       digits = digits.replace(/^549(\d{2,4})15(\d+)$/, '549$1$2');
+      // Si son 10 dígitos puros (número local), agregar 549
+      if (digits.length === 10 && digits.substring(0, 2) !== '54') {
+        digits = '549' + digits;
+      }
+      // Si empieza con 54 pero sin 9 (12 dígitos), insertar el 9
+      else if (digits.length === 12 && digits.substring(0, 2) === '54' && digits.charAt(2) !== '9') {
+        digits = '549' + digits.substring(2);
+      }
+      // Si NO empieza con 54, agregarlo
+      else if (digits.substring(0, 2) !== '54') {
+        digits = '549' + digits;
+      }
       return digits;
     }
 
@@ -5215,9 +5484,10 @@
     }
 
     function buildCard(p) {
-      const letter = p.name.charAt(0).toUpperCase();
-      const priceFormatted = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
-      const originalFormatted = p.promo ? formatPrice(p.price) : '';
+      delete p._precioOriginal; // limpiar entre renders
+      var letter = p.name.charAt(0).toUpperCase();
+      var priceFormatted = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
+      var originalFormatted = p.promo ? formatPrice(p.price) : '';
       const pCat = catLabel(p.cat);
 
       const fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
@@ -5243,15 +5513,24 @@
         imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
       }
 
-      const effectivePrice = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
-      const cashPrice = Math.round(effectivePrice * 0.9);
-      const cashFormatted = '$' + cashPrice.toLocaleString('es-AR').replace(/,/g, '.');
+      var effectivePrice = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+      var cashPrice = Math.round(effectivePrice * 0.9);
+      var cashFormatted = '$' + cashPrice.toLocaleString('es-AR').replace(/,/g, '.');
 
-      const pricingHTML = p.promo
-        ? '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span><span class="price-original">' + originalFormatted + '</span>'
-          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>'
-        : '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span>'
+      var pricingHTML;
+      if (p._precioOriginal) {
+        // Tiene descuento temporal activo → precio tachado + nuevo precio en rojo
+        pricingHTML = '<span class="card-price-original-discount">' + p._precioOriginal + '</span>'
+          + '<span class="price-promo card-price-discount">' + priceFormatted + '</span>'
+          + '<span class="price-label">3 cuotas sin interés</span>'
           + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
+      } else if (p.promo) {
+        pricingHTML = '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span><span class="price-original">' + originalFormatted + '</span>'
+          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
+      } else {
+        pricingHTML = '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span>'
+          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
+      }
 
       var searchText = stripAccents([p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || ''].join(' ').toLowerCase());
 
@@ -5280,6 +5559,34 @@
         ribbonHTML = '<div class="card-ribbon" style="background:' + ribbonColor + ';">' + p.etiqueta + '</div>';
       }
 
+      // Descuento temporal: verificar si está activo
+      var discountHTML = '';
+      var discountTimerHTML = '';
+      if (p.descuento_pct && p.descuento_pct > 0 && p.descuento_hasta) {
+        var ahora = new Date();
+        var vence = new Date(p.descuento_hasta);
+        if (vence > ahora) {
+          // Descuento activo → calcular nuevo precio
+          var diff = vence - ahora;
+          var dias = Math.floor(diff / 86400000);
+          var horas = Math.floor((diff % 86400000) / 3600000);
+          var timerText = dias > 0 ? dias + 'd ' + horas + 'h' : horas + 'h';
+
+          discountHTML = '<div class="card-discount-badge"><span class="discount-pct">' + p.descuento_pct + '%</span> OFF</div>';
+          discountTimerHTML = '<div class="card-discount-timer">⏰ ' + timerText + '</div>';
+
+          // Recalcular precio con descuento
+          var basePrice = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+          var discountedPrice = Math.round(basePrice * (1 - p.descuento_pct / 100));
+          // Guardar el precio original para tachar
+          p._precioOriginal = priceFormatted;
+          priceFormatted = '$' + discountedPrice.toLocaleString('es-AR').replace(/,/g, '.');
+          // Recalcular cash con el precio descontado
+          var discCash = Math.round(discountedPrice * 0.9);
+          cashFormatted = '$' + discCash.toLocaleString('es-AR').replace(/,/g, '.');
+        }
+      }
+
       // ML del producto
       var mlText = (p.ml || 100) + ' ml';
 
@@ -5287,8 +5594,19 @@
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
-      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
-        + ribbonHTML + stockBadge + nuevoBadge
+      var isOutOfStock = stockStatus === 'out';
+
+      // Botón "Avisame cuando vuelva" para sin stock y pausados
+      var waitlistHTML = '';
+      if (isOutOfStock || isPaused) {
+        var alreadyWaiting = waitlistSlugs.indexOf(p.slug) !== -1;
+        waitlistHTML = '<button class="waitlist-btn' + (alreadyWaiting ? ' subscribed' : '') + '" onclick="openWaitlist(\'' + p.slug + '\', event)">'
+          + (alreadyWaiting ? '&#10003; Te avisamos cuando vuelva' : '&#128276; Avisame cuando vuelva')
+          + '</button>';
+      }
+
+      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
+        + ribbonHTML + stockBadge + nuevoBadge + discountHTML + discountTimerHTML
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
         + '<div class="card-image">' + imageHTML + '</div>'
@@ -5312,6 +5630,7 @@
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
           + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + p.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
+          + waitlistHTML
         + '</div>'
         + '<div class="card-reveal">'
           + '<p class="reveal-name">' + p.name + '</p>'
@@ -5711,6 +6030,106 @@
       applyFilters();
     }
 
+    // ============================================================
+    // FILTRO POR RANGO DE PRECIO
+    // ============================================================
+    var priceFilterMin = 0;
+    var priceFilterMax = 200000;
+    var priceFilterActive = false;
+
+    function initPriceSlider() {
+      // Calcular min/max reales del catálogo
+      var prices = PERFUMES.filter(function(p) { return !p.esSet; }).map(function(p) {
+        return p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+      }).filter(function(n) { return !isNaN(n) && n > 0; });
+
+      if (prices.length === 0) return;
+      var minP = Math.floor(Math.min.apply(null, prices) / 5000) * 5000;
+      var maxP = Math.ceil(Math.max.apply(null, prices) / 5000) * 5000;
+
+      var minInput = document.getElementById('priceRangeMin');
+      var maxInput = document.getElementById('priceRangeMax');
+      minInput.min = minP; minInput.max = maxP; minInput.value = minP;
+      maxInput.min = minP; maxInput.max = maxP; maxInput.value = maxP;
+
+      priceFilterMin = minP;
+      priceFilterMax = maxP;
+      updatePriceLabels();
+      updatePriceSliderFill();
+    }
+
+    function togglePricePanel() {
+      var wrap = document.getElementById('priceFilterWrap');
+      var btn = document.getElementById('priceExpandBtn');
+      var isOpen = wrap.classList.contains('open');
+      wrap.classList.toggle('open');
+      btn.classList.toggle('open');
+      btn.innerHTML = isOpen ? '&#128176; Precio \u25be' : '&#128176; Precio \u25b4';
+      if (!isOpen) initPriceSlider();
+    }
+
+    function onPriceSlider() {
+      var minInput = document.getElementById('priceRangeMin');
+      var maxInput = document.getElementById('priceRangeMax');
+      var minVal = parseInt(minInput.value);
+      var maxVal = parseInt(maxInput.value);
+
+      // No permitir que se crucen
+      if (minVal > maxVal - 5000) {
+        if (this === minInput || event.target === minInput) {
+          minInput.value = maxVal - 5000;
+          minVal = maxVal - 5000;
+        } else {
+          maxInput.value = minVal + 5000;
+          maxVal = minVal + 5000;
+        }
+      }
+
+      priceFilterMin = minVal;
+      priceFilterMax = maxVal;
+      priceFilterActive = true;
+
+      updatePriceLabels();
+      updatePriceSliderFill();
+      updatePriceExpandBtn();
+      applyFilters();
+    }
+
+    function updatePriceLabels() {
+      document.getElementById('priceMinLabel').textContent = '$' + priceFilterMin.toLocaleString('es-AR').replace(/,/g, '.');
+      document.getElementById('priceMaxLabel').textContent = '$' + priceFilterMax.toLocaleString('es-AR').replace(/,/g, '.');
+    }
+
+    function updatePriceSliderFill() {
+      var minInput = document.getElementById('priceRangeMin');
+      var maxInput = document.getElementById('priceRangeMax');
+      var min = parseInt(minInput.min);
+      var max = parseInt(minInput.max);
+      var range = max - min;
+      if (range <= 0) return;
+      var left = ((priceFilterMin - min) / range) * 100;
+      var right = ((priceFilterMax - min) / range) * 100;
+      var fill = document.getElementById('priceSliderFill');
+      fill.style.left = left + '%';
+      fill.style.width = (right - left) + '%';
+    }
+
+    function updatePriceExpandBtn() {
+      var btn = document.getElementById('priceExpandBtn');
+      if (priceFilterActive) {
+        btn.classList.add('has-filter');
+      } else {
+        btn.classList.remove('has-filter');
+      }
+    }
+
+    function clearPriceFilter() {
+      priceFilterActive = false;
+      initPriceSlider();
+      updatePriceExpandBtn();
+      applyFilters();
+    }
+
     // Toggle panel de notas
     function toggleNotesPanel() {
       var wrap = document.getElementById('noteFilterWrap');
@@ -5849,7 +6268,16 @@
             occasionMatch = perfil === 'intenso' || perfil === 'dulce';
           }
         }
-        if (catMatch && searchMatch && noteMatch && occasionMatch) {
+        // FILTRO 5: Rango de precio
+        var priceMatch = true;
+        if (priceFilterActive) {
+          var priceEl = card.querySelector('.price-promo');
+          if (priceEl) {
+            var cardPrice = parseInt(priceEl.textContent.replace(/\D/g, '')) || 0;
+            priceMatch = cardPrice >= priceFilterMin && cardPrice <= priceFilterMax;
+          }
+        }
+        if (catMatch && searchMatch && noteMatch && occasionMatch && priceMatch) {
           totalMatch++;
           if (matchIndex < cardsShown) {
             card.style.display = 'flex';
@@ -6283,6 +6711,142 @@
     }
 
     // ============================================================
+    // LISTA DE ESPERA — Sin stock / Pausados
+    // ============================================================
+    var waitlistSlugs = JSON.parse(localStorage.getItem('st_waitlist') || '[]');
+
+    function openWaitlist(slug, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      document.getElementById('waitlistSlug').value = slug;
+      document.getElementById('waitlistPerfumeName').textContent = p.name;
+      document.getElementById('waitlistMsg').textContent = '';
+      document.getElementById('waitlistMsg').style.color = '';
+      document.getElementById('waitlistPhonePreview').textContent = '';
+      document.getElementById('waitlistSubmitBtn').disabled = false;
+
+      // Pre-llenar teléfono si está logueado (mostrar solo los 10 dígitos locales)
+      var phoneInput = document.getElementById('waitlistPhone');
+      if (currentUser && currentUser.telefono) {
+        var tel = currentUser.telefono;
+        // Si tiene 549 al inicio, quitar para mostrar solo la parte local
+        if (tel.substring(0, 3) === '549') tel = tel.substring(3);
+        else if (tel.substring(0, 2) === '54') tel = tel.substring(2);
+        phoneInput.value = tel;
+        previewWaitlistPhone();
+      } else {
+        phoneInput.value = '';
+      }
+
+      document.getElementById('waitlistOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeWaitlist(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('waitlistOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function previewWaitlistPhone() {
+      var raw = document.getElementById('waitlistPhone').value.trim();
+      var el = document.getElementById('waitlistPhonePreview');
+      if (!raw || raw.replace(/[^0-9]/g, '').length < 6) { el.textContent = ''; return; }
+      var clean = cleanPhone(raw);
+      var display = formatPhoneDisplay(raw);
+      if (clean.length === 13) {
+        el.innerHTML = '<span style="color:#27ae60">\u2713 ' + display + '</span>';
+      } else if (clean.length > 13) {
+        el.innerHTML = '<span style="color:#e74c3c">' + display + ' (demasiados d\u00edgitos)</span>';
+      } else {
+        el.innerHTML = '<span style="color:var(--gris)">' + display + ' (' + (13 - clean.length) + ' d\u00edgitos faltan)</span>';
+      }
+    }
+
+    async function submitWaitlist() {
+      var slug = document.getElementById('waitlistSlug').value;
+      var rawPhone = document.getElementById('waitlistPhone').value.trim();
+      var msgEl = document.getElementById('waitlistMsg');
+      var btn = document.getElementById('waitlistSubmitBtn');
+      msgEl.textContent = '';
+
+      if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
+        return;
+      }
+      var phone = cleanPhone(rawPhone);
+      if (phone.length !== 13) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)';
+        return;
+      }
+
+      btn.disabled = true;
+
+      try {
+        // Verificar si ya está en lista para este perfume
+        var existing = await sb.from('lista_espera').select('id').eq('slug', slug).eq('telefono', phone).limit(1);
+        if (existing.data && existing.data.length > 0) {
+          msgEl.style.color = 'var(--amarillo)';
+          msgEl.textContent = '\u00a1Ya est\u00e1s en la lista! Te avisamos cuando vuelva.';
+          markWaitlistSlug(slug);
+          setTimeout(function() { closeWaitlist(); }, 1800);
+          btn.disabled = false;
+          return;
+        }
+
+        var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
+        var nombre = currentUser ? currentUser.nombre : '';
+
+        var res = await sb.from('lista_espera').insert({
+          slug: slug,
+          telefono: phone,
+          nombre: nombre,
+          perfume_name: perfume ? perfume.name : slug
+        });
+
+        if (res.error) {
+          msgEl.style.color = '#e74c3c';
+          msgEl.textContent = 'Error: ' + res.error.message;
+          btn.disabled = false;
+          return;
+        }
+
+        // Marcar como suscripto
+        markWaitlistSlug(slug);
+
+        // Notificar Telegram
+        notifyTG('\ud83d\udd14 Lista de espera\n\ud83e\uddf4 ' + (perfume ? perfume.name : slug) + '\n\ud83d\udcf1 ' + phone + (nombre ? '\n\ud83d\udc64 ' + nombre : ''));
+
+        msgEl.style.color = '#27ae60';
+        msgEl.textContent = '\u00a1Listo! Te avisamos por WhatsApp cuando vuelva.';
+        setTimeout(function() { closeWaitlist(); }, 2000);
+      } catch(e) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Error de conexi\u00f3n. Intent\u00e1 de nuevo.';
+      }
+      btn.disabled = false;
+    }
+
+    function markWaitlistSlug(slug) {
+      if (waitlistSlugs.indexOf(slug) === -1) {
+        waitlistSlugs.push(slug);
+        localStorage.setItem('st_waitlist', JSON.stringify(waitlistSlugs));
+      }
+      // Actualizar botón en la card
+      var card = document.querySelector('[data-slug="' + slug + '"]');
+      if (card) {
+        var btn = card.querySelector('.waitlist-btn');
+        if (btn) {
+          btn.classList.add('subscribed');
+          btn.innerHTML = '\u2713 Te avisamos cuando vuelva';
+        }
+      }
+    }
+
+    // ============================================================
     // INIT
     // ============================================================
 
@@ -6339,6 +6903,9 @@
             // Etiqueta de cinta personalizada (se puede poner y quitar)
             if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';
             if (o.etiqueta_color) p.etiqueta_color = o.etiqueta_color;
+            // Descuento temporal
+            if (o.descuento_pct) p.descuento_pct = o.descuento_pct;
+            if (o.descuento_hasta) p.descuento_hasta = o.descuento_hasta;
           });
         }
       } catch(e) {}
@@ -6656,17 +7223,122 @@
       if (cart.indexOf(slug) !== -1) {
         // Ya está, quitar
         cart = cart.filter(function(s) { return s !== slug; });
-        if (btn) { btn.textContent = '🛒 Agregar al pedido'; btn.classList.remove('added'); }
+        if (btn) { btn.textContent = '\ud83d\uded2 Agregar al pedido'; btn.classList.remove('added'); }
       } else {
         if (cart.length >= CART_LIMIT) {
-          showCartLimitMsg('Máximo ' + CART_LIMIT + ' fragancias por pedido 😊');
+          showCartLimitMsg('M\u00e1ximo ' + CART_LIMIT + ' fragancias por pedido \ud83d\ude0a');
           return;
         }
         cart.push(slug);
-        if (btn) { btn.textContent = '✓ Agregado'; btn.classList.add('added'); }
+        if (btn) { btn.textContent = '\u2713 Agregado'; btn.classList.add('added'); }
+        flyToCart(slug, btn);
         showCartToast(slug);
       }
       updateCartUI();
+    }
+
+    // ============================================================
+    // FLY TO CART — animación visual al agregar
+    // ============================================================
+    function flyToCart(slug, triggerBtn) {
+      var card = document.querySelector('[data-slug="' + slug + '"]');
+      if (!card) return;
+
+      // Buscar la imagen de la card (o el placeholder)
+      var imgEl = card.querySelector('.card-image img') || card.querySelector('.card-image .photo-coming');
+      if (!imgEl) return;
+
+      var cartBtn = document.getElementById('cartFloat');
+
+      // Posiciones
+      var imgRect = imgEl.getBoundingClientRect();
+      var cartRect = cartBtn ? cartBtn.getBoundingClientRect() : { left: window.innerWidth - 80, top: window.innerHeight - 120, width: 40, height: 40 };
+
+      // Crear clon volador
+      var flyer = document.createElement('div');
+      flyer.className = 'fly-to-cart';
+
+      if (imgEl.tagName === 'IMG') {
+        var clonedImg = document.createElement('img');
+        clonedImg.src = imgEl.src;
+        clonedImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
+        flyer.appendChild(clonedImg);
+      } else {
+        flyer.style.background = '#1a1a1a';
+        flyer.style.display = 'flex';
+        flyer.style.alignItems = 'center';
+        flyer.style.justifyContent = 'center';
+        var letter = document.createElement('span');
+        letter.textContent = (PERFUMES.find(function(p){ return p.slug === slug; }) || {}).name.charAt(0) || '?';
+        letter.style.cssText = 'color:var(--amarillo);font-size:1.5rem;font-weight:700;';
+        flyer.appendChild(letter);
+      }
+
+      // Posicionar en el lugar de la imagen
+      var startW = Math.min(imgRect.width, 120);
+      var startH = Math.min(imgRect.height, 150);
+      flyer.style.left = imgRect.left + (imgRect.width - startW) / 2 + 'px';
+      flyer.style.top = imgRect.top + (imgRect.height - startH) / 2 + 'px';
+      flyer.style.width = startW + 'px';
+      flyer.style.height = startH + 'px';
+      flyer.style.opacity = '1';
+
+      document.body.appendChild(flyer);
+
+      // Calcular destino
+      var endX = cartRect.left + cartRect.width / 2 - startW / 2;
+      var endY = cartRect.top + cartRect.height / 2 - startH / 2;
+      var dx = endX - parseFloat(flyer.style.left);
+      var dy = endY - parseFloat(flyer.style.top);
+
+      // Spawn partículas desde la imagen
+      spawnParticles(imgRect.left + imgRect.width / 2, imgRect.top + imgRect.height / 2);
+
+      // Forzar reflow
+      flyer.offsetHeight;
+
+      // Animar
+      flyer.classList.add('flying');
+      flyer.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(.15)';
+      flyer.style.opacity = '.4';
+      flyer.style.borderRadius = '50%';
+
+      // Al terminar: pop del carrito + limpiar
+      setTimeout(function() {
+        flyer.remove();
+        if (cartBtn) {
+          cartBtn.classList.remove('cart-pop');
+          void cartBtn.offsetHeight;
+          cartBtn.classList.add('cart-pop');
+          setTimeout(function() { cartBtn.classList.remove('cart-pop'); }, 600);
+        }
+      }, 680);
+    }
+
+    function spawnParticles(x, y) {
+      var colors = ['#E8B800', '#f5d442', '#fff', '#ffd700', '#ffaa00'];
+      for (var i = 0; i < 8; i++) {
+        var particle = document.createElement('div');
+        particle.className = 'cart-particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        document.body.appendChild(particle);
+
+        var angle = (Math.PI * 2 / 8) * i + (Math.random() - .5) * .5;
+        var dist = 40 + Math.random() * 50;
+        var tx = Math.cos(angle) * dist;
+        var ty = Math.sin(angle) * dist - 20;
+
+        particle.style.transition = 'transform .5s cubic-bezier(.25,.46,.45,.94), opacity .5s ease';
+        particle.offsetHeight;
+        particle.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) scale(0)';
+        particle.style.opacity = '0';
+
+        (function(el) {
+          setTimeout(function() { el.remove(); }, 550);
+        })(particle);
+      }
     }
 
     function addFavsToCart() {
