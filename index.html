@@ -1660,7 +1660,15 @@
       box-sizing: border-box;
       overflow: hidden;
     }
-    @media (hover: hover) { .product-card:hover .card-reveal { transform: translateX(0); opacity: 1; pointer-events: auto; } }
+    @media (hover: hover) {
+      .product-card .card-reveal {
+        transition-delay: 0s; /* salida rápida */
+      }
+      .product-card:hover .card-reveal {
+        transform: translateX(0); opacity: 1; pointer-events: auto;
+        transition-delay: .45s; /* entrada con delay — deja ver el precio tranquilo */
+      }
+    }
 
     /* ESPEJO — columna izquierda: TEXTO | FOTO, reveal entra desde la izq */
     @media (min-width: 768px) {
@@ -1683,6 +1691,7 @@
     @media (hover: hover) and (min-width: 768px) {
       .product-card.mirror:hover .card-reveal {
         transform: translateX(0);
+        transition-delay: .45s;
       }
     }
     @media (min-width: 768px) {
