@@ -502,7 +502,7 @@
       <p class="login-logo">ST Admin</p>
       <p class="login-sub">Panel de administracion</p>
       <input type="password" class="login-input" id="loginPass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()"/>
-      <button class="login-btn" onclick="doLogin()">Ingresar</button>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">Ingresar</button>
       <p class="login-error" id="loginError"></p>
     </div>
   </div>
@@ -1149,19 +1149,91 @@
     var currentRole = null; // 'jefe' | 'empleado'
 
     // ============================================================
-    // LOGIN + ROLES (jefe / empleado)
+    // LOGIN + ROLES + LOCKOUT + AUTO-LOGOUT
     // ============================================================
+    // Lockout escalonado: cada 5 intentos fallidos sube el cooldown
+    //   5 fallos  -> 1  min
+    //   10 fallos -> 5  min
+    //   15 fallos -> 30 min
+    //   20+ fallos-> 30 min (se mantiene)
+    var LOCKOUT_KEY = 'st_admin_lockout';
+    var lockoutTimer = null;
+
+    function getLockoutState() {
+      try { return JSON.parse(localStorage.getItem(LOCKOUT_KEY) || '{"fails":0,"until":0}'); }
+      catch(e) { return { fails: 0, until: 0 }; }
+    }
+    function setLockoutState(state) {
+      localStorage.setItem(LOCKOUT_KEY, JSON.stringify(state));
+    }
+    function clearLockoutState() {
+      localStorage.removeItem(LOCKOUT_KEY);
+    }
+    function tierForFails(fails) {
+      if (fails >= 15) return 30 * 60 * 1000;
+      if (fails >= 10) return 5 * 60 * 1000;
+      if (fails >= 5)  return 1 * 60 * 1000;
+      return 0;
+    }
+    function formatRemaining(ms) {
+      var s = Math.ceil(ms / 1000);
+      if (s >= 60) {
+        var m = Math.floor(s / 60);
+        var rs = s % 60;
+        return m + 'm ' + (rs < 10 ? '0' : '') + rs + 's';
+      }
+      return s + 's';
+    }
+    function renderLockoutCountdown() {
+      var st = getLockoutState();
+      var now = Date.now();
+      var btn = document.getElementById('loginBtn');
+      var input = document.getElementById('loginPass');
+      var err = document.getElementById('loginError');
+      if (st.until > now) {
+        var remain = st.until - now;
+        btn.disabled = true;
+        input.disabled = true;
+        err.textContent = 'Demasiados intentos. Esper\u00e1 ' + formatRemaining(remain);
+        return true;
+      }
+      btn.disabled = false;
+      input.disabled = false;
+      if (lockoutTimer) { clearInterval(lockoutTimer); lockoutTimer = null; }
+      return false;
+    }
+    function startLockoutTimer() {
+      if (lockoutTimer) clearInterval(lockoutTimer);
+      lockoutTimer = setInterval(function() {
+        var stillLocked = renderLockoutCountdown();
+        if (!stillLocked && lockoutTimer) {
+          clearInterval(lockoutTimer);
+          lockoutTimer = null;
+          document.getElementById('loginError').textContent = '';
+        }
+      }, 1000);
+    }
+
     async function doLogin() {
+      // Si está bloqueado, abortar
+      if (renderLockoutCountdown()) {
+        startLockoutTimer();
+        return;
+      }
+
       var pass = document.getElementById('loginPass').value;
       var role = null;
       if (pass === ADMIN_PASS) role = 'jefe';
       else if (pass === ADMIN_PASS_EMPLEADO) role = 'empleado';
 
       if (role) {
+        clearLockoutState(); // login exitoso resetea el contador
         currentRole = role;
         document.getElementById('loginWrap').style.display = 'none';
         document.getElementById('adminPanel').classList.add('active');
+        document.getElementById('loginError').textContent = '';
         applyRolePermissions();
+        startInactivityWatcher();
         await loadStockFromDB();
         renderPrecios();
         renderStock();
@@ -1173,17 +1245,65 @@
         loadCierres();
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
-        document.getElementById('loginError').textContent = 'Contrase\u00f1a incorrecta';
-        notifyTelegram('\ud83d\udea8 Intento fallido de acceso al Panel Admin\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+        // Sumar fallo y aplicar lockout si corresponde
+        var st = getLockoutState();
+        st.fails = (st.fails || 0) + 1;
+        var cooldown = tierForFails(st.fails);
+        if (cooldown > 0) {
+          st.until = Date.now() + cooldown;
+          setLockoutState(st);
+          renderLockoutCountdown();
+          startLockoutTimer();
+          notifyTelegram('\ud83d\udea8 Panel Admin BLOQUEADO por ' + formatRemaining(cooldown) + '\n\ud83d\udd22 ' + st.fails + ' intentos fallidos');
+        } else {
+          setLockoutState(st);
+          var left = 5 - (st.fails % 5);
+          document.getElementById('loginError').textContent = 'Contrase\u00f1a incorrecta (' + left + ' intento' + (left === 1 ? '' : 's') + ' antes del bloqueo)';
+          notifyTelegram('\ud83d\udea8 Intento fallido en Panel Admin (' + st.fails + ' acumulados)\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+        }
       }
     }
 
     function doLogout() {
       currentRole = null;
+      stopInactivityWatcher();
       document.getElementById('adminPanel').classList.remove('active');
       document.getElementById('loginWrap').style.display = 'flex';
       document.getElementById('loginPass').value = '';
+      // Si está bloqueado, mostrar el countdown al volver al login
+      renderLockoutCountdown();
     }
+
+    // ============================================================
+    // AUTO-LOGOUT por inactividad (15 min sin tocar nada)
+    // ============================================================
+    var INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+    var lastActivityTs = Date.now();
+    var inactivityCheckInterval = null;
+
+    function markActivity() { lastActivityTs = Date.now(); }
+    function startInactivityWatcher() {
+      lastActivityTs = Date.now();
+      ['mousemove','mousedown','keydown','touchstart','scroll'].forEach(function(ev) {
+        document.addEventListener(ev, markActivity, { passive: true });
+      });
+      if (inactivityCheckInterval) clearInterval(inactivityCheckInterval);
+      inactivityCheckInterval = setInterval(function() {
+        if (Date.now() - lastActivityTs > INACTIVITY_LIMIT_MS) {
+          notifyTelegram('\u23f0 Auto-logout por inactividad (Panel Admin)\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+          doLogout();
+        }
+      }, 30 * 1000);
+    }
+    function stopInactivityWatcher() {
+      ['mousemove','mousedown','keydown','touchstart','scroll'].forEach(function(ev) {
+        document.removeEventListener(ev, markActivity);
+      });
+      if (inactivityCheckInterval) { clearInterval(inactivityCheckInterval); inactivityCheckInterval = null; }
+    }
+
+    // Si recargás la página estando bloqueado, mostrar el countdown al instante
+    document.addEventListener('DOMContentLoaded', function() { renderLockoutCountdown(); });
 
     // applyRolePermissions: oculta las pestañas jefe-only si el rol es empleado,
     // reasigna la pestaña activa a la primera visible y muestra el badge del rol.

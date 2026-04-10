@@ -4804,6 +4804,8 @@
       switchAuthMode('register');
       document.getElementById('authOverlay').classList.add('open');
       document.getElementById('authError').textContent = '';
+      // Si está bloqueado por intentos previos, mostrar el countdown al instante
+      if (renderAuthLockout()) startAuthLockoutTimer();
     }
     function closeAuth() {
       document.getElementById('authOverlay').classList.remove('open');
@@ -4910,7 +4912,86 @@
       }
     }
 
+    // ============================================================
+    // LOCKOUT del login (cliente del catálogo)
+    // 5 fallos -> 1 min, 10 -> 5 min, 15 -> 30 min
+    // ============================================================
+    var AUTH_LOCKOUT_KEY = 'st_auth_lockout';
+    var authLockoutTimer = null;
+
+    function getAuthLockout() {
+      try { return JSON.parse(localStorage.getItem(AUTH_LOCKOUT_KEY) || '{"fails":0,"until":0}'); }
+      catch(e) { return { fails: 0, until: 0 }; }
+    }
+    function setAuthLockout(s) { localStorage.setItem(AUTH_LOCKOUT_KEY, JSON.stringify(s)); }
+    function clearAuthLockout() { localStorage.removeItem(AUTH_LOCKOUT_KEY); }
+    function authTierForFails(f) {
+      if (f >= 15) return 30 * 60 * 1000;
+      if (f >= 10) return 5 * 60 * 1000;
+      if (f >= 5)  return 1 * 60 * 1000;
+      return 0;
+    }
+    function authFormatRemaining(ms) {
+      var s = Math.ceil(ms / 1000);
+      if (s >= 60) {
+        var m = Math.floor(s / 60);
+        var rs = s % 60;
+        return m + 'm ' + (rs < 10 ? '0' : '') + rs + 's';
+      }
+      return s + 's';
+    }
+    function renderAuthLockout() {
+      var st = getAuthLockout();
+      var now = Date.now();
+      var btn = document.getElementById('authBtn');
+      var err = document.getElementById('authError');
+      if (!btn || !err) return false;
+      if (st.until > now) {
+        btn.disabled = true;
+        err.textContent = 'Demasiados intentos. Esperá ' + authFormatRemaining(st.until - now);
+        err.style.color = '#e74c3c';
+        return true;
+      }
+      btn.disabled = false;
+      if (authLockoutTimer) { clearInterval(authLockoutTimer); authLockoutTimer = null; }
+      return false;
+    }
+    function startAuthLockoutTimer() {
+      if (authLockoutTimer) clearInterval(authLockoutTimer);
+      authLockoutTimer = setInterval(function() {
+        var stillLocked = renderAuthLockout();
+        if (!stillLocked && authLockoutTimer) {
+          clearInterval(authLockoutTimer);
+          authLockoutTimer = null;
+          var err = document.getElementById('authError');
+          if (err) err.textContent = '';
+        }
+      }, 1000);
+    }
+
+    // Suma 1 fallo al lockout. Si toca tier de cooldown, lo activa y muestra el countdown.
+    function registerAuthFail(errEl) {
+      var st = getAuthLockout();
+      st.fails = (st.fails || 0) + 1;
+      var cd = authTierForFails(st.fails);
+      if (cd > 0) {
+        st.until = Date.now() + cd;
+        setAuthLockout(st);
+        renderAuthLockout();
+        startAuthLockoutTimer();
+        try { notifyTG('\ud83d\udea8 Login del cat\u00e1logo BLOQUEADO por ' + authFormatRemaining(cd) + '\n\ud83d\udd22 ' + st.fails + ' intentos fallidos'); } catch(e) {}
+      } else {
+        setAuthLockout(st);
+      }
+    }
+
     async function handleAuth() {
+      // Si está bloqueado, abortar
+      if (renderAuthLockout()) {
+        startAuthLockoutTimer();
+        return;
+      }
+
       var name = document.getElementById('authName').value.trim();
       var rawPhone = document.getElementById('authPhone').value.trim();
       var pass = document.getElementById('authPass').value;
@@ -4942,14 +5023,24 @@
           // Login: verificar teléfono + contraseña
           var existing = await sb.from('clientes').select('id, nombre, telefono, password').eq('telefono', phone).limit(1);
           if (!existing.data || existing.data.length === 0) {
-            errEl.textContent = 'No hay cuenta con ese número. ¿Querés registrarte?';
+            // Numero inexistente cuenta como intento fallido
+            registerAuthFail(errEl);
+            if (errEl.textContent.indexOf('Esper') === -1) {
+              errEl.textContent = 'No hay cuenta con ese número. ¿Querés registrarte?';
+            }
             btn.disabled = false; return;
           }
           var cliente = existing.data[0];
           if (cliente.password !== pass) {
-            errEl.textContent = 'Contraseña incorrecta';
+            registerAuthFail(errEl);
+            if (errEl.textContent.indexOf('Esper') === -1) {
+              var stTmp = getAuthLockout();
+              var leftTmp = 5 - (stTmp.fails % 5);
+              errEl.textContent = 'Contraseña incorrecta (' + leftTmp + ' intento' + (leftTmp === 1 ? '' : 's') + ' antes del bloqueo)';
+            }
             btn.disabled = false; return;
           }
+          clearAuthLockout(); // login exitoso resetea
           onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: cliente.telefono });
           closeAuth();
         } else {
