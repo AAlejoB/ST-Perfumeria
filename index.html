@@ -7888,6 +7888,9 @@
     // ============================================================
     function showSplash(p, callback) {
       if (!p) { if (callback) callback(); return; }
+      // En mobile saltamos la animación: el carrito se limpia al toque y queda más ágil.
+      // El splash queda solo en desktop como detalle visual.
+      if (window.innerWidth < 768) { if (callback) callback(); return; }
       var overlay = document.getElementById('splashOverlay');
       var imgWrap = document.getElementById('splashImgWrap');
       var brandEl = document.getElementById('splashBrand');
