@@ -3986,14 +3986,15 @@
     }
     .auth-input:focus { border-color: var(--amarillo); }
     .auth-input::placeholder { color: var(--gris); }
+    .auth-input:disabled { opacity: .45; cursor: not-allowed; background: rgba(255,255,255,.03); }
     .auth-btn {
       width: 100%; padding: .65rem; font-family: var(--font-body); font-size: .78rem;
       font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
       color: var(--negro); background: var(--amarillo); border: none;
       border-radius: 4px; cursor: pointer; transition: all .2s; margin-top: .4rem;
     }
-    .auth-btn:hover { background: var(--amarillo-claro); }
-    .auth-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .auth-btn:hover:not(:disabled) { background: var(--amarillo-claro); }
+    .auth-btn:disabled { opacity: .35; cursor: not-allowed; background: #555; color: #aaa; }
     .auth-toggle {
       font-size: .72rem; color: var(--gris-claro); text-align: center;
       margin-top: .8rem; cursor: pointer;
@@ -4946,13 +4947,18 @@
       var btn = document.getElementById('authBtn');
       var err = document.getElementById('authError');
       if (!btn || !err) return false;
+      var inputs = ['authName','authPhone','authPhone2','authPass']
+        .map(function(id){ return document.getElementById(id); })
+        .filter(Boolean);
       if (st.until > now) {
         btn.disabled = true;
+        inputs.forEach(function(i){ i.disabled = true; });
         err.textContent = 'Demasiados intentos. Esperá ' + authFormatRemaining(st.until - now);
         err.style.color = '#e74c3c';
         return true;
       }
       btn.disabled = false;
+      inputs.forEach(function(i){ i.disabled = false; });
       if (authLockoutTimer) { clearInterval(authLockoutTimer); authLockoutTimer = null; }
       return false;
     }

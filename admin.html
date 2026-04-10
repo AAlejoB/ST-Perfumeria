@@ -36,12 +36,14 @@
     }
     .login-input:focus { border-color: var(--amarillo); }
     .login-input::placeholder { color: var(--gris); }
+    .login-input:disabled { opacity: .45; cursor: not-allowed; background: rgba(255,255,255,.03); }
     .login-btn {
       width: 100%; padding: .8rem; font-family: inherit; font-size: .8rem; font-weight: 600;
       letter-spacing: .12em; text-transform: uppercase; background: var(--amarillo);
-      color: #000; border: none; border-radius: 4px; cursor: pointer; transition: background .2s;
+      color: #000; border: none; border-radius: 4px; cursor: pointer; transition: background .2s, opacity .2s;
     }
-    .login-btn:hover { background: var(--amarillo-claro); }
+    .login-btn:hover:not(:disabled) { background: var(--amarillo-claro); }
+    .login-btn:disabled { opacity: .35; cursor: not-allowed; background: #555; color: #aaa; }
     .login-error { font-size: .75rem; color: #e74c3c; margin-top: .8rem; min-height: 1.2rem; }
 
     /* PANEL */
@@ -1303,7 +1305,10 @@
     }
 
     // Si recargás la página estando bloqueado, mostrar el countdown al instante
-    document.addEventListener('DOMContentLoaded', function() { renderLockoutCountdown(); });
+    // Y arrancar el timer que lo actualiza cada segundo
+    document.addEventListener('DOMContentLoaded', function() {
+      if (renderLockoutCountdown()) startLockoutTimer();
+    });
 
     // applyRolePermissions: oculta las pestañas jefe-only si el rol es empleado,
     // reasigna la pestaña activa a la primera visible y muestra el badge del rol.
