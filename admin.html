@@ -1922,9 +1922,33 @@
         return;
       }
 
-      msgEl.textContent = '✓ ' + obj.name + ' actualizado. Los cambios se ven al recargar el sitio.';
+      // Refrescar en memoria: mergear los cambios sobre el perfume en PERFUMES
+      var idx = PERFUMES.findIndex(function(p) { return p.slug === slug; });
+      if (idx !== -1) {
+        // Convertir price/promo a number si vienen como string, para que sortPerfumes ordene bien
+        var merged = Object.assign({}, obj);
+        if (typeof merged.price === 'string' && merged.price !== '') {
+          var np = parseFloat(merged.price.replace(/[^0-9.\-]/g, ''));
+          if (!isNaN(np)) merged.price = np;
+        }
+        if (typeof merged.promo === 'string' && merged.promo !== '') {
+          var npr = parseFloat(merged.promo.replace(/[^0-9.\-]/g, ''));
+          if (!isNaN(npr)) merged.promo = npr;
+        } else if (merged.promo === '') {
+          merged.promo = null;
+        }
+        Object.assign(PERFUMES[idx], merged);
+      }
+
+      // Re-renderizar tablas del admin que muestran datos del perfume editado
+      try { renderPrecios(); } catch(e) {}
+      try { renderStock(); } catch(e) {}
+      try { if (typeof renderDestacados === 'function') renderDestacados(); } catch(e) {}
+      try { if (typeof loadStats === 'function') loadStats(); } catch(e) {}
+
+      msgEl.textContent = '\u2713 ' + obj.name + ' actualizado';
       msgEl.style.color = '#2ecc71';
-      notifyTelegram('✏️ Perfume editado: ' + obj.name + '\n📋 Cambios guardados en Supabase');
+      notifyTelegram('\u270f\ufe0f Perfume editado: ' + obj.name + '\n\ud83d\udccb Cambios guardados en Supabase');
     }
 
     function cancelEdit() {
