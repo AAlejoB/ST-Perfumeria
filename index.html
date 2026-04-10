@@ -1646,17 +1646,17 @@
     .price-label { font-size: .55rem; color: #bbb; font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
     .price-cash { width: 100%; font-size: .85rem; color: #4caf50; font-weight: 600; }
 
-    /* REVEAL LATERAL — por defecto entra desde la derecha (columna derecha / mobile) */
+    /* REVEAL LATERAL — sobre el área de imagen (30%), precio queda visible */
     .card-reveal {
-      position: absolute; top: 0; left: 30%; width: 70%; height: 100%;
-      background: #111;
-      padding: .8rem 1rem;
+      position: absolute; top: 0; left: 0; width: 30%; height: 100%;
+      background: rgba(17,17,17,.95);
+      padding: .6rem .7rem;
       z-index: 10;
       display: flex; flex-direction: column; justify-content: flex-start;
-      transform: translateX(100%); opacity: 0;
+      transform: translateX(-100%); opacity: 0;
       transition: transform .4s cubic-bezier(.25,.46,.45,.94), opacity .3s;
       pointer-events: none;
-      border-radius: 0 5px 5px 0;
+      border-radius: 5px 0 0 5px;
       box-sizing: border-box;
       overflow: hidden;
     }
@@ -1670,7 +1670,7 @@
       }
     }
 
-    /* ESPEJO — columna izquierda: TEXTO | FOTO, reveal entra desde la izq */
+    /* ESPEJO — columna izquierda: TEXTO | FOTO, reveal cubre imagen (derecha) */
     @media (min-width: 768px) {
       .product-card.mirror {
         flex-direction: row-reverse;
@@ -1682,10 +1682,10 @@
         justify-content: flex-end;
       }
       .product-card.mirror .card-reveal {
-        left: 0;
-        right: 30%;
-        border-radius: 5px 0 0 5px;
-        transform: translateX(-100%);
+        left: auto;
+        right: 0;
+        border-radius: 0 5px 5px 0;
+        transform: translateX(100%);
       }
     }
     @media (hover: hover) and (min-width: 768px) {
@@ -1701,22 +1701,35 @@
       }
     }
 
-    .reveal-name { font-family: var(--font-display); font-size: .85rem; font-weight: 600; color: #fff; margin-bottom: .1rem; line-height: 1.15; text-transform: uppercase; }
-    .reveal-brand { font-size: .5rem; font-weight: 400; color: var(--gris); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .25rem; }
-    .reveal-divider { width: 100%; height: 1px; background: linear-gradient(90deg, var(--amarillo), transparent); margin-bottom: .3rem; }
-    .reveal-actions { display: flex; gap: .3rem; margin-top: auto; }
-    .reveal-actions .cart-add-btn { flex: 1; margin-top: 0; }
-    .reveal-actions .reveal-share { flex-shrink: 0; width: 36px; margin-top: 0; padding: .4rem; font-size: .75rem; display: flex; align-items: center; justify-content: center; }
-    .scent-notes  { display: flex; flex-direction: column; gap: .2rem; margin-bottom: .4rem; flex: 1; min-height: 0; overflow: hidden; }
-    .scent-note   { font-size: .62rem; font-weight: 300; color: #e0e0e0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .reveal-name { font-family: var(--font-display); font-size: .7rem; font-weight: 600; color: #fff; margin-bottom: .05rem; line-height: 1.15; text-transform: uppercase; }
+    .reveal-brand { font-size: .45rem; font-weight: 400; color: var(--gris); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .1rem; }
+    .reveal-divider { width: 100%; height: 1px; background: linear-gradient(90deg, var(--amarillo), transparent); margin-bottom: .2rem; }
+    .reveal-actions { display: flex; gap: .25rem; margin-top: auto; }
+    .reveal-actions .cart-add-btn { flex: 1; margin-top: 0; font-size: .55rem; padding: .35rem .4rem; }
+    .reveal-actions .reveal-share { flex-shrink: 0; width: 32px; margin-top: 0; padding: .3rem; font-size: .65rem; display: flex; align-items: center; justify-content: center; }
+    .scent-notes  { display: flex; flex-direction: column; gap: .15rem; margin-bottom: .3rem; flex: 1; min-height: 0; overflow: hidden; }
+    .scent-note   { font-size: .52rem; font-weight: 300; color: #e0e0e0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; }
     .scent-note strong  { font-weight: 600; color: #fff; }
-    .note-label { font-weight: 700; color: var(--amarillo); font-size: .55rem; letter-spacing: .1em; margin-right: .3rem; }
+    .note-label { font-weight: 700; color: var(--amarillo); font-size: .45rem; letter-spacing: .08em; margin-right: .2rem; }
 
     /* Notes preview in card (mobile) + tags in reveal (mobile) */
     .card-notes-preview { display: flex; flex-direction: column; gap: .2rem; margin-bottom: 6px; }
     .note-prev { font-size: .6rem; font-weight: 300; color: #999; line-height: 1.35; }
     .note-prev .note-label { font-size: .5rem; }
     .reveal-tags { display: none; gap: 4px; flex-wrap: wrap; margin-bottom: .5rem; }
+    .reveal-pricing {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 1px 4px;
+      margin-bottom: .15rem;
+    }
+    .reveal-pricing .price-promo { font-size: .65rem; font-weight: 800; color: var(--amarillo); }
+    .reveal-pricing .price-label { font-size: .35rem; color: #999; }
+    .reveal-pricing .price-original { font-size: .45rem; color: #666; text-decoration: line-through; }
+    .reveal-pricing .price-cash { width: 100%; font-size: .42rem; color: #4caf50; font-weight: 600; }
+    .reveal-pricing .card-price-original-discount { font-size: .45rem; color: #666; text-decoration: line-through; }
+    .reveal-pricing .card-price-discount { color: #e74c3c; }
 
     /* MOBILE: ocultar reveal lateral, mostrar notas en card, bottom sheet al tocar */
     @media (max-width: 767px) {
@@ -1730,6 +1743,113 @@
       .card-tags { display: flex; }
       .card-notes-preview { display: none; }
       .reveal-tags { display: none; }
+    }
+
+    /* FILTROS ACTIVOS — chips removibles */
+    .active-filters-bar {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem 1rem;
+      flex-wrap: wrap;
+      background: rgba(232,184,0,.04);
+      border-bottom: 1px solid rgba(232,184,0,.1);
+    }
+    .active-filters-chips {
+      display: flex;
+      gap: .4rem;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .active-filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .25rem .6rem;
+      background: rgba(232,184,0,.12);
+      border: 1px solid rgba(232,184,0,.25);
+      border-radius: 20px;
+      font-size: .65rem;
+      color: #e0e0e0;
+      font-weight: 500;
+      letter-spacing: .03em;
+      white-space: nowrap;
+      transition: all .2s;
+    }
+    .active-filter-chip:hover {
+      background: rgba(232,184,0,.2);
+      border-color: var(--amarillo);
+    }
+    .active-filter-chip .chip-label {
+      color: var(--amarillo);
+      font-weight: 700;
+      font-size: .55rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .active-filter-chip .chip-remove {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: .75rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      transition: color .15s;
+    }
+    .active-filter-chip .chip-remove:hover {
+      color: #e74c3c;
+    }
+    .active-filters-clear {
+      background: none;
+      border: 1px solid #444;
+      color: #999;
+      font-size: .6rem;
+      padding: .25rem .6rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: .04em;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .active-filters-clear:hover {
+      border-color: #e74c3c;
+      color: #e74c3c;
+    }
+
+    /* FAVORITOS VACÍOS — empty state */
+    .favs-empty {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .favs-empty-icon {
+      font-size: 3rem;
+      color: #333;
+      display: block;
+      margin-bottom: .8rem;
+      line-height: 1;
+    }
+    .favs-empty-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .6rem;
+    }
+    .favs-empty-desc {
+      font-size: .8rem;
+      color: #888;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+    .favs-empty-heart {
+      color: #e74c3c;
+      font-size: .9rem;
     }
 
     /* BOTTOM SHEET — solo mobile */
@@ -1822,37 +1942,37 @@
     @media (min-width: 768px) {
       .bottom-sheet-overlay { display: none !important; }
     }
-    .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .65rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .55rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
+    .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .55rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .35rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
     @media (min-width: 768px) {
-      .reveal-name { font-size: .95rem; }
-      .reveal-brand { font-size: .55rem; margin-bottom: .3rem; }
-      .reveal-divider { margin-bottom: .35rem; }
-      .scent-notes { gap: .25rem; margin-bottom: .5rem; }
-      .scent-note { font-size: .65rem; }
-      .reveal-cta { font-size: .65rem; padding: .5rem; }
+      .reveal-name { font-size: .75rem; }
+      .reveal-brand { font-size: .45rem; margin-bottom: .1rem; }
+      .reveal-divider { margin-bottom: .2rem; }
+      .scent-notes { gap: .15rem; margin-bottom: .3rem; }
+      .scent-note { font-size: .55rem; }
+      .reveal-cta { font-size: .55rem; padding: .35rem; letter-spacing: .08em; }
     }
     .reveal-cta:hover { background: var(--amarillo-claro); }
     .reveal-similares {
       display: inline-block;
       width: 100%;
       text-align: center;
-      font-size: .6rem;
+      font-size: .5rem;
       font-weight: 500;
-      letter-spacing: .12em;
+      letter-spacing: .06em;
       text-transform: uppercase;
       color: var(--amarillo);
       background: transparent;
       border: 1px solid rgba(232,184,0,.3);
-      padding: .4rem;
+      padding: .28rem;
       border-radius: 3px;
       cursor: pointer;
       transition: all .2s;
-      margin-top: .3rem;
+      margin-top: .15rem;
       font-family: var(--font-body);
     }
     .reveal-similares:hover { background: rgba(232,184,0,.1); border-color: var(--amarillo); }
     @media (min-width: 768px) {
-      .reveal-similares { font-size: .65rem; padding: .45rem; }
+      .reveal-similares { font-size: .5rem; padding: .28rem; }
     }
 
     /* Modal similares */
@@ -4167,6 +4287,15 @@
       </div>
     </div>
     <div class="note-filter-wrap" id="noteFilterWrap"></div>
+    <div class="active-filters-bar" id="activeFiltersBar" style="display:none;">
+      <div class="active-filters-chips" id="activeFiltersChips"></div>
+      <button class="active-filters-clear" id="activeFiltersClearAll" onclick="clearAllFilters()">Limpiar todo &times;</button>
+    </div>
+    <div class="favs-empty" id="favsEmpty" style="display:none;">
+      <span class="favs-empty-icon">&#9825;</span>
+      <p class="favs-empty-title">Todav&iacute;a no ten&eacute;s favoritos</p>
+      <p class="favs-empty-desc">Toc&aacute; el <span class="favs-empty-heart">&#9829;</span> en cualquier perfume para guardarlo ac&aacute;. Despu&eacute;s pod&eacute;s encontrarlos r&aacute;pido, compararlos y armar tu carrito en segundos.</p>
+    </div>
     <div class="catalog-grid" id="catalogGrid">
       <!-- Cards generadas dinámicamente desde perfumes.js -->
     </div>
@@ -5249,12 +5378,12 @@
     }
 
     function scrollToCatalog() {
-      var grid = document.getElementById('catalogGrid');
+      var target = document.querySelector('.filters-bar') || document.getElementById('catalogGrid');
       var nav = document.querySelector('nav');
       var filterBar = document.querySelector('.filter-bar');
       var navH = nav ? nav.offsetHeight : 58;
       var filterH = filterBar ? filterBar.offsetHeight : 50;
-      var y = grid.getBoundingClientRect().top + window.pageYOffset - navH - filterH - 8;
+      var y = target.getBoundingClientRect().top + window.pageYOffset - navH - filterH - 8;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
 
@@ -5622,6 +5751,7 @@
         + '<div class="card-reveal">'
           + '<p class="reveal-name">' + p.name + '</p>'
           + '<p class="reveal-brand">' + (p.marca_real || p.marca) + '</p>'
+          + '<div class="reveal-pricing">' + pricingHTML + '</div>'
           + '<div class="reveal-divider"></div>'
           + '<div class="reveal-tags">'
             + '<span class="card-tag tag-cat">' + pCat + '</span>'
@@ -5715,6 +5845,7 @@
     function scrollToPerfume(slug) {
       // Limpiar TODOS los filtros para que la card sea visible
       currentFilter = 'all';
+      filterNewActive = false;
       currentSearch = '';
       currentNoteFilter = '';
       currentOccasion = '';
@@ -6224,6 +6355,18 @@
       }
       grid.addEventListener('mouseenter', handleTrack, true);       // desktop: mouse
       grid.addEventListener('touchstart', handleTrack, { passive: true, capture: true }); // mobile: touch
+
+      // Click en card → abrir bottom sheet (mobile)
+      grid.addEventListener('click', function(e) {
+        // No abrir si el click fue en un botón, link, o input dentro de la card
+        if (e.target.closest('button, a, input, .fav-heart, .compare-btn, .cart-add-btn, .reveal-share, .waitlist-btn')) return;
+        var card = e.target.closest('.product-card');
+        if (!card) return;
+        var slug = card.dataset.slug;
+        if (slug && typeof openBottomSheet === 'function') {
+          openBottomSheet(slug);
+        }
+      });
     })();
 
     // applyCardVisibility: el "cerebro" del filtrado
@@ -6248,15 +6391,18 @@
       var matchIndex = 0;   // contador de cards que matchean
       var totalMatch = 0;   // total de cards que pasan todos los filtros
       cards.forEach(function(card) {
-        // FILTRO 1: Categoría (todos / hombre / mujer / unisex / favs / nuevos)
+        // FILTRO 1: Categoría (todos / hombre / mujer / unisex / favs)
         var catMatch;
         if (currentFilter === 'favs') {
-          catMatch = favs.indexOf(card.dataset.slug) !== -1;  // ¿está en favoritos?
-        } else if (currentFilter === 'nuevos') {
-          var pf = PERFUMES.find(function(x) { return x.slug === card.dataset.slug; });
-          catMatch = pf && pf._isNew;  // ¿es nuevo (menos de 15 días)?
+          catMatch = favs.indexOf(card.dataset.slug) !== -1;
         } else {
           catMatch = matchesCat(card.dataset.cat, currentFilter);
+        }
+        // FILTRO 1b: Nuevos (combinable con categoría)
+        var newMatch = true;
+        if (filterNewActive) {
+          var pf = PERFUMES.find(function(x) { return x.slug === card.dataset.slug; });
+          newMatch = pf && pf._isNew;
         }
         // FILTRO 2: Búsqueda por texto (nombre, marca, notas)
         var searchMatch = !currentSearch || card.dataset.search.indexOf(currentSearch) !== -1;
@@ -6285,7 +6431,7 @@
             priceMatch = cardPrice >= priceFilterMin && cardPrice <= priceFilterMax;
           }
         }
-        if (catMatch && searchMatch && noteMatch && occasionMatch && priceMatch) {
+        if (catMatch && newMatch && searchMatch && noteMatch && occasionMatch && priceMatch) {
           totalMatch++;
           if (matchIndex < cardsShown) {
             card.style.display = 'flex';
@@ -6297,10 +6443,24 @@
           card.style.display = 'none';
         }
       });
-      var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : currentFilter === 'nuevos' ? totalMatch + ' nuevos' : totalMatch + ' fragancias';
+      var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
       document.getElementById('filterCount').textContent = label;
+      // Empty state para favoritos
+      var favsEmpty = document.getElementById('favsEmpty');
+      var gridEl = document.getElementById('catalogGrid');
+      var loadWrap = document.getElementById('loadMoreWrap');
+      if (currentFilter === 'favs' && totalMatch === 0) {
+        if (favsEmpty) favsEmpty.style.display = 'block';
+        if (gridEl) gridEl.style.display = 'none';
+        if (loadWrap) loadWrap.style.display = 'none';
+      } else {
+        if (favsEmpty) favsEmpty.style.display = 'none';
+        if (gridEl) gridEl.style.display = '';
+        if (loadWrap) loadWrap.style.display = '';
+      }
       updateLoadMoreBtn(matchIndex, totalMatch);
       applyMirrorClasses();
+      updateActiveFilters();
     }
 
     function applyMirrorClasses() {
@@ -6330,6 +6490,133 @@
     function loadMore() {
       cardsShown += CARDS_INCREMENT;
       applyCardVisibility();
+    }
+
+    // ============================================================
+    // FILTROS ACTIVOS — chips removibles
+    // ============================================================
+
+    function updateActiveFilters() {
+      var bar = document.getElementById('activeFiltersBar');
+      var chips = document.getElementById('activeFiltersChips');
+      if (!bar || !chips) return;
+
+      var items = [];
+
+      // Categoría (si no es "all")
+      if (currentFilter && currentFilter !== 'all') {
+        var catLabel = currentFilter === 'favs' ? 'Favoritos' : currentFilter;
+        items.push({ label: 'Categoría', value: catLabel, remove: 'cat' });
+      }
+
+      // Nuevos (filtro independiente)
+      if (filterNewActive) {
+        items.push({ label: 'Filtro', value: 'Nuevos', remove: 'new' });
+      }
+
+      // Búsqueda
+      if (currentSearch) {
+        items.push({ label: 'Búsqueda', value: '"' + currentSearch + '"', remove: 'search' });
+      }
+
+      // Nota olfativa
+      if (currentNoteFilter) {
+        items.push({ label: 'Nota', value: currentNoteFilter, remove: 'note' });
+      }
+
+      // Ocasión
+      if (currentOccasion) {
+        items.push({ label: 'Ocasión', value: currentOccasion === 'dia' ? 'Día' : 'Noche', remove: 'occasion' });
+      }
+
+      // Precio
+      if (priceFilterActive) {
+        var minK = Math.round(priceFilterMin / 1000);
+        var maxK = Math.round(priceFilterMax / 1000);
+        items.push({ label: 'Precio', value: '$' + minK + 'k — $' + maxK + 'k', remove: 'price' });
+      }
+
+      if (items.length === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.style.display = 'flex';
+      chips.innerHTML = '';
+      items.forEach(function(item) {
+        var chip = document.createElement('span');
+        chip.className = 'active-filter-chip';
+        chip.innerHTML = '<span class="chip-label">' + item.label + '</span> '
+          + item.value
+          + ' <button class="chip-remove" data-filter="' + item.remove + '">&times;</button>';
+        chip.querySelector('.chip-remove').addEventListener('click', function() {
+          removeFilter(item.remove);
+        });
+        chips.appendChild(chip);
+      });
+    }
+
+    function removeFilter(type) {
+      if (type === 'cat') {
+        currentFilter = 'all';
+        document.querySelectorAll('.filter-zone--left .filter-btn').forEach(function(b) {
+          if (b.textContent.indexOf('Nuevos') === -1) b.classList.remove('active');
+        });
+        var allBtn = document.querySelector('.filter-btn');
+        if (allBtn) allBtn.classList.add('active');
+        closeDeck();
+        updateDeckLabel();
+      } else if (type === 'new') {
+        filterNewActive = false;
+        document.querySelectorAll('.filter-zone--left .filter-btn').forEach(function(b) {
+          if (b.textContent.indexOf('Nuevos') !== -1) b.classList.remove('active');
+        });
+      } else if (type === 'search') {
+        currentSearch = '';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchClear').classList.remove('visible');
+      } else if (type === 'note') {
+        currentNoteFilter = '';
+        document.querySelectorAll('.note-chip').forEach(function(c) { c.classList.remove('active'); });
+      } else if (type === 'occasion') {
+        currentOccasion = '';
+        var toggle = document.getElementById('occasionToggle');
+        if (toggle) toggle.classList.remove('active');
+        var labelDia = document.getElementById('labelDia');
+        var labelNoche = document.getElementById('labelNoche');
+        if (labelDia) labelDia.classList.remove('active');
+        if (labelNoche) labelNoche.classList.remove('active');
+      } else if (type === 'price') {
+        clearPriceFilter();
+        return; // clearPriceFilter already calls applyFilters
+      }
+      applyFilters();
+    }
+
+    function clearAllFilters() {
+      currentFilter = 'all';
+      filterNewActive = false;
+      currentSearch = '';
+      currentNoteFilter = '';
+      currentOccasion = '';
+      priceFilterActive = false;
+
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchClear').classList.remove('visible');
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      var allBtn = document.querySelector('.filter-btn');
+      if (allBtn) allBtn.classList.add('active');
+      document.querySelectorAll('.note-chip').forEach(function(c) { c.classList.remove('active'); });
+      var toggle = document.getElementById('occasionToggle');
+      if (toggle) toggle.classList.remove('active');
+      var labelDia = document.getElementById('labelDia');
+      var labelNoche = document.getElementById('labelNoche');
+      if (labelDia) labelDia.classList.remove('active');
+      if (labelNoche) labelNoche.classList.remove('active');
+      updatePriceExpandBtn();
+      closeDeck();
+      updateDeckLabel();
+      applyFilters();
     }
 
     // ============================================================
@@ -6377,6 +6664,7 @@
     // ============================================================
 
     let currentFilter = 'all';
+    let filterNewActive = false;
 
     function updateCount(cat) {
       const cards = document.querySelectorAll('.product-card');
@@ -6393,7 +6681,10 @@
     }
 
     function filterBy(cat, btn) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      // Desactivar solo los botones de categoría, no el de Nuevos
+      document.querySelectorAll('.filter-zone--left .filter-btn').forEach(function(b) {
+        if (b.textContent.indexOf('Nuevos') === -1) b.classList.remove('active');
+      });
       btn.classList.add('active');
       currentSearch = '';
       document.getElementById('searchInput').value = '';
@@ -6401,7 +6692,7 @@
       applyFilter(cat);
       closeDeck();
       updateDeckLabel();
-      document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToCatalog();
     }
 
     // ============================================================
@@ -6639,11 +6930,14 @@
     });
 
     function filterByNew(btn) {
-      document.querySelectorAll('.filter-zone--left .filter-btn').forEach(function(b) {
-        b.classList.remove('active');
-      });
-      btn.classList.add('active');
-      currentFilter = 'nuevos';
+      // Toggle: si ya estaba activo, desactivar
+      filterNewActive = !filterNewActive;
+      if (filterNewActive) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+      // No toca currentFilter — "Nuevos" se suma a la categoría activa
       applyFilters();
       closeDeck();
       updateDeckLabel();
@@ -6656,6 +6950,7 @@
       });
       btn.classList.add('active');
       currentFilter = 'favs';
+      filterNewActive = false;
       applyFilters();
       closeDeck();
       updateDeckLabel();

@@ -192,16 +192,51 @@
     .combo-item-row {
       display: flex; gap: .4rem; align-items: center;
     }
-    .combo-item-row input, .combo-item-row select {
+    .combo-item-row input {
       font-family: inherit; font-size: .78rem; padding: .4rem .6rem;
       background: #1a1a1a; border: 1px solid var(--borde); border-radius: 4px;
       color: #fff; outline: none;
     }
-    .combo-item-row select option { background: #222; color: #fff; padding: .5rem; }
-    .combo-item-row input:focus, .combo-item-row select:focus { border-color: var(--amarillo); }
+    .combo-item-row input:focus { border-color: var(--amarillo); }
     .combo-item-remove {
       background: none; border: none; color: #e74c3c; font-size: 1rem; cursor: pointer; padding: 0 .3rem;
     }
+    /* Searchable perfume picker */
+    .perfume-picker {
+      flex: 2; position: relative;
+    }
+    .perfume-picker-input {
+      width: 100%; font-family: inherit; font-size: .78rem; padding: .4rem .6rem;
+      background: #1a1a1a; border: 1px solid var(--borde); border-radius: 4px;
+      color: #fff; outline: none; cursor: text;
+    }
+    .perfume-picker-input:focus { border-color: var(--amarillo); }
+    .perfume-picker-input.has-value { color: var(--amarillo); font-weight: 600; }
+    .perfume-picker-clear {
+      position: absolute; right: .4rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: #666; font-size: .8rem; cursor: pointer;
+      display: none; padding: 0 .2rem;
+    }
+    .perfume-picker-clear:hover { color: #e74c3c; }
+    .perfume-picker-dropdown {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      background: #1a1a1a; border: 1px solid var(--amarillo); border-top: none;
+      border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto;
+      z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    }
+    .perfume-picker-dropdown.open { display: block; }
+    .perfume-picker-option {
+      padding: .45rem .7rem; font-size: .72rem; color: #ccc; cursor: pointer;
+      border-bottom: 1px solid #222; transition: background .15s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .perfume-picker-option:last-child { border-bottom: none; }
+    .perfume-picker-option:hover, .perfume-picker-option.active { background: #2a2a2a; color: #fff; }
+    .perfume-picker-option .pick-name { font-weight: 500; }
+    .perfume-picker-option .pick-brand { font-size: .6rem; color: #777; }
+    .perfume-picker-option .pick-custom { color: var(--amarillo); font-style: italic; }
+    .perfume-picker-option mark { background: var(--amarillo); color: #000; border-radius: 2px; padding: 0 1px; }
+    .perfume-picker-empty { padding: .6rem .7rem; font-size: .7rem; color: #666; text-align: center; }
 
     /* CLIENTES PANEL */
     .clients-search-bar {
@@ -2462,31 +2497,164 @@
       document.getElementById('comboForm').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function addComboItem() {
+    function addComboItem(presetSlug, presetCustom) {
       var container = document.getElementById('comboItems');
-      var perfOptions = PERFUMES.filter(function(p) { return !p.esSet; }).map(function(p) {
-        return '<option value="' + p.slug + '">' + p.name + '</option>';
-      }).join('');
+      var perfList = PERFUMES.filter(function(p) { return !p.esSet; });
 
       var row = document.createElement('div');
       row.className = 'combo-item-row';
-      row.innerHTML = '<select style="flex:2;">'
-        + '<option value="">-- Elegir perfume --</option>'
-        + '<option value="__custom">✏️ Nombre personalizado</option>'
-        + perfOptions
-        + '</select>'
-        + '<input type="text" placeholder="Nombre custom" style="flex:1.5;display:none;" class="combo-custom-name"/>'
-        + '<input type="number" placeholder="ml" style="width:60px;"/>'
-        + '<button class="combo-item-remove" onclick="this.parentElement.remove()">&times;</button>';
 
-      // Show/hide custom name field
-      var sel = row.querySelector('select');
-      var customInput = row.querySelector('.combo-custom-name');
-      sel.addEventListener('change', function() {
-        customInput.style.display = sel.value === '__custom' ? 'block' : 'none';
+      // Picker wrapper
+      var picker = document.createElement('div');
+      picker.className = 'perfume-picker';
+      picker.innerHTML = '<input type="text" class="perfume-picker-input" placeholder="Buscar perfume..." autocomplete="off"/>'
+        + '<button class="perfume-picker-clear" type="button">&times;</button>'
+        + '<div class="perfume-picker-dropdown"></div>';
+      // Hidden value
+      var hiddenSlug = document.createElement('input');
+      hiddenSlug.type = 'hidden';
+      hiddenSlug.className = 'combo-item-slug';
+      picker.appendChild(hiddenSlug);
+
+      var customInput = document.createElement('input');
+      customInput.type = 'text';
+      customInput.placeholder = 'Nombre custom';
+      customInput.className = 'combo-custom-name';
+      customInput.style.cssText = 'flex:1.5;display:none;';
+
+      var mlInput = document.createElement('input');
+      mlInput.type = 'number';
+      mlInput.placeholder = 'ml';
+      mlInput.style.width = '60px';
+
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'combo-item-remove';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.onclick = function() { row.remove(); };
+
+      row.appendChild(picker);
+      row.appendChild(customInput);
+      row.appendChild(mlInput);
+      row.appendChild(removeBtn);
+
+      var input = picker.querySelector('.perfume-picker-input');
+      var dropdown = picker.querySelector('.perfume-picker-dropdown');
+      var clearBtn = picker.querySelector('.perfume-picker-clear');
+
+      function highlight(text, query) {
+        if (!query) return text;
+        var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        return text.replace(re, '<mark>$1</mark>');
+      }
+
+      function renderDropdown(query) {
+        var q = (query || '').toLowerCase().trim();
+        var html = '<div class="perfume-picker-option" data-value="__custom"><span class="pick-custom">+ Nombre personalizado</span></div>';
+        var count = 0;
+        perfList.forEach(function(p) {
+          if (q && p.name.toLowerCase().indexOf(q) === -1 && (p.marca || '').toLowerCase().indexOf(q) === -1) return;
+          if (count >= 30) return;
+          count++;
+          html += '<div class="perfume-picker-option" data-value="' + p.slug + '">'
+            + '<span class="pick-name">' + highlight(p.name, q) + '</span>'
+            + '<span class="pick-brand">' + (p.marca_real || p.marca || '') + '</span>'
+            + '</div>';
+        });
+        if (count === 0 && q) {
+          html += '<div class="perfume-picker-empty">Sin resultados para &ldquo;' + q + '&rdquo;</div>';
+        }
+        dropdown.innerHTML = html;
+        dropdown.classList.add('open');
+
+        dropdown.querySelectorAll('.perfume-picker-option').forEach(function(opt) {
+          opt.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            selectOption(opt.dataset.value);
+          });
+        });
+      }
+
+      function selectOption(val) {
+        dropdown.classList.remove('open');
+        if (val === '__custom') {
+          hiddenSlug.value = '__custom';
+          input.value = 'Personalizado';
+          input.classList.add('has-value');
+          customInput.style.display = 'block';
+          clearBtn.style.display = 'block';
+        } else {
+          var p = perfList.find(function(x) { return x.slug === val; });
+          if (p) {
+            hiddenSlug.value = p.slug;
+            input.value = p.name;
+            input.classList.add('has-value');
+            customInput.style.display = 'none';
+            clearBtn.style.display = 'block';
+          }
+        }
+      }
+
+      function clearSelection() {
+        hiddenSlug.value = '';
+        input.value = '';
+        input.classList.remove('has-value');
+        customInput.style.display = 'none';
+        customInput.value = '';
+        clearBtn.style.display = 'none';
+        input.focus();
+      }
+
+      input.addEventListener('focus', function() {
+        renderDropdown(input.classList.contains('has-value') ? '' : input.value);
+      });
+      input.addEventListener('input', function() {
+        hiddenSlug.value = '';
+        input.classList.remove('has-value');
+        clearBtn.style.display = input.value ? 'block' : 'none';
+        renderDropdown(input.value);
+      });
+      input.addEventListener('blur', function() {
+        setTimeout(function() { dropdown.classList.remove('open'); }, 150);
+      });
+      clearBtn.addEventListener('click', clearSelection);
+
+      // Keyboard navigation
+      input.addEventListener('keydown', function(e) {
+        var opts = dropdown.querySelectorAll('.perfume-picker-option');
+        var active = dropdown.querySelector('.perfume-picker-option.active');
+        var idx = -1;
+        opts.forEach(function(o, i) { if (o === active) idx = i; });
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (active) active.classList.remove('active');
+          idx = (idx + 1) % opts.length;
+          opts[idx].classList.add('active');
+          opts[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (active) active.classList.remove('active');
+          idx = idx <= 0 ? opts.length - 1 : idx - 1;
+          opts[idx].classList.add('active');
+          opts[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (active) selectOption(active.dataset.value);
+        } else if (e.key === 'Escape') {
+          dropdown.classList.remove('open');
+        }
       });
 
       container.appendChild(row);
+
+      // Preset value (for editing existing combos)
+      if (presetSlug === '__custom' && presetCustom) {
+        selectOption('__custom');
+        customInput.value = presetCustom;
+      } else if (presetSlug) {
+        selectOption(presetSlug);
+      }
+
+      return { row: row, mlInput: mlInput, customInput: customInput };
     }
 
     function editCombo(slug) {
@@ -2504,19 +2672,10 @@
       var container = document.getElementById('comboItems');
       container.innerHTML = '';
       (s.items || []).forEach(function(item) {
-        addComboItem();
-        var row = container.lastElementChild;
-        var sel = row.querySelector('select');
-        var customInput = row.querySelector('.combo-custom-name');
-        var mlInput = row.querySelector('input[type="number"]');
-        if (item.slug) {
-          sel.value = item.slug;
-        } else if (item.nombre) {
-          sel.value = '__custom';
-          customInput.value = item.nombre;
-          customInput.style.display = 'block';
-        }
-        if (item.ml) mlInput.value = item.ml;
+        var preset = item.slug || (item.nombre ? '__custom' : '');
+        var customName = item.nombre || '';
+        var result = addComboItem(preset, customName);
+        if (item.ml && result.mlInput) result.mlInput.value = item.ml;
       });
 
       document.getElementById('comboForm').style.display = 'block';
@@ -2541,13 +2700,14 @@
       var rows = document.querySelectorAll('#comboItems .combo-item-row');
       var items = [];
       rows.forEach(function(row) {
-        var sel = row.querySelector('select');
+        var slugInput = row.querySelector('.combo-item-slug');
+        var val = slugInput ? slugInput.value : '';
         var customName = row.querySelector('.combo-custom-name').value.trim();
         var ml = row.querySelector('input[type="number"]').value;
-        if (sel.value === '__custom' && customName) {
+        if (val === '__custom' && customName) {
           items.push({ nombre: customName, ml: ml ? parseInt(ml) : null });
-        } else if (sel.value && sel.value !== '__custom') {
-          items.push({ slug: sel.value, ml: ml ? parseInt(ml) : null });
+        } else if (val && val !== '__custom') {
+          items.push({ slug: val, ml: ml ? parseInt(ml) : null });
         }
       });
 
