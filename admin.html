@@ -510,25 +510,25 @@
   <!-- PANEL -->
   <div class="panel" id="adminPanel">
     <div class="panel-header">
-      <p class="panel-title">ST Admin Panel</p>
+      <p class="panel-title">ST Admin Panel <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:.5rem;vertical-align:middle;"></span></p>
       <button class="panel-logout" onclick="doLogout()">Cerrar sesion</button>
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('precios',this)">Precios</button>
-      <button class="tab-btn" onclick="switchTab('stock',this)">Stock</button>
-      <button class="tab-btn" onclick="switchTab('editar',this)">✏️ Editar</button>
-      <button class="tab-btn" onclick="switchTab('nuevos',this)">+ Perfume</button>
-      <button class="tab-btn" onclick="switchTab('destacados',this)">Destacados</button>
-      <button class="tab-btn" onclick="switchTab('horario',this)">Horario</button>
-      <button class="tab-btn" onclick="switchTab('stats',this)">Estadisticas</button>
-      <button class="tab-btn" onclick="switchTab('opiniones',this)">Opiniones</button>
-      <button class="tab-btn" onclick="switchTab('clientes',this)">Clientes</button>
-      <button class="tab-btn" onclick="switchTab('combos',this)">&#127873; Combos</button>
-      <button class="tab-btn" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
-      <button class="tab-btn" onclick="switchTab('push',this)">🔔 Notificaciones</button>
-      <button class="tab-btn" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
-      <button class="tab-btn" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
+      <button class="tab-btn active" data-role="jefe" data-tab="precios" onclick="switchTab('precios',this)">Precios</button>
+      <button class="tab-btn" data-tab="stock" onclick="switchTab('stock',this)">Stock</button>
+      <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
+      <button class="tab-btn" data-role="jefe" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
+      <button class="tab-btn" data-role="jefe" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
+      <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this)">Horario</button>
+      <button class="tab-btn" data-role="jefe" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
+      <button class="tab-btn" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
+      <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this)">Clientes</button>
+      <button class="tab-btn" data-role="jefe" data-tab="combos" onclick="switchTab('combos',this)">&#127873; Combos</button>
+      <button class="tab-btn" data-tab="votacion" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
+      <button class="tab-btn" data-tab="push" onclick="switchTab('push',this)">🔔 Notificaciones</button>
+      <button class="tab-btn" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
+      <button class="tab-btn" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -1140,20 +1140,28 @@
     // CONFIG
     // ============================================================
     var ADMIN_PASS = 'GUANACO _ \u00d1ANDU _ YACARE _ 10';
+    var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO';
     var SUPABASE_URL = 'https://rtgjzzkjrwbkdhkslxix.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z2p6emtqcndia2Roa3NseGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzU3NzEsImV4cCI6MjA4OTYxMTc3MX0.SoVxC3eF51wi27pavlqIAjE-omqcnPylxJIQjY8vimo';
     var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     var editingSlug = '';
+    var currentRole = null; // 'jefe' | 'empleado'
 
     // ============================================================
-    // LOGIN
+    // LOGIN + ROLES (jefe / empleado)
     // ============================================================
     async function doLogin() {
       var pass = document.getElementById('loginPass').value;
-      if (pass === ADMIN_PASS) {
+      var role = null;
+      if (pass === ADMIN_PASS) role = 'jefe';
+      else if (pass === ADMIN_PASS_EMPLEADO) role = 'empleado';
+
+      if (role) {
+        currentRole = role;
         document.getElementById('loginWrap').style.display = 'none';
         document.getElementById('adminPanel').classList.add('active');
+        applyRolePermissions();
         await loadStockFromDB();
         renderPrecios();
         renderStock();
@@ -1163,7 +1171,7 @@
         loadOpiniones();
         loadClientes();
         loadCierres();
-        notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+        notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
         document.getElementById('loginError').textContent = 'Contrase\u00f1a incorrecta';
         notifyTelegram('\ud83d\udea8 Intento fallido de acceso al Panel Admin\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
@@ -1171,9 +1179,62 @@
     }
 
     function doLogout() {
+      currentRole = null;
       document.getElementById('adminPanel').classList.remove('active');
       document.getElementById('loginWrap').style.display = 'flex';
       document.getElementById('loginPass').value = '';
+    }
+
+    // applyRolePermissions: oculta las pestañas jefe-only si el rol es empleado,
+    // reasigna la pestaña activa a la primera visible y muestra el badge del rol.
+    function applyRolePermissions() {
+      var badge = document.getElementById('roleBadge');
+      var tabs = document.querySelectorAll('.tabs .tab-btn');
+
+      if (currentRole === 'jefe') {
+        // Jefe ve todo, badge dorado
+        tabs.forEach(function(b) { b.style.display = ''; });
+        badge.style.display = 'inline-block';
+        badge.textContent = 'Jefe';
+        badge.style.background = 'rgba(232,184,0,.15)';
+        badge.style.color = 'var(--amarillo)';
+        badge.style.border = '1px solid var(--amarillo)';
+        return;
+      }
+
+      // Empleado: oculta jefe-only y badge gris
+      var firstVisible = null;
+      tabs.forEach(function(b) {
+        if (b.dataset.role === 'jefe') {
+          b.style.display = 'none';
+          b.classList.remove('active');
+        } else if (!firstVisible) {
+          firstVisible = b;
+        }
+      });
+
+      // Ocultar todas las tab-content y mostrar solo la primera visible permitida
+      document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+      if (firstVisible) {
+        firstVisible.classList.add('active');
+        var tabId = firstVisible.dataset.tab;
+        var content = document.getElementById('tab-' + tabId);
+        if (content) content.classList.add('active');
+      }
+
+      badge.style.display = 'inline-block';
+      badge.textContent = 'Empleado';
+      badge.style.background = 'rgba(255,255,255,.06)';
+      badge.style.color = '#ccc';
+      badge.style.border = '1px solid #555';
+    }
+
+    // canAccessTab: verifica si el rol actual puede entrar a esa pestaña
+    function canAccessTab(tab) {
+      if (currentRole === 'jefe') return true;
+      var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+      if (!btn) return false;
+      return btn.dataset.role !== 'jefe';
     }
 
     // ============================================================
@@ -1187,10 +1248,12 @@
     // TABS
     // ============================================================
     function switchTab(tab, btn) {
+      // Bloqueo por rol: si un empleado intenta forzar una pestaña jefe-only, abortar
+      if (!canAccessTab(tab)) return;
       document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
     }
 
     // ============================================================
