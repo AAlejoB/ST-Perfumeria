@@ -7868,10 +7868,14 @@
       var msg = lines.join('\n');
       closeCartPanel();
 
-      // Splash con el primer perfume
+      // IMPORTANTE: abrir WhatsApp PRIMERO, sincrónicamente.
+      // Si lo hacemos dentro del callback del splash (3s después), Chrome/Firefox
+      // bloquean window.open por anti-popup (ya no se considera user-initiated).
+      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+
+      // Después mostrar el splash como feedback visual y limpiar el carrito al terminar
       var firstP = PERFUMES.find(function(pf) { return pf.slug === cart[0]; });
       showSplash(firstP, function() {
-        window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
         cart = [];
         document.getElementById('cartNote').value = '';
         updateCartUI();
@@ -7909,9 +7913,9 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       var msg = 'Hola! Me interesa el ' + p.name + (p.esSet ? ' (Set)' : '') + '. ¿Tienen disponibilidad?';
-      showSplash(p, function() {
-        window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
-      });
+      // Abrir WhatsApp sincrónicamente para que no lo bloquee el anti-popup
+      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+      showSplash(p);
     }
 
     // Init cart UI
