@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/perfume/:slug", "destination": "/api/share?slug=:slug" }
+    { "source": "/perfume/:slug", "destination": "/api/share?slug=:slug" },
+    { "source": "/admin", "destination": "/admin.html" }
   ]
 }
