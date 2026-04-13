@@ -834,6 +834,49 @@
         <thead><tr><th>Fecha</th><th>Motivo</th><th>Accion</th></tr></thead>
         <tbody id="tbodyCierres"></tbody>
       </table>
+
+      <!-- AJUSTE TEMPORAL DE HORARIO -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-top:1.5rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Ajuste temporal de horario</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Si el local abre m&aacute;s tarde o m&aacute;s temprano por un tiempo (obras, verano, etc.), configur&aacute; el ajuste ac&aacute;. Se aplica autom&aacute;ticamente en la web.</p>
+
+        <div id="ajusteActivo" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.25);border-radius:6px;padding:1rem;margin-bottom:1rem;">
+          <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.3rem;">&#9888; Ajuste activo</p>
+          <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;" id="ajusteActivoText"></p>
+          <button class="action-btn btn-hide" onclick="removeAjuste()" style="margin-top:.6rem;font-size:.65rem;">Eliminar ajuste</button>
+        </div>
+
+        <div id="ajusteForm">
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:100px;">
+              <label class="modal-label">Ajuste</label>
+              <select class="modal-input" id="ajusteOffset" style="margin-bottom:0;cursor:pointer;">
+                <option value="-2">2 horas antes</option>
+                <option value="-1">1 hora antes</option>
+                <option value="1" selected>1 hora despu&eacute;s</option>
+                <option value="2">2 horas despu&eacute;s</option>
+                <option value="3">3 horas despu&eacute;s</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:130px;">
+              <label class="modal-label">Desde</label>
+              <input type="date" class="modal-input" id="ajusteDesde" style="margin-bottom:0;"/>
+            </div>
+            <div style="flex:1;min-width:130px;">
+              <label class="modal-label">Hasta</label>
+              <input type="date" class="modal-input" id="ajusteHasta" style="margin-bottom:0;"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;margin-top:.6rem;">
+            <div style="flex:2;min-width:200px;">
+              <label class="modal-label">Motivo (opcional)</label>
+              <input type="text" class="modal-input" id="ajusteMotivo" placeholder="Ej: Horario de verano, Obras en el local..." style="margin-bottom:0;"/>
+            </div>
+            <button class="modal-btn modal-btn-price" onclick="saveAjuste()" style="width:auto;padding:.6rem 1.5rem;margin-top:0;">Guardar ajuste</button>
+          </div>
+          <p class="modal-success" id="ajusteMsg"></p>
+        </div>
+      </div>
     </div>
 
     <!-- TAB: STATS -->
@@ -1245,6 +1288,7 @@
         loadOpiniones();
         loadClientes();
         loadCierres();
+        loadAjuste();
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
         // Sumar fallo y aplicar lockout si corresponde
@@ -2629,6 +2673,75 @@
       if (!confirm('¿Eliminar este cierre?')) return;
       await sb.from('cierres_especiales').delete().eq('id', id);
       loadCierres();
+    }
+
+    // ============================================================
+    // AJUSTE TEMPORAL DE HORARIO
+    // ============================================================
+    async function loadAjuste() {
+      var hoy = new Date().toISOString().split('T')[0];
+      var { data } = await sb.from('ajuste_horario').select('*').lte('desde', hoy).gte('hasta', hoy).limit(1);
+      var panel = document.getElementById('ajusteActivo');
+      var textEl = document.getElementById('ajusteActivoText');
+      if (data && data.length > 0) {
+        var a = data[0];
+        var offsetStr = a.offset_horas > 0 ? ('+' + a.offset_horas) : String(a.offset_horas);
+        var desdeStr = new Date(a.desde + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+        var hastaStr = new Date(a.hasta + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+        textEl.innerHTML = '<strong>' + offsetStr + (Math.abs(a.offset_horas) === 1 ? ' hora' : ' horas') + '</strong> del '
+          + desdeStr + ' al ' + hastaStr
+          + (a.motivo ? ' · ' + a.motivo : '');
+        panel.style.display = 'block';
+        panel.dataset.id = a.id;
+      } else {
+        panel.style.display = 'none';
+      }
+    }
+
+    async function saveAjuste() {
+      var offset = parseInt(document.getElementById('ajusteOffset').value);
+      var desde = document.getElementById('ajusteDesde').value;
+      var hasta = document.getElementById('ajusteHasta').value;
+      var motivo = document.getElementById('ajusteMotivo').value.trim();
+      var msgEl = document.getElementById('ajusteMsg');
+
+      if (!desde || !hasta) { msgEl.textContent = 'Seleccioná fecha desde y hasta'; msgEl.style.color = '#e74c3c'; return; }
+      if (hasta < desde) { msgEl.textContent = 'La fecha "hasta" debe ser posterior a "desde"'; msgEl.style.color = '#e74c3c'; return; }
+
+      // Borrar ajustes anteriores (solo 1 activo a la vez)
+      await sb.from('ajuste_horario').delete().neq('id', 0);
+
+      var { error } = await sb.from('ajuste_horario').insert({
+        offset_horas: offset,
+        desde: desde,
+        hasta: hasta,
+        motivo: motivo || null
+      });
+
+      if (error) {
+        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      var offsetStr = offset > 0 ? ('+' + offset) : String(offset);
+      msgEl.textContent = 'Ajuste guardado: ' + offsetStr + (Math.abs(offset) === 1 ? ' hora' : ' horas');
+      msgEl.style.color = '#2ecc71';
+      notifyTelegram('🕐 Ajuste de horario\n⏱ ' + offsetStr + (Math.abs(offset) === 1 ? ' hora' : ' horas') + '\n📅 ' + desde + ' al ' + hasta + (motivo ? '\n📝 ' + motivo : ''));
+
+      document.getElementById('ajusteDesde').value = '';
+      document.getElementById('ajusteHasta').value = '';
+      document.getElementById('ajusteMotivo').value = '';
+      loadAjuste();
+      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+    }
+
+    async function removeAjuste() {
+      if (!confirm('¿Eliminar el ajuste de horario?')) return;
+      var id = document.getElementById('ajusteActivo').dataset.id;
+      if (id) await sb.from('ajuste_horario').delete().eq('id', id);
+      else await sb.from('ajuste_horario').delete().neq('id', 0);
+      loadAjuste();
     }
 
     // ============================================================
