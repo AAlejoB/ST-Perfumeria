@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin
 Disallow: /admin.html
 Disallow: /api/
 
-Sitemap: https://st-perfumeria.vercel.app/sitemap.xml
+Sitemap: https://www.stperfumeria.com/sitemap.xml
