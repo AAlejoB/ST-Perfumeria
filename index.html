@@ -7792,21 +7792,20 @@
       Promise.all([
         fetch('https://nolaborables.com.ar/api/v2/feriados/' + year).then(function(r) { return r.json(); }).catch(function() { return []; }),
         sb.from('cierres_especiales').select('fecha,motivo').then(function(r) { return r.data || []; }).catch(function() { return []; }),
-        sb.from('ajuste_horario').select('*').then(function(r) { return r.data || []; }).catch(function() { return []; })
+        sb.from('ajuste_horario').select('*').order('created_at', { ascending: false }).limit(1).then(function(r) { return r.data || []; }).catch(function() { return []; })
       ]).then(function(results) {
-        // Aplicar ajuste temporal si hay uno vigente hoy
+        // Aplicar horario modificado si hay uno vigente hoy
         var hoyISO = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
         var hoyStr = hoyISO.getFullYear() + '-' + String(hoyISO.getMonth()+1).padStart(2,'0') + '-' + String(hoyISO.getDate()).padStart(2,'0');
-        var ajustes = results[2];
-        for (var i = 0; i < ajustes.length; i++) {
-          if (ajustes[i].desde <= hoyStr && ajustes[i].hasta >= hoyStr) {
-            var off = ajustes[i].offset_horas || 0;
-            for (var d in HORARIOS) {
-              if (HORARIOS[d]) {
-                HORARIOS[d] = { open: HORARIOS[d].open + off, close: HORARIOS[d].close + off };
-              }
-            }
-            break;
+        var ajuste = results[2][0];
+        if (ajuste && ajuste.desde <= hoyStr && ajuste.hasta >= hoyStr) {
+          // Sobreescribir horarios L-V con los del ajuste
+          for (var d = 1; d <= 5; d++) {
+            HORARIOS[d] = { open: ajuste.hora_abre, close: ajuste.hora_cierra };
+          }
+          // Sábado usa hora_cierra_sab si existe, sino hora_cierra
+          if (HORARIOS[6]) {
+            HORARIOS[6] = { open: ajuste.hora_abre, close: ajuste.hora_cierra_sab || ajuste.hora_cierra };
           }
         }
         updateStatus(results[0], results[1]);

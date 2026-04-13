@@ -835,44 +835,75 @@
         <tbody id="tbodyCierres"></tbody>
       </table>
 
-      <!-- AJUSTE TEMPORAL DE HORARIO -->
+      <!-- HORARIO TEMPORAL -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-top:1.5rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Ajuste temporal de horario</p>
-        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Si el local abre m&aacute;s tarde o m&aacute;s temprano por un tiempo (obras, verano, etc.), configur&aacute; el ajuste ac&aacute;. Se aplica autom&aacute;ticamente en la web.</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cambiar horario del local</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Pon&eacute; el horario nuevo que va a tener el local. Pod&eacute;s dejarlo permanente o ponerle fecha de inicio y fin. Los clientes ven el cambio autom&aacute;ticamente.</p>
 
         <div id="ajusteActivo" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.25);border-radius:6px;padding:1rem;margin-bottom:1rem;">
-          <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.3rem;">&#9888; Ajuste activo</p>
-          <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;" id="ajusteActivoText"></p>
-          <button class="action-btn btn-hide" onclick="removeAjuste()" style="margin-top:.6rem;font-size:.65rem;">Eliminar ajuste</button>
+          <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.4rem;">&#128338; Horario modificado</p>
+          <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.6;" id="ajusteActivoText"></p>
+          <button class="action-btn btn-hide" onclick="removeAjuste()" style="margin-top:.6rem;font-size:.65rem;">Volver al horario normal</button>
         </div>
 
         <div id="ajusteForm">
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
-            <div style="flex:1;min-width:100px;">
-              <label class="modal-label">Ajuste</label>
-              <select class="modal-input" id="ajusteOffset" style="margin-bottom:0;cursor:pointer;">
-                <option value="-2">2 horas antes</option>
-                <option value="-1">1 hora antes</option>
-                <option value="1" selected>1 hora despu&eacute;s</option>
-                <option value="2">2 horas despu&eacute;s</option>
-                <option value="3">3 horas despu&eacute;s</option>
+            <div style="flex:1;min-width:90px;">
+              <label class="modal-label">Abre</label>
+              <select class="modal-input" id="ajusteOpen" style="margin-bottom:0;cursor:pointer;">
+                <option value="8">08:00</option>
+                <option value="9">09:00</option>
+                <option value="10" selected>10:00</option>
+                <option value="11">11:00</option>
+                <option value="12">12:00</option>
+                <option value="13">13:00</option>
+                <option value="14">14:00</option>
               </select>
             </div>
-            <div style="flex:1;min-width:130px;">
-              <label class="modal-label">Desde</label>
-              <input type="date" class="modal-input" id="ajusteDesde" style="margin-bottom:0;"/>
+            <div style="flex:1;min-width:90px;">
+              <label class="modal-label">Cierra</label>
+              <select class="modal-input" id="ajusteClose" style="margin-bottom:0;cursor:pointer;">
+                <option value="14">14:00</option>
+                <option value="16">16:00</option>
+                <option value="18">18:00</option>
+                <option value="19">19:00</option>
+                <option value="20" selected>20:00</option>
+                <option value="21">21:00</option>
+                <option value="22">22:00</option>
+                <option value="23">23:00</option>
+              </select>
             </div>
-            <div style="flex:1;min-width:130px;">
-              <label class="modal-label">Hasta</label>
-              <input type="date" class="modal-input" id="ajusteHasta" style="margin-bottom:0;"/>
+            <div style="flex:1;min-width:90px;">
+              <label class="modal-label">S&aacute;bado cierra</label>
+              <select class="modal-input" id="ajusteCloseSab" style="margin-bottom:0;cursor:pointer;">
+                <option value="13">13:00</option>
+                <option value="14" selected>14:00</option>
+                <option value="15">15:00</option>
+                <option value="16">16:00</option>
+                <option value="18">18:00</option>
+                <option value="20">20:00</option>
+              </select>
             </div>
           </div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;margin-top:.6rem;">
-            <div style="flex:2;min-width:200px;">
-              <label class="modal-label">Motivo (opcional)</label>
-              <input type="text" class="modal-input" id="ajusteMotivo" placeholder="Ej: Horario de verano, Obras en el local..." style="margin-bottom:0;"/>
+            <div style="flex:1;min-width:130px;">
+              <label class="modal-label">Desde (o vac&iacute;o = desde hoy)</label>
+              <input type="date" class="modal-input" id="ajusteDesde" style="margin-bottom:0;"/>
             </div>
-            <button class="modal-btn modal-btn-price" onclick="saveAjuste()" style="width:auto;padding:.6rem 1.5rem;margin-top:0;">Guardar ajuste</button>
+            <div style="flex:1;min-width:130px;">
+              <label class="modal-label">Hasta (o vac&iacute;o = indefinido)</label>
+              <input type="date" class="modal-input" id="ajusteHasta" style="margin-bottom:0;"/>
+            </div>
+          </div>
+          <div style="margin-top:.6rem;">
+            <label class="modal-label">Justificaci&oacute;n / nota (opcional, se muestra en la web si quer&eacute;s)</label>
+            <textarea class="modal-input" id="ajusteMotivo" rows="2" placeholder="Ej: Horario de verano &#9728;&#65039;, Horario reducido por refacciones, etc." style="margin-bottom:0;resize:vertical;min-height:50px;"></textarea>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center;margin-top:.8rem;">
+            <button class="modal-btn modal-btn-price" onclick="saveAjuste()" style="width:auto;padding:.6rem 1.5rem;">Guardar horario</button>
+            <label style="font-size:.65rem;color:var(--gris-claro);cursor:pointer;display:flex;align-items:center;gap:.3rem;">
+              <input type="checkbox" id="ajusteMostrarNota" checked> Mostrar nota en la web
+            </label>
           </div>
           <p class="modal-success" id="ajusteMsg"></p>
         </div>
@@ -2676,58 +2707,83 @@
     }
 
     // ============================================================
-    // AJUSTE TEMPORAL DE HORARIO
+    // CAMBIAR HORARIO DEL LOCAL (temporal o indefinido)
     // ============================================================
     async function loadAjuste() {
-      var hoy = new Date().toISOString().split('T')[0];
-      var { data } = await sb.from('ajuste_horario').select('*').lte('desde', hoy).gte('hasta', hoy).limit(1);
+      var { data } = await sb.from('ajuste_horario').select('*').order('created_at', { ascending: false }).limit(1);
       var panel = document.getElementById('ajusteActivo');
       var textEl = document.getElementById('ajusteActivoText');
-      if (data && data.length > 0) {
-        var a = data[0];
-        var offsetStr = a.offset_horas > 0 ? ('+' + a.offset_horas) : String(a.offset_horas);
-        var desdeStr = new Date(a.desde + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
-        var hastaStr = new Date(a.hasta + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
-        textEl.innerHTML = '<strong>' + offsetStr + (Math.abs(a.offset_horas) === 1 ? ' hora' : ' horas') + '</strong> del '
-          + desdeStr + ' al ' + hastaStr
-          + (a.motivo ? ' · ' + a.motivo : '');
-        panel.style.display = 'block';
-        panel.dataset.id = a.id;
-      } else {
-        panel.style.display = 'none';
+
+      if (!data || data.length === 0) { panel.style.display = 'none'; return; }
+      var a = data[0];
+
+      // Chequear si sigue vigente
+      var hoy = new Date().toISOString().split('T')[0];
+      if (a.hasta && a.hasta < hoy) { panel.style.display = 'none'; return; }
+
+      var horarioStr = '<strong>' + a.hora_abre + ':00 a ' + a.hora_cierra + ':00</strong>';
+      if (a.hora_cierra_sab !== null && a.hora_cierra_sab !== undefined) {
+        horarioStr += ' (sáb hasta ' + a.hora_cierra_sab + ':00)';
       }
+      var fechaStr = '';
+      if (a.desde) {
+        var desdeStr = new Date(a.desde + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+        fechaStr = 'Desde ' + desdeStr;
+      }
+      if (a.hasta) {
+        var hastaStr = new Date(a.hasta + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+        fechaStr += (fechaStr ? ' hasta ' : 'Hasta ') + hastaStr;
+      }
+      if (!fechaStr) fechaStr = 'Vigente indefinidamente';
+
+      textEl.innerHTML = horarioStr + '<br>'
+        + '<span style="font-size:.65rem;">' + fechaStr + '</span>'
+        + (a.motivo && a.mostrar_nota ? '<br><em style="color:var(--amarillo);font-size:.65rem;">' + a.motivo + '</em>' : '');
+      panel.style.display = 'block';
+      panel.dataset.id = a.id;
     }
 
     async function saveAjuste() {
-      var offset = parseInt(document.getElementById('ajusteOffset').value);
+      var horaAbre = parseInt(document.getElementById('ajusteOpen').value);
+      var horaCierra = parseInt(document.getElementById('ajusteClose').value);
+      var horaCierraSab = parseInt(document.getElementById('ajusteCloseSab').value);
       var desde = document.getElementById('ajusteDesde').value;
       var hasta = document.getElementById('ajusteHasta').value;
       var motivo = document.getElementById('ajusteMotivo').value.trim();
+      var mostrarNota = document.getElementById('ajusteMostrarNota').checked;
       var msgEl = document.getElementById('ajusteMsg');
 
-      if (!desde || !hasta) { msgEl.textContent = 'Seleccioná fecha desde y hasta'; msgEl.style.color = '#e74c3c'; return; }
-      if (hasta < desde) { msgEl.textContent = 'La fecha "hasta" debe ser posterior a "desde"'; msgEl.style.color = '#e74c3c'; return; }
+      if (horaAbre >= horaCierra) {
+        msgEl.textContent = 'La hora de apertura debe ser anterior a la de cierre';
+        msgEl.style.color = '#e74c3c'; return;
+      }
+      if (desde && hasta && hasta < desde) {
+        msgEl.textContent = 'La fecha "hasta" debe ser posterior a "desde"';
+        msgEl.style.color = '#e74c3c'; return;
+      }
 
       // Borrar ajustes anteriores (solo 1 activo a la vez)
       await sb.from('ajuste_horario').delete().neq('id', 0);
 
-      var { error } = await sb.from('ajuste_horario').insert({
-        offset_horas: offset,
-        desde: desde,
-        hasta: hasta,
-        motivo: motivo || null
-      });
+      var row = {
+        hora_abre: horaAbre,
+        hora_cierra: horaCierra,
+        hora_cierra_sab: horaCierraSab,
+        desde: desde || new Date().toISOString().split('T')[0],
+        hasta: hasta || '2099-12-31',
+        motivo: motivo || null,
+        mostrar_nota: mostrarNota
+      };
 
+      var { error } = await sb.from('ajuste_horario').insert(row);
       if (error) {
         msgEl.textContent = 'Error: ' + error.message;
-        msgEl.style.color = '#e74c3c';
-        return;
+        msgEl.style.color = '#e74c3c'; return;
       }
 
-      var offsetStr = offset > 0 ? ('+' + offset) : String(offset);
-      msgEl.textContent = 'Ajuste guardado: ' + offsetStr + (Math.abs(offset) === 1 ? ' hora' : ' horas');
+      msgEl.textContent = 'Horario guardado: ' + horaAbre + ':00 a ' + horaCierra + ':00';
       msgEl.style.color = '#2ecc71';
-      notifyTelegram('🕐 Ajuste de horario\n⏱ ' + offsetStr + (Math.abs(offset) === 1 ? ' hora' : ' horas') + '\n📅 ' + desde + ' al ' + hasta + (motivo ? '\n📝 ' + motivo : ''));
+      notifyTelegram('🕐 Horario cambiado\n⏰ ' + horaAbre + ':00 a ' + horaCierra + ':00 (sáb ' + horaCierraSab + ':00)\n📅 ' + (desde || 'hoy') + ' al ' + (hasta || 'indefinido') + (motivo ? '\n📝 ' + motivo : ''));
 
       document.getElementById('ajusteDesde').value = '';
       document.getElementById('ajusteHasta').value = '';
@@ -2737,7 +2793,7 @@
     }
 
     async function removeAjuste() {
-      if (!confirm('¿Eliminar el ajuste de horario?')) return;
+      if (!confirm('¿Volver al horario normal (L-V 10 a 20, Sáb 10 a 14)?')) return;
       var id = document.getElementById('ajusteActivo').dataset.id;
       if (id) await sb.from('ajuste_horario').delete().eq('id', id);
       else await sb.from('ajuste_horario').delete().neq('id', 0);
