@@ -304,6 +304,159 @@
     }
 
     /* ================================================
+       BLOBS / NIEBLA / CORNERS — ocultos por default (mobile)
+       Solo se renderizan en desktop (min-width: 768px)
+    ================================================ */
+    .hero-blob,
+    .sec-mist,
+    .sec-corner { display: none; }
+
+    @media (min-width: 768px) {
+      /* ============== HERO — AURORA BALANCEADA (A2) ============== */
+      .hero-tagline,
+      .hero-title,
+      .hero-sub,
+      .store-status { position: relative; z-index: 2; }
+
+      .hero-blob {
+        display: block;
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        filter: blur(90px);
+        z-index: 0;
+      }
+      .hero-blob-1 {
+        width: 450px; height: 450px;
+        background: radial-gradient(circle, rgba(232, 184, 0, .55) 0%, transparent 70%);
+        top: -120px; left: 5%;
+        opacity: .55;
+        animation: heroBlob1 28s ease-in-out infinite;
+      }
+      .hero-blob-2 {
+        width: 380px; height: 380px;
+        background: radial-gradient(circle, rgba(212, 140, 50, .5) 0%, transparent 70%);
+        bottom: -100px; right: 8%;
+        opacity: .5;
+        animation: heroBlob2 32s ease-in-out infinite;
+      }
+      .hero-blob-3 {
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(160, 90, 30, .4) 0%, transparent 70%);
+        top: 30%; left: 50%;
+        opacity: .45;
+        animation: heroBlob3 36s ease-in-out infinite;
+      }
+      @keyframes heroBlob1 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(80px, 40px) scale(1.1); }
+      }
+      @keyframes heroBlob2 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-60px, -30px) scale(1.15); }
+      }
+      @keyframes heroBlob3 {
+        0%, 100% { transform: translate(-50%, 0) scale(1); }
+        50% { transform: translate(-40%, -20px) scale(1.2); }
+      }
+
+      /* ============== SELECCIÓN ST + QUIZ — M4 marco + M5 niebla GRIS ============== */
+      .seleccion-st,
+      .quiz-section {
+        position: relative;
+        overflow: hidden;
+      }
+      /* Quiz necesita un poquito de padding vertical para que el marco no choque con la quiz-box */
+      .quiz-section { padding: 32px 1rem; }
+
+      /* Marco interno (M4) */
+      .seleccion-st::before,
+      .quiz-section::before {
+        content: '';
+        position: absolute;
+        top: 18px; left: 18px; right: 18px; bottom: 18px;
+        border: 1px solid rgba(232, 184, 0, .12);
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 1;
+      }
+      /* Líneas decorativas dashed (M4) */
+      .seleccion-st::after,
+      .quiz-section::after {
+        content: '';
+        position: absolute;
+        top: 26px; left: 26px; right: 26px; bottom: 26px;
+        border-top: 1px dashed rgba(232, 184, 0, .18);
+        border-bottom: 1px dashed rgba(232, 184, 0, .18);
+        pointer-events: none;
+        z-index: 1;
+      }
+      /* Diamantes esquinas (M4) */
+      .sec-corner {
+        display: block;
+        position: absolute;
+        width: 28px; height: 28px;
+        color: var(--amarillo);
+        font-size: 1.2rem;
+        line-height: 1;
+        text-align: center;
+        z-index: 1;
+        opacity: .55;
+        pointer-events: none;
+      }
+      .sec-corner-tl { top: 10px; left: 10px; }
+      .sec-corner-tr { top: 10px; right: 10px; }
+      .sec-corner-bl { bottom: 10px; left: 10px; }
+      .sec-corner-br { bottom: 10px; right: 10px; }
+
+      /* Niebla horizontal GRIS (M5 — adaptado a tonos grises) */
+      .sec-mist {
+        display: block;
+        position: absolute;
+        width: 140%;
+        left: -20%;
+        pointer-events: none;
+        z-index: 0;
+        filter: blur(50px);
+      }
+      .sec-mist-1 {
+        height: 200px;
+        top: 18%;
+        background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(180, 180, 190, .10) 30%,
+          rgba(200, 200, 210, .18) 50%,
+          rgba(180, 180, 190, .10) 70%,
+          transparent 100%);
+        animation: secMist1 22s ease-in-out infinite;
+      }
+      .sec-mist-2 {
+        height: 220px;
+        bottom: 8%;
+        background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(140, 140, 150, .08) 30%,
+          rgba(170, 170, 180, .16) 50%,
+          rgba(140, 140, 150, .08) 70%,
+          transparent 100%);
+        animation: secMist2 28s ease-in-out infinite;
+      }
+      @keyframes secMist1 {
+        0%, 100% { transform: translateX(-30px); opacity: .55; }
+        50% { transform: translateX(40px); opacity: .85; }
+      }
+      @keyframes secMist2 {
+        0%, 100% { transform: translateX(40px); opacity: .50; }
+        50% { transform: translateX(-30px); opacity: .80; }
+      }
+
+      /* Contenido por encima del fondo */
+      .seleccion-st-header,
+      .seleccion-st-grid,
+      .quiz-box { position: relative; z-index: 2; }
+    }
+
+    /* ================================================
        FILTROS — 3 ZONAS: izq (filtros) | centro (buscar) | der (ordenar)
     ================================================ */
     .filter-bar {
@@ -4036,9 +4189,78 @@
     .store-status.holiday { background: rgba(241,196,15,.12); color: #f1c40f; }
     .store-status.holiday .dot { background: #f1c40f; }
 
+    /* ================================================
+       DVD BOUNCER — perfume rebotando por la pantalla
+       Solo desktop (min-width: 768px)
+    ================================================ */
+    .dvd-bouncer { display: none; }
+
+    @media (min-width: 768px) {
+      .dvd-bouncer {
+        display: block;
+        position: fixed;
+        z-index: 1;
+        pointer-events: none;
+        width: 150px;
+        opacity: .18;
+        transition: opacity .3s;
+      }
+      .dvd-bouncer:hover { opacity: .45; }
+      .dvd-bouncer-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .4rem;
+      }
+      .dvd-bouncer-img {
+        width: 120px;
+        height: 160px;
+        object-fit: contain;
+        border-radius: 8px;
+        filter: drop-shadow(0 0 14px rgba(232,184,0,.25));
+      }
+      .dvd-bouncer-letter {
+        width: 120px;
+        height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: rgba(232,184,0,.08);
+        border: 1px solid rgba(232,184,0,.2);
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-weight: 300;
+        color: var(--amarillo);
+        opacity: .5;
+      }
+      .dvd-bouncer-name {
+        font-family: var(--font-display);
+        font-size: .65rem;
+        font-weight: 400;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--amarillo);
+        text-align: center;
+        line-height: 1.2;
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
   </style>
 </head>
 <body>
+
+  <!-- DVD BOUNCER — perfume que rebota tipo screensaver (solo desktop) -->
+  <div class="dvd-bouncer" id="dvdBouncer" aria-hidden="true">
+    <div class="dvd-bouncer-inner">
+      <div id="dvdBouncerMedia"></div>
+      <span class="dvd-bouncer-name" id="dvdBouncerName"></span>
+    </div>
+  </div>
 
   <!-- Auth Modal -->
   <div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuth()">
@@ -4118,6 +4340,9 @@
 
 
   <section class="hero">
+    <span class="hero-blob hero-blob-1" aria-hidden="true"></span>
+    <span class="hero-blob hero-blob-2" aria-hidden="true"></span>
+    <span class="hero-blob hero-blob-3" aria-hidden="true"></span>
     <p class="hero-tagline">Perfumer&#237;a &#225;rabe original &middot; Comodoro Rivadavia</p>
     <h1 class="hero-title">"Tu aroma, tu <em>identidad."</em></h1>
     <p class="hero-sub">Perfumes &#225;rabes de larga duraci&#243;n y gran estela. Pas&#225;s y la gente gira.</p>
@@ -4129,6 +4354,12 @@
 
   <!-- ========== SELECCIÓN ST — Top Ventas ========== -->
   <section class="seleccion-st">
+    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
+    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
+    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
     <div class="seleccion-st-header">
       <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
       <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
@@ -4138,6 +4369,12 @@
 
   <!-- ========== QUIZ — Encontrá tu perfume ========== -->
   <section class="quiz-section" id="quizSection">
+    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
+    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
+    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
     <div class="quiz-box" id="quizBox">
       <div class="quiz-icon">&#128142;</div>
       <p class="quiz-title">Encontr&#225; tu perfume</p>
@@ -8646,6 +8883,136 @@
         console.log('Push subscription error:', err);
       }
     }
+  </script>
+
+  <!-- DVD BOUNCER — perfume rebotando tipo screensaver (solo desktop) -->
+  <script>
+  (function() {
+    if (window.innerWidth < 768) return; // Solo desktop
+
+    var el = document.getElementById('dvdBouncer');
+    var mediaEl = document.getElementById('dvdBouncerMedia');
+    var nameEl = document.getElementById('dvdBouncerName');
+    if (!el || !mediaEl || !nameEl) return;
+
+    var W = 150, H = 195; // ancho y alto aprox del bouncer
+    var x = Math.random() * (window.innerWidth - W);
+    var y = Math.random() * (window.innerHeight - H);
+    var speed = 1.2; // px por frame (~72px/s a 60fps)
+    var dx = (Math.random() > 0.5 ? 1 : -1) * speed;
+    var dy = (Math.random() > 0.5 ? 1 : -1) * speed;
+    var currentIdx = 0;
+    var running = false;
+
+    function getSlugs() {
+      return (typeof TOP_VENTAS_SLUGS !== 'undefined' && TOP_VENTAS_SLUGS.length > 0)
+        ? TOP_VENTAS_SLUGS
+        : (typeof DEFAULT_TOP_SLUGS !== 'undefined' ? DEFAULT_TOP_SLUGS : []);
+    }
+
+    function getPerfume(slug) {
+      if (typeof PERFUMES === 'undefined') return null;
+      return PERFUMES.find(function(p) { return p.slug === slug; }) || null;
+    }
+
+    function renderPerfume(idx) {
+      var slugs = getSlugs();
+      if (slugs.length === 0) return;
+      var slug = slugs[idx % slugs.length];
+      var p = getPerfume(slug);
+      if (!p) return;
+
+      if (p.foto) {
+        mediaEl.innerHTML = '<img class="dvd-bouncer-img" src="' + p.foto.replace(/ /g, '%20') + '" alt="' + p.name + '">';
+      } else {
+        mediaEl.innerHTML = '<div class="dvd-bouncer-letter">' + p.name.charAt(0) + '</div>';
+      }
+      nameEl.textContent = p.name;
+    }
+
+    function nextPerfume() {
+      currentIdx++;
+      var slugs = getSlugs();
+      if (slugs.length > 0) currentIdx = currentIdx % slugs.length;
+      renderPerfume(currentIdx);
+    }
+
+    function tick() {
+      if (!running) return;
+
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+
+      x += dx;
+      y += dy;
+
+      var bounced = false;
+
+      // Rebote horizontal
+      if (x <= 0) { x = 0; dx = Math.abs(dx); bounced = true; }
+      else if (x + W >= vw) { x = vw - W; dx = -Math.abs(dx); bounced = true; }
+
+      // Rebote vertical
+      if (y <= 0) { y = 0; dy = Math.abs(dy); bounced = true; }
+      else if (y + H >= vh) { y = vh - H; dy = -Math.abs(dy); bounced = true; }
+
+      if (bounced) nextPerfume();
+
+      el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+
+      requestAnimationFrame(tick);
+    }
+
+    function start() {
+      if (running) return;
+      var slugs = getSlugs();
+      if (slugs.length === 0) return;
+      renderPerfume(currentIdx);
+      running = true;
+      requestAnimationFrame(tick);
+    }
+
+    // Esperar a que TOP_VENTAS_SLUGS esté listo (puede cargarse async desde Supabase)
+    // Intentar cada 500ms por hasta 5s
+    var attempts = 0;
+    var tryStart = setInterval(function() {
+      attempts++;
+      var slugs = getSlugs();
+      if (slugs.length > 0 && typeof PERFUMES !== 'undefined' && PERFUMES.length > 0) {
+        clearInterval(tryStart);
+        start();
+      } else if (attempts >= 10) {
+        clearInterval(tryStart);
+      }
+    }, 500);
+
+    // Pausar si la pestaña no está visible (ahorrar CPU)
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        running = false;
+      } else if (getSlugs().length > 0) {
+        running = true;
+        requestAnimationFrame(tick);
+      }
+    });
+
+    // Responder al resize
+    window.addEventListener('resize', function() {
+      if (window.innerWidth < 768) {
+        running = false;
+        el.style.display = 'none';
+      } else {
+        el.style.display = '';
+        if (!running && getSlugs().length > 0) {
+          // Re-colocar dentro de los bounds
+          x = Math.min(x, window.innerWidth - W);
+          y = Math.min(y, window.innerHeight - H);
+          running = true;
+          requestAnimationFrame(tick);
+        }
+      }
+    });
+  })();
   </script>
 </body>
 </html>
