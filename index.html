@@ -1007,15 +1007,23 @@
     .sets-section {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 1.4rem 1rem .7rem;
+      padding: 2.5rem 1rem 2rem;
+      position: relative;
+    }
+    .sets-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(232,184,0,.06) 0%, transparent 70%);
+      pointer-events: none;
     }
     .sets-header {
       text-align: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.8rem;
     }
     .sets-title {
       font-family: var(--font-display);
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       font-weight: 400;
       letter-spacing: .35em;
       text-transform: uppercase;
@@ -1023,9 +1031,9 @@
     }
     .sets-sub {
       font-size: .75rem;
-      color: var(--gris);
+      color: var(--gris-claro);
       font-style: italic;
-      margin-top: .3rem;
+      margin-top: .4rem;
     }
     .sets-grid {
       display: flex;
@@ -1042,15 +1050,15 @@
     .set-card {
       flex: 0 0 340px;
       scroll-snap-align: start;
-      background: #0f0f12;
-      border: 1px solid rgba(232,184,0,.2);
+      background: linear-gradient(135deg, #0f0f12 0%, #141318 50%, #0f0f12 100%);
+      border: 1px solid rgba(232,184,0,.25);
       border-radius: 10px;
       overflow: hidden;
       display: flex;
       flex-direction: row;
-      transition: border-color .3s;
+      transition: border-color .3s, box-shadow .3s, transform .3s;
     }
-    .set-card:hover { border-color: var(--amarillo); }
+    .set-card:hover { border-color: var(--amarillo); box-shadow: 0 0 20px rgba(232,184,0,.1); transform: translateY(-2px); }
 
     .set-images {
       flex: 0 0 130px;
@@ -1100,9 +1108,15 @@
       letter-spacing: .1em;
       text-transform: uppercase;
       color: #000;
-      background: var(--amarillo);
-      padding: .2rem .5rem;
+      background: linear-gradient(105deg, var(--amarillo) 0%, #f5d442 40%, #fff 50%, #f5d442 60%, var(--amarillo) 100%);
+      background-size: 200% 100%;
+      animation: shimmerBadge 3s ease-in-out infinite;
+      padding: .25rem .6rem;
       border-radius: 3px;
+    }
+    @keyframes shimmerBadge {
+      0%, 100% { background-position: 200% 0; }
+      50% { background-position: -200% 0; }
     }
     .set-name {
       font-family: var(--font-display);
@@ -4571,7 +4585,7 @@
   <section class="sets-section" id="setsSection">
     <div class="sets-header">
       <p class="sets-title">&#127873; Packs &amp; Sets</p>
-      <p class="sets-sub">Combos ideales para regalar o regalarte</p>
+      <p class="sets-sub">Combos exclusivos para regalar o regalarte &mdash; comprando en set ahorrás</p>
     </div>
     <div class="sets-nav-wrap">
       <button class="sets-arrow sets-arrow--left" onclick="scrollSets(-1)">&#9664;</button>
@@ -6285,6 +6299,13 @@
         // Pricing
         var promoHTML = s.promo ? formatPrice(s.promo) : formatPrice(s.price);
         var origHTML = s.promo ? formatPrice(s.price) : '';
+        var ahorroHTML = '';
+        if (s.promo && s.price) {
+          var ahorro = parseFloat(String(s.price).replace(/[^0-9.\-]/g, '')) - parseFloat(String(s.promo).replace(/[^0-9.\-]/g, ''));
+          if (ahorro > 0) {
+            ahorroHTML = '<span style="font-size:.6rem;font-weight:700;color:#2ecc71;background:rgba(46,204,113,.1);padding:.15rem .4rem;border-radius:3px;">Ahorrás ' + formatPrice(ahorro) + '</span>';
+          }
+        }
 
         // Badge text
         var badgeText = 'SET x' + itemCount;
@@ -6303,6 +6324,7 @@
               + '<span class="set-price-promo">' + promoHTML + '</span>'
               + (origHTML ? '<span class="set-price-original">' + origHTML + '</span>' : '')
             + '</div>'
+            + ahorroHTML
             + (setPaused ? '' : '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + s.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="set-cta">Consultar &#8594;</a>')
           + '</div>'
         + '</div>';
