@@ -584,6 +584,14 @@
         <div id="editSearchResults" style="max-height:200px;overflow-y:auto;border:1px solid var(--borde);border-radius:4px;display:none;margin-top:4px;"></div>
       </div>
 
+      <!-- HISTORIAL DE EDICIONES -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.5rem;">
+        <p style="font-size:.7rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#128221; &Uacute;ltimas ediciones</p>
+        <div id="editLogList" style="font-size:.72rem;color:var(--gris-claro);">
+          <p style="color:var(--gris);">Cargando...</p>
+        </div>
+      </div>
+
       <div id="editFormWrap" style="display:none;">
         <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Editando: <span id="editingName"></span></p>
         <input type="hidden" id="editSlug"/>
@@ -1393,7 +1401,6 @@
         tabLoaded['stock'] = true;
         tabLoaded['destacados'] = true;
         tabLoaded['nuevos'] = true;
-        tabLoaded['editar'] = true;
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
         // Sumar fallo y aplicar lockout si corresponde
@@ -1535,6 +1542,7 @@
       if (!tabLoaded[tab]) {
         tabLoaded[tab] = true;
         switch(tab) {
+          case 'editar': loadEditLog(); break;
           case 'opiniones': loadOpiniones(); break;
           case 'clientes': loadClientes(); break;
           case 'stats': loadStats(); break;
@@ -2430,6 +2438,37 @@
       results.style.display = 'block';
     }
 
+    async function loadEditLog() {
+      var container = document.getElementById('editLogList');
+      var { data } = await sb.from('edit_log').select('*').order('created_at', { ascending: false }).limit(5);
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p style="color:var(--gris);font-size:.7rem;">Sin ediciones todav\u00eda</p>';
+        return;
+      }
+      var html = '';
+      data.forEach(function(log) {
+        var fecha = new Date(log.created_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        var rolIcon = log.editado_por === 'jefe' ? '\ud83d\udc51' : '\ud83d\udc64';
+        html += '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid var(--borde);">'
+          + '<span style="color:var(--gris);font-size:.6rem;white-space:nowrap;min-width:70px;">' + fecha + '</span>'
+          + '<div style="flex:1;line-height:1.5;">'
+            + '<span style="color:#fff;font-weight:600;">' + (log.nombre || log.slug) + '</span> '
+            + '<span style="color:var(--amarillo);font-size:.65rem;">' + log.campo + '</span> '
+            + (log.valor_anterior ? '<span style="color:#e74c3c;text-decoration:line-through;font-size:.65rem;">' + truncateLog(log.valor_anterior) + '</span> \u2192 ' : '')
+            + '<span style="color:#2ecc71;font-size:.65rem;">' + truncateLog(log.valor_nuevo) + '</span>'
+            + ' <span style="font-size:.55rem;">' + rolIcon + '</span>'
+          + '</div>'
+        + '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function truncateLog(val) {
+      if (!val) return '-';
+      if (val.length > 40) return val.substring(0, 37) + '...';
+      return val;
+    }
+
     function loadEditPerfume(slug) {
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
@@ -2518,6 +2557,36 @@
         msgEl.textContent = 'Error: ' + error.message;
         msgEl.style.color = '#e74c3c';
         return;
+      }
+
+      // Loguear cambios en edit_log
+      var oldP = PERFUMES.find(function(p) { return p.slug === slug; }) || {};
+      var fieldsToLog = {
+        name: 'Nombre', price: 'Precio', promo: 'Promo', cat: 'Categor\u00eda',
+        perfil: 'Perfil', marca: 'Marca', marca_real: 'Fabricante', ml: 'ML',
+        foto: 'Foto', notas_salida: 'Notas salida', notas_corazon: 'Notas coraz\u00f3n',
+        notas_base: 'Notas base', descuento_pct: 'Descuento %', etiqueta: 'Etiqueta',
+        fotos_extra: 'Fotos extra'
+      };
+      var logs = [];
+      Object.keys(fieldsToLog).forEach(function(key) {
+        var oldVal = String(oldP[key] || '');
+        var newVal = String(obj[key] || '');
+        if (oldVal !== newVal && (oldVal || newVal)) {
+          logs.push({
+            slug: slug,
+            nombre: obj.name,
+            campo: fieldsToLog[key],
+            valor_anterior: oldVal || null,
+            valor_nuevo: newVal || null,
+            editado_por: currentRole || 'admin'
+          });
+        }
+      });
+      if (logs.length > 0) {
+        sb.from('edit_log').insert(logs).then(function() {
+          tabLoaded['editar'] = false; // Invalidar para que recargue al volver
+        });
       }
 
       // Refrescar en memoria: mergear los cambios sobre el perfume en PERFUMES
