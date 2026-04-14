@@ -4843,9 +4843,10 @@
       </div>
       <div class="footer-col">
         <p class="footer-col-title">Horarios</p>
-        <p class="footer-col-text">Lun a Vie: 10:00 - 20:00</p>
-        <p class="footer-col-text">S&#225;bados: 10:00 - 14:00</p>
+        <p class="footer-col-text" id="footerHorarioLV">Lun a Vie: 10:00 - 20:00</p>
+        <p class="footer-col-text" id="footerHorarioSab">S&#225;bados: 10:00 - 14:00</p>
         <p class="footer-col-text">Domingos: Cerrado</p>
+        <p class="footer-col-text" id="footerHorarioNota" style="display:none;font-size:.7rem;color:#e8b800;font-style:italic;margin-top:.3rem;"></p>
       </div>
       <div class="footer-col">
         <p class="footer-col-title">Seguinos</p>
@@ -7833,8 +7834,19 @@
             HORARIOS[d] = { open: ajuste.hora_abre, close: ajuste.hora_cierra };
           }
           // Sábado usa hora_cierra_sab si existe, sino hora_cierra
+          var cierreSab = ajuste.hora_cierra_sab || ajuste.hora_cierra;
           if (HORARIOS[6]) {
-            HORARIOS[6] = { open: ajuste.hora_abre, close: ajuste.hora_cierra_sab || ajuste.hora_cierra };
+            HORARIOS[6] = { open: ajuste.hora_abre, close: cierreSab };
+          }
+          // Actualizar footer dinámicamente
+          var elLV = document.getElementById('footerHorarioLV');
+          var elSab = document.getElementById('footerHorarioSab');
+          var elNota = document.getElementById('footerHorarioNota');
+          if (elLV) elLV.textContent = 'Lun a Vie: ' + ajuste.hora_abre + ':00 - ' + ajuste.hora_cierra + ':00';
+          if (elSab) elSab.textContent = 'S\u00e1bados: ' + ajuste.hora_abre + ':00 - ' + cierreSab + ':00';
+          if (elNota && ajuste.mostrar_nota && ajuste.motivo) {
+            elNota.textContent = '\ud83d\udcc5 ' + ajuste.motivo;
+            elNota.style.display = 'block';
           }
         }
         updateStatus(results[0], results[1]);

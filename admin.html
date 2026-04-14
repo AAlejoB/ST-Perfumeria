@@ -293,6 +293,14 @@
       font-size: .55rem; font-weight: 700; background: #e74c3c; color: #fff;
       padding: .15rem .5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .06em;
     }
+    .client-filter-btn {
+      font-family: inherit; font-size: .62rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; padding: .4rem .8rem; border-radius: 4px;
+      border: 1px solid var(--borde); background: none; color: var(--gris);
+      cursor: pointer; transition: all .2s;
+    }
+    .client-filter-btn:hover { border-color: var(--amarillo); color: var(--amarillo); }
+    .client-filter-btn.active { border-color: var(--amarillo); color: var(--amarillo); background: rgba(232,184,0,.1); }
 
     /* STATS */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
@@ -814,13 +822,17 @@
     <div class="tab-content" id="tab-horario">
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
         <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Cerrar un día</p>
-        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Si el local no abre un día (mudanza, inventario, vacaciones, etc.), agregalo acá y los clientes van a ver el motivo en la web automáticamente.</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Si el local no abre uno o varios d&iacute;as (mudanza, inventario, vacaciones, etc.), agregalos ac&aacute; y los clientes ven el motivo en la web autom&aacute;ticamente. Para un solo d&iacute;a, pon&eacute; la misma fecha en ambos campos.</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
-          <div style="flex:1;min-width:140px;">
-            <label class="modal-label">Fecha</label>
-            <input type="date" class="modal-input" id="cierreFecha" style="margin-bottom:0;"/>
+          <div style="flex:1;min-width:130px;">
+            <label class="modal-label">Desde</label>
+            <input type="date" class="modal-input" id="cierreFechaDesde" style="margin-bottom:0;"/>
           </div>
-          <div style="flex:2;min-width:200px;">
+          <div style="flex:1;min-width:130px;">
+            <label class="modal-label">Hasta (opcional)</label>
+            <input type="date" class="modal-input" id="cierreFechaHasta" style="margin-bottom:0;"/>
+          </div>
+          <div style="flex:2;min-width:180px;">
             <label class="modal-label">Motivo</label>
             <input type="text" class="modal-input" id="cierreMotivo" placeholder="Ej: Inventario, Vacaciones, Mudanza..." style="margin-bottom:0;"/>
           </div>
@@ -959,9 +971,14 @@
     <!-- TAB: CLIENTES -->
     <div class="tab-content" id="tab-clientes">
       <div class="clients-search-bar">
-        <input type="text" class="admin-search" id="searchClientes" placeholder="Buscar por nombre o tel&#233;fono..." oninput="filterClientes()"/>
+        <input type="text" class="admin-search" id="searchClientes" placeholder="Buscar por nombre, tel&#233;fono o nota..." oninput="filterClientes()"/>
         <span class="client-count" id="clientCount">0 clientes</span>
         <button class="action-btn btn-price" onclick="toggleNewClientForm()" style="font-size:.72rem;padding:.5rem 1rem;">+ Nuevo cliente</button>
+      </div>
+      <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <button class="client-filter-btn active" onclick="setClientFilter('todos',this)">Todos</button>
+        <button class="client-filter-btn" onclick="setClientFilter('compro',this)">✓ Compr&oacute;</button>
+        <button class="client-filter-btn" onclick="setClientFilter('no_compro',this)">✗ No compr&oacute;</button>
       </div>
 
       <!-- FORMULARIO NUEVO CLIENTE (AE) -->
@@ -975,6 +992,10 @@
           <div style="flex:1;min-width:140px;">
             <label class="modal-label">Tel&eacute;fono (WhatsApp)</label>
             <input type="tel" class="modal-input" id="newClientPhone" placeholder="Ej: 2975412345" style="margin-bottom:0;"/>
+          </div>
+          <div style="flex:1;min-width:180px;">
+            <label class="modal-label">Nota interna (opcional)</label>
+            <input type="text" class="modal-input" id="newClientNota" placeholder="Ej: amigo de Lucas, pelo rojo..." style="margin-bottom:0;" maxlength="120"/>
           </div>
           <div style="flex:0 0 auto;">
             <label class="modal-label" style="opacity:0;">.</label>
@@ -992,7 +1013,7 @@
         <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#11088; Sumar punto por compra</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:200px;">
-            <input type="tel" class="modal-input" id="puntoTelefono" placeholder="Tel&eacute;fono del cliente" style="margin-bottom:0;"/>
+            <input type="text" class="modal-input" id="puntoQuery" placeholder="Nombre o tel&eacute;fono del cliente" style="margin-bottom:0;"/>
           </div>
           <button class="modal-btn modal-btn-price" onclick="sumarPunto()" style="width:auto;padding:.6rem 1.2rem;margin-top:0;">Sumar punto</button>
         </div>
@@ -1217,17 +1238,26 @@
     </div>
   </div>
 
-  <!-- MODAL: EDITAR TELEFONO CLIENTE -->
+  <!-- MODAL: EDITAR CLIENTE -->
   <div class="modal-overlay" id="modalClientEdit" onclick="closeModal('modalClientEdit',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal('modalClientEdit')">&times;</button>
-      <p class="modal-title">Editar tel&eacute;fono</p>
-      <p id="modalClientName" style="text-align:center;font-weight:600;margin-bottom:1rem;"></p>
-      <label class="modal-label">Tel&eacute;fono actual</label>
-      <input type="text" class="modal-input" id="modalClientOldTel" disabled style="opacity:.5;"/>
-      <label class="modal-label">Nuevo tel&eacute;fono</label>
-      <input type="text" class="modal-input" id="modalClientNewTel" placeholder="Ej: 2975-123456" oninput="checkClientEdit()"/>
-      <button class="modal-btn modal-btn-price" id="modalClientEditBtn" disabled onclick="saveClientPhone()">Guardar cambio</button>
+      <p class="modal-title">Editar cliente</p>
+      <p id="modalClientHeader" style="text-align:center;font-weight:600;margin-bottom:1rem;color:var(--amarillo);"></p>
+      <label class="modal-label">Nombre / Apodo</label>
+      <input type="text" class="modal-input" id="modalClientNombre" placeholder="Nombre del cliente" maxlength="60"/>
+      <label class="modal-label">Tel&eacute;fono</label>
+      <input type="text" class="modal-input" id="modalClientTel" placeholder="Ej: 2975123456"/>
+      <label class="modal-label">Puntos &#11088;</label>
+      <input type="number" class="modal-input" id="modalClientPuntos" min="0" placeholder="0"/>
+      <label class="modal-label">Nota interna (solo visible para empleados)</label>
+      <input type="text" class="modal-input" id="modalClientNota" placeholder="Ej: la chica del pelo rojo, amigo de Lucas..." maxlength="120"/>
+      <label class="modal-label">Estado compra</label>
+      <select class="modal-input" id="modalClientCompro" style="cursor:pointer;">
+        <option value="true">✓ COMPRÓ</option>
+        <option value="false">✗ NO COMPRÓ</option>
+      </select>
+      <button class="modal-btn modal-btn-price" id="modalClientEditBtn" onclick="saveClientEdit()">Guardar cambios</button>
       <p class="modal-success" id="modalClientEditMsg"></p>
     </div>
   </div>
@@ -1347,16 +1377,23 @@
         document.getElementById('loginError').textContent = '';
         applyRolePermissions();
         startInactivityWatcher();
+        // Normalizar precios string → número al arrancar
+        PERFUMES.forEach(function(p) {
+          if (typeof p.price === 'string') p.price = parsePrice(p.price);
+          if (typeof p.promo === 'string' && p.promo !== '') p.promo = parsePrice(p.promo);
+          else if (!p.promo) p.promo = null;
+        });
         await loadStockFromDB();
         renderPrecios();
         renderStock();
         loadDestacados();
         loadNuevos();
-        loadStats();
-        loadOpiniones();
-        loadClientes();
-        loadCierres();
-        loadAjuste();
+        // El resto se carga lazy al cambiar de tab (opiniones, clientes, stats, horario, combos, etc.)
+        tabLoaded['precios'] = true;
+        tabLoaded['stock'] = true;
+        tabLoaded['destacados'] = true;
+        tabLoaded['nuevos'] = true;
+        tabLoaded['editar'] = true;
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
         // Sumar fallo y aplicar lockout si corresponde
@@ -1389,9 +1426,9 @@
     }
 
     // ============================================================
-    // AUTO-LOGOUT por inactividad (15 min sin tocar nada)
+    // AUTO-LOGOUT por inactividad (12 horas — tablets del local)
     // ============================================================
-    var INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+    var INACTIVITY_LIMIT_MS = 12 * 60 * 60 * 1000;
     var lastActivityTs = Date.now();
     var inactivityCheckInterval = null;
 
@@ -1484,6 +1521,8 @@
     // ============================================================
     // TABS
     // ============================================================
+    var tabLoaded = {};
+
     function switchTab(tab, btn) {
       // Bloqueo por rol: si un empleado intenta forzar una pestaña jefe-only, abortar
       if (!canAccessTab(tab)) return;
@@ -1491,20 +1530,49 @@
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
       if (btn) btn.classList.add('active');
+
+      // Lazy load: cargar datos solo la primera vez que se entra a la tab
+      if (!tabLoaded[tab]) {
+        tabLoaded[tab] = true;
+        switch(tab) {
+          case 'opiniones': loadOpiniones(); break;
+          case 'clientes': loadClientes(); break;
+          case 'stats': loadStats(); break;
+          case 'combos': if (typeof loadCombos === 'function') loadCombos(); break;
+          case 'horario': loadCierres(); loadAjuste(); break;
+          case 'votacion': if (typeof loadVotacion === 'function') loadVotacion(); break;
+          case 'push': if (typeof loadPushStats === 'function') loadPushStats(); break;
+        }
+      }
     }
 
     // Helper: refresca TODO después de guardar algo en Supabase
     // Pequeño delay para que Supabase propague el cambio
     function refreshAll(delay) {
       setTimeout(function() {
+        // Siempre refrescar las tabs esenciales (siempre cargadas)
         try { renderPrecios(); } catch(e) {}
         try { renderStock(); } catch(e) {}
-        try { if (typeof renderDestacados === 'function') renderDestacados(); } catch(e) {}
-        try { if (typeof loadClientes === 'function') loadClientes(); } catch(e) {}
-        try { if (typeof loadCierres === 'function') loadCierres(); } catch(e) {}
-        try { if (typeof loadAjuste === 'function') loadAjuste(); } catch(e) {}
+        try { if (typeof loadDestacados === 'function') loadDestacados(); } catch(e) {}
         try { if (typeof loadNuevos === 'function') loadNuevos(); } catch(e) {}
-        try { if (typeof loadOpiniones === 'function') loadOpiniones(); } catch(e) {}
+        // Invalidar tabs lazy para que se recarguen al entrar
+        var lazyTabs = ['opiniones','clientes','stats','combos','horario','votacion','push','espera'];
+        lazyTabs.forEach(function(t) { tabLoaded[t] = false; });
+        // Si alguna tab lazy está activa ahora, recargarla inmediatamente
+        var activeTab = document.querySelector('.tab-content.active');
+        if (activeTab) {
+          var id = activeTab.id.replace('tab-', '');
+          if (lazyTabs.indexOf(id) !== -1) {
+            tabLoaded[id] = true;
+            switch(id) {
+              case 'opiniones': loadOpiniones(); break;
+              case 'clientes': loadClientes(); break;
+              case 'stats': loadStats(); break;
+              case 'combos': if (typeof loadCombos === 'function') loadCombos(); break;
+              case 'horario': loadCierres(); loadAjuste(); break;
+            }
+          }
+        }
       }, delay || 300);
     }
 
@@ -1529,13 +1597,19 @@
       return (p && p._stockStatus) || 'ok';
     }
 
+    function parsePrice(v) {
+      if (typeof v === 'number') return v;
+      if (!v) return 0;
+      return parseFloat(String(v).replace(/[^0-9.\-]/g, '')) || 0;
+    }
+
     function sortPerfumes(list, sortKey) {
       var sorted = list.slice();
       switch (sortKey) {
         case 'name-asc': sorted.sort(function(a, b) { return a.name.localeCompare(b.name); }); break;
         case 'name-desc': sorted.sort(function(a, b) { return b.name.localeCompare(a.name); }); break;
-        case 'price-asc': sorted.sort(function(a, b) { return (a.price || 0) - (b.price || 0); }); break;
-        case 'price-desc': sorted.sort(function(a, b) { return (b.price || 0) - (a.price || 0); }); break;
+        case 'price-asc': sorted.sort(function(a, b) { return parsePrice(a.price) - parsePrice(b.price); }); break;
+        case 'price-desc': sorted.sort(function(a, b) { return parsePrice(b.price) - parsePrice(a.price); }); break;
         case 'stock-ok': sorted.sort(function(a, b) { var order = { ok: 0, low: 1, out: 2, pausado: 3 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
         case 'stock-out': sorted.sort(function(a, b) { var order = { pausado: 0, out: 1, low: 2, ok: 3 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
       }
@@ -1552,8 +1626,8 @@
         html += '<tr data-search="' + p.name.toLowerCase() + '">'
           + '<td class="td-name">' + p.name + '</td>'
           + '<td>' + (p.marca_real || p.marca) + '</td>'
-          + '<td class="td-price">$' + (p.price || 0).toLocaleString('es-AR') + '</td>'
-          + '<td class="td-price">' + (p.promo ? '$' + p.promo.toLocaleString('es-AR') : '-') + '</td>'
+          + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
+          + '<td class="td-price">' + (p.promo ? '$' + parsePrice(p.promo).toLocaleString('es-AR') : '-') + '</td>'
           + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
           + '</tr>';
       });
@@ -1795,7 +1869,7 @@
       container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</p>';
       var { data } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
       allClientes = data || [];
-      renderClientes(allClientes);
+      filterClientes();
     }
 
     function renderClientes(list) {
@@ -1829,7 +1903,9 @@
         var waLink = 'https://wa.me/549' + tel;
         var waBtn = '<a href="' + waLink + '" target="_blank" class="client-btn" style="background:rgba(37,211,102,.15);color:#25D366;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;" title="Enviar WhatsApp">💬 WhatsApp</a>';
 
-        html += '<div class="client-card" data-name="' + (c.nombre || '').toLowerCase() + '" data-tel="' + (c.telefono || '') + '">'
+        var notaHTML = c.nota ? '<div style="margin-top:.4rem;font-size:.65rem;color:var(--gris-claro);font-style:italic;line-height:1.4;">📝 ' + c.nota + '</div>' : '';
+
+        html += '<div class="client-card" data-name="' + (c.nombre || '').toLowerCase() + '" data-tel="' + (c.telefono || '') + '" data-nota="' + (c.nota || '').toLowerCase() + '">'
           + '<div class="client-top">'
             + '<div class="client-name"><span class="client-name-icon">' + initials + '</span> ' + c.nombre + blockedBadge + '</div>'
             + '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">' + comproTag + puntosHTML + '<span class="client-date">' + fecha + '</span></div>'
@@ -1838,10 +1914,11 @@
             + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + c.telefono + '</span></span>'
             + (c.telefono2 ? '<span class="client-detail"><span class="client-detail-icon">📞</span> <span class="client-detail-value">' + c.telefono2 + '</span></span>' : '')
           + '</div>'
+          + notaHTML
           + '<div class="client-actions">'
             + waBtn
             + '<button class="client-btn" style="background:rgba(232,184,0,.12);color:var(--amarillo);" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
-            + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar tel</button>'
+            + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar</button>'
             + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
             + '<button class="client-btn client-btn-delete" onclick="openClientDeleteModal(\'' + c.id + '\')">🗑️ Eliminar</button>'
           + '</div>'
@@ -1850,13 +1927,36 @@
       container.innerHTML = html;
     }
 
+    var clientFilterMode = 'todos';
+
+    function setClientFilter(mode, btn) {
+      clientFilterMode = mode;
+      document.querySelectorAll('.client-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      filterClientes();
+    }
+
     function filterClientes() {
       var q = document.getElementById('searchClientes').value.trim().toLowerCase();
-      if (!q) { renderClientes(allClientes); return; }
-      var filtered = allClientes.filter(function(c) {
-        return (c.nombre || '').toLowerCase().indexOf(q) !== -1 || (c.telefono || '').indexOf(q) !== -1;
-      });
-      renderClientes(filtered);
+      var list = allClientes;
+
+      // Filtro COMPRÓ / NO COMPRÓ
+      if (clientFilterMode === 'compro') {
+        list = list.filter(function(c) { return c.compro === true || (c.puntos || 0) > 0; });
+      } else if (clientFilterMode === 'no_compro') {
+        list = list.filter(function(c) { return c.compro !== true && (c.puntos || 0) === 0; });
+      }
+
+      // Filtro búsqueda texto (nombre, teléfono o nota interna)
+      if (q) {
+        list = list.filter(function(c) {
+          return (c.nombre || '').toLowerCase().indexOf(q) !== -1
+            || (c.telefono || '').indexOf(q) !== -1
+            || (c.nota || '').toLowerCase().indexOf(q) !== -1;
+        });
+      }
+
+      renderClientes(list);
     }
 
     // ============================================================
@@ -1870,6 +1970,7 @@
     async function addNewClient() {
       var nombre = document.getElementById('newClientName').value.trim();
       var telefono = document.getElementById('newClientPhone').value.trim();
+      var nota = document.getElementById('newClientNota').value.trim();
       var compro = document.getElementById('newClientCompro').checked;
       var msgEl = document.getElementById('newClientMsg');
 
@@ -1887,6 +1988,7 @@
       var row = {
         nombre: nombre,
         telefono: telefono,
+        nota: nota || '',
         compro: compro,
         puntos: compro ? 1 : 0
       };
@@ -1900,6 +2002,7 @@
 
       document.getElementById('newClientName').value = '';
       document.getElementById('newClientPhone').value = '';
+      document.getElementById('newClientNota').value = '';
       document.getElementById('newClientCompro').checked = false;
       loadClientes();
       setTimeout(function() { msgEl.textContent = ''; }, 3000);
@@ -1909,42 +2012,76 @@
     // SISTEMA DE PUNTOS (AA)
     // ============================================================
     async function sumarPunto() {
-      var telefono = document.getElementById('puntoTelefono').value.trim();
+      var query = document.getElementById('puntoQuery').value.trim();
       var msgEl = document.getElementById('puntoMsg');
 
-      if (!telefono || telefono.length < 6) { msgEl.textContent = 'Ingresá un teléfono válido'; msgEl.style.color = '#e74c3c'; return; }
+      if (!query || query.length < 2) { msgEl.textContent = 'Ingresá un nombre o teléfono'; msgEl.style.color = '#e74c3c'; return; }
 
-      // Buscar cliente
-      var { data } = await sb.from('clientes').select('*').eq('telefono', telefono).limit(1);
+      // Buscar por teléfono exacto primero
+      var { data } = await sb.from('clientes').select('*').eq('telefono', query).limit(1);
+
+      // Si no encontró por teléfono, buscar por nombre (parcial, case-insensitive)
+      if (!data || data.length === 0) {
+        var { data: byName } = await sb.from('clientes').select('*').ilike('nombre', '%' + query + '%');
+        if (byName && byName.length === 1) {
+          data = byName; // Encontró exactamente 1 → usarlo
+        } else if (byName && byName.length > 1) {
+          // Varios coinciden → mostrar lista para que elija
+          var nombres = byName.map(function(c, i) { return (i + 1) + '. ' + c.nombre + ' (' + c.telefono + ')'; }).join('\n');
+          var pick = prompt('Se encontraron ' + byName.length + ' clientes:\n' + nombres + '\n\nEscribí el número para elegir:');
+          if (!pick) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }
+          var idx = parseInt(pick) - 1;
+          if (idx >= 0 && idx < byName.length) {
+            data = [byName[idx]];
+          } else {
+            msgEl.textContent = 'Número inválido'; msgEl.style.color = '#e74c3c'; return;
+          }
+        }
+      }
 
       if (!data || data.length === 0) {
-        // No existe → preguntar nombre para registrarlo
-        var nombre = prompt('Este teléfono no está registrado.\nIngresá nombre o apodo para registrarlo:');
-        if (!nombre || !nombre.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }
+        // No existe → preguntar datos para registrarlo
+        var esNumero = /^\d{6,}$/.test(query);
+        var nombre, telefono;
+        if (esNumero) {
+          telefono = query;
+          nombre = prompt('Este teléfono no está registrado.\nIngresá nombre o apodo para registrarlo:');
+          if (!nombre || !nombre.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }
+          nombre = nombre.trim();
+        } else {
+          nombre = query;
+          telefono = prompt('"' + query + '" no está registrado.\nIngresá su teléfono para registrarlo:');
+          if (!telefono || !telefono.trim() || telefono.trim().length < 6) { msgEl.textContent = 'Cancelado o teléfono inválido'; msgEl.style.color = '#e74c3c'; return; }
+          telefono = telefono.trim();
+        }
 
         var { error } = await sb.from('clientes').insert({
-          nombre: nombre.trim(),
+          nombre: nombre,
           telefono: telefono,
           puntos: 1,
           compro: true
         });
         if (error) { msgEl.textContent = 'Error: ' + error.message; msgEl.style.color = '#e74c3c'; return; }
 
-        msgEl.textContent = '✓ ' + nombre.trim() + ' registrado + 1 punto';
+        msgEl.textContent = '✓ ' + nombre + ' registrado + 1 punto';
         msgEl.style.color = '#2ecc71';
-        notifyTelegram('⭐ Punto + nuevo cliente\n👤 ' + nombre.trim() + ' · ' + telefono);
+        notifyTelegram('⭐ Punto + nuevo cliente\n👤 ' + nombre + ' · ' + telefono);
       } else {
         // Existe → sumar punto
         var cliente = data[0];
         var nuevosPuntos = (cliente.puntos || 0) + 1;
-        await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', cliente.id);
+        var { data: updated, error } = await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', cliente.id).select();
+        if (error || !updated || updated.length === 0) {
+          msgEl.textContent = 'No se pudo sumar punto. Revisá permisos en Supabase (RLS).';
+          msgEl.style.color = '#e74c3c'; return;
+        }
 
         msgEl.textContent = '✓ ' + cliente.nombre + ' ahora tiene ' + nuevosPuntos + ' punto' + (nuevosPuntos !== 1 ? 's' : '');
         msgEl.style.color = '#2ecc71';
         notifyTelegram('⭐ +1 punto\n👤 ' + cliente.nombre + ' → ' + nuevosPuntos + ' pts');
       }
 
-      document.getElementById('puntoTelefono').value = '';
+      document.getElementById('puntoQuery').value = '';
       loadClientes();
       setTimeout(function() { msgEl.textContent = ''; }, 4000);
     }
@@ -1953,7 +2090,12 @@
       var c = allClientes.find(function(cl) { return cl.id == id; });
       if (!c) return;
       var nuevosPuntos = (c.puntos || 0) + 1;
-      await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', id);
+      var { data, error } = await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', id).select();
+      if (error || !data || data.length === 0) {
+        alert('No se pudo sumar punto. Revisá permisos en Supabase (RLS).');
+        console.error('sumarPuntoDirecto failed:', error);
+        return;
+      }
       notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
       loadClientes();
     }
@@ -1962,47 +2104,64 @@
       var c = allClientes.find(function(cl) { return cl.id == id; });
       if (!c) return;
       editingClientId = id;
-      document.getElementById('modalClientName').textContent = c.nombre;
-      document.getElementById('modalClientOldTel').value = c.telefono;
-      document.getElementById('modalClientNewTel').value = '';
-      document.getElementById('modalClientEditBtn').disabled = true;
+      document.getElementById('modalClientHeader').textContent = c.nombre;
+      document.getElementById('modalClientNombre').value = c.nombre || '';
+      document.getElementById('modalClientTel').value = c.telefono || '';
+      document.getElementById('modalClientPuntos').value = c.puntos || 0;
+      document.getElementById('modalClientNota').value = c.nota || '';
+      document.getElementById('modalClientCompro').value = (c.compro === true || (c.puntos || 0) > 0) ? 'true' : 'false';
       document.getElementById('modalClientEditMsg').textContent = '';
       document.getElementById('modalClientEdit').classList.add('active');
     }
 
-    function checkClientEdit() {
-      var val = document.getElementById('modalClientNewTel').value.trim();
-      document.getElementById('modalClientEditBtn').disabled = val.length < 6;
-    }
-
-    async function saveClientPhone() {
-      var newTel = document.getElementById('modalClientNewTel').value.trim();
-      if (!newTel || !editingClientId) return;
+    async function saveClientEdit() {
+      if (!editingClientId) return;
+      var nombre = document.getElementById('modalClientNombre').value.trim();
+      var telefono = document.getElementById('modalClientTel').value.trim();
+      var puntos = parseInt(document.getElementById('modalClientPuntos').value) || 0;
+      var nota = document.getElementById('modalClientNota').value.trim();
+      var compro = document.getElementById('modalClientCompro').value === 'true';
+      var msgEl = document.getElementById('modalClientEditMsg');
       var btn = document.getElementById('modalClientEditBtn');
+
+      if (!nombre) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'El nombre no puede estar vacío'; return; }
+      if (!telefono || telefono.length < 6) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Teléfono inválido'; return; }
+      if (puntos < 0) puntos = 0;
+
       btn.disabled = true; btn.textContent = 'Guardando...';
-      var { error } = await sb.from('clientes').update({ telefono: newTel }).eq('id', editingClientId);
+      var { data, error } = await sb.from('clientes').update({
+        nombre: nombre, telefono: telefono, puntos: puntos, nota: nota, compro: compro
+      }).eq('id', editingClientId).select();
+
       if (error) {
-        document.getElementById('modalClientEditMsg').style.color = '#e74c3c';
-        document.getElementById('modalClientEditMsg').textContent = 'Error: ' + error.message;
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Error: ' + error.message;
+        console.error('Edit client error:', error);
+      } else if (!data || data.length === 0) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'No se pudo guardar. Revisá los permisos en Supabase (RLS).';
+        console.error('Edit client: no rows updated. Check RLS policies on clientes table.');
       } else {
-        document.getElementById('modalClientEditMsg').style.color = '#2ecc71';
-        document.getElementById('modalClientEditMsg').textContent = 'Teléfono actualizado ✓';
-        var c = allClientes.find(function(cl) { return cl.id == editingClientId; });
-        if (c) notifyTelegram('📱 Teléfono editado: ' + c.nombre + ' → ' + newTel);
+        msgEl.style.color = '#2ecc71';
+        msgEl.textContent = 'Cliente actualizado ✓';
+        notifyTelegram('✏️ Cliente editado: ' + nombre + ' · ' + telefono + ' · ' + puntos + ' pts');
         loadClientes();
         setTimeout(function() { closeModal('modalClientEdit'); }, 1200);
       }
-      btn.textContent = 'Guardar cambio'; btn.disabled = false;
+      btn.textContent = 'Guardar cambios'; btn.disabled = false;
     }
 
     async function toggleBlockClient(id, block) {
       var c = allClientes.find(function(cl) { return cl.id == id; });
       if (!c) return;
-      var { error } = await sb.from('clientes').update({ bloqueado: block }).eq('id', id);
-      if (!error) {
-        notifyTelegram((block ? '🚫 Cliente bloqueado' : '✅ Cliente desbloqueado') + ': ' + c.nombre);
-        loadClientes();
+      var { data, error } = await sb.from('clientes').update({ bloqueado: block }).eq('id', id).select();
+      if (error || !data || data.length === 0) {
+        alert('No se pudo ' + (block ? 'bloquear' : 'desbloquear') + '. Revisá permisos en Supabase (RLS).');
+        console.error('toggleBlockClient failed:', error);
+        return;
       }
+      notifyTelegram((block ? '🚫 Cliente bloqueado' : '✅ Cliente desbloqueado') + ': ' + c.nombre);
+      loadClientes();
     }
 
     function openClientDeleteModal(id) {
@@ -2025,14 +2184,20 @@
     async function deleteClient() {
       if (!deletingClientId) return;
       var btn = document.getElementById('modalClientDeleteBtn');
+      var msgEl = document.getElementById('modalClientDeleteMsg');
       btn.disabled = true; btn.textContent = 'Eliminando...';
-      var { error } = await sb.from('clientes').delete().eq('id', deletingClientId);
+      var { data, error } = await sb.from('clientes').delete().eq('id', deletingClientId).select();
       if (error) {
-        document.getElementById('modalClientDeleteMsg').style.color = '#e74c3c';
-        document.getElementById('modalClientDeleteMsg').textContent = 'Error: ' + error.message;
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Error: ' + error.message;
+        console.error('Delete client error:', error);
+      } else if (!data || data.length === 0) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'No se pudo eliminar. Revisá los permisos en Supabase (RLS).';
+        console.error('Delete client: no rows deleted. Check RLS policies on clientes table.');
       } else {
-        document.getElementById('modalClientDeleteMsg').style.color = '#2ecc71';
-        document.getElementById('modalClientDeleteMsg').textContent = 'Cliente eliminado';
+        msgEl.style.color = '#2ecc71';
+        msgEl.textContent = 'Cliente eliminado ✓';
         notifyTelegram('🗑️ Cliente eliminado: ' + deletingClientName);
         loadClientes();
         setTimeout(function() { closeModal('modalClientDelete'); }, 1000);
@@ -2843,33 +3008,55 @@
     }
 
     async function addCierre() {
-      var fecha = document.getElementById('cierreFecha').value;
+      var desde = document.getElementById('cierreFechaDesde').value;
+      var hasta = document.getElementById('cierreFechaHasta').value;
       var motivo = document.getElementById('cierreMotivo').value.trim();
       var msgEl = document.getElementById('cierreMsg');
 
-      if (!fecha) { msgEl.textContent = 'Seleccioná una fecha'; msgEl.style.color = '#e74c3c'; return; }
-      if (!motivo) motivo = 'Cerrado por el día de hoy';
+      if (!desde) { msgEl.textContent = 'Seleccioná al menos la fecha "Desde"'; msgEl.style.color = '#e74c3c'; return; }
+      if (!motivo) motivo = 'Cerrado';
+      if (!hasta) hasta = desde; // Un solo día
 
-      var { error } = await sb.from('cierres_especiales').insert({ fecha: fecha, motivo: motivo });
-      if (error) {
-        if (error.code === '23505') {
-          msgEl.textContent = 'Esa fecha ya está cargada';
-        } else {
-          msgEl.textContent = 'Error: ' + error.message;
-        }
-        msgEl.style.color = '#e74c3c';
-        return;
+      // Validar que hasta >= desde
+      if (hasta < desde) { msgEl.textContent = '"Hasta" debe ser igual o posterior a "Desde"'; msgEl.style.color = '#e74c3c'; return; }
+
+      // Generar todas las fechas del rango
+      var fechas = [];
+      var d = new Date(desde + 'T12:00:00');
+      var fin = new Date(hasta + 'T12:00:00');
+      while (d <= fin) {
+        fechas.push(d.toISOString().split('T')[0]);
+        d.setDate(d.getDate() + 1);
       }
 
-      var fechaStr = new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-      msgEl.textContent = 'Cierre agregado: ' + fechaStr;
-      msgEl.style.color = '#2ecc71';
-      notifyTelegram('🚫 Cierre programado\n📅 ' + fechaStr + '\n📝 ' + motivo);
+      // Máximo 14 días para evitar errores
+      if (fechas.length > 14) {
+        msgEl.textContent = 'Máximo 14 días por vez (seleccionaste ' + fechas.length + ')';
+        msgEl.style.color = '#e74c3c'; return;
+      }
 
-      document.getElementById('cierreFecha').value = '';
+      // Insertar todas las fechas
+      var rows = fechas.map(function(f) { return { fecha: f, motivo: motivo }; });
+      var { error } = await sb.from('cierres_especiales').upsert(rows, { onConflict: 'fecha' });
+      if (error) {
+        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.style.color = '#e74c3c'; return;
+      }
+
+      var desdeStr = new Date(desde + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+      var hastaStr = new Date(hasta + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+      var resumen = fechas.length === 1
+        ? 'Cierre agregado: ' + desdeStr
+        : fechas.length + ' días cerrados: ' + desdeStr + ' al ' + hastaStr;
+      msgEl.textContent = resumen;
+      msgEl.style.color = '#2ecc71';
+      notifyTelegram('🚫 Cierre programado\n📅 ' + (fechas.length === 1 ? desdeStr : desdeStr + ' al ' + hastaStr) + ' (' + fechas.length + ' día' + (fechas.length > 1 ? 's' : '') + ')\n📝 ' + motivo);
+
+      document.getElementById('cierreFechaDesde').value = '';
+      document.getElementById('cierreFechaHasta').value = '';
       document.getElementById('cierreMotivo').value = '';
       loadCierres();
-      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+      setTimeout(function() { msgEl.textContent = ''; }, 4000);
     }
 
     async function removeCierre(id) {
