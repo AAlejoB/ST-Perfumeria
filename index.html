@@ -4850,9 +4850,9 @@
       <div class="footer-col">
         <p class="footer-col-title">Seguinos</p>
         <div class="footer-socials">
-          <a href="https://instagram.com/st.perfumeria_" target="_blank" class="footer-social-btn" title="Instagram">IG</a>
+          <a href="https://www.instagram.com/st.perfumeria_" target="_blank" class="footer-social-btn" title="Instagram">IG</a>
           <a href="https://www.facebook.com/profile.php?id=61570483660479" target="_blank" class="footer-social-btn" title="Facebook">FB</a>
-          <a href="https://tiktok.com" target="_blank" class="footer-social-btn" title="TikTok">TK</a>
+          <a href="https://www.tiktok.com/@st.perfumeria" target="_blank" class="footer-social-btn" title="TikTok">TK</a>
           <a href="https://wa.me/5492975416017" target="_blank" class="footer-social-btn footer-social-btn--wa" title="WhatsApp">WA</a>
         </div>
       </div>
@@ -6447,7 +6447,7 @@
       if (e) { e.preventDefault(); e.stopPropagation(); }
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
-      var url = 'https://st-perfumeria.vercel.app/perfume/' + slug;
+      var url = 'https://www.stperfumeria.com/perfume/' + slug;
       var text = p.name + ' — ST Perfumería\n' + (p.notas_salida ? 'Notas: ' + p.notas_salida : '') + '\n' + url;
 
       if (navigator.share) {
@@ -6669,7 +6669,7 @@
     // DEEP LINK — Enlaces directos a un perfume
     //
     // Si alguien comparte un link como:
-    //   st-perfumeria.vercel.app/?p=khamrah
+    //   stperfumeria.com/?p=khamrah
     // el sitio se abre y scrollea automáticamente hasta ese perfume.
     //
     // URLSearchParams lee los parámetros de la URL (lo que va después de ?)
@@ -8725,7 +8725,7 @@
       var texto = '🎴 *Desafío ST — Scent & Textures*\n\n'
         + 'Elegí mis 3 perfumes favoritos: ' + elegidos + '\n\n'
         + '🔮 Me recomendaron: *' + p.name + '* de ' + (p.marca_real || p.marca || '') + '\n\n'
-        + '¿Vos cuáles elegirías? Probá acá 👇\nhttps://st-perfumeria.vercel.app';
+        + '¿Vos cuáles elegirías? Probá acá 👇\nhttps://www.stperfumeria.com';
       var url = 'https://wa.me/?text=' + encodeURIComponent(texto);
       window.open(url, '_blank');
     }
