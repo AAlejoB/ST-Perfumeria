@@ -199,7 +199,7 @@
     }
 
     .nav-icons { display: flex; align-items: center; gap: .8rem; }
-    /* Mobile: ocultar Registrarse y Contacto del nav (están en drawer) */
+    /* Mobile: ocultar Iniciar sesión y Contacto del nav (están en drawer) */
     @media (max-width: 767px) {
       .nav-icons { gap: .5rem; }
       .nav-register-btn, .nav-icons > a[href="#contacto"] { display: none !important; }
@@ -1223,12 +1223,15 @@
       padding: 0 1rem;
     }
     .quiz-box {
-      background: var(--negro-card);
-      border: 1px solid var(--borde-sutil);
-      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(232,184,0,.04) 0%, var(--negro-card) 40%, rgba(232,184,0,.03) 100%);
+      border: 1px solid rgba(232,184,0,.25);
+      border-radius: 10px;
       padding: 2rem 1.5rem;
       text-align: center;
+      box-shadow: 0 0 30px rgba(232,184,0,.05);
+      transition: box-shadow .3s;
     }
+    .quiz-box:hover { box-shadow: 0 0 40px rgba(232,184,0,.1); }
     .quiz-icon { font-size: 1.8rem; margin-bottom: .6rem; }
     .quiz-title {
       font-family: var(--font-display);
@@ -4339,7 +4342,7 @@
     <a href="#categorias" class="drawer-link" onclick="toggleDrawer()">Categor&#237;as</a>
     <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()">Nosotros</a>
     <a href="#contacto" class="drawer-link" onclick="toggleDrawer()">Contacto</a>
-    <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth">Registrarse</a>
+    <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth">Iniciar sesi&oacute;n</a>
     <a href="#" class="drawer-link" style="display:none;color:#e74c3c;" onclick="event.preventDefault();toggleDrawer();logout()" id="drawerLogout">Cerrar sesi&#243;n</a>
   </div>
 
@@ -4360,9 +4363,9 @@
         </span>
         Favoritos
       </a>
-      <a href="#" class="nav-icon-btn nav-register-btn" title="Registrarse" onclick="event.preventDefault();openAuth()">
+      <a href="#" class="nav-icon-btn nav-register-btn" title="Iniciar sesi&oacute;n" onclick="event.preventDefault();openAuth()">
         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        Registrarse
+        Iniciar sesi&oacute;n
       </a>
       <a href="#contacto" class="nav-icon-btn" title="Contacto">
         <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.27-.85a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -4409,6 +4412,7 @@
     <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
     <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
     <div class="quiz-box" id="quizBox">
+      <div style="margin-bottom:.6rem;"><span class="set-badge" style="font-size:.6rem;">&#127942; JUGÁ GRATIS</span></div>
       <div class="quiz-icon">&#128142;</div>
       <p class="quiz-title">Encontr&#225; tu perfume</p>
       <p class="quiz-subtitle">Respond&#233; 4 preguntas y te recomendamos 3 fragancias ideales para vos</p>
@@ -4485,7 +4489,7 @@
     <div class="filter-zone filter-zone--center">
       <div class="search-wrapper">
         <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, marca o nota..." oninput="applySearch(this.value)" autocomplete="off">
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, marca o nota..." oninput="debouncedSearch(this.value)" autocomplete="off">
         <button class="search-clear" id="searchClear" onclick="clearSearch()">&times;</button>
         <div class="search-suggestions" id="searchSuggestions"></div>
       </div>
@@ -4577,7 +4581,7 @@
 
     <div class="cta-register" id="ctaRegister">
       <p class="cta-register-text"><strong>Cre&#225; tu cuenta gratis</strong> y guard&#225; tus perfumes favoritos, vot&#225; el perfume del mes y mucho m&#225;s.</p>
-      <button class="cta-register-btn" onclick="openAuth()">Registrarme</button>
+      <button class="cta-register-btn" onclick="openAuth()">Iniciar sesi&oacute;n</button>
     </div>
   </section>
 
@@ -4676,10 +4680,10 @@
     </div>
 
     <!-- Desafío ST -->
-    <div class="misel-section">
-      <p class="section-eyebrow" style="margin-bottom:.5rem">Desaf&#237;o</p>
+    <div class="misel-section" style="border:1px solid rgba(232,184,0,.2);border-radius:10px;padding:1.5rem;background:linear-gradient(135deg, rgba(232,184,0,.03) 0%, transparent 60%);">
+      <div style="margin-bottom:.5rem;"><span class="set-badge" style="font-size:.6rem;">&#127183; DESAF&Iacute;O INTERACTIVO</span></div>
       <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
-      <p style="font-size:.78rem;color:var(--gris);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
+      <p style="font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
 
       <div class="misel-content" id="miselContent" style="display:none;">
         <div class="misel-picker">
@@ -4718,7 +4722,7 @@
       </div>
 
       <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
-        <span>&#128274; Registrate para jugar</span>
+        <span>&#128274; Inici&aacute; sesi&oacute;n para jugar</span>
       </div>
     </div>
     </div><!-- /cultura-misel-row -->
@@ -4803,7 +4807,7 @@
         <div class="sector-card sector-opiniones">
           <p class="sector-card-eyebrow">&#127908; Espacio para ustedes</p>
           <p class="sector-card-desc">&#191;Qu&#233; perfume te vol&#243; la cabeza? &#191;Cu&#225;l no te convenci&#243;? Cont&#225;nos.</p>
-          <textarea class="board-input" id="boardInput" placeholder="Registrate para dejar tu opini&#243;n..." maxlength="280"></textarea>
+          <textarea class="board-input" id="boardInput" placeholder="Inici&aacute; sesi&oacute;n para dejar tu opini&oacute;n..." maxlength="280"></textarea>
           <div class="board-footer">
             <span class="board-hint" id="boardHint">M&#225;x. 280 caracteres</span>
             <button class="board-send" id="boardSend" onclick="sendBoardMsg()">Enviar</button>
@@ -4818,7 +4822,7 @@
             <p style="font-size:.6rem;color:var(--amarillo);letter-spacing:.1em;font-weight:600;margin-bottom:.2rem;">&#127942; GANADOR DEL MES PASADO</p>
             <p id="votoGanadorText" style="font-size:.7rem;color:#fff;line-height:1.4;"></p>
           </div>
-          <p class="sector-card-desc" id="votoDesc">Eleg&#237; tu favorito en cada categor&#237;a. &#161;Solo usuarios registrados pueden votar!</p>
+          <p class="sector-card-desc" id="votoDesc">Eleg&#237; tu favorito en cada categor&#237;a. &#161;Inici&aacute; sesi&oacute;n para votar!</p>
           <div class="voto-categorias">
             <div class="voto-cat">
               <p class="voto-cat-title">Perfume masculino</p>
@@ -4834,7 +4838,7 @@
             </div>
           </div>
           <div class="voto-lock" onclick="openAuth()">
-            <span>&#128274; Registrate para votar</span>
+            <span>&#128274; Inici&aacute; sesi&oacute;n para votar</span>
           </div>
         </div>
       </div>
@@ -5053,9 +5057,9 @@
   <!-- Banner post-push: invitación a registrarse (AC) -->
   <div class="push-banner" id="pushRegisterBanner" style="display:none;">
     <p class="push-banner-title">&#127881; &iexcl;Notificaciones activadas!</p>
-    <p class="push-banner-text">&iquest;Quer&eacute;s ser parte de la familia ST? Registrate y guard&aacute; tus favoritos, vot&aacute; el perfume del mes y m&aacute;s.</p>
+    <p class="push-banner-text">&iquest;Quer&eacute;s ser parte de la familia ST? Inici&aacute; sesi&oacute;n y guard&aacute; tus favoritos, vot&aacute; el perfume del mes y m&aacute;s.</p>
     <div class="push-banner-btns">
-      <button class="push-banner-btn push-banner-btn--yes" onclick="document.getElementById('pushRegisterBanner').style.display='none';openAuth();">Registrarme</button>
+      <button class="push-banner-btn push-banner-btn--yes" onclick="document.getElementById('pushRegisterBanner').style.display='none';openAuth();">Iniciar sesi&oacute;n</button>
       <button class="push-banner-btn push-banner-btn--no" onclick="document.getElementById('pushRegisterBanner').style.display='none';">Ahora no</button>
     </div>
   </div>
@@ -5083,7 +5087,7 @@
     // ============================================================
     function openAuth() {
       if (currentUser) return;
-      switchAuthMode('register');
+      switchAuthMode('login');
       document.getElementById('authOverlay').classList.add('open');
       document.getElementById('authError').textContent = '';
       // Si está bloqueado por intentos previos, mostrar el countdown al instante
@@ -5182,7 +5186,7 @@
         if (phone2El) phone2El.style.display = 'none';
         passEl.placeholder = 'Tu contraseña';
         titleEl.textContent = 'Iniciá sesión';
-        subEl.innerHTML = '¿No tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" style="color:var(--amarillo)">Registrate</a>';
+        subEl.innerHTML = '&iquest;No ten&eacute;s cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" style="color:var(--amarillo)">Cre&aacute; una</a>';
         btnEl.textContent = 'Entrar';
       } else {
         nameEl.style.display = '';
@@ -5440,7 +5444,7 @@
       favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
       updateAuthUI();
       var bi = document.getElementById('boardInput');
-      if (bi) bi.placeholder = 'Registrate para dejar tu opinión...';
+      if (bi) bi.placeholder = 'Iniciá sesión para dejar tu opinión...';
       lockVoting();
       initMiSeleccion();
       renderCatalog();
@@ -5462,10 +5466,10 @@
         if (drawerAuth) { drawerAuth.textContent = '✏️ Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
         if (drawerLogout) drawerLogout.style.display = '';
       } else {
-        regBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Registrarse';
+        regBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Iniciar sesi\u00f3n';
         regBtn.setAttribute('onclick', 'event.preventDefault();openAuth()');
-        regBtn.setAttribute('title', 'Registrarse');
-        if (drawerAuth) { drawerAuth.textContent = 'Registrarse'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openAuth()'); }
+        regBtn.setAttribute('title', 'Iniciar sesi\u00f3n');
+        if (drawerAuth) { drawerAuth.textContent = 'Iniciar sesi\u00f3n'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openAuth()'); }
         if (drawerLogout) drawerLogout.style.display = 'none';
       }
     }
@@ -6309,7 +6313,7 @@
 
         // Badge text
         var badgeText = 'SET x' + itemCount;
-        if (s.setTipo === 'regalo') badgeText = 'REGALO';
+        if (s.setTipo === 'regalo') badgeText = '\uD83C\uDF81 IDEAL PARA REGALAR';
         if (s.setTipo === 'mini-collection') badgeText = 'MINI x' + itemCount;
 
         var setPaused = s._stockStatus === 'pausado';
@@ -6821,12 +6825,15 @@
           totalMatch++;
           if (matchIndex < cardsShown) {
             card.style.display = 'flex';
+            card.style.contentVisibility = 'visible';
           } else {
             card.style.display = 'none';
+            card.style.contentVisibility = 'auto';
           }
           matchIndex++;
         } else {
           card.style.display = 'none';
+          card.style.contentVisibility = 'auto';
         }
       });
       var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
@@ -7145,6 +7152,11 @@
       return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
     var currentSearch = '';
+    var _searchTimer = null;
+    function debouncedSearch(val) {
+      if (_searchTimer) clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(function() { applySearch(val); }, 120);
+    }
 
     // applySearch: filtra las cards Y muestra sugerencias de autocompletado
     function applySearch(query) {
