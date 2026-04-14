@@ -959,9 +959,46 @@
     <!-- TAB: CLIENTES -->
     <div class="tab-content" id="tab-clientes">
       <div class="clients-search-bar">
-        <input type="text" class="admin-search" id="searchClientes" placeholder="Buscar cliente..." oninput="filterClientes()"/>
+        <input type="text" class="admin-search" id="searchClientes" placeholder="Buscar por nombre o tel&#233;fono..." oninput="filterClientes()"/>
         <span class="client-count" id="clientCount">0 clientes</span>
+        <button class="action-btn btn-price" onclick="toggleNewClientForm()" style="font-size:.72rem;padding:.5rem 1rem;">+ Nuevo cliente</button>
       </div>
+
+      <!-- FORMULARIO NUEVO CLIENTE (AE) -->
+      <div id="newClientForm" style="display:none;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1rem;">
+        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Registrar nuevo cliente</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:140px;">
+            <label class="modal-label">Nombre / Apodo</label>
+            <input type="text" class="modal-input" id="newClientName" placeholder="Ej: Marcos, Luli..." style="margin-bottom:0;" maxlength="60"/>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label class="modal-label">Tel&eacute;fono (WhatsApp)</label>
+            <input type="tel" class="modal-input" id="newClientPhone" placeholder="Ej: 2975412345" style="margin-bottom:0;"/>
+          </div>
+          <div style="flex:0 0 auto;">
+            <label class="modal-label" style="opacity:0;">.</label>
+            <label style="font-size:.65rem;color:var(--gris-claro);cursor:pointer;display:flex;align-items:center;gap:.3rem;padding:.6rem 0;">
+              <input type="checkbox" id="newClientCompro"> Ya compr&oacute;
+            </label>
+          </div>
+          <button class="modal-btn modal-btn-price" onclick="addNewClient()" style="width:auto;padding:.6rem 1.2rem;margin-top:0;">Registrar</button>
+        </div>
+        <p class="modal-success" id="newClientMsg"></p>
+      </div>
+
+      <!-- SUMAR PUNTO RÁPIDO -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#11088; Sumar punto por compra</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:200px;">
+            <input type="tel" class="modal-input" id="puntoTelefono" placeholder="Tel&eacute;fono del cliente" style="margin-bottom:0;"/>
+          </div>
+          <button class="modal-btn modal-btn-price" onclick="sumarPunto()" style="width:auto;padding:.6rem 1.2rem;margin-top:0;">Sumar punto</button>
+        </div>
+        <p class="modal-success" id="puntoMsg"></p>
+      </div>
+
       <div id="clientsList"></div>
     </div>
 
@@ -1456,6 +1493,21 @@
       if (btn) btn.classList.add('active');
     }
 
+    // Helper: refresca TODO después de guardar algo en Supabase
+    // Pequeño delay para que Supabase propague el cambio
+    function refreshAll(delay) {
+      setTimeout(function() {
+        try { renderPrecios(); } catch(e) {}
+        try { renderStock(); } catch(e) {}
+        try { if (typeof renderDestacados === 'function') renderDestacados(); } catch(e) {}
+        try { if (typeof loadClientes === 'function') loadClientes(); } catch(e) {}
+        try { if (typeof loadCierres === 'function') loadCierres(); } catch(e) {}
+        try { if (typeof loadAjuste === 'function') loadAjuste(); } catch(e) {}
+        try { if (typeof loadNuevos === 'function') loadNuevos(); } catch(e) {}
+        try { if (typeof loadOpiniones === 'function') loadOpiniones(); } catch(e) {}
+      }, delay || 300);
+    }
+
     // ============================================================
     // PRECIOS
     // ============================================================
@@ -1762,16 +1814,33 @@
         var blockBtnClass = isBlocked ? 'client-btn client-btn-blocked' : 'client-btn client-btn-block';
         var blockBtnText = isBlocked ? 'Desbloquear' : 'Bloquear';
 
-        html += '<div class="client-card" data-name="' + (c.nombre || '').toLowerCase() + '">'
+        // Sistema de puntos (AA)
+        var puntos = c.puntos || 0;
+        var puntosHTML = '<span style="background:rgba(232,184,0,.12);color:var(--amarillo);font-size:.6rem;font-weight:700;padding:.2rem .5rem;border-radius:3px;letter-spacing:.05em;">⭐ ' + puntos + ' pt' + (puntos !== 1 ? 's' : '') + '</span>';
+
+        // Tag COMPRÓ / NO COMPRÓ (AF)
+        var compro = c.compro === true || puntos > 0;
+        var comproTag = compro
+          ? '<span style="background:rgba(46,204,113,.15);color:#2ecc71;font-size:.58rem;font-weight:700;padding:.2rem .5rem;border-radius:3px;letter-spacing:.05em;">✓ COMPRÓ</span>'
+          : '<span style="background:rgba(231,76,60,.12);color:#e74c3c;font-size:.58rem;font-weight:700;padding:.2rem .5rem;border-radius:3px;letter-spacing:.05em;">✗ NO COMPRÓ</span>';
+
+        // WhatsApp link (AD)
+        var tel = (c.telefono || '').replace(/[^0-9]/g, '');
+        var waLink = 'https://wa.me/549' + tel;
+        var waBtn = '<a href="' + waLink + '" target="_blank" class="client-btn" style="background:rgba(37,211,102,.15);color:#25D366;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;" title="Enviar WhatsApp">💬 WhatsApp</a>';
+
+        html += '<div class="client-card" data-name="' + (c.nombre || '').toLowerCase() + '" data-tel="' + (c.telefono || '') + '">'
           + '<div class="client-top">'
             + '<div class="client-name"><span class="client-name-icon">' + initials + '</span> ' + c.nombre + blockedBadge + '</div>'
-            + '<span class="client-date">' + fecha + '</span>'
+            + '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">' + comproTag + puntosHTML + '<span class="client-date">' + fecha + '</span></div>'
           + '</div>'
           + '<div class="client-details">'
             + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + c.telefono + '</span></span>'
             + (c.telefono2 ? '<span class="client-detail"><span class="client-detail-icon">📞</span> <span class="client-detail-value">' + c.telefono2 + '</span></span>' : '')
           + '</div>'
           + '<div class="client-actions">'
+            + waBtn
+            + '<button class="client-btn" style="background:rgba(232,184,0,.12);color:var(--amarillo);" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
             + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar tel</button>'
             + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
             + '<button class="client-btn client-btn-delete" onclick="openClientDeleteModal(\'' + c.id + '\')">🗑️ Eliminar</button>'
@@ -1788,6 +1857,105 @@
         return (c.nombre || '').toLowerCase().indexOf(q) !== -1 || (c.telefono || '').indexOf(q) !== -1;
       });
       renderClientes(filtered);
+    }
+
+    // ============================================================
+    // NUEVO CLIENTE DESDE ADMIN (AE)
+    // ============================================================
+    function toggleNewClientForm() {
+      var form = document.getElementById('newClientForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function addNewClient() {
+      var nombre = document.getElementById('newClientName').value.trim();
+      var telefono = document.getElementById('newClientPhone').value.trim();
+      var compro = document.getElementById('newClientCompro').checked;
+      var msgEl = document.getElementById('newClientMsg');
+
+      if (!nombre) { msgEl.textContent = 'Poné un nombre o apodo'; msgEl.style.color = '#e74c3c'; return; }
+      if (!telefono || telefono.length < 6) { msgEl.textContent = 'Teléfono inválido'; msgEl.style.color = '#e74c3c'; return; }
+
+      // Ver si ya existe
+      var { data: existing } = await sb.from('clientes').select('id').eq('telefono', telefono).limit(1);
+      if (existing && existing.length > 0) {
+        msgEl.textContent = 'Este teléfono ya está registrado';
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      var row = {
+        nombre: nombre,
+        telefono: telefono,
+        compro: compro,
+        puntos: compro ? 1 : 0
+      };
+
+      var { error } = await sb.from('clientes').insert(row);
+      if (error) { msgEl.textContent = 'Error: ' + error.message; msgEl.style.color = '#e74c3c'; return; }
+
+      msgEl.textContent = '✓ ' + nombre + ' registrado' + (compro ? ' con 1 punto' : '');
+      msgEl.style.color = '#2ecc71';
+      notifyTelegram('👤 Nuevo cliente (admin)\n📱 ' + nombre + ' · ' + telefono + (compro ? '\n⭐ 1 punto' : ''));
+
+      document.getElementById('newClientName').value = '';
+      document.getElementById('newClientPhone').value = '';
+      document.getElementById('newClientCompro').checked = false;
+      loadClientes();
+      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+    }
+
+    // ============================================================
+    // SISTEMA DE PUNTOS (AA)
+    // ============================================================
+    async function sumarPunto() {
+      var telefono = document.getElementById('puntoTelefono').value.trim();
+      var msgEl = document.getElementById('puntoMsg');
+
+      if (!telefono || telefono.length < 6) { msgEl.textContent = 'Ingresá un teléfono válido'; msgEl.style.color = '#e74c3c'; return; }
+
+      // Buscar cliente
+      var { data } = await sb.from('clientes').select('*').eq('telefono', telefono).limit(1);
+
+      if (!data || data.length === 0) {
+        // No existe → preguntar nombre para registrarlo
+        var nombre = prompt('Este teléfono no está registrado.\nIngresá nombre o apodo para registrarlo:');
+        if (!nombre || !nombre.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }
+
+        var { error } = await sb.from('clientes').insert({
+          nombre: nombre.trim(),
+          telefono: telefono,
+          puntos: 1,
+          compro: true
+        });
+        if (error) { msgEl.textContent = 'Error: ' + error.message; msgEl.style.color = '#e74c3c'; return; }
+
+        msgEl.textContent = '✓ ' + nombre.trim() + ' registrado + 1 punto';
+        msgEl.style.color = '#2ecc71';
+        notifyTelegram('⭐ Punto + nuevo cliente\n👤 ' + nombre.trim() + ' · ' + telefono);
+      } else {
+        // Existe → sumar punto
+        var cliente = data[0];
+        var nuevosPuntos = (cliente.puntos || 0) + 1;
+        await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', cliente.id);
+
+        msgEl.textContent = '✓ ' + cliente.nombre + ' ahora tiene ' + nuevosPuntos + ' punto' + (nuevosPuntos !== 1 ? 's' : '');
+        msgEl.style.color = '#2ecc71';
+        notifyTelegram('⭐ +1 punto\n👤 ' + cliente.nombre + ' → ' + nuevosPuntos + ' pts');
+      }
+
+      document.getElementById('puntoTelefono').value = '';
+      loadClientes();
+      setTimeout(function() { msgEl.textContent = ''; }, 4000);
+    }
+
+    async function sumarPuntoDirecto(id) {
+      var c = allClientes.find(function(cl) { return cl.id == id; });
+      if (!c) return;
+      var nuevosPuntos = (c.puntos || 0) + 1;
+      await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', id);
+      notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
+      loadClientes();
     }
 
     function openClientEditModal(id) {
@@ -1980,6 +2148,7 @@
       notifyTelegram('\ud83d\udcb0 Precio actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcb5 Precio: $' + newPrice.toLocaleString('es-AR') + (newPromo ? '\n\ud83c\udf1f Promo: $' + newPromo.toLocaleString('es-AR') : ''));
 
       renderPrecios();
+      renderStock();
       setTimeout(function() { closeModal('modalPrice'); }, 1500);
     }
 
@@ -2011,6 +2180,7 @@
       notifyTelegram('\ud83d\udce6 Stock actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcca Estado: ' + labels[status]);
 
       renderStock();
+      renderPrecios();
       setTimeout(function() { closeModal('modalStock'); }, 1500);
     }
 
@@ -2203,11 +2373,13 @@
         Object.assign(PERFUMES[idx], merged);
       }
 
-      // Re-renderizar tablas del admin que muestran datos del perfume editado
+      // Re-renderizar TODAS las tablas del admin inmediatamente
       try { renderPrecios(); } catch(e) {}
       try { renderStock(); } catch(e) {}
       try { if (typeof renderDestacados === 'function') renderDestacados(); } catch(e) {}
       try { if (typeof loadStats === 'function') loadStats(); } catch(e) {}
+      // Segundo refresh con delay para que Supabase propague
+      refreshAll(500);
 
       msgEl.textContent = '\u2713 ' + obj.name + ' actualizado';
       msgEl.style.color = '#2ecc71';

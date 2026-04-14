@@ -5027,11 +5027,21 @@
 
   <!-- Push notification banner -->
   <div class="push-banner" id="pushBanner" style="display:none;">
-    <p class="push-banner-title">🔔 ¿Querés recibir novedades?</p>
+    <p class="push-banner-title">&#128276; &iquest;Quer&eacute;s recibir novedades?</p>
     <p class="push-banner-text">Te avisamos cuando lleguen perfumes nuevos, promos o eventos. Sin spam, lo prometemos.</p>
     <div class="push-banner-btns">
       <button class="push-banner-btn push-banner-btn--yes" onclick="acceptPush()">Activar</button>
       <button class="push-banner-btn push-banner-btn--no" onclick="dismissPush()">Ahora no</button>
+    </div>
+  </div>
+
+  <!-- Banner post-push: invitación a registrarse (AC) -->
+  <div class="push-banner" id="pushRegisterBanner" style="display:none;">
+    <p class="push-banner-title">&#127881; &iexcl;Notificaciones activadas!</p>
+    <p class="push-banner-text">&iquest;Quer&eacute;s ser parte de la familia ST? Registrate y guard&aacute; tus favoritos, vot&aacute; el perfume del mes y m&aacute;s.</p>
+    <div class="push-banner-btns">
+      <button class="push-banner-btn push-banner-btn--yes" onclick="document.getElementById('pushRegisterBanner').style.display='none';openAuth();">Registrarme</button>
+      <button class="push-banner-btn push-banner-btn--no" onclick="document.getElementById('pushRegisterBanner').style.display='none';">Ahora no</button>
     </div>
   </div>
 
@@ -8912,6 +8922,14 @@
 
         if (res.ok) {
           localStorage.setItem('st_push_subscribed', '1');
+
+          // AC: Si no está registrado, ofrecer registro directo
+          if (!currentUser) {
+            setTimeout(function() {
+              var registerBanner = document.getElementById('pushRegisterBanner');
+              if (registerBanner) registerBanner.style.display = 'block';
+            }, 1500);
+          }
         }
       } catch (err) {
         console.log('Push subscription error:', err);
