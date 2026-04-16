@@ -83,19 +83,25 @@
       requestAnimationFrame(tick);
     }
 
-    // Esperar a que TOP_VENTAS_SLUGS esté listo (puede cargarse async desde Supabase)
-    // Intentar cada 500ms por hasta 5s
-    var attempts = 0;
-    var tryStart = setInterval(function() {
-      attempts++;
-      var slugs = getSlugs();
-      if (slugs.length > 0 && typeof PERFUMES !== 'undefined' && PERFUMES.length > 0) {
-        clearInterval(tryStart);
-        start();
-      } else if (attempts >= 10) {
-        clearInterval(tryStart);
-      }
-    }, 500);
+    // Arrancar recién después de 2 min 30 seg — queda como un "easter egg"
+    // que aparece cuando el usuario realmente estuvo navegando un rato largo
+    var DELAY_MS = 2 * 60 * 1000 + 30 * 1000; // 150000 ms
+
+    setTimeout(function() {
+      // Esperar a que TOP_VENTAS_SLUGS esté listo (puede cargarse async desde Supabase)
+      // Una vez pasado el delay, intentar cada 500ms por hasta 5s
+      var attempts = 0;
+      var tryStart = setInterval(function() {
+        attempts++;
+        var slugs = getSlugs();
+        if (slugs.length > 0 && typeof PERFUMES !== 'undefined' && PERFUMES.length > 0) {
+          clearInterval(tryStart);
+          start();
+        } else if (attempts >= 10) {
+          clearInterval(tryStart);
+        }
+      }, 500);
+    }, DELAY_MS);
 
     // Pausar si la pestaña no está visible (ahorrar CPU)
     document.addEventListener('visibilitychange', function() {
