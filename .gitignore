@@ -4,6 +4,8 @@ compress-images.js
 *.js
 !perfumes.js
 !sw.js
+!js/app.js
+!js/dvd-bouncer.js
 notas.json
 notas_pendientes.xlsx
 ~$*
