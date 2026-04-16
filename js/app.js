@@ -1669,7 +1669,8 @@
       // 1. Filtrar: solo perfumes individuales (no sets/combos)
       // 2. Mapear: convertir cada perfume a HTML con buildCard()
       // 3. Join: unir todo el HTML en un solo string
-      grid.innerHTML = PERFUMES.filter(function(p) { return !p.esSet; }).map(buildCard).join('');
+      // Excluir: sets/combos (tienen su sección propia) y perfumes ocultos por el admin
+      grid.innerHTML = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; }).map(buildCard).join('');
       cardsShown = CARDS_INITIAL;    // mostrar solo las primeras N cards
       applyCardVisibility();          // aplicar filtros y mostrar/ocultar
       updateFavBadge();               // actualizar contador de favoritos
@@ -2537,6 +2538,8 @@
           data.forEach(function(o) {
             var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
             if (!p) return;
+            // Si está marcado como oculto por el admin, lo ocultamos del catálogo
+            if (o.oculto === true) { p._oculto = true; return; }
             // Solo sobreescribir campos que tengan valor
             if (o.name) p.name = o.name;
             if (o.marca) p.marca = o.marca;

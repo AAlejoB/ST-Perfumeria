@@ -707,6 +707,17 @@
             <button class="modal-btn modal-btn-price" onclick="saveEditPerfume()" style="flex:3;min-width:0;">Guardar cambios</button>
             <button class="modal-btn" onclick="cancelEdit()" style="flex:1;min-width:0;background:#333;color:#fff;">Cancelar</button>
           </div>
+          <!-- Zona peligrosa: eliminar perfume del catálogo -->
+          <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid rgba(231,76,60,.25);">
+            <button id="btnDeletePerfume" onclick="confirmDeletePerfume()"
+              style="width:100%;background:transparent;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:6px;padding:.55rem 1rem;font-size:.72rem;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:all .2s;"
+              onmouseover="this.style.background='rgba(231,76,60,.12)'" onmouseout="this.style.background='transparent'">
+              🗑️ ELIMINAR PERFUME DEL CATÁLOGO
+            </button>
+            <p style="font-size:.62rem;color:#888;margin-top:.35rem;text-align:center;">
+              El perfume se oculta del catálogo. Se puede recuperar desde Supabase.
+            </p>
+          </div>
           <p class="modal-success" id="editMsg" style="margin-top:.5rem;"></p>
         </div>
       </div>
@@ -1433,11 +1444,18 @@
     }
 
     // ============================================================
-    // AUTO-LOGOUT por inactividad (12 horas — tablets del local)
+    // AUTO-LOGOUT por inactividad — tiempos distintos por rol:
+    //   empleado → 12 horas (tablet del local, queda logueado todo el día)
+    //   jefe     → 7 horas  (mayor seguridad para la cuenta con todos los permisos)
     // ============================================================
-    var INACTIVITY_LIMIT_MS = 12 * 60 * 60 * 1000;
+    var INACTIVITY_LIMIT_JEFE     = 7  * 60 * 60 * 1000;
+    var INACTIVITY_LIMIT_EMPLEADO = 12 * 60 * 60 * 1000;
     var lastActivityTs = Date.now();
     var inactivityCheckInterval = null;
+
+    function getInactivityLimit() {
+      return currentRole === 'jefe' ? INACTIVITY_LIMIT_JEFE : INACTIVITY_LIMIT_EMPLEADO;
+    }
 
     function markActivity() { lastActivityTs = Date.now(); }
     function startInactivityWatcher() {
@@ -1447,8 +1465,8 @@
       });
       if (inactivityCheckInterval) clearInterval(inactivityCheckInterval);
       inactivityCheckInterval = setInterval(function() {
-        if (Date.now() - lastActivityTs > INACTIVITY_LIMIT_MS) {
-          notifyTelegram('\u23f0 Auto-logout por inactividad (Panel Admin)\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+        if (Date.now() - lastActivityTs > getInactivityLimit()) {
+          notifyTelegram('\u23f0 Auto-logout por inactividad (Panel Admin — ' + (currentRole || 'admin') + ')\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
           doLogout();
         }
       }, 30 * 1000);
@@ -2624,6 +2642,73 @@
       document.getElementById('editFormWrap').style.display = 'none';
       document.getElementById('editSlug').value = '';
       document.getElementById('editMsg').textContent = '';
+    }
+
+    // ============================================================
+    // ELIMINAR PERFUME DEL CATÁLOGO (lo marca como oculto en overrides)
+    // ============================================================
+
+    async function confirmDeletePerfume() {
+      var slug = document.getElementById('editSlug').value;
+      if (!slug) return;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      var nombre = p ? p.name : slug;
+
+      // Primera confirmación — aviso claro
+      var ok1 = window.confirm(
+        '⚠️ ¿Querés eliminar "' + nombre + '" del catálogo?\n\n' +
+        'El perfume va a dejar de verse en la web. Podés recuperarlo desde Supabase si cambiás de opinión.'
+      );
+      if (!ok1) return;
+
+      // Segunda confirmación — anti-error
+      var ok2 = window.confirm(
+        '🗑️ Última confirmación.\n\n¿Seguro que querés ocultar "' + nombre + '"?'
+      );
+      if (!ok2) return;
+
+      var msgEl = document.getElementById('editMsg');
+      msgEl.textContent = 'Eliminando...';
+      msgEl.style.color = '#e8b800';
+
+      // Upsert con oculto:true — si ya hay override lo actualiza, si no crea uno nuevo
+      var { data, error } = await sb.from('perfume_overrides')
+        .upsert({ slug: slug, oculto: true }, { onConflict: 'slug' })
+        .select();
+
+      if (error) {
+        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      // Marcar en memoria para que el admin también lo refleje
+      if (p) p._oculto = true;
+
+      msgEl.textContent = '✓ "' + nombre + '" eliminado del catálogo';
+      msgEl.style.color = '#2ecc71';
+
+      // Ocultar el botón para que no se pueda hacer doble-click
+      var btn = document.getElementById('btnDeletePerfume');
+      if (btn) btn.style.display = 'none';
+
+      // Log de la acción
+      sb.from('edit_log').insert([{
+        slug: slug,
+        nombre: nombre,
+        campo: 'Estado',
+        valor_anterior: 'Visible',
+        valor_nuevo: 'ELIMINADO',
+        editado_por: currentRole || 'admin'
+      }]);
+
+      notifyTelegram('🗑️ Perfume eliminado del catálogo: ' + nombre + '\nSlug: ' + slug);
+
+      // Refrescar tabla de precios y stock en admin
+      setTimeout(function() {
+        try { renderPrecios(); } catch(e) {}
+        try { renderStock(); } catch(e) {}
+      }, 500);
     }
 
     // ============================================================
