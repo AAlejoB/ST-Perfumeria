@@ -1403,6 +1403,9 @@
           else if (!p.promo) p.promo = null;
         });
         await loadStockFromDB();
+        // Mergear perfumes de Supabase (perfumes_nuevos) en PERFUMES
+        // ANTES de renderizar, para que EDITAR / PRECIOS / STOCK los vean
+        await mergeNuevosIntoPerfumes();
         renderPrecios();
         renderStock();
         loadDestacados();
@@ -2405,6 +2408,38 @@
     // ============================================================
     // NUEVOS PERFUMES (Supabase)
     // ============================================================
+
+    // mergeNuevosIntoPerfumes: trae perfumes_nuevos y los suma al array PERFUMES
+    // del admin, igual que hace js/app.js en el catálogo público.
+    // Sin esto, EDITAR/PRECIOS/STOCK no ven los perfumes agregados desde el admin.
+    async function mergeNuevosIntoPerfumes() {
+      try {
+        var { data } = await sb.from('perfumes_nuevos').select('*');
+        if (!data || data.length === 0) return;
+        data.forEach(function(p) {
+          // No duplicar si ya existe en el array estático
+          if (PERFUMES.find(function(pf) { return pf.slug === p.slug; })) return;
+          PERFUMES.push({
+            slug: p.slug,
+            name: p.name,
+            marca: p.marca,
+            marca_real: p.marca_real || '',
+            cat: p.cat,
+            perfil: p.perfil || '',
+            price: p.price || 0,
+            promo: p.promo || null,
+            foto: p.foto || '',
+            ml: p.ml || 100,
+            notas_salida: p.notas_salida || '',
+            notas_corazon: p.notas_corazon || '',
+            notas_base: p.notas_base || '',
+            _isNew: true,
+            _fromDB: true   // marca para saber que vino de Supabase, no del .js
+          });
+        });
+      } catch(e) {}
+    }
+
     async function loadNuevos() {
       var tbody = document.getElementById('tbodyNuevos');
       var countEl = document.getElementById('nuevosCount');
@@ -2940,6 +2975,12 @@
       msgEl.textContent = name + ' ' + action + ' correctamente';
       msgEl.style.color = '#2ecc71';
       notifyTelegram('🆕 Perfume ' + action + ': ' + name + '\n💰 $' + price.toLocaleString('es-AR') + '\n📋 ' + cat + ' · ' + perfil);
+
+      // Mergear inmediatamente en PERFUMES para que EDITAR/PRECIOS/STOCK lo vean
+      // sin tener que recargar la página
+      await mergeNuevosIntoPerfumes();
+      renderPrecios();
+      renderStock();
 
       clearNuevoForm();
       loadNuevos();
