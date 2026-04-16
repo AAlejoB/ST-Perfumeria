@@ -1657,6 +1657,16 @@
     }
     .compare-bar-go:hover { background: var(--amarillo-claro); }
     .compare-bar-go:disabled { opacity: .4; cursor: not-allowed; }
+    /* Hint animado que guía al usuario a elegir más perfumes */
+    .compare-bar-hint {
+      font-size: .58rem; color: var(--amarillo); font-style: italic;
+      white-space: nowrap; letter-spacing: .02em;
+      animation: compareHintPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes compareHintPulse {
+      0%, 100% { opacity: .7; }
+      50% { opacity: 1; }
+    }
 
     /* Modal comparador */
     .compare-overlay {

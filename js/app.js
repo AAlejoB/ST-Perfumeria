@@ -3407,13 +3407,24 @@
       var bar = document.getElementById('compareBar');
       var itemsEl = document.getElementById('compareBarItems');
       var goBtn = document.getElementById('compareBarGo');
+      var hint = document.getElementById('compareBarHint');
 
       if (compareList.length === 0) {
         bar.classList.remove('visible');
         return;
       }
       bar.classList.add('visible');
-      goBtn.disabled = compareList.length < 2;
+
+      // Ayuda contextual: cuando solo hay 1 elegido, el botón indica qué falta
+      if (compareList.length === 1) {
+        goBtn.disabled = true;
+        goBtn.textContent = 'Elegí 1 más →';
+        if (hint) hint.style.display = '';
+      } else {
+        goBtn.disabled = false;
+        goBtn.textContent = 'COMPARAR';
+        if (hint) hint.style.display = 'none';
+      }
 
       var html = '';
       compareList.forEach(function(slug) {

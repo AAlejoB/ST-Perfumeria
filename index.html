@@ -712,7 +712,10 @@
   <!-- Barra comparador flotante -->
   <div class="compare-bar" id="compareBar">
     <div class="compare-bar-items" id="compareBarItems"></div>
-    <button class="compare-bar-go" id="compareBarGo" onclick="openCompareModal()" disabled>COMPARAR</button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.2rem;flex-shrink:0;">
+      <span class="compare-bar-hint" id="compareBarHint" style="display:none;">👆 Tocá 1 o 2 perfumes más</span>
+      <button class="compare-bar-go" id="compareBarGo" onclick="openCompareModal()" disabled>COMPARAR</button>
+    </div>
   </div>
 
   <!-- Modal comparador -->
