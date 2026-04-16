@@ -1584,6 +1584,7 @@
         try { renderStock(); } catch(e) {}
         try { if (typeof loadDestacados === 'function') loadDestacados(); } catch(e) {}
         try { if (typeof loadNuevos === 'function') loadNuevos(); } catch(e) {}
+        try { if (typeof loadEditLog === 'function') loadEditLog(); } catch(e) {}
         // Invalidar tabs lazy para que se recarguen al entrar
         var lazyTabs = ['opiniones','clientes','stats','combos','horario','votacion','push','espera'];
         lazyTabs.forEach(function(t) { tabLoaded[t] = false; });
@@ -2665,8 +2666,11 @@
       try { renderStock(); } catch(e) {}
       try { if (typeof renderDestacados === 'function') renderDestacados(); } catch(e) {}
       try { if (typeof loadStats === 'function') loadStats(); } catch(e) {}
-      // Segundo refresh con delay para que Supabase propague
+      // Refrescar la lista de "Últimas ediciones" del dashboard al toque
+      try { if (typeof loadEditLog === 'function') loadEditLog(); } catch(e) {}
+      // Segundo refresh con delay para que Supabase propague el insert en edit_log
       refreshAll(500);
+      setTimeout(function() { try { loadEditLog(); } catch(e) {} }, 700);
 
       msgEl.textContent = '\u2713 ' + obj.name + ' actualizado';
       msgEl.style.color = '#2ecc71';
