@@ -1407,34 +1407,35 @@
     }
     .card-gallery-dot { cursor: pointer; }
 
-    /* Flechas de navegación del carrusel (solo desktop/hover).
-       En mobile se ocultan porque la gente usa swipe. */
+    /* Flechas de navegación del carrusel — top-center de la imagen.
+       Antes estaban en los costados (top:50%) y chocaban con el card-reveal
+       que ocupa el 30% lateral. Arriba al centro quedan fuera del reveal. */
     .card-gallery-arrow {
       position: absolute;
-      top: 50%; transform: translateY(-50%);
-      width: 32px; height: 32px;
+      top: 8px;
+      width: 28px; height: 28px;
       border-radius: 50%;
-      background: rgba(0,0,0,.55);
+      background: rgba(0,0,0,.65);
       color: #fff;
-      border: 1px solid rgba(255,255,255,.15);
-      font-size: 1.4rem; line-height: 1;
+      border: 1px solid rgba(255,255,255,.18);
+      font-size: 1.1rem; line-height: 1;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      z-index: 3;
+      z-index: 4;
       opacity: 0;
       pointer-events: none;
       transition: opacity .2s ease, background .2s ease, transform .2s ease;
       padding: 0; padding-bottom: 2px;
+      backdrop-filter: blur(4px);
     }
-    .card-gallery-arrow-prev { left: 6px; }
-    .card-gallery-arrow-next { right: 6px; }
+    .card-gallery-arrow-prev { left: calc(50% - 32px); }
+    .card-gallery-arrow-next { left: calc(50% + 4px); }
     .card-gallery-arrow:hover {
       background: var(--amarillo);
       color: #000;
-      transform: translateY(-50%) scale(1.08);
+      transform: scale(1.1);
     }
-    /* Solo aparecen cuando el mouse está sobre la IMAGEN, no sobre toda la card.
-       Así no tapan el contenido del reveal cuando hoverás la info del perfume. */
+    /* Solo aparecen cuando el mouse está sobre la IMAGEN (no sobre info o reveal). */
     @media (hover: hover) and (pointer: fine) {
       .card-image:hover .card-gallery-arrow {
         opacity: 1;
