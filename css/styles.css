@@ -1433,9 +1433,10 @@
       color: #000;
       transform: translateY(-50%) scale(1.08);
     }
-    /* Solo mostrar al hover sobre la card y solo en dispositivos con puntero fino (desktop) */
+    /* Solo aparecen cuando el mouse está sobre la IMAGEN, no sobre toda la card.
+       Así no tapan el contenido del reveal cuando hoverás la info del perfume. */
     @media (hover: hover) and (pointer: fine) {
-      .product-card:hover .card-gallery-arrow {
+      .card-image:hover .card-gallery-arrow {
         opacity: 1;
         pointer-events: auto;
       }
