@@ -912,6 +912,31 @@
       dots.forEach(function(d, i) { d.classList.toggle('active', i === activeIdx); });
     }
 
+    // Click en flechas: avanza o retrocede una foto.
+    // direction: +1 (siguiente) / -1 (anterior)
+    function scrollGalleryArrow(btn, direction, ev) {
+      if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+      var gallery = btn.parentElement.querySelector('.card-gallery');
+      if (!gallery) return;
+      var slides = gallery.querySelectorAll('.card-gallery-slide');
+      if (slides.length === 0) return;
+      var slideWidth = slides[0].offsetWidth;
+      var currentIdx = Math.round(gallery.scrollLeft / slideWidth);
+      var newIdx = Math.max(0, Math.min(slides.length - 1, currentIdx + direction));
+      gallery.scrollTo({ left: newIdx * slideWidth, behavior: 'smooth' });
+    }
+
+    // Click en un puntito: saltar directo a esa foto.
+    function scrollGalleryTo(dot, idx, ev) {
+      if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+      var gallery = dot.parentElement.parentElement.querySelector('.card-gallery');
+      if (!gallery) return;
+      var slides = gallery.querySelectorAll('.card-gallery-slide');
+      if (slides.length === 0) return;
+      var slideWidth = slides[0].offsetWidth;
+      gallery.scrollTo({ left: idx * slideWidth, behavior: 'smooth' });
+    }
+
     function buildCard(p) {
       delete p._precioOriginal; // limpiar entre renders
       var letter = p.name.charAt(0).toUpperCase();
@@ -932,9 +957,14 @@
           return '<div class="card-gallery-slide"><img src="' + url.replace(/ /g, '%20') + '" alt="' + p.name + '" loading="lazy" decoding="async"></div>';
         }).join('');
         var dots = allFotos.map(function(_, i) {
-          return '<span class="card-gallery-dot' + (i === 0 ? ' active' : '') + '"></span>';
+          return '<span class="card-gallery-dot' + (i === 0 ? ' active' : '') + '" onclick="scrollGalleryTo(this, ' + i + ', event)"></span>';
         }).join('');
+        // Flechas para desktop (en mobile se ocultan por CSS — usan swipe)
+        var arrowsHTML = ''
+          + '<button type="button" class="card-gallery-arrow card-gallery-arrow-prev" onclick="scrollGalleryArrow(this, -1, event)" aria-label="Foto anterior">&#8249;</button>'
+          + '<button type="button" class="card-gallery-arrow card-gallery-arrow-next" onclick="scrollGalleryArrow(this, 1, event)" aria-label="Foto siguiente">&#8250;</button>';
         imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>'
+          + arrowsHTML
           + '<div class="card-gallery-dots">' + dots + '</div>';
       } else if (p.foto) {
         imageHTML = '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">';
@@ -1034,7 +1064,12 @@
           + '</button>';
       }
 
-      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-search="' + searchText.replace(/"/g, '') + '">'
+      // Precio efectivo para ordenar (usa promo si hay, sino price; ambos en número limpio)
+      var sortPriceNum = p.promo
+        ? parseFloat(String(p.promo).replace(/[^0-9.\-]/g, '')) || 0
+        : parseFloat(String(p.price || '').replace(/[^0-9.\-]/g, '')) || 0;
+
+      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + ribbonHTML + stockBadge + nuevoBadge + discountHTML + discountTimerHTML
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
@@ -2340,8 +2375,11 @@
           const vb = perfumeViews[b.dataset.slug] || 0;
           return mode === 'views-desc' ? vb - va : va - vb;
         }
-        const pa = parseInt(a.querySelector('.price-promo').textContent.replace(/\D/g, '')) || 0;
-        const pb = parseInt(b.querySelector('.price-promo').textContent.replace(/\D/g, '')) || 0;
+        // Leer del data-price (bulletproof) — fallback al DOM por si alguna card vieja no lo tiene
+        var pa = parseFloat(a.dataset.price);
+        var pb = parseFloat(b.dataset.price);
+        if (isNaN(pa)) pa = parseInt((a.querySelector('.price-promo') || {}).textContent?.replace(/\D/g, '') || '0') || 0;
+        if (isNaN(pb)) pb = parseInt((b.querySelector('.price-promo') || {}).textContent?.replace(/\D/g, '') || '0') || 0;
         return mode === 'price-asc' ? pa - pb : pb - pa;
       });
       cards.forEach(c => grid.appendChild(c));
