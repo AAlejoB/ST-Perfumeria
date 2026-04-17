@@ -660,12 +660,15 @@
                   📷 Subir
                   <input type="file" accept="image/*" onchange="uploadEditFoto(this)" style="display:none;"/>
                 </label>
-                <input type="text" class="modal-input" id="editFoto" placeholder="URL de la foto..." style="margin-bottom:0;flex:1;min-width:0;font-size:.65rem;"/>
+                <input type="text" class="modal-input" id="editFoto" placeholder="URL de la foto..." style="margin-bottom:0;flex:1;min-width:0;font-size:.65rem;" oninput="updateEditFotoPreview()"/>
                 <div id="editFotoPreview" style="width:36px;height:48px;border-radius:4px;overflow:hidden;background:#1a1a1a;flex-shrink:0;display:none;">
                   <img id="editFotoPreviewImg" style="width:100%;height:100%;object-fit:cover;"/>
                 </div>
               </div>
-              <p id="editFotoMsg" style="font-size:.6rem;color:var(--gris);margin-top:4px;min-height:.8rem;"></p>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:.5rem;">
+                <p id="editFotoMsg" style="font-size:.6rem;color:var(--gris);min-height:.8rem;margin:0;flex:1;"></p>
+                <button type="button" id="editFotoClearBtn" onclick="clearEditFoto()" style="display:none;background:none;border:1px solid rgba(231,76,60,.3);color:#e74c3c;font-size:.58rem;padding:.25rem .6rem;border-radius:4px;cursor:pointer;white-space:nowrap;flex-shrink:0;">✕ Quitar foto</button>
+              </div>
             </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">📸 Fotos extra (se ven como galería swipeable en la card)</label>
@@ -2562,11 +2565,14 @@
       // Preview foto
       var previewWrap = document.getElementById('editFotoPreview');
       var previewImg = document.getElementById('editFotoPreviewImg');
+      var clearBtn = document.getElementById('editFotoClearBtn');
       if (p.foto) {
         previewImg.src = p.foto.replace(/ /g, '%20');
         previewWrap.style.display = 'block';
+        if (clearBtn) clearBtn.style.display = '';
       } else {
         previewWrap.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'none';
       }
 
       document.getElementById('editFormWrap').style.display = 'block';
@@ -2777,6 +2783,36 @@
     document.getElementById('editEtiqueta').addEventListener('input', updateEtiquetaPreview);
     document.getElementById('editEtiquetaColor').addEventListener('input', updateEtiquetaPreview);
 
+    // Quita la foto del form (no borra nada de Supabase Storage — sólo vacía el campo).
+    // Al guardar, el perfume queda sin foto y vuelve a mostrar la inicial del nombre.
+    function clearEditFoto() {
+      if (!window.confirm('¿Quitar la foto de este perfume?\n\n(Al guardar, el perfume va a quedar sin foto. La imagen sigue en el storage por si la querés recuperar.)')) return;
+      document.getElementById('editFoto').value = '';
+      document.getElementById('editFotoPreview').style.display = 'none';
+      document.getElementById('editFotoPreviewImg').src = '';
+      var clearBtn = document.getElementById('editFotoClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      var msgEl = document.getElementById('editFotoMsg');
+      msgEl.textContent = 'Foto quitada. Acordate de apretar "Guardar cambios" para confirmar.';
+      msgEl.style.color = '#e8b800';
+    }
+
+    // Sincroniza el preview cuando el usuario pega una URL manualmente en el input.
+    function updateEditFotoPreview() {
+      var url = document.getElementById('editFoto').value.trim();
+      var previewWrap = document.getElementById('editFotoPreview');
+      var previewImg = document.getElementById('editFotoPreviewImg');
+      var clearBtn = document.getElementById('editFotoClearBtn');
+      if (url) {
+        previewImg.src = url.replace(/ /g, '%20');
+        previewWrap.style.display = 'block';
+        if (clearBtn) clearBtn.style.display = '';
+      } else {
+        previewWrap.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'none';
+      }
+    }
+
     async function uploadEditFoto(input) {
       var file = input.files[0];
       if (!file) return;
@@ -2802,6 +2838,8 @@
         fotoInput.value = urlData.publicUrl;
         previewImg.src = urlData.publicUrl;
         previewWrap.style.display = 'block';
+        var clearBtn = document.getElementById('editFotoClearBtn');
+        if (clearBtn) clearBtn.style.display = '';
 
         var sizeKB = Math.round(compressed.size / 1024);
         msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
