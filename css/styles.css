@@ -1391,60 +1391,52 @@
       max-height: 250px;
       object-fit: contain;
     }
-    .card-gallery-dots {
+    /* Nav bar del carrusel: ‹ 1/4 › al bottom-center de la imagen,
+       siempre visible. No se pelea con el card-reveal porque queda en
+       el centro horizontal (reveal ocupa 30% lateral). */
+    .card-gallery-nav {
       position: absolute;
-      bottom: 4px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 4px; z-index: 2;
-    }
-    .card-gallery-dot {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: rgba(255,255,255,.3);
-      transition: background .2s, transform .2s;
-    }
-    .card-gallery-dot.active {
-      background: var(--amarillo);
-      transform: scale(1.3);
-    }
-    .card-gallery-dot { cursor: pointer; }
-
-    /* Flechas de navegación del carrusel — top-center de la imagen.
-       Antes estaban en los costados (top:50%) y chocaban con el card-reveal
-       que ocupa el 30% lateral. Arriba al centro quedan fuera del reveal. */
-    .card-gallery-arrow {
-      position: absolute;
-      top: 8px;
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: rgba(0,0,0,.65);
+      bottom: 6px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 2px;
+      background: rgba(0,0,0,.7);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 1px 4px;
+      font-size: 0.58rem;
       color: #fff;
-      border: 1px solid rgba(255,255,255,.18);
-      font-size: 1.1rem; line-height: 1;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      z-index: 4;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s ease, background .2s ease, transform .2s ease;
-      padding: 0; padding-bottom: 2px;
+      z-index: 3;
       backdrop-filter: blur(4px);
+      user-select: none;
+      line-height: 1;
     }
-    .card-gallery-arrow-prev { left: calc(50% - 32px); }
-    .card-gallery-arrow-next { left: calc(50% + 4px); }
-    .card-gallery-arrow:hover {
-      background: var(--amarillo);
-      color: #000;
-      transform: scale(1.1);
+    .card-gallery-nav-arrow {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.95rem;
+      line-height: 1;
+      padding: 3px 5px;
+      transition: color .15s, transform .1s;
+      font-family: serif; /* para que los ‹ › se vean más elegantes */
     }
-    /* Solo aparecen cuando el mouse está sobre la IMAGEN (no sobre info o reveal). */
-    @media (hover: hover) and (pointer: fine) {
-      .card-image:hover .card-gallery-arrow {
-        opacity: 1;
-        pointer-events: auto;
-      }
+    .card-gallery-nav-arrow:hover {
+      color: var(--amarillo);
+      transform: scale(1.15);
     }
-    /* En mobile ocultar siempre: el swipe es mejor */
-    @media (hover: none), (pointer: coarse) {
-      .card-gallery-arrow { display: none; }
+    .card-gallery-nav-arrow:active {
+      transform: scale(.95);
+    }
+    .card-gallery-nav-counter {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      letter-spacing: .03em;
+      padding: 0 3px;
+      font-size: 0.6rem;
+      opacity: .92;
+    }
+    .card-gallery-nav-current {
+      color: var(--amarillo);
     }
 
     /* Frasco placeholder (para productos sin foto) */

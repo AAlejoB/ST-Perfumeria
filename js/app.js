@@ -900,23 +900,33 @@
       return null;
     }
 
-    // updateGalleryDots: actualiza los puntitos del carrusel de fotos
-    // al scrollear. Detecta qué slide está visible y marca su dot.
+    // updateGalleryDots: detecta qué slide está visible al scrollear y
+    // actualiza el contador "1/4" en el nav bar. Mantiene el nombre viejo
+    // por compatibilidad con el onscroll handler inline de cards cacheadas.
     function updateGalleryDots(gallery) {
       var slides = gallery.querySelectorAll('.card-gallery-slide');
       if (slides.length === 0) return;
       var scrollLeft = gallery.scrollLeft;
       var slideWidth = slides[0].offsetWidth;
       var activeIdx = Math.round(scrollLeft / slideWidth);
+      // Actualizar contador del nav bar nuevo
+      var counter = gallery.parentElement.querySelector('.card-gallery-nav-current');
+      if (counter) counter.textContent = (activeIdx + 1);
+      // Actualizar dots viejos si todavía existen (backward compat)
       var dots = gallery.parentElement.querySelectorAll('.card-gallery-dot');
       dots.forEach(function(d, i) { d.classList.toggle('active', i === activeIdx); });
     }
 
-    // Click en flechas: avanza o retrocede una foto.
-    // direction: +1 (siguiente) / -1 (anterior)
+    // Click en flechas del nav bar: avanza o retrocede una foto.
+    // Usa closest() para encontrar la galería desde el nuevo wrapper .card-gallery-nav.
     function scrollGalleryArrow(btn, direction, ev) {
       if (ev) { ev.preventDefault(); ev.stopPropagation(); }
-      var gallery = btn.parentElement.querySelector('.card-gallery');
+      var container = btn.closest('.card-image');
+      var gallery = container ? container.querySelector('.card-gallery') : null;
+      if (!gallery) {
+        // Fallback por compatibilidad con la estructura vieja
+        gallery = btn.parentElement.querySelector('.card-gallery');
+      }
       if (!gallery) return;
       var slides = gallery.querySelectorAll('.card-gallery-slide');
       if (slides.length === 0) return;
@@ -924,17 +934,6 @@
       var currentIdx = Math.round(gallery.scrollLeft / slideWidth);
       var newIdx = Math.max(0, Math.min(slides.length - 1, currentIdx + direction));
       gallery.scrollTo({ left: newIdx * slideWidth, behavior: 'smooth' });
-    }
-
-    // Click en un puntito: saltar directo a esa foto.
-    function scrollGalleryTo(dot, idx, ev) {
-      if (ev) { ev.preventDefault(); ev.stopPropagation(); }
-      var gallery = dot.parentElement.parentElement.querySelector('.card-gallery');
-      if (!gallery) return;
-      var slides = gallery.querySelectorAll('.card-gallery-slide');
-      if (slides.length === 0) return;
-      var slideWidth = slides[0].offsetWidth;
-      gallery.scrollTo({ left: idx * slideWidth, behavior: 'smooth' });
     }
 
     function buildCard(p) {
@@ -956,16 +955,16 @@
         var slides = allFotos.map(function(url) {
           return '<div class="card-gallery-slide"><img src="' + url.replace(/ /g, '%20') + '" alt="' + p.name + '" loading="lazy" decoding="async"></div>';
         }).join('');
-        var dots = allFotos.map(function(_, i) {
-          return '<span class="card-gallery-dot' + (i === 0 ? ' active' : '') + '" onclick="scrollGalleryTo(this, ' + i + ', event)"></span>';
-        }).join('');
-        // Flechas para desktop (en mobile se ocultan por CSS — usan swipe)
-        var arrowsHTML = ''
-          + '<button type="button" class="card-gallery-arrow card-gallery-arrow-prev" onclick="scrollGalleryArrow(this, -1, event)" aria-label="Foto anterior">&#8249;</button>'
-          + '<button type="button" class="card-gallery-arrow card-gallery-arrow-next" onclick="scrollGalleryArrow(this, 1, event)" aria-label="Foto siguiente">&#8250;</button>';
+        // Nav bar: ‹ 1/4 › — siempre visible, fuera de la foto, abajo al centro.
+        // No se pelea con el card-reveal porque queda en el centro horizontal.
+        var navHTML = ''
+          + '<div class="card-gallery-nav">'
+            + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, -1, event)" aria-label="Foto anterior">&#8249;</button>'
+            + '<span class="card-gallery-nav-counter"><span class="card-gallery-nav-current">1</span>/' + allFotos.length + '</span>'
+            + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, 1, event)" aria-label="Foto siguiente">&#8250;</button>'
+          + '</div>';
         imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>'
-          + arrowsHTML
-          + '<div class="card-gallery-dots">' + dots + '</div>';
+          + navHTML;
       } else if (p.foto) {
         imageHTML = '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">';
       } else {
