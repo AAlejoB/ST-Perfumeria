@@ -1150,16 +1150,21 @@
     // Cargar combos desde Supabase
     (async function loadCombosFromDB() {
       try {
-        var { data } = await sb.from('combos').select('*');
+        var { data, error } = await sb.from('combos').select('*');
+        if (error) { console.warn('[combos] error cargando:', error); return; }
+        console.log('[combos] cargados desde Supabase:', data ? data.length : 0, data);
         if (data && data.length > 0) {
           data.forEach(function(c) {
             c.esSet = true;
             var idx = PERFUMES.findIndex(function(p) { return p.slug === c.slug; });
             if (idx !== -1) { PERFUMES[idx] = c; } else { PERFUMES.push(c); }
           });
+          console.log('[combos] total en PERFUMES con esSet=true:', PERFUMES.filter(function(p){return p.esSet;}).length);
           renderSets();
         }
-      } catch(e) {}
+      } catch(e) {
+        console.warn('[combos] excepción:', e);
+      }
     })();
 
     function renderSeleccionST() {
