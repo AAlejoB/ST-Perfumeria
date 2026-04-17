@@ -1233,11 +1233,15 @@
     function renderSets() {
       var grid = document.getElementById('setsGrid');
       if (!grid) return;
+      var section = document.getElementById('setsSection');
       var sets = PERFUMES.filter(function(p) { return p.esSet; });
       if (sets.length === 0) {
-        document.getElementById('setsSection').style.display = 'none';
+        if (section) section.style.display = 'none';
         return;
       }
+      // Mostrar la sección si hay combos (puede haber sido ocultada en un render previo
+      // cuando los combos todavía no habían llegado de Supabase)
+      if (section) section.style.display = '';
       var html = '';
       sets.forEach(function(s) {
         var items = s.items || [];
