@@ -3807,7 +3807,7 @@
 
       try {
         // Cargar config del mes actual
-        var { data } = await sb.from('votacion_config').select('*').eq('mes', adminMes).single();
+        var { data } = await sb.from('votacion_config').select('*').eq('mes', adminMes).maybeSingle();
         if (data) {
           var masc = data.candidatos_masc || [];
           var fem = data.candidatos_fem || [];

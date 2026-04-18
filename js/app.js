@@ -735,7 +735,7 @@
         }
 
         // Cargar candidatos del mes actual
-        var { data } = await sb.from('votacion_config').select('*').eq('mes', currentMes).single();
+        var { data } = await sb.from('votacion_config').select('*').eq('mes', currentMes).maybeSingle();
         if (data) {
           candidatosMasc = data.candidatos_masc || [];
           candidatosFem = data.candidatos_fem || [];
@@ -848,8 +848,10 @@
     // formatPrice: convierte el precio de la base de datos a formato argentino
     // La DB guarda "67,500.00" (formato US) → esto lo convierte a "$67.500"
     function formatPrice(str) {
-      if (!str) return '';
-      const num = Math.round(parseFloat(str.replace(/,/g, '')));  // quitar comas US, parsear número
+      if (str === null || str === undefined || str === '') return '';
+      const s = String(str);                                    // acepta número o string
+      const num = Math.round(parseFloat(s.replace(/,/g, '')));  // quitar comas US, parsear número
+      if (isNaN(num)) return '';
       return '$' + num.toLocaleString('es-AR').replace(/,/g, '.'); // formato AR con punto de miles
     }
 
@@ -1151,20 +1153,16 @@
     (async function loadCombosFromDB() {
       try {
         var { data, error } = await sb.from('combos').select('*');
-        if (error) { console.warn('[combos] error cargando:', error); return; }
-        console.log('[combos] cargados desde Supabase:', data ? data.length : 0, data);
+        if (error) return;
         if (data && data.length > 0) {
           data.forEach(function(c) {
             c.esSet = true;
             var idx = PERFUMES.findIndex(function(p) { return p.slug === c.slug; });
             if (idx !== -1) { PERFUMES[idx] = c; } else { PERFUMES.push(c); }
           });
-          console.log('[combos] total en PERFUMES con esSet=true:', PERFUMES.filter(function(p){return p.esSet;}).length);
           renderSets();
         }
-      } catch(e) {
-        console.warn('[combos] excepción:', e);
-      }
+      } catch(e) {}
     })();
 
     function renderSeleccionST() {
@@ -1375,10 +1373,10 @@
           if (notasP.indexOf(n) !== -1) shared++;  // ¡coincide!
         });
 
-        // Solo incluir si hay al menos 1 nota en común Y más del 60% de match
+        // Solo incluir si hay al menos 1 nota en común Y al menos 45% de match
         if (shared > 0) {
           var pct = Math.round((shared / notasOrigen.length) * 100);
-          if (pct > 60) {
+          if (pct >= 45) {
             scores.push({ perfume: p, shared: shared, total: notasOrigen.length });
           }
         }
@@ -2854,7 +2852,17 @@
       // Cargar feriados + cierres + ajuste horario en paralelo
       var year = new Date().getFullYear();
       Promise.all([
-        fetch('https://nolaborables.com.ar/api/v2/feriados/' + year).then(function(r) { return r.json(); }).catch(function() { return []; }),
+        // API argentinadatos.com devuelve [{fecha:"YYYY-MM-DD", tipo, nombre}] → lo transformamos a {mes, dia, motivo}
+        fetch('https://api.argentinadatos.com/v1/feriados/' + year)
+          .then(function(r) { return r.ok ? r.json() : []; })
+          .then(function(arr) {
+            if (!Array.isArray(arr)) return [];
+            return arr.map(function(f) {
+              var parts = (f.fecha || '').split('-');
+              return { mes: parseInt(parts[1], 10), dia: parseInt(parts[2], 10), motivo: f.nombre || f.motivo || 'Feriado' };
+            }).filter(function(f) { return f.mes && f.dia; });
+          })
+          .catch(function() { return []; }),
         sb.from('cierres_especiales').select('fecha,motivo').then(function(r) { return r.data || []; }).catch(function() { return []; }),
         sb.from('ajuste_horario').select('*').order('created_at', { ascending: false }).limit(1).then(function(r) { return r.data || []; }).catch(function() { return []; })
       ]).then(function(results) {
