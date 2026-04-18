@@ -83,31 +83,54 @@
       requestAnimationFrame(tick);
     }
 
-    // Arrancar recién después de 2 min 30 seg — queda como un "easter egg"
-    // que aparece cuando el usuario realmente estuvo navegando un rato largo
-    var DELAY_MS = 2 * 60 * 1000 + 30 * 1000; // 150000 ms
+    // Easter egg cíclico: aparece cada 5 min, se queda visible 30 seg, se oculta
+    var APPEAR_INTERVAL_MS = 5 * 60 * 1000; // 5 min entre apariciones
+    var VISIBLE_DURATION_MS = 30 * 1000;    // 30 seg visible por ciclo
 
+    function startCycle() {
+      if (window.innerWidth < 768) return; // solo desktop
+      var slugs = getSlugs();
+      if (slugs.length === 0 || typeof PERFUMES === 'undefined' || PERFUMES.length === 0) return;
+
+      // Resetear posición y dirección para que cada aparición sea fresca
+      x = Math.random() * (window.innerWidth - W);
+      y = Math.random() * (window.innerHeight - H);
+      dx = (Math.random() > 0.5 ? 1 : -1) * speed;
+      dy = (Math.random() > 0.5 ? 1 : -1) * speed;
+
+      el.style.display = '';
+      start();
+
+      // Ocultar después del tiempo visible
+      setTimeout(function() {
+        running = false;
+        el.style.display = 'none';
+      }, VISIBLE_DURATION_MS);
+    }
+
+    // Primera aparición: a los 5 min (espera a que PERFUMES esté listo)
     setTimeout(function() {
-      // Esperar a que TOP_VENTAS_SLUGS esté listo (puede cargarse async desde Supabase)
-      // Una vez pasado el delay, intentar cada 500ms por hasta 5s
       var attempts = 0;
       var tryStart = setInterval(function() {
         attempts++;
-        var slugs = getSlugs();
-        if (slugs.length > 0 && typeof PERFUMES !== 'undefined' && PERFUMES.length > 0) {
+        if (getSlugs().length > 0 && typeof PERFUMES !== 'undefined' && PERFUMES.length > 0) {
           clearInterval(tryStart);
-          start();
+          startCycle();
+          // Apariciones siguientes cada 5 min
+          setInterval(startCycle, APPEAR_INTERVAL_MS);
         } else if (attempts >= 10) {
           clearInterval(tryStart);
         }
       }, 500);
-    }, DELAY_MS);
+    }, APPEAR_INTERVAL_MS);
 
-    // Pausar si la pestaña no está visible (ahorrar CPU)
+    // Pausar si la pestaña no está visible (ahorrar CPU).
+    // Al volver, solo re-activar el loop si el bouncer está actualmente visible
+    // (sino queda esperando la próxima aparición cíclica).
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {
         running = false;
-      } else if (getSlugs().length > 0) {
+      } else if (getSlugs().length > 0 && el.style.display !== 'none') {
         running = true;
         requestAnimationFrame(tick);
       }
@@ -118,15 +141,12 @@
       if (window.innerWidth < 768) {
         running = false;
         el.style.display = 'none';
-      } else {
-        el.style.display = '';
-        if (!running && getSlugs().length > 0) {
-          // Re-colocar dentro de los bounds
-          x = Math.min(x, window.innerWidth - W);
-          y = Math.min(y, window.innerHeight - H);
-          running = true;
-          requestAnimationFrame(tick);
-        }
+      } else if (!running && el.style.display !== 'none' && getSlugs().length > 0) {
+        // Re-colocar dentro de los bounds si quedó visible
+        x = Math.min(x, window.innerWidth - W);
+        y = Math.min(y, window.innerHeight - H);
+        running = true;
+        requestAnimationFrame(tick);
       }
     });
   })();
