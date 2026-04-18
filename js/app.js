@@ -508,7 +508,7 @@
 
       // Puntuar cada perfume
       var scored = PERFUMES.filter(function(p) {
-        if (p.esSet) return false;
+        if (p.esSet || p._oculto) return false;
         if (gender !== 'any') {
           var catMatch = p.cat === gender || p.cat === 'Unisex' || p.cat.indexOf(gender) !== -1;
           if (!catMatch) return false;
@@ -1361,8 +1361,8 @@
 
       // Recorrer TODOS los perfumes del catálogo
       PERFUMES.forEach(function(p) {
-        // Saltear el mismo perfume y los sets (no son perfumes individuales)
-        if (p.slug === slug || p.esSet) return;
+        // Saltear el mismo perfume, los sets y los ocultos
+        if (p.slug === slug || p.esSet || p._oculto) return;
 
         var notasP = getNotas(p);
         if (notasP.length === 0) return;  // sin notas = no se puede comparar
@@ -1560,7 +1560,7 @@
 
     function initPriceSlider() {
       // Calcular min/max reales del catálogo
-      var prices = PERFUMES.filter(function(p) { return !p.esSet; }).map(function(p) {
+      var prices = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; }).map(function(p) {
         return p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
       }).filter(function(n) { return !isNaN(n) && n > 0; });
 
@@ -1679,7 +1679,7 @@
     // MARCAR PERFUMES NUEVOS (últimos 10 del array)
     // ============================================================
     function markNewPerfumes() {
-      var nonSet = PERFUMES.filter(function(p) { return !p.esSet; });
+      var nonSet = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; });
       var last10 = nonSet.slice(-10);
       last10.forEach(function(p) { p._isNew = true; });
     }
@@ -2187,7 +2187,7 @@
       // Buscar matches (nombre y marca tienen prioridad)
       var matches = [];
       PERFUMES.forEach(function(p) {
-        if (p.esSet) return;
+        if (p.esSet || p._oculto) return;
         var nameNorm = stripAccents(p.name.toLowerCase());
         var marcaNorm = stripAccents((p.marca_real || p.marca || '').toLowerCase());
         var notasNorm = stripAccents(((p.notas_salida || '') + ' ' + (p.notas_corazon || '') + ' ' + (p.notas_base || '')).toLowerCase());
@@ -3660,7 +3660,7 @@
       if (q.length < 1) { dropdown.classList.remove('open'); return; }
 
       var results = PERFUMES.filter(function(p) {
-        if (p.esSet) return false;
+        if (p.esSet || p._oculto) return false;
         if (miselSlugs.indexOf(p.slug) !== -1) return false;
         return p.name.toLowerCase().indexOf(q) !== -1 || (p.marca_real || p.marca || '').toLowerCase().indexOf(q) !== -1;
       }).slice(0, 8);
@@ -3715,7 +3715,7 @@
 
       // Puntuar perfumes por notas en común
       var scored = PERFUMES.filter(function(p) {
-        return !p.esSet && miselSlugs.indexOf(p.slug) === -1 && !p.oculto;
+        return !p.esSet && miselSlugs.indexOf(p.slug) === -1 && !p._oculto;
       }).map(function(p) {
         var score = 0;
         var allNotes = ((p.notas_salida || '') + ',' + (p.notas_corazon || '') + ',' + (p.notas_base || '')).toLowerCase();
