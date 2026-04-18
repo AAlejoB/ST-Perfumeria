@@ -667,7 +667,7 @@
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:.5rem;">
                 <p id="editFotoMsg" style="font-size:.6rem;color:var(--gris);min-height:.8rem;margin:0;flex:1;"></p>
-                <button type="button" id="editFotoClearBtn" onclick="clearEditFoto()" style="display:none;background:none;border:1px solid rgba(231,76,60,.3);color:#e74c3c;font-size:.58rem;padding:.25rem .6rem;border-radius:4px;cursor:pointer;white-space:nowrap;flex-shrink:0;">✕ Quitar foto</button>
+                <button type="button" id="editFotoClearBtn" onclick="clearEditFoto()" disabled style="background:none;border:1px solid rgba(231,76,60,.3);color:#e74c3c;font-size:.58rem;padding:.25rem .6rem;border-radius:4px;cursor:pointer;white-space:nowrap;flex-shrink:0;opacity:.4;">✕ Quitar foto</button>
               </div>
             </div>
             <div style="grid-column:1/-1;">
@@ -2569,10 +2569,10 @@
       if (p.foto) {
         previewImg.src = p.foto.replace(/ /g, '%20');
         previewWrap.style.display = 'block';
-        if (clearBtn) clearBtn.style.display = '';
+        if (clearBtn) { clearBtn.disabled = false; clearBtn.style.opacity = '1'; }
       } else {
         previewWrap.style.display = 'none';
-        if (clearBtn) clearBtn.style.display = 'none';
+        if (clearBtn) { clearBtn.disabled = true; clearBtn.style.opacity = '.4'; }
       }
 
       document.getElementById('editFormWrap').style.display = 'block';
@@ -2791,7 +2791,7 @@
       document.getElementById('editFotoPreview').style.display = 'none';
       document.getElementById('editFotoPreviewImg').src = '';
       var clearBtn = document.getElementById('editFotoClearBtn');
-      if (clearBtn) clearBtn.style.display = 'none';
+      if (clearBtn) { clearBtn.disabled = true; clearBtn.style.opacity = '.4'; }
       var msgEl = document.getElementById('editFotoMsg');
       msgEl.textContent = 'Foto quitada. Acordate de apretar "Guardar cambios" para confirmar.';
       msgEl.style.color = '#e8b800';
@@ -2806,10 +2806,10 @@
       if (url) {
         previewImg.src = url.replace(/ /g, '%20');
         previewWrap.style.display = 'block';
-        if (clearBtn) clearBtn.style.display = '';
+        if (clearBtn) { clearBtn.disabled = false; clearBtn.style.opacity = '1'; }
       } else {
         previewWrap.style.display = 'none';
-        if (clearBtn) clearBtn.style.display = 'none';
+        if (clearBtn) { clearBtn.disabled = true; clearBtn.style.opacity = '.4'; }
       }
     }
 
@@ -2839,7 +2839,7 @@
         previewImg.src = urlData.publicUrl;
         previewWrap.style.display = 'block';
         var clearBtn = document.getElementById('editFotoClearBtn');
-        if (clearBtn) clearBtn.style.display = '';
+        if (clearBtn) { clearBtn.disabled = false; clearBtn.style.opacity = '1'; }
 
         var sizeKB = Math.round(compressed.size / 1024);
         msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
