@@ -4084,3 +4084,233 @@
         console.log('Push subscription error:', err);
       }
     }
+
+    // ============================================================
+    // PACK DE DECANTS — builder interactivo
+    // Tomá hasta N decants (default 5ml) con precio escalonado:
+    //   1-2 decants: $9.500 c/u · 3-4: $8.500 c/u · 5+: $7.500 c/u
+    // Config editable desde admin (tabla decants_config en Supabase).
+    // Al confirmar, manda la lista por WhatsApp al mismo número del carrito.
+    // Tope alto (100) porque a veces compran para revender, el stock real
+    // se valida manualmente por WhatsApp.
+    // ============================================================
+
+    var DECANTS_CONFIG = {
+      activo: true,
+      ml: 5,
+      precio_1: 9500,
+      precio_3: 8500,
+      precio_5: 7500,
+      max_decants: 100,
+      aviso_conservacion: 'Guardá tu decant en lugar fresco y seco. Duración óptima: 6-12 meses.'
+    };
+
+    function loadDecantsPack() {
+      try {
+        var s = localStorage.getItem('decantsPack');
+        return s ? JSON.parse(s) : [];
+      } catch(e) { return []; }
+    }
+    function saveDecantsPack() {
+      try { localStorage.setItem('decantsPack', JSON.stringify(decantsPack)); } catch(e) {}
+    }
+    var decantsPack = loadDecantsPack();
+
+    async function loadDecantsConfig() {
+      try {
+        var { data } = await sb.from('decants_config').select('*').eq('id', 1).single();
+        if (data) {
+          Object.keys(data).forEach(function(k) {
+            if (data[k] !== null && data[k] !== undefined) DECANTS_CONFIG[k] = data[k];
+          });
+        }
+      } catch(e) {}
+      // Si admin lo desactivó, esconder entry points
+      if (!DECANTS_CONFIG.activo) {
+        var banner = document.querySelector('.decant-banner');
+        if (banner) banner.style.display = 'none';
+        var floatBtn = document.getElementById('decantFloat');
+        if (floatBtn) floatBtn.style.display = 'none';
+      }
+      updateDecantUI();
+    }
+
+    function getDecantUnitPrice(qty) {
+      if (qty >= 5) return DECANTS_CONFIG.precio_5;
+      if (qty >= 3) return DECANTS_CONFIG.precio_3;
+      return DECANTS_CONFIG.precio_1;
+    }
+
+    function addDecant(slug) {
+      if (decantsPack.length >= DECANTS_CONFIG.max_decants) {
+        var msgEl = document.getElementById('decantLadder');
+        if (msgEl) {
+          msgEl.textContent = '⚠️ Ya llegaste al máximo de ' + DECANTS_CONFIG.max_decants + ' decants.';
+          msgEl.style.color = '#e74c3c';
+          setTimeout(function() { msgEl.style.color = ''; updateDecantUI(); }, 1800);
+        }
+        return;
+      }
+      decantsPack.push(slug);
+      saveDecantsPack();
+      updateDecantUI();
+      renderDecantGrid();
+    }
+
+    function removeDecant(slug) {
+      var idx = decantsPack.indexOf(slug);
+      if (idx === -1) return;
+      decantsPack.splice(idx, 1);
+      saveDecantsPack();
+      updateDecantUI();
+      renderDecantGrid();
+    }
+
+    function clearDecantsPack() {
+      if (decantsPack.length === 0) return;
+      if (!confirm('¿Vaciar el pack de decants?')) return;
+      decantsPack = [];
+      saveDecantsPack();
+      updateDecantUI();
+      renderDecantGrid();
+    }
+
+    function updateDecantUI() {
+      var qty = decantsPack.length;
+      var unit = getDecantUnitPrice(qty);
+      var total = qty * unit;
+      function setTxt(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+      setTxt('decantQty', qty);
+      setTxt('decantMax', DECANTS_CONFIG.max_decants);
+      setTxt('decantMlLabel', DECANTS_CONFIG.ml);
+      setTxt('decantMaxLabel', DECANTS_CONFIG.max_decants);
+      setTxt('decantTotal', '$' + total.toLocaleString('es-AR'));
+      setTxt('decantUnit', '$' + unit.toLocaleString('es-AR') + ' c/u');
+
+      // Escalera de precio
+      var ladder = '';
+      var p1 = DECANTS_CONFIG.precio_1, p3 = DECANTS_CONFIG.precio_3, p5 = DECANTS_CONFIG.precio_5;
+      if (qty === 0) {
+        ladder = '💡 1-2: $' + p1.toLocaleString('es-AR') + ' · 3-4: $' + p3.toLocaleString('es-AR') + ' · 5+: $' + p5.toLocaleString('es-AR') + ' c/u';
+      } else if (qty < 3) {
+        var falta1 = 3 - qty;
+        var ahorro1 = qty * (p1 - p3) + (p3 * falta1);
+        ladder = '💡 Sumá ' + falta1 + ' más y cada uno pasa a $' + p3.toLocaleString('es-AR') + ' (ahorrás $' + (qty * (p1 - p3)).toLocaleString('es-AR') + ')';
+      } else if (qty < 5) {
+        var falta2 = 5 - qty;
+        var ahorro2 = qty * (p3 - p5);
+        ladder = '🔥 Sumá ' + falta2 + ' más y cada uno pasa a $' + p5.toLocaleString('es-AR') + ' (ahorrás $' + ahorro2.toLocaleString('es-AR') + ')';
+      } else {
+        ladder = '✨ Precio óptimo: $' + p5.toLocaleString('es-AR') + ' c/u';
+      }
+      setTxt('decantLadder', ladder);
+      var ladderEl = document.getElementById('decantLadder');
+      if (ladderEl) ladderEl.style.color = '';
+
+      // Aviso de conservación
+      setTxt('decantAviso', DECANTS_CONFIG.aviso_conservacion || '');
+
+      // Botón WA habilitado si qty >= 1
+      var btn = document.getElementById('decantBuilderWA');
+      if (btn) btn.disabled = qty < 1;
+
+      // Contador del botón flotante
+      var floatCount = document.getElementById('decantFloatCount');
+      if (floatCount) floatCount.textContent = qty;
+      var floatBtn = document.getElementById('decantFloat');
+      if (floatBtn && DECANTS_CONFIG.activo) {
+        if (qty > 0) floatBtn.classList.add('visible');
+        else floatBtn.classList.remove('visible');
+      }
+    }
+
+    function renderDecantGrid() {
+      var gridEl = document.getElementById('decantGrid');
+      if (!gridEl) return;
+      var qInput = document.getElementById('decantSearch');
+      var q = qInput ? qInput.value.trim().toLowerCase() : '';
+      var qNorm = stripAccents(q);
+
+      var list = PERFUMES.filter(function(p) {
+        if (p.esSet || p._oculto) return false;
+        if (!qNorm) return true;
+        var hay = stripAccents([p.name, p.marca, p.marca_real||'', p.alias||'', (typeof getGamaAlias==='function'?getGamaAlias(p):'')].join(' ').toLowerCase());
+        return hay.indexOf(qNorm) !== -1;
+      });
+
+      // Contar qty por slug (para mostrar en cada card)
+      var counts = {};
+      decantsPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
+
+      if (list.length === 0) {
+        gridEl.innerHTML = '<p class="decant-grid-empty">Sin resultados para "' + q + '"</p>';
+        return;
+      }
+
+      var html = list.slice(0, 80).map(function(p) {
+        var qty = counts[p.slug] || 0;
+        var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+        if (!fotoSrc && typeof getGamaFotos === 'function') {
+          var gama = getGamaFotos(p);
+          if (gama.length > 0) fotoSrc = gama[0].replace(/ /g, '%20');
+        }
+        var img = fotoSrc
+          ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
+          : '<div class="decant-card-img-ph">' + (p.name.charAt(0) || '•') + '</div>';
+        return '<div class="decant-card' + (qty > 0 ? ' has-qty' : '') + '">'
+          + '<div class="decant-card-img">' + img + '</div>'
+          + '<div class="decant-card-info">'
+            + '<p class="decant-card-name">' + p.name + '</p>'
+            + '<p class="decant-card-brand">' + (p.marca_real || p.marca || '') + '</p>'
+          + '</div>'
+          + '<div class="decant-card-ctrl">'
+            + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(\'' + p.slug + '\')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
+            + '<span class="decant-ctrl-qty">' + qty + '</span>'
+            + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + p.slug + '\')" aria-label="Agregar">+</button>'
+          + '</div>'
+        + '</div>';
+      }).join('');
+      gridEl.innerHTML = html;
+    }
+
+    function openDecantBuilder() {
+      updateDecantUI();
+      renderDecantGrid();
+      var overlay = document.getElementById('decantBuilderOverlay');
+      if (overlay) {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeDecantBuilder() {
+      var overlay = document.getElementById('decantBuilderOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function sendDecantPackToWA() {
+      var qty = decantsPack.length;
+      if (qty < 1) return;
+      var counts = {};
+      decantsPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
+      var unit = getDecantUnitPrice(qty);
+      var total = qty * unit;
+      var lines = Object.keys(counts).map(function(slug) {
+        var p = PERFUMES.find(function(x) { return x.slug === slug; });
+        var name = p ? p.name : slug;
+        var n = counts[slug];
+        return '• ' + name + (n > 1 ? ' (x' + n + ')' : '');
+      });
+      var msg = 'Hola! Quiero armar un pack de ' + qty + ' decants de ' + DECANTS_CONFIG.ml + 'ml:\n\n'
+        + lines.join('\n') + '\n\n'
+        + qty + ' x $' + unit.toLocaleString('es-AR') + ' = $' + total.toLocaleString('es-AR') + '\n'
+        + '¿Confirmás stock?';
+      var url = 'https://wa.me/5492975416017?text=' + encodeURIComponent(msg);
+      window.open(url, '_blank');
+    }
+
+    // Cargar config al inicio (no bloquea, con defaults)
+    loadDecantsConfig();

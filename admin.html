@@ -539,6 +539,7 @@
       <button class="tab-btn" data-role="jefe" data-tab="push" onclick="switchTab('push',this)">🔔 Notificaciones</button>
       <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
       <button class="tab-btn" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
+      <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -1266,6 +1267,68 @@
 
     <!-- Lista de resultados -->
     <div id="doctorResults" style="display:flex;flex-direction:column;gap:.6rem;"></div>
+  </div>
+
+  <!-- TAB: DECANTS CONFIG -->
+  <div class="tab-content" id="tab-decants">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <p style="font-size:2rem;margin-bottom:.3rem;">💧</p>
+      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Configuración Pack de Decants</p>
+      <p style="font-size:.7rem;color:var(--gris);">Precios, tamaño, tope y mensaje de conservación</p>
+    </div>
+
+    <!-- Activar / desactivar -->
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
+        <input type="checkbox" id="decActivo" style="width:18px;height:18px;cursor:pointer;"/>
+        <span style="font-size:.85rem;font-weight:600;color:#fff;">Pack de decants activo</span>
+      </label>
+      <p style="font-size:.68rem;color:var(--gris);margin-top:.4rem;margin-left:1.6rem;">Si está apagado, se oculta el CTA del home y el botón flotante.</p>
+    </div>
+
+    <!-- Precios y tamaño -->
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Precios escalonados</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem;">
+        <div>
+          <label class="modal-label">1-2 decants ($/u)</label>
+          <input type="number" class="modal-input" id="decPrecio1" placeholder="9500" style="margin-bottom:0;"/>
+        </div>
+        <div>
+          <label class="modal-label">3-4 decants ($/u)</label>
+          <input type="number" class="modal-input" id="decPrecio3" placeholder="8500" style="margin-bottom:0;"/>
+        </div>
+        <div>
+          <label class="modal-label">5+ decants ($/u)</label>
+          <input type="number" class="modal-input" id="decPrecio5" placeholder="7500" style="margin-bottom:0;"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+        <div>
+          <label class="modal-label">Tamaño (ml)</label>
+          <input type="number" class="modal-input" id="decMl" placeholder="5" style="margin-bottom:0;"/>
+        </div>
+        <div>
+          <label class="modal-label">Máximo de decants por pack</label>
+          <input type="number" class="modal-input" id="decMax" placeholder="100" style="margin-bottom:0;"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje de conservación -->
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+      <label class="modal-label">Aviso de conservación (se muestra al cliente antes de enviar por WhatsApp)</label>
+      <textarea class="modal-input" id="decAviso" rows="3" placeholder="Ej: Guardá tu decant en lugar fresco y seco..." style="margin-bottom:0;resize:vertical;min-height:70px;"></textarea>
+    </div>
+
+    <!-- Acción -->
+    <div style="display:flex;gap:.5rem;align-items:center;">
+      <button class="modal-btn modal-btn-price" onclick="saveDecantsAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;">Guardar configuración</button>
+      <button class="action-btn" onclick="loadDecantsAdmin()" style="padding:.5rem 1rem;">↺ Recargar</button>
+    </div>
+    <p class="modal-success" id="decMsg"></p>
   </div>
 
   <!-- MODAL: CAMBIAR PRECIO -->
@@ -4706,6 +4769,98 @@
         }
       });
       renderDoctorResults();
+    }
+
+    // ========================================================
+    // DECANTS CONFIG (admin)
+    // ========================================================
+    async function loadDecantsAdmin() {
+      var msg = document.getElementById('decMsg');
+      if (msg) { msg.textContent = ''; msg.style.color = ''; }
+      var def = {
+        activo: true,
+        ml: 5,
+        precio_1: 9500,
+        precio_3: 8500,
+        precio_5: 7500,
+        max_decants: 100,
+        aviso_conservacion: 'Guard\u00e1 tu decant en lugar fresco y seco, lejos de la luz directa y cambios bruscos de temperatura.'
+      };
+      var cfg = def;
+      try {
+        if (sb) {
+          var res = await sb
+            .from('decants_config')
+            .select('*')
+            .eq('id', 1)
+            .maybeSingle();
+          if (res && res.data) {
+            cfg = Object.assign({}, def, res.data);
+          } else if (res && res.error && msg) {
+            // tabla no existe aun -> se usan defaults
+            msg.style.color = 'var(--gris)';
+            msg.textContent = 'No se encontr\u00f3 configuraci\u00f3n guardada. Mostrando valores por defecto.';
+          }
+        }
+      } catch (e) {
+        console.warn('[decants-admin] load error:', e);
+      }
+      document.getElementById('decActivo').checked = !!cfg.activo;
+      document.getElementById('decMl').value = cfg.ml != null ? cfg.ml : 5;
+      document.getElementById('decPrecio1').value = cfg.precio_1 != null ? cfg.precio_1 : 9500;
+      document.getElementById('decPrecio3').value = cfg.precio_3 != null ? cfg.precio_3 : 8500;
+      document.getElementById('decPrecio5').value = cfg.precio_5 != null ? cfg.precio_5 : 7500;
+      document.getElementById('decMax').value = cfg.max_decants != null ? cfg.max_decants : 100;
+      document.getElementById('decAviso').value = cfg.aviso_conservacion || '';
+    }
+
+    async function saveDecantsAdmin() {
+      var msg = document.getElementById('decMsg');
+      msg.textContent = '';
+      msg.style.color = '';
+
+      var activo = document.getElementById('decActivo').checked;
+      var ml = parseInt(document.getElementById('decMl').value, 10);
+      var p1 = parseInt(document.getElementById('decPrecio1').value, 10);
+      var p3 = parseInt(document.getElementById('decPrecio3').value, 10);
+      var p5 = parseInt(document.getElementById('decPrecio5').value, 10);
+      var maxD = parseInt(document.getElementById('decMax').value, 10);
+      var aviso = (document.getElementById('decAviso').value || '').trim();
+
+      if (!ml || ml < 1) { msg.style.color = '#e74c3c'; msg.textContent = 'Tamaño en ml inválido.'; return; }
+      if (!p1 || !p3 || !p5) { msg.style.color = '#e74c3c'; msg.textContent = 'Todos los precios son obligatorios.'; return; }
+      if (!maxD || maxD < 1) { msg.style.color = '#e74c3c'; msg.textContent = 'Máximo de decants inválido.'; return; }
+
+      if (!sb) {
+        msg.style.color = '#e74c3c';
+        msg.textContent = 'Sin conexión a Supabase.';
+        return;
+      }
+
+      var payload = {
+        id: 1,
+        activo: activo,
+        ml: ml,
+        precio_1: p1,
+        precio_3: p3,
+        precio_5: p5,
+        max_decants: maxD,
+        aviso_conservacion: aviso,
+        updated_at: new Date().toISOString()
+      };
+
+      try {
+        var res = await sb
+          .from('decants_config')
+          .upsert(payload, { onConflict: 'id' });
+        if (res.error) throw res.error;
+        msg.style.color = '#27ae60';
+        msg.textContent = '✓ Configuración guardada.';
+      } catch (e) {
+        console.error('[decants-admin] save error:', e);
+        msg.style.color = '#e74c3c';
+        msg.textContent = 'Error al guardar: ' + (e.message || e);
+      }
     }
   </script>
 </body>

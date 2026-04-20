@@ -299,7 +299,7 @@
       <p class="decant-b-label">◆ ST Perfumería</p>
       <h2 class="decant-b-title">DECANTS<br/><span>tu fragancia, tu medida</span></h2>
       <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
-      <a href="https://wa.me/5492975416017?text=Hola!%20Me%20interesan%20los%20decants.%20%C2%BFQu%C3%A9%20opciones%20tienen?" target="_blank" class="decant-b-cta">Consultar decants →</a>
+      <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">🧪 Armá tu pack de decants →</button>
     </div>
     <div class="decant-b-right">
       <div class="decant-b-vial">
@@ -687,6 +687,40 @@
     <span class="cart-float-count" id="cartFloatCount">0</span>
     🛒 Ver pedido
   </button>
+
+  <!-- Pack de decants flotante -->
+  <button class="decant-float" id="decantFloat" onclick="openDecantBuilder()" aria-label="Ver pack de decants">
+    <span class="decant-float-count" id="decantFloatCount">0</span>
+    🧪 Mi pack
+  </button>
+
+  <!-- Modal Armá tu pack de decants -->
+  <div class="decant-builder-overlay" id="decantBuilderOverlay" onclick="if(event.target===this)closeDecantBuilder()">
+    <div class="decant-builder">
+      <div class="decant-builder-header">
+        <button class="decant-builder-close" onclick="closeDecantBuilder()" aria-label="Cerrar">×</button>
+        <p class="decant-builder-title">🧪 Armá tu pack de decants</p>
+        <p class="decant-builder-subtitle">Decants de <span id="decantMlLabel">5</span> ml · Máx <span id="decantMaxLabel">10</span></p>
+        <div class="decant-builder-counter">
+          <div class="decant-counter-left">
+            <span class="decant-counter-qty"><span id="decantQty">0</span>/<span id="decantMax">10</span> decants</span>
+            <span class="decant-counter-unit" id="decantUnit"></span>
+          </div>
+          <span class="decant-counter-total" id="decantTotal">$0</span>
+        </div>
+        <p class="decant-builder-ladder" id="decantLadder"></p>
+      </div>
+      <input type="text" class="decant-builder-search" id="decantSearch" placeholder="🔎 Buscar perfume..." oninput="renderDecantGrid()" autocomplete="off"/>
+      <div class="decant-builder-grid" id="decantGrid"></div>
+      <div class="decant-builder-footer">
+        <p class="decant-builder-aviso" id="decantAviso"></p>
+        <div class="decant-builder-actions">
+          <button class="decant-builder-clear" onclick="clearDecantsPack()">Vaciar</button>
+          <button class="decant-builder-wa" id="decantBuilderWA" onclick="sendDecantPackToWA()" disabled>📲 Consultar por WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Panel carrito -->
   <div class="cart-panel-overlay" id="cartPanelOverlay" onclick="if(event.target===this)closeCartPanel()">
