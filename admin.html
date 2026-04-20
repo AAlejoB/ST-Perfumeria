@@ -578,8 +578,16 @@
     <!-- TAB: EDITAR PERFUME EXISTENTE -->
     <div class="tab-content" id="tab-editar">
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Editar perfume existente</p>
-        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Buscá un perfume de los 151 ya cargados. Los cambios se guardan en Supabase y se aplican sobre el catálogo original sin tocar el código.</p>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
+          <div style="flex:1;min-width:220px;">
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Editar perfume existente</p>
+            <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Buscá un perfume de los 151 ya cargados. Los cambios se guardan en Supabase y se aplican sobre el catálogo original sin tocar el código.</p>
+          </div>
+          <button onclick="migrarTipos()" title="Asigna tipo (Desodorante, Crema, etc.) a productos viejos basado en keywords del nombre. Correr 1 sola vez."
+            style="background:transparent;border:1px solid rgba(232,184,0,.3);color:var(--amarillo);font-size:.6rem;padding:.4rem .7rem;border-radius:4px;cursor:pointer;white-space:nowrap;letter-spacing:.05em;">
+            🔧 Migrar tipos (1 vez)
+          </button>
+        </div>
         <input type="text" class="admin-search" id="editSearch" placeholder="Buscar perfume para editar..." oninput="searchEditPerfume()" style="margin-bottom:0;"/>
         <div id="editSearchResults" style="max-height:200px;overflow-y:auto;border:1px solid var(--borde);border-radius:4px;display:none;margin-top:4px;"></div>
       </div>
@@ -597,6 +605,22 @@
         <input type="hidden" id="editSlug"/>
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Tipo de producto</label>
+              <select class="modal-input" id="editTipo" onchange="onEditTipoChange()" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+                <option value="">Perfume (por defecto)</option>
+                <option value="Desodorante">Desodorante</option>
+                <option value="Body Spray">Body Spray</option>
+                <option value="Body Splash">Body Splash</option>
+                <option value="Crema">Crema</option>
+                <option value="Aceite">Aceite</option>
+                <option value="Loción">Loción</option>
+                <option value="Jabón">Jabón</option>
+                <option value="__otro__">Otro...</option>
+              </select>
+              <input type="text" class="modal-input" id="editTipoOtro" placeholder="Ej: Vela aromática, Spray textil..." style="display:none;margin-top:.4rem;margin-bottom:0;" maxlength="30"/>
+              <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;">Si no es perfume, se ocultan las notas olfativas y se muestra el tipo como etiqueta en la card.</p>
+            </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">Nombre</label>
               <input type="text" class="modal-input" id="editName" style="margin-bottom:0;"/>
@@ -676,6 +700,11 @@
               <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Máx. 3 fotos extra. Podés subir fotos arriba y copiar la URL acá.</p>
             </div>
             <div style="grid-column:1/-1;">
+              <label class="modal-label">🔎 Apodos / abreviaciones (para la búsqueda)</label>
+              <input type="text" class="modal-input" id="editAlias" placeholder="Ej: cdn, club nuit, club de noche" style="margin-bottom:0;"/>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Separá por comas. Si alguien busca cualquiera de estas palabras, encuentra el perfume.</p>
+            </div>
+            <div style="grid-column:1/-1;">
               <label class="modal-label">🏷️ Etiqueta de cinta (aparece arriba de la card)</label>
               <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem;">
                 <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#2ecc71;color:#fff;" onclick="setEtiqueta('NUEVO','#2ecc71')">NUEVO</button>
@@ -693,15 +722,15 @@
               </div>
               <div id="editEtiquetaPreview" style="margin-top:.5rem;min-height:1.5rem;"></div>
             </div>
-            <div style="grid-column:1/-1;">
+            <div style="grid-column:1/-1;" data-field="notas">
               <label class="modal-label">Notas de salida</label>
               <input type="text" class="modal-input" id="editSalida" style="margin-bottom:0;"/>
             </div>
-            <div style="grid-column:1/-1;">
+            <div style="grid-column:1/-1;" data-field="notas">
               <label class="modal-label">Notas de corazón</label>
               <input type="text" class="modal-input" id="editCorazon" style="margin-bottom:0;"/>
             </div>
-            <div style="grid-column:1/-1;">
+            <div style="grid-column:1/-1;" data-field="notas">
               <label class="modal-label">Notas de base</label>
               <input type="text" class="modal-input" id="editBase" style="margin-bottom:0;"/>
             </div>
@@ -735,9 +764,24 @@
           <input type="hidden" id="nuevoEditId" value=""/>
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
+              <label class="modal-label">Tipo de producto</label>
+              <select class="modal-input" id="nuevoTipo" onchange="onNuevoTipoChange()" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+                <option value="">Perfume (por defecto)</option>
+                <option value="Desodorante">Desodorante</option>
+                <option value="Body Spray">Body Spray</option>
+                <option value="Body Splash">Body Splash</option>
+                <option value="Crema">Crema</option>
+                <option value="Aceite">Aceite</option>
+                <option value="Loción">Loción</option>
+                <option value="Jabón">Jabón</option>
+                <option value="__otro__">Otro...</option>
+              </select>
+              <input type="text" class="modal-input" id="nuevoTipoOtro" placeholder="Ej: Vela aromática, Spray textil..." style="display:none;margin-top:.4rem;margin-bottom:0;" maxlength="30"/>
+            </div>
+            <div style="grid-column:1/-1;">
               <label class="modal-label">Nombre *</label>
               <input type="text" class="modal-input" id="nuevoName" placeholder="Ej: EMEER GOLD" style="margin-bottom:0;"/>
-              <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;">Si no es perfume, inclui el tipo en el nombre: <span style="color:var(--amarillo);">ASAD DESODORANTE</span>, <span style="color:var(--amarillo);">KHAMRAH BODY SPLASH</span>, <span style="color:var(--amarillo);">YARA CREMA</span>, etc.</p>
+              <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;" id="nuevoNameHint">Ya no hace falta escribir el tipo en el nombre — se elige arriba.</p>
             </div>
             <div>
               <label class="modal-label">Marca</label>
@@ -801,6 +845,11 @@
             <div style="grid-column:1/-1;">
               <label class="modal-label">Notas de base</label>
               <input type="text" class="modal-input" id="nuevoBase" placeholder="Vainilla, Ámbar, Almizcle" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">🔎 Apodos / abreviaciones (búsqueda)</label>
+              <input type="text" class="modal-input" id="nuevoAlias" placeholder="Ej: cdn, club nuit" style="margin-bottom:0;"/>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Separá por comas. Opcional.</p>
             </div>
           </div>
           <div style="display:flex;gap:.5rem;margin-top:1rem;">
@@ -2430,6 +2479,8 @@
             marca_real: p.marca_real || '',
             cat: p.cat,
             perfil: p.perfil || '',
+            tipo: p.tipo || '',
+            alias: p.alias || '',
             price: p.price || 0,
             promo: p.promo || null,
             foto: p.foto || '',
@@ -2478,7 +2529,10 @@
       if (input.length < 2) { results.style.display = 'none'; return; }
 
       var matches = PERFUMES.filter(function(p) {
-        return !p.esSet && p.name.toLowerCase().indexOf(input) !== -1;
+        if (p.esSet) return false;
+        var hay = p.name.toLowerCase();
+        if (p.alias) hay += ' ' + p.alias.toLowerCase();
+        return hay.indexOf(input) !== -1;
       }).slice(0, 10);
 
       if (matches.length === 0) {
@@ -2526,6 +2580,112 @@
       return val;
     }
 
+    // ============================================================
+    // TIPO DE PRODUCTO — selector en EDITAR y NUEVO
+    // ============================================================
+
+    // Muestra/oculta el input de "Otro..." y oculta las notas si no es perfume.
+    function onEditTipoChange() {
+      var sel = document.getElementById('editTipo');
+      var input = document.getElementById('editTipoOtro');
+      if (!sel) return;
+      var isOtro = sel.value === '__otro__';
+      input.style.display = isOtro ? 'block' : 'none';
+      if (!isOtro) input.value = '';
+
+      // Si se eligió cualquier cosa que no sea perfume (value !== ''), ocultamos notas
+      var esPerfume = sel.value === '';
+      document.querySelectorAll('#tab-editar [data-field="notas"]').forEach(function(el) {
+        el.style.display = esPerfume ? '' : 'none';
+      });
+    }
+
+    function onNuevoTipoChange() {
+      var sel = document.getElementById('nuevoTipo');
+      var input = document.getElementById('nuevoTipoOtro');
+      if (!sel) return;
+      var isOtro = sel.value === '__otro__';
+      input.style.display = isOtro ? 'block' : 'none';
+      if (!isOtro) input.value = '';
+
+      var esPerfume = sel.value === '';
+      // En tab-nuevos las notas no tienen data-field todavía, las identifico por id
+      var notasIds = ['nuevoSalida', 'nuevoCorazon', 'nuevoBase'];
+      notasIds.forEach(function(id) {
+        var field = document.getElementById(id);
+        if (field && field.parentElement) field.parentElement.style.display = esPerfume ? '' : 'none';
+      });
+    }
+
+    // ============================================================
+    // MIGRAR TIPOS — one-shot: infiere tipo por keyword en el nombre
+    // y lo guarda como override para los productos viejos.
+    // ============================================================
+
+    var TIPO_KEYWORDS_MIGRATE = [
+      { k: 'desodorante', label: 'Desodorante' },
+      { k: 'body spray',  label: 'Body Spray' },
+      { k: 'body splash', label: 'Body Splash' },
+      { k: 'crema',       label: 'Crema' },
+      { k: 'aceite',      label: 'Aceite' },
+      { k: 'locion',      label: 'Loción' },
+      { k: 'jabon',       label: 'Jabón' },
+    ];
+
+    function _stripAcc(s) {
+      return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    async function migrarTipos() {
+      if (!Array.isArray(PERFUMES) || PERFUMES.length === 0) {
+        alert('Todavía no cargó el catálogo. Esperá unos segundos y reintentá.');
+        return;
+      }
+
+      var pendientes = [];
+      PERFUMES.forEach(function(p) {
+        if (p.tipo) return; // ya tiene tipo asignado, saltar
+        var n = _stripAcc(p.name);
+        for (var i = 0; i < TIPO_KEYWORDS_MIGRATE.length; i++) {
+          if (n.indexOf(TIPO_KEYWORDS_MIGRATE[i].k) !== -1) {
+            pendientes.push({ slug: p.slug, nombre: p.name, tipo: TIPO_KEYWORDS_MIGRATE[i].label });
+            break;
+          }
+        }
+      });
+
+      if (pendientes.length === 0) {
+        alert('✓ No hay nada que migrar.\n\nTodos los productos ya tienen tipo asignado o son perfumes (no detectaron keywords).');
+        return;
+      }
+
+      var preview = pendientes.slice(0, 10).map(function(x) { return '• ' + x.nombre + ' → ' + x.tipo; }).join('\n');
+      var extra = pendientes.length > 10 ? '\n...y ' + (pendientes.length - 10) + ' más' : '';
+      var ok = window.confirm(
+        'Se van a asignar tipo a ' + pendientes.length + ' productos (inferido del nombre):\n\n' +
+        preview + extra +
+        '\n\n¿Continuar? (se puede revertir editando manualmente)'
+      );
+      if (!ok) return;
+
+      var rows = pendientes.map(function(x) { return { slug: x.slug, tipo: x.tipo }; });
+      var { error } = await sb.from('perfume_overrides').upsert(rows, { onConflict: 'slug' });
+
+      if (error) {
+        alert('Error al guardar: ' + error.message + '\n\nVerificá que la columna "tipo" (text) exista en la tabla perfume_overrides.');
+        return;
+      }
+
+      // Actualizar PERFUMES en memoria
+      pendientes.forEach(function(x) {
+        var idx = PERFUMES.findIndex(function(p) { return p.slug === x.slug; });
+        if (idx !== -1) PERFUMES[idx].tipo = x.tipo;
+      });
+
+      alert('✓ ' + pendientes.length + ' productos migrados.\n\nEl campo "Tipo" ya aparece en EDITAR para cada uno.');
+      notifyTelegram('🔧 Migración de tipos: ' + pendientes.length + ' productos actualizados');
+    }
+
     function loadEditPerfume(slug) {
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
@@ -2554,8 +2714,28 @@
       document.getElementById('editCorazon').value = p.notas_corazon || '';
       document.getElementById('editBase').value = p.notas_base || '';
 
+      // Tipo de producto: si el valor guardado no coincide con ninguna opción, va a "Otro..."
+      var tipoVal = p.tipo || '';
+      var selTipo = document.getElementById('editTipo');
+      var inputTipoOtro = document.getElementById('editTipoOtro');
+      var hasOpt = false;
+      for (var i = 0; i < selTipo.options.length; i++) {
+        if (selTipo.options[i].value === tipoVal) { hasOpt = true; break; }
+      }
+      if (tipoVal && !hasOpt) {
+        selTipo.value = '__otro__';
+        inputTipoOtro.value = tipoVal;
+      } else {
+        selTipo.value = tipoVal;
+        inputTipoOtro.value = '';
+      }
+      onEditTipoChange();
+
       // Fotos extra
       document.getElementById('editFotosExtra').value = p.fotos_extra || '';
+
+      // Apodos / alias de búsqueda
+      document.getElementById('editAlias').value = p.alias || '';
 
       // Etiqueta
       document.getElementById('editEtiqueta').value = p.etiqueta || '';
@@ -2585,6 +2765,12 @@
       var slug = document.getElementById('editSlug').value;
       if (!slug) return;
 
+      // Tipo: si eligieron "Otro..." agarramos el texto libre, sino el value del select
+      var tipoSelVal = document.getElementById('editTipo').value;
+      var tipoFinal = tipoSelVal === '__otro__'
+        ? document.getElementById('editTipoOtro').value.trim()
+        : tipoSelVal;
+
       var obj = {
         slug: slug,
         name: document.getElementById('editName').value.trim().toUpperCase(),
@@ -2592,6 +2778,7 @@
         marca_real: document.getElementById('editMarcaReal').value.trim(),
         cat: document.getElementById('editCat').value,
         perfil: document.getElementById('editPerfil').value,
+        tipo: tipoFinal,
         price: document.getElementById('editPrice').value.trim(),
         promo: document.getElementById('editPromo').value.trim(),
         ml: document.getElementById('editMl').value.trim(),
@@ -2602,6 +2789,7 @@
         notas_corazon: document.getElementById('editCorazon').value.trim(),
         notas_base: document.getElementById('editBase').value.trim(),
         fotos_extra: document.getElementById('editFotosExtra').value.trim(),
+        alias: document.getElementById('editAlias').value.trim(),
         etiqueta: document.getElementById('editEtiqueta').value.trim(),
         etiqueta_color: document.getElementById('editEtiquetaColor').value
       };
@@ -2623,10 +2811,10 @@
       var oldP = PERFUMES.find(function(p) { return p.slug === slug; }) || {};
       var fieldsToLog = {
         name: 'Nombre', price: 'Precio', promo: 'Promo', cat: 'Categor\u00eda',
-        perfil: 'Perfil', marca: 'Marca', marca_real: 'Fabricante', ml: 'ML',
+        perfil: 'Perfil', tipo: 'Tipo', marca: 'Marca', marca_real: 'Fabricante', ml: 'ML',
         foto: 'Foto', notas_salida: 'Notas salida', notas_corazon: 'Notas coraz\u00f3n',
         notas_base: 'Notas base', descuento_pct: 'Descuento %', etiqueta: 'Etiqueta',
-        fotos_extra: 'Fotos extra'
+        fotos_extra: 'Fotos extra', alias: 'Apodos'
       };
       var logs = [];
       Object.keys(fieldsToLog).forEach(function(key) {
@@ -2984,6 +3172,11 @@
       var corazon = document.getElementById('nuevoCorazon').value.trim();
       var base = document.getElementById('nuevoBase').value.trim();
 
+      var tipoSelValN = document.getElementById('nuevoTipo').value;
+      var tipoFinalN = tipoSelValN === '__otro__'
+        ? document.getElementById('nuevoTipoOtro').value.trim()
+        : tipoSelValN;
+
       var msgEl = document.getElementById('nuevoMsg');
 
       if (!name || !price) {
@@ -2992,12 +3185,15 @@
         return;
       }
 
+      var aliasN = document.getElementById('nuevoAlias').value.trim();
+
       var slug = generateSlug(name);
       var obj = {
         slug: slug, name: name, marca: marca, marca_real: marcaReal,
-        cat: cat, perfil: perfil, price: price, promo: promo,
+        cat: cat, perfil: perfil, tipo: tipoFinalN, price: price, promo: promo,
         foto: foto, ml: ml,
-        notas_salida: salida, notas_corazon: corazon, notas_base: base
+        notas_salida: salida, notas_corazon: corazon, notas_base: base,
+        alias: aliasN
       };
 
       var result;
@@ -3055,6 +3251,19 @@
       document.getElementById('nuevoSalida').value = data.notas_salida || '';
       document.getElementById('nuevoCorazon').value = data.notas_corazon || '';
       document.getElementById('nuevoBase').value = data.notas_base || '';
+      document.getElementById('nuevoAlias').value = data.alias || '';
+
+      // Tipo de producto
+      var tipoValN = data.tipo || '';
+      var selTN = document.getElementById('nuevoTipo');
+      var inpTN = document.getElementById('nuevoTipoOtro');
+      var hasOptN = false;
+      for (var k = 0; k < selTN.options.length; k++) {
+        if (selTN.options[k].value === tipoValN) { hasOptN = true; break; }
+      }
+      if (tipoValN && !hasOptN) { selTN.value = '__otro__'; inpTN.value = tipoValN; }
+      else { selTN.value = tipoValN; inpTN.value = ''; }
+      onNuevoTipoChange();
 
       document.getElementById('formNuevoTitle').textContent = 'Editar perfume';
       document.getElementById('btnSaveNuevo').textContent = 'Guardar cambios';
@@ -3088,6 +3297,10 @@
       document.getElementById('nuevoSalida').value = '';
       document.getElementById('nuevoCorazon').value = '';
       document.getElementById('nuevoBase').value = '';
+      document.getElementById('nuevoAlias').value = '';
+      document.getElementById('nuevoTipo').value = '';
+      document.getElementById('nuevoTipoOtro').value = '';
+      onNuevoTipoChange();
       document.getElementById('formNuevoTitle').textContent = 'Agregar perfume';
       document.getElementById('btnSaveNuevo').textContent = 'Agregar perfume';
       document.getElementById('btnCancelNuevo').style.display = 'none';

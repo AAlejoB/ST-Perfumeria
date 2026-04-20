@@ -894,12 +894,91 @@
       { keyword: 'jabon', label: 'Jabón' },
     ];
 
-    function detectProductType(name) {
+    function detectProductType(p) {
+      if (!p) return null;
+      // Backward compat: si me pasan un string (name), lo trato como antes
+      if (typeof p === 'string') return detectTypeByName(p);
+      // Fuente canónica: el campo tipo seteado desde el admin
+      if (p.tipo) return p.tipo;
+      // Fallback legacy: detectar por keyword en el nombre
+      return detectTypeByName(p.name || '');
+    }
+
+    function detectTypeByName(name) {
       var n = stripAccents(name.toLowerCase());
       for (var i = 0; i < PRODUCT_TYPES.length; i++) {
         if (n.indexOf(PRODUCT_TYPES[i].keyword) !== -1) return PRODUCT_TYPES[i].label;
       }
       return null;
+    }
+
+    // ============================================================
+    // FOTOS DE GAMA — fotos grupales que muestran varios perfumes
+    // de la misma línea. Se aplican automáticamente cuando el perfume
+    // NO tiene fotos_extra manuales:
+    //   • Si no tiene foto propia: la 1ra foto de gama pasa a ser la principal
+    //   • Si tiene foto: se agregan al final de la galería como extras
+    // El admin puede sobreescribir cargando fotos_extra a mano.
+    // ============================================================
+    var GAMA_FOTOS = {
+      'CDN':          ['img/4-CDN-JUNTOS_INTENSEMAN_ICONIC_URBANMAN_SILLAGE.webp', 'img/3-CDN-JUNTOS_UNTOLD_MALEKA_WOMANEXTRAIT.webp'],
+      'CLUB DE NUIT': ['img/4-CDN-JUNTOS_INTENSEMAN_ICONIC_URBANMAN_SILLAGE.webp', 'img/3-CDN-JUNTOS_UNTOLD_MALEKA_WOMANEXTRAIT.webp'],
+      'ISHQ':         ['img/2 ISHQ JUNTOS.webp'],
+      'EMAAN':        ['img/2-JUNTOS_EMAAN_HAYA.webp'],
+      'HAYA':         ['img/2-JUNTOS_EMAAN_HAYA.webp']
+    };
+
+    function getGamaFotos(p) {
+      if (!p || !p.name) return [];
+      var n = p.name.toUpperCase();
+      // Ordenar claves por largo descendente para que "CLUB DE NUIT" matchee antes que "CDN"
+      var keys = Object.keys(GAMA_FOTOS).sort(function(a, b) { return b.length - a.length; });
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (n === k || n.indexOf(k + ' ') === 0 || n.indexOf(k + '-') === 0) {
+          return GAMA_FOTOS[k].slice();
+        }
+      }
+      return [];
+    }
+
+    // Alias de gama bidireccional: cualquier perfume cuyo nombre empiece con una clave
+    // se hace buscable también por todos los sinónimos del valor.
+    // Ej: buscando "cdn" aparecen todos los "CDN ..." y el "Club de Nuit".
+    // Buscando "club nuit" aparecen los "CLUB DE NUIT ..." y los "CDN ...".
+    var GAMA_ALIAS = {
+      'CDN':          'cdn club de nuit club nuit clubdenuit',
+      'CLUB DE NUIT': 'cdn club de nuit club nuit clubdenuit'
+    };
+
+    function getGamaAlias(p) {
+      if (!p || !p.name) return '';
+      var n = p.name.toUpperCase();
+      var keys = Object.keys(GAMA_ALIAS).sort(function(a, b) { return b.length - a.length; });
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (n === k || n.indexOf(k + ' ') === 0 || n.indexOf(k + '-') === 0) {
+          return GAMA_ALIAS[k];
+        }
+      }
+      return '';
+    }
+
+    // Construye el pool unificado de fotos para la galería:
+    // foto principal + fotos_extra manuales + fotos de gama (máx 4 total).
+    // Si el perfume tiene fotos_extra propias, NO se suman las de gama (el admin mandó).
+    function buildFotosPool(p) {
+      var pool = [];
+      if (p.foto) pool.push(p.foto.replace(/ /g, '%20'));
+      var extras = p.fotos_extra ? p.fotos_extra.split(',').map(function(u) { return u.trim(); }).filter(Boolean) : [];
+      extras.slice(0, 3).forEach(function(u) { pool.push(u.replace(/ /g, '%20')); });
+      if (extras.length === 0) {
+        var gama = getGamaFotos(p);
+        gama.slice(0, 4 - pool.length).forEach(function(u) { pool.push(u.replace(/ /g, '%20')); });
+      }
+      // Dedupe
+      var seen = {};
+      return pool.filter(function(u) { if (seen[u]) return false; seen[u] = true; return true; });
     }
 
     // updateGalleryDots: detecta qué slide está visible al scrollear y
@@ -947,28 +1026,24 @@
 
       const fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
 
-      // Galería: si tiene fotos_extra, armar carrusel; si no, foto simple
+      // Galería unificada: foto principal + fotos_extra manuales + fotos de gama (auto).
+      // Si el perfume no tiene foto propia pero sí foto de gama, la gama pasa a ser la principal.
       var imageHTML;
-      var extraFotos = p.fotos_extra ? p.fotos_extra.split(',').map(function(u) { return u.trim(); }).filter(Boolean) : [];
+      var fotosPool = buildFotosPool(p);
 
-      if (p.foto && extraFotos.length > 0) {
-        // Carrusel con foto principal + extras (máx 4 total)
-        var allFotos = [fotoSrc].concat(extraFotos.slice(0, 3));
-        var slides = allFotos.map(function(url) {
-          return '<div class="card-gallery-slide"><img src="' + url.replace(/ /g, '%20') + '" alt="' + p.name + '" loading="lazy" decoding="async"></div>';
+      if (fotosPool.length >= 2) {
+        var slides = fotosPool.map(function(url) {
+          return '<div class="card-gallery-slide"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async"></div>';
         }).join('');
-        // Nav bar: ‹ 1/4 › — siempre visible, fuera de la foto, abajo al centro.
-        // No se pelea con el card-reveal porque queda en el centro horizontal.
         var navHTML = ''
           + '<div class="card-gallery-nav">'
             + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, -1, event)" aria-label="Foto anterior">&#8249;</button>'
-            + '<span class="card-gallery-nav-counter"><span class="card-gallery-nav-current">1</span>/' + allFotos.length + '</span>'
+            + '<span class="card-gallery-nav-counter"><span class="card-gallery-nav-current">1</span>/' + fotosPool.length + '</span>'
             + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, 1, event)" aria-label="Foto siguiente">&#8250;</button>'
           + '</div>';
-        imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>'
-          + navHTML;
-      } else if (p.foto) {
-        imageHTML = '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">';
+        imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>' + navHTML;
+      } else if (fotosPool.length === 1) {
+        imageHTML = '<img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async">';
       } else {
         imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
       }
@@ -992,7 +1067,7 @@
           + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
       }
 
-      var searchText = stripAccents([p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || ''].join(' ').toLowerCase());
+      var searchText = stripAccents([p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || '', p.alias || '', p.tipo || '', getGamaAlias(p)].join(' ').toLowerCase());
 
       var isFav = favs.indexOf(p.slug) !== -1;
 
@@ -1008,8 +1083,8 @@
       var nuevoBadge = '';
       if (p._isNew) nuevoBadge = '<span class="badge-nuevo">Nuevo</span>';
 
-      // Tipo de producto (detección por nombre)
-      var prodType = detectProductType(p.name);
+      // Tipo de producto (campo explícito del admin, fallback a keyword en nombre)
+      var prodType = detectProductType(p);
       var tipoBadge = prodType ? '<span class="badge-tipo">' + prodType + '</span>' : '';
 
       // Cinta de etiqueta personalizada (se configura desde el admin)
@@ -2562,7 +2637,7 @@
             }
             PERFUMES.push({
               slug: p.slug, name: p.name, marca: p.marca, marca_real: p.marca_real || '',
-              cat: p.cat, perfil: p.perfil,
+              cat: p.cat, perfil: p.perfil, tipo: p.tipo || '', alias: p.alias || '',
               price: intToPrice(p.price),
               promo: p.promo ? intToPrice(p.promo) : '',
               foto: p.foto || '', ml: p.ml || 100,
@@ -2605,6 +2680,10 @@
             // Descuento temporal
             if (o.descuento_pct) p.descuento_pct = o.descuento_pct;
             if (o.descuento_hasta) p.descuento_hasta = o.descuento_hasta;
+            // Tipo de producto (Desodorante/Crema/etc) — permite string vacío para "volver a perfume"
+            if (o.tipo !== undefined && o.tipo !== null) p.tipo = o.tipo;
+            // Apodos / alias para búsqueda (admite string vacío)
+            if (o.alias !== undefined && o.alias !== null) p.alias = o.alias;
           });
         }
       } catch(e) {}
@@ -3272,7 +3351,12 @@
 
       // Imagen
       var imgWrap = document.getElementById('bsImgWrap');
+      // Fallback: si no tiene foto propia, usar la 1ra foto de gama si aplica
       var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+      if (!fotoSrc) {
+        var gamaPool = getGamaFotos(p);
+        if (gamaPool.length > 0) fotoSrc = gamaPool[0].replace(/ /g, '%20');
+      }
       imgWrap.innerHTML = fotoSrc
         ? '<img class="bs-img" src="' + fotoSrc + '" alt="' + p.name + '">'
         : '<div class="bs-img-placeholder">' + p.name.charAt(0) + '</div>';
@@ -3283,7 +3367,7 @@
 
       // Tags
       var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
-      var prodType = detectProductType(p.name);
+      var prodType = detectProductType(p);
       var tipoBadge = prodType ? '<span class="badge-tipo">' + prodType + '</span>' : '';
       document.getElementById('bsTags').innerHTML =
         '<span class="card-tag tag-cat">' + pCat + '</span>'
