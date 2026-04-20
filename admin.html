@@ -1521,6 +1521,9 @@
         // Mergear perfumes de Supabase (perfumes_nuevos) en PERFUMES
         // ANTES de renderizar, para que EDITAR / PRECIOS / STOCK los vean
         await mergeNuevosIntoPerfumes();
+        // Aplicar perfume_overrides completos (foto, tipo, alias, notas, etc.)
+        // para que el admin vea lo mismo que el cat\u00e1logo p\u00fablico.
+        await loadOverridesIntoPerfumes();
         renderPrecios();
         renderStock();
         loadDestacados();
@@ -1735,6 +1738,42 @@
           });
         }
       } catch(e) { console.error('loadStockFromDB:', e); }
+    }
+
+    // Mergea la tabla perfume_overrides completa en PERFUMES.
+    // Se llama al login (y después de guardar) para que el admin vea EL MISMO
+    // catálogo que ve el público. Sin esto, Editar / Doctor mostraban "sin foto"
+    // a perfumes que ya tenían foto override guardada.
+    async function loadOverridesIntoPerfumes() {
+      try {
+        var { data } = await sb.from('perfume_overrides').select('*');
+        if (!data || data.length === 0) return;
+        data.forEach(function(o) {
+          var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
+          if (!p) return;
+          if (o.oculto === true) p._oculto = true;
+          if (o.name) p.name = o.name;
+          if (o.marca) p.marca = o.marca;
+          if (o.marca_real) p.marca_real = o.marca_real;
+          if (o.cat) p.cat = o.cat;
+          if (o.perfil) p.perfil = o.perfil;
+          if (o.price) p.price = o.price;
+          if (o.promo !== null && o.promo !== undefined) p.promo = o.promo;
+          if (o.foto) p.foto = o.foto;
+          if (o.notas_salida) p.notas_salida = o.notas_salida;
+          if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
+          if (o.notas_base) p.notas_base = o.notas_base;
+          if (o.stock_status) p._stockStatus = o.stock_status;
+          if (o.fotos_extra) p.fotos_extra = o.fotos_extra;
+          if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';
+          if (o.etiqueta_color) p.etiqueta_color = o.etiqueta_color;
+          if (o.descuento_pct) p.descuento_pct = o.descuento_pct;
+          if (o.descuento_hasta) p.descuento_hasta = o.descuento_hasta;
+          if (o.tipo !== undefined && o.tipo !== null) p.tipo = o.tipo;
+          if (o.alias !== undefined && o.alias !== null) p.alias = o.alias;
+          if (o.ml) p.ml = o.ml;
+        });
+      } catch(e) { console.error('loadOverridesIntoPerfumes:', e); }
     }
 
     function getStockStatus(slug) {
@@ -3086,8 +3125,12 @@
         if (error) throw error;
 
         var { data: urlData } = sb.storage.from('perfume-fotos').getPublicUrl(fileName);
-        fotoInput.value = urlData.publicUrl;
-        previewImg.src = urlData.publicUrl;
+        // Cache-buster: el archivo subido con upsert:true tiene el mismo path
+        // que el anterior, as\u00ed que el navegador mostrar\u00eda la foto vieja desde
+        // cache. Con ?v=timestamp forzamos a recargar la nueva.
+        var urlConBuster = urlData.publicUrl + '?v=' + Date.now();
+        fotoInput.value = urlConBuster;
+        previewImg.src = urlConBuster;
         previewWrap.style.display = 'block';
         var clearBtn = document.getElementById('editFotoClearBtn');
         if (clearBtn) { clearBtn.disabled = false; clearBtn.style.opacity = '1'; }
@@ -3142,7 +3185,9 @@
           .from('perfume-fotos')
           .getPublicUrl(fileName);
 
-        var publicUrl = urlData.publicUrl;
+        // Cache-buster para evitar que el navegador muestre una foto vieja
+        // cuando se pisa un archivo con el mismo nombre (upsert:true).
+        var publicUrl = urlData.publicUrl + '?v=' + Date.now();
         fotoInput.value = publicUrl;
 
         // Preview
