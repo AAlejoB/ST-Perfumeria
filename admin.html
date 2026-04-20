@@ -1416,11 +1416,29 @@
     // ============================================================
     // CONFIG
     // ============================================================
+    // Pass del jefe: SOLO se usa para validar llamadas a /api/send-notification
+    // (el endpoint de Vercel la valida server-side). El login del panel ya NO
+    // compara contra este string — autentica contra Supabase Auth.
     var ADMIN_PASS = 'SANTOMY2026';
     var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO';
     var SUPABASE_URL = 'https://rtgjzzkjrwbkdhkslxix.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z2p6emtqcndia2Roa3NseGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzU3NzEsImV4cCI6MjA4OTYxMTc3MX0.SoVxC3eF51wi27pavlqIAjE-omqcnPylxJIQjY8vimo';
-    var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // storageKey propio para que la sesión del admin NO contamine el cliente
+    // de Supabase del cat\u00e1logo p\u00fablico (que usa la clave por defecto).
+    var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        storageKey: 'st-admin-auth',
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false
+      }
+    });
+
+    // Emails de las cuentas de Supabase Auth. La pass real NO est\u00e1 ac\u00e1 —
+    // vive hasheada en la tabla auth.users de Supabase y s\u00f3lo se conoce en
+    // la cabeza de quien la escribe en el login.
+    var JEFE_EMAIL = 'jefe@stperfumeria.local';
+    var EMPLEADO_EMAIL = 'empleado@stperfumeria.local';
 
     var editingSlug = '';
     var currentRole = null; // 'jefe' | 'empleado'
@@ -1491,6 +1509,39 @@
       }, 1000);
     }
 
+    // Mostrar el panel y cargar los datos iniciales. Reusable para login
+    // manual y para auto-restore cuando ya hay sesi\u00f3n de Supabase activa.
+    async function enterAdminPanel(role) {
+      currentRole = role;
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('adminPanel').classList.add('active');
+      document.getElementById('loginError').textContent = '';
+      applyRolePermissions();
+      startInactivityWatcher();
+      // Normalizar precios string → número al arrancar
+      PERFUMES.forEach(function(p) {
+        if (typeof p.price === 'string') p.price = parsePrice(p.price);
+        if (typeof p.promo === 'string' && p.promo !== '') p.promo = parsePrice(p.promo);
+        else if (!p.promo) p.promo = null;
+      });
+      await loadStockFromDB();
+      // Mergear perfumes de Supabase (perfumes_nuevos) en PERFUMES
+      // ANTES de renderizar, para que EDITAR / PRECIOS / STOCK los vean
+      await mergeNuevosIntoPerfumes();
+      // Aplicar perfume_overrides completos (foto, tipo, alias, notas, etc.)
+      // para que el admin vea lo mismo que el cat\u00e1logo p\u00fablico.
+      await loadOverridesIntoPerfumes();
+      renderPrecios();
+      renderStock();
+      loadDestacados();
+      loadNuevos();
+      // El resto se carga lazy al cambiar de tab (opiniones, clientes, stats, horario, combos, etc.)
+      tabLoaded['precios'] = true;
+      tabLoaded['stock'] = true;
+      tabLoaded['destacados'] = true;
+      tabLoaded['nuevos'] = true;
+    }
+
     async function doLogin() {
       // Si está bloqueado, abortar
       if (renderLockoutCountdown()) {
@@ -1499,40 +1550,27 @@
       }
 
       var pass = document.getElementById('loginPass').value;
+      if (!pass) return;
+
+      // Autenticar contra Supabase Auth. Probamos primero como jefe, luego
+      // como empleado. La pass NO viaja a ning\u00fan string hardcodeado; Supabase
+      // compara contra el hash que tiene en su tabla auth.users.
       var role = null;
-      if (pass === ADMIN_PASS) role = 'jefe';
-      else if (pass === ADMIN_PASS_EMPLEADO) role = 'empleado';
+      try {
+        var r1 = await sb.auth.signInWithPassword({ email: JEFE_EMAIL, password: pass });
+        if (r1 && r1.data && r1.data.user) {
+          role = 'jefe';
+        } else {
+          var r2 = await sb.auth.signInWithPassword({ email: EMPLEADO_EMAIL, password: pass });
+          if (r2 && r2.data && r2.data.user) role = 'empleado';
+        }
+      } catch (e) {
+        console.error('[login] error auth:', e);
+      }
 
       if (role) {
         clearLockoutState(); // login exitoso resetea el contador
-        currentRole = role;
-        document.getElementById('loginWrap').style.display = 'none';
-        document.getElementById('adminPanel').classList.add('active');
-        document.getElementById('loginError').textContent = '';
-        applyRolePermissions();
-        startInactivityWatcher();
-        // Normalizar precios string → número al arrancar
-        PERFUMES.forEach(function(p) {
-          if (typeof p.price === 'string') p.price = parsePrice(p.price);
-          if (typeof p.promo === 'string' && p.promo !== '') p.promo = parsePrice(p.promo);
-          else if (!p.promo) p.promo = null;
-        });
-        await loadStockFromDB();
-        // Mergear perfumes de Supabase (perfumes_nuevos) en PERFUMES
-        // ANTES de renderizar, para que EDITAR / PRECIOS / STOCK los vean
-        await mergeNuevosIntoPerfumes();
-        // Aplicar perfume_overrides completos (foto, tipo, alias, notas, etc.)
-        // para que el admin vea lo mismo que el cat\u00e1logo p\u00fablico.
-        await loadOverridesIntoPerfumes();
-        renderPrecios();
-        renderStock();
-        loadDestacados();
-        loadNuevos();
-        // El resto se carga lazy al cambiar de tab (opiniones, clientes, stats, horario, combos, etc.)
-        tabLoaded['precios'] = true;
-        tabLoaded['stock'] = true;
-        tabLoaded['destacados'] = true;
-        tabLoaded['nuevos'] = true;
+        await enterAdminPanel(role);
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
         // Sumar fallo y aplicar lockout si corresponde
@@ -1554,9 +1592,10 @@
       }
     }
 
-    function doLogout() {
+    async function doLogout() {
       currentRole = null;
       stopInactivityWatcher();
+      try { await sb.auth.signOut(); } catch(e) {}
       document.getElementById('adminPanel').classList.remove('active');
       document.getElementById('loginWrap').style.display = 'flex';
       document.getElementById('loginPass').value = '';
@@ -1600,9 +1639,23 @@
     }
 
     // Si recargás la página estando bloqueado, mostrar el countdown al instante
-    // Y arrancar el timer que lo actualiza cada segundo
-    document.addEventListener('DOMContentLoaded', function() {
+    // Y arrancar el timer que lo actualiza cada segundo.
+    // Adem\u00e1s: si ya hay una sesi\u00f3n de Supabase Auth activa (persistida en
+    // localStorage con storageKey 'st-admin-auth'), entrar directo al panel
+    // sin pedir pass de nuevo — hasta que expire la sesi\u00f3n o hagas logout.
+    document.addEventListener('DOMContentLoaded', async function() {
       if (renderLockoutCountdown()) startLockoutTimer();
+      try {
+        var { data } = await sb.auth.getSession();
+        if (data && data.session && data.session.user) {
+          var email = data.session.user.email;
+          var role = (email === JEFE_EMAIL) ? 'jefe'
+                   : (email === EMPLEADO_EMAIL ? 'empleado' : null);
+          if (role) {
+            await enterAdminPanel(role);
+          }
+        }
+      } catch(e) { console.error('[session-restore]', e); }
     });
 
     // applyRolePermissions: oculta las pestañas jefe-only si el rol es empleado,
