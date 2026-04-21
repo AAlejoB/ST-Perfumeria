@@ -542,6 +542,7 @@
       <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
       <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog()">📋 Log</button>
       <button class="tab-btn" data-role="jefe" data-tab="analytics" onclick="switchTab('analytics',this);loadAnalytics()">📊 Analytics</button>
+      <button class="tab-btn" data-role="jefe" data-tab="backups" onclick="switchTab('backups',this);loadBackups()">💾 Backup</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -1481,6 +1482,43 @@
     </div>
   </div>
 
+  <!-- TAB: BACKUPS -->
+  <div class="tab-content" id="tab-backups">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <p style="font-size:2rem;margin-bottom:.3rem;">💾</p>
+      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Backups</p>
+      <p style="font-size:.7rem;color:var(--gris);">Auto cada 24h · Retención 15 días · Máximo 200 snapshots</p>
+    </div>
+
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+      <button class="action-btn" onclick="createManualBackup()" id="btnCreateBackup" style="padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Crear backup ahora</button>
+      <button class="action-btn" onclick="loadBackups()" style="padding:.5rem 1rem;">↺ Refrescar</button>
+      <span id="backupsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+    </div>
+
+    <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:.9rem;margin-bottom:1rem;font-size:.72rem;color:#ccc;line-height:1.55;">
+      <strong style="color:#E8B800;">ℹ️ Qué incluye cada backup:</strong><br>
+      Config: precios/stock (<code style="color:#fff;">perfume_overrides</code>), perfumes nuevos, combos, destacados, cierres, horario, votación, decants.<br>
+      Datos: clientes, opiniones, lista de espera, votos.<br>
+      <strong style="color:#E8B800;">No incluye:</strong> logs, analytics, clicks, push subscriptions (son regenerables).
+    </div>
+
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+      <table class="admin-table" style="margin:0;">
+        <thead><tr>
+          <th style="width:140px;">Fecha</th>
+          <th style="width:90px;">Origen</th>
+          <th style="width:100px;">Tamaño</th>
+          <th>Filas</th>
+          <th style="width:90px;">Acción</th>
+        </tr></thead>
+        <tbody id="tbodyBackups">
+          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- MODAL: CAMBIAR PRECIO -->
   <div class="modal-overlay" id="modalPrice" onclick="closeModal('modalPrice',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -1752,6 +1790,8 @@
         await enterAdminPanel(role);
         logAdminAction('login_success', null, null);
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+        // Auto-backup silencioso si pasaron > 24h desde el último (tarda unos segundos, no bloquea)
+        setTimeout(function() { maybeAutoBackup(); }, 3000);
       } else {
         // Sumar fallo y aplicar lockout si corresponde
         var st = getLockoutState();
@@ -5196,7 +5236,9 @@
       'combo_delete':         { icon: '🗑️', label: 'Borrar combo' },
       'combo_stock_toggle':   { icon: '⏸', label: 'Combo stock' },
       'votacion_update':      { icon: '🗳️', label: 'Votación' },
-      'decants_config_update':{ icon: '💧', label: 'Decants config' }
+      'decants_config_update':{ icon: '💧', label: 'Decants config' },
+      'backup_create_manual':{ icon: '💾', label: 'Backup manual' },
+      'backup_create_auto':  { icon: '🤖', label: 'Backup auto' }
     };
 
     function auditFormatTime(iso) {
@@ -5426,6 +5468,228 @@
       } catch (e) {
         console.error('[analytics] load error:', e);
         if (meta) meta.textContent = '❌ ' + (e.message || String(e));
+      }
+    }
+
+    // ============================================================
+    // BACKUPS — snapshots manuales + auto cada 24h
+    // ============================================================
+    var BACKUP_TABLES = [
+      // Config editable
+      { name: 'perfume_overrides',  critical: true },
+      { name: 'perfumes_nuevos',    critical: true },
+      { name: 'combos',             critical: true },
+      { name: 'destacados',         critical: true },
+      { name: 'cierres_especiales', critical: true },
+      { name: 'ajuste_horario',     critical: true },
+      { name: 'votacion_config',    critical: true },
+      { name: 'decants_config',     critical: true },
+      // Data de negocio
+      { name: 'clientes',           critical: false },
+      { name: 'opiniones',          critical: false },
+      { name: 'lista_espera',       critical: false },
+      { name: 'votos',              critical: false }
+    ];
+
+    var backupsCleanupRan = false;
+    var backupAutoRan = false;
+
+    function formatBytes(bytes) {
+      if (!bytes && bytes !== 0) return '—';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    }
+
+    function backupFormatTime(ts) {
+      var d = new Date(ts);
+      var now = new Date();
+      var diffMs = now - d;
+      var diffMin = Math.floor(diffMs / 60000);
+      if (diffMin < 1) return 'hace segundos';
+      if (diffMin < 60) return 'hace ' + diffMin + 'min';
+      var diffH = Math.floor(diffMin / 60);
+      if (diffH < 24) return 'hace ' + diffH + 'h';
+      return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+        + ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function buildBackupSnapshot() {
+      var snapshot = {};
+      var rowCounts = {};
+      var errors = [];
+      for (var i = 0; i < BACKUP_TABLES.length; i++) {
+        var t = BACKUP_TABLES[i];
+        try {
+          var res = await sb.from(t.name).select('*');
+          if (res.error) throw res.error;
+          snapshot[t.name] = res.data || [];
+          rowCounts[t.name] = (res.data || []).length;
+        } catch (e) {
+          console.warn('[backup] error leyendo', t.name, e);
+          snapshot[t.name] = null;
+          rowCounts[t.name] = -1;
+          errors.push(t.name + ': ' + (e.message || e));
+        }
+      }
+      return { snapshot: snapshot, rowCounts: rowCounts, errors: errors };
+    }
+
+    async function createBackup(trigger) {
+      var built = await buildBackupSnapshot();
+      var payload = {
+        version: 1,
+        created_at: new Date().toISOString(),
+        app: 'ST Perfumeria admin backup',
+        snapshot: built.snapshot,
+        row_counts: built.rowCounts,
+        errors: built.errors.length ? built.errors : undefined
+      };
+      var jsonStr = JSON.stringify(payload);
+      var email = null;
+      try {
+        var sessRes = await sb.auth.getSession();
+        if (sessRes && sessRes.data && sessRes.data.session && sessRes.data.session.user) {
+          email = sessRes.data.session.user.email;
+        }
+      } catch(_) {}
+
+      var { data, error } = await sb.from('admin_backups').insert({
+        trigger: trigger,
+        actor_email: email,
+        size_bytes: jsonStr.length,
+        row_counts: built.rowCounts,
+        data: payload
+      }).select().single();
+
+      if (error) throw error;
+      return data;
+    }
+
+    async function createManualBackup() {
+      var btn = document.getElementById('btnCreateBackup');
+      var meta = document.getElementById('backupsMeta');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Creando...'; }
+      if (meta) meta.textContent = 'Generando snapshot...';
+      try {
+        var b = await createBackup('manual');
+        logAdminAction('backup_create_manual', null, { size_bytes: b.size_bytes, row_counts: b.row_counts });
+        if (meta) meta.textContent = '✅ Backup creado (' + formatBytes(b.size_bytes) + ')';
+        loadBackups();
+      } catch (e) {
+        console.error('[backup] error:', e);
+        if (meta) meta.textContent = '❌ Error: ' + (e.message || e);
+        alert('Error creando backup: ' + (e.message || e));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Crear backup ahora'; }
+      }
+    }
+
+    async function maybeAutoBackup() {
+      if (backupAutoRan) return;
+      backupAutoRan = true;
+      try {
+        // ¿Cuándo fue el último?
+        var { data, error } = await sb.from('admin_backups')
+          .select('created_at')
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (error) { console.warn('[backup] auto check fallo:', error); return; }
+
+        var needNew = false;
+        if (!data || data.length === 0) {
+          needNew = true;
+        } else {
+          var last = new Date(data[0].created_at).getTime();
+          if (Date.now() - last > 24 * 60 * 60 * 1000) needNew = true;
+        }
+
+        if (needNew) {
+          console.log('[backup] auto: creando snapshot (>24h sin backup)...');
+          var b = await createBackup('auto');
+          logAdminAction('backup_create_auto', null, { size_bytes: b.size_bytes });
+          console.log('[backup] auto: creado (' + formatBytes(b.size_bytes) + ')');
+        } else {
+          console.log('[backup] auto: skip (último fue hace < 24h)');
+        }
+      } catch(e) {
+        console.warn('[backup] auto fallo:', e);
+      }
+    }
+
+    async function loadBackups() {
+      var tbody = document.getElementById('tbodyBackups');
+      var meta = document.getElementById('backupsMeta');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>';
+
+      // Cleanup una vez por sesión
+      if (!backupsCleanupRan) {
+        backupsCleanupRan = true;
+        sb.rpc('admin_backups_cleanup').then(function(r) {
+          if (r && r.data) console.log('[backup] cleanup: ' + r.data + ' viejos borrados');
+        }).catch(function(e) { console.warn('[backup] cleanup fallo:', e); });
+      }
+
+      try {
+        var { data, error } = await sb.from('admin_backups')
+          .select('id, created_at, trigger, actor_email, size_bytes, row_counts')
+          .order('created_at', { ascending: false })
+          .limit(200);
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Sin backups todavía. Tocá "💾 Crear backup ahora" para generar el primero.</td></tr>';
+          if (meta) meta.textContent = '';
+          return;
+        }
+
+        var rows = data.map(function(b) {
+          var origen = b.trigger === 'manual' ? '👆 Manual' : '🤖 Auto';
+          var filas = 0;
+          if (b.row_counts) {
+            for (var k in b.row_counts) {
+              if (b.row_counts.hasOwnProperty(k) && b.row_counts[k] > 0) filas += b.row_counts[k];
+            }
+          }
+          var actor = b.actor_email ? b.actor_email.split('@')[0] : '—';
+          return '<tr>'
+            + '<td style="font-size:.7rem;color:var(--gris-claro);white-space:nowrap;">' + escHtml(backupFormatTime(b.created_at)) + '<br><span style="font-size:.6rem;color:var(--gris);">' + escHtml(actor) + '</span></td>'
+            + '<td style="font-size:.72rem;">' + origen + '</td>'
+            + '<td style="font-size:.72rem;color:var(--amarillo);">' + formatBytes(b.size_bytes) + '</td>'
+            + '<td style="font-size:.68rem;color:var(--gris-claro);">' + filas.toLocaleString('es-AR') + ' filas</td>'
+            + '<td><button class="action-btn" onclick="downloadBackup(\'' + b.id + '\')" style="padding:.35rem .7rem;font-size:.7rem;">📥 JSON</button></td>'
+          + '</tr>';
+        }).join('');
+
+        tbody.innerHTML = rows;
+        if (meta) meta.textContent = data.length + ' backup' + (data.length === 1 ? '' : 's') + ' · actualizado ' + new Date().toLocaleTimeString('es-AR');
+      } catch (e) {
+        console.error('[backup] load error:', e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">Error al cargar: ' + escHtml(e.message || String(e)) + '</td></tr>';
+      }
+    }
+
+    async function downloadBackup(id) {
+      try {
+        var { data, error } = await sb.from('admin_backups')
+          .select('created_at, data, size_bytes, trigger')
+          .eq('id', id).single();
+        if (error) throw error;
+        var json = JSON.stringify(data.data, null, 2);
+        var blob = new Blob([json], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        var ts = new Date(data.created_at).toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        a.download = 'st-backup-' + ts + '-' + data.trigger + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      } catch(e) {
+        console.error('[backup] download error:', e);
+        alert('Error descargando backup: ' + (e.message || e));
       }
     }
   </script>
