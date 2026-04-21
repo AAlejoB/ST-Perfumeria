@@ -506,6 +506,15 @@
 </head>
 <body>
 
+  <!-- Datalist compartido para los inputs de perfil (se auto-actualiza desde rebuildPerfilesList) -->
+  <datalist id="perfilesList">
+    <option value="Versátil"></option>
+    <option value="Intenso"></option>
+    <option value="Dulce"></option>
+    <option value="Fresco"></option>
+    <option value="Floral"></option>
+  </datalist>
+
   <!-- LOGIN -->
   <div class="login-wrap" id="loginWrap">
     <div class="login-box">
@@ -647,13 +656,8 @@
             </div>
             <div>
               <label class="modal-label">Perfil</label>
-              <select class="modal-input" id="editPerfil" style="margin-bottom:0;cursor:pointer;appearance:auto;">
-                <option value="Versátil">Versátil</option>
-                <option value="Intenso">Intenso</option>
-                <option value="Dulce">Dulce</option>
-                <option value="Fresco">Fresco</option>
-                <option value="Floral">Floral</option>
-              </select>
+              <input type="text" class="modal-input" id="editPerfil" list="perfilesList" placeholder="Versátil, Intenso, Dulce, Fresco, Floral... o inventá uno" autocomplete="off" style="margin-bottom:0;"/>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Elegí uno de la lista o escribí uno nuevo (ej: Aromático, Oud dulce, Ahumado, Oriental). La lista se va llenando con los que van usando.</p>
             </div>
             <div>
               <label class="modal-label">Precio tarjeta</label>
@@ -806,13 +810,8 @@
             </div>
             <div>
               <label class="modal-label">Perfil *</label>
-              <select class="modal-input" id="nuevoPerfil" style="margin-bottom:0;cursor:pointer;appearance:auto;">
-                <option value="Versátil">Versátil</option>
-                <option value="Intenso">Intenso</option>
-                <option value="Dulce">Dulce</option>
-                <option value="Fresco">Fresco</option>
-                <option value="Floral">Floral</option>
-              </select>
+              <input type="text" class="modal-input" id="nuevoPerfil" list="perfilesList" placeholder="Versátil, Intenso, Dulce, Fresco, Floral... o inventá uno" autocomplete="off" value="Versátil" style="margin-bottom:0;"/>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Elegí uno de la lista o escribí uno nuevo (ej: Aromático, Oud dulce, Ahumado). La lista se auto-actualiza.</p>
             </div>
             <div>
               <label class="modal-label">Precio tarjeta *</label>
@@ -3084,10 +3083,34 @@
       notifyTelegram('🔧 Migración de tipos: ' + pendientes.length + ' productos actualizados');
     }
 
+    // Regenera el <datalist id="perfilesList"> con las 5 bases + cualquier perfil
+    // custom que ya usaron los empleados (scan de PERFUMES). Así los perfiles
+    // inventados se "propagan" como sugerencia al próximo que edita un perfume.
+    function rebuildPerfilesList() {
+      var dl = document.getElementById('perfilesList');
+      if (!dl) return;
+      var base = ['Versátil', 'Intenso', 'Dulce', 'Fresco', 'Floral'];
+      var set = {};
+      base.forEach(function(v) { set[v] = true; });
+      if (typeof PERFUMES !== 'undefined' && PERFUMES) {
+        PERFUMES.forEach(function(p) {
+          var v = (p.perfil || '').trim();
+          if (v) set[v] = true;
+        });
+      }
+      // Ordenar: bases primero en su orden, después customs alfabéticamente
+      var customs = Object.keys(set).filter(function(v) { return base.indexOf(v) === -1; }).sort();
+      var ordered = base.concat(customs);
+      dl.innerHTML = ordered.map(function(v) {
+        return '<option value="' + v.replace(/"/g, '&quot;') + '"></option>';
+      }).join('');
+    }
+
     function loadEditPerfume(slug) {
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
 
+      rebuildPerfilesList(); // refresca sugerencias antes de abrir el modal
       document.getElementById('editSlug').value = slug;
       document.getElementById('editingName').textContent = p.name;
       document.getElementById('editName').value = p.name;
@@ -3175,7 +3198,7 @@
         marca: document.getElementById('editMarca').value.trim(),
         marca_real: document.getElementById('editMarcaReal').value.trim(),
         cat: document.getElementById('editCat').value,
-        perfil: document.getElementById('editPerfil').value,
+        perfil: document.getElementById('editPerfil').value.trim() || 'Versátil',
         tipo: tipoFinal,
         price: document.getElementById('editPrice').value.trim(),
         promo: document.getElementById('editPromo').value.trim(),
@@ -3635,7 +3658,7 @@
       var marca = 'ST Perfumería';
       var marcaReal = document.getElementById('nuevoMarcaReal').value.trim();
       var cat = document.getElementById('nuevoCat').value;
-      var perfil = document.getElementById('nuevoPerfil').value;
+      var perfil = document.getElementById('nuevoPerfil').value.trim() || 'Versátil';
       var price = parseInt(document.getElementById('nuevoPrice').value) || 0;
       var promo = document.getElementById('nuevoPromo').value ? parseInt(document.getElementById('nuevoPromo').value) : null;
       var foto = document.getElementById('nuevoFoto').value.trim();
@@ -3756,6 +3779,7 @@
     }
 
     function clearNuevoForm() {
+      rebuildPerfilesList(); // refresca sugerencias del datalist
       document.getElementById('nuevoEditId').value = '';
       document.getElementById('nuevoName').value = '';
       document.getElementById('nuevoMarca').value = 'ST Perfumería';
