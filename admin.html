@@ -652,6 +652,7 @@
                 <option value="Intenso">Intenso</option>
                 <option value="Dulce">Dulce</option>
                 <option value="Fresco">Fresco</option>
+                <option value="Floral">Floral</option>
               </select>
             </div>
             <div>
@@ -704,9 +705,9 @@
               <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Máx. 3 fotos extra. Podés subir fotos arriba y copiar la URL acá.</p>
             </div>
             <div style="grid-column:1/-1;">
-              <label class="modal-label">🔎 Apodos / abreviaciones (para la búsqueda)</label>
-              <input type="text" class="modal-input" id="editAlias" placeholder="Ej: cdn, club nuit, club de noche" style="margin-bottom:0;"/>
-              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Separá por comas. Si alguien busca cualquiera de estas palabras, encuentra el perfume.</p>
+              <label class="modal-label">🔎 Apodos / palabras clave (búsqueda + orientación del equipo)</label>
+              <input type="text" class="modal-input" id="editAlias" placeholder="Ej: cdn, club nuit, el de los chicos, intenso oud, dulce vainilla" style="margin-bottom:0;"/>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Separá por comas. Sirven para <strong style="color:#ccc;">dos cosas</strong>: (1) si un cliente busca cualquiera de estas palabras en la web, encuentra el perfume, y (2) para que el equipo identifique rápido "de cuál es" sin conocerlo de memoria. Podés poner apodos, familia olfativa, referencias internas.</p>
             </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">🏷️ Etiqueta de cinta (aparece arriba de la card)</label>
@@ -810,6 +811,7 @@
                 <option value="Intenso">Intenso</option>
                 <option value="Dulce">Dulce</option>
                 <option value="Fresco">Fresco</option>
+                <option value="Floral">Floral</option>
               </select>
             </div>
             <div>
@@ -851,9 +853,9 @@
               <input type="text" class="modal-input" id="nuevoBase" placeholder="Vainilla, Ámbar, Almizcle" style="margin-bottom:0;"/>
             </div>
             <div style="grid-column:1/-1;">
-              <label class="modal-label">🔎 Apodos / abreviaciones (búsqueda)</label>
-              <input type="text" class="modal-input" id="nuevoAlias" placeholder="Ej: cdn, club nuit" style="margin-bottom:0;"/>
-              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Separá por comas. Opcional.</p>
+              <label class="modal-label">🔎 Apodos / palabras clave (búsqueda + orientación del equipo)</label>
+              <input type="text" class="modal-input" id="nuevoAlias" placeholder="Ej: cdn, club nuit, el de los chicos, intenso oud" style="margin-bottom:0;"/>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Separá por comas. Sirven tanto para que los clientes encuentren el perfume buscando, como para que el equipo se oriente sobre qué es (familia, referencias).</p>
             </div>
           </div>
           <div style="display:flex;gap:.5rem;margin-top:1rem;">
@@ -1123,6 +1125,19 @@
           <div style="flex:1"><label class="modal-label">Precio original</label><input type="number" class="modal-input" id="comboPrice" placeholder="99000"/></div>
           <div style="flex:1"><label class="modal-label">Precio promo (opcional)</label><input type="number" class="modal-input" id="comboPromo" placeholder="89100"/></div>
         </div>
+        <label class="modal-label">📸 Foto del combo (opcional pero recomendado)</label>
+        <div style="display:flex;gap:.5rem;align-items:center;max-width:100%;overflow:hidden;margin-bottom:.4rem;">
+          <label class="action-btn btn-price" style="cursor:pointer;padding:.5rem .8rem;font-size:.65rem;text-align:center;flex-shrink:0;white-space:nowrap;">
+            📷 Subir
+            <input type="file" id="comboFotoFile" accept="image/*" onchange="uploadComboFoto(this)" style="display:none;"/>
+          </label>
+          <input type="text" class="modal-input" id="comboFoto" placeholder="Se completa al subir..." style="margin-bottom:0;flex:1;min-width:0;font-size:.65rem;"/>
+          <div id="comboFotoPreview" style="width:36px;height:48px;border-radius:4px;overflow:hidden;background:#1a1a1a;flex-shrink:0;display:none;">
+            <img id="comboFotoPreviewImg" style="width:100%;height:100%;object-fit:cover;"/>
+          </div>
+          <button type="button" id="comboFotoClear" onclick="clearComboFoto()" style="display:none;flex-shrink:0;background:transparent;border:1px solid var(--borde);color:#e74c3c;padding:.4rem .6rem;border-radius:4px;cursor:pointer;font-size:.65rem;">✕</button>
+        </div>
+        <p id="comboFotoMsg" style="font-size:.6rem;color:var(--gris);margin-bottom:.8rem;min-height:.8rem;">Si subís una foto, se muestra como imagen principal del combo. Si la dejás vacía, se arma con las fotos de los perfumes individuales.</p>
         <label class="modal-label">Perfumes del combo</label>
         <div id="comboItems" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem;"></div>
         <button class="action-btn btn-stock" onclick="addComboItem()" style="margin-bottom:1rem;font-size:.68rem;">+ Agregar perfume</button>
@@ -3495,6 +3510,67 @@
       input.value = '';
     }
 
+    // Upload foto para combos (replica uploadFoto pero apuntando a inputs del combo)
+    async function uploadComboFoto(input) {
+      var file = input.files[0];
+      if (!file) return;
+
+      var msgEl = document.getElementById('comboFotoMsg');
+      var previewWrap = document.getElementById('comboFotoPreview');
+      var previewImg = document.getElementById('comboFotoPreviewImg');
+      var fotoInput = document.getElementById('comboFoto');
+      var clearBtn = document.getElementById('comboFotoClear');
+
+      msgEl.textContent = 'Comprimiendo y subiendo...';
+      msgEl.style.color = '#e8b800';
+
+      try {
+        var compressed = await compressToWebP(file, 800, 0.82);
+
+        // Nombre basado en nombre del combo (o timestamp si está vacío)
+        var nombre = document.getElementById('comboName').value.trim();
+        var fileName = nombre
+          ? 'combo-' + nombre.toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\s+/g, ' ') + '.webp'
+          : 'combo-' + Date.now() + '.webp';
+
+        var { data, error } = await sb.storage
+          .from('perfume-fotos')
+          .upload(fileName, compressed, {
+            contentType: 'image/webp',
+            upsert: true
+          });
+        if (error) throw error;
+
+        var { data: urlData } = sb.storage
+          .from('perfume-fotos')
+          .getPublicUrl(fileName);
+
+        var publicUrl = urlData.publicUrl + '?v=' + Date.now();
+        fotoInput.value = publicUrl;
+
+        previewImg.src = publicUrl;
+        previewWrap.style.display = 'block';
+        clearBtn.style.display = 'inline-block';
+
+        var sizeKB = Math.round(compressed.size / 1024);
+        msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
+        msgEl.style.color = '#2ecc71';
+      } catch(e) {
+        msgEl.textContent = 'Error: ' + (e.message || e);
+        msgEl.style.color = '#e74c3c';
+      }
+      input.value = '';
+    }
+
+    function clearComboFoto() {
+      document.getElementById('comboFoto').value = '';
+      document.getElementById('comboFotoPreview').style.display = 'none';
+      document.getElementById('comboFotoClear').style.display = 'none';
+      var msgEl = document.getElementById('comboFotoMsg');
+      msgEl.textContent = 'Si subís una foto, se muestra como imagen principal del combo. Si la dejás vacía, se arma con las fotos de los perfumes individuales.';
+      msgEl.style.color = '';
+    }
+
     function compressToWebP(file, maxSize, quality) {
       return new Promise(function(resolve, reject) {
         var reader = new FileReader();
@@ -4086,6 +4162,7 @@
       document.getElementById('comboPromo').value = '';
       document.getElementById('comboItems').innerHTML = '';
       document.getElementById('comboMsg').textContent = '';
+      clearComboFoto();
       addComboItem();
       addComboItem();
       document.getElementById('comboForm').style.display = 'block';
@@ -4264,6 +4341,15 @@
       document.getElementById('comboPromo').value = s.promo ? parseFloat(String(s.promo).replace(/,/g, '')) : '';
       document.getElementById('comboMsg').textContent = '';
 
+      // Cargar foto si existe
+      clearComboFoto();
+      if (s.foto) {
+        document.getElementById('comboFoto').value = s.foto;
+        document.getElementById('comboFotoPreviewImg').src = s.foto;
+        document.getElementById('comboFotoPreview').style.display = 'block';
+        document.getElementById('comboFotoClear').style.display = 'inline-block';
+      }
+
       var container = document.getElementById('comboItems');
       container.innerHTML = '';
       (s.items || []).forEach(function(item) {
@@ -4316,6 +4402,8 @@
       var priceFormatted = parseFloat(price).toLocaleString('en-US', { minimumFractionDigits: 2 });
       var promoFormatted = promo ? parseFloat(promo).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '';
 
+      var fotoUrl = (document.getElementById('comboFoto').value || '').trim();
+
       var comboData = {
         slug: slug,
         name: name,
@@ -4324,7 +4412,7 @@
         perfil: 'Versátil',
         price: priceFormatted,
         promo: promoFormatted || null,
-        foto: '',
+        foto: fotoUrl,
         esSet: true,
         setTipo: tipo,
         items: items

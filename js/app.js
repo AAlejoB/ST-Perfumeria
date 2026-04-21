@@ -1428,20 +1428,29 @@
       sets.forEach(function(s) {
         var items = s.items || [];
         var itemCount = items.length;
-        var itemsClass = 'items-' + (itemCount > 4 ? 4 : itemCount);
+        var hasOwnPhoto = !!(s.foto && s.foto.trim());
+        // Si el combo tiene foto propia, usamos clase hero; si no, grid de items
+        var itemsClass = hasOwnPhoto ? 'items-hero' : ('items-' + (itemCount > 4 ? 4 : itemCount));
 
         // Build image slots
         var imgsHTML = '';
-        items.forEach(function(item) {
-          var ref = item.slug ? PERFUMES.find(function(pf) { return pf.slug === item.slug; }) : null;
-          var foto = ref && ref.foto ? ref.foto.replace(/ /g, '%20') : '';
-          var nombre = item.nombre || (ref ? ref.name : '?');
-          if (foto) {
-            imgsHTML += '<div class="set-img-slot"><img src="' + foto + '" alt="' + nombre + '" loading="lazy" decoding="async"></div>';
-          } else {
-            imgsHTML += '<div class="set-img-slot"><span class="set-img-letter">' + nombre.charAt(0) + '</span></div>';
-          }
-        });
+        if (hasOwnPhoto) {
+          // Una sola foto grande del combo completo
+          var fotoCombo = s.foto.replace(/ /g, '%20');
+          imgsHTML = '<div class="set-img-slot set-img-hero"><img src="' + fotoCombo + '" alt="' + s.name + '" loading="lazy" decoding="async"></div>';
+        } else {
+          // Fallback: grid con la foto de cada perfume-item
+          items.forEach(function(item) {
+            var ref = item.slug ? PERFUMES.find(function(pf) { return pf.slug === item.slug; }) : null;
+            var foto = ref && ref.foto ? ref.foto.replace(/ /g, '%20') : '';
+            var nombre = item.nombre || (ref ? ref.name : '?');
+            if (foto) {
+              imgsHTML += '<div class="set-img-slot"><img src="' + foto + '" alt="' + nombre + '" loading="lazy" decoding="async"></div>';
+            } else {
+              imgsHTML += '<div class="set-img-slot"><span class="set-img-letter">' + nombre.charAt(0) + '</span></div>';
+            }
+          });
+        }
 
         // Build items list
         var listHTML = '';

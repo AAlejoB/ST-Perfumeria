@@ -986,6 +986,10 @@
     .set-images.items-4 .set-img-slot { width: calc(50% - 1px); aspect-ratio: 1; }
     .set-images.items-3 .set-img-slot { width: calc(50% - 1px); aspect-ratio: 1; }
     .set-images.items-1 .set-img-slot { width: 100%; aspect-ratio: 3/4; }
+    /* Combo con foto propia: una sola imagen hero que llena el contenedor */
+    .set-images.items-hero { padding: 0; gap: 0; }
+    .set-images.items-hero .set-img-slot { width: 100%; aspect-ratio: 1; border-radius: 0; }
+    .set-images.items-hero .set-img-slot img { width: 100%; height: 100%; object-fit: cover; }
 
     .set-img-slot {
       background: #1a1a1d;
