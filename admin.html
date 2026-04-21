@@ -568,7 +568,7 @@
       </div>
       <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock, y <strong>Editar</strong> para cambiar el precio.</p>
       <table class="admin-table">
-        <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Promo</th><th>Accion</th></tr></thead>
+        <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th><th>Accion</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
       </table>
     </div>
@@ -2089,11 +2089,14 @@
         var status = getStockStatus(p.slug);
         var badgeClass = status === 'ok' ? 'badge-ok' : status === 'low' ? 'badge-low' : status === 'pausado' ? 'badge-paused' : 'badge-out';
         var badgeText = status === 'ok' ? 'En stock' : status === 'low' ? 'Ultimo' : status === 'pausado' ? 'Pausado' : 'Sin stock';
+        // Precio efectivo: 10% OFF sobre el mejor precio (usa promo si hay, sino price)
+        var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+        var cashPrice = Math.round(basePrice * 0.9);
         html += '<tr data-search="' + p.name.toLowerCase() + '">'
           + '<td class="td-name">' + p.name + '</td>'
           + '<td class="td-stock"><span class="badge-stock ' + badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
-          + '<td class="td-price">' + (p.promo ? '$' + parsePrice(p.promo).toLocaleString('es-AR') : '-') + '</td>'
+          + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
           + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
           + '</tr>';
       });
