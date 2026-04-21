@@ -14,6 +14,109 @@
     }
 
     // ============================================================
+    // ANALYTICS EVENTS — view_product / decant_add / wa_click / search_empty
+    // ============================================================
+    var ANALYTICS_QUEUE = [];
+    var ANALYTICS_SESSION_ID = (function(){
+      try {
+        var k = 'st_analytics_sid';
+        var sid = localStorage.getItem(k);
+        if (!sid) {
+          // UUID v4 light
+          sid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0;
+            var v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+          localStorage.setItem(k, sid);
+        }
+        return sid;
+      } catch (_) {
+        return 'anon-' + Math.random().toString(36).slice(2, 10);
+      }
+    })();
+    var ANALYTICS_DEVICE = (function(){
+      try {
+        if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) return 'mobile';
+        return 'desktop';
+      } catch(_) { return 'unknown'; }
+    })();
+    var ANALYTICS_REFERRER = (function(){
+      try {
+        var r = document.referrer || '';
+        if (!r) return 'direct';
+        var h = new URL(r).hostname;
+        if (!h) return 'direct';
+        if (h.indexOf('google') !== -1) return 'google';
+        if (h.indexOf('instagram') !== -1) return 'instagram';
+        if (h.indexOf('facebook') !== -1) return 'facebook';
+        if (h.indexOf('whatsapp') !== -1 || h.indexOf('wa.me') !== -1) return 'whatsapp';
+        if (h.indexOf(location.hostname) !== -1) return 'internal';
+        return h;
+      } catch(_) { return 'direct'; }
+    })();
+    function trackEvent(type, data) {
+      try {
+        var evt = {
+          session_id: ANALYTICS_SESSION_ID,
+          event_type: type,
+          slug: data && data.slug ? data.slug : null,
+          query: data && data.query ? data.query : null,
+          meta: {
+            device: ANALYTICS_DEVICE,
+            referrer: ANALYTICS_REFERRER,
+            hour: new Date().getHours()
+          }
+        };
+        if (data && data.meta) {
+          for (var k in data.meta) { if (data.meta.hasOwnProperty(k)) evt.meta[k] = data.meta[k]; }
+        }
+        ANALYTICS_QUEUE.push(evt);
+        if (ANALYTICS_QUEUE.length >= 20) flushAnalytics();
+      } catch(_){}
+    }
+    function flushAnalytics() {
+      if (ANALYTICS_QUEUE.length === 0) return;
+      var batch = ANALYTICS_QUEUE.splice(0, ANALYTICS_QUEUE.length);
+      sb.from('analytics_events').insert(batch).then(function(res){
+        if (res && res.error) {
+          // Si falla, los descartamos (ya fueron sacados del queue)
+          console.warn('[analytics] flush error', res.error.message);
+        }
+      });
+    }
+    // Flush cada 10s
+    setInterval(flushAnalytics, 10000);
+    // Flush antes de cerrar pestaña (sendBeacon para no perder eventos)
+    window.addEventListener('beforeunload', function(){
+      try {
+        if (ANALYTICS_QUEUE.length === 0) return;
+        var batch = ANALYTICS_QUEUE.splice(0, ANALYTICS_QUEUE.length);
+        var body = JSON.stringify(batch);
+        var url = SUPABASE_URL + '/rest/v1/analytics_events';
+        if (navigator.sendBeacon) {
+          var blob = new Blob([body], { type: 'application/json' });
+          // sendBeacon no permite headers custom; Supabase necesita apikey en header → fallback a fetch keepalive
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_KEY,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: body,
+            keepalive: true
+          }).catch(function(){});
+        }
+      } catch(_){}
+    });
+    // Flush también cuando la página se oculta (iOS Safari a veces no dispara beforeunload)
+    document.addEventListener('visibilitychange', function(){
+      if (document.visibilityState === 'hidden') flushAnalytics();
+    });
+
+    // ============================================================
     // AUTH — registro con nombre + WhatsApp
     // ============================================================
     function openAuth() {
@@ -1269,6 +1372,7 @@
     renderSeleccionST();
 
     function scrollToPerfume(slug) {
+      trackEvent('view_product', { slug: slug, meta: { source: 'scrollTo' } });
       // Limpiar TODOS los filtros para que la card sea visible
       currentFilter = 'all';
       filterNewActive = false;
@@ -2285,8 +2389,17 @@
         box.innerHTML = '<div class="search-sug-empty">No se encontraron resultados</div>';
         box.classList.add('active');
         sugActiveIndex = -1;
+        // Trackear solo si query tiene 3+ chars y el usuario dejó de tipear 2s
+        if (query.trim().length >= 3) {
+          if (window._searchEmptyTimer) clearTimeout(window._searchEmptyTimer);
+          window._searchEmptyTimer = setTimeout(function(){
+            trackEvent('search_empty', { query: query.trim().toLowerCase().slice(0, 80) });
+          }, 2000);
+        }
         return;
       }
+      // Si hubo match, cancelar el timer pendiente (el usuario encontró algo)
+      if (window._searchEmptyTimer) { clearTimeout(window._searchEmptyTimer); window._searchEmptyTimer = null; }
 
       var html = '';
       matches.forEach(function(m, i) {
@@ -3329,6 +3442,7 @@
       if (e) { e.preventDefault(); e.stopPropagation(); }
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
+      trackEvent('wa_click', { slug: slug, meta: { isSet: !!p.esSet } });
       var msg = 'Hola! Me interesa el ' + p.name + (p.esSet ? ' (Set)' : '') + '. ¿Tienen disponibilidad?';
       // Abrir WhatsApp sincrónicamente para que no lo bloquee el anti-popup
       window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
@@ -4152,6 +4266,7 @@
         return;
       }
       decantsPack.push(slug);
+      trackEvent('decant_add', { slug: slug, meta: { packSize: decantsPack.length } });
       saveDecantsPack();
       updateDecantUI();
       renderDecantGrid();

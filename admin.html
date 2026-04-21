@@ -541,6 +541,7 @@
       <button class="tab-btn" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
       <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
       <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog()">📋 Log</button>
+      <button class="tab-btn" data-role="jefe" data-tab="analytics" onclick="switchTab('analytics',this);loadAnalytics()">📊 Analytics</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -1358,6 +1359,125 @@
           <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- TAB: ANALYTICS -->
+  <div class="tab-content" id="tab-analytics">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <p style="font-size:2rem;margin-bottom:.3rem;">📊</p>
+      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Analytics</p>
+      <p style="font-size:.7rem;color:var(--gris);">Retención 60 días · Datos anónimos (session_id)</p>
+    </div>
+
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+      <button class="action-btn" onclick="loadAnalytics()" style="padding:.5rem 1rem;">↺ Refrescar</button>
+      <select id="analyticsRange" onchange="loadAnalytics()" style="padding:.5rem;background:#111;color:#fff;border:1px solid var(--borde);border-radius:6px;font-size:.75rem;">
+        <option value="7" selected>Últimos 7 días</option>
+        <option value="14">Últimos 14 días</option>
+        <option value="30">Últimos 30 días</option>
+        <option value="60">Últimos 60 días</option>
+      </select>
+      <span id="analyticsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+    </div>
+
+    <!-- Cards de totales -->
+    <div id="analyticsTotals" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.5rem;">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:700;color:var(--amarillo);" id="totViews">—</div>
+        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Vistas</div>
+      </div>
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:700;color:#3da5ff;" id="totDecants">—</div>
+        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Decants agregados</div>
+      </div>
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:700;color:#25d366;" id="totWA">—</div>
+        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Clicks WhatsApp</div>
+      </div>
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:700;color:#e74c3c;" id="totEmpty">—</div>
+        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Búsquedas vacías</div>
+      </div>
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:700;color:#fff;" id="totSessions">—</div>
+        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Sesiones únicas</div>
+      </div>
+    </div>
+
+    <!-- Grid de bloques -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem;">
+      <!-- Top viewed -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <strong style="font-size:.8rem;color:#fff;">🔥 Más vistos</strong>
+        </div>
+        <table class="admin-table" style="margin:0;font-size:.75rem;">
+          <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Vistas</th></tr></thead>
+          <tbody id="tbodyTopViewed"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- Top decants -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <strong style="font-size:.8rem;color:#fff;">💧 Más agregados al pack</strong>
+        </div>
+        <table class="admin-table" style="margin:0;font-size:.75rem;">
+          <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Veces</th></tr></thead>
+          <tbody id="tbodyTopDecants"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- Top WA -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <strong style="font-size:.8rem;color:#fff;">💬 Más consultados por WA</strong>
+        </div>
+        <table class="admin-table" style="margin:0;font-size:.75rem;">
+          <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Clicks</th></tr></thead>
+          <tbody id="tbodyTopWA"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- Search empty -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <strong style="font-size:.8rem;color:#fff;">🔍 Búsquedas sin resultados</strong>
+          <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(lo que falta en catálogo)</span>
+        </div>
+        <table class="admin-table" style="margin:0;font-size:.75rem;">
+          <thead><tr><th>#</th><th>Consulta</th><th style="text-align:right;">Veces</th></tr></thead>
+          <tbody id="tbodySearchEmpty"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Heatmap por hora -->
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1rem;">
+      <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+        <strong style="font-size:.8rem;color:#fff;">🕐 Actividad por hora</strong>
+        <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(todos los eventos)</span>
+      </div>
+      <div id="hourHeatmap" style="padding:.8rem;overflow-x:auto;">
+        <div style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">—</div>
+      </div>
+    </div>
+
+    <!-- Device + Referrer -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <strong style="font-size:.8rem;color:#fff;">📱 Dispositivo</strong>
+        </div>
+        <div id="deviceBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
+      </div>
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <strong style="font-size:.8rem;color:#fff;">🌐 De dónde vienen</strong>
+        </div>
+        <div id="referrerBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
+      </div>
     </div>
   </div>
 
@@ -5163,6 +5283,149 @@
       } catch (e) {
         console.error('[auditlog] load error:', e);
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">Error al cargar el log: ' + escHtml(e.message || String(e)) + '</td></tr>';
+      }
+    }
+
+    // ============================================================
+    // ANALYTICS — loader del tab 📊
+    // ============================================================
+    var analyticsCleanupRan = false;
+
+    function analyticsPerfumeName(slug) {
+      if (!slug) return '—';
+      var p = (typeof PERFUMES !== 'undefined' && PERFUMES) ? PERFUMES.find(function(x){ return x.slug === slug; }) : null;
+      if (p && p.name) return p.name;
+      return slug;
+    }
+
+    async function loadAnalytics() {
+      var meta = document.getElementById('analyticsMeta');
+      var totViews = document.getElementById('totViews');
+      var totDecants = document.getElementById('totDecants');
+      var totWA = document.getElementById('totWA');
+      var totEmpty = document.getElementById('totEmpty');
+      var totSessions = document.getElementById('totSessions');
+      var tbTopViewed = document.getElementById('tbodyTopViewed');
+      var tbTopDecants = document.getElementById('tbodyTopDecants');
+      var tbTopWA = document.getElementById('tbodyTopWA');
+      var tbEmpty = document.getElementById('tbodySearchEmpty');
+      var heatmapDiv = document.getElementById('hourHeatmap');
+      var deviceDiv = document.getElementById('deviceBreakdown');
+      var referrerDiv = document.getElementById('referrerBreakdown');
+
+      if (meta) meta.textContent = 'Cargando…';
+
+      // Cleanup 60 días (una vez por sesión)
+      if (!analyticsCleanupRan) {
+        analyticsCleanupRan = true;
+        sb.rpc('analytics_events_cleanup').catch(function(e){ console.warn('[analytics] cleanup fallo:', e); });
+      }
+
+      var days = parseInt(document.getElementById('analyticsRange').value, 10) || 7;
+      var since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+      try {
+        var { data, error } = await sb
+          .from('analytics_events')
+          .select('event_type,slug,query,meta,created_at,session_id')
+          .gte('created_at', since)
+          .order('created_at', { ascending: false })
+          .limit(10000);
+
+        if (error) throw error;
+        if (!data) data = [];
+
+        // Agregados
+        var counts = { view_product: 0, decant_add: 0, wa_click: 0, search_empty: 0 };
+        var topViewed = {}, topDecants = {}, topWA = {}, searchEmptyMap = {};
+        var byHour = new Array(24).fill(0);
+        var devices = {}, referrers = {};
+        var sessions = {};
+
+        data.forEach(function(e) {
+          if (counts.hasOwnProperty(e.event_type)) counts[e.event_type]++;
+          if (e.session_id) sessions[e.session_id] = 1;
+          if (e.event_type === 'view_product' && e.slug)  topViewed[e.slug]  = (topViewed[e.slug]  || 0) + 1;
+          if (e.event_type === 'decant_add'  && e.slug)   topDecants[e.slug] = (topDecants[e.slug] || 0) + 1;
+          if (e.event_type === 'wa_click'    && e.slug)   topWA[e.slug]      = (topWA[e.slug]      || 0) + 1;
+          if (e.event_type === 'search_empty' && e.query) searchEmptyMap[e.query] = (searchEmptyMap[e.query] || 0) + 1;
+          // Hora
+          var h = (e.meta && typeof e.meta.hour === 'number') ? e.meta.hour : new Date(e.created_at).getHours();
+          if (h >= 0 && h < 24) byHour[h]++;
+          // Device + referrer
+          if (e.meta && e.meta.device)   devices[e.meta.device]     = (devices[e.meta.device]     || 0) + 1;
+          if (e.meta && e.meta.referrer) referrers[e.meta.referrer] = (referrers[e.meta.referrer] || 0) + 1;
+        });
+
+        // Totales
+        totViews.textContent   = counts.view_product.toLocaleString('es-AR');
+        totDecants.textContent = counts.decant_add.toLocaleString('es-AR');
+        totWA.textContent      = counts.wa_click.toLocaleString('es-AR');
+        totEmpty.textContent   = counts.search_empty.toLocaleString('es-AR');
+        totSessions.textContent = Object.keys(sessions).length.toLocaleString('es-AR');
+
+        // Render tablas top
+        function renderTop(tbody, map, nameFn, valLabel) {
+          var arr = Object.keys(map).map(function(k){ return { k: k, v: map[k] }; });
+          arr.sort(function(a,b){ return b.v - a.v; });
+          arr = arr.slice(0, 10);
+          if (arr.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">Sin datos en este rango</td></tr>';
+            return;
+          }
+          tbody.innerHTML = arr.map(function(x, i){
+            return '<tr>'
+              + '<td style="color:var(--gris);">' + (i+1) + '</td>'
+              + '<td>' + escHtml(nameFn(x.k)) + '</td>'
+              + '<td style="text-align:right;font-weight:700;color:var(--amarillo);">' + x.v + '</td>'
+            + '</tr>';
+          }).join('');
+        }
+        renderTop(tbTopViewed,  topViewed,      analyticsPerfumeName);
+        renderTop(tbTopDecants, topDecants,     analyticsPerfumeName);
+        renderTop(tbTopWA,      topWA,          analyticsPerfumeName);
+        renderTop(tbEmpty,      searchEmptyMap, function(q){ return '"' + q + '"'; });
+
+        // Heatmap por hora
+        var maxHour = Math.max.apply(null, byHour);
+        if (maxHour === 0) {
+          heatmapDiv.innerHTML = '<div style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">Sin actividad en este rango</div>';
+        } else {
+          var cells = '';
+          for (var h = 0; h < 24; h++) {
+            var val = byHour[h];
+            var intensity = val / maxHour;
+            var bg = val === 0 ? '#1a1a1a' : 'rgba(232,184,0,' + (0.15 + intensity * 0.85) + ')';
+            var color = intensity > 0.5 ? '#000' : '#fff';
+            cells += '<div title="' + h + ':00 — ' + val + ' eventos" style="flex:1;min-width:28px;background:' + bg + ';border-radius:4px;padding:.4rem .2rem;text-align:center;font-size:.65rem;color:' + color + ';font-weight:' + (val === maxHour && val > 0 ? '700' : '400') + ';">'
+              + '<div style="font-size:.6rem;opacity:.7;">' + h + 'h</div>'
+              + '<div>' + val + '</div>'
+            + '</div>';
+          }
+          heatmapDiv.innerHTML = '<div style="display:flex;gap:.2rem;min-width:680px;">' + cells + '</div>';
+        }
+
+        // Device / referrer
+        function renderBreak(div, map) {
+          var arr = Object.keys(map).map(function(k){ return { k: k, v: map[k] }; });
+          arr.sort(function(a,b){ return b.v - a.v; });
+          if (arr.length === 0) { div.innerHTML = '<span style="color:var(--gris);">Sin datos</span>'; return; }
+          var tot = arr.reduce(function(s,x){ return s + x.v; }, 0);
+          div.innerHTML = arr.slice(0, 8).map(function(x){
+            var pct = tot > 0 ? Math.round(x.v / tot * 100) : 0;
+            return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;gap:.5rem;">'
+              + '<span style="color:#fff;">' + escHtml(x.k) + '</span>'
+              + '<span style="color:var(--gris);font-size:.72rem;">' + x.v + ' <span style="color:var(--amarillo);">(' + pct + '%)</span></span>'
+            + '</div>';
+          }).join('');
+        }
+        renderBreak(deviceDiv, devices);
+        renderBreak(referrerDiv, referrers);
+
+        if (meta) meta.textContent = data.length.toLocaleString('es-AR') + ' eventos · ' + days + 'd · actualizado ' + new Date().toLocaleTimeString('es-AR');
+      } catch (e) {
+        console.error('[analytics] load error:', e);
+        if (meta) meta.textContent = '❌ ' + (e.message || String(e));
       }
     }
   </script>
