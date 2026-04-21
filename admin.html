@@ -540,6 +540,7 @@
       <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
       <button class="tab-btn" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
       <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
+      <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog()">📋 Log</button>
     </div>
 
     <!-- TAB: PRECIOS -->
@@ -1331,6 +1332,35 @@
     <p class="modal-success" id="decMsg"></p>
   </div>
 
+  <!-- TAB: AUDIT LOG (solo jefe) -->
+  <div class="tab-content" id="tab-auditlog">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <p style="font-size:2rem;margin-bottom:.3rem;">📋</p>
+      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Registro de acciones</p>
+      <p style="font-size:.7rem;color:var(--gris);">Últimos 200 eventos · Retención 60 días · Inmutable</p>
+    </div>
+
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+      <button class="action-btn" onclick="loadAuditLog()" style="padding:.5rem 1rem;">↺ Refrescar</button>
+      <span id="auditLogMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+    </div>
+
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+      <table class="admin-table" style="margin:0;">
+        <thead><tr>
+          <th style="width:120px;">Cuándo</th>
+          <th style="width:90px;">Quién</th>
+          <th style="width:160px;">Acción</th>
+          <th style="width:140px;">Perfume</th>
+          <th>Detalle</th>
+        </tr></thead>
+        <tbody id="tbodyAuditLog">
+          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- MODAL: CAMBIAR PRECIO -->
   <div class="modal-overlay" id="modalPrice" onclick="closeModal('modalPrice',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -1542,6 +1572,35 @@
       tabLoaded['nuevos'] = true;
     }
 
+    // ============================================================
+    // AUDIT LOG — registro inmutable de acciones admin
+    // Cada mutación de catálogo/config llama a logAdminAction(...).
+    // Si el insert falla (Supabase caído, RLS mal configurada, etc)
+    // NUNCA bloqueamos la acción del usuario — solo warning en consola.
+    // Vive en tabla admin_actions, 60 días retención, inmutable via RLS.
+    // ============================================================
+    async function logAdminAction(action, target_slug, changes) {
+      try {
+        var email = null;
+        try {
+          var sessRes = await sb.auth.getSession();
+          if (sessRes && sessRes.data && sessRes.data.session && sessRes.data.session.user) {
+            email = sessRes.data.session.user.email;
+          }
+        } catch(_){}
+        await sb.from('admin_actions').insert({
+          actor_email: email,
+          actor_role: currentRole || 'admin',
+          action: action,
+          target_slug: target_slug || null,
+          changes: changes || null
+        });
+      } catch (e) {
+        // El log es secundario. Nunca abortamos la accion real.
+        console.warn('[audit log] fallo registrando', action, e);
+      }
+    }
+
     async function doLogin() {
       // Si está bloqueado, abortar
       if (renderLockoutCountdown()) {
@@ -1571,6 +1630,7 @@
       if (role) {
         clearLockoutState(); // login exitoso resetea el contador
         await enterAdminPanel(role);
+        logAdminAction('login_success', null, null);
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       } else {
         // Sumar fallo y aplicar lockout si corresponde
@@ -1593,6 +1653,8 @@
     }
 
     async function doLogout() {
+      // Loguear ANTES de signOut, mientras el JWT todavia es valido
+      await logAdminAction('logout', null, null);
       currentRole = null;
       stopInactivityWatcher();
       try { await sb.auth.signOut(); } catch(e) {}
@@ -1742,6 +1804,7 @@
           case 'horario': loadCierres(); loadAjuste(); break;
           case 'votacion': if (typeof loadVotacion === 'function') loadVotacion(); break;
           case 'push': if (typeof loadPushStats === 'function') loadPushStats(); break;
+          case 'auditlog': if (typeof loadAuditLog === 'function') loadAuditLog(); break;
         }
       }
     }
@@ -2561,6 +2624,7 @@
       var msgEl = document.getElementById('modalStockMsg');
 
       // Guardar en Supabase (persistente, visible para todos)
+      var prevStatus = p._stockStatus || 'ok';
       var result = await sb.from('perfume_overrides').upsert(
         { slug: editingSlug, stock_status: status },
         { onConflict: 'slug' }
@@ -2571,6 +2635,8 @@
         msgEl.style.color = '#e74c3c';
         return;
       }
+
+      logAdminAction('stock_update', editingSlug, { stock_status: { old: prevStatus, new: status } });
 
       // Actualizar en memoria
       p._stockStatus = status;
@@ -2831,6 +2897,8 @@
         return;
       }
 
+      logAdminAction('tipo_bulk_update', null, { count: pendientes.length, slugs: pendientes.map(function(x){return x.slug;}).slice(0, 50) });
+
       // Actualizar PERFUMES en memoria
       pendientes.forEach(function(x) {
         var idx = PERFUMES.findIndex(function(p) { return p.slug === x.slug; });
@@ -2987,6 +3055,11 @@
         }
       });
       if (logs.length > 0) {
+        // Audit log nuevo (admin_actions): resumen compacto de los campos cambiados
+        var changesCompact = {};
+        logs.forEach(function(l){ changesCompact[l.campo] = { old: l.valor_anterior, new: l.valor_nuevo }; });
+        logAdminAction('perfume_edit', slug, changesCompact);
+
         sb.from('edit_log').insert(logs).then(function() {
           tabLoaded['editar'] = false; // Invalidar para que recargue al volver
         });
@@ -3072,6 +3145,8 @@
 
       // Marcar en memoria para que el admin también lo refleje
       if (p) p._oculto = true;
+
+      logAdminAction('perfume_hide', slug, { nombre: nombre });
 
       msgEl.textContent = '✓ "' + nombre + '" eliminado del catálogo';
       msgEl.style.color = '#2ecc71';
@@ -3371,6 +3446,7 @@
       }
 
       var action = editId ? 'actualizado' : 'agregado';
+      logAdminAction(editId ? 'nuevo_update' : 'nuevo_create', slug, { name: name, marca: marca, price: price, promo: promo });
       msgEl.textContent = name + ' ' + action + ' correctamente';
       msgEl.style.color = '#2ecc71';
       notifyTelegram('🆕 Perfume ' + action + ': ' + name + '\n💰 $' + price.toLocaleString('es-AR') + '\n📋 ' + cat + ' · ' + perfil);
@@ -3434,6 +3510,7 @@
     async function deleteNuevo(id, name) {
       if (!confirm('¿Seguro que querés eliminar ' + name + '?')) return;
       await sb.from('perfumes_nuevos').delete().eq('id', id);
+      logAdminAction('nuevo_delete', null, { id: id, name: name });
       notifyTelegram('🗑️ Perfume eliminado: ' + name);
       loadNuevos();
     }
@@ -3478,6 +3555,7 @@
     }
 
     async function syncDestacadosToDB(slugs) {
+      var prevSlugs = cachedDestacados.slice();
       // Borrar todos y reinsertar con posiciones correctas
       await sb.from('destacados').delete().neq('id', 0);
       if (slugs.length > 0) {
@@ -3485,6 +3563,7 @@
         await sb.from('destacados').insert(rows);
       }
       cachedDestacados = slugs;
+      logAdminAction('destacados_update', null, { from: prevSlugs, to: slugs });
       renderDestacados();
     }
 
@@ -3654,6 +3733,8 @@
         msgEl.style.color = '#e74c3c'; return;
       }
 
+      logAdminAction('cierre_add', null, { desde: desde, hasta: hasta, dias: fechas.length, motivo: motivo });
+
       var desdeStr = new Date(desde + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
       var hastaStr = new Date(hasta + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
       var resumen = fechas.length === 1
@@ -3673,6 +3754,7 @@
     async function removeCierre(id) {
       if (!confirm('¿Eliminar este cierre?')) return;
       await sb.from('cierres_especiales').delete().eq('id', id);
+      logAdminAction('cierre_remove', null, { id: id });
       loadCierres();
     }
 
@@ -3751,6 +3833,7 @@
         msgEl.style.color = '#e74c3c'; return;
       }
 
+      logAdminAction('horario_update', null, row);
       msgEl.textContent = 'Horario guardado: ' + horaAbre + ':00 a ' + horaCierra + ':00';
       msgEl.style.color = '#2ecc71';
       notifyTelegram('🕐 Horario cambiado\n⏰ ' + horaAbre + ':00 a ' + horaCierra + ':00 (sáb ' + horaCierraSab + ':00)\n📅 ' + (desde || 'hoy') + ' al ' + (hasta || 'indefinido') + (motivo ? '\n📝 ' + motivo : ''));
@@ -3767,6 +3850,7 @@
       var id = document.getElementById('ajusteActivo').dataset.id;
       if (id) await sb.from('ajuste_horario').delete().eq('id', id);
       else await sb.from('ajuste_horario').delete().neq('id', 0);
+      logAdminAction('horario_reset', null, { id: id || null });
       loadAjuste();
     }
 
@@ -4090,6 +4174,7 @@
       try {
         var result = await sb.from('combos').upsert(comboData, { onConflict: 'slug' });
         if (result.error) throw result.error;
+        logAdminAction(editingComboSlug ? 'combo_update' : 'combo_create', slug, { name: name, price: priceFormatted, items_count: (items||[]).length });
         msgEl.style.color = '#2ecc71';
         msgEl.textContent = editingComboSlug ? 'Combo actualizado ✓' : 'Combo creado ✓';
         notifyTelegram((editingComboSlug ? '✏️ Combo editado' : '🎁 Nuevo combo creado') + ': ' + name);
@@ -4113,6 +4198,7 @@
         // Remove from PERFUMES array in-place (const)
         var delIdx = PERFUMES.findIndex(function(p) { return p.slug === slug; });
         if (delIdx !== -1) PERFUMES.splice(delIdx, 1);
+        logAdminAction('combo_delete', slug, { name: s.name });
         notifyTelegram('🗑️ Combo eliminado: ' + s.name);
         loadCombos();
       } catch(e) {
@@ -4137,6 +4223,7 @@
       }
 
       p._stockStatus = newStatus;
+      logAdminAction('combo_stock_toggle', slug, { stock_status: { old: current, new: newStatus } });
       var label = newStatus === 'pausado' ? '⏸ Pausado' : '▶ Activado';
       notifyTelegram('📦 Combo ' + label + ': ' + p.name);
       loadCombos();
@@ -4244,6 +4331,7 @@
         msg.textContent = 'Error: ' + error.message;
         msg.style.color = '#e74c3c';
       } else {
+        logAdminAction('votacion_update', null, { mes: adminMes, masc_count: masc.length, fem_count: fem.length });
         msg.textContent = 'Candidatos guardados para ' + meses[new Date().getMonth()];
         msg.style.color = '#2ecc71';
         notifyTelegram('🗳️ Votación actualizada: ' + masc.length + ' masc + ' + fem.length + ' fem');
@@ -4952,12 +5040,129 @@
           .from('decants_config')
           .upsert(payload, { onConflict: 'id' });
         if (res.error) throw res.error;
+        logAdminAction('decants_config_update', null, payload);
         msg.style.color = '#27ae60';
         msg.textContent = '✓ Configuración guardada.';
       } catch (e) {
         console.error('[decants-admin] save error:', e);
         msg.style.color = '#e74c3c';
         msg.textContent = 'Error al guardar: ' + (e.message || e);
+      }
+    }
+
+    // ============================================================
+    // AUDIT LOG — render de la pestaña Log (solo jefe)
+    // ============================================================
+    var auditCleanupRan = false;
+
+    // Tabla de traducciones para mostrar acciones en español legible
+    var AUDIT_ACTION_LABELS = {
+      'login_success':        { icon: '🔑', label: 'Login' },
+      'logout':               { icon: '🚪', label: 'Logout' },
+      'stock_update':         { icon: '📦', label: 'Stock' },
+      'tipo_bulk_update':     { icon: '🏷️', label: 'Tipos masivo' },
+      'perfume_edit':         { icon: '✏️', label: 'Editar perfume' },
+      'perfume_hide':         { icon: '🗑️', label: 'Ocultar perfume' },
+      'nuevo_create':         { icon: '➕', label: 'Nuevo perfume' },
+      'nuevo_update':         { icon: '✏️', label: 'Actualizar nuevo' },
+      'nuevo_delete':         { icon: '🗑️', label: 'Borrar nuevo' },
+      'destacados_update':    { icon: '⭐', label: 'Destacados' },
+      'cierre_add':           { icon: '🚫', label: 'Cierre' },
+      'cierre_remove':        { icon: '↩️', label: 'Quitar cierre' },
+      'horario_update':       { icon: '🕐', label: 'Horario' },
+      'horario_reset':        { icon: '↩️', label: 'Reset horario' },
+      'combo_create':         { icon: '🎁', label: 'Crear combo' },
+      'combo_update':         { icon: '✏️', label: 'Editar combo' },
+      'combo_delete':         { icon: '🗑️', label: 'Borrar combo' },
+      'combo_stock_toggle':   { icon: '⏸', label: 'Combo stock' },
+      'votacion_update':      { icon: '🗳️', label: 'Votación' },
+      'decants_config_update':{ icon: '💧', label: 'Decants config' }
+    };
+
+    function auditFormatTime(iso) {
+      try {
+        var d = new Date(iso);
+        var now = new Date();
+        var diffMs = now - d;
+        var diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 1) return 'ahora';
+        if (diffMin < 60) return 'hace ' + diffMin + 'min';
+        var diffH = Math.floor(diffMin / 60);
+        if (diffH < 24) return 'hace ' + diffH + 'h';
+        return d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      } catch(e) { return iso; }
+    }
+
+    function auditFormatChanges(changes) {
+      if (!changes) return '—';
+      try {
+        // Render compacto: {campo: {old, new}} -> "campo: old → new"
+        var parts = [];
+        Object.keys(changes).forEach(function(k) {
+          var v = changes[k];
+          if (v && typeof v === 'object' && 'old' in v && 'new' in v) {
+            parts.push('<b>' + k + ':</b> ' + escHtml(String(v.old)) + ' → ' + escHtml(String(v.new)));
+          } else if (typeof v === 'object') {
+            parts.push('<b>' + k + ':</b> ' + escHtml(JSON.stringify(v)));
+          } else {
+            parts.push('<b>' + k + ':</b> ' + escHtml(String(v)));
+          }
+        });
+        return parts.slice(0, 5).join(' · ') + (parts.length > 5 ? ' …' : '');
+      } catch(e) { return '—'; }
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function loadAuditLog() {
+      var tbody = document.getElementById('tbodyAuditLog');
+      var meta  = document.getElementById('auditLogMeta');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>';
+
+      // Cleanup de registros > 60 días (una vez por sesión)
+      if (!auditCleanupRan) {
+        auditCleanupRan = true;
+        sb.rpc('admin_actions_cleanup').then(function(r) {
+          if (r && r.data) console.log('[audit] cleanup: ' + r.data + ' registros viejos borrados');
+        }).catch(function(e) { console.warn('[audit] cleanup fallo:', e); });
+      }
+
+      try {
+        var { data, error } = await sb
+          .from('admin_actions')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(200);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Sin registros todavía. Cuando haya cambios en el panel, aparecerán acá.</td></tr>';
+          meta.textContent = '';
+          return;
+        }
+
+        var rows = data.map(function(r) {
+          var label = AUDIT_ACTION_LABELS[r.action] || { icon: '•', label: r.action };
+          var actorShort = (r.actor_role === 'jefe') ? '👑 jefe'
+                         : (r.actor_role === 'empleado' ? '👤 emp.' : (r.actor_role || '—'));
+          return '<tr>'
+            + '<td style="font-size:.7rem;color:var(--gris-claro);white-space:nowrap;">' + escHtml(auditFormatTime(r.created_at)) + '</td>'
+            + '<td style="font-size:.72rem;">' + escHtml(actorShort) + '</td>'
+            + '<td style="font-size:.72rem;"><span style="font-size:.9rem;">' + label.icon + '</span> ' + escHtml(label.label) + '</td>'
+            + '<td style="font-size:.72rem;color:var(--amarillo);">' + (r.target_slug ? escHtml(r.target_slug) : '<span style="color:var(--gris);">—</span>') + '</td>'
+            + '<td style="font-size:.68rem;color:var(--gris-claro);line-height:1.45;">' + auditFormatChanges(r.changes) + '</td>'
+          + '</tr>';
+        }).join('');
+
+        tbody.innerHTML = rows;
+        meta.textContent = data.length + ' evento' + (data.length === 1 ? '' : 's') + ' · actualizado ' + new Date().toLocaleTimeString('es-AR');
+      } catch (e) {
+        console.error('[auditlog] load error:', e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">Error al cargar el log: ' + escHtml(e.message || String(e)) + '</td></tr>';
       }
     }
   </script>
