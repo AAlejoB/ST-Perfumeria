@@ -534,8 +534,7 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this)">Precios</button>
-      <button class="tab-btn" data-tab="stock" onclick="switchTab('stock',this)">Stock</button>
+      <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this)">💰 Precios & Stock</button>
       <button class="tab-btn" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
       <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
       <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
@@ -554,37 +553,23 @@
       <button class="tab-btn" data-role="jefe" data-tab="backups" onclick="switchTab('backups',this);loadBackups()">💾 Backup</button>
     </div>
 
-    <!-- TAB: PRECIOS -->
+    <!-- TAB: PRECIOS & STOCK (unificada) -->
     <div class="tab-content active" id="tab-precios">
-      <div style="display:flex;gap:.5rem;margin-bottom:1rem;align-items:center;flex-wrap:wrap;">
+      <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar perfume..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <select class="admin-search" id="sortPrecios" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="name-asc">Nombre A-Z</option>
           <option value="name-desc">Nombre Z-A</option>
           <option value="price-desc" selected>Precio mayor a menor</option>
           <option value="price-asc">Precio menor a mayor</option>
-        </select>
-      </div>
-      <table class="admin-table">
-        <thead><tr><th>Perfume</th><th>Marca</th><th>Precio</th><th>Promo</th><th>Accion</th></tr></thead>
-        <tbody id="tbodyPrecios"></tbody>
-      </table>
-    </div>
-
-    <!-- TAB: STOCK -->
-    <div class="tab-content" id="tab-stock">
-      <div style="display:flex;gap:.5rem;margin-bottom:1rem;align-items:center;flex-wrap:wrap;">
-        <input type="text" class="admin-search" id="searchStock" placeholder="Buscar perfume..." oninput="filterTable('stock')" style="margin-bottom:0;flex:1;min-width:180px;"/>
-        <select class="admin-search" id="sortStock" onchange="renderStock()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
-          <option value="name-asc" selected>Nombre A-Z</option>
-          <option value="name-desc">Nombre Z-A</option>
           <option value="stock-ok">En stock primero</option>
           <option value="stock-out">Sin stock primero</option>
         </select>
       </div>
+      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock, y <strong>Editar</strong> para cambiar el precio.</p>
       <table class="admin-table">
-        <thead><tr><th>Perfume</th><th>Estado</th><th>Accion</th></tr></thead>
-        <tbody id="tbodyStock"></tbody>
+        <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Promo</th><th>Accion</th></tr></thead>
+        <tbody id="tbodyPrecios"></tbody>
       </table>
     </div>
 
@@ -1734,12 +1719,10 @@
       // para que el admin vea lo mismo que el cat\u00e1logo p\u00fablico.
       await loadOverridesIntoPerfumes();
       renderPrecios();
-      renderStock();
       loadDestacados();
       loadNuevos();
       // El resto se carga lazy al cambiar de tab (opiniones, clientes, stats, horario, combos, etc.)
       tabLoaded['precios'] = true;
-      tabLoaded['stock'] = true;
       tabLoaded['destacados'] = true;
       tabLoaded['nuevos'] = true;
     }
@@ -2090,30 +2073,15 @@
       return sorted;
     }
 
+    // ============================================================
+    // PRECIOS & STOCK — tabla unificada
+    //   Columna Estado = badge clickeable (abre modalStock)
+    //   Columna Acción = botón "Editar" (abre modalPrice)
+    // ============================================================
     function renderPrecios() {
       var tbody = document.getElementById('tbodyPrecios');
+      if (!tbody) return;
       var sortKey = document.getElementById('sortPrecios').value;
-      var list = PERFUMES.filter(function(p) { return !p.esSet; });
-      list = sortPerfumes(list, sortKey);
-      var html = '';
-      list.forEach(function(p) {
-        html += '<tr data-search="' + p.name.toLowerCase() + '">'
-          + '<td class="td-name">' + p.name + '</td>'
-          + '<td>' + (p.marca_real || p.marca) + '</td>'
-          + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
-          + '<td class="td-price">' + (p.promo ? '$' + parsePrice(p.promo).toLocaleString('es-AR') : '-') + '</td>'
-          + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
-          + '</tr>';
-      });
-      tbody.innerHTML = html;
-    }
-
-    // ============================================================
-    // STOCK
-    // ============================================================
-    function renderStock() {
-      var tbody = document.getElementById('tbodyStock');
-      var sortKey = document.getElementById('sortStock').value;
       var list = PERFUMES.filter(function(p) { return !p.esSet; });
       list = sortPerfumes(list, sortKey);
       var html = '';
@@ -2123,12 +2091,19 @@
         var badgeText = status === 'ok' ? 'En stock' : status === 'low' ? 'Ultimo' : status === 'pausado' ? 'Pausado' : 'Sin stock';
         html += '<tr data-search="' + p.name.toLowerCase() + '">'
           + '<td class="td-name">' + p.name + '</td>'
-          + '<td class="td-stock"><span class="badge-stock ' + badgeClass + '">' + badgeText + '</span></td>'
-          + '<td><button class="action-btn btn-stock" onclick="openStockModal(\'' + p.slug + '\')">Cambiar</button></td>'
+          + '<td class="td-stock"><span class="badge-stock ' + badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + badgeText + '</span></td>'
+          + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
+          + '<td class="td-price">' + (p.promo ? '$' + parsePrice(p.promo).toLocaleString('es-AR') : '-') + '</td>'
+          + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
           + '</tr>';
       });
       tbody.innerHTML = html;
     }
+
+    // Alias retrocompatible: varios callers viejos (saveStock, saveEditPerfume,
+    // migraciones, etc.) todavía llaman renderStock(). Lo redirigimos a la
+    // tabla unificada para no tocar todos esos lugares.
+    function renderStock() { renderPrecios(); }
 
     // ============================================================
     // STATS
