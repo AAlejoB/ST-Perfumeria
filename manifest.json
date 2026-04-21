@@ -2,23 +2,42 @@
   "name": "ST Scent & Textures",
   "short_name": "ST Perfumería",
   "description": "Perfumería árabe original en Comodoro Rivadavia. +150 fragancias de larga duración.",
-  "start_url": "/",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#080808",
-  "theme_color": "#E8B800",
   "orientation": "portrait",
+  "background_color": "#121214",
+  "theme_color": "#121214",
+  "lang": "es-AR",
+  "categories": ["shopping", "lifestyle"],
   "icons": [
     {
-      "src": "img/logo-st.webp",
-      "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "any maskable"
+      "src": "img/icon-st.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
     },
     {
-      "src": "img/logo-st.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
+      "src": "img/icon-st.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Armar pack de decants",
+      "short_name": "Decants",
+      "description": "Proba 3 o 5 fragancias a mitad de precio",
+      "url": "/?action=decants",
+      "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Favoritos",
+      "short_name": "Favoritos",
+      "description": "Ver tus perfumes guardados",
+      "url": "/?action=favs",
+      "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
     }
   ]
 }

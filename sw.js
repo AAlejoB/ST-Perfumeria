@@ -1,8 +1,151 @@
 /**
  * Service Worker — ST Perfumería
- * Maneja notificaciones push
+ *
+ * Responsabilidades:
+ *   1. Push notifications (ya existente)
+ *   2. Precache de assets críticos en install
+ *   3. Cache strategies:
+ *      - HTML navegación → network-first con fallback a cache y offline.html
+ *      - CSS/JS/SVG → stale-while-revalidate (rápido pero se actualiza en background)
+ *      - Imágenes (webp/png/jpg) → cache-first con TTL largo
+ *      - Supabase / API externa → network-first, no cachear
+ *
+ * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
+var CACHE_VERSION = 'v1.0.0';
+var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
+var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
+var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
+
+// Assets críticos precacheados en install
+var PRECACHE_URLS = [
+  '/',
+  '/index.html',
+  '/offline.html',
+  '/css/styles.css',
+  '/js/app.js',
+  '/js/perfumes.js',
+  '/manifest.json',
+  '/img/icon-st.svg'
+];
+
+// ============================================================
+// INSTALL — precache
+// ============================================================
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open(CACHE_STATIC).then(function(cache) {
+      // addAll falla si alguno falla; usamos add individual para no romper todo
+      return Promise.all(PRECACHE_URLS.map(function(url) {
+        return cache.add(url).catch(function(e) {
+          console.warn('[SW] precache fallo para', url, e);
+        });
+      }));
+    }).then(function() {
+      return self.skipWaiting(); // activar inmediatamente
+    })
+  );
+});
+
+// ============================================================
+// ACTIVATE — limpiar caches viejos
+// ============================================================
+self.addEventListener('activate', function(event) {
+  var validCaches = [CACHE_STATIC, CACHE_PAGES, CACHE_IMAGES];
+  event.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(key) {
+        if (key.indexOf('st-') === 0 && validCaches.indexOf(key) === -1) {
+          console.log('[SW] borrando cache viejo:', key);
+          return caches.delete(key);
+        }
+      }));
+    }).then(function() {
+      return self.clients.claim(); // tomar control de clientes ya abiertos
+    })
+  );
+});
+
+// ============================================================
+// FETCH — estrategias por tipo de recurso
+// ============================================================
+self.addEventListener('fetch', function(event) {
+  var req = event.request;
+
+  // Solo GET
+  if (req.method !== 'GET') return;
+
+  var url = new URL(req.url);
+
+  // Ignorar Supabase API, analytics, WhatsApp, etc. (network-only)
+  if (url.hostname.indexOf('supabase.co') !== -1 ||
+      url.hostname.indexOf('wa.me') !== -1 ||
+      url.hostname.indexOf('api.telegram.org') !== -1) {
+    return; // dejamos que el navegador maneje normalmente
+  }
+
+  // Navegación (HTML): network-first con fallback a cache y offline.html
+  if (req.mode === 'navigate' || (req.headers.get('accept') || '').indexOf('text/html') !== -1) {
+    event.respondWith(
+      fetch(req).then(function(resp) {
+        // Cachear copia de la respuesta
+        var copy = resp.clone();
+        caches.open(CACHE_PAGES).then(function(cache) { cache.put(req, copy); });
+        return resp;
+      }).catch(function() {
+        return caches.match(req).then(function(cached) {
+          return cached || caches.match('/offline.html');
+        });
+      })
+    );
+    return;
+  }
+
+  // Imágenes: cache-first
+  if (req.destination === 'image' || /\.(webp|png|jpg|jpeg|gif|svg)$/i.test(url.pathname)) {
+    event.respondWith(
+      caches.match(req).then(function(cached) {
+        if (cached) return cached;
+        return fetch(req).then(function(resp) {
+          if (resp && resp.status === 200 && resp.type === 'basic') {
+            var copy = resp.clone();
+            caches.open(CACHE_IMAGES).then(function(cache) { cache.put(req, copy); });
+          }
+          return resp;
+        }).catch(function() { return cached; });
+      })
+    );
+    return;
+  }
+
+  // CSS/JS/fuentes: stale-while-revalidate
+  if (req.destination === 'style' || req.destination === 'script' || req.destination === 'font' ||
+      /\.(css|js|woff2?|ttf)$/i.test(url.pathname)) {
+    event.respondWith(
+      caches.match(req).then(function(cached) {
+        var fetchPromise = fetch(req).then(function(resp) {
+          if (resp && resp.status === 200 && resp.type === 'basic') {
+            var copy = resp.clone();
+            caches.open(CACHE_STATIC).then(function(cache) { cache.put(req, copy); });
+          }
+          return resp;
+        }).catch(function() { return cached; });
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Default: network con fallback a cache
+  event.respondWith(
+    fetch(req).catch(function() { return caches.match(req); })
+  );
+});
+
+// ============================================================
+// PUSH NOTIFICATIONS — (ya existía, mantenido)
+// ============================================================
 self.addEventListener('push', function(event) {
   var data = { title: 'ST Perfumería', body: '', icon: '/img/logo-st.webp', url: '/' };
 
@@ -52,4 +195,11 @@ self.addEventListener('notificationclick', function(event) {
       return clients.openWindow(url);
     })
   );
+});
+
+// ============================================================
+// MESSAGE — para permitir al cliente pedir activación manual
+// ============================================================
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });

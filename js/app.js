@@ -2955,11 +2955,136 @@
     })();
 
     // ============================================================
-    // SERVICE WORKER (PWA)
+    // SERVICE WORKER (PWA) — registro + actualización auto
     // ============================================================
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(function(){});
+      navigator.serviceWorker.register('/sw.js').then(function(reg) {
+        // Detectar updates: si hay SW nuevo, avisarle que se active
+        reg.addEventListener('updatefound', function() {
+          var newSW = reg.installing;
+          if (newSW) {
+            newSW.addEventListener('statechange', function() {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                // Hay versión nueva esperando; le decimos que tome el control
+                newSW.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          }
+        });
+      }).catch(function(){});
+
+      // Cuando el SW nuevo toma control, recargamos una sola vez
+      var _reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (!_reloaded) { _reloaded = true; window.location.reload(); }
+      });
     }
+
+    // ============================================================
+    // PWA — Install prompt custom
+    // ============================================================
+    (function() {
+      var deferredPrompt = null;
+      var INSTALL_DISMISS_KEY = 'st_pwa_install_dismissed';
+      var INSTALL_DISMISS_DAYS = 30;
+
+      function isInstalled() {
+        // standalone (iOS) o display-mode (Chrome)
+        return window.matchMedia('(display-mode: standalone)').matches ||
+               window.navigator.standalone === true;
+      }
+
+      function wasDismissedRecently() {
+        try {
+          var ts = parseInt(localStorage.getItem(INSTALL_DISMISS_KEY) || '0', 10);
+          if (!ts) return false;
+          var daysAgo = (Date.now() - ts) / (1000 * 60 * 60 * 24);
+          return daysAgo < INSTALL_DISMISS_DAYS;
+        } catch(_) { return false; }
+      }
+
+      function createInstallBanner() {
+        if (document.getElementById('pwaInstallBanner')) return;
+        var banner = document.createElement('div');
+        banner.id = 'pwaInstallBanner';
+        banner.innerHTML =
+          '<div class="pwa-banner-inner">' +
+            '<div class="pwa-banner-icon">' +
+              '<svg viewBox="0 0 64 64" width="40" height="40">' +
+                '<rect width="64" height="64" rx="12" fill="#121214"/>' +
+                '<text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="serif" font-weight="700" font-size="32" fill="#E8B800">ST</text>' +
+              '</svg>' +
+            '</div>' +
+            '<div class="pwa-banner-text">' +
+              '<strong>Instalar ST Perfumería</strong>' +
+              '<span>Acceso rápido desde tu pantalla de inicio</span>' +
+            '</div>' +
+            '<button class="pwa-banner-btn" id="pwaInstallBtn">Instalar</button>' +
+            '<button class="pwa-banner-close" id="pwaInstallClose" aria-label="Cerrar">×</button>' +
+          '</div>';
+        document.body.appendChild(banner);
+
+        document.getElementById('pwaInstallBtn').addEventListener('click', function() {
+          if (!deferredPrompt) return;
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(function(choice) {
+            if (choice.outcome === 'accepted') {
+              try { trackEvent('view_product', { meta: { pwa: 'installed' } }); } catch(_){}
+            } else {
+              try { localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now())); } catch(_){}
+            }
+            deferredPrompt = null;
+            hideBanner();
+          });
+        });
+        document.getElementById('pwaInstallClose').addEventListener('click', function() {
+          try { localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now())); } catch(_){}
+          hideBanner();
+        });
+        setTimeout(function() { banner.classList.add('visible'); }, 50);
+      }
+
+      function hideBanner() {
+        var banner = document.getElementById('pwaInstallBanner');
+        if (banner) {
+          banner.classList.remove('visible');
+          setTimeout(function() { banner.remove(); }, 300);
+        }
+      }
+
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (isInstalled() || wasDismissedRecently()) return;
+        // Mostrar banner después de 25s para no asustar al usuario
+        setTimeout(function() {
+          if (deferredPrompt && !isInstalled()) createInstallBanner();
+        }, 25000);
+      });
+
+      window.addEventListener('appinstalled', function() {
+        hideBanner();
+        try { localStorage.removeItem(INSTALL_DISMISS_KEY); } catch(_){}
+      });
+    })();
+
+    // ============================================================
+    // PWA — Handler de shortcuts del manifest (?action=decants|favs)
+    // ============================================================
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var action = params.get('action');
+      if (!action) return;
+      setTimeout(function() {
+        if (action === 'decants') {
+          var btn = document.getElementById('decantBuilderBtn') || document.querySelector('[onclick*="openDecantBuilder"]');
+          if (typeof openDecantBuilder === 'function') openDecantBuilder();
+          else if (btn) btn.click();
+        } else if (action === 'favs') {
+          if (typeof showFavorites === 'function') showFavorites();
+        }
+      }, 600);
+    })();
 
     // ============================================================
     // HORARIO DEL LOCAL — automático con feriados + cierres admin
