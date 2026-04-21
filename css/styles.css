@@ -4363,6 +4363,25 @@
       margin: 0; padding: .4rem 0; line-height: 1.4;
       transition: color .3s;
     }
+    /* Cartel verde de ahorro — aparece al llegar al pack de 3 (sobrio)
+       y se potencia en el pack de 5 (destacado con % OFF y resplandor). */
+    .decant-builder-savings {
+      font-size: .72rem; font-weight: 600; text-align: center;
+      margin: .3rem 0 0; padding: .35rem .6rem; line-height: 1.3;
+      color: #a8e6a8; background: rgba(46, 160, 67, .12);
+      border: 1px solid rgba(46, 160, 67, .3); border-radius: 6px;
+    }
+    .decant-builder-savings.is-max {
+      color: #fff; font-size: .78rem; font-weight: 700;
+      background: linear-gradient(90deg, rgba(46, 160, 67, .28), rgba(46, 160, 67, .18));
+      border-color: rgba(46, 160, 67, .55);
+      box-shadow: 0 0 14px rgba(46, 160, 67, .25);
+    }
+    .decant-builder-savings .savings-off {
+      display: inline-block; margin-left: .4rem; padding: .05rem .4rem;
+      background: #2ea043; color: #fff; border-radius: 10px;
+      font-size: .68rem; font-weight: 800; letter-spacing: .04em;
+    }
 
     /* Buscador */
     .decant-builder-search {

@@ -4207,6 +4207,31 @@
       var ladderEl = document.getElementById('decantLadder');
       if (ladderEl) ladderEl.style.color = '';
 
+      // Ahorro ya logrado (vs precio unitario del tier 1).
+      // Se muestra desde qty >= 3 (antes no hay ahorro, porque precio_1 es el tier base).
+      // En qty >= 5 lo destacamos con clase .is-max y badge de % OFF.
+      var savingsEl = document.getElementById('decantSavings');
+      if (savingsEl) {
+        if (qty >= 3) {
+          var precioSinPack = qty * p1;
+          var ahorroReal = precioSinPack - total;
+          var pctOff = precioSinPack > 0 ? Math.round((ahorroReal / precioSinPack) * 100) : 0;
+          if (qty >= 5) {
+            savingsEl.innerHTML = '🔥 Te ahorrás $' + ahorroReal.toLocaleString('es-AR')
+              + ' vs comprarlos sueltos'
+              + '<span class="savings-off">' + pctOff + '% OFF</span>';
+            savingsEl.classList.add('is-max');
+          } else {
+            savingsEl.textContent = '🎁 Te ahorrás $' + ahorroReal.toLocaleString('es-AR') + ' vs comprarlos sueltos';
+            savingsEl.classList.remove('is-max');
+          }
+          savingsEl.hidden = false;
+        } else {
+          savingsEl.hidden = true;
+          savingsEl.classList.remove('is-max');
+        }
+      }
+
       // Aviso de conservación
       setTxt('decantAviso', DECANTS_CONFIG.aviso_conservacion || '');
 
