@@ -1528,8 +1528,8 @@
       <input type="number" class="modal-input" id="modalPriceValue" placeholder="Ej: 85000"/>
       <label class="modal-label">Nuevo precio promo (dejar vacio si no hay)</label>
       <input type="number" class="modal-input" id="modalPromoValue" placeholder="Ej: 76500"/>
-      <p class="modal-confirm-text">Para confirmar, escribi el nombre exacto del perfume:</p>
-      <input type="text" class="modal-input" id="modalPriceConfirm" placeholder="Nombre del perfume..." oninput="checkPriceConfirm()"/>
+      <p class="modal-confirm-text">Para confirmar, escribí <strong style="color:var(--amarillo);">ST</strong>:</p>
+      <input type="text" class="modal-input" id="modalPriceConfirm" placeholder="ST" maxlength="4" autocomplete="off" oninput="checkPriceConfirm()" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:700;"/>
       <button class="modal-btn modal-btn-price" id="modalPriceBtn" disabled onclick="savePrice()">Confirmar cambio</button>
       <p class="modal-success" id="modalPriceMsg"></p>
       <div id="priceHistoryBox" style="margin-top:1.2rem;display:none;">
@@ -1552,8 +1552,8 @@
         <option value="out">Sin stock</option>
         <option value="pausado">Pausado (oculto en catálogo)</option>
       </select>
-      <p class="modal-confirm-text">Para confirmar, escribi el nombre exacto del perfume:</p>
-      <input type="text" class="modal-input" id="modalStockConfirm" placeholder="Nombre del perfume..." oninput="checkStockConfirm()"/>
+      <p class="modal-confirm-text">Para confirmar, escribí <strong style="color:var(--amarillo);">ST</strong>:</p>
+      <input type="text" class="modal-input" id="modalStockConfirm" placeholder="ST" maxlength="4" autocomplete="off" oninput="checkStockConfirm()" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:700;"/>
       <button class="modal-btn modal-btn-price" id="modalStockBtn" disabled onclick="saveStock()">Confirmar cambio</button>
       <p class="modal-success" id="modalStockMsg"></p>
     </div>
@@ -1590,8 +1590,8 @@
       <p class="modal-title">Eliminar cliente</p>
       <p id="modalDeleteName" style="text-align:center;font-weight:600;margin-bottom:.5rem;"></p>
       <p style="text-align:center;font-size:.75rem;color:#e74c3c;margin-bottom:1rem;">Esta acci&oacute;n no se puede deshacer</p>
-      <p class="modal-confirm-text">Para confirmar, escrib&iacute; el nombre exacto:</p>
-      <input type="text" class="modal-input" id="modalDeleteConfirm" placeholder="Nombre del cliente..." oninput="checkClientDelete()"/>
+      <p class="modal-confirm-text">Para confirmar, escribí <strong style="color:#e74c3c;">ST</strong>:</p>
+      <input type="text" class="modal-input" id="modalDeleteConfirm" placeholder="ST" maxlength="4" autocomplete="off" oninput="checkClientDelete()" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:700;"/>
       <button class="modal-btn modal-btn-danger" id="modalClientDeleteBtn" disabled onclick="deleteClient()">Eliminar definitivamente</button>
       <p class="modal-success" id="modalClientDeleteMsg"></p>
     </div>
@@ -2097,7 +2097,10 @@
           + '<td class="td-stock"><span class="badge-stock ' + badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
           + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
-          + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
+          + '<td style="white-space:nowrap;">'
+          +   '<button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')" title="Cambiar precio">💰</button>'
+          +   '<button class="action-btn btn-stock" onclick="openStockModal(\'' + p.slug + '\')" title="Cambiar stock">📦</button>'
+          + '</td>'
           + '</tr>';
       });
       tbody.innerHTML = html;
@@ -2629,8 +2632,8 @@
     }
 
     function checkClientDelete() {
-      var val = document.getElementById('modalDeleteConfirm').value.trim().toLowerCase();
-      document.getElementById('modalClientDeleteBtn').disabled = val !== deletingClientName.toLowerCase();
+      var val = document.getElementById('modalDeleteConfirm').value.trim().toUpperCase();
+      document.getElementById('modalClientDeleteBtn').disabled = (val !== CONFIRM_TOKEN);
     }
 
     async function deleteClient() {
@@ -2713,19 +2716,19 @@
       editingSlug = '';
     }
 
-    // Double verification
+    // Doble verificación: el empleado tipea "ST" (siglas) para confirmar.
+    // Es una barrera anti-click-accidental, no un control de autenticación
+    // (el auth real viene del login de Supabase).
+    var CONFIRM_TOKEN = 'ST';
+
     function checkPriceConfirm() {
-      var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
-      if (!p) return;
       var input = document.getElementById('modalPriceConfirm').value.trim().toUpperCase();
-      document.getElementById('modalPriceBtn').disabled = (input !== p.name.toUpperCase());
+      document.getElementById('modalPriceBtn').disabled = (input !== CONFIRM_TOKEN);
     }
 
     function checkStockConfirm() {
-      var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
-      if (!p) return;
       var input = document.getElementById('modalStockConfirm').value.trim().toUpperCase();
-      document.getElementById('modalStockBtn').disabled = (input !== p.name.toUpperCase());
+      document.getElementById('modalStockBtn').disabled = (input !== CONFIRM_TOKEN);
     }
 
     // ============================================================
