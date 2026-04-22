@@ -322,19 +322,12 @@
     </div>
   </div>
 
-  <!-- ========== ANUNCIO DEL DÍA — últimos pushes para visitantes sin suscripción ========== -->
-  <!-- Se llena dinámicamente desde Supabase (tabla announcements) vía loadAnnouncement() en app.js.
-       Si no hay anuncios recientes o el visitante ya cerró el último, queda display:none. -->
-  <div id="publicAnnouncement" class="public-announcement" style="display:none;">
-    <div class="pub-ann-inner">
-      <span class="pub-ann-ico" aria-hidden="true">📣</span>
-      <div class="pub-ann-body">
-        <p class="pub-ann-title" id="pubAnnTitle"></p>
-        <p class="pub-ann-text" id="pubAnnText"></p>
-      </div>
-      <button type="button" class="pub-ann-close" id="pubAnnClose" aria-label="Cerrar aviso">×</button>
-    </div>
-  </div>
+  <!-- ========== ANUNCIO DEL DÍA — últimos 3 pushes apilados (7 días) ========== -->
+  <!-- El contenido lo inyecta loadAnnouncement() en app.js:
+        - Pide los últimos 3 announcements (tabla Supabase) de los últimos 7 días.
+        - Cada uno se puede cerrar individualmente (silenciado 24hs en localStorage).
+        - Si no hay ninguno visible para este visitante, el contenedor queda display:none. -->
+  <div id="publicAnnouncement" class="public-announcement" style="display:none;"></div>
 
   <!-- ========== SELECCIÓN ST — Top Ventas (movida debajo del banner de decants para aliviar el primer render) ========== -->
   <section class="seleccion-st">

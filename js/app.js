@@ -1330,14 +1330,15 @@
     // ============================================================
     // ANUNCIO PÚBLICO — banner entre DECANTS y SELECCIÓN ST
     //
-    // Alimenta el banner con el último push enviado desde admin
+    // Alimenta el banner con los últimos pushes enviados desde admin
     // (tabla announcements). Piensen en "para los que NO se
     // suscribieron a notificaciones, que igual vean los avisos".
     //
     // Reglas:
-    //  - Solo anuncios de los últimos 30 días (más viejos = ruido).
-    //  - Si el visitante cerró un anuncio, se guarda su ID en
-    //    localStorage y no vuelve a aparecer ese mismo ID.
+    //  - Muestra hasta los 3 más recientes de los últimos 7 días.
+    //  - Cerrar un anuncio lo silencia por 24hs para ese visitante
+    //    (guardado en localStorage con { id, hastaTs }). Al día
+    //    siguiente vuelve a aparecer si todavía está en el rango.
     //  - Fallo silencioso: si la tabla no existe, simplemente no
     //    se muestra nada. No rompe el catálogo.
     // ============================================================
@@ -1346,46 +1347,83 @@
       if (!wrap) return;
 
       try {
-        var cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        var cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
         var { data, error } = await sb.from('announcements')
           .select('id, title, body, url, created_at')
           .gte('created_at', cutoff)
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(3);
         if (error || !data || data.length === 0) return;
 
-        var ann = data[0];
+        // Limpiar dismissals vencidos y filtrar los silenciados aún activos
+        var nowTs = Date.now();
+        var raw = [];
+        try { raw = JSON.parse(localStorage.getItem('st_ann_dismissed') || '[]'); } catch(_) {}
+        // Retrocompatibilidad: si hay entradas con formato viejo (string),
+        // las tratamos como dismissals permanentes (=Infinity). Nuevas son
+        // objetos { id, until }.
+        var activas = raw.filter(function(d) {
+          if (typeof d === 'string') return true;
+          return d && d.until && d.until > nowTs;
+        });
+        var dismissedIds = activas.map(function(d) {
+          return typeof d === 'string' ? d : d.id;
+        });
 
-        // ¿Ya lo cerró este visitante?
-        var dismissed = [];
-        try { dismissed = JSON.parse(localStorage.getItem('st_ann_dismissed') || '[]'); } catch(_) {}
-        if (dismissed.indexOf(ann.id) !== -1) return;
+        var visibles = data.filter(function(a) { return dismissedIds.indexOf(a.id) === -1; });
+        if (visibles.length === 0) return;
 
         // Escape básico para no inyectar HTML
         function esc(s) {
           return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
-        document.getElementById('pubAnnTitle').textContent = ann.title || 'Aviso ST Perfumería';
+        // Guardamos (con dismissals limpiados) para no acumular vencidos
+        try { localStorage.setItem('st_ann_dismissed', JSON.stringify(activas)); } catch(_) {}
 
-        var bodyEl = document.getElementById('pubAnnText');
-        if (ann.url) {
-          // Link "ver más" al final del texto si hay URL
-          bodyEl.innerHTML = esc(ann.body) + ' <a href="' + esc(ann.url) + '">Ver más →</a>';
-        } else {
-          bodyEl.textContent = ann.body || '';
-        }
+        // Armar tarjetas apiladas (hasta 3)
+        var html = visibles.map(function(ann) {
+          var bodyHtml = esc(ann.body || '');
+          if (ann.url) bodyHtml += ' <a href="' + esc(ann.url) + '">Ver más →</a>';
+          return '<div class="pub-ann-inner" data-ann-id="' + esc(ann.id) + '">'
+            + '<span class="pub-ann-ico" aria-hidden="true">📣</span>'
+            + '<div class="pub-ann-body">'
+            +   '<p class="pub-ann-title">' + esc(ann.title || 'Aviso ST Perfumería') + '</p>'
+            +   '<p class="pub-ann-text">' + bodyHtml + '</p>'
+            + '</div>'
+            + '<button type="button" class="pub-ann-close" aria-label="Cerrar aviso">×</button>'
+            + '</div>';
+        }).join('');
 
+        wrap.innerHTML = html;
         wrap.style.display = 'block';
 
-        document.getElementById('pubAnnClose').addEventListener('click', function() {
-          wrap.style.display = 'none';
-          try {
-            dismissed.push(ann.id);
-            // Solo guardamos los últimos 20 IDs cerrados (evitar crecimiento infinito)
-            if (dismissed.length > 20) dismissed = dismissed.slice(-20);
-            localStorage.setItem('st_ann_dismissed', JSON.stringify(dismissed));
-          } catch(_) {}
+        // Wire up cierres (silenciar 24hs por ID)
+        wrap.querySelectorAll('.pub-ann-close').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var card = btn.closest('.pub-ann-inner');
+            if (!card) return;
+            var id = card.getAttribute('data-ann-id');
+            card.style.display = 'none';
+
+            try {
+              var curr = [];
+              try { curr = JSON.parse(localStorage.getItem('st_ann_dismissed') || '[]'); } catch(_) {}
+              // Remover cualquier registro previo de este ID
+              curr = curr.filter(function(d) {
+                var dId = typeof d === 'string' ? d : (d && d.id);
+                return dId !== id;
+              });
+              curr.push({ id: id, until: Date.now() + 24 * 60 * 60 * 1000 });
+              // Tope defensivo: 20 entradas
+              if (curr.length > 20) curr = curr.slice(-20);
+              localStorage.setItem('st_ann_dismissed', JSON.stringify(curr));
+            } catch(_) {}
+
+            // Si ya no queda ninguna tarjeta visible, ocultamos el wrap
+            var queda = wrap.querySelector('.pub-ann-inner:not([style*="display: none"])');
+            if (!queda) wrap.style.display = 'none';
+          });
         });
       } catch(e) {
         console.warn('[announcement] no se pudo cargar:', e);

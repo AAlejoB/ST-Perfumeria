@@ -4612,6 +4612,9 @@
       margin: 1.8rem auto;
       padding: 0 1rem;
       animation: pubAnnFade .5s ease;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
     }
     @keyframes pubAnnFade {
       from { opacity: 0; transform: translateY(-8px); }
