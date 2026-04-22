@@ -2097,10 +2097,7 @@
           + '<td class="td-stock"><span class="badge-stock ' + badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
           + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
-          + '<td style="white-space:nowrap;">'
-          +   '<button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')" title="Cambiar precio">💰</button>'
-          +   '<button class="action-btn btn-stock" onclick="openStockModal(\'' + p.slug + '\')" title="Cambiar stock">📦</button>'
-          + '</td>'
+          + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
           + '</tr>';
       });
       tbody.innerHTML = html;
