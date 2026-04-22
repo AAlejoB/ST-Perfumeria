@@ -2116,13 +2116,22 @@
       var perfumes = PERFUMES.filter(function(p) { return !p.esSet; });
       var totalPerfumes = perfumes.length;
 
-      // Datos de Supabase
-      var { data: clientes } = await sb.from('clientes').select('id');
-      var totalClientes = clientes ? clientes.length : 0;
-      var { data: opiniones } = await sb.from('opiniones').select('id');
-      var totalOpiniones = opiniones ? opiniones.length : 0;
-      var { data: clicks } = await sb.from('perfume_clicks').select('slug');
-      var totalClicks = clicks ? clicks.length : 0;
+      // Datos de Supabase.
+      // IMPORTANTE: por defecto Supabase limita a 1000 filas por select(). Si hacíamos
+      // .select('slug').length, cualquier tabla con >1000 registros quedaba "clavada"
+      // en 1000. Usamos head:true + count:'exact' para que Postgres devuelva solo el
+      // número total (mucho más barato y SIN límite).
+      var clientesQ = await sb.from('clientes').select('*', { count: 'exact', head: true });
+      var totalClientes = clientesQ.count || 0;
+      var opinionesQ = await sb.from('opiniones').select('*', { count: 'exact', head: true });
+      var totalOpiniones = opinionesQ.count || 0;
+      var clicksCountQ = await sb.from('perfume_clicks').select('*', { count: 'exact', head: true });
+      var totalClicks = clicksCountQ.count || 0;
+
+      // Para el TOP 10 sí necesitamos los slugs (agrupar en JS). Subimos el límite a
+      // 50k para tiendas con mucho tráfico; si algún día lo superás, hacemos un RPC
+      // con GROUP BY en Postgres.
+      var { data: clicks } = await sb.from('perfume_clicks').select('slug').limit(50000);
 
       // Promedio visitas por perfume
       var avgViews = totalPerfumes > 0 ? Math.round(totalClicks / totalPerfumes) : 0;
@@ -4683,10 +4692,22 @@
           msg.textContent = '✅ Enviada a ' + data.sent + ' usuarios (' + data.failed + ' fallidas)';
           msg.style.color = '#2ecc71';
 
-          // Guardar en historial local
+          // Guardar en historial local (admin)
           var history = JSON.parse(localStorage.getItem('st_push_history') || '[]');
           history.push({ title: title, body: body, url: url, sent: data.sent, failed: data.failed, date: new Date().toISOString() });
           localStorage.setItem('st_push_history', JSON.stringify(history));
+
+          // Publicar el anuncio para los visitantes del catálogo (tabla announcements).
+          // Fallo silencioso: si la tabla no existe o la RLS lo rechaza, no bloqueamos el envío.
+          try {
+            await sb.from('announcements').insert({
+              title: title,
+              body: body,
+              url: url && url !== '/' ? url : null
+            });
+          } catch (annErr) {
+            console.warn('[push] no se pudo publicar announcement:', annErr);
+          }
 
           // Limpiar campos
           document.getElementById('pushTitle').value = '';

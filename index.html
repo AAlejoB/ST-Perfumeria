@@ -322,6 +322,20 @@
     </div>
   </div>
 
+  <!-- ========== ANUNCIO DEL DÍA — últimos pushes para visitantes sin suscripción ========== -->
+  <!-- Se llena dinámicamente desde Supabase (tabla announcements) vía loadAnnouncement() en app.js.
+       Si no hay anuncios recientes o el visitante ya cerró el último, queda display:none. -->
+  <div id="publicAnnouncement" class="public-announcement" style="display:none;">
+    <div class="pub-ann-inner">
+      <span class="pub-ann-ico" aria-hidden="true">📣</span>
+      <div class="pub-ann-body">
+        <p class="pub-ann-title" id="pubAnnTitle"></p>
+        <p class="pub-ann-text" id="pubAnnText"></p>
+      </div>
+      <button type="button" class="pub-ann-close" id="pubAnnClose" aria-label="Cerrar aviso">×</button>
+    </div>
+  </div>
+
   <!-- ========== SELECCIÓN ST — Top Ventas (movida debajo del banner de decants para aliviar el primer render) ========== -->
   <section class="seleccion-st">
     <span class="sec-mist sec-mist-1" aria-hidden="true"></span>

@@ -1327,6 +1327,71 @@
       } catch(e) {}
     })();
 
+    // ============================================================
+    // ANUNCIO PÚBLICO — banner entre DECANTS y SELECCIÓN ST
+    //
+    // Alimenta el banner con el último push enviado desde admin
+    // (tabla announcements). Piensen en "para los que NO se
+    // suscribieron a notificaciones, que igual vean los avisos".
+    //
+    // Reglas:
+    //  - Solo anuncios de los últimos 30 días (más viejos = ruido).
+    //  - Si el visitante cerró un anuncio, se guarda su ID en
+    //    localStorage y no vuelve a aparecer ese mismo ID.
+    //  - Fallo silencioso: si la tabla no existe, simplemente no
+    //    se muestra nada. No rompe el catálogo.
+    // ============================================================
+    (async function loadAnnouncement() {
+      var wrap = document.getElementById('publicAnnouncement');
+      if (!wrap) return;
+
+      try {
+        var cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        var { data, error } = await sb.from('announcements')
+          .select('id, title, body, url, created_at')
+          .gte('created_at', cutoff)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (error || !data || data.length === 0) return;
+
+        var ann = data[0];
+
+        // ¿Ya lo cerró este visitante?
+        var dismissed = [];
+        try { dismissed = JSON.parse(localStorage.getItem('st_ann_dismissed') || '[]'); } catch(_) {}
+        if (dismissed.indexOf(ann.id) !== -1) return;
+
+        // Escape básico para no inyectar HTML
+        function esc(s) {
+          return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        document.getElementById('pubAnnTitle').textContent = ann.title || 'Aviso ST Perfumería';
+
+        var bodyEl = document.getElementById('pubAnnText');
+        if (ann.url) {
+          // Link "ver más" al final del texto si hay URL
+          bodyEl.innerHTML = esc(ann.body) + ' <a href="' + esc(ann.url) + '">Ver más →</a>';
+        } else {
+          bodyEl.textContent = ann.body || '';
+        }
+
+        wrap.style.display = 'block';
+
+        document.getElementById('pubAnnClose').addEventListener('click', function() {
+          wrap.style.display = 'none';
+          try {
+            dismissed.push(ann.id);
+            // Solo guardamos los últimos 20 IDs cerrados (evitar crecimiento infinito)
+            if (dismissed.length > 20) dismissed = dismissed.slice(-20);
+            localStorage.setItem('st_ann_dismissed', JSON.stringify(dismissed));
+          } catch(_) {}
+        });
+      } catch(e) {
+        console.warn('[announcement] no se pudo cargar:', e);
+      }
+    })();
+
     // Cargar combos desde Supabase
     (async function loadCombosFromDB() {
       try {

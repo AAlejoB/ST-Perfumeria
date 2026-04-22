@@ -4600,3 +4600,75 @@
       .pwa-banner-text span { font-size: .68rem; }
       .pwa-banner-btn { padding: .5rem .85rem; font-size: .78rem; }
     }
+
+    /* ============================================================
+       ANUNCIO PÚBLICO (banner entre DECANTS y SELECCIÓN ST)
+       - Reemplazo "democrático" de las push para quienes las rechazan.
+       - Se alimenta de la tabla Supabase 'announcements' (últimas 30 días).
+       - Se oculta si el visitante lo cerró (localStorage por ID).
+       ============================================================ */
+    .public-announcement {
+      max-width: 900px;
+      margin: 1.8rem auto;
+      padding: 0 1rem;
+      animation: pubAnnFade .5s ease;
+    }
+    @keyframes pubAnnFade {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .pub-ann-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: .85rem;
+      background: linear-gradient(135deg, rgba(232,184,0,.08) 0%, rgba(255,255,255,.03) 100%);
+      border: 1px solid rgba(232,184,0,.35);
+      border-left: 3px solid var(--amarillo, #E8B800);
+      border-radius: 10px;
+      padding: .9rem 1.1rem;
+      box-shadow: 0 4px 18px rgba(0,0,0,.25);
+    }
+    .pub-ann-ico {
+      font-size: 1.25rem;
+      line-height: 1;
+      margin-top: .1rem;
+      flex-shrink: 0;
+    }
+    .pub-ann-body { flex: 1; min-width: 0; }
+    .pub-ann-title {
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      color: var(--amarillo, #E8B800);
+      margin: 0 0 .2rem 0;
+      text-transform: uppercase;
+    }
+    .pub-ann-text {
+      font-size: .78rem;
+      line-height: 1.45;
+      color: #e4e4e4;
+      margin: 0;
+      word-wrap: break-word;
+    }
+    .pub-ann-text a {
+      color: var(--amarillo, #E8B800);
+      text-decoration: underline;
+    }
+    .pub-ann-close {
+      background: transparent;
+      border: none;
+      color: #888;
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 .25rem;
+      flex-shrink: 0;
+      transition: color .2s;
+    }
+    .pub-ann-close:hover { color: #fff; }
+    @media (max-width: 480px) {
+      .public-announcement { margin: 1.2rem auto; padding: 0 .7rem; }
+      .pub-ann-inner { padding: .75rem .9rem; gap: .6rem; }
+      .pub-ann-title { font-size: .72rem; }
+      .pub-ann-text { font-size: .72rem; }
+    }
