@@ -994,10 +994,21 @@
         <!-- LISTA DE PERFUMES AGREGADOS -->
         <div style="flex:1;min-width:300px;">
           <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Perfumes agregados desde admin (<span id="nuevosCount">0</span>)</p>
+          <input type="text" class="admin-search" id="searchNuevos" placeholder="Buscar en agregados..." oninput="renderNuevos()" style="margin-bottom:.6rem;"/>
           <table class="admin-table">
             <thead><tr><th>Perfume</th><th>Marca</th><th>Precio</th><th>Acciones</th></tr></thead>
             <tbody id="tbodyNuevos"></tbody>
           </table>
+          <div id="nuevosFooter" style="display:none;margin-top:.8rem;text-align:center;">
+            <button id="nuevosVerMasBtn" onclick="verMasNuevos()"
+              style="background:transparent;border:1px solid var(--amarillo);color:var(--amarillo);font-family:inherit;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.55rem 1.2rem;border-radius:4px;cursor:pointer;transition:all .2s;">
+              Ver más
+            </button>
+            <button onclick="verTodosNuevos()"
+              style="background:transparent;border:none;color:var(--gris);font-family:inherit;font-size:.65rem;font-weight:500;letter-spacing:.06em;padding:.4rem .6rem;cursor:pointer;margin-left:.4rem;">
+              Ver todos
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -3161,29 +3172,87 @@
       } catch(e) {}
     }
 
+    // Paginación local de "Perfumes agregados desde admin" para no saturar la
+    // pantalla cuando hay muchos. Muestra NUEVOS_STEP al inicio y se expande
+    // de a pasos con "Ver más" o todo de una con "Ver todos". Si el usuario
+    // filtra por texto se resetea a NUEVOS_STEP automáticamente.
+    var NUEVOS_STEP = 3;
+    var _nuevosData = [];
+    var _nuevosVisible = NUEVOS_STEP;
+
     async function loadNuevos() {
       var tbody = document.getElementById('tbodyNuevos');
       var countEl = document.getElementById('nuevosCount');
       var { data } = await sb.from('perfumes_nuevos').select('*').order('created_at', { ascending: false });
-      if (!data || data.length === 0) {
+      _nuevosData = data || [];
+      _nuevosVisible = NUEVOS_STEP;
+      if (_nuevosData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gris);">Sin perfumes agregados aún</td></tr>';
         countEl.textContent = '0';
+        document.getElementById('nuevosFooter').style.display = 'none';
         return;
       }
-      countEl.textContent = data.length;
+      countEl.textContent = _nuevosData.length;
+      renderNuevos();
+    }
+
+    function renderNuevos() {
+      var tbody = document.getElementById('tbodyNuevos');
+      if (!tbody) return;
+      var searchEl = document.getElementById('searchNuevos');
+      var q = (searchEl && searchEl.value || '').trim().toLowerCase();
+
+      // Si el usuario está tipeando una búsqueda, reseteamos el contador
+      // para que arranque desde los primeros NUEVOS_STEP resultados.
+      var filtered = _nuevosData.filter(function(p) {
+        if (!q) return true;
+        var hay = (p.name || '').toLowerCase() + ' ' + (p.marca || '').toLowerCase() + ' ' + (p.marca_real || '').toLowerCase();
+        return hay.indexOf(q) !== -1;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gris);padding:1.2rem;">Sin resultados</td></tr>';
+        document.getElementById('nuevosFooter').style.display = 'none';
+        return;
+      }
+
+      var visible = Math.min(_nuevosVisible, filtered.length);
+      var slice = filtered.slice(0, visible);
+
       var html = '';
-      data.forEach(function(p) {
+      slice.forEach(function(p) {
         html += '<tr>'
           + '<td class="td-name">' + p.name + '</td>'
           + '<td>' + (p.marca_real || p.marca) + '</td>'
           + '<td class="td-price">$' + (p.price || 0).toLocaleString('es-AR') + '</td>'
           + '<td>'
             + '<button class="action-btn btn-price" onclick="editNuevo(' + p.id + ')">Editar</button>'
-            + '<button class="action-btn btn-hide" onclick="deleteNuevo(' + p.id + ', \'' + p.name.replace(/'/g, "\\'") + '\')">Eliminar</button>'
+            + '<button class="action-btn btn-hide" onclick="deleteNuevo(' + p.id + ', \'' + (p.name || '').replace(/'/g, "\\'") + '\')">Eliminar</button>'
           + '</td>'
         + '</tr>';
       });
       tbody.innerHTML = html;
+
+      // Footer con "Ver más" solo si hay más resultados ocultos
+      var footer = document.getElementById('nuevosFooter');
+      var btn = document.getElementById('nuevosVerMasBtn');
+      var remaining = filtered.length - visible;
+      if (remaining > 0) {
+        footer.style.display = 'block';
+        btn.textContent = 'Ver más (' + remaining + ' restantes)';
+      } else {
+        footer.style.display = 'none';
+      }
+    }
+
+    function verMasNuevos() {
+      _nuevosVisible += NUEVOS_STEP;
+      renderNuevos();
+    }
+
+    function verTodosNuevos() {
+      _nuevosVisible = _nuevosData.length;
+      renderNuevos();
     }
 
     // ============================================================
