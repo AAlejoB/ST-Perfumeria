@@ -543,7 +543,7 @@
       <button class="tab-btn" data-role="jefe" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
       <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this)">Clientes</button>
-      <button class="tab-btn" data-role="jefe" data-tab="combos" onclick="switchTab('combos',this)">&#127873; Combos</button>
+      <button class="tab-btn" data-tab="combos" onclick="switchTab('combos',this)">&#127873; Combos</button>
       <button class="tab-btn" data-tab="votacion" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
       <button class="tab-btn" data-role="jefe" data-tab="push" onclick="switchTab('push',this)">🔔 Notificaciones</button>
       <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
@@ -567,7 +567,7 @@
           <option value="stock-out">Sin stock primero</option>
         </select>
       </div>
-      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock, y <strong>Editar</strong> para cambiar el precio.</p>
+      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock, y <strong>Editar</strong> para cambiar el precio. Se guardan al apretar <strong>OK</strong>, sin necesidad de tipear ST (eso solo en la pestaña Editar).</p>
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th><th>Accion</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
@@ -1529,9 +1529,7 @@
       <input type="number" class="modal-input" id="modalPriceValue" placeholder="Ej: 85000"/>
       <label class="modal-label">Nuevo precio promo (dejar vacio si no hay)</label>
       <input type="number" class="modal-input" id="modalPromoValue" placeholder="Ej: 76500"/>
-      <p class="modal-confirm-text">Para confirmar, escribí <strong style="color:var(--amarillo);">ST</strong>:</p>
-      <input type="text" class="modal-input" id="modalPriceConfirm" placeholder="ST" maxlength="4" autocomplete="off" oninput="checkPriceConfirm()" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:700;"/>
-      <button class="modal-btn modal-btn-price" id="modalPriceBtn" disabled onclick="savePrice()">Confirmar cambio</button>
+      <button class="modal-btn modal-btn-price" id="modalPriceBtn" onclick="savePrice()">✓ OK, actualizar precio</button>
       <p class="modal-success" id="modalPriceMsg"></p>
       <div id="priceHistoryBox" style="margin-top:1.2rem;display:none;">
         <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">📊 Historial de cambios</p>
@@ -1564,9 +1562,7 @@
         <span><strong>Pausado</strong> <span style="color:var(--gris);">— oculto en catálogo público</span></span>
       </label>
 
-      <p class="modal-confirm-text">Para confirmar, escribí <strong style="color:var(--amarillo);">ST</strong>:</p>
-      <input type="text" class="modal-input" id="modalStockConfirm" placeholder="ST" maxlength="4" autocomplete="off" oninput="checkStockConfirm()" style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-weight:700;"/>
-      <button class="modal-btn modal-btn-price" id="modalStockBtn" disabled onclick="saveStock()">Confirmar cambio</button>
+      <button class="modal-btn modal-btn-price" id="modalStockBtn" onclick="saveStock()">✓ OK, actualizar stock</button>
       <p class="modal-success" id="modalStockMsg"></p>
     </div>
   </div>
@@ -2730,8 +2726,7 @@
       document.getElementById('modalPriceName').textContent = p.name;
       document.getElementById('modalPriceValue').value = p.price || '';
       document.getElementById('modalPromoValue').value = p.promo || '';
-      document.getElementById('modalPriceConfirm').value = '';
-      document.getElementById('modalPriceBtn').disabled = true;
+      document.getElementById('modalPriceBtn').disabled = false;
       document.getElementById('modalPriceMsg').textContent = '';
       // Cargar historial
       var histBox = document.getElementById('priceHistoryBox');
@@ -2779,8 +2774,7 @@
       document.getElementById('modalStockQty').value = initQty;
       document.getElementById('modalStockPaused').checked = (p._stockStatus === 'pausado');
 
-      document.getElementById('modalStockConfirm').value = '';
-      document.getElementById('modalStockBtn').disabled = true;
+      document.getElementById('modalStockBtn').disabled = false;
       document.getElementById('modalStockMsg').textContent = '';
       updateStockPreview();
       document.getElementById('modalStock').classList.add('active');
@@ -2818,41 +2812,50 @@
 
     // Doble verificación: el empleado tipea "ST" (siglas) para confirmar.
     // Es una barrera anti-click-accidental, no un control de autenticación
-    // (el auth real viene del login de Supabase).
+    // (el auth real viene del login de Supabase). Se usa en operaciones
+    // más serias: Editar perfume (saveEditPerfume) y Eliminar cliente.
+    // En los modales de Precio y Stock se reemplazó por un botón OK directo
+    // para agilizar el trabajo diario del mostrador.
     var CONFIRM_TOKEN = 'ST';
-
-    function checkPriceConfirm() {
-      var input = document.getElementById('modalPriceConfirm').value.trim().toUpperCase();
-      document.getElementById('modalPriceBtn').disabled = (input !== CONFIRM_TOKEN);
-    }
-
-    function checkStockConfirm() {
-      var input = document.getElementById('modalStockConfirm').value.trim().toUpperCase();
-      document.getElementById('modalStockBtn').disabled = (input !== CONFIRM_TOKEN);
-    }
 
     // ============================================================
     // SAVE CHANGES
     // ============================================================
-    function savePrice() {
+    async function savePrice() {
       var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
       if (!p) return;
+      var msgEl = document.getElementById('modalPriceMsg');
       var newPrice = parseInt(document.getElementById('modalPriceValue').value);
       var newPromo = document.getElementById('modalPromoValue').value ? parseInt(document.getElementById('modalPromoValue').value) : null;
 
       if (!newPrice || newPrice <= 0) {
-        document.getElementById('modalPriceMsg').textContent = 'Precio invalido';
-        document.getElementById('modalPriceMsg').style.color = '#e74c3c';
+        msgEl.textContent = 'Precio invalido';
+        msgEl.style.color = '#e74c3c';
         return;
       }
 
-      // Guardar en localStorage (temporal hasta que se actualice perfumes.js)
-      var changes = JSON.parse(localStorage.getItem('st_price_changes') || '{}');
-      var oldPrice = changes[editingSlug] ? changes[editingSlug].price : p.price;
-      changes[editingSlug] = { price: newPrice, promo: newPromo, updated: new Date().toISOString() };
-      localStorage.setItem('st_price_changes', JSON.stringify(changes));
+      var oldPrice = p.price;
+      var oldPromo = p.promo;
 
-      // Historial de precios
+      msgEl.textContent = 'Guardando...';
+      msgEl.style.color = '#e8b800';
+
+      // Persistencia REAL en Supabase: upsert en perfume_overrides.
+      // Antes solo escribíamos en localStorage, por eso los cambios de precio
+      // que hacían los empleados no se veían en la sesión del jefe.
+      var result = await sb.from('perfume_overrides').upsert(
+        { slug: editingSlug, price: newPrice, promo: newPromo },
+        { onConflict: 'slug' }
+      );
+
+      if (result.error) {
+        msgEl.textContent = 'Error: ' + result.error.message;
+        msgEl.style.color = '#e74c3c';
+        return;
+      }
+
+      // Historial local (para el panel "Historial de cambios" dentro del modal).
+      // No se usa para renderizar el precio actual — ese lo manda Supabase.
       var history = JSON.parse(localStorage.getItem('st_price_history') || '{}');
       if (!history[editingSlug]) history[editingSlug] = [];
       history[editingSlug].push({ from: oldPrice, to: newPrice, promo: newPromo, date: new Date().toISOString() });
@@ -2862,13 +2865,18 @@
       p.price = newPrice;
       p.promo = newPromo;
 
-      document.getElementById('modalPriceMsg').textContent = 'Precio actualizado correctamente';
-      document.getElementById('modalPriceMsg').style.color = '#2ecc71';
+      logAdminAction('price_update', editingSlug, {
+        price: { old: oldPrice, new: newPrice },
+        promo: { old: oldPromo, new: newPromo }
+      });
+
+      msgEl.textContent = '✓ Precio actualizado en Supabase';
+      msgEl.style.color = '#2ecc71';
 
       notifyTelegram('\ud83d\udcb0 Precio actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcb5 Precio: $' + newPrice.toLocaleString('es-AR') + (newPromo ? '\n\ud83c\udf1f Promo: $' + newPromo.toLocaleString('es-AR') : ''));
 
       renderPrecios();
-      renderStock();
+      if (typeof renderStock === 'function') renderStock();
       setTimeout(function() { closeModal('modalPrice'); }, 1500);
     }
 
@@ -3277,6 +3285,21 @@
     async function saveEditPerfume() {
       var slug = document.getElementById('editSlug').value;
       if (!slug) return;
+
+      // Doble verificación anti-error: pedir "ST" antes de impactar cambios
+      // al catálogo. Editar es la operación más amplia (nombre, foto, notas,
+      // precio, etc.), por eso acá sí se mantiene la barrera. Precio y Stock
+      // no lo piden porque son cambios atómicos y de alta frecuencia.
+      var tipeado = window.prompt(
+        'Estás por guardar cambios en el perfume.\n\nEscribí ST (mayúsculas) para confirmar:'
+      );
+      if (tipeado === null) return; // cancelado
+      if ((tipeado || '').trim().toUpperCase() !== CONFIRM_TOKEN) {
+        var msgCancel = document.getElementById('editMsg');
+        msgCancel.textContent = 'Cancelado: tenés que escribir ST exactamente.';
+        msgCancel.style.color = '#e74c3c';
+        return;
+      }
 
       // Tipo: si eligieron "Otro..." agarramos el texto libre, sino el value del select
       var tipoSelVal = document.getElementById('editTipo').value;

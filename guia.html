@@ -11,7 +11,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root { --amarillo: #e8b800; --negro: #0a0a0a; --gris: #888; }
     body { font-family: 'Inter', sans-serif; background: var(--negro); color: #ddd; line-height: 1.7; }
-    .guia-wrap { max-width: 750px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .guia-wrap { max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
     .guia-header { text-align: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,.08); }
     .guia-logo { font-size: 1.5rem; font-weight: 700; color: var(--amarillo); }
     .guia-sub { font-size: .7rem; color: var(--gris); letter-spacing: .2em; text-transform: uppercase; margin-top: .3rem; }
@@ -19,6 +19,9 @@
     h2 { font-size: 1.1rem; font-weight: 700; color: var(--amarillo); margin: 2.5rem 0 1rem; letter-spacing: .05em; }
     h3 { font-size: .85rem; font-weight: 600; color: #fff; margin: 1.5rem 0 .5rem; }
     p { font-size: .82rem; color: #bbb; margin-bottom: .8rem; }
+    ul.bullets { list-style: none; padding-left: 0; margin-bottom: 1rem; }
+    ul.bullets li { font-size: .78rem; color: #bbb; padding: .2rem 0 .2rem 1.1rem; position: relative; }
+    ul.bullets li::before { content: '◆'; color: var(--amarillo); position: absolute; left: 0; top: .25rem; font-size: .55rem; }
     .step { background: #111; border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: .6rem; }
     .step-num { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: var(--amarillo); color: #000; font-size: .65rem; font-weight: 700; text-align: center; line-height: 22px; margin-right: .4rem; }
     .step-text { font-size: .8rem; color: #ddd; }
@@ -28,16 +31,27 @@
     .warning { background: rgba(231,76,60,.06); border-left: 3px solid #e74c3c; padding: .8rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
     .warning p { color: #ccc; margin: 0; font-size: .78rem; }
     .warning strong { color: #e74c3c; }
-    code { background: rgba(255,255,255,.08); padding: .15rem .4rem; border-radius: 3px; font-size: .75rem; color: var(--amarillo); }
-    .toc { list-style: none; margin: 1rem 0 2rem; }
-    .toc li { margin: .3rem 0; }
-    .toc a { color: var(--amarillo); text-decoration: none; font-size: .8rem; font-weight: 500; }
+    .info { background: rgba(52,152,219,.08); border-left: 3px solid #3498db; padding: .8rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+    .info p { color: #ccc; margin: 0; font-size: .78rem; }
+    .info strong { color: #5dade2; }
+    code { background: rgba(255,255,255,.08); padding: .15rem .4rem; border-radius: 3px; font-size: .75rem; color: var(--amarillo); font-family: 'Courier New', monospace; }
+    .toc { list-style: none; margin: 1rem 0 2rem; columns: 2; column-gap: 1.5rem; }
+    .toc li { margin: .3rem 0; break-inside: avoid; }
+    .toc a { color: var(--amarillo); text-decoration: none; font-size: .78rem; font-weight: 500; }
     .toc a:hover { text-decoration: underline; }
+    @media (max-width: 500px) { .toc { columns: 1; } }
     .badge-rol { display: inline-block; padding: .15rem .5rem; border-radius: 20px; font-size: .6rem; font-weight: 700; letter-spacing: .08em; vertical-align: middle; margin-left: .3rem; }
     .badge-jefe { background: var(--amarillo); color: #000; }
     .badge-emp { background: #444; color: #fff; }
+    .badge-new { background: #2ecc71; color: #000; font-size: .55rem; padding: .1rem .4rem; }
     .back-btn { display: inline-block; margin-top: 2rem; padding: .6rem 1.2rem; background: var(--amarillo); color: #000; font-family: inherit; font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; border-radius: 4px; }
     .back-btn:hover { background: #f5d442; }
+    .mini-badge { display: inline-block; padding: .15rem .45rem; border-radius: 4px; font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin: 0 .15rem; vertical-align: middle; }
+    .mb-green  { background: #2ecc71; color: #fff; }
+    .mb-orange { background: #e67e22; color: #fff; }
+    .mb-yellow { background: #f1c40f; color: #000; }
+    .mb-red    { background: #e74c3c; color: #fff; }
+    .mb-gray   { background: #95a5a6; color: #fff; }
     @media (max-width: 500px) { .guia-wrap { padding: 1.5rem 1rem 3rem; } h2 { font-size: 1rem; } }
   </style>
 </head>
@@ -47,7 +61,7 @@
     <div class="guia-header">
       <p class="guia-logo">ST Admin</p>
       <p class="guia-sub">Guia del equipo</p>
-      <p class="guia-version">Actualizada Abril 2026</p>
+      <p class="guia-version">Actualizada Abril 2026 · v2</p>
     </div>
 
     <p>Esta guia explica como usar el panel de administracion de ST Perfumeria. Accedes en <code>/admin.html</code> o desde el boton en el footer de la web.</p>
@@ -56,133 +70,299 @@
       <p><strong>Roles:</strong> Hay dos contraseñas. <strong>Jefe</strong> <span class="badge-rol badge-jefe">JEFE</span> tiene acceso a todo (sesion de 7 horas). <strong>Empleado</strong> <span class="badge-rol badge-emp">EMPLEADO</span> puede gestionar precios, stock y clientes (sesion de 12 horas). Las pestanas que no le corresponden estan ocultas.</p>
     </div>
 
+    <div class="info">
+      <p><strong>¿Olvidaste la contraseña?</strong> Pedile al jefe que te la recuerde. Si te equivocas muchas veces, el login se bloquea por un rato (1 min con 5 errores, 5 min con 10, 30 min con 15). El contador se va reseteando cuando ingresas bien.</p>
+    </div>
+
     <h3>Indice</h3>
     <ul class="toc">
-      <li><a href="#precios">1. Cambiar precios</a></li>
-      <li><a href="#stock">2. Cambiar stock</a></li>
+      <li><a href="#login">1. Login y sesion</a></li>
+      <li><a href="#precios-stock">2. Precios y Stock</a></li>
       <li><a href="#editar">3. Editar perfumes</a></li>
-      <li><a href="#eliminar">4. Eliminar un perfume del catalogo</a></li>
+      <li><a href="#eliminar">4. Eliminar un perfume</a></li>
       <li><a href="#nuevo">5. Agregar perfume nuevo</a></li>
-      <li><a href="#destacados">6. Destacados (Seleccion ST)</a></li>
+      <li><a href="#destacados">6. Seleccion ST</a></li>
       <li><a href="#combos">7. Combos y sets</a></li>
       <li><a href="#horario">8. Horarios y cierres</a></li>
-      <li><a href="#clientes">9. Gestion de clientes</a></li>
-      <li><a href="#puntos">10. Sistema de puntos</a></li>
+      <li><a href="#clientes">9. Clientes</a></li>
+      <li><a href="#puntos">10. Puntos</a></li>
       <li><a href="#opiniones">11. Opiniones</a></li>
-      <li><a href="#compartir">12. Compartir perfumes</a></li>
+      <li><a href="#votacion">12. Votacion del mes</a></li>
+      <li><a href="#push">13. Notificaciones y avisos</a></li>
+      <li><a href="#decants">14. Decants (config)</a></li>
+      <li><a href="#espera">15. Lista de espera</a></li>
+      <li><a href="#doctor">16. Doctor (catalogo)</a></li>
+      <li><a href="#stats">17. Estadisticas</a></li>
+      <li><a href="#log">18. Log de auditoria</a></li>
+      <li><a href="#backup">19. Backup</a></li>
+      <li><a href="#pwa">20. Instalar como app</a></li>
+      <li><a href="#compartir">21. Compartir perfumes</a></li>
     </ul>
 
-    <!-- 1. PRECIOS -->
-    <h2 id="precios">1. Cambiar precios <span class="badge-rol badge-emp">EMPLEADO</span></h2>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Precios</strong></span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Buscar el perfume por nombre usando el buscador</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Click en el boton amarillo <strong>Precio</strong></span></div>
-    <div class="step"><span class="step-num">4</span><span class="step-text">Escribir el nuevo precio (sin puntos ni comas). Ej: <code>85000</code></span></div>
-    <div class="step"><span class="step-num">5</span><span class="step-text">Opcionalmente poner un precio promo (aparece tachado como precio original)</span></div>
-    <div class="step"><span class="step-num">6</span><span class="step-text">Escribir el nombre exacto del perfume para confirmar y guardar</span></div>
-    <div class="tip"><p><strong>Tip:</strong> El precio promo es el que se muestra como precio real. El precio original queda tachado. Si no hay promo, dejar el campo vacio.</p></div>
+    <!-- 1. LOGIN -->
+    <h2 id="login">1. Login y sesion</h2>
+    <p>El panel pide contraseña. Ingresa con la que te dieron (jefe o empleado). Una vez adentro, podes cerrar sesion manualmente con el boton <strong>Cerrar sesion</strong> arriba a la derecha.</p>
 
-    <!-- 2. STOCK -->
-    <h2 id="stock">2. Cambiar stock <span class="badge-rol badge-emp">EMPLEADO</span></h2>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Stock</strong></span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Click en el boton azul <strong>Stock</strong> del perfume</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Elegir estado: <strong>En stock</strong>, <strong>Ultimo disponible</strong> o <strong>Sin stock</strong></span></div>
-    <div class="step"><span class="step-num">4</span><span class="step-text">Confirmar escribiendo el nombre del perfume</span></div>
-    <div class="warning"><p><strong>Importante:</strong> "Sin stock" oculta el perfume del catalogo. Los clientes no lo ven hasta que se cambie de vuelta a "En stock".</p></div>
+    <div class="tip">
+      <p><strong>Cierre automatico por inactividad:</strong> Si no tocas el panel durante un rato largo (7h jefe / 12h empleado) se cierra sola por seguridad. Avisa 2 minutos antes con un cartel para que no pierdas cambios sin guardar.</p>
+    </div>
+
+    <div class="tip">
+      <p><strong>Confirmacion con "ST":</strong> Para operaciones importantes (cambiar precio, cambiar stock, eliminar cliente) vas a ver un campito donde tenes que escribir <strong>ST</strong> para habilitar el boton final. Es una barrera anti-click-accidental. Solo dos letras.</p>
+    </div>
+
+    <!-- 2. PRECIOS Y STOCK -->
+    <h2 id="precios-stock">2. Precios y Stock <span class="badge-rol badge-emp">EMPLEADO</span></h2>
+    <p>Las dos cosas viven ahora en una sola pestana: <strong>💰 Precios &amp; Stock</strong>. Se abre ordenada A-Z por defecto (como un catalogo) y tiene buscador + ordenamiento por precio / stock.</p>
+
+    <h3>Columnas de la tabla</h3>
+    <ul class="bullets">
+      <li><strong>Perfume</strong> — nombre.</li>
+      <li><strong>Estado</strong> — badge de stock con cantidad (ver colores abajo). <em>Tocable</em>.</li>
+      <li><strong>Precio</strong> — el precio base cargado.</li>
+      <li><strong>Efectivo</strong> — el precio con 10% OFF aplicado automaticamente (no hay que tocarlo, se calcula solo).</li>
+      <li><strong>Accion</strong> — boton <strong>Editar</strong> para cambiar precios.</li>
+    </ul>
+
+    <h3>Cambiar el stock</h3>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Buscar el perfume por nombre</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Tocar la <strong>badge de Estado</strong> (la etiqueta coloreada que dice "X u." o "Sin stock")</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Ajustar la cantidad exacta con los botones <strong>− / +</strong> o escribiendola directamente</span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Ver el preview ("Se mostrara como") para confirmar el color</span></div>
+    <div class="step"><span class="step-num">5</span><span class="step-text">Si queres, marcar <strong>Pausado</strong> para ocultar el perfume del catalogo sin tocar la cantidad</span></div>
+    <div class="step"><span class="step-num">6</span><span class="step-text">Escribir <strong>ST</strong> para confirmar y guardar</span></div>
+
+    <h3>Codigo de colores del stock <span class="badge-new">NUEVO</span></h3>
+    <ul class="bullets">
+      <li><span class="mini-badge mb-green">4 u. o mas</span> — stock normal, tranquilos.</li>
+      <li><span class="mini-badge mb-orange">3 u.</span> — empezar a pensar en reponer.</li>
+      <li><span class="mini-badge mb-yellow">2 u.</span> — queda poco, hay que reponer pronto.</li>
+      <li><span class="mini-badge mb-red">1 u. (Ultimo)</span> — se muestra como "Ultimo" en el catalogo.</li>
+      <li><span class="mini-badge mb-red">Sin stock</span> — no lo pueden comprar pero si verlo.</li>
+      <li><span class="mini-badge mb-gray">Pausado</span> — oculto del catalogo publico.</li>
+    </ul>
+    <div class="tip"><p><strong>Reemplazo del Excel:</strong> Esta es la forma nueva de llevar el stock exacto. En la tablet abris la tabla, tocas la badge del perfume, ajustas con − / +, confirmas con "ST" y listo. Sin hojas de calculo.</p></div>
+
+    <h3>Cambiar precio</h3>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Click en el boton amarillo <strong>Editar</strong> de la fila</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Escribir el nuevo precio base (sin puntos ni comas, ej: <code>85000</code>)</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">(Opcional) Precio promo — aparece tachado el original y el promo como destacado</span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Escribir <strong>ST</strong> para confirmar y guardar</span></div>
+    <div class="tip"><p><strong>Precio efectivo:</strong> No hay que cargarlo. Es siempre el 10% OFF del precio (o de la promo si hay). Se actualiza automaticamente.</p></div>
 
     <!-- 3. EDITAR -->
     <h2 id="editar">3. Editar perfumes <span class="badge-rol badge-jefe">JEFE</span></h2>
-    <p>En la pestana <strong>Editar</strong> podes modificar cualquier dato de un perfume existente: nombre, marca, fabricante, categoria, perfil olfativo, precios, notas, foto, etiqueta y descuentos temporales.</p>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Buscar el perfume con el buscador de la pestana</span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Hacer click en el perfume para cargar todos sus datos en el formulario</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Modificar los campos que necesites y click en <strong>Guardar cambios</strong></span></div>
-    <div class="tip"><p><strong>Historial:</strong> Las ultimas 5 ediciones se muestran al pie de la pestana con fecha, campo modificado y quien hizo el cambio.</p></div>
-    <div class="tip"><p><strong>Como subir la foto:</strong> Abri la imagen en cualquier sitio, click derecho > "Copiar direccion de imagen" y pegala en el campo Foto.</p></div>
+    <p>En la pestana <strong>✏️ Editar</strong> podes modificar cualquier dato de un perfume existente: nombre, marca, fabricante, categoria, perfil olfativo, precios, notas, foto, alias, etiqueta y descuentos temporales.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Buscar el perfume con el buscador</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Click sobre el perfume para cargar sus datos</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Modificar los campos y click en <strong>Guardar cambios</strong></span></div>
+
+    <h3>Perfil olfativo <span class="badge-new">NUEVO</span></h3>
+    <p>El campo <strong>Perfil</strong> es un combobox: tenes las 5 sugerencias base (Versatil, Intenso, Dulce, Fresco, Floral) pero podes escribir tu propia palabra (ej: "Oud dulce", "Aromatico", "Ahumado"). La lista se va auto-aprendiendo: cuando alguien usa uno nuevo, aparece como sugerencia para el siguiente.</p>
+
+    <h3>Alias / palabras clave</h3>
+    <p>El campo <strong>Apodos / palabras clave</strong> sirve para que el equipo se oriente: escribi abreviaciones, siglas o palabras que describan el perfume ("amber dulce cafe", "sauvage dior imitacion", "el de la caja azul"). Se usa para busqueda interna.</p>
+
+    <h3>Foto</h3>
+    <p>Dos formas:</p>
+    <ul class="bullets">
+      <li><strong>Subir desde tu PC/celu:</strong> tocas "Subir foto" y elegis un archivo. Se comprime a WebP automaticamente y queda guardada en Supabase Storage.</li>
+      <li><strong>Pegar URL:</strong> si encontraste la foto online, copiala (click derecho → "Copiar direccion de imagen") y pegala en el campo Foto.</li>
+    </ul>
+
+    <h3>Historial de ediciones</h3>
+    <div class="tip"><p>Las ultimas 5 ediciones se muestran al pie de la pestana Editar, con fecha, campo modificado y quien hizo el cambio.</p></div>
 
     <!-- 4. ELIMINAR -->
     <h2 id="eliminar">4. Eliminar un perfume del catalogo <span class="badge-rol badge-jefe">JEFE</span></h2>
     <p>Si un perfume se discontinua o ya no se vende, se puede ocultar del catalogo sin borrarlo definitivamente.</p>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>Editar</strong> y buscar el perfume</span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Hacer click para cargar el perfume</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Al final del formulario, click en el boton rojo <strong>🗑️ ELIMINAR PERFUME DEL CATALOGO</strong></span></div>
-    <div class="step"><span class="step-num">4</span><span class="step-text">Confirmar dos veces (doble proteccion anti-error)</span></div>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>✏️ Editar</strong> y cargar el perfume</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Al final del formulario, click en el boton rojo <strong>🗑️ ELIMINAR PERFUME DEL CATALOGO</strong></span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Confirmar (doble proteccion)</span></div>
     <div class="warning"><p><strong>Importante:</strong> El perfume queda oculto pero <strong>no se borra</strong>. Si necesitas recuperarlo, entra a Supabase → tabla <code>perfume_overrides</code> → buscas el slug → cambia <code>oculto</code> a <code>false</code>.</p></div>
+    <div class="tip"><p><strong>Alternativa mas suave:</strong> si pensas volver a venderlo pronto, usa "Pausado" en Precios &amp; Stock. Se oculta igual pero es mas facil de reactivar.</p></div>
 
     <!-- 5. NUEVO -->
     <h2 id="nuevo">5. Agregar perfume nuevo <span class="badge-rol badge-jefe">JEFE</span></h2>
     <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>+ Perfume</strong></span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Completar todos los campos: nombre, marca real, categoria, precio, foto, notas</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Click en <strong>Agregar perfume</strong></span></div>
-    <p>El perfume aparece inmediatamente en el catalogo para todos los visitantes.</p>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Completar campos obligatorios: nombre, perfil, precio</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Recomendado: marca real (fabricante), categoria, foto, notas (salida/corazon/base), alias</span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Click en <strong>Agregar perfume</strong></span></div>
+    <p>El perfume aparece inmediatamente en el catalogo. Si despues queres editarlo, usa la pestana Editar (no hace falta volver a + Perfume).</p>
 
     <!-- 6. DESTACADOS -->
     <h2 id="destacados">6. Destacados — Seleccion ST <span class="badge-rol badge-jefe">JEFE</span></h2>
-    <p>La seccion "Seleccion ST" en la web muestra los perfumes mas elegidos. Aparece justo debajo del banner de Decants.</p>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Destacados</strong></span></div>
+    <p>La seccion "Seleccion ST" en la web muestra los perfumes mas elegidos. Aparece debajo del banner de Decants.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>Destacados</strong></span></div>
     <div class="step"><span class="step-num">2</span><span class="step-text">Elegir hasta 5 perfumes del catalogo</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Guardar. Los cambios se ven al instante en la web.</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Guardar — los cambios se ven al instante en la web</span></div>
 
     <!-- 7. COMBOS -->
     <h2 id="combos">7. Combos y sets <span class="badge-rol badge-jefe">JEFE</span></h2>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Combos</strong></span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Click en <strong>+ Nuevo combo</strong></span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Completar nombre, tipo (Pack / Mini set / Regalo), precio y precio promo</span></div>
-    <div class="step"><span class="step-num">4</span><span class="step-text">Agregar los perfumes que incluye el combo (elegir del catalogo o escribir nombre custom)</span></div>
-    <div class="step"><span class="step-num">5</span><span class="step-text">Click en <strong>Guardar combo</strong></span></div>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>🎁 Combos</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Click en <strong>+ NUEVO COMBO</strong></span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Completar nombre, tipo (Pack / Mini set / Regalo), precio y (opcional) precio promo</span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Agregar los perfumes que incluye (elegir del catalogo o escribir nombre custom)</span></div>
+    <div class="step"><span class="step-num">5</span><span class="step-text">(Opcional) Subir una foto propia del combo — si no, se arma un mosaico con las fotos de los perfumes que contiene</span></div>
+    <div class="step"><span class="step-num">6</span><span class="step-text">Click en <strong>Guardar combo</strong></span></div>
     <p>Los combos tipo "Regalo" muestran el badge <strong>🎁 IDEAL PARA REGALAR</strong> en la web. Si hay precio promo, aparece el ahorro ("Ahorras $X").</p>
 
     <!-- 8. HORARIO -->
-    <h2 id="horario">8. Horarios y cierres especiales <span class="badge-rol badge-jefe">JEFE</span></h2>
-    <p>En la pestana <strong>Horario</strong> podes configurar dos cosas: el horario habitual (lunes a viernes y sabados) y los cierres especiales (feriados, vacaciones, etc.).</p>
+    <h2 id="horario">8. Horarios y cierres <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <p>En la pestana <strong>Horario</strong> podes configurar dos cosas: el horario habitual y los cierres especiales (feriados, vacaciones).</p>
+
     <h3>Ajuste de horario</h3>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Completar el rango de fechas en que cambia el horario</span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Escribir la hora de apertura y cierre</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Opcionalmente activar "Mostrar nota" para que aparezca un aviso en el footer de la web</span></div>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Completar rango de fechas en que cambia el horario</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Hora de apertura y cierre</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">(Opcional) Activar "Mostrar nota" para que aparezca un aviso en el footer</span></div>
+
     <h3>Cierres especiales</h3>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Elegir fecha <strong>desde</strong> y (opcionalmente) fecha <strong>hasta</strong> para cubrir varios dias seguidos</span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Escribir el motivo (ej: "Feriado nacional", "Vacaciones")</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Guardar. Se pueden cargar rangos de hasta 14 dias de una vez.</span></div>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Fecha <strong>desde</strong> y (opcional) fecha <strong>hasta</strong> para cubrir varios dias</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Motivo (ej: "Feriado nacional", "Vacaciones")</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Guardar — se pueden cargar rangos de hasta 14 dias de una vez</span></div>
     <div class="tip"><p><strong>Efecto en la web:</strong> El cartel de "Abierto / Cerrado" se actualiza automaticamente. El footer muestra el horario real del dia.</p></div>
 
     <!-- 9. CLIENTES -->
     <h2 id="clientes">9. Gestion de clientes <span class="badge-rol badge-emp">EMPLEADO</span></h2>
-    <p>En la pestana <strong>Clientes</strong> ves a todos los usuarios registrados con su nombre, telefono, puntos acumulados y si compraron o no.</p>
+    <p>En la pestana <strong>Clientes</strong> ves a todos los usuarios registrados: nombre, telefono, puntos, nota interna y si compraron.</p>
 
-    <h3>Buscar un cliente</h3>
-    <p>El buscador encuentra clientes por <strong>nombre</strong>, <strong>telefono</strong> o <strong>nota interna</strong>. Tambien podes filtrar por <strong>✓ Compro</strong> o <strong>✗ No compro</strong>.</p>
+    <h3>Buscar</h3>
+    <p>El buscador encuentra por <strong>nombre</strong>, <strong>telefono</strong> o <strong>nota interna</strong>. Tambien podes filtrar por <strong>✓ Compro</strong> o <strong>✗ No compro</strong>.</p>
 
-    <h3>Editar un cliente</h3>
+    <h3>Editar</h3>
     <div class="step"><span class="step-num">1</span><span class="step-text">Click en <strong>✏️ Editar</strong> en la fila del cliente</span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Podras cambiar: nombre, telefono, puntos, estado de compra y nota interna</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Click en <strong>Guardar cambios</strong></span></div>
-    <div class="tip"><p><strong>Nota interna:</strong> Es una descripcion corta solo visible en el admin para identificar al cliente facilmente. Ej: "la chica del pelo rojo". Se incluye en las busquedas.</p></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Cambiar nombre, telefono, puntos, estado de compra y nota interna</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Guardar cambios</span></div>
+    <div class="tip"><p><strong>Nota interna:</strong> descripcion corta solo visible en el admin para identificar al cliente ("la chica del pelo rojo", "amigo de Lucas"). Se incluye en las busquedas.</p></div>
 
-    <h3>Eliminar un cliente</h3>
-    <div class="warning"><p><strong>Atencion:</strong> Eliminar un cliente es irreversible. Pide confirmacion con el nombre exacto antes de borrar.</p></div>
+    <h3>Eliminar</h3>
+    <div class="warning"><p><strong>Atencion:</strong> Eliminar un cliente es irreversible. Se pide confirmacion escribiendo <strong>ST</strong> antes de borrar.</p></div>
 
     <!-- 10. PUNTOS -->
     <h2 id="puntos">10. Sistema de puntos <span class="badge-rol badge-emp">EMPLEADO</span></h2>
-    <p>Cada vez que un cliente compra, se le puede sumar un punto desde el admin.</p>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a la pestana <strong>Clientes</strong></span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">En el buscador de "Sumar punto", escribir el <strong>nombre</strong> o el <strong>telefono</strong> del cliente</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">Si hay un solo resultado: se confirma automaticamente. Si hay varios: se muestra lista para elegir.</span></div>
+    <p>Cada vez que un cliente compra, se le suma un punto desde el admin.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>Clientes</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">En el buscador "Sumar punto", escribir el <strong>nombre</strong> o <strong>telefono</strong></span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Si hay un solo resultado: se confirma automaticamente. Si hay varios: elegir de la lista.</span></div>
     <div class="step"><span class="step-num">4</span><span class="step-text">Si el cliente no existe: se ofrece registrarlo en el momento</span></div>
-    <div class="tip"><p><strong>Regla de puntos:</strong> El cliente elige el premio cuando acumula la cantidad acordada. Registrar siempre con telefono real para poder identificarlo.</p></div>
+    <div class="tip"><p><strong>Regla:</strong> El cliente elige el premio cuando acumula la cantidad acordada. Registrar con telefono real para poder identificarlo.</p></div>
 
     <!-- 11. OPINIONES -->
     <h2 id="opiniones">11. Opiniones <span class="badge-rol badge-jefe">JEFE</span></h2>
     <p>En la pestana <strong>Opiniones</strong> ves todos los mensajes que dejaron los clientes en "Espacio para ustedes". Podes eliminar los que sean spam o inapropiados.</p>
 
-    <!-- 12. COMPARTIR -->
-    <h2 id="compartir">12. Compartir perfumes</h2>
-    <p>Cada perfume tiene un boton de compartir en su card. Al tocarlo genera un link unico que al compartirse por WhatsApp muestra la foto, nombre y precio del perfume como previsualizacion.</p>
-    <div class="step"><span class="step-num">1</span><span class="step-text">El cliente o vos tocan el icono de compartir en la card del perfume</span></div>
+    <!-- 12. VOTACION -->
+    <h2 id="votacion">12. Votacion del mes <span class="badge-rol badge-emp">EMPLEADO</span></h2>
+    <p>El publico puede votar entre varios perfumes candidatos. Aparece en la web como una seccion especial.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>🏆 Votacion</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Elegir los perfumes candidatos del catalogo</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Click en <strong>GUARDAR CANDIDATOS</strong></span></div>
+    <p>La votacion muestra en tiempo real cuantos votos lleva cada uno.</p>
+
+    <!-- 13. PUSH -->
+    <h2 id="push">13. Notificaciones push y avisos <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <p>Con esto avisas a los clientes que se suscribieron a notificaciones (promos, nuevos ingresos, horarios especiales). Ademas, lo que mandas <strong>tambien aparece como banner publico</strong> en el catalogo para quienes no se suscribieron.</p>
+
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>🔔 Notificaciones</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Escribir titulo corto (ej: "Promo fin de semana")</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Escribir mensaje (1-2 lineas directas)</span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">(Opcional) Pegar una URL para que al tocar la notificacion abra un link especifico</span></div>
+    <div class="step"><span class="step-num">5</span><span class="step-text">Ver la vista previa en tiempo real</span></div>
+    <div class="step"><span class="step-num">6</span><span class="step-text">Click en <strong>🚀 ENVIAR PUSH</strong> y confirmar</span></div>
+
+    <h3>Banner publico en el catalogo <span class="badge-new">NUEVO</span></h3>
+    <p>Cada push que envias se replica como banner dorado en el catalogo (entre DECANTS y SELECCION ST). Se muestran los ultimos 3 de los ultimos 7 dias. El visitante puede cerrarlo y vuelve a aparecer 24hs despues. Asi avisas a todos, suscriptos o no.</p>
+
+    <h3>Copiar para WhatsApp</h3>
+    <p>El boton <strong>📋 Copiar p/ WhatsApp</strong> te copia el mensaje formateado para pegarlo en el grupo o estado.</p>
+
+    <h3>Historial</h3>
+    <p>Abajo en la misma pestana ves el historial de pushes enviados (fecha, titulo, cuantos lo recibieron, cuantos fallaron).</p>
+
+    <!-- 14. DECANTS -->
+    <h2 id="decants">14. Decants — configuracion <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <p>El cliente puede armar un pack de decants (mini frascos) desde la web. En <strong>💧 Decants</strong> configurable todo:</p>
+    <ul class="bullets">
+      <li>Precio por ml</li>
+      <li>Precio por frasquito segun tamaño (5ml / 10ml / 20ml)</li>
+      <li>Descuento por cantidad de decants (ej: 5% al llegar a 3, 10% a 5+)</li>
+      <li>Activar / desactivar tamaños ("Proximamente")</li>
+    </ul>
+    <p>Los cambios se reflejan al instante cuando el cliente arma el pack.</p>
+
+    <!-- 15. ESPERA -->
+    <h2 id="espera">15. Lista de espera <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <p>Cuando un cliente intenta comprar un perfume "Sin stock", puede tocar "Avisame cuando vuelva" y dejar su telefono.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>🔔 Espera</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Ver la lista agrupada por perfume y cuantos estan esperando cada uno</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Cuando el perfume vuelve a stock, tocar <strong>📢 Avisar a todos</strong> — arma un mensaje WhatsApp listo para mandar</span></div>
+    <div class="tip"><p><strong>Tip:</strong> Tambien podes avisar individualmente con el boton <strong>Avisar</strong> de cada fila.</p></div>
+
+    <!-- 16. DOCTOR -->
+    <h2 id="doctor">16. Doctor — salud del catalogo</h2>
+    <p>El <strong>🩺 Doctor</strong> escanea el catalogo buscando problemas: perfumes sin foto, sin precio, sin notas, tipos raros, slugs duplicados, etc. Te muestra un informe con los errores para que corrijas lo que encuentre.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>🩺 Doctor</strong> — el analisis arranca solo</span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Revisar la lista de problemas, ordenada por gravedad</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Tocar el nombre del perfume para ir a Editar directo</span></div>
+    <div class="tip"><p><strong>Cuando correrlo:</strong> cada vez que agregues muchos perfumes nuevos, o una vez al mes como chequeo general.</p></div>
+
+    <!-- 17. STATS -->
+    <h2 id="stats">17. Estadisticas <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <p>En <strong>Estadisticas</strong> ves numeros del negocio: total de perfumes, clientes, opiniones, visitas totales (cuantas veces clickearon en una card) y promedio por perfume.</p>
+    <p>Mas abajo: el <strong>Top 10 de perfumes mas clickeados</strong> como grafico de barras, y el <strong>rango de precios</strong> del catalogo agrupado por franjas.</p>
+
+    <!-- 18. LOG -->
+    <h2 id="log">18. Log de auditoria <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <p>Todo cambio importante queda registrado: cambio de precio, cambio de stock, creacion/edicion de perfumes, eliminacion de clientes, envio de push, creacion de backup. El log vive 60 dias y es inmutable (no se puede borrar).</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>📋 Log</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Filtrar por tipo de accion, usuario o fecha</span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Ver el detalle del cambio (valor anterior vs nuevo)</span></div>
+    <div class="info"><p><strong>Util para:</strong> ver quien cambio el precio de X cuando, confirmar si un cambio fue reciente o no, o auditar al equipo si aparecio un error.</p></div>
+
+    <!-- 19. BACKUP -->
+    <h2 id="backup">19. Backup <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <p>Todos los datos del admin (precios, stock, clientes, combos, etc.) se respaldan automaticamente cada 24 horas. Se guardan los ultimos 15 dias (tope 200 snapshots).</p>
+
+    <h3>Crear backup manual</h3>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>💾 Backup</strong></span></div>
+    <div class="step"><span class="step-num">2</span><span class="step-text">Click en <strong>💾 Crear backup ahora</strong></span></div>
+    <div class="step"><span class="step-num">3</span><span class="step-text">Esperar el OK (toma unos segundos)</span></div>
+
+    <h3>Descargar</h3>
+    <p>Cada backup en la lista tiene un boton <strong>📥 JSON</strong> para descargarlo. Guardalo en un lugar seguro (Drive, Dropbox) si es un snapshot importante (antes de un cambio masivo, por ejemplo).</p>
+    <div class="tip"><p><strong>Cuando hacer uno manual:</strong> antes de subir una lista de precios nueva, antes de hacer cambios masivos, o al final del mes como snapshot del cierre.</p></div>
+
+    <!-- 20. PWA -->
+    <h2 id="pwa">20. Instalar como app <span class="badge-new">NUEVO</span></h2>
+    <p>El sitio se puede <strong>instalar como una app</strong> en el celular o PC. Abre sin barra del navegador y aparece un icono en el escritorio como cualquier app.</p>
+
+    <h3>En celular (Android / iOS)</h3>
+    <ul class="bullets">
+      <li>Entrar a <code>stperfumeria.com</code> desde el navegador (Chrome o Safari).</li>
+      <li>Esperar ~25 segundos → aparece un banner "Instalar ST Perfumeria como app".</li>
+      <li>Tocar <strong>Instalar</strong>. En iOS: Compartir → "Agregar a inicio".</li>
+    </ul>
+
+    <h3>En PC</h3>
+    <ul class="bullets">
+      <li>En la barra de direcciones de Chrome/Edge aparece un icono de "Instalar".</li>
+      <li>Click → la app se abre como ventana separada.</li>
+    </ul>
+
+    <div class="tip"><p><strong>Ventaja:</strong> la app funciona aun sin internet (catalogo cacheado). Tambien soporta notificaciones push y tiene accesos directos a Decants y Favoritos.</p></div>
+
+    <!-- 21. COMPARTIR -->
+    <h2 id="compartir">21. Compartir perfumes</h2>
+    <p>Cada perfume tiene un boton de compartir en su card. Al tocarlo genera un link unico que al compartirse por WhatsApp muestra la foto, nombre y precio como previsualizacion.</p>
+    <div class="step"><span class="step-num">1</span><span class="step-text">Tocar el icono de compartir en la card del perfume</span></div>
     <div class="step"><span class="step-num">2</span><span class="step-text">Se copia el link automaticamente o se abre el dialogo de compartir</span></div>
     <div class="step"><span class="step-num">3</span><span class="step-text">Al abrir el link, la pagina scrollea directo al perfume con un highlight dorado</span></div>
     <div class="tip"><p><strong>Formato del link:</strong> <code>stperfumeria.com/perfume/khamrah</code></p></div>
 
+    <!-- CIERRE -->
     <div style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.08);text-align:center;">
-      <p style="font-size:.65rem;color:var(--gris);letter-spacing:.1em;text-transform:uppercase;">ST Scent & Textures — Equipo interno</p>
+      <p style="font-size:.65rem;color:var(--gris);letter-spacing:.1em;text-transform:uppercase;">ST Scent &amp; Textures — Equipo interno</p>
+      <p style="font-size:.6rem;color:var(--gris);margin-top:.3rem;">¿Algo no coincide con lo que ves en pantalla? Hablalo con el jefe para actualizar esta guia.</p>
       <a href="admin.html" class="back-btn">Ir al panel admin</a>
     </div>
 
