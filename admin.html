@@ -503,6 +503,96 @@
       }
       .push-preset-title { font-size: .68rem; }
     }
+
+    /* ============================================================
+       TEMA CLARO (body.light)
+       Se activa con el botón del header. Se guarda en localStorage.
+       Override por variables + por reglas específicas para los elementos
+       que usan color hardcodeado (#111, rgba(255,255,255,.0X), etc).
+       ============================================================ */
+    body.light {
+      --negro: #f5f3ee;            /* fondo crema suave (mismo espíritu que el catálogo) */
+      --gris: #6b6b6b;
+      --gris-claro: #3a3a3a;
+      --borde: rgba(0,0,0,.10);
+      background: var(--negro);
+      color: #1a1a1a;
+    }
+    /* Login */
+    body.light .login-box { background: #fff; color: #1a1a1a; }
+    body.light .login-input { background: rgba(0,0,0,.04); color: #1a1a1a; }
+    body.light .login-input::placeholder { color: #888; }
+    body.light .login-btn:disabled { background: #ccc; color: #777; }
+
+    /* Panel y tabs */
+    body.light .panel-logout { color: #555; border-color: #aaa; }
+    body.light .panel-logout:hover { color: #000; border-color: #000; }
+    body.light #themeToggleBtn { color: #333; border-color: #aaa; background: #fff; }
+    body.light .tab-btn { color: #555; border-color: #bbb; background: #fff; }
+    body.light .tab-btn.active { color: #000; background: var(--amarillo); border-color: var(--amarillo); }
+    body.light .tab-btn:hover:not(.active) { background: #f0ece0; color: #000; }
+
+    /* Tabla de Precios & Stock */
+    body.light .admin-table { background: #fff; color: #1a1a1a; }
+    body.light .admin-table thead { background: #f0ece0; }
+    body.light .admin-table thead th { color: #222; border-color: #ddd; }
+    body.light .admin-table tbody td { border-color: #eee; color: #1a1a1a; }
+    body.light .admin-table tbody tr:hover { background: #faf7ee; }
+    body.light .admin-search { background: #fff; color: #1a1a1a; border-color: #ccc; }
+    body.light .admin-search::placeholder { color: #999; }
+
+    /* Tarjetas internas ("step", bloques de editor, combos, clientes, etc.) */
+    body.light .step { background: #fff; border-color: #e3e0d5; color: #1a1a1a; }
+    body.light .step-text { color: #222; }
+    body.light .tip { background: rgba(232,184,0,.10); }
+    body.light .tip p { color: #333; }
+    body.light .warning { background: rgba(231,76,60,.08); }
+    body.light .warning p { color: #333; }
+
+    /* Inputs & selects genéricos del admin */
+    body.light input[type="text"],
+    body.light input[type="number"],
+    body.light input[type="email"],
+    body.light input[type="date"],
+    body.light input[type="datetime-local"],
+    body.light input[type="url"],
+    body.light textarea,
+    body.light select {
+      background: #fff !important;
+      color: #1a1a1a !important;
+      border-color: #cfcabc !important;
+    }
+    body.light input::placeholder,
+    body.light textarea::placeholder { color: #999 !important; }
+
+    /* Modales */
+    body.light .modal-box { background: #fff; color: #1a1a1a; border-color: #d6d1c3; }
+    body.light .modal-title { color: #000; }
+    body.light .modal-label { color: #444; }
+    body.light .modal-input { background: #faf8f3; color: #1a1a1a; border-color: #d6d1c3; }
+    body.light .modal-close { color: #555; }
+    body.light .modal-confirm-text { color: #333; }
+
+    /* Badges de stock — los colores ya son visibles sobre cualquier fondo */
+    body.light .badge-paused { background: #e0e0e0; color: #333; }
+
+    /* Banners / cards con background:#111 o rgba(255,255,255,...) hardcodeado.
+       Truco: invertimos selectivamente los fondos oscuros más comunes. */
+    body.light [style*="background:#111"],
+    body.light [style*="background: #111"] { background: #fff !important; color: #1a1a1a !important; border-color: #e3e0d5 !important; }
+    body.light [style*="background:#0a0a0a"] { background: #fff !important; color: #1a1a1a !important; }
+    body.light [style*="background:rgba(255,255,255,.03)"] { background: rgba(0,0,0,.04) !important; }
+    body.light [style*="background:rgba(255,255,255,.04)"] { background: rgba(0,0,0,.04) !important; }
+    body.light [style*="background:rgba(255,255,255,.06)"] { background: rgba(0,0,0,.05) !important; }
+    body.light [style*="background:rgba(255,255,255,.08)"] { background: rgba(0,0,0,.06) !important; }
+    body.light [style*="color:#fff"]:not(.tab-btn):not(.modal-btn) { color: #1a1a1a !important; }
+    body.light [style*="color: #fff"]:not(.tab-btn):not(.modal-btn) { color: #1a1a1a !important; }
+    body.light [style*="color:#e4e4e4"] { color: #222 !important; }
+    body.light [style*="color:#ddd"] { color: #222 !important; }
+    body.light [style*="color:#ccc"] { color: #333 !important; }
+    body.light [style*="color:#bbb"] { color: #444 !important; }
+    body.light [style*="color:#aaa"] { color: #555 !important; }
+    body.light [style*="color:var(--gris-claro)"] { color: #333 !important; }
   </style>
 </head>
 <body>
@@ -531,7 +621,14 @@
   <div class="panel" id="adminPanel">
     <div class="panel-header">
       <p class="panel-title">ST Admin Panel <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:.5rem;vertical-align:middle;"></span></p>
-      <button class="panel-logout" onclick="doLogout()">Cerrar sesion</button>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <button id="themeToggleBtn" onclick="toggleAdminTheme()" title="Alternar tema claro / oscuro"
+          style="background:transparent;border:1px solid var(--borde);color:var(--gris-claro);font-size:.7rem;padding:.35rem .6rem;border-radius:4px;cursor:pointer;letter-spacing:.05em;display:flex;align-items:center;gap:.3rem;">
+          <span id="themeToggleIcon">🌙</span>
+          <span id="themeToggleLabel">Oscuro</span>
+        </button>
+        <button class="panel-logout" onclick="doLogout()">Cerrar sesion</button>
+      </div>
     </div>
 
     <div class="tabs">
@@ -1943,6 +2040,36 @@
     function notifyTelegram(msg) {
       sb.rpc('send_telegram', { msg: msg }).then(function(){}).catch(function(){});
     }
+
+    // ============================================================
+    // TEMA CLARO / OSCURO
+    // Preferencia por usuario, persistida en localStorage. Se aplica en el
+    // primer paint (ver IIFE abajo) para evitar el "flash" de oscuro a claro.
+    // ============================================================
+    function applyAdminTheme(theme) {
+      var isLight = (theme === 'light');
+      document.body.classList.toggle('light', isLight);
+      var icon = document.getElementById('themeToggleIcon');
+      var label = document.getElementById('themeToggleLabel');
+      if (icon)  icon.textContent  = isLight ? '☀️' : '🌙';
+      if (label) label.textContent = isLight ? 'Claro' : 'Oscuro';
+      // Ajustar el meta theme-color para que la barra de estado del celu acompañe
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', isLight ? '#f5f3ee' : '#0a0a0a');
+    }
+    function toggleAdminTheme() {
+      var curr = localStorage.getItem('st_admin_theme') === 'light' ? 'light' : 'dark';
+      var next = curr === 'light' ? 'dark' : 'light';
+      localStorage.setItem('st_admin_theme', next);
+      applyAdminTheme(next);
+    }
+    // Aplicar al cargar (antes de cualquier render)
+    (function initAdminTheme() {
+      var saved = localStorage.getItem('st_admin_theme') || 'dark';
+      // Aplicamos apenas el body existe — este script corre al final del <body>
+      if (document.body) applyAdminTheme(saved);
+      else document.addEventListener('DOMContentLoaded', function(){ applyAdminTheme(saved); });
+    })();
 
     // ============================================================
     // TABS

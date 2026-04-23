@@ -61,7 +61,7 @@
     <div class="guia-header">
       <p class="guia-logo">ST Admin</p>
       <p class="guia-sub">Guia del equipo</p>
-      <p class="guia-version">Actualizada Abril 2026 · v2</p>
+      <p class="guia-version">Actualizada Abril 2026 · v2.1</p>
     </div>
 
     <p>Esta guia explica como usar el panel de administracion de ST Perfumeria. Accedes en <code>/admin.html</code> o desde el boton en el footer de la web.</p>
@@ -72,6 +72,10 @@
 
     <div class="info">
       <p><strong>¿Olvidaste la contraseña?</strong> Pedile al jefe que te la recuerde. Si te equivocas muchas veces, el login se bloquea por un rato (1 min con 5 errores, 5 min con 10, 30 min con 15). El contador se va reseteando cuando ingresas bien.</p>
+    </div>
+
+    <div class="info">
+      <p><strong>Tema claro / oscuro <span class="badge-new">NUEVO</span>:</strong> Arriba a la derecha, al lado de "Cerrar sesion", tenes un boton 🌙 / ☀️ para alternar entre modo oscuro (por defecto) y modo claro. La preferencia se guarda en tu dispositivo, asi que cada uno puede elegir el que le resulte mas comodo (por ejemplo, claro de dia en el mostrador).</p>
     </div>
 
     <h3>Indice</h3>
@@ -108,7 +112,7 @@
     </div>
 
     <div class="tip">
-      <p><strong>Confirmacion con "ST":</strong> Para operaciones importantes (cambiar precio, cambiar stock, eliminar cliente) vas a ver un campito donde tenes que escribir <strong>ST</strong> para habilitar el boton final. Es una barrera anti-click-accidental. Solo dos letras.</p>
+      <p><strong>Confirmacion con "ST":</strong> Al guardar en la pestaña <strong>Editar perfume</strong> o al eliminar un cliente te pide escribir <strong>ST</strong> (dos letras) para confirmar. Es una barrera anti-click-accidental. En Precios y Stock NO hace falta: alcanza con tocar el boton OK.</p>
     </div>
 
     <!-- 2. PRECIOS Y STOCK -->
@@ -130,7 +134,7 @@
     <div class="step"><span class="step-num">3</span><span class="step-text">Ajustar la cantidad exacta con los botones <strong>− / +</strong> o escribiendola directamente</span></div>
     <div class="step"><span class="step-num">4</span><span class="step-text">Ver el preview ("Se mostrara como") para confirmar el color</span></div>
     <div class="step"><span class="step-num">5</span><span class="step-text">Si queres, marcar <strong>Pausado</strong> para ocultar el perfume del catalogo sin tocar la cantidad</span></div>
-    <div class="step"><span class="step-num">6</span><span class="step-text">Escribir <strong>ST</strong> para confirmar y guardar</span></div>
+    <div class="step"><span class="step-num">6</span><span class="step-text">Tocar el boton verde <strong>✓ OK, actualizar stock</strong> <span class="badge-new">NUEVO</span></span></div>
 
     <h3>Codigo de colores del stock <span class="badge-new">NUEVO</span></h3>
     <ul class="bullets">
@@ -141,14 +145,15 @@
       <li><span class="mini-badge mb-red">Sin stock</span> — no lo pueden comprar pero si verlo.</li>
       <li><span class="mini-badge mb-gray">Pausado</span> — oculto del catalogo publico.</li>
     </ul>
-    <div class="tip"><p><strong>Reemplazo del Excel:</strong> Esta es la forma nueva de llevar el stock exacto. En la tablet abris la tabla, tocas la badge del perfume, ajustas con − / +, confirmas con "ST" y listo. Sin hojas de calculo.</p></div>
+    <div class="tip"><p><strong>Reemplazo del Excel:</strong> Esta es la forma nueva de llevar el stock exacto. En la tablet abris la tabla, tocas la badge del perfume, ajustas con − / +, tocas OK y listo. Sin hojas de calculo, sin tipear.</p></div>
 
     <h3>Cambiar precio</h3>
     <div class="step"><span class="step-num">1</span><span class="step-text">Click en el boton amarillo <strong>Editar</strong> de la fila</span></div>
     <div class="step"><span class="step-num">2</span><span class="step-text">Escribir el nuevo precio base (sin puntos ni comas, ej: <code>85000</code>)</span></div>
     <div class="step"><span class="step-num">3</span><span class="step-text">(Opcional) Precio promo — aparece tachado el original y el promo como destacado</span></div>
-    <div class="step"><span class="step-num">4</span><span class="step-text">Escribir <strong>ST</strong> para confirmar y guardar</span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Tocar el boton verde <strong>✓ OK, actualizar precio</strong> <span class="badge-new">NUEVO</span></span></div>
     <div class="tip"><p><strong>Precio efectivo:</strong> No hay que cargarlo. Es siempre el 10% OFF del precio (o de la promo si hay). Se actualiza automaticamente.</p></div>
+    <div class="info"><p><strong>Sincronizacion:</strong> Los cambios de precio ahora se guardan en Supabase, asi que los ve el jefe y el empleado al instante en cualquier dispositivo. Antes algunos cambios no cruzaban, por si notaron algo raro con eso.</p></div>
 
     <!-- 3. EDITAR -->
     <h2 id="editar">3. Editar perfumes <span class="badge-rol badge-jefe">JEFE</span></h2>
@@ -156,6 +161,7 @@
     <div class="step"><span class="step-num">1</span><span class="step-text">Buscar el perfume con el buscador</span></div>
     <div class="step"><span class="step-num">2</span><span class="step-text">Click sobre el perfume para cargar sus datos</span></div>
     <div class="step"><span class="step-num">3</span><span class="step-text">Modificar los campos y click en <strong>Guardar cambios</strong></span></div>
+    <div class="step"><span class="step-num">4</span><span class="step-text">Aparece un prompt pidiendo escribir <strong>ST</strong> para confirmar. Solo en esta pestana se pide, porque son cambios mas grandes (nombre, foto, notas, etc.).</span></div>
 
     <h3>Perfil olfativo <span class="badge-new">NUEVO</span></h3>
     <p>El campo <strong>Perfil</strong> es un combobox: tenes las 5 sugerencias base (Versatil, Intenso, Dulce, Fresco, Floral) pero podes escribir tu propia palabra (ej: "Oud dulce", "Aromatico", "Ahumado"). La lista se va auto-aprendiendo: cuando alguien usa uno nuevo, aparece como sugerencia para el siguiente.</p>
@@ -198,7 +204,7 @@
     <div class="step"><span class="step-num">3</span><span class="step-text">Guardar — los cambios se ven al instante en la web</span></div>
 
     <!-- 7. COMBOS -->
-    <h2 id="combos">7. Combos y sets <span class="badge-rol badge-jefe">JEFE</span></h2>
+    <h2 id="combos">7. Combos y sets <span class="badge-rol badge-emp">EMPLEADO</span> <span class="badge-new">AHORA PARA TODOS</span></h2>
     <div class="step"><span class="step-num">1</span><span class="step-text">Ir a <strong>🎁 Combos</strong></span></div>
     <div class="step"><span class="step-num">2</span><span class="step-text">Click en <strong>+ NUEVO COMBO</strong></span></div>
     <div class="step"><span class="step-num">3</span><span class="step-text">Completar nombre, tipo (Pack / Mini set / Regalo), precio y (opcional) precio promo</span></div>
