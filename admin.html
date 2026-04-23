@@ -576,6 +576,28 @@
     /* Badges de stock — los colores ya son visibles sobre cualquier fondo */
     body.light .badge-paused { background: #e0e0e0; color: #333; }
 
+    /* Destacados: el .dest-item tenía background:#111 en clase (no inline),
+       por lo que el texto quedaba oscuro sobre fondo oscuro. Forzamos fondo
+       claro para que los nombres y marcas se lean. */
+    body.light .dest-item { background: #fff; border-color: #e3e0d5; }
+    body.light .dest-name { color: #1a1a1a; }
+    body.light .dest-brand { color: #555; }
+    body.light .dest-img { background: #f5f3ee; }
+
+    /* Otras cards del admin con fondo oscuro por clase (no inline) */
+    body.light .combo-item,
+    body.light .cliente-card,
+    body.light .stat-card,
+    body.light .opinion-card,
+    body.light .edit-log-item,
+    body.light .audit-row,
+    body.light .backup-row,
+    body.light .doctor-card {
+      background: #fff !important;
+      border-color: #e3e0d5 !important;
+      color: #1a1a1a;
+    }
+
     /* Banners / cards con background:#111 o rgba(255,255,255,...) hardcodeado.
        Truco: invertimos selectivamente los fondos oscuros más comunes. */
     body.light [style*="background:#111"],
