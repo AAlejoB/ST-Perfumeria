@@ -4714,17 +4714,37 @@
         items: items
       };
 
-      // Save to Supabase (upsert para que funcione tanto con combos nuevos como hardcodeados)
+      // Save to Supabase (upsert para que funcione tanto con combos nuevos como hardcodeados).
+      // Pedimos .select().single() para que Supabase nos DEVUELVA la fila tal
+      // como quedó en la base. Así actualizamos PERFUMES con ese dato exacto
+      // sin depender de un segundo GET (que a veces volvía cacheado y
+      // hacía parecer que el cambio no se había guardado, aunque sí lo había).
       try {
-        var result = await sb.from('combos').upsert(comboData, { onConflict: 'slug' });
-        if (result.error) throw result.error;
+        var { data: savedRow, error: upErr } = await sb
+          .from('combos')
+          .upsert(comboData, { onConflict: 'slug' })
+          .select()
+          .single();
+        if (upErr) throw upErr;
+
         logAdminAction(editingComboSlug ? 'combo_update' : 'combo_create', slug, { name: name, price: priceFormatted, items_count: (items||[]).length });
         msgEl.style.color = '#2ecc71';
         msgEl.textContent = editingComboSlug ? 'Combo actualizado ✓' : 'Combo creado ✓';
         notifyTelegram((editingComboSlug ? '✏️ Combo editado' : '🎁 Nuevo combo creado') + ': ' + name);
 
-        // Reload combos from Supabase into PERFUMES
-        await loadCombosFromDB();
+        // Actualizar PERFUMES en memoria con la fila que acabamos de guardar.
+        // Esto garantiza que el admin muestre exactamente lo que quedó en la DB
+        // (que es lo mismo que ve el catálogo público).
+        var fresh = savedRow || comboData;
+        fresh._fromDB = true;
+        fresh.esSet = true;
+        var idxMem = PERFUMES.findIndex(function(pf) { return pf.slug === fresh.slug; });
+        if (idxMem !== -1) {
+          PERFUMES[idxMem] = fresh;
+        } else {
+          PERFUMES.push(fresh);
+        }
+
         loadCombos();
         setTimeout(function() { cancelCombo(); }, 1200);
       } catch(e) {
