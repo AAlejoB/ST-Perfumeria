@@ -606,6 +606,20 @@
     body.light .combo-items-list li { color: #555; }
     body.light .combo-pricing-original { color: #888; }
 
+    /* Clientes: .client-name y .client-detail-value estaban hardcodeados a
+       color:#fff (por regla CSS, no inline), por eso quedaban blanco sobre
+       blanco. */
+    body.light .client-name { color: #1a1a1a; }
+    body.light .client-detail-value { color: #1a1a1a; }
+    body.light .client-detail { color: #555; }
+    body.light .client-name-icon { background: rgba(232,184,0,.22); color: #a8820a; }
+    /* Badge de puntos (inline): pasa de amarillo sobre amarillo clarito a
+       amarillo sobre fondo un poco más marcado para que se lea. */
+    body.light [style*="color:var(--amarillo)"][style*="rgba(232,184,0,.12)"] {
+      background: rgba(232,184,0,.25) !important;
+      color: #8a6a00 !important;
+    }
+
     /* Banners / cards con background:#111 o rgba(255,255,255,...) hardcodeado.
        Truco: invertimos selectivamente los fondos oscuros más comunes. */
     body.light [style*="background:#111"],
