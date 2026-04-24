@@ -870,6 +870,25 @@
               <label class="modal-label">Notas de base</label>
               <input type="text" class="modal-input" id="editBase" style="margin-bottom:0;"/>
             </div>
+
+            <!-- SIMILARES MANUALES — override humano sobre el algoritmo -->
+            <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
+              <label class="modal-label" style="color:var(--amarillo);">💬 Similares — Override manual del equipo</label>
+              <p style="font-size:.6rem;color:var(--gris);margin-top:-.3rem;margin-bottom:.5rem;line-height:1.4;">
+                Cuando el algoritmo de "Ver similares" no encuentra matches fuertes, el equipo puede
+                <strong style="color:#ccc;">escribir una nota</strong> y <strong style="color:#ccc;">recomendar hasta 5 perfumes</strong> que olfativamente
+                se parezcan aunque no compartan notas. Lo que pongas acá se muestra en el modal de "Ver similares" del index.
+              </p>
+              <label class="modal-label" style="margin-top:.4rem;">Nota del equipo (texto libre)</label>
+              <textarea class="modal-input" id="editSimilaresNota" rows="3"
+                placeholder="Ej: El HAWAS TROPICAL no comparte más del 60% de sus notas con ningún perfume de nuestro catálogo. Sin embargo tiene un olor similar al..."
+                style="margin-bottom:.4rem;resize:vertical;font-family:var(--font-body);"></textarea>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:-.25rem;margin-bottom:.6rem;">Se muestra SIEMPRE que haya texto escrito (aparece arriba del todo en el modal del cliente).</p>
+
+              <label class="modal-label" style="margin-top:.3rem;">Perfumes recomendados por ST (máximo 5)</label>
+              <div id="editSimilaresSlots" style="display:flex;flex-direction:column;gap:.35rem;"></div>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:.3rem;">Dejá los que no uses vacíos. Si borrás un perfume del catálogo, se oculta automáticamente de esta lista en el index.</p>
+            </div>
           </div>
           <div class="admin-btn-row" style="display:flex;gap:.5rem;margin-top:1rem;">
             <button class="modal-btn modal-btn-price" onclick="saveEditPerfume()" style="flex:3;min-width:0;">Guardar cambios</button>
@@ -2253,6 +2272,8 @@
           if (o.tipo !== undefined && o.tipo !== null) p.tipo = o.tipo;
           if (o.alias !== undefined && o.alias !== null) p.alias = o.alias;
           if (o.ml) p.ml = o.ml;
+          if (o.similares_manuales !== undefined && o.similares_manuales !== null) p.similares_manuales = o.similares_manuales;
+          if (o.similares_nota !== undefined && o.similares_nota !== null) p.similares_nota = o.similares_nota;
         });
       } catch(e) { console.error('loadOverridesIntoPerfumes:', e); }
     }
@@ -3612,6 +3633,11 @@
       // Apodos / alias de búsqueda
       document.getElementById('editAlias').value = p.alias || '';
 
+      // Similares manuales: nota + hasta 5 slots con dropdowns.
+      // Construimos los selects al vuelo (excluyendo sets y el propio slug).
+      document.getElementById('editSimilaresNota').value = p.similares_nota || '';
+      renderSimilaresSlots(p.slug, Array.isArray(p.similares_manuales) ? p.similares_manuales : []);
+
       // Etiqueta
       document.getElementById('editEtiqueta').value = p.etiqueta || '';
       document.getElementById('editEtiquetaColor').value = p.etiqueta_color || '#E8B800';
@@ -3634,6 +3660,50 @@
       document.getElementById('editSearchResults').style.display = 'none';
       document.getElementById('editSearch').value = '';
       document.getElementById('editMsg').textContent = '';
+    }
+
+    // ============================================================
+    // SIMILARES MANUALES — 5 slots tipo select con todos los perfumes
+    // (excluyendo sets y el perfume que estás editando).
+    // El array puede tener menos de 5; los slots vacios aparecen
+    // con "— vacío —" y se filtran al guardar.
+    // ============================================================
+    function renderSimilaresSlots(currentSlug, existing) {
+      var wrap = document.getElementById('editSimilaresSlots');
+      if (!wrap) return;
+      // Ordenar perfumes alfabeticamente por nombre para que sea fácil buscar
+      var pool = PERFUMES.filter(function(p) {
+        return !p.esSet && !p._oculto && p.slug !== currentSlug;
+      }).sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+
+      var html = '';
+      for (var i = 0; i < 5; i++) {
+        var selected = existing[i] || '';
+        html += '<select class="modal-input edit-similar-slot" data-idx="' + i + '" style="margin-bottom:0;font-size:.68rem;">'
+          + '<option value="">— Slot ' + (i + 1) + ' (vacío) —</option>';
+        pool.forEach(function(p) {
+          var sel = p.slug === selected ? ' selected' : '';
+          // Mostramos name + marca_real entre paréntesis para desambiguar
+          var label = p.name + (p.marca_real ? ' · ' + p.marca_real : '');
+          html += '<option value="' + p.slug + '"' + sel + '>' + label + '</option>';
+        });
+        html += '</select>';
+      }
+      wrap.innerHTML = html;
+    }
+
+    function getSimilaresManuales() {
+      var selects = document.querySelectorAll('#editSimilaresSlots .edit-similar-slot');
+      var out = [];
+      var seen = {};
+      selects.forEach(function(s) {
+        var v = s.value;
+        if (v && !seen[v]) { // dedup por si el admin repite un slug
+          out.push(v);
+          seen[v] = true;
+        }
+      });
+      return out;
     }
 
     async function saveEditPerfume() {
@@ -3681,7 +3751,10 @@
         fotos_extra: document.getElementById('editFotosExtra').value.trim(),
         alias: document.getElementById('editAlias').value.trim(),
         etiqueta: document.getElementById('editEtiqueta').value.trim(),
-        etiqueta_color: document.getElementById('editEtiquetaColor').value
+        etiqueta_color: document.getElementById('editEtiquetaColor').value,
+        // Override manual de similares
+        similares_manuales: getSimilaresManuales(),
+        similares_nota: document.getElementById('editSimilaresNota').value.trim()
       };
 
       var msgEl = document.getElementById('editMsg');
@@ -3704,7 +3777,8 @@
         perfil: 'Perfil', tipo: 'Tipo', marca: 'Marca', marca_real: 'Fabricante', ml: 'ML',
         foto: 'Foto', notas_salida: 'Notas salida', notas_corazon: 'Notas coraz\u00f3n',
         notas_base: 'Notas base', descuento_pct: 'Descuento %', etiqueta: 'Etiqueta',
-        fotos_extra: 'Fotos extra', alias: 'Apodos'
+        fotos_extra: 'Fotos extra', alias: 'Apodos',
+        similares_nota: 'Nota similares', similares_manuales: 'Similares manuales'
       };
       var logs = [];
       Object.keys(fieldsToLog).forEach(function(key) {

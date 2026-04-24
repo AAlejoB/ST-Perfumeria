@@ -1336,7 +1336,7 @@
             )
           + '</div>'
           + '<button onclick="goToWA(\'' + p.slug + '\', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</button>'
-          + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base)) ? '<button class="reveal-similares" onclick="showSimilares(\'' + p.slug + '\', event)">&#9830; Ver similares</button>' : '')
+          + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base || (p.similares_nota && p.similares_nota.trim()) || (Array.isArray(p.similares_manuales) && p.similares_manuales.length > 0))) ? '<button class="reveal-similares" onclick="showSimilares(\'' + p.slug + '\', event)">&#9830; Ver similares</button>' : '')
           + '<div class="reveal-actions">'
             + '<button class="cart-add-btn" onclick="addToCart(\'' + p.slug + '\', this, event)">&#128722; Agregar</button>'
             + '<button class="reveal-share" onclick="sharePerfume(\'' + p.slug + '\', this, event)">&#128279;</button>'
@@ -1731,47 +1731,104 @@
       return scores.slice(0, 5);
     }
 
+    // Helper: renderiza una card de perfume similar (reutilizado en ambas secciones).
+    // `subtitle` va abajo del nombre/marca — para el algoritmo muestra "X notas · Y% match",
+    // para el manual muestra "Recomendado por ST".
+    function buildSimilarItemHTML(p, subtitle) {
+      var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+      var letter = p.name.charAt(0);
+      var imgHTML = p.foto
+        ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">'
+        : '<div style="color:var(--amarillo);font-size:1rem;opacity:.4;">' + letter + '</div>';
+      var price = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
+      return '<div class="similar-item" onclick="closeSimilares();scrollToPerfume(\'' + p.slug + '\')">'
+        + '<div class="similar-img">' + imgHTML + '</div>'
+        + '<div class="similar-info">'
+          + '<p class="similar-name">' + p.name + '</p>'
+          + '<p class="similar-brand">' + (p.marca_real || p.marca) + '</p>'
+          + '<p class="similar-match">' + subtitle + '</p>'
+        + '</div>'
+        + '<span class="similar-price">' + price + '</span>'
+      + '</div>';
+    }
+
     function showSimilares(slug, e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
       var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
       if (!perfume) return;
 
-      var similares = findSimilares(slug);
       var title = document.getElementById('similaresTitle');
       title.textContent = 'Similares a ' + perfume.name;
 
+      // 1) Nota libre del equipo (SIEMPRE que haya texto).
+      var notaEquipo = (perfume.similares_nota || '').trim();
+
+      // 2) Recomendados manuales del equipo — filtramos slugs eliminados
+      //    (auto-cleanup: si el admin borra un perfume recomendado, desaparece del modal).
+      var recomendadosManuales = Array.isArray(perfume.similares_manuales)
+        ? perfume.similares_manuales
+            .map(function(s) { return PERFUMES.find(function(pf) { return pf.slug === s; }); })
+            .filter(function(p) { return p && !p._oculto && !p.esSet; })
+        : [];
+
+      // 3) Algoritmo por notas (solo si hay >60% match).
+      var algoritmicos = findSimilares(slug);
+      // Si ya los tenemos en la lista manual, no los duplicamos en la sección algorítmica.
+      var manualSlugs = {};
+      recomendadosManuales.forEach(function(p) { manualSlugs[p.slug] = true; });
+      algoritmicos = algoritmicos.filter(function(s) { return !manualSlugs[s.perfume.slug]; });
+
+      var hasManual = recomendadosManuales.length > 0;
+      var hasAuto = algoritmicos.length > 0;
+      var hasNota = notaEquipo.length > 0;
+
       var content = document.getElementById('similaresContent');
-      if (similares.length === 0) {
+
+      // Caso: nada que mostrar → mensaje fallback "es único".
+      if (!hasNota && !hasManual && !hasAuto) {
         content.innerHTML = '<div style="text-align:center;padding:1.5rem .5rem;">'
           + '<p style="font-size:1.8rem;margin-bottom:.6rem;">🔮</p>'
           + '<p style="color:#fff;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">¡Este perfume es único!</p>'
           + '<p style="color:var(--gris);font-size:.72rem;line-height:1.5;">Ningún otro perfume de nuestro catálogo comparte más del 60% de sus notas con <strong style="color:var(--amarillo);">' + perfume.name + '</strong>.</p>'
           + '<p style="color:var(--gris);font-size:.65rem;margin-top:.8rem;opacity:.7;">Estamos sumando nuevas fragancias constantemente 👀</p>'
           + '</div>';
-      } else {
-        var html = '';
-        similares.forEach(function(s) {
-          var p = s.perfume;
-          var pct = Math.round((s.shared / s.total) * 100);
-          var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-          var letter = p.name.charAt(0);
-          var imgHTML = p.foto
-            ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">'
-            : '<div style="color:var(--amarillo);font-size:1rem;opacity:.4;">' + letter + '</div>';
-          var price = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
-
-          html += '<div class="similar-item" onclick="closeSimilares();scrollToPerfume(\'' + p.slug + '\')">'
-            + '<div class="similar-img">' + imgHTML + '</div>'
-            + '<div class="similar-info">'
-              + '<p class="similar-name">' + p.name + '</p>'
-              + '<p class="similar-brand">' + (p.marca_real || p.marca) + '</p>'
-              + '<p class="similar-match">' + s.shared + ' notas en com\u00fan \u00b7 ' + pct + '% match</p>'
-            + '</div>'
-            + '<span class="similar-price">' + price + '</span>'
-          + '</div>';
-        });
-        content.innerHTML = html;
+        document.getElementById('similaresOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        return;
       }
+
+      var html = '';
+
+      // Sección 1: nota del equipo (amarilla, arriba del todo).
+      if (hasNota) {
+        // Escape HTML simple para evitar inyección del texto libre del admin.
+        var esc = notaEquipo
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/\n/g, '<br>');
+        html += '<div class="similares-nota-equipo" style="background:rgba(232,184,0,.08);border-left:3px solid var(--amarillo);padding:.7rem .85rem;border-radius:4px;margin-bottom:.9rem;">'
+          + '<p style="font-size:.58rem;font-weight:700;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem;">💬 Nota del equipo ST</p>'
+          + '<p style="color:#e8e8e8;font-size:.72rem;line-height:1.5;margin:0;">' + esc + '</p>'
+          + '</div>';
+      }
+
+      // Sección 2: recomendados manuales (si hay).
+      if (hasManual) {
+        html += '<p class="similares-section-title" style="font-size:.6rem;font-weight:700;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin:.3rem 0 .5rem 0;">⭐ Recomendados por ST</p>';
+        recomendadosManuales.forEach(function(p) {
+          html += buildSimilarItemHTML(p, 'Recomendado por el equipo');
+        });
+      }
+
+      // Sección 3: algoritmo por notas (si hay, y si NO se solapa con los manuales).
+      if (hasAuto) {
+        html += '<p class="similares-section-title" style="font-size:.6rem;font-weight:700;color:var(--gris);letter-spacing:.1em;text-transform:uppercase;margin:' + (hasManual || hasNota ? '1rem' : '.3rem') + ' 0 .5rem 0;">🔬 Similitud por notas</p>';
+        algoritmicos.forEach(function(s) {
+          var pct = Math.round((s.shared / s.total) * 100);
+          html += buildSimilarItemHTML(s.perfume, s.shared + ' notas en com\u00fan \u00b7 ' + pct + '% match');
+        });
+      }
+
+      content.innerHTML = html;
 
       document.getElementById('similaresOverlay').classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -3100,6 +3157,9 @@
             if (o.tipo !== undefined && o.tipo !== null) p.tipo = o.tipo;
             // Apodos / alias para búsqueda (admite string vacío)
             if (o.alias !== undefined && o.alias !== null) p.alias = o.alias;
+            // Similares manuales (override humano) — nota de texto + array de slugs recomendados
+            if (o.similares_manuales !== undefined && o.similares_manuales !== null) p.similares_manuales = o.similares_manuales;
+            if (o.similares_nota !== undefined && o.similares_nota !== null) p.similares_nota = o.similares_nota;
           });
         }
       } catch(e) {}
