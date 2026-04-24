@@ -3789,6 +3789,24 @@
       );
       if (!ok1) return;
 
+      // Warning proactivo: si el perfume está en combos, avisar al admin
+      // ANTES de la última confirmación. Los combos afectados se van a ocultar
+      // del index automaticamente hasta que se editen (ver renderSets en app.js).
+      var affectedCombos = PERFUMES.filter(function(s) {
+        return s.esSet && Array.isArray(s.items)
+          && s.items.some(function(it) { return it.slug === slug; });
+      });
+      if (affectedCombos.length > 0) {
+        var comboList = affectedCombos.map(function(c) { return '• ' + c.name; }).join('\n');
+        var okCombos = window.confirm(
+          '⚠️ "' + nombre + '" está siendo usado en ' + affectedCombos.length +
+          ' combo' + (affectedCombos.length !== 1 ? 's' : '') + ':\n\n' + comboList +
+          '\n\nSi lo eliminás, esos combos se van a ocultar del index hasta que ' +
+          'los edites (en la pestaña COMBOS vas a verlos marcados como "ROTOS").\n\n¿Continuar?'
+        );
+        if (!okCombos) return;
+      }
+
       // Segunda confirmación — anti-error
       var ok2 = window.confirm(
         '🗑️ Última confirmación.\n\n¿Seguro que querés ocultar "' + nombre + '"?'
@@ -4604,13 +4622,29 @@
         var badgeClass = s.setTipo === 'mini-collection' ? 'combo-badge-mini' : (s.setTipo === 'regalo' ? 'combo-badge-regalo' : 'combo-badge-pack');
         var badgeText = s.setTipo === 'mini-collection' ? 'MINI' : (s.setTipo === 'regalo' ? 'REGALO' : 'PACK');
 
+        // Detectar items rotos: slug apunta a un perfume eliminado (_oculto=true).
+        // Los combos con algun item roto no se muestran en el index — aviso aca al admin.
+        var brokenItems = [];
         var listHTML = '';
         items.forEach(function(item) {
           var ref = item.slug ? PERFUMES.find(function(pf) { return pf.slug === item.slug; }) : null;
           var nombre = item.nombre || (ref ? ref.name : '?');
           var mlText = item.ml ? ' (' + item.ml + 'ml)' : '';
-          listHTML += '<li>' + nombre + mlText + '</li>';
+          var isBroken = !!(ref && ref._oculto);
+          if (isBroken) brokenItems.push(nombre);
+          var itemStyle = isBroken ? ' style="color:#e74c3c;text-decoration:line-through;"' : '';
+          var itemSuffix = isBroken ? ' <span style="color:#e74c3c;font-weight:700;font-size:.55rem;">(ELIMINADO)</span>' : '';
+          listHTML += '<li' + itemStyle + '>' + nombre + mlText + itemSuffix + '</li>';
         });
+        var isBroken = brokenItems.length > 0;
+        var brokenBadge = isBroken
+          ? '<span class="combo-badge" style="background:#e74c3c;color:#fff;margin-left:.3rem;">⚠️ ROTO</span>'
+          : '';
+        var brokenWarning = isBroken
+          ? '<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(231,76,60,.1);border-left:3px solid #e74c3c;border-radius:3px;font-size:.6rem;color:#e74c3c;font-weight:600;">'
+            + '⚠️ Este combo NO se muestra en el index. Editalo para reemplazar o sacar: ' + brokenItems.join(', ')
+            + '</div>'
+          : '';
 
         var promoHTML = s.promo ? '$' + formatPriceAdmin(s.promo) : '';
         var priceHTML = '$' + formatPriceAdmin(s.price);
@@ -4621,12 +4655,14 @@
           : '<button class="client-btn" style="background:#95a5a6;color:#fff;" onclick="toggleComboStock(\'' + s.slug + '\')">⏸ Pausar</button>';
         var pausedLabel = isPaused ? ' <span style="color:#95a5a6;font-size:.6rem;font-weight:600;">⏸ PAUSADO</span>' : '';
 
-        html += '<div class="combo-card" style="' + (isPaused ? 'opacity:.5;' : '') + '">'
+        var cardBorder = isBroken ? 'border:2px solid #e74c3c;' : '';
+        html += '<div class="combo-card" style="' + (isPaused ? 'opacity:.5;' : '') + cardBorder + '">'
           + '<div class="combo-top">'
-            + '<span class="combo-name">' + s.name + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + pausedLabel + '</span>'
+            + '<span class="combo-name">' + s.name + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + brokenBadge + pausedLabel + '</span>'
             + '<span style="font-size:.65rem;color:var(--gris);">' + s.cat + '</span>'
           + '</div>'
           + '<ul class="combo-items-list">' + listHTML + '</ul>'
+          + brokenWarning
           + '<div class="combo-pricing">'
             + (promoHTML ? '<span class="combo-pricing-promo">' + promoHTML + '</span><span class="combo-pricing-original">' + priceHTML + '</span>' : '<span class="combo-pricing-promo">' + priceHTML + '</span>')
           + '</div>'

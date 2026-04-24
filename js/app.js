@@ -1556,6 +1556,22 @@
       if (!grid) return;
       var section = document.getElementById('setsSection');
       var sets = PERFUMES.filter(function(p) { return p.esSet; });
+
+      // Filtrar combos ROTOS: si cualquier item apunta a un perfume eliminado
+      // (_oculto=true), no mostramos el combo. Se ve marcado en el admin como
+      // "ROTO" para que el dueño lo edite. Evita mostrar combos con un item
+      // faltante o con precio desactualizado.
+      sets = sets.filter(function(s) {
+        var items = s.items || [];
+        return items.every(function(item) {
+          if (!item.slug) return true; // item custom sin slug — lo dejamos pasar
+          var ref = PERFUMES.find(function(pf) { return pf.slug === item.slug; });
+          // Si el slug existe pero está oculto → combo roto.
+          // Si el slug no existe en PERFUMES → asumimos item custom válido (no romper).
+          return !ref || !ref._oculto;
+        });
+      });
+
       if (sets.length === 0) {
         if (section) section.style.display = 'none';
         return;
