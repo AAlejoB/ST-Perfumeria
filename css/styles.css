@@ -1950,6 +1950,33 @@
       .card-tags { display: flex; }
       .card-notes-preview { display: none; }
       .reveal-tags { display: none; }
+
+      /* Reveal en desktop: SOLO notas olfativas + acciones.
+         Lo demás (nombre, marca, precio, divider, tags) ya está visible
+         en la card normal — duplicar achica el texto de las notas. */
+      .product-card .card-reveal .reveal-name,
+      .product-card .card-reveal .reveal-brand,
+      .product-card .card-reveal .reveal-pricing,
+      .product-card .card-reveal .reveal-divider {
+        display: none !important;
+      }
+      /* Notas más grandes y respiradas, ahora que tienen todo el espacio */
+      .product-card .card-reveal .scent-notes {
+        gap: .35rem;
+        margin-bottom: .4rem;
+        justify-content: center;
+      }
+      .product-card .card-reveal .scent-note {
+        font-size: .68rem;
+        line-height: 1.4;
+        -webkit-line-clamp: 3;
+      }
+      .product-card .card-reveal .note-label {
+        font-size: .55rem;
+        display: block;
+        margin-bottom: .1rem;
+        margin-right: 0;
+      }
     }
 
     /* FILTROS ACTIVOS — chips removibles */
