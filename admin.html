@@ -2657,12 +2657,19 @@
         list = list.filter(function(c) { return c.compro !== true && (c.puntos || 0) === 0; });
       }
 
-      // Filtro búsqueda texto (nombre, teléfono o nota interna)
+      // Filtro búsqueda texto (nombre, teléfono o nota interna).
+      // Tokenizamos por espacios y normalizamos acentos. Cada token debe
+      // aparecer en algún campo (AND de substrings). Así, escribir
+      // "9 am" matchea cualquier cliente cuyo haystack contenga "9" Y "am",
+      // no solo el string exacto "9 am". También "jose" encuentra "José".
       if (q) {
+        var normalize = function(s) {
+          return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        };
+        var tokens = normalize(q).split(/\s+/).filter(Boolean);
         list = list.filter(function(c) {
-          return (c.nombre || '').toLowerCase().indexOf(q) !== -1
-            || (c.telefono || '').indexOf(q) !== -1
-            || (c.nota || '').toLowerCase().indexOf(q) !== -1;
+          var hay = normalize((c.nombre || '') + ' ' + (c.telefono || '') + ' ' + (c.telefono2 || '') + ' ' + (c.nota || ''));
+          return tokens.every(function(t) { return hay.indexOf(t) !== -1; });
         });
       }
 

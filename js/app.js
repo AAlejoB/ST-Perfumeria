@@ -2078,8 +2078,18 @@
           var pf = PERFUMES.find(function(x) { return x.slug === card.dataset.slug; });
           newMatch = pf && pf._isNew;
         }
-        // FILTRO 2: Búsqueda por texto (nombre, marca, notas)
-        var searchMatch = !currentSearch || card.dataset.search.indexOf(currentSearch) !== -1;
+        // FILTRO 2: Búsqueda por texto (nombre, marca, notas).
+        // Tokenizamos por espacios: cada palabra debe aparecer en el haystack
+        // (AND de substrings). Así "citrus fresh" matchea perfumes que tengan
+        // ambas palabras aunque no estén seguidas.
+        var searchMatch = true;
+        if (currentSearch) {
+          var _hay = card.dataset.search;
+          var _toks = currentSearch.split(/\s+/);
+          for (var _t = 0; _t < _toks.length; _t++) {
+            if (_toks[_t] && _hay.indexOf(_toks[_t]) === -1) { searchMatch = false; break; }
+          }
+        }
         // FILTRO 3: Nota olfativa específica
         var noteMatch = true;
         if (currentNoteFilter) {
@@ -2475,20 +2485,34 @@
       // Ocultar si menos de 2 caracteres
       if (norm.length < 2) { hideSearchSuggestions(); return; }
 
-      // Buscar matches (nombre y marca tienen prioridad)
+      // Buscar matches (nombre y marca tienen prioridad).
+      // Tokenizamos la query: cada token debe aparecer en algún campo.
+      // El score se calcula con el token "principal" (el más largo) para
+      // mantener priorización tipo "empieza con" > "contiene".
+      var tokens = norm.split(/\s+/).filter(Boolean);
+      var mainToken = tokens.reduce(function(a, b){ return b.length > a.length ? b : a; }, '');
+
       var matches = [];
       PERFUMES.forEach(function(p) {
         if (p.esSet || p._oculto) return;
         var nameNorm = stripAccents(p.name.toLowerCase());
         var marcaNorm = stripAccents((p.marca_real || p.marca || '').toLowerCase());
         var notasNorm = stripAccents(((p.notas_salida || '') + ' ' + (p.notas_corazon || '') + ' ' + (p.notas_base || '')).toLowerCase());
+        var hay = nameNorm + ' ' + marcaNorm + ' ' + notasNorm;
+
+        // AND: cada token debe estar en algún lado
+        for (var i = 0; i < tokens.length; i++) {
+          if (hay.indexOf(tokens[i]) === -1) return;
+        }
 
         var score = 0;
-        if (nameNorm.indexOf(norm) === 0) score = 3;         // empieza con
-        else if (nameNorm.indexOf(norm) !== -1) score = 2;    // contiene en nombre
-        else if (marcaNorm.indexOf(norm) !== -1) score = 1;   // contiene en marca
-        else if (notasNorm.indexOf(norm) !== -1) score = 0.5; // contiene en notas
-        else return;
+        if (nameNorm.indexOf(mainToken) === 0) score = 3;         // empieza con
+        else if (nameNorm.indexOf(mainToken) !== -1) score = 2;    // contiene en nombre
+        else if (marcaNorm.indexOf(mainToken) !== -1) score = 1;   // contiene en marca
+        else if (notasNorm.indexOf(mainToken) !== -1) score = 0.5; // contiene en notas
+        // Bonus: si TODOS los tokens aparecen en el nombre, sube medio punto
+        var allInName = tokens.every(function(t){ return nameNorm.indexOf(t) !== -1; });
+        if (allInName) score += 0.5;
 
         matches.push({ perfume: p, score: score, nameNorm: nameNorm });
       });

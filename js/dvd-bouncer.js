@@ -83,9 +83,16 @@
       requestAnimationFrame(tick);
     }
 
-    // Easter egg cíclico: aparece cada 5 min, se queda visible 30 seg, se oculta
+    // Easter egg cíclico: aparece cada 5 min, se queda visible 30 seg, se oculta.
+    // Dentro de la ventana visible, la foto rota sola cada PHOTO_ROTATE_MS
+    // (antes la foto solo cambiaba al rebotar, y con velocidad baja podías ver
+    // solo 1-2 perfumes por ciclo).
     var APPEAR_INTERVAL_MS = 5 * 60 * 1000; // 5 min entre apariciones
     var VISIBLE_DURATION_MS = 30 * 1000;    // 30 seg visible por ciclo
+    var PHOTO_ROTATE_MS    = 4 * 1000;      // cambiar perfume cada 4 seg
+
+    var rotateTimer = null;
+    var hideTimer = null;
 
     function startCycle() {
       if (window.innerWidth < 768) return; // solo desktop
@@ -101,28 +108,43 @@
       el.style.display = '';
       start();
 
+      // Rotación automática de la foto: pasan solas aunque no se rebote
+      if (rotateTimer) clearInterval(rotateTimer);
+      rotateTimer = setInterval(nextPerfume, PHOTO_ROTATE_MS);
+
       // Ocultar después del tiempo visible
-      setTimeout(function() {
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(function() {
         running = false;
+        if (rotateTimer) { clearInterval(rotateTimer); rotateTimer = null; }
         el.style.display = 'none';
       }, VISIBLE_DURATION_MS);
     }
 
-    // Primera aparición: a los 5 min (espera a que PERFUMES esté listo)
-    setTimeout(function() {
+    // Primera aparición: EXACTAMENTE 5 min desde que PERFUMES está listo.
+    // Antes usábamos un setTimeout de 5 min + un polling de 500ms para
+    // esperar PERFUMES, lo que agregaba un delay variable (hasta 5s). Ahora
+    // esperamos ready PRIMERO y recién ahí arrancamos el cronómetro.
+    function whenPerfumesReady(cb) {
+      if (getSlugs().length > 0 && typeof PERFUMES !== 'undefined' && PERFUMES.length > 0) return cb();
       var attempts = 0;
-      var tryStart = setInterval(function() {
+      var wait = setInterval(function() {
         attempts++;
         if (getSlugs().length > 0 && typeof PERFUMES !== 'undefined' && PERFUMES.length > 0) {
-          clearInterval(tryStart);
-          startCycle();
-          // Apariciones siguientes cada 5 min
-          setInterval(startCycle, APPEAR_INTERVAL_MS);
-        } else if (attempts >= 10) {
-          clearInterval(tryStart);
+          clearInterval(wait);
+          cb();
+        } else if (attempts >= 40) { // 20s máx esperando ready
+          clearInterval(wait);
         }
       }, 500);
-    }, APPEAR_INTERVAL_MS);
+    }
+
+    whenPerfumesReady(function() {
+      setTimeout(function() {
+        startCycle();
+        setInterval(startCycle, APPEAR_INTERVAL_MS);
+      }, APPEAR_INTERVAL_MS);
+    });
 
     // Pausar si la pestaña no está visible (ahorrar CPU).
     // Al volver, solo re-activar el loop si el bouncer está actualmente visible
@@ -140,6 +162,7 @@
     window.addEventListener('resize', function() {
       if (window.innerWidth < 768) {
         running = false;
+        if (rotateTimer) { clearInterval(rotateTimer); rotateTimer = null; }
         el.style.display = 'none';
       } else if (!running && el.style.display !== 'none' && getSlugs().length > 0) {
         // Re-colocar dentro de los bounds si quedó visible
