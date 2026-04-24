@@ -1848,6 +1848,32 @@
         right: auto;
         left: 10px;
       }
+      /* Badges absolutos — hay que espejarlos explicitamente porque
+         position:absolute no respeta el flex row-reverse del .mirror.
+         La foto en cards .mirror queda a la IZQUIERDA, asi que los
+         badges "ULTIMO" / "SIN STOCK" tienen que saltar a la derecha
+         (sino quedan flotando sobre el texto en vez de la imagen). */
+      .product-card.mirror .badge-ultimo,
+      .product-card.mirror .badge-sin-stock {
+        left: auto;
+        right: 8px;
+      }
+      .product-card.mirror .card-discount-badge {
+        left: auto;
+        right: 8px;
+      }
+      /* Badges que estaban en la derecha pasan a la izquierda.
+         badge-nuevo usa right:40px para no chocar con el corazon;
+         en .mirror el corazon esta en left:10px, asi que el nuevo
+         va a left:40px para mantener la misma distancia. */
+      .product-card.mirror .badge-nuevo {
+        right: auto;
+        left: 40px;
+      }
+      .product-card.mirror .card-discount-timer {
+        right: auto;
+        left: 8px;
+      }
     }
 
     .reveal-name { font-family: var(--font-display); font-size: .7rem; font-weight: 600; color: #fff; margin-bottom: .05rem; line-height: 1.15; text-transform: uppercase; }
