@@ -1442,6 +1442,38 @@
     .card-gallery-nav-current {
       color: var(--amarillo);
     }
+    /* ============================================================
+       Dual nav: una variante sobre la imagen (mobile) y otra inline
+       al lado del nombre (desktop). Sin esto el card-reveal tapa al
+       nav cuando el usuario hace hover. El nav--info vive dentro de
+       .card-info, donde nunca hay reveal encima.
+       ============================================================ */
+    .card-gallery-nav--info { display: none; }
+
+    @media (min-width: 768px) {
+      /* Desktop: nav sobre la imagen se oculta (queda tapado por reveal).
+         El de card-info entra al flujo inline, compacto, arriba del nombre.
+         Usamos align-self para no estirarlo a 100% (card-info es flex col). */
+      .card-gallery-nav--image { display: none; }
+      .card-gallery-nav--info {
+        position: static;
+        transform: none;
+        display: inline-flex;
+        align-self: flex-start;
+        background: rgba(0,0,0,.45);
+        border-color: rgba(255,255,255,.08);
+        padding: 1px 3px;
+        font-size: .55rem;
+        margin-bottom: 2px;
+      }
+      .card-gallery-nav--info .card-gallery-nav-arrow { padding: 2px 5px; font-size: .9rem; }
+      .card-gallery-nav--info .card-gallery-nav-counter { font-size: .55rem; padding: 0 3px; }
+      /* En mirror, card-info tiene text-align:right => alineamos el nav
+         al extremo derecho del info para que acompañe la orientacion. */
+      .product-card.mirror .card-gallery-nav--info {
+        align-self: flex-end;
+      }
+    }
 
     /* Frasco placeholder (para productos sin foto) */
     .bottle-placeholder {
@@ -2899,6 +2931,18 @@
       background: rgba(39,174,96,.15); color: #27ae60;
       border-color: #27ae60; pointer-events: none;
     }
+    /* Iconos y labels del boton: por default guest (lock) oculto y logueado (bell)
+       visible. body.is-guest invierte eso para usuarios sin sesion. */
+    .waitlist-btn .waitlist-ico,
+    .waitlist-btn .waitlist-label { display: inline; }
+    .waitlist-btn .waitlist-ico--lock,
+    .waitlist-btn .waitlist-label--guest { display: none; }
+    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-ico--bell,
+    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-label:not(.waitlist-label--guest) { display: none; }
+    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-ico--lock,
+    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-label--guest { display: inline; }
+    /* Leve diferencial visual para que el guest entienda que esta gateado */
+    body.is-guest .waitlist-btn:not(.subscribed) { border-style: dashed; }
 
     /* OVERLAY LISTA DE ESPERA */
     .waitlist-overlay {

@@ -493,6 +493,10 @@
       var drawerAuth = document.getElementById('drawerAuth');
       var drawerLogout = document.getElementById('drawerLogout');
       if (!regBtn) return;
+      // Exponer el estado de auth a CSS para poder pintar distinto a los
+      // guests (p.ej. candado en el boton "Avisame cuando vuelva") sin
+      // tener que re-renderizar cards cuando alguien logea/desloga.
+      document.body.classList.toggle('is-guest', !currentUser);
       if (currentUser) {
         regBtn.innerHTML = '<span class="auth-user-bar"><strong>' + currentUser.nombre + '</strong></span>';
         regBtn.setAttribute('onclick', 'event.preventDefault();openEditProfile()');
@@ -1093,23 +1097,29 @@
       var scrollLeft = gallery.scrollLeft;
       var slideWidth = slides[0].offsetWidth;
       var activeIdx = Math.round(scrollLeft / slideWidth);
-      // Actualizar contador del nav bar nuevo
-      var counter = gallery.parentElement.querySelector('.card-gallery-nav-current');
-      if (counter) counter.textContent = (activeIdx + 1);
-      // Actualizar dots viejos si todavía existen (backward compat)
-      var dots = gallery.parentElement.querySelectorAll('.card-gallery-dot');
-      dots.forEach(function(d, i) { d.classList.toggle('active', i === activeIdx); });
+      // Actualizar contador en TODOS los navs de esta card (puede haber 2:
+      // el de sobre la imagen y el de al lado del nombre).
+      var card = gallery.closest('.product-card') || gallery.parentElement;
+      if (card) {
+        var counters = card.querySelectorAll('.card-gallery-nav-current');
+        counters.forEach(function(c) { c.textContent = (activeIdx + 1); });
+        // Dots viejos (backward compat)
+        var dots = card.querySelectorAll('.card-gallery-dot');
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === activeIdx); });
+      }
     }
 
     // Click en flechas del nav bar: avanza o retrocede una foto.
-    // Usa closest() para encontrar la galería desde el nuevo wrapper .card-gallery-nav.
+    // Subimos hasta .product-card para encontrar la galeria, asi funciona
+    // desde CUALQUIER nav (el de sobre la imagen o el de al lado del nombre).
     function scrollGalleryArrow(btn, direction, ev) {
       if (ev) { ev.preventDefault(); ev.stopPropagation(); }
-      var container = btn.closest('.card-image');
-      var gallery = container ? container.querySelector('.card-gallery') : null;
+      var card = btn.closest('.product-card');
+      var gallery = card ? card.querySelector('.card-gallery') : null;
       if (!gallery) {
-        // Fallback por compatibilidad con la estructura vieja
-        gallery = btn.parentElement.querySelector('.card-gallery');
+        // Fallback legado
+        var container = btn.closest('.card-image');
+        if (container) gallery = container.querySelector('.card-gallery');
       }
       if (!gallery) return;
       var slides = gallery.querySelectorAll('.card-gallery-slide');
@@ -1134,17 +1144,29 @@
       var imageHTML;
       var fotosPool = buildFotosPool(p);
 
+      // Nav del carrusel. Construimos el fragmento una sola vez y lo
+      // insertamos en DOS lugares (image + info). En mobile se muestra el de
+      // adentro de la imagen; en desktop el de la card-info (al lado del
+      // nombre), porque el card-reveal al hover tapa todo lo que esta encima
+      // de la imagen. Las flechas caminan hacia arriba al .product-card para
+      // encontrar la galeria, asi no importa donde viva el nav.
+      var navInnerHTML = ''
+        + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, -1, event)" aria-label="Foto anterior">&#8249;</button>'
+        + '<span class="card-gallery-nav-counter"><span class="card-gallery-nav-current">1</span>/PLACEHOLDER</span>'
+        + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, 1, event)" aria-label="Foto siguiente">&#8250;</button>';
+
+      // Guardamos aparte para reusar
+      var galleryNavOnImage = '';
+      var galleryNavOnInfo  = '';
+
       if (fotosPool.length >= 2) {
         var slides = fotosPool.map(function(url) {
           return '<div class="card-gallery-slide"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async"></div>';
         }).join('');
-        var navHTML = ''
-          + '<div class="card-gallery-nav">'
-            + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, -1, event)" aria-label="Foto anterior">&#8249;</button>'
-            + '<span class="card-gallery-nav-counter"><span class="card-gallery-nav-current">1</span>/' + fotosPool.length + '</span>'
-            + '<button type="button" class="card-gallery-nav-arrow" onclick="scrollGalleryArrow(this, 1, event)" aria-label="Foto siguiente">&#8250;</button>'
-          + '</div>';
-        imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>' + navHTML;
+        var navInnerFilled = navInnerHTML.replace('PLACEHOLDER', fotosPool.length);
+        galleryNavOnImage = '<div class="card-gallery-nav card-gallery-nav--image">' + navInnerFilled + '</div>';
+        galleryNavOnInfo  = '<div class="card-gallery-nav card-gallery-nav--info">'  + navInnerFilled + '</div>';
+        imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>' + galleryNavOnImage;
       } else if (fotosPool.length === 1) {
         imageHTML = '<img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async">';
       } else {
@@ -1234,13 +1256,26 @@
 
       var isOutOfStock = stockStatus === 'out';
 
-      // Botón "Avisame cuando vuelva" para sin stock y pausados
+      // Boton "Avisame cuando vuelva" para sin stock y pausados.
+      // Renderizamos los iconos en spans separados (bell / lock / check)
+      // para que CSS pueda mostrarlos/ocultarlos segun auth (body.is-guest)
+      // sin re-renderizar la card cuando el usuario logea/desloga.
       var waitlistHTML = '';
       if (isOutOfStock || isPaused) {
         var alreadyWaiting = waitlistSlugs.indexOf(p.slug) !== -1;
-        waitlistHTML = '<button class="waitlist-btn' + (alreadyWaiting ? ' subscribed' : '') + '" onclick="openWaitlist(\'' + p.slug + '\', event)">'
-          + (alreadyWaiting ? '&#10003; Te avisamos cuando vuelva' : '&#128276; Avisame cuando vuelva')
+        if (alreadyWaiting) {
+          waitlistHTML = '<button class="waitlist-btn subscribed" onclick="openWaitlist(\'' + p.slug + '\', event)">'
+            + '<span class="waitlist-ico waitlist-ico--check">&#10003;</span>'
+            + '<span class="waitlist-label">Te avisamos cuando vuelva</span>'
           + '</button>';
+        } else {
+          waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(\'' + p.slug + '\', event)">'
+            + '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span>'
+            + '<span class="waitlist-ico waitlist-ico--lock">&#128274;</span>'
+            + '<span class="waitlist-label">Avisame cuando vuelva</span>'
+            + '<span class="waitlist-label waitlist-label--guest">Ingresá para avisarte</span>'
+          + '</button>';
+        }
       }
 
       // Precio efectivo para ordenar (usa promo si hay, sino price; ambos en número limpio)
@@ -1254,6 +1289,7 @@
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
         + '<div class="card-image">' + imageHTML + '</div>'
         + '<div class="card-info">'
+          + galleryNavOnInfo
           + '<p class="card-name">' + p.name + '</p>'
           + '<p class="card-brand-st">ST PERFUMER\u00cdA</p>'
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
