@@ -2045,8 +2045,115 @@
       renderSeleccionST();            // renderizar sección "Selección ST"
       renderSets();                   // renderizar sets/combos
       renderNoteFilters();            // renderizar filtros por notas
+      initGalleryAutoplay();          // fotos pasan solas (desktop, viewport-aware)
 
     }
+
+    // ============================================================
+    // AUTOPLAY DE FOTOS EN CARDS — solo desktop
+    //
+    // Por cada .product-card con 2+ fotos, rotamos la galeria sola cada
+    // GALLERY_AUTOPLAY_MS. Reglas:
+    //   - Solo desktop (>= 768px). Mobile queda con el slider manual.
+    //   - Solo mientras la card esta visible en el viewport
+    //     (IntersectionObserver) — si esta abajo del fold no gastamos CPU.
+    //   - Pausa al hover, retoma al mouseleave. Asi el usuario puede parar
+    //     a mirar una foto y el autoplay no le pisa el click manual.
+    //   - Pausa si la pestania esta oculta (visibilitychange).
+    //   - Respeta prefers-reduced-motion — si el usuario tiene animaciones
+    //     reducidas en el SO, no autoplay.
+    //
+    // Se re-ejecuta despues de cada re-render (renderCatalog). Para cards
+    // nuevas llamar a initGalleryAutoplay() de nuevo; los timers viejos se
+    // descartan porque los guardamos en el DOM element (no en globales).
+    // ============================================================
+    var GALLERY_AUTOPLAY_MS = 3500;
+    var _galleryObserver = null;
+
+    function initGalleryAutoplay() {
+      if (window.innerWidth < 768) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      // Rearmar observer desde cero (las cards viejas ya se eliminaron del DOM,
+      // asi que sus entries se descartan solas al no estar observadas mas).
+      if (_galleryObserver) _galleryObserver.disconnect();
+      _galleryObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          var card = entry.target;
+          if (entry.isIntersecting) {
+            _galleryStart(card);
+          } else {
+            _galleryStop(card);
+          }
+        });
+      }, { threshold: 0.35 });
+
+      var cards = document.querySelectorAll('.product-card');
+      cards.forEach(function(card) {
+        var gallery = card.querySelector('.card-gallery');
+        if (!gallery) return;
+        var slides = gallery.querySelectorAll('.card-gallery-slide');
+        if (slides.length < 2) return;
+
+        // Idempotente: si la card ya estaba enganchada, no duplicar listeners
+        if (card._galleryAutoplayWired) {
+          _galleryObserver.observe(card);
+          return;
+        }
+        card._galleryAutoplayWired = true;
+        card._galleryTimer = null;
+        card._galleryHovered = false;
+
+        card.addEventListener('mouseenter', function() {
+          card._galleryHovered = true;
+          _galleryStop(card);
+        });
+        card.addEventListener('mouseleave', function() {
+          card._galleryHovered = false;
+          // Solo reanudar si la card todavia esta en viewport
+          if (card._galleryInView) _galleryStart(card);
+        });
+
+        _galleryObserver.observe(card);
+      });
+    }
+
+    function _galleryStart(card) {
+      card._galleryInView = true;
+      if (card._galleryHovered) return;      // hover manda, no pisarlo
+      if (card._galleryTimer) return;         // ya andando
+      var gallery = card.querySelector('.card-gallery');
+      if (!gallery) return;
+      var slides = gallery.querySelectorAll('.card-gallery-slide');
+      if (slides.length < 2) return;
+
+      card._galleryTimer = setInterval(function() {
+        if (document.hidden) return; // pausa mientras la pestania esta oculta
+        var slideWidth = slides[0].offsetWidth;
+        if (!slideWidth) return;
+        var currentIdx = Math.round(gallery.scrollLeft / slideWidth);
+        var nextIdx = (currentIdx + 1) % slides.length;
+        gallery.scrollTo({ left: nextIdx * slideWidth, behavior: 'smooth' });
+      }, GALLERY_AUTOPLAY_MS);
+    }
+
+    function _galleryStop(card) {
+      card._galleryInView = false;
+      if (card._galleryTimer) {
+        clearInterval(card._galleryTimer);
+        card._galleryTimer = null;
+      }
+    }
+
+    // Pausar / reanudar globalmente segun visibilidad del tab. No necesito
+    // clearInterval porque el tick checkea document.hidden internamente;
+    // esto es solo un re-kick al volver por si el scroll no se movio.
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && _galleryObserver) {
+        // Nada que hacer: los intervals ya estan andando, solo dejan de
+        // scrollear mientras document.hidden sea true.
+      }
+    });
 
     // Event delegation — Patrón de rendimiento importante
     // En vez de poner un listener en CADA card (podrían ser 200+),
