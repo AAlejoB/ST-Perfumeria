@@ -2738,6 +2738,14 @@
 
     function openWaitlist(slug, e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
+      // Solo usuarios registrados pueden anotarse en la lista de espera.
+      // Si no hay sesion, abrimos el modal de login (mismo patron que
+      // sendBoardMsg, favoritos logueados, votos del mes, etc.). Al
+      // loguearse el usuario vuelve a tocar el boton y el flujo sigue.
+      if (!currentUser) {
+        if (typeof openAuth === 'function') openAuth();
+        return;
+      }
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       document.getElementById('waitlistSlug').value = slug;
