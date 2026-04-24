@@ -1743,6 +1743,17 @@
     </div>
   </div>
 
+  <!-- MODAL: HISTORIAL DE PUNTOS (ultimas 5 subidas) -->
+  <div class="modal-overlay" id="modalClientPuntosLog" onclick="closeModal('modalClientPuntosLog',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalClientPuntosLog')">&times;</button>
+      <p class="modal-title">Historial de puntos</p>
+      <p id="modalPuntosLogHeader" style="text-align:center;font-weight:600;margin-bottom:.4rem;color:var(--amarillo);"></p>
+      <p style="text-align:center;font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Ultimas 5 subidas/ajustes</p>
+      <div id="modalPuntosLogList" style="display:flex;flex-direction:column;gap:.5rem;max-height:50vh;overflow-y:auto;"></div>
+    </div>
+  </div>
+
   <!-- MODAL: ELIMINAR CLIENTE -->
   <div class="modal-overlay" id="modalClientDelete" onclick="closeModal('modalClientDelete',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -1878,6 +1889,11 @@
       // Aplicar perfume_overrides completos (foto, tipo, alias, notas, etc.)
       // para que el admin vea lo mismo que el cat\u00e1logo p\u00fablico.
       await loadOverridesIntoPerfumes();
+      // Mergear combos guardados en DB. Sin esto, al refrescar la pagina
+      // los combos creados/editados desde admin desaparecian del panel
+      // (seguian estando en el catalogo porque el catalogo si lee de DB).
+      // Es la causa del bug historico "edite un combo y no aparece en admin".
+      await loadCombosFromDB();
       renderPrecios();
       loadDestacados();
       loadNuevos();
@@ -2611,6 +2627,7 @@
           + '<div class="client-actions">'
             + waBtn
             + '<button class="client-btn" style="background:rgba(232,184,0,.12);color:var(--amarillo);" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
+            + '<button class="client-btn" style="background:rgba(120,120,120,.15);color:#ccc;" onclick="openClientPuntoLog(\'' + c.id + '\')">📜 Historial</button>'
             + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar</button>'
             + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
             + '<button class="client-btn client-btn-delete" onclick="openClientDeleteModal(\'' + c.id + '\')">🗑️ Eliminar</button>'
@@ -2748,13 +2765,23 @@
           telefono = telefono.trim();
         }
 
-        var { error } = await sb.from('clientes').insert({
+        var firstLog = appendPuntoLog([], makePuntoLogEntry(+1, 0, 1, 'Registro inicial'));
+        var { data: inserted, error } = await sb.from('clientes').insert({
           nombre: nombre,
           telefono: telefono,
           puntos: 1,
-          compro: true
-        });
-        if (error) { msgEl.textContent = 'Error: ' + error.message; msgEl.style.color = '#e74c3c'; return; }
+          compro: true,
+          puntos_log: firstLog
+        }).select();
+        if (error) {
+          // Fallback: tal vez la columna puntos_log no existe aun.
+          // Reintentamos sin ella — el punto debe persistir si o si.
+          var retry = await sb.from('clientes').insert({
+            nombre: nombre, telefono: telefono, puntos: 1, compro: true
+          }).select();
+          if (retry.error) { msgEl.textContent = 'Error: ' + retry.error.message; msgEl.style.color = '#e74c3c'; return; }
+          console.warn('[puntos_log] insert sin historial (columna ausente):', error.message);
+        }
 
         msgEl.textContent = '✓ ' + nombre + ' registrado + 1 punto';
         msgEl.style.color = '#2ecc71';
@@ -2768,6 +2795,7 @@
           msgEl.textContent = 'No se pudo sumar punto. Revisá permisos en Supabase (RLS).';
           msgEl.style.color = '#e74c3c'; return;
         }
+        await pushPuntoLogEntry(cliente, +1, cliente.puntos || 0, nuevosPuntos, '+1 desde buscador');
 
         msgEl.textContent = '✓ ' + cliente.nombre + ' ahora tiene ' + nuevosPuntos + ' punto' + (nuevosPuntos !== 1 ? 's' : '');
         msgEl.style.color = '#2ecc71';
@@ -2789,8 +2817,82 @@
         console.error('sumarPuntoDirecto failed:', error);
         return;
       }
+      await pushPuntoLogEntry(c, +1, c.puntos || 0, nuevosPuntos, '+1 desde panel');
       notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
       loadClientes();
+    }
+
+    // ============================================================
+    // HISTORIAL DE PUNTOS POR CLIENTE (ultimas 5 subidas/ajustes)
+    // Se guarda como columna JSONB 'puntos_log' en tabla clientes.
+    // Migracion necesaria (correr una vez en Supabase SQL):
+    //   ALTER TABLE clientes ADD COLUMN IF NOT EXISTS puntos_log JSONB DEFAULT '[]'::jsonb;
+    // Si la columna no existe aun, la funcion falla silenciosa — el cambio
+    // de puntos (que es lo importante) igual se persiste.
+    // ============================================================
+    function makePuntoLogEntry(delta, before, after, motivo) {
+      return {
+        ts: new Date().toISOString(),
+        delta: delta,
+        before: before,
+        after: after,
+        actor: currentRole || 'admin',
+        motivo: motivo || ''
+      };
+    }
+
+    function appendPuntoLog(existing, entry) {
+      var log = Array.isArray(existing) ? existing.slice() : [];
+      log.unshift(entry);
+      return log.slice(0, 5);
+    }
+
+    async function pushPuntoLogEntry(cliente, delta, before, after, motivo) {
+      try {
+        var entry = makePuntoLogEntry(delta, before, after, motivo);
+        var newLog = appendPuntoLog(cliente.puntos_log, entry);
+        var res = await sb.from('clientes').update({ puntos_log: newLog }).eq('id', cliente.id);
+        if (res.error) {
+          console.warn('[puntos_log] no se pudo guardar el historial (puede que falte la columna JSONB puntos_log):', res.error.message);
+          return;
+        }
+        // Reflejar en memoria para que el modal muestre la entrada nueva sin refetch
+        cliente.puntos_log = newLog;
+      } catch (e) {
+        console.warn('[puntos_log] excepcion:', e);
+      }
+    }
+
+    function openClientPuntoLog(id) {
+      var c = allClientes.find(function(cl) { return cl.id == id; });
+      if (!c) return;
+      document.getElementById('modalPuntosLogHeader').textContent = c.nombre + ' — ' + (c.puntos || 0) + ' pts';
+      var list = Array.isArray(c.puntos_log) ? c.puntos_log : [];
+      var listEl = document.getElementById('modalPuntosLogList');
+      if (list.length === 0) {
+        listEl.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1.2rem;font-size:.75rem;">Sin subidas registradas todavia</p>';
+      } else {
+        var html = '';
+        list.forEach(function(e) {
+          var delta = e.delta || 0;
+          var deltaStr = (delta > 0 ? '+' : '') + delta;
+          var color = delta > 0 ? '#2ecc71' : (delta < 0 ? '#e74c3c' : 'var(--gris)');
+          var fecha = '';
+          try { fecha = new Date(e.ts).toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }); } catch(_) { fecha = e.ts || ''; }
+          html += '<div style="border:1px solid var(--borde);border-radius:6px;padding:.6rem .8rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;">'
+            +   '<div style="display:flex;flex-direction:column;gap:.15rem;">'
+            +     '<span style="font-size:.9rem;font-weight:700;color:' + color + ';">' + deltaStr + ' pts</span>'
+            +     '<span style="font-size:.65rem;color:var(--gris);">' + (e.motivo || '—') + ' · ' + (e.actor || '?') + '</span>'
+            +   '</div>'
+            +   '<div style="text-align:right;display:flex;flex-direction:column;gap:.15rem;">'
+            +     '<span style="font-size:.65rem;color:var(--gris);">' + fecha + '</span>'
+            +     '<span style="font-size:.6rem;color:var(--gris);">' + (e.before || 0) + ' → ' + (e.after || 0) + '</span>'
+            +   '</div>'
+            + '</div>';
+        });
+        listEl.innerHTML = html;
+      }
+      document.getElementById('modalClientPuntosLog').classList.add('active');
     }
 
     function openClientEditModal(id) {
@@ -2835,6 +2937,11 @@
         msgEl.textContent = 'No se pudo guardar. Revisá los permisos en Supabase (RLS).';
         console.error('Edit client: no rows updated. Check RLS policies on clientes table.');
       } else {
+        // Si cambiaron los puntos, loguear la subida/ajuste en el historial
+        var prev = allClientes.find(function(cl) { return cl.id == editingClientId; });
+        if (prev && (prev.puntos || 0) !== puntos) {
+          await pushPuntoLogEntry(prev, puntos - (prev.puntos || 0), prev.puntos || 0, puntos, 'Edicion manual');
+        }
         msgEl.style.color = '#2ecc71';
         msgEl.textContent = 'Cliente actualizado ✓';
         notifyTelegram('✏️ Cliente editado: ' + nombre + ' · ' + telefono + ' · ' + puntos + ' pts');
@@ -3176,7 +3283,7 @@
     // pantalla cuando hay muchos. Muestra NUEVOS_STEP al inicio y se expande
     // de a pasos con "Ver más" o todo de una con "Ver todos". Si el usuario
     // filtra por texto se resetea a NUEVOS_STEP automáticamente.
-    var NUEVOS_STEP = 3;
+    var NUEVOS_STEP = 5;
     var _nuevosData = [];
     var _nuevosVisible = NUEVOS_STEP;
 
