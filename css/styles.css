@@ -1880,6 +1880,13 @@
         right: auto;
         left: 10px;
       }
+      /* Compare button (⊕) — mismo patrón que el corazón: en mirror
+         salta al lado opuesto para no quedar sobre la imagen (que en
+         mirror queda a la derecha). */
+      .product-card.mirror .compare-btn {
+        right: auto;
+        left: 10px;
+      }
       /* Badges absolutos — hay que espejarlos explicitamente porque
          position:absolute no respeta el flex row-reverse del .mirror.
          La foto en cards .mirror queda a la IZQUIERDA, asi que los
@@ -3068,6 +3075,27 @@
       pointer-events: none;
       line-height: 1.3;
       text-shadow: 0 1px 2px rgba(0,0,0,.3);
+    }
+
+    /*
+    ================================================
+      ANTI-OVERLAP: cuando hay ribbon ("MÁS VENDIDO",
+      etc.) arriba, los badges y botones que viven en
+      top:8px caen DENTRO de la banda del ribbon y
+      tapan el texto. Los empujamos hacia abajo.
+      :has() tiene soporte universal desde 2023.
+    ================================================
+    */
+    .product-card:has(.card-ribbon) .badge-ultimo,
+    .product-card:has(.card-ribbon) .badge-sin-stock,
+    .product-card:has(.card-ribbon) .badge-nuevo {
+      top: 30px;
+    }
+    .product-card:has(.card-ribbon) .fav-heart {
+      top: 30px;
+    }
+    .product-card:has(.card-ribbon) .compare-btn {
+      top: 68px; /* corazon(30) + heart-height(32) + gap(6) */
     }
 
     /* Badge descuento temporal */
