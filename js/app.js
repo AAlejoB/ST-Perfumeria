@@ -492,6 +492,7 @@
       var regBtn = document.querySelector('.nav-register-btn');
       var drawerAuth = document.getElementById('drawerAuth');
       var drawerLogout = document.getElementById('drawerLogout');
+      var navLogoutBtn = document.getElementById('navLogoutBtn');
       if (!regBtn) return;
       // Exponer el estado de auth a CSS para poder pintar distinto a los
       // guests (p.ej. candado en el boton "Avisame cuando vuelva") sin
@@ -501,14 +502,18 @@
         regBtn.innerHTML = '<span class="auth-user-bar"><strong>' + currentUser.nombre + '</strong></span>';
         regBtn.setAttribute('onclick', 'event.preventDefault();openEditProfile()');
         regBtn.setAttribute('title', 'Editar perfil');
-        if (drawerAuth) { drawerAuth.textContent = '✏️ Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
+        if (drawerAuth) { drawerAuth.textContent = '\u270f\ufe0f Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
         if (drawerLogout) drawerLogout.style.display = '';
+        // Mostrar el boton "Cerrar sesion" en la nav-bar (antes solo estaba
+        // en el drawer hamburguesa, no muy visible). Asi queda a un click.
+        if (navLogoutBtn) navLogoutBtn.style.display = '';
       } else {
         regBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Iniciar sesi\u00f3n';
         regBtn.setAttribute('onclick', 'event.preventDefault();openAuth()');
         regBtn.setAttribute('title', 'Iniciar sesi\u00f3n');
         if (drawerAuth) { drawerAuth.textContent = 'Iniciar sesi\u00f3n'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openAuth()'); }
         if (drawerLogout) drawerLogout.style.display = 'none';
+        if (navLogoutBtn) navLogoutBtn.style.display = 'none';
       }
     }
 

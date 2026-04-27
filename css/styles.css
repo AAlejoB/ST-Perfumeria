@@ -147,6 +147,25 @@
     .nav-register-btn:hover { background: var(--amarillo); color: var(--negro) !important; }
     .nav-register-btn:hover svg { stroke: var(--negro); }
 
+    /* Boton "Cerrar sesion" en la nav-bar — solo aparece logueado.
+       Rojo suave (no agresivo) para que se distinga sin gritar. */
+    .nav-logout-btn {
+      color: #e74c3c !important;
+      border: 1px solid rgba(231,76,60,.45);
+      border-radius: 20px;
+      padding: 4px 6px;
+    }
+    @media (min-width: 768px) {
+      .nav-logout-btn { padding: 4px 12px; }
+    }
+    .nav-logout-btn:hover { background: #e74c3c; color: #fff !important; }
+    .nav-logout-btn:hover svg { stroke: #fff; }
+    /* Mobile: ocultar el texto y dejar solo el icono para no apretar la nav. */
+    @media (max-width: 480px) {
+      .nav-logout-btn { font-size: 0; padding: 6px; }
+      .nav-logout-btn svg { width: 18px; height: 18px; }
+    }
+
     .nav-fav-wrap { position: relative; display: inline-flex; }
     .fav-badge {
       position: absolute; top: -6px; right: -8px;
