@@ -13,7 +13,7 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-var CACHE_VERSION = 'v1.0.0';
+var CACHE_VERSION = 'v1.0.2';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
@@ -77,6 +77,10 @@ self.addEventListener('fetch', function(event) {
   if (req.method !== 'GET') return;
 
   var url = new URL(req.url);
+
+  // Solo http/https — la Cache API rechaza chrome-extension://, data:, etc.
+  // Sin este guard, las extensiones de Chrome tiran errores ruidosos en consola.
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
   // Ignorar Supabase API, analytics, WhatsApp, etc. (network-only)
   if (url.hostname.indexOf('supabase.co') !== -1 ||
@@ -187,7 +191,12 @@ self.addEventListener('notificationclick', function(event) {
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       for (var i = 0; i < clientList.length; i++) {
-        if (clientList[i].url.indexOf('st-perfumeria') !== -1 && 'focus' in clientList[i]) {
+        // Match contra ambos: dominio nuevo (stperfumeria.com), legado
+        // (st-perfumeria.vercel.app) y deploys de preview. As\u00ed la
+        // notificaci\u00f3n enfoca la pesta\u00f1a abierta sin importar de qu\u00e9
+        // origen vino el SW que se est\u00e1 ejecutando.
+        var u = clientList[i].url || '';
+        if ((u.indexOf('stperfumeria') !== -1 || u.indexOf('st-perfumeria') !== -1) && 'focus' in clientList[i]) {
           clientList[i].navigate(url);
           return clientList[i].focus();
         }

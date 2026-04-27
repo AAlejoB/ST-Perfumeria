@@ -56,6 +56,16 @@ async function getOverride(slug) {
   }
 }
 
+// Detector de bots/crawlers: si pasa por aca lo dejamos en la pagina estatica
+// (sin JS redirect) para que Google la indexe en /perfume/:slug y los scrapers
+// de WhatsApp/Facebook/Twitter le saquen los meta OG. Para usuarios reales,
+// seguimos redirigiendo al catalogo con el perfume resaltado.
+function isBot(userAgent) {
+  if (!userAgent) return false;
+  const ua = userAgent.toLowerCase();
+  return /bot|crawler|spider|whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|telegrambot|discordbot|googlebot|bingbot|duckduckbot|yandexbot|applebot|baiduspider|googleother|adsbot|mediapartners|google-inspectiontool/.test(ua);
+}
+
 module.exports = async (req, res) => {
   loadPerfumes();
 
@@ -67,6 +77,8 @@ module.exports = async (req, res) => {
     res.end();
     return;
   }
+
+  const botRequest = isBot(req.headers['user-agent']);
 
   // Merge con overrides (foto/precio editados en admin)
   const override = await getOverride(slug);
@@ -149,11 +161,14 @@ module.exports = async (req, res) => {
   <meta name="twitter:image:alt" content="${esc(imageAlt)}"/>
   <link rel="icon" type="image/png" href="${BASE_URL}/img/logo-st.webp"/>
   <script type="application/ld+json">${JSON.stringify(productSchema)}</script>
-  <script>
-    // Redirect al home con el perfume resaltado (solo navegadores, los bots
-    // de WhatsApp/Facebook/Google no ejecutan JS y se quedan con los meta tags)
+  ${botRequest ? '<!-- bot detected: no JS redirect, full page indexable -->' : `<script>
+    // Redirect al home con el perfume resaltado.
+    // SOLO para usuarios reales: si es bot/crawler (Googlebot, WhatsApp, Facebook,
+    // Twitter, etc.) se queda con la pagina estatica + meta tags + Schema.org.
+    // Asi Google indexa /perfume/:slug en vez de marcarla "Pagina con redireccion"
+    // y los scrapers de redes sacan la preview OG correctamente.
     window.location.replace('${BASE_URL}/?perfume=${esc(slug)}');
-  </script>
+  </script>`}
 </head>
 <body style="background:#0a0a0a;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;">
   <div style="text-align:center;padding:2rem;">

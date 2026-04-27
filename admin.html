@@ -681,12 +681,12 @@
       <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
       <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
       <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this)">Horario</button>
-      <button class="tab-btn" data-role="jefe" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
+      <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
       <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this)">Clientes</button>
       <button class="tab-btn" data-tab="combos" onclick="switchTab('combos',this)">&#127873; Combos</button>
       <button class="tab-btn" data-tab="votacion" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
-      <button class="tab-btn" data-role="jefe" data-tab="push" onclick="switchTab('push',this)">🔔 Notificaciones</button>
+      <button class="tab-btn" data-tab="push" onclick="switchTab('push',this)">🔔 Notificaciones</button>
       <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
       <button class="tab-btn" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
       <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
@@ -698,7 +698,7 @@
     <!-- TAB: PRECIOS & STOCK (unificada) -->
     <div class="tab-content active" id="tab-precios">
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
-        <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar perfume..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
+        <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <select class="admin-search" id="sortPrecios" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="name-asc" selected>Nombre A-Z</option>
           <option value="name-desc">Nombre Z-A</option>
@@ -728,7 +728,7 @@
             🔧 Migrar tipos (1 vez)
           </button>
         </div>
-        <input type="text" class="admin-search" id="editSearch" placeholder="Buscar perfume para editar..." oninput="searchEditPerfume()" style="margin-bottom:0;"/>
+        <input type="text" class="admin-search" id="editSearch" placeholder="Buscar por nombre, fabricante o apodo..." oninput="searchEditPerfume()" style="margin-bottom:0;"/>
         <div id="editSearchResults" style="max-height:200px;overflow-y:auto;border:1px solid var(--borde);border-radius:4px;display:none;margin-top:4px;"></div>
       </div>
 
@@ -888,6 +888,28 @@
               <label class="modal-label" style="margin-top:.3rem;">Perfumes recomendados por ST (máximo 5)</label>
               <div id="editSimilaresSlots" style="display:flex;flex-direction:column;gap:.35rem;"></div>
               <p style="font-size:.55rem;color:var(--gris);margin-top:.3rem;">Dejá los que no uses vacíos. Si borrás un perfume del catálogo, se oculta automáticamente de esta lista en el index.</p>
+            </div>
+
+            <!-- NOTAS DE STOCK — aparecen en el modal al tocar la badge correspondiente -->
+            <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
+              <label class="modal-label" style="color:var(--amarillo);">📦 Notas de stock — Mensajes al cliente</label>
+              <p style="font-size:.6rem;color:var(--gris);margin-top:-.3rem;margin-bottom:.7rem;line-height:1.4;">
+                Escribí textos que <strong style="color:#ccc;">justifiquen o expliquen</strong> el estado del stock.
+                Cuando un cliente toque la badge en el catálogo, se abre un modal con el mensaje + botón de WhatsApp.
+                Si el campo queda vacío, la badge NO es clickeable (comportamiento normal).
+                <br/><em style="color:#888;">La badge "Último" no tiene nota a propósito: si hay 1 solo frasco, evitamos que varios clientes se ilusionen con reservarlo.</em>
+              </p>
+
+              <label class="modal-label" style="margin-top:.4rem;color:#888;">⚫ Nota para "Sin stock"</label>
+              <textarea class="modal-input" id="editNotaSinStock" rows="2"
+                placeholder="Ej: Este perfume se agotó. Dejanos tu WhatsApp y te avisamos apenas vuelva."
+                style="margin-bottom:.7rem;resize:vertical;font-family:var(--font-body);"></textarea>
+
+              <label class="modal-label" style="margin-top:.4rem;color:var(--amarillo);">🟡 Nota para "Próximamente"</label>
+              <textarea class="modal-input" id="editNotaProximamente" rows="2"
+                placeholder="Ej: Esperamos la reposición para el 15/05. Podés reservarlo con seña."
+                style="margin-bottom:.2rem;resize:vertical;font-family:var(--font-body);"></textarea>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:.2rem;">Cuando haya texto, aparece un ⓘ al lado de la badge para indicar que es clickeable.</p>
             </div>
           </div>
           <div class="admin-btn-row" style="display:flex;gap:.5rem;margin-top:1rem;">
@@ -1404,7 +1426,11 @@
         <p style="font-size:.6rem;color:var(--gris);">con gente esperando</p>
       </div>
     </div>
-    <p style="font-size:.7rem;color:var(--gris);margin-bottom:1rem;line-height:1.5;">Cuando un perfume vuelva a stock, pod&#233;s avisar a todos los que esperan con un solo clic. Se abre WhatsApp con cada n&#250;mero.</p>
+    <p style="font-size:.7rem;color:var(--gris);margin-bottom:1rem;line-height:1.5;">Cuando cambi&#225;s el stock de un perfume de &quot;sin stock&quot; a &quot;en stock&quot;, se avisa autom&#225;ticamente por WhatsApp a los que est&#225;n esperando. Los ya notificados quedan en el <em>Historial</em>.</p>
+    <div style="display:flex;gap:.4rem;margin-bottom:1rem;">
+      <button class="action-btn" id="esperaTabPending" onclick="setEsperaView('pending')" style="flex:1;font-size:.7rem;padding:.5rem;background:var(--amarillo);color:#000;">Pendientes (<span id="esperaPendingCount">0</span>)</button>
+      <button class="action-btn" id="esperaTabHistory" onclick="setEsperaView('history')" style="flex:1;font-size:.7rem;padding:.5rem;">Historial (<span id="esperaHistoryCount">0</span>)</button>
+    </div>
     <div id="esperaList" style="display:flex;flex-direction:column;gap:1rem;"></div>
     <p id="esperaEmpty" style="display:none;text-align:center;color:var(--gris);font-size:.8rem;padding:2rem 0;">Nadie en lista de espera &#128522;</p>
   </div>
@@ -2274,6 +2300,9 @@
           if (o.ml) p.ml = o.ml;
           if (o.similares_manuales !== undefined && o.similares_manuales !== null) p.similares_manuales = o.similares_manuales;
           if (o.similares_nota !== undefined && o.similares_nota !== null) p.similares_nota = o.similares_nota;
+          if (o.nota_ultimo !== undefined && o.nota_ultimo !== null) p.nota_ultimo = o.nota_ultimo;
+          if (o.nota_sin_stock !== undefined && o.nota_sin_stock !== null) p.nota_sin_stock = o.nota_sin_stock;
+          if (o.nota_proximamente !== undefined && o.nota_proximamente !== null) p.nota_proximamente = o.nota_proximamente;
         });
       } catch(e) { console.error('loadOverridesIntoPerfumes:', e); }
     }
@@ -2361,8 +2390,20 @@
         // Precio efectivo: 10% OFF sobre el mejor precio (usa promo si hay, sino price)
         var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
         var cashPrice = Math.round(basePrice * 0.9);
-        html += '<tr data-search="' + p.name.toLowerCase() + '">'
-          + '<td class="td-name">' + p.name + '</td>'
+        // data-search: nombre + marca propia + fabricante (marca_real) + apodos.
+        // As\u00ed el input "Buscar perfume..." de Precios & Stock encuentra el
+        // perfume tambi\u00e9n tipeando "alhambra", "cdn", "club nuit", etc.
+        // Escapamos comillas por las dudas (alias es texto libre del admin).
+        var searchStr = (
+          (p.name || '') + ' ' +
+          (p.marca || '') + ' ' +
+          (p.marca_real || '') + ' ' +
+          (p.alias || '')
+        ).toLowerCase().replace(/"/g, '');
+        html += '<tr data-search="' + searchStr + '">'
+          + '<td class="td-name">' + p.name
+          +   (p.marca_real ? '<span style="display:block;font-size:.58rem;color:var(--gris);font-weight:400;margin-top:2px;">' + p.marca_real + '</span>' : '')
+          + '</td>'
           + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
           + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
@@ -3197,6 +3238,62 @@
       setTimeout(function() { closeModal('modalPrice'); }, 1500);
     }
 
+    // ============================================================
+    // LISTA DE ESPERA — auto-aviso al volver el stock
+    // ============================================================
+    // Cuando el admin pasa un perfume de out/pausado -> ok/low, este helper:
+    //   1) Busca las filas pendientes (notified_at IS NULL) para ese slug
+    //   2) Las marca todas con notified_at = now() en una sola UPDATE
+    //   3) Abre un wa.me por cada una, stagger 800ms para no trabarse con
+    //      popup-blocker. La primera va segura (origen: click en saveStock).
+    //   4) Devuelve el array de entries afectadas para mostrar feedback.
+    // NO borra nada: las filas quedan en la DB con notified_at seteado, as\u00ed
+    // tenemos historial si despu\u00e9s vuelve a stock 0 por error.
+    async function autoNotifyWaitlist(slug) {
+      try {
+        var q = await sb.from('lista_espera')
+          .select('id, telefono, nombre')
+          .eq('slug', slug)
+          .is('notified_at', null)
+          .order('created_at', { ascending: true });
+        if (q.error) { console.error('[auto-notify] select error:', q.error); return []; }
+        var pending = q.data || [];
+        if (pending.length === 0) return [];
+
+        // Marcar como notificados (una sola UPDATE por los IDs).
+        var ids = pending.map(function(e) { return e.id; });
+        var now = new Date().toISOString();
+        var up = await sb.from('lista_espera').update({ notified_at: now }).in('id', ids);
+        if (up.error) {
+          console.error('[auto-notify] update error:', up.error);
+          // Seguimos abriendo los WA igual — el admin puede marcar a mano.
+        }
+
+        // Reflejar en memoria si esperaData est\u00e1 cargado.
+        if (Array.isArray(esperaData) && esperaData.length) {
+          ids.forEach(function(id) {
+            var row = esperaData.find(function(r) { return r.id === id; });
+            if (row) row.notified_at = now;
+          });
+          var espTab = document.getElementById('tab-espera');
+          if (espTab && espTab.classList.contains('active')) renderListaEspera();
+        }
+
+        // Abrir los WA staggered.
+        var msgEnc = encodeURIComponent(buildWaitlistMsg());
+        pending.forEach(function(e, i) {
+          setTimeout(function() {
+            window.open('https://wa.me/' + e.telefono + '?text=' + msgEnc, '_blank');
+          }, i * 800);
+        });
+
+        return pending;
+      } catch(e) {
+        console.error('[auto-notify] except:', e);
+        return [];
+      }
+    }
+
     async function saveStock() {
       var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
       if (!p) return;
@@ -3240,7 +3337,28 @@
       notifyTelegram('📦 Stock actualizado\n🌶 ' + p.name + '\n📊 ' + info.badgeText + (paused ? ' (pausado)' : ''));
 
       renderPrecios();
-      setTimeout(function() { closeModal('modalStock'); }, 1200);
+
+      // Detectar transici\u00f3n "no hab\u00eda stock" -> "hay stock" (ok o low).
+      // Si pas\u00f3 eso, auto-avisamos a los pendientes de la lista de espera
+      // (abre wa.me staggered + marca notified_at). Historial queda en la DB.
+      var prevNoStock = (prevStatus === 'out' || prevStatus === 'pausado');
+      var nowHasStock = (newStatus === 'ok' || newStatus === 'low');
+      if (prevNoStock && nowHasStock) {
+        var slugForNotify = editingSlug;
+        var notified = await autoNotifyWaitlist(slugForNotify);
+        if (notified.length > 0) {
+          msgEl.innerHTML = '\u2713 Stock actualizado<br>' +
+            '<span style="color:var(--amarillo);font-weight:600;">\ud83d\udcec ' + notified.length + ' persona' + (notified.length !== 1 ? 's' : '') +
+            ' avisada' + (notified.length !== 1 ? 's' : '') + ' autom\u00e1ticamente por WhatsApp</span>';
+          msgEl.style.color = '#2ecc71';
+          notifyTelegram('\ud83d\udcec Waitlist auto-notificada\n\ud83c\udf36 ' + p.name + '\n\ud83d\udc65 ' + notified.length + ' persona(s)');
+          setTimeout(function() { closeModal('modalStock'); }, 5000);
+        } else {
+          setTimeout(function() { closeModal('modalStock'); }, 1200);
+        }
+      } else {
+        setTimeout(function() { closeModal('modalStock'); }, 1200);
+      }
     }
 
     // ============================================================
@@ -3341,7 +3459,11 @@
       // para que arranque desde los primeros NUEVOS_STEP resultados.
       var filtered = _nuevosData.filter(function(p) {
         if (!q) return true;
-        var hay = (p.name || '').toLowerCase() + ' ' + (p.marca || '').toLowerCase() + ' ' + (p.marca_real || '').toLowerCase();
+        // Busqueda unificada: nombre + marca propia + fabricante + apodos.
+        var hay = (p.name || '').toLowerCase()
+          + ' ' + (p.marca || '').toLowerCase()
+          + ' ' + (p.marca_real || '').toLowerCase()
+          + ' ' + (p.alias || '').toLowerCase();
         return hay.indexOf(q) !== -1;
       });
 
@@ -3400,8 +3522,11 @@
 
       var matches = PERFUMES.filter(function(p) {
         if (p.esSet) return false;
-        var hay = p.name.toLowerCase();
-        if (p.alias) hay += ' ' + p.alias.toLowerCase();
+        // Busqueda unificada: nombre + marca propia + fabricante + apodos.
+        var hay = (p.name || '').toLowerCase()
+          + ' ' + (p.marca || '').toLowerCase()
+          + ' ' + (p.marca_real || '').toLowerCase()
+          + ' ' + (p.alias || '').toLowerCase();
         return hay.indexOf(input) !== -1;
       }).slice(0, 10);
 
@@ -3638,6 +3763,12 @@
       document.getElementById('editSimilaresNota').value = p.similares_nota || '';
       renderSimilaresSlots(p.slug, Array.isArray(p.similares_manuales) ? p.similares_manuales : []);
 
+      // Notas de stock (Sin stock / Próximamente)
+      // "Último" queda SIN nota a propósito: evita conflictos cuando múltiples clientes
+      // piden el último frasco y el equipo tiene que elegir a quién venderle.
+      document.getElementById('editNotaSinStock').value      = p.nota_sin_stock     || '';
+      document.getElementById('editNotaProximamente').value  = p.nota_proximamente  || '';
+
       // Etiqueta
       document.getElementById('editEtiqueta').value = p.etiqueta || '';
       document.getElementById('editEtiquetaColor').value = p.etiqueta_color || '#E8B800';
@@ -3754,7 +3885,11 @@
         etiqueta_color: document.getElementById('editEtiquetaColor').value,
         // Override manual de similares
         similares_manuales: getSimilaresManuales(),
-        similares_nota: document.getElementById('editSimilaresNota').value.trim()
+        similares_nota: document.getElementById('editSimilaresNota').value.trim(),
+        // Notas de stock (pueden ser string vacío para borrarlas)
+        // "Último" no se expone: ver comentario en loadEditPerfume.
+        nota_sin_stock:     document.getElementById('editNotaSinStock').value.trim(),
+        nota_proximamente:  document.getElementById('editNotaProximamente').value.trim()
       };
 
       var msgEl = document.getElementById('editMsg');
@@ -3778,7 +3913,8 @@
         foto: 'Foto', notas_salida: 'Notas salida', notas_corazon: 'Notas coraz\u00f3n',
         notas_base: 'Notas base', descuento_pct: 'Descuento %', etiqueta: 'Etiqueta',
         fotos_extra: 'Fotos extra', alias: 'Apodos',
-        similares_nota: 'Nota similares', similares_manuales: 'Similares manuales'
+        similares_nota: 'Nota similares', similares_manuales: 'Similares manuales',
+        nota_sin_stock: 'Nota "Sin stock"', nota_proximamente: 'Nota "Próximamente"'
       };
       var logs = [];
       Object.keys(fieldsToLog).forEach(function(key) {
@@ -5732,7 +5868,22 @@
     // ============================================================
     // LISTA DE ESPERA
     // ============================================================
+    // esperaData guarda TODAS las filas (pendientes + ya notificadas).
+    // esperaView controla qu\u00e9 se muestra en el UI: 'pending' o 'history'.
+    // Los pendientes tienen notified_at === null; al auto-avisarles (o al
+    // apretar "Avisar" a mano) se setea notified_at = now() y pasan a historial,
+    // pero NO se borran: quedan para poder chequear a qui\u00e9n ya avisamos si
+    // por error vuelve a ponerse stock 0.
     var esperaData = [];
+    var esperaView = 'pending';
+
+    // Mensaje gen\u00e9rico reutilizable.
+    function buildWaitlistMsg() {
+      return 'Hola! \ud83d\udc4b Desde ST Perfumer\u00eda te avisamos que uno de los perfumes que estabas esperando ya volvi\u00f3 a estar disponible \ud83c\udf89\n\n'
+        + 'Pod\u00e9s pasar por el local o escribirnos por ac\u00e1 para coordinar. Revis\u00e1 nuestro horario y direcci\u00f3n en el cat\u00e1logo:\n'
+        + 'https://www.stperfumeria.com\n\n'
+        + '\u00a1Te esperamos!';
+    }
 
     async function loadListaEspera() {
       try {
@@ -5743,29 +5894,62 @@
       } catch(e) { console.error(e); }
     }
 
+    // Toggle entre Pendientes / Historial. Actualiza estilos de los 2 botones
+    // y vuelve a renderizar.
+    function setEsperaView(view) {
+      esperaView = (view === 'history') ? 'history' : 'pending';
+      var btnP = document.getElementById('esperaTabPending');
+      var btnH = document.getElementById('esperaTabHistory');
+      if (btnP && btnH) {
+        if (esperaView === 'pending') {
+          btnP.style.background = 'var(--amarillo)'; btnP.style.color = '#000';
+          btnH.style.background = ''; btnH.style.color = '';
+        } else {
+          btnH.style.background = 'var(--amarillo)'; btnH.style.color = '#000';
+          btnP.style.background = ''; btnP.style.color = '';
+        }
+      }
+      renderListaEspera();
+    }
+
     function renderListaEspera() {
       var list = document.getElementById('esperaList');
       var emptyEl = document.getElementById('esperaEmpty');
 
-      if (esperaData.length === 0) {
+      var pending = esperaData.filter(function(r) { return !r.notified_at; });
+      var history = esperaData.filter(function(r) { return !!r.notified_at; });
+
+      // Contadores de los 2 tabs (Pendientes / Historial)
+      var cntP = document.getElementById('esperaPendingCount');
+      var cntH = document.getElementById('esperaHistoryCount');
+      if (cntP) cntP.textContent = pending.length;
+      if (cntH) cntH.textContent = history.length;
+
+      var rows = (esperaView === 'history') ? history : pending;
+
+      // Stats arriba: siempre reflejan la vista activa (si estoy en historial,
+      // muestro cu\u00e1ntos ya avis\u00e9; si estoy en pendientes, cu\u00e1ntos faltan).
+      var grouped = {};
+      rows.forEach(function(row) {
+        if (!grouped[row.slug]) grouped[row.slug] = { name: row.perfume_name || row.slug, items: [] };
+        grouped[row.slug].items.push(row);
+      });
+      var slugs = Object.keys(grouped);
+      document.getElementById('esperaTotal').textContent = rows.length;
+      document.getElementById('esperaPerfumes').textContent = slugs.length;
+
+      if (rows.length === 0) {
         list.innerHTML = '';
         emptyEl.style.display = '';
-        document.getElementById('esperaTotal').textContent = '0';
-        document.getElementById('esperaPerfumes').textContent = '0';
+        emptyEl.textContent = (esperaView === 'history')
+          ? 'Todav\u00eda no avisaste a nadie \ud83d\udcec'
+          : 'Nadie esperando \ud83d\ude0a';
         return;
       }
       emptyEl.style.display = 'none';
 
-      // Agrupar por slug
-      var grouped = {};
-      esperaData.forEach(function(row) {
-        if (!grouped[row.slug]) grouped[row.slug] = { name: row.perfume_name || row.slug, items: [] };
-        grouped[row.slug].items.push(row);
-      });
-
-      var slugs = Object.keys(grouped);
-      document.getElementById('esperaTotal').textContent = esperaData.length;
-      document.getElementById('esperaPerfumes').textContent = slugs.length;
+      var msgEnc = encodeURIComponent(buildWaitlistMsg());
+      var isHistory = (esperaView === 'history');
 
       var html = '';
       slugs.forEach(function(slug) {
@@ -5776,29 +5960,41 @@
           ? '<span style="color:#27ae60;font-size:.6rem;font-weight:600;">EN STOCK</span>'
           : '<span style="color:#e74c3c;font-size:.6rem;font-weight:600;">SIN STOCK</span>';
 
-        html += '<div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;">';
+        html += '<div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;' + (isHistory ? 'opacity:.75;' : '') + '">';
         html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.3rem;">';
         html += '<div><p style="font-size:.8rem;font-weight:700;color:#fff;">' + group.name + '</p>' + statusBadge + '</div>';
-        html += '<span style="font-size:.65rem;color:var(--amarillo);font-weight:600;">' + group.items.length + ' esperando</span>';
+        html += '<span style="font-size:.65rem;color:var(--amarillo);font-weight:600;">' + group.items.length + (isHistory ? ' avisad' + (group.items.length !== 1 ? 'os' : 'o') : ' esperando') + '</span>';
         html += '</div>';
 
         group.items.forEach(function(item) {
           var fecha = new Date(item.created_at);
           var fechaStr = fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
-          var waLink = 'https://wa.me/' + item.telefono + '?text=' + encodeURIComponent('\u00a1Hola' + (item.nombre ? ' ' + item.nombre : '') + '! Te escribimos de ST Perfumer\u00eda. \u00a1' + group.name + ' volvi\u00f3 a estar disponible! \ud83c\udf89 Pas\u00e1 por el local o escrib\u00ednos para reservarlo.');
+          var subLine = '+' + item.telefono + ' \u00b7 ' + fechaStr;
+          if (isHistory && item.notified_at) {
+            var fn = new Date(item.notified_at);
+            subLine += ' \u00b7 Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+          }
+
+          var waLink = 'https://wa.me/' + item.telefono + '?text=' + msgEnc;
           html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-top:1px solid var(--borde);gap:.5rem;">';
           html += '<div style="min-width:0;">';
           html += '<p style="font-size:.72rem;color:#fff;font-weight:500;">' + (item.nombre || 'Sin nombre') + '</p>';
-          html += '<p style="font-size:.62rem;color:var(--gris);">+' + item.telefono + ' \u00b7 ' + fechaStr + '</p>';
+          html += '<p style="font-size:.62rem;color:var(--gris);">' + subLine + '</p>';
           html += '</div>';
           html += '<div style="display:flex;gap:.3rem;flex-shrink:0;">';
-          html += '<a href="' + waLink + '" target="_blank" class="action-btn btn-price" style="font-size:.58rem;padding:.3rem .5rem;text-decoration:none;">Avisar</a>';
+          // En pendientes: bot\u00f3n "Avisar" marca como notificado al click.
+          // En historial: bot\u00f3n "Re-avisar" NO marca nada nuevo, solo abre WA.
+          if (isHistory) {
+            html += '<a href="' + waLink + '" target="_blank" class="action-btn" style="font-size:.58rem;padding:.3rem .5rem;text-decoration:none;background:rgba(255,255,255,.06);color:#ccc;border:1px solid var(--borde);">Re-avisar</a>';
+          } else {
+            html += '<a href="' + waLink + '" target="_blank" class="action-btn btn-price" style="font-size:.58rem;padding:.3rem .5rem;text-decoration:none;" onclick="markEsperaNotified(' + item.id + ')">Avisar</a>';
+          }
           html += '<button class="action-btn" style="font-size:.58rem;padding:.3rem .5rem;background:rgba(231,76,60,.15);color:#e74c3c;border:1px solid rgba(231,76,60,.3);" onclick="removeEspera(' + item.id + ',this)">Quitar</button>';
           html += '</div></div>';
         });
 
-        // Botón "Avisar a todos"
-        if (group.items.length > 1) {
+        // Bot\u00f3n "Avisar a todos" solo en pendientes y si hay >1
+        if (!isHistory && group.items.length > 1) {
           html += '<button class="action-btn btn-price" style="width:100%;margin-top:.6rem;font-size:.65rem;padding:.45rem;" onclick="avisarTodos(\'' + slug + '\')">&#128227; Avisar a todos (' + group.items.length + ')</button>';
         }
 
@@ -5809,22 +6005,45 @@
     }
 
     async function removeEspera(id, btn) {
-      if (!confirm('\u00bfQuitar de la lista de espera?')) return;
+      if (!confirm('\u00bfQuitar definitivamente de la lista? (esto borra el registro)')) return;
       btn.disabled = true;
       await sb.from('lista_espera').delete().eq('id', id);
       esperaData = esperaData.filter(function(r) { return r.id !== id; });
       renderListaEspera();
     }
 
-    function avisarTodos(slug) {
-      var group = esperaData.filter(function(r) { return r.slug === slug; });
+    // Marca UNA fila como notificada (al apretar "Avisar" individual).
+    // El <a> ya abre WhatsApp; esto corre en paralelo para persistir el estado.
+    async function markEsperaNotified(id) {
+      var now = new Date().toISOString();
+      try {
+        await sb.from('lista_espera').update({ notified_at: now }).eq('id', id);
+      } catch(e) { console.warn('[waitlist] markEsperaNotified error:', e); }
+      var row = esperaData.find(function(r) { return r.id === id; });
+      if (row) row.notified_at = now;
+      renderListaEspera();
+    }
+
+    async function avisarTodos(slug) {
+      var group = esperaData.filter(function(r) { return r.slug === slug && !r.notified_at; });
       if (group.length === 0) return;
-      var perfumeName = group[0].perfume_name || slug;
-      // Abrir cada WA en nueva pestaña
+      var msgEnc = encodeURIComponent(buildWaitlistMsg());
+      // Abrir cada WA en nueva pesta\u00f1a
       group.forEach(function(item, i) {
-        var waLink = 'https://wa.me/' + item.telefono + '?text=' + encodeURIComponent('\u00a1Hola' + (item.nombre ? ' ' + item.nombre : '') + '! Te escribimos de ST Perfumer\u00eda. \u00a1' + perfumeName + ' volvi\u00f3 a estar disponible! \ud83c\udf89 Pas\u00e1 por el local o escrib\u00ednos para reservarlo.');
+        var waLink = 'https://wa.me/' + item.telefono + '?text=' + msgEnc;
         setTimeout(function() { window.open(waLink, '_blank'); }, i * 800);
       });
+      // Marcar todos como notificados en una sola UPDATE
+      var ids = group.map(function(e) { return e.id; });
+      var now = new Date().toISOString();
+      try {
+        await sb.from('lista_espera').update({ notified_at: now }).in('id', ids);
+      } catch(e) { console.warn('[waitlist] avisarTodos update error:', e); }
+      ids.forEach(function(id) {
+        var row = esperaData.find(function(r) { return r.id === id; });
+        if (row) row.notified_at = now;
+      });
+      renderListaEspera();
     }
 
     function filterDoctor(filter) {

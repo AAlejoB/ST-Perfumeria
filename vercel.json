@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "st-perfumeria.vercel.app" }],
+      "destination": "https://www.stperfumeria.com/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/perfume/:slug", "destination": "/api/share?slug=:slug" },
     { "source": "/admin", "destination": "/admin.html" }

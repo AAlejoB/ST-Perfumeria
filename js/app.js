@@ -1200,9 +1200,19 @@
       var stockStatus = p._stockStatus || 'ok';
       var isPaused = stockStatus === 'pausado';
       var stockBadge = '';
+      // Si hay nota del equipo para este estado, agregamos class 'has-note' y un onclick
+      // que abre el modal con el texto + CTA de WhatsApp.
+      // IMPORTANTE: "Último" NO tiene nota a propósito — evita que múltiples clientes
+      // pidan el único frasco disponible y el empleado tenga que elegir.
+      var noteForState = '';
+      if (stockStatus === 'out') noteForState = p.nota_sin_stock || '';
+      else if (isPaused)         noteForState = p.nota_proximamente || '';
+      var badgeExtraAttrs = noteForState
+        ? ' has-note" onclick="event.stopPropagation();showStockNote(\'' + p.slug + '\',\'' + stockStatus + '\')"'
+        : '"';
       if (stockStatus === 'low') stockBadge = '<span class="badge-ultimo">Último</span>';
-      if (stockStatus === 'out') stockBadge = '<span class="badge-sin-stock">Sin stock</span>';
-      if (isPaused) stockBadge = '<span class="badge-proximamente">Próximamente</span>';
+      if (stockStatus === 'out') stockBadge = '<span class="badge-sin-stock' + badgeExtraAttrs + '>Sin stock</span>';
+      if (isPaused)             stockBadge = '<span class="badge-proximamente' + badgeExtraAttrs + '>Próximamente</span>';
 
       // Nuevo badge (últimos 10 del array = recién agregados)
       var nuevoBadge = '';
@@ -1841,6 +1851,52 @@
     }
 
     // ============================================================
+    // MODAL NOTA DE STOCK — (Último / Sin stock / Próximamente)
+    // Se abre al tocar una badge que tenga nota cargada por el admin
+    // ============================================================
+    // Guardamos el slug + estado activos para el botón CTA de WhatsApp.
+    var STOCK_NOTE_CURRENT = { slug: null, estado: null, name: null };
+
+    function showStockNote(slug, estado) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      var nota = '';
+      var label = '';
+      var badgeClass = '';
+      var ctaLabel = '';
+      // "low" (Último) NO tiene modal a propósito: ver comentario en el render de la badge.
+      if (estado === 'out')          { nota = p.nota_sin_stock || '';    label = 'Sin stock';    badgeClass = 'badge-estado-sin-stock';    ctaLabel = 'Avisame cuando vuelva'; }
+      else if (estado === 'pausado') { nota = p.nota_proximamente || ''; label = 'Próximamente'; badgeClass = 'badge-estado-proximamente'; ctaLabel = 'Reservar por WhatsApp'; }
+      if (!nota) return; // no abrir si no hay texto
+
+      STOCK_NOTE_CURRENT = { slug: slug, estado: estado, name: p.name };
+      var badgeEl = document.getElementById('stockNoteBadge');
+      badgeEl.textContent = label;
+      badgeEl.className = 'stocknote-badge ' + badgeClass;
+      document.getElementById('stockNotePerfume').textContent = p.name;
+      document.getElementById('stockNoteText').textContent = nota;
+      document.getElementById('stockNoteCtaLabel').textContent = ctaLabel;
+      document.getElementById('stockNoteOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeStockNote(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('stockNoteOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function stockNoteWhatsApp() {
+      var c = STOCK_NOTE_CURRENT;
+      if (!c.slug) return;
+      var msg;
+      if (c.estado === 'out')           msg = 'Hola! Avísenme cuando vuelva a haber stock del ' + c.name + ', por favor.';
+      else if (c.estado === 'pausado')  msg = 'Hola! Quiero reservar el ' + c.name + ' con seña para cuando llegue. ¿Cómo hacemos?';
+      else                               msg = 'Hola! Consulto por el ' + c.name + '.';
+      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+    }
+
+    // ============================================================
     // COMPARTIR PERFUME
     // ============================================================
     function sharePerfume(slug, btn, e) {
@@ -2068,11 +2124,20 @@
 
     async function loadPerfumeViews() {
       try {
-        var { data } = await sb.from('perfume_clicks').select('slug');
+        var { data, error } = await sb.from('perfume_clicks').select('slug');
+        if (error) {
+          console.warn('[views] Error leyendo perfume_clicks:', error.message);
+          return;
+        }
         if (data) {
           data.forEach(function(c) { perfumeViews[c.slug] = (perfumeViews[c.slug] || 0) + 1; });
+          if (data.length === 0) {
+            console.warn('[views] La tabla perfume_clicks está vacía. El ordenar por visitados usará tiebreaker alfabético.');
+          }
         }
-      } catch(e) {}
+      } catch(e) {
+        console.warn('[views] Excepción leyendo perfume_clicks:', e);
+      }
     }
 
     // ============================================================
@@ -2919,6 +2984,13 @@
         if (mode === 'views-desc' || mode === 'views-asc') {
           const va = perfumeViews[a.dataset.slug] || 0;
           const vb = perfumeViews[b.dataset.slug] || 0;
+          // Si hay empate de vistas (muy común: todos en 0 si la tabla está vacía),
+          // usamos el nombre como tiebreaker para que el orden cambie visiblemente.
+          if (va === vb) {
+            const na = a.querySelector('.card-name').textContent.trim().toLowerCase();
+            const nb = b.querySelector('.card-name').textContent.trim().toLowerCase();
+            return na.localeCompare(nb);
+          }
           return mode === 'views-desc' ? vb - va : va - vb;
         }
         // Leer del data-price (bulletproof) — fallback al DOM por si alguna card vieja no lo tiene
@@ -3015,6 +3087,9 @@
       var msgEl = document.getElementById('waitlistMsg');
       var btn = document.getElementById('waitlistSubmitBtn');
       msgEl.textContent = '';
+      // Flag: si ya mostramos el mensaje de éxito, cualquier error posterior
+      // (notifyTG, DOM update, race con otro fetch) NO debe pisar el "¡Listo!".
+      var successShown = false;
 
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
         msgEl.style.color = '#e74c3c';
@@ -3033,6 +3108,13 @@
       try {
         // Verificar si ya está en lista para este perfume
         var existing = await sb.from('lista_espera').select('id').eq('slug', slug).eq('telefono', phone).limit(1);
+        if (existing.error) {
+          console.error('[waitlist] SELECT falló:', existing.error);
+          msgEl.style.color = '#e74c3c';
+          msgEl.textContent = 'Error al consultar: ' + existing.error.message;
+          btn.disabled = false;
+          return;
+        }
         if (existing.data && existing.data.length > 0) {
           msgEl.style.color = 'var(--amarillo)';
           msgEl.textContent = '\u00a1Ya est\u00e1s en la lista! Te avisamos cuando vuelva.';
@@ -3059,18 +3141,25 @@
           return;
         }
 
-        // Marcar como suscripto
-        markWaitlistSlug(slug);
-
-        // Notificar Telegram
-        notifyTG('\ud83d\udd14 Lista de espera\n\ud83e\uddf4 ' + (perfume ? perfume.name : slug) + '\n\ud83d\udcf1 ' + phone + (nombre ? '\n\ud83d\udc64 ' + nombre : ''));
-
+        // Mostrar éxito INMEDIATAMENTE — antes de nada que pueda fallar.
+        // Así si markWaitlistSlug o notifyTG explotan, el usuario no ve "Error de conexión"
+        // después del "¡Listo!".
+        successShown = true;
         msgEl.style.color = '#27ae60';
         msgEl.textContent = '\u00a1Listo! Te avisamos por WhatsApp cuando vuelva.';
         setTimeout(function() { closeWaitlist(); }, 2000);
+
+        // Side-effects en try/catch individuales para no romper el flujo
+        try { markWaitlistSlug(slug); } catch(e) { console.error('[waitlist] markWaitlistSlug falló:', e); }
+        try { notifyTG('\ud83d\udd14 Lista de espera\n\ud83e\uddf4 ' + (perfume ? perfume.name : slug) + '\n\ud83d\udcf1 ' + phone + (nombre ? '\n\ud83d\udc64 ' + nombre : '')); } catch(e) { console.error('[waitlist] notifyTG falló:', e); }
       } catch(e) {
-        msgEl.style.color = '#e74c3c';
-        msgEl.textContent = 'Error de conexi\u00f3n. Intent\u00e1 de nuevo.';
+        console.error('[waitlist] Excepción:', e);
+        // Si el success ya se mostró, NO pisamos con un error — el guardado funcionó,
+        // el error probablemente vino de notifyTG o algún side-effect irrelevante.
+        if (!successShown) {
+          msgEl.style.color = '#e74c3c';
+          msgEl.textContent = 'Error: ' + (e.message || 'conexión fallida');
+        }
       }
       btn.disabled = false;
     }
@@ -3160,6 +3249,10 @@
             // Similares manuales (override humano) — nota de texto + array de slugs recomendados
             if (o.similares_manuales !== undefined && o.similares_manuales !== null) p.similares_manuales = o.similares_manuales;
             if (o.similares_nota !== undefined && o.similares_nota !== null) p.similares_nota = o.similares_nota;
+            // Notas de stock — textos escritos por jefe/empleado que aparecen al tocar la badge
+            if (o.nota_ultimo !== undefined && o.nota_ultimo !== null) p.nota_ultimo = o.nota_ultimo;
+            if (o.nota_sin_stock !== undefined && o.nota_sin_stock !== null) p.nota_sin_stock = o.nota_sin_stock;
+            if (o.nota_proximamente !== undefined && o.nota_proximamente !== null) p.nota_proximamente = o.nota_proximamente;
           });
         }
       } catch(e) {}
