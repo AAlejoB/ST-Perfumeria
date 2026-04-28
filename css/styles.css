@@ -57,6 +57,15 @@
       overflow-x: hidden;
     }
 
+    /* Seguridad anti-desborde: ninguna imagen, video o iframe puede salirse
+       de su contenedor. Previene scroll horizontal en tablets si alguna
+       imagen subida desde admin tiene dimensiones raras.
+       Nota: NO usamos height:auto global porque rompería imágenes con
+       width/height explícitos (logo, iconos cuadrados, etc.). */
+    img, video, iframe {
+      max-width: 100%;
+    }
+
     /* ================================================
        NAV — Barra de navegación superior
 
