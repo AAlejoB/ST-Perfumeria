@@ -4064,11 +4064,10 @@
     var currentBsSlug = null;
 
     function openBottomSheet(slug) {
-      // Solo dispositivos sin mouse fino (mobile + tablets táctiles).
-      // En desktop con mouse el .card-reveal se muestra con :hover via CSS.
-      // FIX iPad: antes usábamos innerWidth < 768, lo cual dejaba a las
-      // tablets sin bottom sheet ni hover → cards no respondían al tap.
-      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      // Sin guard de dispositivo: el CSS ya oculta .bottom-sheet-overlay
+      // en desktop con mouse fino vía (hover:hover) and (pointer:fine).
+      // En cualquier otro caso (mobile, tablet táctil), si el usuario tocó
+      // la card es porque quiere ver el detalle — abrimos sin preguntar.
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       currentBsSlug = slug;
