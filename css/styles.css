@@ -136,8 +136,10 @@
       font-weight: 500; letter-spacing: .1em; transition: color .3s;
     }
 
-    /* En tablet+ aparece el texto al lado del ícono */
-    @media (min-width: 768px) {
+    /* Solo en desktop real (>=1200px) aparece el texto al lado del ícono.
+       En tablets (768-1199) quedan solo íconos para que el logo centrado
+       no se superponga con la columna de iconos a la derecha. */
+    @media (min-width: 1200px) {
       .nav-icon-btn { font-size: .72rem; }
     }
 
@@ -150,7 +152,8 @@
       border-radius: 20px;
       padding: 4px 6px;
     }
-    @media (min-width: 768px) {
+    /* Padding ancho solo en desktop real, donde aparece el texto */
+    @media (min-width: 1200px) {
       .nav-register-btn { padding: 4px 12px; }
     }
     .nav-register-btn:hover { background: var(--amarillo); color: var(--negro) !important; }
@@ -164,7 +167,8 @@
       border-radius: 20px;
       padding: 4px 6px;
     }
-    @media (min-width: 768px) {
+    /* Padding ancho solo en desktop real, donde aparece el texto */
+    @media (min-width: 1200px) {
       .nav-logout-btn { padding: 4px 12px; }
     }
     .nav-logout-btn:hover { background: #e74c3c; color: #fff !important; }
@@ -1619,8 +1623,9 @@
       letter-spacing: .1em;
     }
     /* Tablet/mobile: ocultar el label "TEMA" para que no choque con el logo
-       centrado. Queda solo el icono de luna, mucho más compacto. */
-    @media (max-width: 1023px) {
+       centrado. Queda solo el icono de luna, mucho más compacto.
+       En desktop real (>=1200px) vuelve a aparecer. */
+    @media (max-width: 1199px) {
       .nav-dark-toggle-label { display: none; }
       .nav-dark-toggle { padding: .35rem .55rem; gap: 0; }
     }
