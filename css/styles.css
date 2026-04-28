@@ -66,6 +66,19 @@
       max-width: 100%;
     }
 
+    /* SEO/Accesibilidad: texto invisible visualmente pero leíble por
+       Google y lectores de pantalla. Técnica "visually hidden" estándar.
+       NO usar display:none porque Google ignora ese contenido. */
+    .seo-hidden {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     /* ================================================
        NAV — Barra de navegación superior
 
