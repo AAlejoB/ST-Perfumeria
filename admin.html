@@ -2918,12 +2918,13 @@
       else if (phoneClean.length === 11 && phoneClean.charAt(0) === '9') phoneClean = '54' + phoneClean;
       else if (phoneClean.length === 12 && phoneClean.startsWith('54') && phoneClean.charAt(2) !== '9') phoneClean = '549' + phoneClean.slice(2);
       var welcomeMsg =
-        '¡Hola ' + nombre + '! 🌸 Te di de alta en ST Perfumería.\n\n' +
-        'Para entrar a tu cuenta:\n' +
+        '¡Hola ' + nombre + '! 🙌\n' +
+        'Es un placer darte la bienvenida a la familia ST.\n\n' +
+        'Acá abajo te detallo el paso a paso para acceder a tu cuenta:\n' +
         '1️⃣ Andá a https://www.stperfumeria.com\n' +
         '2️⃣ Tocá "Iniciar sesión"\n' +
         '3️⃣ Ingresá tu número y elegí una contraseña — la primera que pongas queda como la tuya.\n\n' +
-        '¡Cualquier duda me decís por acá!';
+        '¡Cualquier duda me la podés describir por acá!✍️';
       var waLink = 'https://wa.me/' + phoneClean + '?text=' + encodeURIComponent(welcomeMsg);
       document.getElementById('newClientWhatsAppLink').href = waLink;
       document.getElementById('newClientWhatsApp').style.display = 'block';
