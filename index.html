@@ -87,6 +87,10 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
   <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/></noscript>
   <link rel="preconnect" href="https://rtgjzzkjrwbkdhkslxix.supabase.co" crossorigin/>
+  <!-- Preloads críticos: arrancan descarga ANTES de que el parser los descubra
+       (mejora FCP/LCP en mobile lento) -->
+  <link rel="preload" as="image" href="img/logo-st.webp" fetchpriority="high"/>
+  <link rel="preload" as="style" href="css/styles.css"/>
   <link rel="stylesheet" href="css/styles.css"/>
 </head>
 <body class="is-guest">
@@ -151,7 +155,7 @@
     <button class="nav-hamburger" onclick="toggleDrawer()" aria-label="Men&#250;">
       <span></span><span></span><span></span>
     </button>
-    <a href="#" class="nav-logo"><img src="img/logo-st.webp" alt="ST Scent & Textures"></a>
+    <a href="#" class="nav-logo"><img src="img/logo-st.webp" alt="ST Scent & Textures" fetchpriority="high" decoding="async" width="40" height="40"></a>
     <div class="nav-icons">
       <button class="nav-dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Cambiar tema">
         <span class="dark-toggle-icon">🌙</span>
