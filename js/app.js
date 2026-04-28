@@ -4064,7 +4064,11 @@
     var currentBsSlug = null;
 
     function openBottomSheet(slug) {
-      if (window.innerWidth >= 768) return; // solo mobile
+      // Solo dispositivos sin mouse fino (mobile + tablets táctiles).
+      // En desktop con mouse el .card-reveal se muestra con :hover via CSS.
+      // FIX iPad: antes usábamos innerWidth < 768, lo cual dejaba a las
+      // tablets sin bottom sheet ni hover → cards no respondían al tap.
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       currentBsSlug = slug;
