@@ -637,6 +637,115 @@
     body.light [style*="color:#bbb"] { color: #444 !important; }
     body.light [style*="color:#aaa"] { color: #555 !important; }
     body.light [style*="color:var(--gris-claro)"] { color: #333 !important; }
+
+    /* ============================================================
+       NUEVO CLIENTE — cosmética del form (no rompe layout existente)
+       ============================================================ */
+    /* Wrapper que posiciona el icono dentro del input */
+    .field-icon-wrap { position: relative; }
+    .field-icon-wrap .field-icon {
+      position: absolute; left: .65rem; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px; color: var(--gris); pointer-events: none;
+      transition: color .2s;
+    }
+    .field-icon-wrap input.modal-input.with-icon {
+      padding-left: 2rem;
+    }
+    .field-icon-wrap input.modal-input.with-icon:focus + .field-icon,
+    .field-icon-wrap:focus-within .field-icon {
+      color: var(--amarillo);
+    }
+
+    /* Form de nuevo cliente: borde sutil + glow al abrir */
+    #newClientForm {
+      position: relative;
+      border-color: rgba(232,184,0,.18) !important;
+      box-shadow: 0 0 0 1px rgba(232,184,0,.04), 0 8px 28px rgba(0,0,0,.35);
+      animation: nc-slide-down .25s ease-out;
+    }
+    #newClientForm::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: linear-gradient(180deg, var(--amarillo), rgba(232,184,0,.2));
+      border-radius: 8px 0 0 8px;
+    }
+    @keyframes nc-slide-down {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Botón REGISTRAR del form — pequeño glow al hover */
+    #newClientForm .modal-btn-price {
+      transition: all .2s ease, box-shadow .25s ease;
+    }
+    #newClientForm .modal-btn-price:hover:not(:disabled) {
+      box-shadow: 0 0 0 3px rgba(232,184,0,.18), 0 6px 16px rgba(232,184,0,.25);
+      transform: translateY(-1px);
+    }
+
+    /* Checkbox "Ya compró" — más visible */
+    #newClientCompro {
+      width: 16px; height: 16px; accent-color: var(--amarillo);
+      cursor: pointer; vertical-align: middle;
+    }
+
+    /* Mensaje de éxito post-registro */
+    #newClientMsg:not(:empty) {
+      animation: nc-pop .3s ease-out;
+      font-weight: 600;
+    }
+    @keyframes nc-pop {
+      0%   { opacity: 0; transform: scale(.92); }
+      60%  { transform: scale(1.04); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Panel WhatsApp post-registro: slide-in */
+    #newClientWhatsApp {
+      animation: nc-fade-in .3s ease-out;
+    }
+    @keyframes nc-fade-in {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #newClientWhatsAppLink {
+      transition: all .2s ease;
+      box-shadow: 0 2px 8px rgba(37,211,102,.25);
+    }
+    #newClientWhatsAppLink:hover {
+      background: #1ebe5d !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(37,211,102,.4);
+    }
+
+    /* Contador de clientes con dot pulsante */
+    .client-count {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .25rem .6rem; border-radius: 999px;
+      background: rgba(232,184,0,.08); border: 1px solid rgba(232,184,0,.2);
+      color: var(--amarillo) !important; font-weight: 600;
+    }
+    .client-count::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--amarillo); box-shadow: 0 0 6px var(--amarillo);
+      animation: nc-pulse 2s ease-in-out infinite;
+    }
+    @keyframes nc-pulse {
+      0%, 100% { opacity: .55; }
+      50%      { opacity: 1; }
+    }
+
+    /* Light mode adjustments */
+    body.light #newClientForm {
+      background: #fffaf0 !important;
+      border-color: rgba(184,140,0,.25) !important;
+      box-shadow: 0 4px 14px rgba(184,140,0,.08);
+    }
+    body.light .field-icon-wrap .field-icon { color: #888; }
+    body.light .client-count {
+      background: rgba(184,140,0,.1);
+      border-color: rgba(184,140,0,.3);
+      color: #8a6a00 !important;
+    }
   </style>
 </head>
 <body>
@@ -1242,15 +1351,24 @@
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:140px;">
             <label class="modal-label">Nombre / Apodo</label>
-            <input type="text" class="modal-input" id="newClientName" placeholder="Ej: Marcos, Luli..." style="margin-bottom:0;" maxlength="60"/>
+            <div class="field-icon-wrap">
+              <input type="text" class="modal-input with-icon" id="newClientName" placeholder="Ej: Marcos, Luli..." style="margin-bottom:0;" maxlength="60"/>
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
           </div>
           <div style="flex:1;min-width:140px;">
             <label class="modal-label">Tel&eacute;fono (WhatsApp)</label>
-            <input type="tel" class="modal-input" id="newClientPhone" placeholder="Ej: 2975412345" style="margin-bottom:0;"/>
+            <div class="field-icon-wrap">
+              <input type="tel" class="modal-input with-icon" id="newClientPhone" placeholder="Ej: 2975412345" style="margin-bottom:0;"/>
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
           </div>
           <div style="flex:1;min-width:180px;">
             <label class="modal-label">Nota interna (opcional)</label>
-            <input type="text" class="modal-input" id="newClientNota" placeholder="Ej: amigo de Lucas, pelo rojo..." style="margin-bottom:0;" maxlength="120"/>
+            <div class="field-icon-wrap">
+              <input type="text" class="modal-input with-icon" id="newClientNota" placeholder="Ej: amigo de Lucas, pelo rojo..." style="margin-bottom:0;" maxlength="120"/>
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+            </div>
           </div>
           <div style="flex:0 0 auto;">
             <label class="modal-label" style="opacity:0;">.</label>
@@ -1261,6 +1379,16 @@
           <button class="modal-btn modal-btn-price" onclick="addNewClient()" style="width:auto;padding:.6rem 1.2rem;margin-top:0;">Registrar</button>
         </div>
         <p class="modal-success" id="newClientMsg"></p>
+        <!-- Atajo post-registro: WhatsApp de bienvenida con instrucciones de acceso -->
+        <div id="newClientWhatsApp" style="display:none;margin-top:.7rem;padding:.8rem;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.35);border-radius:8px;">
+          <p style="font-size:.7rem;color:#bbb;margin:0 0 .55rem 0;">El cliente entra con su tel&eacute;fono y la contrase&ntilde;a que elija al primer ingreso. Mandale el saludo:</p>
+          <a id="newClientWhatsAppLink" href="#" target="_blank" rel="noopener"
+             style="display:inline-flex;align-items:center;gap:.4rem;background:#25d366;color:#fff;padding:.55rem 1rem;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:600;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.32A8 8 0 1 0 4.94 16.5l-1 3.66 3.74-.98a8 8 0 0 0 11.92-6.96 8 8 0 0 0-2-5.9zm-5.6 12.3a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.5.66.66-2.43-.16-.25a6.66 6.66 0 1 1 5.6 3.08zm3.66-4.97c-.2-.1-1.18-.58-1.36-.65-.18-.07-.32-.1-.45.1-.13.2-.52.65-.64.78-.12.13-.23.15-.43.05a5.4 5.4 0 0 1-1.6-1c-.6-.52-.99-1.17-1.1-1.37-.12-.2-.01-.3.09-.4.1-.1.2-.24.3-.36.1-.12.13-.2.2-.34.07-.13.03-.25-.02-.35l-.6-1.46c-.16-.4-.32-.34-.45-.34h-.39a.74.74 0 0 0-.54.25c-.18.2-.7.69-.7 1.68 0 .98.72 1.94.83 2.07.1.13 1.42 2.2 3.46 3.07.48.21.86.33 1.16.42.49.16.94.13 1.29.08.4-.06 1.18-.48 1.34-.95.17-.47.17-.87.12-.95-.05-.08-.18-.13-.38-.23z"/></svg>
+            Saludar por WhatsApp
+          </a>
+          <button onclick="dismissWhatsAppPrompt()" style="margin-left:.5rem;background:none;border:1px solid var(--borde);color:var(--gris-claro);padding:.55rem 1rem;border-radius:6px;cursor:pointer;font-size:.72rem;">Listo</button>
+        </div>
       </div>
 
       <!-- SUMAR PUNTO RÁPIDO -->
@@ -2743,7 +2871,10 @@
     // ============================================================
     function toggleNewClientForm() {
       var form = document.getElementById('newClientForm');
-      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      var opening = form.style.display === 'none';
+      form.style.display = opening ? 'block' : 'none';
+      // Al abrir, limpiar prompt de WhatsApp del registro anterior
+      if (opening) dismissWhatsAppPrompt();
     }
 
     async function addNewClient() {
@@ -2779,12 +2910,38 @@
       msgEl.style.color = '#2ecc71';
       notifyTelegram('👤 Nuevo cliente (admin)\n📱 ' + nombre + ' · ' + telefono + (compro ? '\n⭐ 1 punto' : ''));
 
+      // Armar link de WhatsApp con saludo + instrucciones de primer ingreso.
+      // El cliente quedó sin password en DB → la 1ra clave que ingrese al loguearse queda como suya.
+      var phoneClean = String(telefono).replace(/[^0-9]/g, '');
+      // Normalizar: si el AE tipeó solo los 10 dígitos locales, prefijar 549
+      if (phoneClean.length === 10) phoneClean = '549' + phoneClean;
+      else if (phoneClean.length === 11 && phoneClean.charAt(0) === '9') phoneClean = '54' + phoneClean;
+      else if (phoneClean.length === 12 && phoneClean.startsWith('54') && phoneClean.charAt(2) !== '9') phoneClean = '549' + phoneClean.slice(2);
+      var welcomeMsg =
+        '¡Hola ' + nombre + '! 🌸 Te di de alta en ST Perfumería.\n\n' +
+        'Para entrar a tu cuenta:\n' +
+        '1️⃣ Andá a https://www.stperfumeria.com\n' +
+        '2️⃣ Tocá "Iniciar sesión"\n' +
+        '3️⃣ Ingresá tu número y elegí una contraseña — la primera que pongas queda como la tuya.\n\n' +
+        '¡Cualquier duda me decís por acá!';
+      var waLink = 'https://wa.me/' + phoneClean + '?text=' + encodeURIComponent(welcomeMsg);
+      document.getElementById('newClientWhatsAppLink').href = waLink;
+      document.getElementById('newClientWhatsApp').style.display = 'block';
+
       document.getElementById('newClientName').value = '';
       document.getElementById('newClientPhone').value = '';
       document.getElementById('newClientNota').value = '';
       document.getElementById('newClientCompro').checked = false;
       loadClientes();
-      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+      // No borramos el msg con setTimeout: queda visible junto al botón de WhatsApp
+      // hasta que el AE toque "Listo" o cierre el formulario.
+    }
+
+    function dismissWhatsAppPrompt() {
+      var wa = document.getElementById('newClientWhatsApp');
+      var msg = document.getElementById('newClientMsg');
+      if (wa) wa.style.display = 'none';
+      if (msg) msg.textContent = '';
     }
 
     // ============================================================

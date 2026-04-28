@@ -356,6 +356,26 @@
             btn.disabled = false; return;
           }
           var cliente = existing.data[0];
+
+          // Cuenta creada desde admin sin contraseña: el primer login setea
+          // la pass que escriba el cliente como definitiva. No falla, lo activa.
+          if (!cliente.password) {
+            var upd = await sb.from('clientes').update({ password: pass }).eq('id', cliente.id);
+            if (upd.error) {
+              errEl.textContent = 'No se pudo activar la cuenta: ' + upd.error.message;
+              btn.disabled = false; return;
+            }
+            clearAuthLockout();
+            errEl.style.color = '#2ecc71';
+            errEl.textContent = '✓ Cuenta activada. ¡Bienvenido/a, ' + cliente.nombre + '!';
+            notifyTG('🔓 Primer ingreso\n👤 ' + cliente.nombre + ' (' + cliente.telefono + ')');
+            setTimeout(function() {
+              onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: cliente.telefono });
+              closeAuth();
+            }, 1200);
+            return;
+          }
+
           if (cliente.password !== pass) {
             registerAuthFail(errEl);
             if (errEl.textContent.indexOf('Esper') === -1) {
