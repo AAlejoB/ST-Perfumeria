@@ -639,6 +639,72 @@
     body.light [style*="color:var(--gris-claro)"] { color: #333 !important; }
 
     /* ============================================================
+       MINI-DASHBOARD DE STOCK — 4 stat cards arriba de la tabla
+       ============================================================ */
+    .stock-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .6rem;
+      margin-bottom: 1rem;
+    }
+    /* Tablet: 2x2 */
+    @media (max-width: 900px) {
+      .stock-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    /* Mobile chico: apilado en 1 columna */
+    @media (max-width: 480px) {
+      .stock-stats { grid-template-columns: 1fr; gap: .45rem; }
+    }
+    .stat-card {
+      background: linear-gradient(180deg, #131316 0%, #101013 100%);
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: .75rem .9rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .25s ease, transform .25s ease;
+    }
+    .stat-card:hover { border-color: rgba(232,184,0,.3); transform: translateY(-1px); }
+    /* Acento dorado lateral, varía un poco por tipo */
+    .stat-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--amarillo); opacity: .85;
+    }
+    .stat-card.stat-out::before { background: #e74c3c; }
+    .stat-card.stat-perfumes::before { background: #3498db; }
+    .stat-card.stat-value-inv::before { background: #2ecc71; }
+
+    .stat-icon {
+      font-size: .85rem; opacity: .9; margin-bottom: .2rem;
+      filter: saturate(.9);
+    }
+    .stat-value {
+      font-family: var(--font-display, inherit);
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--amarillo);
+      letter-spacing: -.5px;
+      line-height: 1.1;
+      margin-bottom: .15rem;
+    }
+    .stat-card.stat-out .stat-value { color: #e74c3c; }
+    .stat-card.stat-perfumes .stat-value { color: #5dade2; }
+    .stat-card.stat-value-inv .stat-value { color: #2ecc71; }
+    .stat-label {
+      font-size: .58rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--gris-claro);
+      font-weight: 500;
+    }
+
+    /* Light mode */
+    body.light .stat-card {
+      background: linear-gradient(180deg, #fffaf0 0%, #fff5e0 100%);
+      border-color: rgba(184,140,0,.2);
+    }
+    body.light .stat-card .stat-label { color: #555; }
+
+    /* ============================================================
        NUEVO CLIENTE — cosmética del form (no rompe layout existente)
        ============================================================ */
     /* Wrapper que posiciona el icono dentro del input */
@@ -806,6 +872,30 @@
 
     <!-- TAB: PRECIOS & STOCK (unificada) -->
     <div class="tab-content active" id="tab-precios">
+      <!-- Mini-dashboard de inventario: se actualiza en cada renderPrecios() -->
+      <div class="stock-stats">
+        <div class="stat-card stat-units">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="statTotalUnits">—</div>
+          <div class="stat-label">Unidades en stock</div>
+        </div>
+        <div class="stat-card stat-perfumes">
+          <div class="stat-icon">🌸</div>
+          <div class="stat-value" id="statTotalPerfumes">—</div>
+          <div class="stat-label">Perfumes activos</div>
+        </div>
+        <div class="stat-card stat-out">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-value" id="statSinStock">—</div>
+          <div class="stat-label">Sin stock</div>
+        </div>
+        <div class="stat-card stat-value-inv">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value" id="statValorInv">—</div>
+          <div class="stat-label">Valor de inventario</div>
+        </div>
+      </div>
+
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <select class="admin-search" id="sortPrecios" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
@@ -2526,6 +2616,44 @@
       var sortKey = document.getElementById('sortPrecios').value;
       var list = PERFUMES.filter(function(p) { return !p.esSet; });
       list = sortPerfumes(list, sortKey);
+
+      // ── Mini-dashboard de inventario ────────────────────────────
+      // Recorre la lista una vez calculando 4 métricas:
+      //   1) totalUnits:  suma de _stockQty (ignora pausados y null)
+      //   2) totalActive: cantidad de perfumes activos (no pausados)
+      //   3) sinStock:    cantidad con qty=0 o status='out'
+      //   4) valorInv:    sum(price_efectivo × qty) — usa promo si la hay
+      var totalUnits = 0, totalActive = 0, sinStock = 0, valorInv = 0;
+      list.forEach(function(p) {
+        var status = p._stockStatus;
+        var q = (typeof p._stockQty === 'number') ? p._stockQty : null;
+        if (status === 'pausado') return; // no cuenta para ningún stat
+        totalActive++;
+        if (q !== null) {
+          totalUnits += q;
+          if (q === 0) sinStock++;
+        } else if (status === 'out') {
+          sinStock++;
+        }
+        if (q && q > 0) {
+          var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+          valorInv += basePrice * q;
+        }
+      });
+      var fmt = function(n) { return Math.round(n).toLocaleString('es-AR'); };
+      var fmtMoney = function(n) {
+        // Compactar grandes: 12.450.000 → "$12,4M" para que no rompa el card
+        if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.', ',') + 'M';
+        if (n >= 1000)    return '$' + Math.round(n / 1000) + 'K';
+        return '$' + fmt(n);
+      };
+      var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+      setText('statTotalUnits',    fmt(totalUnits));
+      setText('statTotalPerfumes', fmt(totalActive));
+      setText('statSinStock',      fmt(sinStock));
+      setText('statValorInv',      fmtMoney(valorInv));
+      // ─────────────────────────────────────────────────────────────
+
       var html = '';
       list.forEach(function(p) {
         var info = deriveStockInfo(p);
