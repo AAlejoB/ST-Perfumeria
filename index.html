@@ -189,6 +189,23 @@
   }
   </script>
 
+  <!-- ImageObject — habilita rich data en Google Imágenes para el logo y la OG card -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ImageObject",
+    "@id": "https://www.stperfumeria.com/#logo-image",
+    "url": "https://www.stperfumeria.com/img/logo-st.webp",
+    "width": 512,
+    "height": 512,
+    "caption": "Logo de ST Perfumería · Perfumería árabe en Comodoro Rivadavia",
+    "creditText": "ST Scent & Textures",
+    "license": "https://www.stperfumeria.com",
+    "acquireLicensePage": "https://www.stperfumeria.com",
+    "creator": { "@id": "https://www.stperfumeria.com/#business" }
+  }
+  </script>
+
   <!-- FAQPage — Google muestra estas respuestas directo en resultados -->
   <script type="application/ld+json">
   {
@@ -428,9 +445,13 @@
     </div>
   </section>
 
-  <!-- H2 SEO oculto: keywords transaccionales para Google sin afectar UX.
-       (se lee perfecto para crawlers + lectores de pantalla, no se ve en pantalla) -->
-  <h2 class="seo-hidden">Catálogo de perfumes importados originales en Comodoro Rivadavia — hombre, mujer y unisex</h2>
+  <!-- Header del catálogo: keywords transaccionales visibles + eyebrow discreto.
+       Antes era seo-hidden, ahora visible como section header semántico. -->
+  <div class="catalog-intro">
+    <p class="section-eyebrow">Nuestro catálogo</p>
+    <h2 class="catalog-intro-title">Perfumes importados originales en Comodoro Rivadavia</h2>
+    <p class="catalog-intro-desc">Hombre, mujer y unisex. Más de 150 fragancias árabes con 3 cuotas sin interés y envíos a todo el país.</p>
+  </div>
 
   <!--
     FILTROS: ahora usan .filter-group para que los botones
@@ -443,10 +464,10 @@
         <span class="deck-label-text">Todos</span>
         <svg class="deck-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <button class="filter-btn active" onclick="filterBy('all',this)">Todos</button>
-      <button class="filter-btn" onclick="filterBy('Unisex',this)">Unisex</button>
-      <button class="filter-btn" onclick="filterBy('Hombre',this)">Hombre</button>
-      <button class="filter-btn" onclick="filterBy('Mujer',this)">Mujer</button>
+      <button id="filtro-todos"  class="filter-btn active" data-cat="all"     onclick="filterBy('all',this)">Todos</button>
+      <button id="filtro-unisex" class="filter-btn"        data-cat="Unisex"  onclick="filterBy('Unisex',this)">Unisex</button>
+      <button id="filtro-hombre" class="filter-btn"        data-cat="Hombre"  onclick="filterBy('Hombre',this)">Hombre</button>
+      <button id="filtro-mujer"  class="filter-btn"        data-cat="Mujer"   onclick="filterBy('Mujer',this)">Mujer</button>
       <button class="filter-btn" onclick="filterByNew(this)">&#128293; Nuevos</button>
       <button class="filter-btn fav-filter-btn" id="btnFavFilter" onclick="filterByFavs(this)">&#9829;</button>
     </div>
@@ -613,9 +634,9 @@
     <div class="nosotros-grid-top">
       <div class="nosotros-block border-left-amarillo">
         <h3 class="nosotros-block-title">Qui&#233;nes somos</h3>
-        <p>ST es el <strong>primer local en el centro de Comodoro Rivadavia especializado exclusivamente en perfumes &#225;rabes</strong>.</p>
+        <p>ST es el <strong>primer local en el centro de Comodoro Rivadavia especializado exclusivamente en <a href="#explorar" class="nosotros-link">perfumes &#225;rabes</a></strong>.</p>
         <p>Nacimos con una idea clara: traer a la ciudad una propuesta distinta. No m&#225;s lo mismo de siempre. No farmacias con miles de productos mezclados. Un espacio dedicado 100% a fragancias intensas, duraderas y con identidad.</p>
-        <p>Hoy somos el punto de referencia para quienes buscan <strong>lujo accesible</strong>, perfumes potentes, con personalidad y excelente relaci&#243;n precio-calidad.</p>
+        <p>Hoy somos el punto de referencia para quienes buscan <strong>lujo accesible</strong>, <a href="#explorar" class="nosotros-link">perfumes potentes</a>, con personalidad y excelente relaci&#243;n precio-calidad.</p>
       </div>
       <div class="nosotros-block border-left-blanco">
         <h3 class="nosotros-block-title">C&#243;mo nace ST</h3>
@@ -732,21 +753,21 @@
     </div>
 
     <div class="seo-hub-grid">
-      <a href="#catalogo" class="seo-hub-card" onclick="filterByCat('Hombre')">
+      <a href="#filtro-hombre" class="seo-hub-card" onclick="filterByCat('Hombre')">
         <span class="seo-hub-icon" aria-hidden="true">🤵</span>
         <h3 class="seo-hub-title">Perfumes Hombre</h3>
         <p class="seo-hub-desc">Fragancias masculinas duraderas y con estela. Comprar perfumes hombre en Argentina con envío a domicilio.</p>
         <span class="seo-hub-cta">Ver perfumes hombre →</span>
       </a>
 
-      <a href="#catalogo" class="seo-hub-card" onclick="filterByCat('Mujer')">
+      <a href="#filtro-mujer" class="seo-hub-card" onclick="filterByCat('Mujer')">
         <span class="seo-hub-icon" aria-hidden="true">💃</span>
         <h3 class="seo-hub-title">Perfumes Mujer</h3>
         <p class="seo-hub-desc">Perfumes femeninos importados con gran proyección. Comprar perfumes mujer en Argentina con cuotas sin interés.</p>
         <span class="seo-hub-cta">Ver perfumes mujer →</span>
       </a>
 
-      <a href="#catalogo" class="seo-hub-card" onclick="filterByCat('Unisex')">
+      <a href="#filtro-unisex" class="seo-hub-card" onclick="filterByCat('Unisex')">
         <span class="seo-hub-icon" aria-hidden="true">🌸</span>
         <h3 class="seo-hub-title">Perfumes Unisex</h3>
         <p class="seo-hub-desc">Fragancias para todos. Perfumes unisex originales con envío a todo el país y precios accesibles.</p>

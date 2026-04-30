@@ -79,6 +79,38 @@
       border: 0;
     }
 
+    /* Header del catálogo (SEO visible, discreto) */
+    .catalog-intro {
+      max-width: 1200px;
+      margin: 1.5rem auto .5rem;
+      padding: 0 1.2rem;
+      text-align: center;
+    }
+    @media (min-width: 768px) {
+      .catalog-intro { margin: 2rem auto 1rem; padding: 0 2rem; }
+    }
+    .catalog-intro-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--blanco);
+      margin: .3rem 0;
+      letter-spacing: -.01em;
+      line-height: 1.2;
+    }
+    @media (min-width: 768px) {
+      .catalog-intro-title { font-size: 1.7rem; }
+    }
+    .catalog-intro-desc {
+      font-size: .8rem;
+      color: var(--gris-claro);
+      max-width: 600px;
+      margin: .4rem auto 0;
+      line-height: 1.55;
+    }
+    body.light .catalog-intro-title { color: #1a1a1a; }
+    body.light .catalog-intro-desc { color: #555; }
+
     /* ================================================
        NAV — Barra de navegación superior
 
@@ -4216,6 +4248,20 @@
       font-style: italic;
       color: var(--blanco);
       line-height: 1.7;
+    }
+
+    /* Internal SEO links sutiles dentro del copy de Nosotros */
+    .nosotros-link {
+      color: var(--amarillo);
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(232,184,0,.4);
+      transition: border-color .2s ease, color .2s ease;
+    }
+    @media (hover: hover) {
+      .nosotros-link:hover {
+        color: var(--amarillo-claro);
+        border-bottom-color: var(--amarillo);
+      }
     }
 
     .nosotros-list {

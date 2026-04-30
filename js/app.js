@@ -2652,6 +2652,25 @@
       setTimeout(function() { scrollToCatalog(); }, 100);
     }
 
+    // SEO: si la URL trae un hash de filtro al cargar (#filtro-hombre,
+    // #filtro-mujer, #filtro-unisex), aplicamos automáticamente ese filtro.
+    // Sirve para internal linking y para que Google entienda secciones.
+    function applyFilterFromHash() {
+      var hash = (window.location.hash || '').toLowerCase();
+      var map = {
+        '#filtro-hombre': 'Hombre',
+        '#filtro-mujer':  'Mujer',
+        '#filtro-unisex': 'Unisex',
+        '#filtro-todos':  'all'
+      };
+      if (map[hash]) {
+        // Esperar a que el catálogo esté renderizado
+        setTimeout(function() { filterByCat(map[hash]); }, 200);
+      }
+    }
+    window.addEventListener('load', applyFilterFromHash);
+    window.addEventListener('hashchange', applyFilterFromHash);
+
     // ============================================================
     // FILTROS Y ORDENAR
     // ============================================================
