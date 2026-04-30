@@ -98,9 +98,23 @@ module.exports = async (req, res) => {
     + (priceFormatted ? ' | ' + priceFormatted : '')
     + ' — Perfumería árabe original en Comodoro Rivadavia.';
 
-  const image = perfume.foto
+  // Foto raw del perfume (para schema.org Product, donde queremos la imagen real)
+  const rawImage = perfume.foto
     ? (perfume.foto.startsWith('http') ? perfume.foto : BASE_URL + (perfume.foto.startsWith('/') ? '' : '/') + perfume.foto)
     : BASE_URL + '/img/og-preview.webp';
+
+  // OG image dinámica — generada por /api/og con el contexto del perfume.
+  // Resultado: imagen 1200x630 con foto + nombre + marca + precio + branding.
+  // Esto es lo que verán en WhatsApp/Twitter/Facebook al compartir el link.
+  const ogImage = BASE_URL + '/api/og?'
+    + 'name='  + encodeURIComponent(perfume.name)
+    + '&brand=' + encodeURIComponent(brand || '')
+    + '&price=' + encodeURIComponent(price || '')
+    + '&cat='   + encodeURIComponent(cat || '')
+    + '&img='   + encodeURIComponent(rawImage);
+
+  // image se usa en schema.org/Product (queremos la foto pura del producto)
+  const image = rawImage;
 
   const imageAlt = perfume.name + (brand ? ' de ' + brand : '') + ' — ST Scent & Textures';
 
@@ -170,9 +184,11 @@ module.exports = async (req, res) => {
   <meta property="og:title" content="${esc(title)}"/>
   <meta property="og:description" content="${esc(description)}"/>
   <meta property="og:type" content="product"/>
-  <meta property="og:image" content="${esc(image)}"/>
-  <meta property="og:image:width" content="800"/>
-  <meta property="og:image:height" content="800"/>
+  <meta property="og:image" content="${esc(ogImage)}"/>
+  <meta property="og:image:secure_url" content="${esc(ogImage)}"/>
+  <meta property="og:image:type" content="image/png"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
   <meta property="og:image:alt" content="${esc(imageAlt)}"/>
   <meta property="og:url" content="${BASE_URL}/perfume/${esc(slug)}"/>
   <meta property="og:locale" content="es_AR"/>
@@ -182,7 +198,7 @@ module.exports = async (req, res) => {
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="${esc(title)}"/>
   <meta name="twitter:description" content="${esc(description)}"/>
-  <meta name="twitter:image" content="${esc(image)}"/>
+  <meta name="twitter:image" content="${esc(ogImage)}"/>
   <meta name="twitter:image:alt" content="${esc(imageAlt)}"/>
   <link rel="icon" type="image/png" href="${BASE_URL}/img/logo-st.webp"/>
   <script type="application/ld+json">${JSON.stringify(productSchema)}</script>
