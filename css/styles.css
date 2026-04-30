@@ -2226,6 +2226,33 @@
       animation: slideUp .3s cubic-bezier(.25,.46,.45,.94);
       -webkit-overflow-scrolling: touch;
     }
+
+    /* DESKTOP: en pantallas con mouse fino, el modal se transforma en
+       SIDE PANEL deslizable desde la derecha. Mobile sigue como bottom
+       sheet tradicional. La detección por (hover: hover) es más robusta
+       que por width — algunos tablets grandes tendrían side panel raro. */
+    @media (hover: hover) and (pointer: fine) {
+      .bottom-sheet-overlay {
+        align-items: stretch !important;
+        justify-content: flex-end !important;
+      }
+      .bottom-sheet {
+        width: 440px;
+        max-width: 95vw;
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 16px 0 0 16px;
+        padding: 0 1.5rem 2rem;
+        animation: slideInRight .35s cubic-bezier(.25,.46,.45,.94);
+        box-shadow: -16px 0 48px rgba(0,0,0,.5);
+      }
+      /* En desktop el handle (manija superior) no tiene sentido, lo ocultamos */
+      .bottom-sheet .bs-handle-zone { display: none; }
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
     .bs-handle-zone {
       display: flex; flex-direction: column; align-items: center; gap: 4px;
       padding: .6rem 0 .4rem; cursor: pointer;
@@ -2301,10 +2328,11 @@
        por hover ya hace el trabajo). En tablets táctiles y mobile sigue
        disponible al tocar la card.
        FIX iPad: antes filtrábamos por min-width:768px, lo cual ocultaba
-       el bottom sheet en tablets dejándolas sin forma de ver el detalle. */
-    @media (hover: hover) and (pointer: fine) {
-      .bottom-sheet-overlay { display: none !important; }
-    }
+       el bottom sheet en tablets dejándolas sin forma de ver el detalle.
+
+       NUEVO desktop side panel: ya no ocultamos en desktop. En su lugar,
+       el modal se transforma en panel lateral deslizable desde la derecha
+       (ver @media arriba). */
     .reveal-cta   { display: inline-block; width: 100%; text-align: center; font-size: .55rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #000; background: var(--amarillo); padding: .35rem; border-radius: 3px; text-decoration: none; transition: background .2s; }
     @media (min-width: 768px) {
       .reveal-name { font-size: .75rem; }

@@ -2663,6 +2663,9 @@
       applyFilter(cat);
       // Scroll directo a donde empiezan las cards (como favoritos)
       setTimeout(function() { scrollToCatalog(); }, 100);
+      // Sincronizar URL para que las cards de la sección "Categorías"
+      // también queden reflejadas en el link compartible.
+      if (typeof updateFiltersInURL === 'function') updateFiltersInURL();
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -4193,12 +4196,10 @@
     var currentBsSlug = null;
 
     function openBottomSheet(slug) {
-      // Guard de dispositivo: en desktop con mouse fino el .card-reveal
-      // se muestra con :hover via CSS, y el bottom sheet está oculto.
-      // Si dejábamos correr esta función igual, el body quedaba con
-      // overflow:hidden (bloqueando scroll) sin que se viera el modal.
-      // Ese era el bug "pantalla trabada al clickear card en desktop".
-      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      // Antes este guard frenaba el modal en desktop. Ahora desktop
+      // muestra el modal como SIDE PANEL deslizable desde la derecha
+      // (ver CSS @media (hover:hover) and (pointer:fine)). Por eso ya
+      // no necesitamos el early-return.
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       currentBsSlug = slug;
