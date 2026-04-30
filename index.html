@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es">
+<!-- 🧪 SEO LAB · rama seo-experimentos (no afecta producción) -->
+<html lang="es-AR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -22,29 +23,61 @@
   <meta property="og:url" content="https://www.stperfumeria.com"/>
   <meta property="og:locale" content="es_AR"/>
   <meta property="og:site_name" content="ST Scent &amp; Textures"/>
+  <!-- OG ampliado: keywords adicionales para mejor preview en redes -->
+  <meta property="og:see_also" content="https://www.stperfumeria.com/#explorar"/>
+  <meta property="og:see_also" content="https://www.stperfumeria.com/#faq"/>
+  <meta property="business:contact_data:street_address" content="San Martín 570, Local N8"/>
+  <meta property="business:contact_data:locality" content="Comodoro Rivadavia"/>
+  <meta property="business:contact_data:region" content="Chubut"/>
+  <meta property="business:contact_data:postal_code" content="9000"/>
+  <meta property="business:contact_data:country_name" content="Argentina"/>
+  <meta property="business:contact_data:phone_number" content="+5492975416017"/>
+
+  <!-- Twitter Card enriquecida -->
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="ST Perfumería — Comprar Perfumes Importados en Comodoro Rivadavia"/>
   <meta name="twitter:description" content="+150 fragancias árabes originales. 3 cuotas sin interés y envíos a todo el país. Pasás y la gente gira."/>
   <meta name="twitter:image" content="https://www.stperfumeria.com/img/og-preview.webp"/>
   <meta name="twitter:image:alt" content="ST Scent &amp; Textures — Perfumer&#237;a &#225;rabe original en Comodoro Rivadavia"/>
-  <link rel="canonical" href="https://www.stperfumeria.com"/>
+  <meta name="twitter:site" content="@stperfumeria"/>
+  <meta name="twitter:label1" content="Cuotas"/>
+  <meta name="twitter:data1" content="3 sin interés"/>
+  <meta name="twitter:label2" content="Envíos"/>
+  <meta name="twitter:data2" content="A todo el país"/>
+  <link rel="canonical" href="https://www.stperfumeria.com/"/>
+  <!-- Hreflang: explícito para Argentina + fallback español + default global -->
+  <link rel="alternate" hreflang="es-AR" href="https://www.stperfumeria.com/"/>
+  <link rel="alternate" hreflang="es"    href="https://www.stperfumeria.com/"/>
+  <link rel="alternate" hreflang="x-default" href="https://www.stperfumeria.com/"/>
   <link rel="icon" type="image/svg+xml" href="img/icon-st.svg"/>
   <link rel="icon" type="image/png" href="img/logo-st.webp"/>
   <link rel="apple-touch-icon" href="img/icon-st.svg"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#121214"/>
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCHEMA.ORG · ESTRUCTURA RICA PARA RICH RESULTS DE GOOGLE
+       Mejoras vs versión anterior:
+        - LocalBusiness enriquecido con hasOfferCatalog + areaServed
+        - WebSite separado con SearchAction (buscador en SERPs)
+        - BreadcrumbList (mejora navegación en resultados)
+        - FAQPage (respuestas directas en Google)
+       ═══════════════════════════════════════════════════════════════ -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": ["Store", "LocalBusiness"],
+    "@type": ["Store", "LocalBusiness", "PerfumeStore"],
     "@id": "https://www.stperfumeria.com/#business",
     "name": "ST Scent & Textures",
-    "alternateName": "ST Perfumería",
-    "description": "Perfumería árabe original en Comodoro Rivadavia. +150 fragancias de larga duración y gran proyección.",
+    "alternateName": ["ST Perfumería", "ST Perfumeria Comodoro"],
+    "description": "Perfumería árabe original en Comodoro Rivadavia. +150 fragancias importadas de larga duración con 3 cuotas sin interés y envíos a todo el país.",
     "url": "https://www.stperfumeria.com",
     "logo": "https://www.stperfumeria.com/img/logo-st.webp",
-    "image": "https://www.stperfumeria.com/img/og-preview.webp",
+    "image": [
+      "https://www.stperfumeria.com/img/og-preview.webp",
+      "https://www.stperfumeria.com/img/logo-st.webp"
+    ],
     "telephone": "+5492975416017",
+    "email": "stperfumeria@gmail.com",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "San Martín 570, Local N8",
@@ -58,6 +91,22 @@
       "latitude": -45.8667,
       "longitude": -67.5
     },
+    "areaServed": [
+      { "@type": "City", "name": "Comodoro Rivadavia" },
+      { "@type": "AdministrativeArea", "name": "Chubut" },
+      { "@type": "Country", "name": "Argentina" }
+    ],
+    "knowsAbout": [
+      "Perfumes árabes",
+      "Perfumes importados originales",
+      "Fragancias de larga duración",
+      "Decants",
+      "Lattafa",
+      "Afnan",
+      "Armaf",
+      "Maison Alhambra",
+      "Rasasi"
+    ],
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
@@ -74,10 +123,265 @@
     ],
     "priceRange": "$$",
     "currenciesAccepted": "ARS",
-    "paymentAccepted": "Efectivo, Transferencia, Mercado Pago",
+    "paymentAccepted": ["Efectivo", "Transferencia bancaria", "Tarjeta de crédito", "Tarjeta de débito", "Mercado Pago"],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Catálogo de perfumes ST",
+      "itemListElement": [
+        {
+          "@type": "OfferCatalog",
+          "name": "Perfumes Hombre",
+          "url": "https://www.stperfumeria.com/#hombre"
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Perfumes Mujer",
+          "url": "https://www.stperfumeria.com/#mujer"
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Perfumes Unisex",
+          "url": "https://www.stperfumeria.com/#unisex"
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Decants",
+          "url": "https://www.stperfumeria.com/#decants"
+        }
+      ]
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://www.stperfumeria.com/?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
     "sameAs": [
       "https://instagram.com/st.perfumeria_",
       "https://www.facebook.com/profile.php?id=61570483660479"
+    ]
+  }
+  </script>
+
+  <!-- WebSite schema con SearchAction — habilita el buscador en SERPs de Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://www.stperfumeria.com/#website",
+    "url": "https://www.stperfumeria.com",
+    "name": "ST Perfumería",
+    "description": "Comprar perfumes importados originales en Comodoro Rivadavia con envíos a todo el país.",
+    "publisher": { "@id": "https://www.stperfumeria.com/#business" },
+    "inLanguage": "es-AR",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://www.stperfumeria.com/?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- BreadcrumbList — mejora navegación visible en resultados de Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://www.stperfumeria.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Catálogo de perfumes",
+        "item": "https://www.stperfumeria.com/#catalogo"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Organization schema separada — refuerza Knowledge Graph
+       y diferencia la entidad "negocio físico" (LocalBusiness arriba)
+       de la entidad "empresa/marca" (esta) para Google. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://www.stperfumeria.com/#organization",
+    "name": "ST Scent & Textures",
+    "alternateName": "ST Perfumería",
+    "legalName": "ST Scent & Textures",
+    "url": "https://www.stperfumeria.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://www.stperfumeria.com/img/logo-st.webp",
+      "width": 512,
+      "height": 512
+    },
+    "description": "Perfumería especializada en fragancias árabes originales en Comodoro Rivadavia. Atención personalizada, asesoramiento real y +150 perfumes importados de larga duración.",
+    "foundingDate": "2024",
+    "foundingLocation": { "@type": "Place", "name": "Comodoro Rivadavia, Argentina" },
+    "areaServed": { "@type": "Country", "name": "Argentina" },
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+5492975416017",
+        "contactType": "customer service",
+        "areaServed": "AR",
+        "availableLanguage": ["Spanish"],
+        "contactOption": "TollFree"
+      },
+      {
+        "@type": "ContactPoint",
+        "contactType": "sales",
+        "url": "https://wa.me/5492975416017",
+        "availableLanguage": ["Spanish"]
+      }
+    ],
+    "sameAs": [
+      "https://instagram.com/st.perfumeria_",
+      "https://www.facebook.com/profile.php?id=61570483660479"
+    ],
+    "knowsLanguage": ["es-AR", "es"],
+    "slogan": "Tu aroma, tu identidad."
+  }
+  </script>
+
+  <!-- HowTo schema — "Cómo elegir tu perfume árabe en ST"
+       Google muestra los pasos directo en SERPs como guía interactiva. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo elegir tu perfume árabe en ST Perfumería",
+    "description": "Guía paso a paso para encontrar el perfume árabe ideal según tu personalidad, ocasión y duración deseada en Comodoro Rivadavia.",
+    "totalTime": "PT15M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "ARS",
+      "value": "30000"
+    },
+    "supply": [
+      { "@type": "HowToSupply", "name": "Tu piel (mejor probar en piel que en papel)" }
+    ],
+    "tool": [
+      { "@type": "HowToTool", "name": "Asesoramiento de nuestro equipo en el local" }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Identificá la ocasión",
+        "text": "Pensá si lo querés para uso diario, oficina, salidas de noche o ocasiones especiales. Cada perfil necesita una intensidad y proyección distinta."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Elegí tu familia olfativa",
+        "text": "Decidí entre dulces (vainilla, ámbar), amaderados (oud, sándalo), florales o frescos cítricos. Los perfumes árabes tienden a ser más intensos y orientales."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Probá en piel, no en papel",
+        "text": "Las fragancias se comportan distinto al contacto con la piel. Probá 2-3 perfumes diferentes y dejalos evolucionar 15-30 minutos antes de decidir."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Compará duración y estela",
+        "text": "Los perfumes árabes que vendemos duran entre 8 y 12 horas con buena proyección. Si querés algo más sutil pedí versión EDT, si querés intensidad EDP o Extrait."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 5,
+        "name": "Comprá con asesoramiento real",
+        "text": "Vení al local en San Martín 570 Local N8, Comodoro Rivadavia, o consultanos por WhatsApp. Sin presión: queremos que el perfume te convenza."
+      }
+    ]
+  }
+  </script>
+
+  <!-- ImageObject — habilita rich data en Google Imágenes para el logo y la OG card -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ImageObject",
+    "@id": "https://www.stperfumeria.com/#logo-image",
+    "url": "https://www.stperfumeria.com/img/logo-st.webp",
+    "width": 512,
+    "height": 512,
+    "caption": "Logo de ST Perfumería · Perfumería árabe en Comodoro Rivadavia",
+    "creditText": "ST Scent & Textures",
+    "license": "https://www.stperfumeria.com",
+    "acquireLicensePage": "https://www.stperfumeria.com",
+    "creator": { "@id": "https://www.stperfumeria.com/#business" }
+  }
+  </script>
+
+  <!-- FAQPage — Google muestra estas respuestas directo en resultados -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Hacen envíos a todo el país?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, hacemos envíos a todo Argentina. Por correo a cualquier provincia, y en Comodoro Rivadavia y alrededores con entrega rápida. Consultanos por WhatsApp para conocer las opciones y costos."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué medios de pago aceptan?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Aceptamos todos los medios de pago y ofrecemos 3 cuotas sin interés, además en efectivo o transferencia tenés un 10% de descuento."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Los perfumes son originales?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, todos nuestros perfumes son originales e importados directamente. Trabajamos con marcas árabes premium como Lattafa, Afnan, Armaf, Maison Alhambra y Rasasi."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo probar los perfumes antes de comprar?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, podés venir al local en San Martín 570, Local N8, Comodoro Rivadavia y probar todos los que quieras. Te asesoramos sin compromiso. La prueba en piel es la mejor forma de elegir tu fragancia."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto duran los perfumes árabes?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Los perfumes árabes son conocidos por su gran proyección y duración. La mayoría de nuestras fragancias duran entre 8 y 12 horas en piel, con estela notable. Son perfumes intensos diseñados para que la gente gire al pasar."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Dónde queda el local de ST Perfumería?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Estamos en San Martín 570, Local N8, Comodoro Rivadavia, Chubut. Atendemos de lunes a viernes de 10 a 20 hs y los sábados de 10 a 14 hs."
+        }
+      }
     ]
   }
   </script>
@@ -146,6 +450,7 @@
     <a href="#catalogo" class="drawer-link" onclick="toggleDrawer()">Cat&#225;logo</a>
     <a href="#categorias" class="drawer-link" onclick="toggleDrawer()">Categor&#237;as</a>
     <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()">Nosotros</a>
+    <a href="/blog" class="drawer-link" onclick="toggleDrawer()">Blog</a>
     <a href="#contacto" class="drawer-link" onclick="toggleDrawer()">Contacto</a>
     <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth">Iniciar sesi&oacute;n</a>
     <a href="#" class="drawer-link" style="display:none;color:#e74c3c;" onclick="event.preventDefault();toggleDrawer();logout()" id="drawerLogout">Cerrar sesi&#243;n</a>
@@ -263,9 +568,13 @@
     </div>
   </section>
 
-  <!-- H2 SEO oculto: keywords transaccionales para Google sin afectar UX.
-       (se lee perfecto para crawlers + lectores de pantalla, no se ve en pantalla) -->
-  <h2 class="seo-hidden">Catálogo de perfumes importados originales en Comodoro Rivadavia — hombre, mujer y unisex</h2>
+  <!-- Header del catálogo: keywords transaccionales visibles + eyebrow discreto.
+       Antes era seo-hidden, ahora visible como section header semántico. -->
+  <div class="catalog-intro">
+    <p class="section-eyebrow">Nuestro catálogo</p>
+    <h2 class="catalog-intro-title">Perfumes importados originales en Comodoro Rivadavia</h2>
+    <p class="catalog-intro-desc">Hombre, mujer y unisex. Más de 150 fragancias árabes con 3 cuotas sin interés y envíos a todo el país.</p>
+  </div>
 
   <!--
     FILTROS: ahora usan .filter-group para que los botones
@@ -278,10 +587,10 @@
         <span class="deck-label-text">Todos</span>
         <svg class="deck-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <button class="filter-btn active" onclick="filterBy('all',this)">Todos</button>
-      <button class="filter-btn" onclick="filterBy('Unisex',this)">Unisex</button>
-      <button class="filter-btn" onclick="filterBy('Hombre',this)">Hombre</button>
-      <button class="filter-btn" onclick="filterBy('Mujer',this)">Mujer</button>
+      <button id="filtro-todos"  class="filter-btn active" data-cat="all"     onclick="filterBy('all',this)">Todos</button>
+      <button id="filtro-unisex" class="filter-btn"        data-cat="Unisex"  onclick="filterBy('Unisex',this)">Unisex</button>
+      <button id="filtro-hombre" class="filter-btn"        data-cat="Hombre"  onclick="filterBy('Hombre',this)">Hombre</button>
+      <button id="filtro-mujer"  class="filter-btn"        data-cat="Mujer"   onclick="filterBy('Mujer',this)">Mujer</button>
       <button class="filter-btn" onclick="filterByNew(this)">&#128293; Nuevos</button>
       <button class="filter-btn fav-filter-btn" id="btnFavFilter" onclick="filterByFavs(this)">&#9829;</button>
     </div>
@@ -313,7 +622,7 @@
   <div class="decant-banner">
     <div class="decant-b-left">
       <p class="decant-b-label">◆ ST Perfumería</p>
-      <h2 class="decant-b-title">DECANTS<br/><span>tu fragancia, tu medida</span></h2>
+      <h2 class="decant-b-title">Decants <span class="decant-b-sep" aria-hidden="true"></span><span>tu fragancia, tu medida</span></h2>
       <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
       <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">🧪 Armá tu pack de decants →</button>
     </div>
@@ -448,9 +757,9 @@
     <div class="nosotros-grid-top">
       <div class="nosotros-block border-left-amarillo">
         <h3 class="nosotros-block-title">Qui&#233;nes somos</h3>
-        <p>ST es el <strong>primer local en el centro de Comodoro Rivadavia especializado exclusivamente en perfumes &#225;rabes</strong>.</p>
+        <p>ST es el <strong>primer local en el centro de Comodoro Rivadavia especializado exclusivamente en <a href="#explorar" class="nosotros-link">perfumes &#225;rabes</a></strong>.</p>
         <p>Nacimos con una idea clara: traer a la ciudad una propuesta distinta. No m&#225;s lo mismo de siempre. No farmacias con miles de productos mezclados. Un espacio dedicado 100% a fragancias intensas, duraderas y con identidad.</p>
-        <p>Hoy somos el punto de referencia para quienes buscan <strong>lujo accesible</strong>, perfumes potentes, con personalidad y excelente relaci&#243;n precio-calidad.</p>
+        <p>Hoy somos el punto de referencia para quienes buscan <strong>lujo accesible</strong>, <a href="#explorar" class="nosotros-link">perfumes potentes</a>, con personalidad y excelente relaci&#243;n precio-calidad.</p>
       </div>
       <div class="nosotros-block border-left-blanco">
         <h3 class="nosotros-block-title">C&#243;mo nace ST</h3>
@@ -553,6 +862,92 @@
 
   </section>
 
+  <!-- ════════════════════════════════════════════════════════════════
+       SEO HUB — "Explorá nuestro catálogo"
+       Sección con texto rico orientado a búsqueda local transaccional.
+       Cada bloque usa una keyword principal del paso de generación SEO
+       y linkea al catálogo. Mejora crawlability + autoridad por categoría.
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="section-seo-hub" id="explorar" aria-label="Explorá nuestro catálogo de perfumes">
+    <div class="seo-hub-header">
+      <p class="section-eyebrow">Buscás algo puntual?</p>
+      <h2 class="section-title">Explorá nuestro catálogo</h2>
+      <p class="seo-hub-tagline">Comprá perfumes importados originales en Comodoro Rivadavia con 3 cuotas sin interés y envíos a todo el país.</p>
+    </div>
+
+    <div class="seo-hub-grid">
+      <a href="/perfumes-hombre" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🤵</span>
+        <h3 class="seo-hub-title">Perfumes Hombre</h3>
+        <p class="seo-hub-desc">Fragancias masculinas duraderas y con estela. Comprar perfumes hombre en Argentina con envío a domicilio.</p>
+        <span class="seo-hub-cta">Ver perfumes hombre →</span>
+      </a>
+
+      <a href="/perfumes-mujer" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">💃</span>
+        <h3 class="seo-hub-title">Perfumes Mujer</h3>
+        <p class="seo-hub-desc">Perfumes femeninos importados con gran proyección. Comprar perfumes mujer en Argentina con cuotas sin interés.</p>
+        <span class="seo-hub-cta">Ver perfumes mujer →</span>
+      </a>
+
+      <a href="/perfumes-unisex" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🌸</span>
+        <h3 class="seo-hub-title">Perfumes Unisex</h3>
+        <p class="seo-hub-desc">Fragancias para todos. Perfumes unisex originales con envío a todo el país y precios accesibles.</p>
+        <span class="seo-hub-cta">Ver perfumes unisex →</span>
+      </a>
+
+      <a href="/perfumes-arabes" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🕌</span>
+        <h3 class="seo-hub-title">Perfumes Árabes</h3>
+        <p class="seo-hub-desc">Lattafa, Afnan, Armaf, Maison Alhambra y Rasasi. Comprar perfumes árabes originales en Argentina.</p>
+        <span class="seo-hub-cta">Ver perfumes árabes →</span>
+      </a>
+
+      <a href="/perfumes-duraderos" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">⏰</span>
+        <h3 class="seo-hub-title">Perfumes Duraderos</h3>
+        <p class="seo-hub-desc">Fragancias intensas que duran todo el día. Perfumes duraderos con estela notable a precio accesible.</p>
+        <span class="seo-hub-cta">Ver perfumes duraderos →</span>
+      </a>
+
+      <a href="/seleccion-st" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">⭐</span>
+        <h3 class="seo-hub-title">Selección ST</h3>
+        <p class="seo-hub-desc">Los perfumes que el equipo recomienda. Selección curada con los más vendidos y mejor valorados de ST.</p>
+        <span class="seo-hub-cta">Ver selección →</span>
+      </a>
+
+      <a href="/nuevos" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🆕</span>
+        <h3 class="seo-hub-title">Perfumes Nuevos</h3>
+        <p class="seo-hub-desc">Las últimas fragancias importadas que llegaron a ST. Lanzamientos del mes con 3 cuotas sin interés.</p>
+        <span class="seo-hub-cta">Ver nuevos →</span>
+      </a>
+
+      <a href="/perfumes-en-cuotas" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">💳</span>
+        <h3 class="seo-hub-title">Perfumes en Cuotas</h3>
+        <p class="seo-hub-desc">Comprar perfumes en 3 cuotas sin interés con tarjeta. Financiación accesible y envío a todo el país.</p>
+        <span class="seo-hub-cta">Ver financiación →</span>
+      </a>
+
+      <a href="/ofertas" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🎁</span>
+        <h3 class="seo-hub-title">Ofertas y Descuentos</h3>
+        <p class="seo-hub-desc">Promociones activas y descuentos en perfumería. 10% off pagando en efectivo o transferencia.</p>
+        <span class="seo-hub-cta">Ver ofertas →</span>
+      </a>
+
+      <a href="/decants" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">💧</span>
+        <h3 class="seo-hub-title">Decants y Mini Talles</h3>
+        <p class="seo-hub-desc">Probá fragancias originales en formato mini. Decants de perfumes árabes con envío a todo el país.</p>
+        <span class="seo-hub-cta">Ver decants →</span>
+      </a>
+    </div>
+  </section>
+
   <!-- ========== FAQ ========== -->
   <section class="section-faq" id="faq">
     <div class="faq-header">
@@ -597,7 +992,7 @@
         ¿Qué medios de pago aceptan?
         <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="faq-answer"><p>Aceptamos todos los medios de pago y ofrecemos 3 cuotas sin interés, además en efectivo o transferencia tenés un 10% de descuento.</p></div>
+      <div class="faq-answer"><p>Aceptamos todos los medios de pago y ofrecemos <a href="#explorar" class="nosotros-link">3 cuotas sin interés</a>, además en efectivo o transferencia tenés un 10% de descuento.</p></div>
     </div>
 
     <div class="faq-item">
@@ -606,7 +1001,7 @@
         <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="faq-answer">
-        <p>Los perfumes árabes suelen tener mayor concentración de aceites esenciales, lo que les da más duración y proyección. Muchos son inspirados en fragancias de diseñador pero con su propia identidad.</p>
+        <p>Los <a href="#explorar" class="nosotros-link">perfumes árabes</a> suelen tener mayor concentración de aceites esenciales, lo que les da más duración y proyección. Muchos son inspirados en fragancias de diseñador pero con su propia identidad.</p>
         <p>Además, la relación precio-calidad es muy superior: conseguís un perfume potente y duradero a una fracción del precio de un diseñador.</p>
       </div>
     </div>
@@ -911,7 +1306,7 @@
   <!-- Banner de bienvenida -->
   <div class="welcome-overlay" id="welcomeOverlay" style="display:none;" onclick="closeWelcome()">
     <div class="welcome-box" onclick="event.stopPropagation()">
-      <img src="img/logo-st.webp" alt="ST" class="welcome-logo"/>
+      <img src="img/logo-st.webp" alt="ST Perfumería · Perfumes árabes en Comodoro Rivadavia" class="welcome-logo"/>
       <p class="welcome-brand">Scent & Textures</p>
       <h2 class="welcome-title">Bienvenido a ST</h2>
       <p class="welcome-sub">Perfumería árabe original en Comodoro Rivadavia. Explorá más de 150 fragancias exclusivas.</p>
@@ -943,6 +1338,55 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
   <script src="perfumes.js" defer></script>
   <script src="js/app.js" defer></script>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SCHEMA.ORG AggregateOffer DINÁMICO
+       Se ejecuta DESPUÉS de perfumes.js (defer mantiene orden) y calcula
+       precio mínimo/máximo + cantidad de productos del catálogo. Inyecta
+       un JSON-LD en runtime que le dice a Google "este sitio lista N
+       perfumes con precios desde X hasta Y". Potente para shopping rich
+       results.
+       ════════════════════════════════════════════════════════════════ -->
+  <script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        if (typeof PERFUMES === 'undefined' || !Array.isArray(PERFUMES)) return;
+        var prices = PERFUMES
+          .filter(function(p) { return !p.esSet; })
+          .map(function(p) {
+            var raw = p.promo || p.price || '';
+            return parseFloat(String(raw).replace(/,/g, '').replace(/\./g, ''));
+          })
+          .filter(function(n) { return !isNaN(n) && n > 0; });
+        if (prices.length === 0) return;
+        var minP = Math.min.apply(null, prices);
+        var maxP = Math.max.apply(null, prices);
+        var schema = {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "@id": "https://www.stperfumeria.com/#catalog-aggregate",
+          "name": "Catálogo de perfumes — ST Perfumería",
+          "description": "Catálogo de perfumes árabes importados originales en Comodoro Rivadavia",
+          "numberOfItems": prices.length,
+          "url": "https://www.stperfumeria.com/#catalogo",
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "ARS",
+            "lowPrice": Math.round(minP),
+            "highPrice": Math.round(maxP),
+            "offerCount": prices.length,
+            "availability": "https://schema.org/InStock",
+            "seller": { "@id": "https://www.stperfumeria.com/#business" }
+          }
+        };
+        var s = document.createElement('script');
+        s.type = 'application/ld+json';
+        s.id = 'jsonld-aggregate-offer';
+        s.textContent = JSON.stringify(schema);
+        document.head.appendChild(s);
+      } catch (e) { /* silent: no rompemos UX por SEO opcional */ }
+    });
+  </script>
 
   <!-- DVD BOUNCER — perfume rebotando tipo screensaver (solo desktop) -->
   <!-- <script src="js/dvd-bouncer.js" defer></script> -->

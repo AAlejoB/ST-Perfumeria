@@ -1,0 +1,42 @@
+{
+  "slug": "notas-olfativas-explicadas",
+  "title": "Notas de salida, corazón y base · Explicadas simple | ST Perfumería",
+  "description": "¿Qué son las notas de salida, corazón y base de un perfume? Guía clara para entender cómo evoluciona una fragancia en tu piel. Por ST Perfumería.",
+  "h1": "Notas de salida, corazón y base: la pirámide olfativa",
+  "date": "2026-04-29",
+  "author": "Equipo ST",
+  "category": "Educativo",
+  "keywords": ["notas de perfume", "piramide olfativa", "notas de salida", "notas de corazon", "notas de base", "como funciona perfume"],
+  "image": "https://www.stperfumeria.com/img/og-preview.webp",
+  "content": [
+    { "type": "p", "text": "Cuando ves un perfume y dice \"notas de salida: bergamota, notas de corazón: jazmín, notas de base: ámbar\", puede sonar a chino. Pero entender la pirámide olfativa es la diferencia entre comprar a ciegas y elegir con criterio." },
+
+    { "type": "h2", "text": "Un perfume no huele igual los primeros 5 minutos que las primeras 4 horas" },
+    { "type": "p", "text": "La piel del cliente, el clima y el paso del tiempo cambian cómo se siente la fragancia. Por eso los perfumeros estructuran cada perfume en tres capas que aparecen en orden: salida, corazón y base." },
+
+    { "type": "h2", "text": "Notas de salida (top notes): los primeros 15 minutos" },
+    { "type": "p", "text": "Son las primeras moléculas que percibís al aplicar el perfume. Se evaporan rápido. Generalmente son cítricas, frescas, frutales o herbales: bergamota, limón, naranja, manzana, menta." },
+    { "type": "p", "text": "Función: dar la primera impresión. Si te gusta el perfume en los primeros 5 minutos pero después te aburre, es que las notas de salida te encantaron pero el corazón y la base no son lo tuyo." },
+
+    { "type": "h2", "text": "Notas de corazón (heart notes): de 30 minutos a 4 horas" },
+    { "type": "p", "text": "Son el alma del perfume. Aparecen cuando las notas de salida ya se evaporaron. Suelen ser florales, especiadas, frutales más profundas: rosa, jazmín, canela, cardamomo, durazno." },
+    { "type": "p", "text": "Función: definir el carácter de la fragancia. Cuando alguien te pregunta \"¿qué perfume usás?\" 2 horas después de aplicarte, está oliendo el corazón." },
+
+    { "type": "h2", "text": "Notas de base (base notes): de 4 horas hasta el final" },
+    { "type": "p", "text": "Las moléculas más pesadas y duraderas. Son las que dejan la \"estela\" y dan profundidad. En perfumes árabes son protagonistas absolutas: oud, ámbar, almizcle, vainilla, sándalo, pachulí, cuero." },
+    { "type": "p", "text": "Función: estructura y persistencia. Por eso los perfumes árabes son tan duraderos: tienen bases potentes (oud y ámbar) que aguantan 8-12 horas en piel." },
+
+    { "type": "h2", "text": "Cómo aplicar este conocimiento al elegir un perfume" },
+    { "type": "ul", "items": [
+      "Si te gusta probar y descartar rápido: prestá atención al corazón, no a la salida.",
+      "Si querés un perfume que dure todo el día: mirá las notas de base. Oud, ámbar y almizcle son tu amigo.",
+      "Si te gusta la frescura inicial pero no querés algo \"liviano\": buscá perfumes con salida cítrica y base oriental.",
+      "Si te gustan los perfumes \"intensos\" desde el primer segundo: buscá los que ya en la salida tienen especias o resinas (raros pero existen)."
+    ]},
+
+    { "type": "h2", "text": "El truco para probar perfumes correctamente" },
+    { "type": "p", "text": "Aplicate UN perfume en una muñeca. NO te frotes las muñecas (destruye las notas de salida). Esperá 30 minutos antes de evaluar. Volvé a oler 4 horas después. Si seguís enamorado/a, ese es el indicado." },
+
+    { "type": "p", "text": "En ST trabajamos casi exclusivamente perfumes árabes, donde las bases son las protagonistas. Por eso son tan reconocibles: alguien pasa, y la estela queda flotando 30 segundos después." }
+  ]
+}

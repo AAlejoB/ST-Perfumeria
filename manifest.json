@@ -1,15 +1,24 @@
 {
-  "name": "ST Scent & Textures",
+  "id": "/?source=pwa",
+  "name": "ST Perfumería · Perfumes árabes en Comodoro Rivadavia",
   "short_name": "ST Perfumería",
-  "description": "Perfumería árabe original en Comodoro Rivadavia. +150 fragancias de larga duración.",
+  "description": "Perfumería árabe original en Comodoro Rivadavia. +150 fragancias importadas de larga duración con 3 cuotas sin interés y envíos a todo el país.",
   "start_url": "/?utm_source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
   "background_color": "#121214",
   "theme_color": "#121214",
   "lang": "es-AR",
-  "categories": ["shopping", "lifestyle"],
+  "dir": "ltr",
+  "categories": ["shopping", "lifestyle", "business"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "handle_links": "preferred",
   "icons": [
     {
       "src": "img/icon-st.svg",
@@ -22,21 +31,86 @@
       "type": "image/svg+xml",
       "sizes": "any",
       "purpose": "maskable"
+    },
+    {
+      "src": "img/logo-st.webp",
+      "type": "image/webp",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "img/logo-st.webp",
+      "type": "image/webp",
+      "sizes": "192x192",
+      "purpose": "any"
     }
   ],
+  "screenshots": [
+    {
+      "src": "img/og-preview.webp",
+      "sizes": "1200x630",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Catálogo principal · ST Perfumería"
+    },
+    {
+      "src": "img/og-preview.webp",
+      "sizes": "1200x630",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Catálogo en mobile · ST Perfumería"
+    }
+  ],
+  "share_target": {
+    "action": "/?share=1",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "shortcuts": [
+    {
+      "name": "Catálogo de perfumes",
+      "short_name": "Catálogo",
+      "description": "Ver todos los perfumes",
+      "url": "/#catalogo",
+      "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Perfumes Hombre",
+      "short_name": "Hombre",
+      "description": "Fragancias masculinas duraderas",
+      "url": "/#filtro-hombre",
+      "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Perfumes Mujer",
+      "short_name": "Mujer",
+      "description": "Fragancias femeninas",
+      "url": "/#filtro-mujer",
+      "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
+    },
     {
       "name": "Armar pack de decants",
       "short_name": "Decants",
-      "description": "Proba 3 o 5 fragancias a mitad de precio",
+      "description": "Probá 3 o 5 fragancias a mitad de precio",
       "url": "/?action=decants",
       "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
     },
     {
-      "name": "Favoritos",
+      "name": "Mis favoritos",
       "short_name": "Favoritos",
-      "description": "Ver tus perfumes guardados",
+      "description": "Ver perfumes guardados",
       "url": "/?action=favs",
+      "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Contacto WhatsApp",
+      "short_name": "Contacto",
+      "description": "Hablanos por WhatsApp",
+      "url": "https://wa.me/5492975416017",
       "icons": [{ "src": "img/icon-st.svg", "sizes": "any" }]
     }
   ]
