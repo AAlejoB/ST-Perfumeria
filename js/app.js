@@ -4064,10 +4064,12 @@
     var currentBsSlug = null;
 
     function openBottomSheet(slug) {
-      // Sin guard de dispositivo: el CSS ya oculta .bottom-sheet-overlay
-      // en desktop con mouse fino vía (hover:hover) and (pointer:fine).
-      // En cualquier otro caso (mobile, tablet táctil), si el usuario tocó
-      // la card es porque quiere ver el detalle — abrimos sin preguntar.
+      // Guard de dispositivo: en desktop con mouse fino el .card-reveal
+      // se muestra con :hover via CSS, y el bottom sheet está oculto.
+      // Si dejábamos correr esta función igual, el body quedaba con
+      // overflow:hidden (bloqueando scroll) sin que se viera el modal.
+      // Ese era el bug "pantalla trabada al clickear card en desktop".
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       currentBsSlug = slug;
