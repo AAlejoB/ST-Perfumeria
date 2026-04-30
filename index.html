@@ -23,12 +23,32 @@
   <meta property="og:url" content="https://www.stperfumeria.com"/>
   <meta property="og:locale" content="es_AR"/>
   <meta property="og:site_name" content="ST Scent &amp; Textures"/>
+  <!-- OG ampliado: keywords adicionales para mejor preview en redes -->
+  <meta property="og:see_also" content="https://www.stperfumeria.com/#explorar"/>
+  <meta property="og:see_also" content="https://www.stperfumeria.com/#faq"/>
+  <meta property="business:contact_data:street_address" content="San Martín 570, Local N8"/>
+  <meta property="business:contact_data:locality" content="Comodoro Rivadavia"/>
+  <meta property="business:contact_data:region" content="Chubut"/>
+  <meta property="business:contact_data:postal_code" content="9000"/>
+  <meta property="business:contact_data:country_name" content="Argentina"/>
+  <meta property="business:contact_data:phone_number" content="+5492975416017"/>
+
+  <!-- Twitter Card enriquecida -->
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="ST Perfumería — Comprar Perfumes Importados en Comodoro Rivadavia"/>
   <meta name="twitter:description" content="+150 fragancias árabes originales. 3 cuotas sin interés y envíos a todo el país. Pasás y la gente gira."/>
   <meta name="twitter:image" content="https://www.stperfumeria.com/img/og-preview.webp"/>
   <meta name="twitter:image:alt" content="ST Scent &amp; Textures — Perfumer&#237;a &#225;rabe original en Comodoro Rivadavia"/>
-  <link rel="canonical" href="https://www.stperfumeria.com"/>
+  <meta name="twitter:site" content="@stperfumeria"/>
+  <meta name="twitter:label1" content="Cuotas"/>
+  <meta name="twitter:data1" content="3 sin interés"/>
+  <meta name="twitter:label2" content="Envíos"/>
+  <meta name="twitter:data2" content="A todo el país"/>
+  <link rel="canonical" href="https://www.stperfumeria.com/"/>
+  <!-- Hreflang: explícito para Argentina + fallback español + default global -->
+  <link rel="alternate" hreflang="es-AR" href="https://www.stperfumeria.com/"/>
+  <link rel="alternate" hreflang="es"    href="https://www.stperfumeria.com/"/>
+  <link rel="alternate" hreflang="x-default" href="https://www.stperfumeria.com/"/>
   <link rel="icon" type="image/svg+xml" href="img/icon-st.svg"/>
   <link rel="icon" type="image/png" href="img/logo-st.webp"/>
   <link rel="apple-touch-icon" href="img/icon-st.svg"/>
@@ -184,6 +204,108 @@
         "position": 2,
         "name": "Catálogo de perfumes",
         "item": "https://www.stperfumeria.com/#catalogo"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Organization schema separada — refuerza Knowledge Graph
+       y diferencia la entidad "negocio físico" (LocalBusiness arriba)
+       de la entidad "empresa/marca" (esta) para Google. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://www.stperfumeria.com/#organization",
+    "name": "ST Scent & Textures",
+    "alternateName": "ST Perfumería",
+    "legalName": "ST Scent & Textures",
+    "url": "https://www.stperfumeria.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://www.stperfumeria.com/img/logo-st.webp",
+      "width": 512,
+      "height": 512
+    },
+    "description": "Perfumería especializada en fragancias árabes originales en Comodoro Rivadavia. Atención personalizada, asesoramiento real y +150 perfumes importados de larga duración.",
+    "foundingDate": "2024",
+    "foundingLocation": { "@type": "Place", "name": "Comodoro Rivadavia, Argentina" },
+    "areaServed": { "@type": "Country", "name": "Argentina" },
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+5492975416017",
+        "contactType": "customer service",
+        "areaServed": "AR",
+        "availableLanguage": ["Spanish"],
+        "contactOption": "TollFree"
+      },
+      {
+        "@type": "ContactPoint",
+        "contactType": "sales",
+        "url": "https://wa.me/5492975416017",
+        "availableLanguage": ["Spanish"]
+      }
+    ],
+    "sameAs": [
+      "https://instagram.com/st.perfumeria_",
+      "https://www.facebook.com/profile.php?id=61570483660479"
+    ],
+    "knowsLanguage": ["es-AR", "es"],
+    "slogan": "Tu aroma, tu identidad."
+  }
+  </script>
+
+  <!-- HowTo schema — "Cómo elegir tu perfume árabe en ST"
+       Google muestra los pasos directo en SERPs como guía interactiva. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo elegir tu perfume árabe en ST Perfumería",
+    "description": "Guía paso a paso para encontrar el perfume árabe ideal según tu personalidad, ocasión y duración deseada en Comodoro Rivadavia.",
+    "totalTime": "PT15M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "ARS",
+      "value": "30000"
+    },
+    "supply": [
+      { "@type": "HowToSupply", "name": "Tu piel (mejor probar en piel que en papel)" }
+    ],
+    "tool": [
+      { "@type": "HowToTool", "name": "Asesoramiento de nuestro equipo en el local" }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Identificá la ocasión",
+        "text": "Pensá si lo querés para uso diario, oficina, salidas de noche o ocasiones especiales. Cada perfil necesita una intensidad y proyección distinta."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Elegí tu familia olfativa",
+        "text": "Decidí entre dulces (vainilla, ámbar), amaderados (oud, sándalo), florales o frescos cítricos. Los perfumes árabes tienden a ser más intensos y orientales."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Probá en piel, no en papel",
+        "text": "Las fragancias se comportan distinto al contacto con la piel. Probá 2-3 perfumes diferentes y dejalos evolucionar 15-30 minutos antes de decidir."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Compará duración y estela",
+        "text": "Los perfumes árabes que vendemos duran entre 8 y 12 horas con buena proyección. Si querés algo más sutil pedí versión EDT, si querés intensidad EDP o Extrait."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 5,
+        "name": "Comprá con asesoramiento real",
+        "text": "Vení al local en San Martín 570 Local N8, Comodoro Rivadavia, o consultanos por WhatsApp. Sin presión: queremos que el perfume te convenza."
       }
     ]
   }
@@ -499,7 +621,7 @@
   <div class="decant-banner">
     <div class="decant-b-left">
       <p class="decant-b-label">◆ ST Perfumería</p>
-      <h2 class="decant-b-title">DECANTS<br/><span>tu fragancia, tu medida</span></h2>
+      <h2 class="decant-b-title">Decants <span class="decant-b-sep" aria-hidden="true"></span><span>tu fragancia, tu medida</span></h2>
       <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
       <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">🧪 Armá tu pack de decants →</button>
     </div>

@@ -2785,7 +2785,10 @@
       line-height: 1.1;
       margin-bottom: .3rem;
     }
-    .decant-b-title span { color: var(--amarillo); font-size: 1.1rem; font-weight: 400; }
+    .decant-b-title span { color: var(--amarillo); font-size: 1.1rem; font-weight: 400; display: inline; }
+    .decant-b-title .decant-b-sep { display: block; height: 0; }
+    /* El último span (tu fragancia...) salta a línea nueva via el separador */
+    .decant-b-title .decant-b-sep + span { display: block; }
     .decant-b-sub {
       font-size: .75rem;
       color: #888;
