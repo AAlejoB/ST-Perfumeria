@@ -134,6 +134,15 @@ const PAGES = {
     redirect: '/?action=decants',
     filter: (p) => p.esSet || /decant|mini/i.test(p.name || '')
   },
+  'armar-pack-decants': {
+    type: 'editorial',
+    h1: 'Armá tu pack de decants',
+    title: 'Armar Pack de Decants · 3 o 5 Perfumes a Mitad de Precio | ST',
+    description: 'Armá tu propio pack de decants eligiendo 3 o 5 perfumes árabes originales. La forma más económica de probar fragancias premium con envío a todo el país.',
+    intro: 'Elegí 3 o 5 fragancias del catálogo y armá tu pack personalizado de decants. Cada decant es un mini talle (5-10 ml) de un perfume original — ideal para probar antes de comprar el frasco completo o para llevarlo siempre con vos. Pagás 3 cuotas sin interés y enviamos a toda Argentina.',
+    redirect: '/?action=decants',
+    filter: (p) => !p.esSet
+  },
   'nuevos': {
     type: 'editorial',
     h1: 'Perfumes Nuevos',

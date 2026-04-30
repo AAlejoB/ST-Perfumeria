@@ -24,6 +24,7 @@
 
     { "source": "/ofertas",               "destination": "/api/category?slug=ofertas" },
     { "source": "/decants",               "destination": "/api/category?slug=decants" },
+    { "source": "/armar-pack-decants",    "destination": "/api/category?slug=armar-pack-decants" },
     { "source": "/nuevos",                "destination": "/api/category?slug=nuevos" },
     { "source": "/seleccion-st",          "destination": "/api/category?slug=seleccion-st" },
 

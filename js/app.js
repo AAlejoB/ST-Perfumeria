@@ -2705,6 +2705,17 @@
       closeDeck();
       updateDeckLabel();
       scrollToCatalog();
+
+      // Actualizar URL con el hash del filtro (sin recargar) para que el
+      // usuario pueda compartir el link YA filtrado. replaceState evita
+      // sumar al historial del navegador en cada click.
+      try {
+        var hashMap = { 'Hombre': '#filtro-hombre', 'Mujer': '#filtro-mujer', 'Unisex': '#filtro-unisex' };
+        var newHash = hashMap[cat] || '#catalogo';
+        if (window.location.hash !== newHash) {
+          window.history.replaceState(null, '', newHash);
+        }
+      } catch (e) { /* silent: no rompemos UX por la URL */ }
     }
 
     // ============================================================
