@@ -9,6 +9,25 @@
   ],
   "rewrites": [
     { "source": "/perfume/:slug", "destination": "/api/share?slug=:slug" },
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+
+    { "source": "/perfumes-hombre",       "destination": "/api/category?slug=perfumes-hombre" },
+    { "source": "/perfumes-mujer",        "destination": "/api/category?slug=perfumes-mujer" },
+    { "source": "/perfumes-unisex",       "destination": "/api/category?slug=perfumes-unisex" },
+
+    { "source": "/perfumes-arabes",       "destination": "/api/category?slug=perfumes-arabes" },
+    { "source": "/perfumes-duraderos",    "destination": "/api/category?slug=perfumes-duraderos" },
+    { "source": "/perfumes-en-cuotas",    "destination": "/api/category?slug=perfumes-en-cuotas" },
+
+    { "source": "/ofertas",               "destination": "/api/category?slug=ofertas" },
+    { "source": "/decants",               "destination": "/api/category?slug=decants" },
+    { "source": "/nuevos",                "destination": "/api/category?slug=nuevos" },
+    { "source": "/seleccion-st",          "destination": "/api/category?slug=seleccion-st" },
+
+    { "source": "/lattafa",               "destination": "/api/category?slug=lattafa" },
+    { "source": "/afnan",                 "destination": "/api/category?slug=afnan" },
+    { "source": "/armaf",                 "destination": "/api/category?slug=armaf" },
+    { "source": "/maison-alhambra",       "destination": "/api/category?slug=maison-alhambra" },
+    { "source": "/rasasi",                "destination": "/api/category?slug=rasasi" }
   ]
 }

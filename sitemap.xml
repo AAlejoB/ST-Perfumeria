@@ -2,10 +2,36 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.stperfumeria.com/</loc>
-    <lastmod>2026-04-14</lastmod>
+    <lastmod>2026-04-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!-- ═══════════════════════ LANDING PAGES SEO ═══════════════════════ -->
+  <!-- CATEGORÍAS -->
+  <url><loc>https://www.stperfumeria.com/perfumes-hombre</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.stperfumeria.com/perfumes-mujer</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.stperfumeria.com/perfumes-unisex</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+
+  <!-- ATRIBUTOS -->
+  <url><loc>https://www.stperfumeria.com/perfumes-arabes</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.stperfumeria.com/perfumes-duraderos</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/perfumes-en-cuotas</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+
+  <!-- EDITORIAL -->
+  <url><loc>https://www.stperfumeria.com/ofertas</loc><lastmod>2026-04-30</lastmod><changefreq>daily</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/decants</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/nuevos</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/seleccion-st</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+
+  <!-- MARCAS -->
+  <url><loc>https://www.stperfumeria.com/lattafa</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/afnan</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/armaf</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/maison-alhambra</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://www.stperfumeria.com/rasasi</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
+
+  <!-- ═══════════════════════ PERFUMES INDIVIDUALES ═══════════════════════ -->
   <url>
     <loc>https://www.stperfumeria.com/perfume/your-touch-intense</loc>
     <lastmod>2026-04-14</lastmod>
