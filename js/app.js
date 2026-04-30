@@ -3569,6 +3569,28 @@
     })();
 
     // ============================================================
+    // SEO — Handler ?q= para búsqueda automática al cargar
+    // Usado por landing pages de marcas (/lattafa, /afnan, etc.) que
+    // redirigen a /?q=Lattafa#catalogo para auto-filtrar la búsqueda
+    // y scrollear al catálogo. Mejora el flow desde Google a producto.
+    // ============================================================
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var q = params.get('q');
+      if (!q) return;
+      setTimeout(function() {
+        var input = document.getElementById('searchInput');
+        if (input && typeof applySearch === 'function') {
+          input.value = q;
+          applySearch(q);
+          if (typeof scrollToCatalog === 'function') {
+            setTimeout(function() { scrollToCatalog(); }, 200);
+          }
+        }
+      }, 600);
+    })();
+
+    // ============================================================
     // PWA — Handler de shortcuts del manifest (?action=decants|favs|new)
     // También usado por landing pages SEO (api/category) que redirigen
     // con ?action= para disparar comportamiento específico al volver al home.

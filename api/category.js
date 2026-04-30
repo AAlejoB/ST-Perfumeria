@@ -153,14 +153,15 @@ const PAGES = {
     filter: (p) => !p.esSet
   },
 
-  // MARCAS
+  // MARCAS — el redirect dispara una búsqueda automática con el nombre
+  // de la marca al volver al catálogo (ver handler ?q= en app.js).
   'lattafa': {
     type: 'brand',
     h1: 'Perfumes Lattafa',
     title: 'Comprar Lattafa Originales en Argentina | ST Perfumería Comodoro',
     description: 'Perfumes Lattafa originales con envío a todo el país. Khamrah, Yara, Asad, Velvet Oud. Fragancias árabes premium con 3 cuotas sin interés.',
     intro: 'Lattafa es una de las casas árabes más reconocidas del mundo. Conocida por fragancias como Khamrah, Yara, Asad y Velvet Oud, ofrece intensidad, proyección y precio accesible. Catálogo completo en ST.',
-    redirect: '/#catalogo',
+    redirect: '/?q=Lattafa#catalogo',
     filter: (p) => /lattafa/i.test(p.marca_real || p.marca || '')
   },
   'afnan': {
@@ -169,7 +170,7 @@ const PAGES = {
     title: 'Comprar Afnan Originales en Argentina | 9PM, 9AM, Supremacy | ST',
     description: 'Perfumes Afnan originales: 9PM, 9AM, Supremacy y más. Fragancias árabes intensas con envío a todo Argentina y 3 cuotas sin interés.',
     intro: 'Afnan es referencia en el mundo árabe con líneas como 9PM, 9AM y Supremacy. Perfumes intensos, modernos y muy seductores. En ST tenemos el catálogo completo importado original con envíos a todo el país.',
-    redirect: '/#catalogo',
+    redirect: '/?q=Afnan#catalogo',
     filter: (p) => /afnan/i.test(p.marca_real || p.marca || '')
   },
   'armaf': {
@@ -178,7 +179,7 @@ const PAGES = {
     title: 'Comprar Armaf Originales en Argentina | Club de Nuit, Tag Her | ST',
     description: 'Perfumes Armaf originales: Club de Nuit Intense, Tag Her, Odyssey. Fragancias árabes premium con 3 cuotas sin interés y envíos a todo el país.',
     intro: 'Armaf es la casa árabe que captura aromas legendarios a precio accesible. Famosa por Club de Nuit Intense, Tag Her y Odyssey. Comprá Armaf original en ST con envío a todo Argentina y 3 cuotas sin interés.',
-    redirect: '/#catalogo',
+    redirect: '/?q=Armaf#catalogo',
     filter: (p) => /armaf/i.test(p.marca_real || p.marca || '')
   },
   'maison-alhambra': {
@@ -187,7 +188,7 @@ const PAGES = {
     title: 'Comprar Maison Alhambra Originales en Argentina | ST Perfumería',
     description: 'Perfumes Maison Alhambra originales con envío a todo el país. Fragancias árabes premium inspiradas en clásicos europeos. 3 cuotas sin interés.',
     intro: 'Maison Alhambra es la casa árabe que mejor reinterpreta clásicos europeos a precios accesibles. Fragancias elegantes, sofisticadas y con gran proyección. Catálogo completo en ST con envíos a toda Argentina.',
-    redirect: '/#catalogo',
+    redirect: '/?q=Alhambra#catalogo',
     filter: (p) => /alhambra/i.test(p.marca_real || p.marca || '')
   },
   'rasasi': {
@@ -196,7 +197,7 @@ const PAGES = {
     title: 'Comprar Rasasi Originales en Argentina | ST Perfumería Comodoro',
     description: 'Perfumes Rasasi originales con envío a todo el país. Fragancias árabes tradicionales con identidad oriental. 3 cuotas sin interés.',
     intro: 'Rasasi es una casa histórica del mundo árabe con identidad oriental marcada. Fragancias intensas, tradicionales y con personalidad. Comprá Rasasi original en ST con envíos a todo Argentina y 3 cuotas sin interés.',
-    redirect: '/#catalogo',
+    redirect: '/?q=Rasasi#catalogo',
     filter: (p) => /rasasi/i.test(p.marca_real || p.marca || '')
   }
 };
