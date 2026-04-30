@@ -5050,7 +5050,11 @@
         return;
       }
 
-      var html = list.slice(0, 80).map(function(p) {
+      // FIX bug mobile: antes estaba slice(0, 80) — cortaba el catálogo
+      // a la mitad si tenías más de 80 perfumes. El loading="lazy" en las
+      // imágenes ya garantiza que solo se descarguen las visibles, así que
+      // mostrar todas no impacta performance.
+      var html = list.map(function(p) {
         var qty = counts[p.slug] || 0;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         if (!fotoSrc && typeof getGamaFotos === 'function') {
