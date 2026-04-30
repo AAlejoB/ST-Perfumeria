@@ -9,6 +9,9 @@
   ],
   "rewrites": [
     { "source": "/perfume/:slug", "destination": "/api/share?slug=:slug" },
+    { "source": "/vs/:slugs",     "destination": "/api/compare?slugs=:slugs" },
+    { "source": "/blog",          "destination": "/api/blog" },
+    { "source": "/blog/:slug",    "destination": "/api/blog?slug=:slug" },
     { "source": "/admin", "destination": "/admin.html" },
 
     { "source": "/perfumes-hombre",       "destination": "/api/category?slug=perfumes-hombre" },

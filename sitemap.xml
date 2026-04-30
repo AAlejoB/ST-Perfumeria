@@ -31,6 +31,11 @@
   <url><loc>https://www.stperfumeria.com/maison-alhambra</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://www.stperfumeria.com/rasasi</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.85</priority></url>
 
+  <!-- ═══════════════════════ BLOG ═══════════════════════ -->
+  <url><loc>https://www.stperfumeria.com/blog</loc><lastmod>2026-04-30</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.stperfumeria.com/blog/como-elegir-perfume-arabe</loc><lastmod>2026-04-30</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.stperfumeria.com/blog/notas-olfativas-explicadas</loc><lastmod>2026-04-29</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+
   <!-- ═══════════════════════ PERFUMES INDIVIDUALES ═══════════════════════ -->
   <url>
     <loc>https://www.stperfumeria.com/perfume/your-touch-intense</loc>
