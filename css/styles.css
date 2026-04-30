@@ -3824,17 +3824,32 @@
       .seo-hub-grid { grid-template-columns: repeat(5, 1fr); }
     }
 
+    /* Card del SEO Hub. Ojo: usamos !important selectivo en text-decoration
+       y color para que browsers móviles agresivos (iOS Safari, Brave) no
+       les pinten azul subrayado por ser <a>. */
+    a.seo-hub-card,
     .seo-hub-card {
-      display: flex; flex-direction: column;
+      display: flex !important;
+      flex-direction: column !important;
       padding: 1.1rem 1rem;
       background: linear-gradient(180deg, rgba(232,184,0,.04) 0%, rgba(0,0,0,0) 100%);
       border: 1px solid var(--borde);
       border-radius: 10px;
-      text-decoration: none;
-      color: inherit;
+      text-decoration: none !important;
+      color: var(--blanco) !important;
       transition: transform .25s ease, border-color .25s ease, background .25s ease;
       position: relative;
       overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Forzar que TODO lo interno herede color y nunca quede subrayado.
+       Crítico para iOS Safari donde <a> contagia estilo a sus hijos. */
+    .seo-hub-card,
+    .seo-hub-card *,
+    .seo-hub-card h3,
+    .seo-hub-card p,
+    .seo-hub-card span {
+      text-decoration: none !important;
     }
     .seo-hub-card::before {
       content: '';
@@ -3853,32 +3868,33 @@
       .seo-hub-card:hover::before { opacity: 1; }
     }
 
-    .seo-hub-icon {
+    .seo-hub-card .seo-hub-icon {
       font-size: 1.4rem;
       margin-bottom: .5rem;
-      display: block;
+      display: block !important;
     }
-    .seo-hub-title {
+    .seo-hub-card .seo-hub-title {
       font-family: var(--font-display);
       font-size: 1rem;
       font-weight: 600;
-      color: var(--blanco);
-      margin-bottom: .4rem;
+      color: var(--blanco) !important;
+      margin: 0 0 .4rem 0;
       letter-spacing: .01em;
+      line-height: 1.25;
     }
-    .seo-hub-desc {
+    .seo-hub-card .seo-hub-desc {
       font-size: .72rem;
-      color: var(--gris-claro);
+      color: var(--gris-claro) !important;
       line-height: 1.5;
-      margin-bottom: .75rem;
+      margin: 0 0 .75rem 0;
       flex: 1;
     }
-    .seo-hub-cta {
+    .seo-hub-card .seo-hub-cta {
       font-size: .65rem;
       font-weight: 600;
       letter-spacing: .08em;
       text-transform: uppercase;
-      color: var(--amarillo);
+      color: var(--amarillo) !important;
       transition: transform .2s ease;
       display: inline-block;
     }
@@ -4253,16 +4269,21 @@
       line-height: 1.7;
     }
 
-    /* Internal SEO links sutiles dentro del copy de Nosotros */
+    /* Internal SEO links sutiles dentro del copy de Nosotros y FAQ.
+       Specificidad alta + !important para sobreescribir defaults
+       de iOS Safari que pintan los <a> de azul brillante. */
+    a.nosotros-link,
     .nosotros-link {
-      color: var(--amarillo);
-      text-decoration: none;
-      border-bottom: 1px dotted rgba(232,184,0,.4);
+      color: var(--amarillo) !important;
+      text-decoration: none !important;
+      border-bottom: 1px dotted rgba(232,184,0,.45);
       transition: border-color .2s ease, color .2s ease;
+      font-weight: 500;
     }
     @media (hover: hover) {
+      a.nosotros-link:hover,
       .nosotros-link:hover {
-        color: var(--amarillo-claro);
+        color: var(--amarillo-claro) !important;
         border-bottom-color: var(--amarillo);
       }
     }
