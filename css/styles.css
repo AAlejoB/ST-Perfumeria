@@ -1756,20 +1756,53 @@
     .fav-heart.liked { color: #e74c3c; background: rgba(255,255,255,.95); }
 
     /* Botón comparar (balanza) — debajo del corazón, mismo lado (derecha/foto) */
+    /* Botón "Comparar" — cilíndrico, con icono + label visible.
+       Antes era un círculo 28px que pasaba desapercibido. Ahora es un
+       pill con texto que invita al click y muestra el valor de la feature. */
     .compare-btn {
       position: absolute; top: 46px; right: 10px; z-index: 15;
-      background: rgba(255,255,255,.85); border: none; border-radius: 50%;
-      width: 28px; height: 28px;
-      font-size: .75rem; line-height: 28px; text-align: center;
-      cursor: pointer; color: #999;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(232,184,0,.25);
+      border-radius: 999px;
+      height: 28px;
+      padding: 0 10px 0 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: .58rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      cursor: pointer;
+      color: #555;
       transition: all .25s ease;
-      padding: 0;
-      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
-    @media (hover: hover) { .compare-btn:hover { transform: scale(1.1); color: var(--amarillo); } }
-    .compare-btn.active { color: #fff; background: var(--amarillo); }
-    body.dark-mode .compare-btn { background: rgba(40,40,40,.85); }
+    .compare-btn .compare-icon { font-size: .9rem; line-height: 1; }
+    .compare-btn .compare-label { white-space: nowrap; }
+    @media (hover: hover) {
+      .compare-btn:hover {
+        transform: translateY(-1px);
+        color: var(--amarillo);
+        border-color: var(--amarillo);
+        box-shadow: 0 4px 12px rgba(232,184,0,.3);
+      }
+    }
+    .compare-btn.active {
+      background: var(--amarillo);
+      color: #000;
+      border-color: var(--amarillo);
+      box-shadow: 0 4px 14px rgba(232,184,0,.45);
+    }
+    .compare-btn.active .compare-label::before { content: '✓ '; }
+    body.dark-mode .compare-btn { background: rgba(20,20,20,.85); color: #ccc; }
     body.dark-mode .compare-btn.active { background: var(--amarillo); color: #000; }
+    /* Mobile chico: si la card es muy angosta, mostrar solo icono */
+    @media (max-width: 380px) {
+      .compare-btn .compare-label { display: none; }
+      .compare-btn { padding: 0; width: 28px; height: 28px; justify-content: center; border-radius: 50%; }
+    }
 
     /* Barra flotante comparador */
     .compare-bar {

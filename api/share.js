@@ -203,22 +203,81 @@ module.exports = async (req, res) => {
   <link rel="icon" type="image/png" href="${BASE_URL}/img/logo-st.webp"/>
   <script type="application/ld+json">${JSON.stringify(productSchema)}</script>
   <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
-  ${botRequest ? '<!-- bot detected: no JS redirect, full page indexable -->' : `<script>
-    // Redirect al home con el perfume resaltado.
-    // SOLO para usuarios reales: si es bot/crawler (Googlebot, WhatsApp, Facebook,
-    // Twitter, etc.) se queda con la pagina estatica + meta tags + Schema.org.
-    // Asi Google indexa /perfume/:slug en vez de marcarla "Pagina con redireccion"
-    // y los scrapers de redes sacan la preview OG correctamente.
-    window.location.replace('${BASE_URL}/?perfume=${esc(slug)}');
-  </script>`}
+  ${botRequest ? '<!-- bot detected: no JS redirect, full page indexable -->' : ''}
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: linear-gradient(180deg, #0a0a0a 0%, #131316 100%); color: #f0ede8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; min-height: 100vh; line-height: 1.55; padding: 2rem 1.2rem; }
+    .pp-wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1.6rem; }
+    .pp-eyebrow { color: #E8B800; font-size: .65rem; letter-spacing: .25em; text-transform: uppercase; font-weight: 600; }
+    .pp-img-wrap { width: 100%; max-width: 320px; aspect-ratio: 1/1; background: #1a1a1d; border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(232,184,0,.18); }
+    .pp-img-wrap img { width: 100%; height: 100%; object-fit: contain; }
+    .pp-img-ph { font-family: "Playfair Display", serif; font-size: 5rem; font-weight: 300; color: #E8B800; opacity: .4; }
+    .pp-name { font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.5rem, 5vw, 2.4rem); color: #fff; text-align: center; line-height: 1.15; }
+    .pp-brand { color: #888; font-size: .9rem; letter-spacing: .12em; text-transform: uppercase; text-align: center; }
+    .pp-tags { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; }
+    .pp-tag { font-size: .68rem; padding: .3rem .7rem; border: 1px solid rgba(232,184,0,.3); border-radius: 999px; color: #E8B800; letter-spacing: .05em; }
+    .pp-price { font-size: 1.7rem; color: #E8B800; font-weight: 700; text-align: center; }
+    .pp-price-sub { color: #888; font-size: .8rem; text-align: center; }
+    .pp-notes { background: rgba(232,184,0,.05); border: 1px solid rgba(232,184,0,.1); border-radius: 10px; padding: 1rem 1.2rem; width: 100%; }
+    .pp-note-row { display: flex; gap: .6rem; align-items: baseline; padding: .35rem 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .pp-note-row:last-child { border-bottom: none; }
+    .pp-note-label { color: #E8B800; font-size: .65rem; letter-spacing: .15em; text-transform: uppercase; font-weight: 600; min-width: 80px; }
+    .pp-note-text { color: #ccc; font-size: .85rem; flex: 1; }
+    .pp-cta-row { display: flex; flex-direction: column; gap: .65rem; width: 100%; max-width: 380px; }
+    .pp-cta { display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .95rem 1.2rem; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: .95rem; letter-spacing: .03em; transition: transform .15s ease, box-shadow .15s ease; }
+    .pp-cta-primary { background: #E8B800; color: #000; box-shadow: 0 4px 14px rgba(232,184,0,.25); }
+    .pp-cta-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(232,184,0,.4); }
+    .pp-cta-wa { background: #25D366; color: #000; }
+    .pp-cta-wa:hover { transform: translateY(-1px); }
+    .pp-cta-ghost { background: transparent; color: #E8B800; border: 1px solid rgba(232,184,0,.4); }
+    .pp-cta-ghost:hover { background: rgba(232,184,0,.08); }
+    .pp-footer { color: #666; font-size: .75rem; text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,.06); width: 100%; }
+    .pp-footer a { color: #888; }
+  </style>
 </head>
-<body style="background:#0a0a0a;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;">
-  <div style="text-align:center;padding:2rem;">
-    <p style="color:#e8b800;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;">ST Perfumería</p>
-    <h1 style="font-size:1.5rem;margin:.5rem 0;">${esc(perfume.name)}</h1>
-    <p style="color:#888;">${esc(brand)}${priceFormatted ? ' — ' + priceFormatted : ''}</p>
-    <p style="color:#888;margin-top:1rem;">Redirigiendo...</p>
-    <p style="margin-top:1.5rem;"><a href="${BASE_URL}/?perfume=${esc(slug)}" style="color:#e8b800;">Ir al catálogo</a></p>
+<body>
+  <div class="pp-wrap">
+    <p class="pp-eyebrow">ST · Perfumería · Comodoro Rivadavia</p>
+    <div class="pp-img-wrap">
+      ${perfume.foto
+        ? `<img src="${esc(image)}" alt="${esc(imageAlt)}" loading="eager"/>`
+        : `<span class="pp-img-ph">${esc(perfume.name.charAt(0) || 'S')}</span>`}
+    </div>
+    <h1 class="pp-name">${esc(perfume.name)}</h1>
+    ${brand ? `<p class="pp-brand">${esc(brand)}</p>` : ''}
+    <div class="pp-tags">
+      ${cat ? `<span class="pp-tag">${esc(cat)}</span>` : ''}
+      ${perfil ? `<span class="pp-tag">${esc(perfil)}</span>` : ''}
+      <span class="pp-tag">Original</span>
+    </div>
+    ${priceFormatted ? `
+    <div>
+      <p class="pp-price">${priceFormatted}</p>
+      <p class="pp-price-sub">3 cuotas sin interés · 10% off efectivo/transferencia</p>
+    </div>
+    ` : ''}
+    ${(perfume.notas_salida || perfume.notas_corazon || perfume.notas_base) ? `
+    <div class="pp-notes">
+      ${perfume.notas_salida ? `<div class="pp-note-row"><span class="pp-note-label">Salida</span><span class="pp-note-text">${esc(perfume.notas_salida)}</span></div>` : ''}
+      ${perfume.notas_corazon ? `<div class="pp-note-row"><span class="pp-note-label">Corazón</span><span class="pp-note-text">${esc(perfume.notas_corazon)}</span></div>` : ''}
+      ${perfume.notas_base ? `<div class="pp-note-row"><span class="pp-note-label">Base</span><span class="pp-note-text">${esc(perfume.notas_base)}</span></div>` : ''}
+    </div>
+    ` : ''}
+    <div class="pp-cta-row">
+      <a href="${BASE_URL}/?perfume=${esc(slug)}" class="pp-cta pp-cta-primary">
+        Ver en el catálogo →
+      </a>
+      <a href="https://wa.me/5492975416017?text=${encodeURIComponent('Hola! Me interesa el ' + perfume.name + '. ¿Tienen disponibilidad?')}" target="_blank" rel="noopener" class="pp-cta pp-cta-wa">
+        💬 Consultar por WhatsApp
+      </a>
+      <a href="${BASE_URL}" class="pp-cta pp-cta-ghost">
+        Ver catálogo completo
+      </a>
+    </div>
+    <p class="pp-footer">
+      San Martín 570, Local N8 · Comodoro Rivadavia, Chubut<br/>
+      Lun-Vie 10-20 hs · Sáb 10-14 hs
+    </p>
   </div>
 </body>
 </html>`;

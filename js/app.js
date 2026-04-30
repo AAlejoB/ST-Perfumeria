@@ -1321,7 +1321,7 @@
       return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + ribbonHTML + stockBadge + nuevoBadge + discountHTML + discountTimerHTML
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
-        + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar">&#9878;</button>'
+        + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar con otros perfumes"><span class="compare-icon">&#9878;</span><span class="compare-label">COMPARAR</span></button>'
         + '<div class="card-image">' + imageHTML + '</div>'
         + '<div class="card-info">'
           + galleryNavOnInfo
@@ -1929,7 +1929,9 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       var url = 'https://www.stperfumeria.com/perfume/' + slug;
-      var text = p.name + ' — ST Perfumería\n' + (p.notas_salida ? 'Notas: ' + p.notas_salida : '') + '\n' + url;
+      // FIX duplicado: NO incluir la URL en el text — Android la duplica
+      // porque ya la pasamos como `url`. Quedan dos veces en el preview.
+      var text = p.name + ' — ST Perfumería' + (p.notas_salida ? '\nNotas: ' + p.notas_salida : '');
 
       if (navigator.share) {
         navigator.share({ title: p.name + ' — ST Perfumería', text: text, url: url }).catch(function(){});
@@ -2396,6 +2398,15 @@
           var _toks = currentSearch.split(/\s+/);
           for (var _t = 0; _t < _toks.length; _t++) {
             if (_toks[_t] && _hay.indexOf(_toks[_t]) === -1) { searchMatch = false; break; }
+          }
+          // FALLBACK: si por tokens no matcheó, comparar SIN espacios.
+          // Útil cuando user escribe "9PMNIGHT" o "9pm night" y el catálogo
+          // tiene "9 PM NIGHT". Antes la búsqueda no encontraba nada en
+          // estos casos por la diferencia de espaciado.
+          if (!searchMatch) {
+            var _hayNoSpace = _hay.replace(/\s+/g, '');
+            var _qNoSpace = currentSearch.replace(/\s+/g, '');
+            if (_qNoSpace && _hayNoSpace.indexOf(_qNoSpace) !== -1) searchMatch = true;
           }
         }
         // FILTRO 3: Nota olfativa específica
@@ -2873,6 +2884,9 @@
       var tokens = norm.split(/\s+/).filter(Boolean);
       var mainToken = tokens.reduce(function(a, b){ return b.length > a.length ? b : a; }, '');
 
+      // Versión sin espacios para fallback (matcheo "9PMNIGHT" → "9 PM NIGHT")
+      var queryNoSpace = norm.replace(/\s+/g, '');
+
       var matches = [];
       PERFUMES.forEach(function(p) {
         if (p.esSet || p._oculto) return;
@@ -2882,8 +2896,15 @@
         var hay = nameNorm + ' ' + marcaNorm + ' ' + notasNorm;
 
         // AND: cada token debe estar en algún lado
+        var tokensMatch = true;
         for (var i = 0; i < tokens.length; i++) {
-          if (hay.indexOf(tokens[i]) === -1) return;
+          if (hay.indexOf(tokens[i]) === -1) { tokensMatch = false; break; }
+        }
+        if (!tokensMatch) {
+          // Fallback sin espacios: si el user escribió "9PMNIGHT" o "9pm night"
+          // y el catálogo tiene "9 PM NIGHT", normalizamos ambos y comparamos.
+          var hayNoSpace = hay.replace(/\s+/g, '');
+          if (!queryNoSpace || hayNoSpace.indexOf(queryNoSpace) === -1) return;
         }
 
         var score = 0;
