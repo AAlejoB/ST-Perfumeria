@@ -3569,7 +3569,9 @@
     })();
 
     // ============================================================
-    // PWA — Handler de shortcuts del manifest (?action=decants|favs)
+    // PWA — Handler de shortcuts del manifest (?action=decants|favs|new)
+    // También usado por landing pages SEO (api/category) que redirigen
+    // con ?action= para disparar comportamiento específico al volver al home.
     // ============================================================
     (function() {
       var params = new URLSearchParams(window.location.search);
@@ -3582,6 +3584,15 @@
           else if (btn) btn.click();
         } else if (action === 'favs') {
           if (typeof showFavorites === 'function') showFavorites();
+        } else if (action === 'new') {
+          // Activar filtro "Nuevos" + scrollear al catálogo
+          var newBtn = document.querySelector('.filter-btn[onclick*="filterByNew"]');
+          if (newBtn && typeof filterByNew === 'function') {
+            filterByNew(newBtn);
+            if (typeof scrollToCatalog === 'function') {
+              setTimeout(function() { scrollToCatalog(); }, 100);
+            }
+          }
         }
       }, 600);
     })();

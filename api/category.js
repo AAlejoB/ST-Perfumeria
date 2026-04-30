@@ -64,7 +64,7 @@ const PAGES = {
     title: 'Comprar Perfumes Hombre Originales en Argentina | ST Perfumería Comodoro',
     description: 'Catálogo de perfumes hombre importados originales en Comodoro Rivadavia. Fragancias masculinas duraderas, 3 cuotas sin interés y envíos a todo el país.',
     intro: 'Encontrá las mejores fragancias masculinas árabes e importadas. Perfumes hombre con gran proyección, larga duración y precios accesibles. Comprá en Comodoro Rivadavia con 3 cuotas sin interés y envíos a todo Argentina.',
-    redirect: '/?perfume_filter=Hombre',
+    redirect: '/#filtro-hombre',
     filter: (p) => (p.cat === 'Hombre') && !p.esSet
   },
   'perfumes-mujer': {
@@ -73,7 +73,7 @@ const PAGES = {
     title: 'Comprar Perfumes Mujer Originales en Argentina | ST Perfumería Comodoro',
     description: 'Catálogo de perfumes mujer importados con envío a todo el país. Fragancias femeninas árabes con gran estela y 3 cuotas sin interés. Comodoro Rivadavia.',
     intro: 'Perfumes mujer importados originales con larga duración y proyección. Comprá fragancias femeninas árabes y de marcas premium en Comodoro Rivadavia con 3 cuotas sin interés y envíos a toda Argentina.',
-    redirect: '/?perfume_filter=Mujer',
+    redirect: '/#filtro-mujer',
     filter: (p) => (p.cat === 'Mujer') && !p.esSet
   },
   'perfumes-unisex': {
@@ -82,7 +82,7 @@ const PAGES = {
     title: 'Comprar Perfumes Unisex Originales en Argentina | ST Perfumería',
     description: 'Fragancias unisex importadas originales. Perfumes neutros para todos con 3 cuotas sin interés y envíos a todo el país desde Comodoro Rivadavia.',
     intro: 'Perfumes unisex originales para quien no se encasilla. Fragancias neutras y versátiles con duración intensa, ideales para uso diario. Comprá con 3 cuotas sin interés en ST Perfumería.',
-    redirect: '/?perfume_filter=Unisex',
+    redirect: '/#filtro-unisex',
     filter: (p) => (p.cat === 'Unisex') && !p.esSet
   },
 
@@ -93,7 +93,7 @@ const PAGES = {
     title: 'Comprar Perfumes Árabes Originales en Argentina | Lattafa, Afnan, Armaf',
     description: 'Perfumes árabes originales en Argentina. Lattafa, Afnan, Armaf, Maison Alhambra y Rasasi. Fragancias intensas con 3 cuotas sin interés y envíos a todo el país.',
     intro: 'Los perfumes árabes son conocidos por su intensidad, proyección y duración. En ST trabajamos las marcas premium del rubro: Lattafa, Afnan, Armaf, Maison Alhambra, Rasasi. Lujo accesible con 3 cuotas sin interés.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: () => true // todos son árabes en ST
   },
   'perfumes-duraderos': {
@@ -102,7 +102,7 @@ const PAGES = {
     title: 'Comprar Perfumes Duraderos de Larga Duración en Argentina | ST',
     description: 'Perfumes que duran 8 a 12 horas con gran estela. Fragancias intensas para todo el día con envío a todo el país y 3 cuotas sin interés.',
     intro: 'Los perfumes árabes que vendemos en ST duran entre 8 y 12 horas en piel con buena proyección. Si buscás un perfume que dure todo el día y deje estela, esta es tu sección. Comprá con 3 cuotas sin interés.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => !p.esSet
   },
   'perfumes-en-cuotas': {
@@ -111,7 +111,7 @@ const PAGES = {
     title: 'Comprar Perfumes en 3 Cuotas Sin Interés en Argentina | ST Perfumería',
     description: 'Perfumes árabes originales con 3 cuotas sin interés. Aceptamos todas las tarjetas + 10% off pagando en efectivo o transferencia. Envíos a todo el país.',
     intro: 'En ST comprás cualquier perfume de nuestro catálogo en 3 cuotas sin interés con tarjeta. Y si pagás en efectivo o transferencia, te aplicamos 10% de descuento adicional. Envío a todo Argentina.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => !p.esSet
   },
 
@@ -122,7 +122,7 @@ const PAGES = {
     title: 'Ofertas en Perfumes Árabes Originales | Descuentos ST Comodoro',
     description: 'Perfumes en oferta y promoción. Descuentos del 10% en efectivo/transferencia, 3 cuotas sin interés y combos. Envíos a todo el país.',
     intro: 'Las ofertas activas en ST: combos de decants a precio especial, 10% de descuento pagando en efectivo o transferencia, 3 cuotas sin interés en todo el catálogo, y promociones temporales en perfumes seleccionados.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => p.promo && !p.esSet
   },
   'decants': {
@@ -160,7 +160,7 @@ const PAGES = {
     title: 'Comprar Lattafa Originales en Argentina | ST Perfumería Comodoro',
     description: 'Perfumes Lattafa originales con envío a todo el país. Khamrah, Yara, Asad, Velvet Oud. Fragancias árabes premium con 3 cuotas sin interés.',
     intro: 'Lattafa es una de las casas árabes más reconocidas del mundo. Conocida por fragancias como Khamrah, Yara, Asad y Velvet Oud, ofrece intensidad, proyección y precio accesible. Catálogo completo en ST.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => /lattafa/i.test(p.marca_real || p.marca || '')
   },
   'afnan': {
@@ -169,7 +169,7 @@ const PAGES = {
     title: 'Comprar Afnan Originales en Argentina | 9PM, 9AM, Supremacy | ST',
     description: 'Perfumes Afnan originales: 9PM, 9AM, Supremacy y más. Fragancias árabes intensas con envío a todo Argentina y 3 cuotas sin interés.',
     intro: 'Afnan es referencia en el mundo árabe con líneas como 9PM, 9AM y Supremacy. Perfumes intensos, modernos y muy seductores. En ST tenemos el catálogo completo importado original con envíos a todo el país.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => /afnan/i.test(p.marca_real || p.marca || '')
   },
   'armaf': {
@@ -178,7 +178,7 @@ const PAGES = {
     title: 'Comprar Armaf Originales en Argentina | Club de Nuit, Tag Her | ST',
     description: 'Perfumes Armaf originales: Club de Nuit Intense, Tag Her, Odyssey. Fragancias árabes premium con 3 cuotas sin interés y envíos a todo el país.',
     intro: 'Armaf es la casa árabe que captura aromas legendarios a precio accesible. Famosa por Club de Nuit Intense, Tag Her y Odyssey. Comprá Armaf original en ST con envío a todo Argentina y 3 cuotas sin interés.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => /armaf/i.test(p.marca_real || p.marca || '')
   },
   'maison-alhambra': {
@@ -187,7 +187,7 @@ const PAGES = {
     title: 'Comprar Maison Alhambra Originales en Argentina | ST Perfumería',
     description: 'Perfumes Maison Alhambra originales con envío a todo el país. Fragancias árabes premium inspiradas en clásicos europeos. 3 cuotas sin interés.',
     intro: 'Maison Alhambra es la casa árabe que mejor reinterpreta clásicos europeos a precios accesibles. Fragancias elegantes, sofisticadas y con gran proyección. Catálogo completo en ST con envíos a toda Argentina.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => /alhambra/i.test(p.marca_real || p.marca || '')
   },
   'rasasi': {
@@ -196,7 +196,7 @@ const PAGES = {
     title: 'Comprar Rasasi Originales en Argentina | ST Perfumería Comodoro',
     description: 'Perfumes Rasasi originales con envío a todo el país. Fragancias árabes tradicionales con identidad oriental. 3 cuotas sin interés.',
     intro: 'Rasasi es una casa histórica del mundo árabe con identidad oriental marcada. Fragancias intensas, tradicionales y con personalidad. Comprá Rasasi original en ST con envíos a todo Argentina y 3 cuotas sin interés.',
-    redirect: '/#explorar',
+    redirect: '/#catalogo',
     filter: (p) => /rasasi/i.test(p.marca_real || p.marca || '')
   }
 };
