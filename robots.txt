@@ -1,7 +1,66 @@
+# ST Perfumería · robots.txt
+# Última revisión: 2026-04 (rama seo-experimentos)
+# Política: indexar catálogo público, bloquear áreas privadas y URLs filtradas
+# que generan duplicados sin valor para el crawl budget.
+
 User-agent: *
 Allow: /
+
+# Áreas privadas / administración
 Disallow: /admin
 Disallow: /admin.html
 Disallow: /api/
 
+# Endpoints de auth y cuenta (no aportan SEO, generan duplicados)
+Disallow: /login
+Disallow: /registro
+Disallow: /recuperar-password
+Disallow: /mi-cuenta
+Disallow: /perfil
+Disallow: /favoritos
+
+# Procesos transaccionales (no indexar)
+Disallow: /carrito
+Disallow: /checkout
+Disallow: /pagar
+Disallow: /gracias
+Disallow: /pedido-confirmado
+
+# Búsqueda interna y filtros con parámetros (canonical apunta al padre)
+Disallow: /buscar
+Disallow: /*?q=
+Disallow: /*?nota=
+Disallow: /*?precio=
+Disallow: /*?orden=
+Disallow: /*?filter=
+
+# Crawl-delay para bots agresivos (1 seg entre requests)
+Crawl-delay: 1
+
+# Permisos explícitos para los bots que sí queremos
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Bots de IA — política conservadora (permitir escaneo público)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# Sitemap principal
 Sitemap: https://www.stperfumeria.com/sitemap.xml

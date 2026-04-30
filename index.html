@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- 🧪 SEO LAB · rama seo-experimentos (no afecta producción) -->
-<html lang="es">
+<html lang="es-AR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -34,18 +34,30 @@
   <link rel="apple-touch-icon" href="img/icon-st.svg"/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#121214"/>
+  <!-- ═══════════════════════════════════════════════════════════════
+       SCHEMA.ORG · ESTRUCTURA RICA PARA RICH RESULTS DE GOOGLE
+       Mejoras vs versión anterior:
+        - LocalBusiness enriquecido con hasOfferCatalog + areaServed
+        - WebSite separado con SearchAction (buscador en SERPs)
+        - BreadcrumbList (mejora navegación en resultados)
+        - FAQPage (respuestas directas en Google)
+       ═══════════════════════════════════════════════════════════════ -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": ["Store", "LocalBusiness"],
+    "@type": ["Store", "LocalBusiness", "PerfumeStore"],
     "@id": "https://www.stperfumeria.com/#business",
     "name": "ST Scent & Textures",
-    "alternateName": "ST Perfumería",
-    "description": "Perfumería árabe original en Comodoro Rivadavia. +150 fragancias de larga duración y gran proyección.",
+    "alternateName": ["ST Perfumería", "ST Perfumeria Comodoro"],
+    "description": "Perfumería árabe original en Comodoro Rivadavia. +150 fragancias importadas de larga duración con 3 cuotas sin interés y envíos a todo el país.",
     "url": "https://www.stperfumeria.com",
     "logo": "https://www.stperfumeria.com/img/logo-st.webp",
-    "image": "https://www.stperfumeria.com/img/og-preview.webp",
+    "image": [
+      "https://www.stperfumeria.com/img/og-preview.webp",
+      "https://www.stperfumeria.com/img/logo-st.webp"
+    ],
     "telephone": "+5492975416017",
+    "email": "stperfumeria@gmail.com",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "San Martín 570, Local N8",
@@ -59,6 +71,22 @@
       "latitude": -45.8667,
       "longitude": -67.5
     },
+    "areaServed": [
+      { "@type": "City", "name": "Comodoro Rivadavia" },
+      { "@type": "AdministrativeArea", "name": "Chubut" },
+      { "@type": "Country", "name": "Argentina" }
+    ],
+    "knowsAbout": [
+      "Perfumes árabes",
+      "Perfumes importados originales",
+      "Fragancias de larga duración",
+      "Decants",
+      "Lattafa",
+      "Afnan",
+      "Armaf",
+      "Maison Alhambra",
+      "Rasasi"
+    ],
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
@@ -75,10 +103,146 @@
     ],
     "priceRange": "$$",
     "currenciesAccepted": "ARS",
-    "paymentAccepted": "Efectivo, Transferencia, Mercado Pago",
+    "paymentAccepted": ["Efectivo", "Transferencia bancaria", "Tarjeta de crédito", "Tarjeta de débito", "Mercado Pago"],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Catálogo de perfumes ST",
+      "itemListElement": [
+        {
+          "@type": "OfferCatalog",
+          "name": "Perfumes Hombre",
+          "url": "https://www.stperfumeria.com/#hombre"
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Perfumes Mujer",
+          "url": "https://www.stperfumeria.com/#mujer"
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Perfumes Unisex",
+          "url": "https://www.stperfumeria.com/#unisex"
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Decants",
+          "url": "https://www.stperfumeria.com/#decants"
+        }
+      ]
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://www.stperfumeria.com/?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
     "sameAs": [
       "https://instagram.com/st.perfumeria_",
       "https://www.facebook.com/profile.php?id=61570483660479"
+    ]
+  }
+  </script>
+
+  <!-- WebSite schema con SearchAction — habilita el buscador en SERPs de Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://www.stperfumeria.com/#website",
+    "url": "https://www.stperfumeria.com",
+    "name": "ST Perfumería",
+    "description": "Comprar perfumes importados originales en Comodoro Rivadavia con envíos a todo el país.",
+    "publisher": { "@id": "https://www.stperfumeria.com/#business" },
+    "inLanguage": "es-AR",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://www.stperfumeria.com/?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- BreadcrumbList — mejora navegación visible en resultados de Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://www.stperfumeria.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Catálogo de perfumes",
+        "item": "https://www.stperfumeria.com/#catalogo"
+      }
+    ]
+  }
+  </script>
+
+  <!-- FAQPage — Google muestra estas respuestas directo en resultados -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Hacen envíos a todo el país?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, hacemos envíos a todo Argentina. Por correo a cualquier provincia, y en Comodoro Rivadavia y alrededores con entrega rápida. Consultanos por WhatsApp para conocer las opciones y costos."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué medios de pago aceptan?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Aceptamos todos los medios de pago y ofrecemos 3 cuotas sin interés, además en efectivo o transferencia tenés un 10% de descuento."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Los perfumes son originales?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, todos nuestros perfumes son originales e importados directamente. Trabajamos con marcas árabes premium como Lattafa, Afnan, Armaf, Maison Alhambra y Rasasi."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo probar los perfumes antes de comprar?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, podés venir al local en San Martín 570, Local N8, Comodoro Rivadavia y probar todos los que quieras. Te asesoramos sin compromiso. La prueba en piel es la mejor forma de elegir tu fragancia."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto duran los perfumes árabes?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Los perfumes árabes son conocidos por su gran proyección y duración. La mayoría de nuestras fragancias duran entre 8 y 12 horas en piel, con estela notable. Son perfumes intensos diseñados para que la gente gire al pasar."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Dónde queda el local de ST Perfumería?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Estamos en San Martín 570, Local N8, Comodoro Rivadavia, Chubut. Atendemos de lunes a viernes de 10 a 20 hs y los sábados de 10 a 14 hs."
+        }
+      }
     ]
   }
   </script>
