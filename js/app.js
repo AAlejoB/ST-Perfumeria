@@ -1969,6 +1969,7 @@
         btn.classList.add('active');
       }
       applyFilters();
+      if (typeof updateFiltersInURL === 'function') updateFiltersInURL();
     }
 
     // Actualiza el hint explicativo del toggle OCASIÓN para que el usuario
@@ -2030,6 +2031,7 @@
       }
       updateOccasionHint();
       applyFilters();
+      if (typeof updateFiltersInURL === 'function') updateFiltersInURL();
     }
 
     // ============================================================
@@ -2652,24 +2654,76 @@
       setTimeout(function() { scrollToCatalog(); }, 100);
     }
 
-    // SEO: si la URL trae un hash de filtro al cargar (#filtro-hombre,
-    // #filtro-mujer, #filtro-unisex), aplicamos automáticamente ese filtro.
-    // Sirve para internal linking y para que Google entienda secciones.
-    function applyFilterFromHash() {
-      var hash = (window.location.hash || '').toLowerCase();
-      var map = {
-        '#filtro-hombre': 'Hombre',
-        '#filtro-mujer':  'Mujer',
-        '#filtro-unisex': 'Unisex',
-        '#filtro-todos':  'all'
-      };
-      if (map[hash]) {
-        // Esperar a que el catálogo esté renderizado
-        setTimeout(function() { filterByCat(map[hash]); }, 200);
-      }
+    // ────────────────────────────────────────────────────────────────
+    // SEO: sincronizar el estado de los filtros con la URL del navegador
+    //
+    // Permite al usuario:
+    //   - Ver en la URL exactamente qué está filtrando
+    //   - Compartir el link y que se abra con los mismos filtros aplicados
+    //   - Volver atrás y avanzar con el back button del navegador
+    //
+    // Estructura de la URL:
+    //   /?cat=Hombre&nota=vainilla&ocasion=noche#catalogo
+    //   /?perfume=khanjar  (cuando hay un bottom sheet abierto en mobile)
+    //
+    // También conserva los hash legacy #filtro-hombre / mujer / unisex /
+    // todos para no romper internal links viejos.
+    // ────────────────────────────────────────────────────────────────
+    function updateFiltersInURL() {
+      try {
+        var params = new URLSearchParams();
+        if (currentFilter && currentFilter !== 'all') params.set('cat', currentFilter);
+        if (currentNoteFilter)  params.set('nota', currentNoteFilter);
+        if (currentOccasion)    params.set('ocasion', currentOccasion);
+        var qs = params.toString();
+        var hash = window.location.hash || '#catalogo';
+        var newUrl = (qs ? '?' + qs : '') + hash;
+        if (window.location.search + window.location.hash !== newUrl) {
+          window.history.replaceState(null, '', newUrl || '/');
+        }
+      } catch (e) { /* silent */ }
     }
-    window.addEventListener('load', applyFilterFromHash);
-    window.addEventListener('hashchange', applyFilterFromHash);
+
+    function applyFiltersFromURL() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var hash = (window.location.hash || '').toLowerCase();
+
+        // Categoría: hash legacy o ?cat=
+        var hashCatMap = { '#filtro-hombre':'Hombre', '#filtro-mujer':'Mujer', '#filtro-unisex':'Unisex', '#filtro-todos':'all' };
+        var cat = hashCatMap[hash] || params.get('cat');
+        // Nota
+        var nota = params.get('nota');
+        // Ocasión
+        var ocasion = params.get('ocasion');
+        // Perfume puntual (abre bottom sheet en mobile)
+        var perfumeSlug = params.get('perfume');
+
+        setTimeout(function() {
+          if (cat) filterByCat(cat);
+          if (nota) {
+            var chip = Array.prototype.find.call(
+              document.querySelectorAll('.note-chip'),
+              function(c) { return c.textContent.trim().toLowerCase() === nota.toLowerCase(); }
+            );
+            if (chip && currentNoteFilter !== nota) toggleNoteFilter(nota, chip);
+          }
+          if (ocasion === 'dia' || ocasion === 'noche') {
+            if (currentOccasion !== ocasion && typeof setOccasion === 'function') setOccasion(ocasion);
+          }
+          if (perfumeSlug && typeof openBottomSheet === 'function') {
+            // No re-abrir si ya está abierto con el mismo slug (evita loop
+            // cuando el propio openBottomSheet hizo pushState).
+            if (currentBsSlug !== perfumeSlug) {
+              setTimeout(function() { openBottomSheet(perfumeSlug); }, 200);
+            }
+          }
+        }, 250);
+      } catch (e) { /* silent */ }
+    }
+    window.addEventListener('load', applyFiltersFromURL);
+    window.addEventListener('hashchange', applyFiltersFromURL);
+    window.addEventListener('popstate', applyFiltersFromURL);
 
     // ============================================================
     // FILTROS Y ORDENAR
@@ -2705,17 +2759,8 @@
       closeDeck();
       updateDeckLabel();
       scrollToCatalog();
-
-      // Actualizar URL con el hash del filtro (sin recargar) para que el
-      // usuario pueda compartir el link YA filtrado. replaceState evita
-      // sumar al historial del navegador en cada click.
-      try {
-        var hashMap = { 'Hombre': '#filtro-hombre', 'Mujer': '#filtro-mujer', 'Unisex': '#filtro-unisex' };
-        var newHash = hashMap[cat] || '#catalogo';
-        if (window.location.hash !== newHash) {
-          window.history.replaceState(null, '', newHash);
-        }
-      } catch (e) { /* silent: no rompemos UX por la URL */ }
+      // Sincronizar URL con todos los filtros activos (cat + nota + ocasion)
+      if (typeof updateFiltersInURL === 'function') updateFiltersInURL();
     }
 
     // ============================================================
@@ -4137,6 +4182,22 @@
       if (!p) return;
       currentBsSlug = slug;
 
+      // SEO/UX: actualizar URL del navegador con ?perfume=slug.
+      // Beneficios:
+      //   - El usuario ve en la URL exactamente qué perfume está mirando
+      //   - Compartiendo la URL desde el navegador, otro user llega al mismo perfume
+      //   - Refresh mantiene el contexto (carga catálogo + abre el bottom sheet)
+      //   - Back button cierra el modal (manejado en popstate)
+      // Solo se sincroniza una vez por slug (no spamea history).
+      try {
+        var currentParams = new URLSearchParams(window.location.search);
+        if (currentParams.get('perfume') !== slug) {
+          currentParams.set('perfume', slug);
+          var newUrl = '?' + currentParams.toString() + (window.location.hash || '');
+          window.history.pushState({ bottomSheet: slug }, '', newUrl);
+        }
+      } catch (e) { /* silent */ }
+
       // Imagen
       var imgWrap = document.getElementById('bsImgWrap');
       // Fallback: si no tiene foto propia, usar la 1ra foto de gama si aplica
@@ -4265,7 +4326,50 @@
         document.body.style.overflow = '';
         currentBsSlug = null;
       }, 260);
+
+      // Limpiar el parámetro ?perfume= de la URL al cerrar el modal.
+      // Si el último estado fue del bottom sheet, hacemos history.back
+      // para que el back button del navegador "consuma" esa entrada.
+      // Sino, simplemente reemplazamos la URL sin tocar el historial.
+      try {
+        if (window.history.state && window.history.state.bottomSheet) {
+          window.history.back();
+        } else {
+          var params = new URLSearchParams(window.location.search);
+          if (params.get('perfume')) {
+            params.delete('perfume');
+            var qs = params.toString();
+            var newUrl = (qs ? '?' + qs : '') + (window.location.hash || '');
+            window.history.replaceState(null, '', newUrl || '/');
+          }
+        }
+      } catch (e) { /* silent */ }
     }
+
+    // popstate (back button del navegador): si había un bottom sheet
+    // abierto y el usuario hizo back, lo cerramos suavemente.
+    window.addEventListener('popstate', function(e) {
+      var bs = document.getElementById('bsOverlay');
+      if (bs && bs.classList.contains('active')) {
+        var params = new URLSearchParams(window.location.search);
+        if (!params.get('perfume')) {
+          // Cierre directo (sin volver a llamar history.back, evita loop)
+          var sheet = document.getElementById('bottomSheet');
+          sheet.style.transition = 'transform .25s ease';
+          sheet.style.transform = 'translateY(100%)';
+          bs.style.transition = 'opacity .25s ease';
+          bs.style.opacity = '0';
+          setTimeout(function() {
+            bs.classList.remove('active');
+            bs.style.opacity = '';
+            sheet.style.transform = '';
+            sheet.style.transition = '';
+            document.body.style.overflow = '';
+            currentBsSlug = null;
+          }, 260);
+        }
+      }
+    });
 
     // Swipe-down para cerrar bottom sheet
     (function() {
@@ -5099,6 +5203,15 @@
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
+      // SEO/UX: actualizar URL para reflejar que se está armando un pack.
+      // Aprovechamos la landing /armar-pack-decants que ya creamos.
+      // Si la URL actual no es esa ya, hacemos pushState (back lo cierra).
+      try {
+        var actual = window.location.pathname + window.location.search;
+        if (actual.indexOf('/armar-pack-decants') === -1 && actual.indexOf('action=decants') === -1) {
+          window.history.pushState({ decantBuilder: true }, '', '/armar-pack-decants');
+        }
+      } catch (e) { /* silent */ }
     }
 
     function closeDecantBuilder() {
@@ -5107,7 +5220,27 @@
         overlay.classList.remove('active');
         document.body.style.overflow = '';
       }
+      // Limpiar la URL al cerrar
+      try {
+        if (window.history.state && window.history.state.decantBuilder) {
+          window.history.back();
+        } else if (window.location.pathname.indexOf('/armar-pack-decants') !== -1) {
+          window.history.replaceState(null, '', '/');
+        }
+      } catch (e) { /* silent */ }
     }
+
+    // popstate handler: cerrar el decant builder si el usuario hace back
+    window.addEventListener('popstate', function(e) {
+      var ov = document.getElementById('decantBuilderOverlay');
+      if (ov && ov.classList.contains('active')) {
+        if (window.location.pathname.indexOf('/armar-pack-decants') === -1
+            && window.location.search.indexOf('action=decants') === -1) {
+          ov.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      }
+    });
 
     function sendDecantPackToWA() {
       var qty = decantsPack.length;
