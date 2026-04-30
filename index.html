@@ -869,7 +869,7 @@
         ¿Qué medios de pago aceptan?
         <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="faq-answer"><p>Aceptamos todos los medios de pago y ofrecemos 3 cuotas sin interés, además en efectivo o transferencia tenés un 10% de descuento.</p></div>
+      <div class="faq-answer"><p>Aceptamos todos los medios de pago y ofrecemos <a href="#explorar" class="nosotros-link">3 cuotas sin interés</a>, además en efectivo o transferencia tenés un 10% de descuento.</p></div>
     </div>
 
     <div class="faq-item">
@@ -878,7 +878,7 @@
         <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="faq-answer">
-        <p>Los perfumes árabes suelen tener mayor concentración de aceites esenciales, lo que les da más duración y proyección. Muchos son inspirados en fragancias de diseñador pero con su propia identidad.</p>
+        <p>Los <a href="#explorar" class="nosotros-link">perfumes árabes</a> suelen tener mayor concentración de aceites esenciales, lo que les da más duración y proyección. Muchos son inspirados en fragancias de diseñador pero con su propia identidad.</p>
         <p>Además, la relación precio-calidad es muy superior: conseguís un perfume potente y duradero a una fracción del precio de un diseñador.</p>
       </div>
     </div>
@@ -1183,7 +1183,7 @@
   <!-- Banner de bienvenida -->
   <div class="welcome-overlay" id="welcomeOverlay" style="display:none;" onclick="closeWelcome()">
     <div class="welcome-box" onclick="event.stopPropagation()">
-      <img src="img/logo-st.webp" alt="ST" class="welcome-logo"/>
+      <img src="img/logo-st.webp" alt="ST Perfumería · Perfumes árabes en Comodoro Rivadavia" class="welcome-logo"/>
       <p class="welcome-brand">Scent & Textures</p>
       <h2 class="welcome-title">Bienvenido a ST</h2>
       <p class="welcome-sub">Perfumería árabe original en Comodoro Rivadavia. Explorá más de 150 fragancias exclusivas.</p>
@@ -1215,6 +1215,55 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
   <script src="perfumes.js" defer></script>
   <script src="js/app.js" defer></script>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SCHEMA.ORG AggregateOffer DINÁMICO
+       Se ejecuta DESPUÉS de perfumes.js (defer mantiene orden) y calcula
+       precio mínimo/máximo + cantidad de productos del catálogo. Inyecta
+       un JSON-LD en runtime que le dice a Google "este sitio lista N
+       perfumes con precios desde X hasta Y". Potente para shopping rich
+       results.
+       ════════════════════════════════════════════════════════════════ -->
+  <script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        if (typeof PERFUMES === 'undefined' || !Array.isArray(PERFUMES)) return;
+        var prices = PERFUMES
+          .filter(function(p) { return !p.esSet; })
+          .map(function(p) {
+            var raw = p.promo || p.price || '';
+            return parseFloat(String(raw).replace(/,/g, '').replace(/\./g, ''));
+          })
+          .filter(function(n) { return !isNaN(n) && n > 0; });
+        if (prices.length === 0) return;
+        var minP = Math.min.apply(null, prices);
+        var maxP = Math.max.apply(null, prices);
+        var schema = {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "@id": "https://www.stperfumeria.com/#catalog-aggregate",
+          "name": "Catálogo de perfumes — ST Perfumería",
+          "description": "Catálogo de perfumes árabes importados originales en Comodoro Rivadavia",
+          "numberOfItems": prices.length,
+          "url": "https://www.stperfumeria.com/#catalogo",
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "ARS",
+            "lowPrice": Math.round(minP),
+            "highPrice": Math.round(maxP),
+            "offerCount": prices.length,
+            "availability": "https://schema.org/InStock",
+            "seller": { "@id": "https://www.stperfumeria.com/#business" }
+          }
+        };
+        var s = document.createElement('script');
+        s.type = 'application/ld+json';
+        s.id = 'jsonld-aggregate-offer';
+        s.textContent = JSON.stringify(schema);
+        document.head.appendChild(s);
+      } catch (e) { /* silent: no rompemos UX por SEO opcional */ }
+    });
+  </script>
 
   <!-- DVD BOUNCER — perfume rebotando tipo screensaver (solo desktop) -->
   <!-- <script src="js/dvd-bouncer.js" defer></script> -->
