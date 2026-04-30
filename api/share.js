@@ -104,7 +104,8 @@ module.exports = async (req, res) => {
 
   const imageAlt = perfume.name + (brand ? ' de ' + brand : '') + ' — ST Scent & Textures';
 
-  // Schema.org Product para rich snippets en Google (precio, marca, disponibilidad)
+  // Schema.org Product enriquecido para rich snippets en Google
+  // (precio, marca, disponibilidad, condición, vendedor + áreas servidas).
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -113,18 +114,29 @@ module.exports = async (req, res) => {
     "image": image,
     "url": BASE_URL + '/perfume/' + slug,
     "sku": slug,
+    "mpn": slug,
     "brand": brand ? { "@type": "Brand", "name": brand } : undefined,
-    "category": cat || undefined,
+    "category": cat || 'Perfume',
     "offers": !isNaN(priceNum) ? {
       "@type": "Offer",
       "url": BASE_URL + '/perfume/' + slug,
       "priceCurrency": "ARS",
       "price": Math.round(priceNum),
+      "priceValidUntil": new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
       "availability": "https://schema.org/InStock",
       "itemCondition": "https://schema.org/NewCondition",
+      "areaServed": [
+        { "@type": "Country", "name": "Argentina" },
+        { "@type": "City", "name": "Comodoro Rivadavia" }
+      ],
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "AR" }
+      },
       "seller": {
         "@type": "Organization",
-        "name": "ST Scent & Textures"
+        "name": "ST Scent & Textures",
+        "url": BASE_URL
       }
     } : undefined
   };
@@ -134,8 +146,21 @@ module.exports = async (req, res) => {
     Object.keys(productSchema.offers).forEach(k => productSchema.offers[k] === undefined && delete productSchema.offers[k]);
   }
 
+  // BreadcrumbList: Inicio › Catálogo › [Categoría] › [Perfume]
+  // Mejora la navegación visible en resultados de Google.
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio",   "item": BASE_URL },
+      { "@type": "ListItem", "position": 2, "name": "Catálogo", "item": BASE_URL + '/#catalogo' },
+      ...(cat ? [{ "@type": "ListItem", "position": 3, "name": "Perfumes " + cat, "item": BASE_URL + '/#catalogo' }] : []),
+      { "@type": "ListItem", "position": cat ? 4 : 3, "name": perfume.name, "item": BASE_URL + '/perfume/' + slug }
+    ]
+  };
+
   const html = `<!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -161,6 +186,7 @@ module.exports = async (req, res) => {
   <meta name="twitter:image:alt" content="${esc(imageAlt)}"/>
   <link rel="icon" type="image/png" href="${BASE_URL}/img/logo-st.webp"/>
   <script type="application/ld+json">${JSON.stringify(productSchema)}</script>
+  <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
   ${botRequest ? '<!-- bot detected: no JS redirect, full page indexable -->' : `<script>
     // Redirect al home con el perfume resaltado.
     // SOLO para usuarios reales: si es bot/crawler (Googlebot, WhatsApp, Facebook,
