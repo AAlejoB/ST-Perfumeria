@@ -2269,10 +2269,18 @@
         max-height: 100vh;
         height: 100vh;
         border-radius: 16px 0 0 16px;
-        padding: 0 1.5rem 2rem;
+        padding: 2rem 1.5rem;
         animation: slideInRight .35s cubic-bezier(.25,.46,.45,.94);
         box-shadow: -16px 0 48px rgba(0,0,0,.5);
+        /* Centrar el contenido verticalmente cuando hay espacio sobrante.
+           Si el contenido es más alto que el panel, los margin: auto
+           se "anulan" automáticamente y vuelve a top-aligned con scroll. */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
+      /* Contenedor de contenido: que crezca pero respete el centrado */
+      .bottom-sheet > * { flex-shrink: 0; }
       /* En desktop el handle (manija superior) no tiene sentido, lo ocultamos */
       .bottom-sheet .bs-handle-zone { display: none; }
     }
