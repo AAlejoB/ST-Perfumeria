@@ -638,6 +638,12 @@
     body.light [style*="color:#aaa"] { color: #555 !important; }
     body.light [style*="color:var(--gris-claro)"] { color: #333 !important; }
 
+    /* Sistema de roles: cualquier elemento con data-role="jefe" se oculta
+       cuando el body tiene la clase role-empleado. La regla incluye :not
+       de tab-btn porque las tabs ya se gestionan por JS (visibility, active
+       state), pero el resto del DOM se controla acá. */
+    body.role-empleado [data-role="jefe"]:not(.tab-btn) { display: none !important; }
+
     /* ============================================================
        MINI-DASHBOARD DE STOCK — 4 stat cards arriba de la tabla
        ============================================================ */
@@ -852,18 +858,18 @@
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this)">💰 Precios & Stock</button>
-      <button class="tab-btn" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
-      <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
-      <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
+      <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
+      <button class="tab-btn" data-role="jefe" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
+      <button class="tab-btn" data-role="jefe" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
       <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
-      <button class="tab-btn" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
+      <button class="tab-btn" data-role="jefe" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
       <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this)">Clientes</button>
-      <button class="tab-btn" data-tab="combos" onclick="switchTab('combos',this)">&#127873; Combos</button>
-      <button class="tab-btn" data-tab="votacion" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
+      <button class="tab-btn" data-role="jefe" data-tab="combos" onclick="switchTab('combos',this)">&#127873; Combos</button>
+      <button class="tab-btn" data-role="jefe" data-tab="votacion" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
       <button class="tab-btn" data-tab="push" onclick="switchTab('push',this)">🔔 Notificaciones</button>
       <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
-      <button class="tab-btn" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
+      <button class="tab-btn" data-role="jefe" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
       <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
       <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog()">📋 Log</button>
       <button class="tab-btn" data-role="jefe" data-tab="analytics" onclick="switchTab('analytics',this);loadAnalytics()">📊 Analytics</button>
@@ -2332,12 +2338,20 @@
 
     // applyRolePermissions: oculta las pestañas jefe-only si el rol es empleado,
     // reasigna la pestaña activa a la primera visible y muestra el badge del rol.
+    //
+    // Sistema escalable: además de las tabs, cualquier elemento del DOM que
+    // tenga data-role="jefe" se oculta cuando el rol activo es empleado, vía
+    // la clase body.role-empleado y reglas CSS. Esto permite ocultar botones
+    // específicos dentro de tabs compartidas (ej: "Editar precio" en la tab
+    // Precios & Stock).
     function applyRolePermissions() {
       var badge = document.getElementById('roleBadge');
       var tabs = document.querySelectorAll('.tabs .tab-btn');
 
       if (currentRole === 'jefe') {
         // Jefe ve todo, badge dorado
+        document.body.classList.remove('role-empleado');
+        document.body.classList.add('role-jefe');
         tabs.forEach(function(b) { b.style.display = ''; });
         badge.style.display = 'inline-block';
         badge.textContent = 'Jefe';
@@ -2348,6 +2362,8 @@
       }
 
       // Empleado: oculta jefe-only y badge gris
+      document.body.classList.remove('role-jefe');
+      document.body.classList.add('role-empleado');
       var firstVisible = null;
       tabs.forEach(function(b) {
         if (b.dataset.role === 'jefe') {
@@ -2677,7 +2693,7 @@
           + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
           + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
-          + '<td><button class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
+          + '<td><button data-role="jefe" class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
           + '</tr>';
       });
       tbody.innerHTML = html;
@@ -3378,6 +3394,12 @@
     // MODALS
     // ============================================================
     function openPriceModal(slug) {
+      // Guard de rol: solo jefe puede editar precios. Si un empleado
+      // llama esta función (vía consola, link directo, etc.), abortamos.
+      if (currentRole && currentRole !== 'jefe') {
+        alert('Solo el jefe puede editar precios. Pedile a un jefe que lo haga.');
+        return;
+      }
       editingSlug = slug;
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
