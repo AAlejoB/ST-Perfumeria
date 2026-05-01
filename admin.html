@@ -5989,6 +5989,16 @@
           issues.push({ type: 'warning', icon: '🎵', msg: 'Sin notas de base' });
         }
 
+        // 🏷️ Sin apodo/abreviación — perdés búsquedas por apodo informal
+        if (!p.alias || p.alias.trim() === '') {
+          issues.push({ type: 'warning', icon: '🏷️', msg: 'Sin apodo/abreviación — el cliente no lo encuentra al buscar por nombre informal' });
+        }
+
+        // 🌿 Sin características olfativas — el filtro por perfil no lo agarra
+        if (!p.perfil || p.perfil.trim() === '') {
+          issues.push({ type: 'warning', icon: '🌿', msg: 'Sin características olfativas — no aparece al filtrar por perfil (ej: dulce, fresco, intenso)' });
+        }
+
         // 🏭 Sin marca
         if (!p.marca && !p.marca_real) {
           issues.push({ type: 'warning', icon: '🏭', msg: 'Sin marca — queda como genérico' });
