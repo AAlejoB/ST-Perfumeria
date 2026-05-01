@@ -887,11 +887,17 @@
     }
     .seleccion-st-title {
       font-family: var(--font-display);
-      font-size: 1.3rem;
+      font-size: 1.15rem;
       font-weight: 300;
-      letter-spacing: .3em;
+      letter-spacing: .25em;
       text-transform: uppercase;
       color: var(--amarillo);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (min-width: 480px) {
+      .seleccion-st-title { font-size: 1.3rem; letter-spacing: .3em; }
     }
     .seleccion-st-sub {
       font-family: var(--font-display);
@@ -902,17 +908,38 @@
       letter-spacing: .08em;
       margin-top: .4rem;
     }
+    /* MOBILE: scroll horizontal con scroll-snap. Importante:
+       - justify-content: flex-start (NO center) para que la primera
+         card no quede cortada del borde izquierdo cuando hay overflow.
+         "safe center" sería ideal pero compatibilidad pobre en iOS.
+       - padding-inline + scroll-padding-inline para que arranque y
+         termine con margen visual y el snap respete ese margen. */
     .seleccion-st-grid {
       display: flex;
-      gap: 1rem;
+      gap: .8rem;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scroll-snap-type: x mandatory;
-      padding-bottom: .5rem;
+      padding: 0 1rem .5rem;
+      scroll-padding-inline: 1rem;
       scrollbar-width: none;
-      justify-content: center;
+      justify-content: flex-start;
+      /* sacamos el padding del .seleccion-st para que las cards
+         puedan llegar al borde con scroll y no queden encerradas */
+      margin-inline: -1.5rem;
     }
     .seleccion-st-grid::-webkit-scrollbar { display: none; }
+    /* DESKTOP: si hay pocas cards y entran todas en pantalla, las
+       centramos. Si hay overflow, flex-start sigue siendo seguro. */
+    @media (min-width: 768px) {
+      .seleccion-st-grid {
+        justify-content: center;
+        margin-inline: 0;
+        padding: 0 0 .5rem;
+        scroll-padding-inline: 0;
+        gap: 1rem;
+      }
+    }
 
     .collectible-card {
       flex: 0 0 150px;
