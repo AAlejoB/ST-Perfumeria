@@ -4519,22 +4519,26 @@
         var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
         var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
 
+        // Estructura nueva:
+        //  - Header: foto + nombre + marca + precio destacado (sin label).
+        //  - Rows: cada par label/value envuelto en .compare-row para
+        //    que CSS Grid los alinee perfectamente sin desfases.
         html += '<div class="compare-col">'
-          + imgHTML
-          + '<p class="compare-col-name">' + p.name + '</p>'
-          + '<p class="compare-col-brand">' + (p.marca_real || p.marca) + '</p>'
-          + '<p class="compare-row-label">Categor\u00eda</p>'
-          + '<p class="compare-row-value">' + pCat + '</p>'
-          + '<p class="compare-row-label">Perfil</p>'
-          + '<p class="compare-row-value">' + (p.perfil || '\u2014') + '</p>'
-          + '<p class="compare-row-label">Precio</p>'
-          + '<p class="compare-row-price">$' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.') + '</p>'
-          + '<p class="compare-row-label">Salida</p>'
-          + '<p class="compare-row-value">' + (p.notas_salida || '\u2014') + '</p>'
-          + '<p class="compare-row-label">Coraz\u00f3n</p>'
-          + '<p class="compare-row-value">' + (p.notas_corazon || '\u2014') + '</p>'
-          + '<p class="compare-row-label">Base</p>'
-          + '<p class="compare-row-value">' + (p.notas_base || '\u2014') + '</p>'
+          + '<div class="compare-col-head">'
+            + imgHTML
+            + '<div class="compare-col-info">'
+              + '<p class="compare-col-name">' + p.name + '</p>'
+              + '<p class="compare-col-brand">' + (p.marca_real || p.marca) + '</p>'
+              + '<p class="compare-col-price">$' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.') + '</p>'
+            + '</div>'
+          + '</div>'
+          + '<div class="compare-rows">'
+            + '<div class="compare-row"><p class="compare-row-label">Categor\u00eda</p><p class="compare-row-value">' + pCat + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Perfil</p><p class="compare-row-value">' + (p.perfil || '\u2014') + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Salida</p><p class="compare-row-value">' + (p.notas_salida || '\u2014') + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Coraz\u00f3n</p><p class="compare-row-value">' + (p.notas_corazon || '\u2014') + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Base</p><p class="compare-row-value">' + (p.notas_base || '\u2014') + '</p></div>'
+          + '</div>'
         + '</div>';
       });
       grid.innerHTML = html;

@@ -1928,11 +1928,39 @@
     }
     .compare-col-brand { font-size: .6rem; color: var(--gris); text-transform: uppercase; margin-bottom: .5rem; }
     .compare-row-label {
-      font-size: .5rem; font-weight: 700; color: var(--amarillo);
-      letter-spacing: .15em; text-transform: uppercase; margin-bottom: .2rem; margin-top: .6rem;
+      font-size: .55rem; font-weight: 700; color: var(--amarillo);
+      letter-spacing: .15em; text-transform: uppercase; margin: 0;
     }
-    .compare-row-value { font-size: .7rem; color: #ddd; font-weight: 300; line-height: 1.4; }
-    .compare-row-price { font-size: 1rem; font-weight: 700; color: var(--amarillo); }
+    .compare-row-value { font-size: .72rem; color: #ddd; font-weight: 300; line-height: 1.4; margin: 0; }
+    .compare-col-price {
+      font-size: 1.05rem; font-weight: 700; color: var(--amarillo);
+      margin-top: .35rem;
+    }
+    /* Layout nuevo: cada par label-value envuelto en .compare-row, sin
+       desfases. El header agrupa foto + info + precio destacado. */
+    .compare-col-head {
+      display: flex; gap: .9rem; align-items: center;
+      margin-bottom: .8rem;
+    }
+    .compare-col-head .compare-col-img,
+    .compare-col-head .compare-col-placeholder {
+      margin: 0; flex-shrink: 0;
+    }
+    .compare-col-info {
+      flex: 1; min-width: 0; text-align: left;
+    }
+    .compare-rows {
+      display: flex; flex-direction: column; gap: .55rem;
+    }
+    .compare-row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: .8rem;
+      align-items: baseline;
+      padding: .35rem 0;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .compare-row:last-child { border-bottom: none; }
     .compare-common {
       margin-top: 1.2rem; padding: 1rem; background: rgba(232,184,0,.06);
       border: 1px solid rgba(232,184,0,.15); border-radius: 10px; text-align: center;
@@ -1949,15 +1977,23 @@
       background: rgba(232,184,0,.15); color: var(--amarillo); font-weight: 600;
       border: 1px solid rgba(232,184,0,.25);
     }
-    /* Responsive compare grid */
+    /* Responsive compare grid:
+       - Mobile (default): 1 columna por perfume, todo apilado. Header con
+         foto al lado izquierdo + info a la derecha; rows abajo en tabla.
+       - Desktop: cards lado a lado con auto-fit minmax 200px. La foto
+         vuelve a ir centrada arriba con margin auto. */
     @media (max-width: 767px) {
       .compare-grid { grid-template-columns: 1fr; }
-      .compare-col { display: grid; grid-template-columns: 80px 1fr; gap: .5rem 1rem; text-align: left; padding: .8rem; }
-      .compare-col-img, .compare-col-placeholder { margin: 0; grid-row: 1 / 4; }
-      .compare-col-name { font-size: .8rem; }
+      .compare-col { padding: 1rem; text-align: left; }
+      .compare-col-name { font-size: .85rem; }
     }
     @media (min-width: 768px) {
-      .compare-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+      .compare-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      /* En desktop el header vuelve a ser vertical (foto arriba centrada) */
+      .compare-col-head { flex-direction: column; align-items: center; text-align: center; }
+      .compare-col-head .compare-col-img,
+      .compare-col-head .compare-col-placeholder { margin: 0 auto; }
+      .compare-col-info { text-align: center; }
     }
 
     .card-pricing { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .6rem; }
