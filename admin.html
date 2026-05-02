@@ -981,20 +981,27 @@
         <h3 style="color:var(--amarillo);font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:600;margin-bottom:.8rem;">Registrar nueva venta</h3>
 
         <!-- Selector de perfume con buscador -->
-        <div style="margin-bottom:.8rem;">
+        <div style="margin-bottom:.6rem;">
           <label class="modal-label">Perfume vendido</label>
           <div class="perfume-picker">
             <input type="text" class="perfume-picker-input" id="ventaPerfumeInput" placeholder="Buscar perfume..." oninput="filterVentaPerfumeOptions(this.value)" onfocus="document.getElementById('ventaPerfumeDropdown').classList.add('open')" autocomplete="off"/>
             <button class="perfume-picker-clear" id="ventaPerfumeClear" onclick="clearVentaPerfume()" type="button">✕</button>
             <div class="perfume-picker-dropdown" id="ventaPerfumeDropdown"></div>
           </div>
+          <!-- Banner de stock disponible: aparece cuando hay perfume seleccionado.
+               Cambia color según haya stock o no. -->
+          <div id="ventaStockBanner" style="display:none;margin-top:.5rem;padding:.5rem .8rem;border-radius:6px;font-size:.78rem;font-weight:600;"></div>
         </div>
 
-        <!-- Fila estilo papel: Cliente | MP | Efectivo | Notas -->
-        <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 1.5fr;gap:.6rem;margin-bottom:.8rem;">
+        <!-- Fila estilo papel + cantidad: Cliente | Cant | MP | Efectivo | Notas -->
+        <div style="display:grid;grid-template-columns:1.2fr .6fr 1fr 1fr 1.4fr;gap:.6rem;margin-bottom:.8rem;">
           <div>
             <label class="modal-label">Cliente</label>
             <input type="text" class="modal-input" id="ventaCliente" placeholder="Nombre del cliente" maxlength="80" style="margin-bottom:0;"/>
+          </div>
+          <div>
+            <label class="modal-label">Cantidad</label>
+            <input type="number" class="modal-input" id="ventaCantidad" value="1" min="1" max="999" style="margin-bottom:0;text-align:center;font-weight:700;"/>
           </div>
           <div>
             <label class="modal-label">MercadoPago $</label>
@@ -1006,7 +1013,7 @@
           </div>
           <div>
             <label class="modal-label">Notas (opcional)</label>
-            <input type="text" class="modal-input" id="ventaNotas" placeholder="Ej: regalo, pedido especial..." maxlength="200" style="margin-bottom:0;"/>
+            <input type="text" class="modal-input" id="ventaNotas" placeholder="Ej: regalo, pedido..." maxlength="200" style="margin-bottom:0;"/>
           </div>
         </div>
 
@@ -2829,7 +2836,10 @@
           + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
           + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
-          + '<td><button data-role="jefe" class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button></td>'
+          + '<td style="white-space:nowrap;">'
+            + '<button class="action-btn" style="background:rgba(46,204,113,.15);color:#2ecc71;border:1px solid rgba(46,204,113,.4);margin-right:.3rem;" onclick="quickVentaFromStock(\'' + p.slug + '\')" title="Registrar venta de este perfume">💵 Vender</button>'
+            + '<button data-role="jefe" class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button>'
+          + '</td>'
           + '</tr>';
       });
       tbody.innerHTML = html;
@@ -6233,6 +6243,8 @@
         var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
         if (basePrice > 0) mpInput.placeholder = String(Math.round(basePrice));
       }
+      // Mostrar banner con stock disponible + setear max del input cantidad
+      updateVentaStockBanner();
     }
 
     function clearVentaPerfume() {
@@ -6243,6 +6255,58 @@
       document.getElementById('ventaPerfumeClear').style.display = 'none';
       document.getElementById('ventaPerfumeDropdown').classList.remove('open');
       document.getElementById('ventaMp').placeholder = '0';
+      var banner = document.getElementById('ventaStockBanner');
+      if (banner) banner.style.display = 'none';
+      var qty = document.getElementById('ventaCantidad');
+      if (qty) { qty.value = 1; qty.max = 999; }
+    }
+
+    // Actualiza el banner "Stock disponible" + el max del campo cantidad.
+    // Llamado al seleccionar perfume y también desde el handler de Realtime
+    // cuando otro empleado modifica el stock de un perfume seleccionado.
+    function updateVentaStockBanner() {
+      var banner = document.getElementById('ventaStockBanner');
+      var qtyInp = document.getElementById('ventaCantidad');
+      if (!banner || !qtyInp || !ventaSelectedSlug) {
+        if (banner) banner.style.display = 'none';
+        return;
+      }
+      var p = PERFUMES.find(function(pf) { return pf.slug === ventaSelectedSlug; });
+      if (!p) { banner.style.display = 'none'; return; }
+      var stockQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      var status = p._stockStatus || 'ok';
+      banner.style.display = 'block';
+      if (status === 'pausado') {
+        banner.innerHTML = '⏸ <strong>Pausado</strong> — este perfume está pausado por el jefe. Confirmá antes de registrar.';
+        banner.style.background = 'rgba(241,196,15,.12)';
+        banner.style.color = '#f1c40f';
+        banner.style.border = '1px solid rgba(241,196,15,.4)';
+        qtyInp.max = 999;
+      } else if (stockQty === 0 || status === 'out') {
+        banner.innerHTML = '🚫 <strong>SIN STOCK</strong> — el sistema dice que no hay unidades disponibles. ' + (currentRole === 'jefe' ? 'Como jefe, podés registrar la venta igual con confirmación.' : 'Avisá al jefe si llegó mercadería nueva.');
+        banner.style.background = 'rgba(231,76,60,.12)';
+        banner.style.color = '#e74c3c';
+        banner.style.border = '1px solid rgba(231,76,60,.4)';
+        qtyInp.max = 0;
+      } else if (stockQty !== null) {
+        var emoji = stockQty === 1 ? '⚠️' : (stockQty <= 3 ? '🟡' : '✅');
+        var msg = stockQty === 1 ? '<strong>ÚLTIMO</strong> · solo queda 1 unidad disponible'
+                  : (stockQty <= 3 ? '<strong>POCAS UNIDADES</strong> · ' + stockQty + ' disponibles'
+                    : '<strong>' + stockQty + ' disponibles</strong>');
+        banner.innerHTML = emoji + ' ' + msg;
+        var color = stockQty === 1 ? '#e67e22' : (stockQty <= 3 ? '#f1c40f' : '#2ecc71');
+        var bg = stockQty === 1 ? 'rgba(230,126,34,.12)' : (stockQty <= 3 ? 'rgba(241,196,15,.12)' : 'rgba(46,204,113,.1)');
+        banner.style.background = bg;
+        banner.style.color = color;
+        banner.style.border = '1px solid ' + color + '66';
+        qtyInp.max = stockQty;
+      } else {
+        banner.innerHTML = 'ℹ️ Stock no registrado todavía. Si vendés, se registra la venta pero no se descuenta cantidad exacta.';
+        banner.style.background = 'rgba(120,120,120,.12)';
+        banner.style.color = '#aaa';
+        banner.style.border = '1px solid rgba(120,120,120,.3)';
+        qtyInp.max = 999;
+      }
     }
 
     // Cierra el dropdown al hacer click fuera
@@ -6269,10 +6333,12 @@
         return;
       }
       var cliente = document.getElementById('ventaCliente').value.trim();
+      var cantidad = parseInt(document.getElementById('ventaCantidad').value || '1', 10);
       var mp = parseFloat(document.getElementById('ventaMp').value || '0');
       var efe = parseFloat(document.getElementById('ventaEfectivo').value || '0');
       var notas = document.getElementById('ventaNotas').value.trim();
 
+      // ── VALIDACIONES BÁSICAS ─────────────────────────────────────
       if (!cliente) {
         msg.textContent = '⚠ Falta el nombre del cliente.';
         msg.style.color = '#e74c3c';
@@ -6283,6 +6349,47 @@
         msg.style.color = '#e74c3c';
         return;
       }
+      if (isNaN(cantidad) || cantidad < 1) {
+        msg.textContent = '⚠ La cantidad tiene que ser al menos 1.';
+        msg.style.color = '#e74c3c';
+        return;
+      }
+
+      // ── VALIDACIONES DE STOCK (1-6 del plan) ─────────────────────
+      var currentQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      var status = p._stockStatus || 'ok';
+      var brand = p.marca_real || p.marca || '';
+      var vendor = currentRole || 'admin';
+      var overrideStock = false; // flag si el jefe forzó la venta con stock=0
+
+      // (4) Bloqueo si stock = 0
+      if (currentQty === 0 || status === 'out') {
+        if (currentRole === 'jefe') {
+          // (5) Override del jefe con confirmación explícita
+          var confirmTxt = '🚫 STOCK = 0\n\n"' + p.name + '" está marcado como sin stock en el sistema.\n\n'
+            + '¿Confirmás que SÍ tenés esta unidad físicamente para vender?\n\n'
+            + '(Esto va a quedar registrado en el log del sistema.)';
+          if (!confirm(confirmTxt)) return;
+          overrideStock = true;
+        } else {
+          msg.textContent = '🚫 Sin stock. Pedile al jefe que confirme antes de registrar.';
+          msg.style.color = '#e74c3c';
+          return;
+        }
+      }
+
+      // (2) Validación dura: cantidad <= stock disponible
+      if (currentQty !== null && cantidad > currentQty && !overrideStock) {
+        msg.textContent = '⚠ Solo hay ' + currentQty + ' disponible' + (currentQty === 1 ? '' : 's') + '. No podés vender ' + cantidad + '.';
+        msg.style.color = '#e74c3c';
+        return;
+      }
+
+      // (6) Doble check para ventas grandes (>= 5 unidades)
+      if (cantidad >= 5) {
+        if (!confirm('🛒 ¿' + cantidad + ' unidades de "' + p.name + '"?\n\n'
+          + 'Es una venta grande. Confirmá que es correcto antes de continuar.')) return;
+      }
 
       btn.disabled = true;
       msg.textContent = 'Registrando...';
@@ -6290,28 +6397,26 @@
 
       try {
         var total = (isNaN(mp) ? 0 : mp) + (isNaN(efe) ? 0 : efe);
-        var brand = p.marca_real || p.marca || '';
-        var vendor = currentRole || 'admin';
 
-        // INSERT venta
+        // INSERT venta (con cantidad)
         var ins = await sb.from('ventas').insert({
           fecha: new Date().toISOString(),
           slug_perfume: p.slug,
           perfume_nombre: p.name,
           marca: brand,
           cliente_nombre: cliente,
+          cantidad: cantidad,
           monto_mp: isNaN(mp) ? 0 : Math.round(mp),
           monto_efectivo: isNaN(efe) ? 0 : Math.round(efe),
           monto_total: Math.round(total),
-          notas: notas || null,
+          notas: (notas || '') + (overrideStock ? ' [override jefe: stock era 0]' : ''),
           vendedor: vendor
         });
         if (ins.error) throw ins.error;
 
-        // RESTAR 1 del stock del perfume vendido
-        var currentQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
-        if (currentQty !== null && currentQty > 0) {
-          var newQty = Math.max(0, currentQty - 1);
+        // RESTAR `cantidad` del stock (no -1)
+        if (currentQty !== null) {
+          var newQty = Math.max(0, currentQty - cantidad);
           var newStatus = newQty === 0 ? 'out' : (newQty === 1 ? 'low' : 'ok');
           try {
             await sb.from('perfume_overrides').upsert({
@@ -6328,14 +6433,16 @@
           }
         }
 
-        // Notificar Telegram
+        // Notificar Telegram (con cantidad + flag override si aplica)
         try {
           notifyTelegram('💵 *Venta registrada*\n👤 Cliente: ' + cliente
             + '\n🌸 Perfume: ' + p.name + (brand ? ' (' + brand + ')' : '')
+            + '\n📦 Cantidad: ' + cantidad + (cantidad >= 5 ? ' ⚡' : '')
             + '\n💳 MP: $' + (isNaN(mp) ? 0 : Math.round(mp)).toLocaleString('es-AR')
             + '\n💴 Efectivo: $' + (isNaN(efe) ? 0 : Math.round(efe)).toLocaleString('es-AR')
             + '\n💰 Total: $' + Math.round(total).toLocaleString('es-AR')
             + '\n📤 Por: ' + vendor
+            + (overrideStock ? '\n⚠️ Override jefe: stock era 0' : '')
             + (notas ? '\n📝 ' + notas : '')
           );
         } catch(e) {}
@@ -6345,6 +6452,7 @@
         msg.style.color = '#2ecc71';
         clearVentaPerfume();
         document.getElementById('ventaCliente').value = '';
+        document.getElementById('ventaCantidad').value = 1;
         document.getElementById('ventaMp').value = '';
         document.getElementById('ventaEfectivo').value = '';
         document.getElementById('ventaNotas').value = '';
@@ -6398,9 +6506,11 @@
         var d = new Date(v.fecha);
         var hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         var fechaCorta = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+        var qty = v.cantidad || 1;
+        var qtyBadge = qty > 1 ? ' <span style="background:rgba(232,184,0,.18);color:var(--amarillo);font-size:.6rem;padding:1px 5px;border-radius:8px;font-weight:700;margin-left:.3rem;">×' + qty + '</span>' : '';
         return '<tr>'
           + '<td style="font-size:.72rem;color:var(--gris-claro);">' + fechaCorta + ' · ' + hora + '</td>'
-          + '<td><strong>' + (v.perfume_nombre || '—') + '</strong>' + (v.marca ? '<br><span style="font-size:.6rem;color:var(--gris);">' + v.marca + '</span>' : '') + '</td>'
+          + '<td><strong>' + (v.perfume_nombre || '—') + '</strong>' + qtyBadge + (v.marca ? '<br><span style="font-size:.6rem;color:var(--gris);">' + v.marca + '</span>' : '') + '</td>'
           + '<td>' + (v.cliente_nombre || '—') + '</td>'
           + '<td style="text-align:right;color:#3498db;font-weight:600;">' + (v.monto_mp ? fmt(v.monto_mp) : '—') + '</td>'
           + '<td style="text-align:right;color:#2ecc71;font-weight:600;">' + (v.monto_efectivo ? fmt(v.monto_efectivo) : '—') + '</td>'
@@ -6433,21 +6543,24 @@
         ol.innerHTML = '<li style="color:var(--gris);">Sin ventas todavía.</li>';
         return;
       }
+      // Suma UNIDADES vendidas (cantidad), no solo cantidad de registros.
+      // Si una venta es de 3 unidades de Khanjar, suma 3 al count.
       var counts = {};
       ventas.forEach(function(v) {
         var key = v.perfume_nombre || '—';
-        if (!counts[key]) counts[key] = { count: 0, total: 0, marca: v.marca || '' };
-        counts[key].count++;
+        var qty = parseInt(v.cantidad || 1, 10);
+        if (!counts[key]) counts[key] = { units: 0, total: 0, marca: v.marca || '' };
+        counts[key].units += qty;
         counts[key].total += parseFloat(v.monto_total || 0);
       });
       var sorted = Object.keys(counts).map(function(k) {
-        return { name: k, count: counts[k].count, total: counts[k].total, marca: counts[k].marca };
-      }).sort(function(a, b) { return b.count - a.count; }).slice(0, 5);
+        return { name: k, units: counts[k].units, total: counts[k].total, marca: counts[k].marca };
+      }).sort(function(a, b) { return b.units - a.units; }).slice(0, 5);
 
       ol.innerHTML = sorted.map(function(p) {
         return '<li><strong>' + p.name + '</strong>'
           + (p.marca ? ' <span style="color:var(--gris);font-size:.75rem;">(' + p.marca + ')</span>' : '')
-          + ' — ' + p.count + (p.count === 1 ? ' venta' : ' ventas')
+          + ' — ' + p.units + (p.units === 1 ? ' unidad' : ' unidades')
           + ' · <span style="color:var(--amarillo);">$' + Math.round(p.total).toLocaleString('es-AR') + '</span></li>';
       }).join('');
     }
@@ -6471,6 +6584,92 @@
     setTimeout(function() {
       try { filterVentaPerfumeOptions(''); } catch(e) {}
     }, 500);
+
+    // Atajo: desde Precios & Stock, click en "💵 Vender" abre el tab de
+    // ventas con el perfume YA SELECCIONADO. Mantiene el flujo completo
+    // (cliente, monto, etc.) pero ahorra el paso de buscar el perfume.
+    function quickVentaFromStock(slug) {
+      // Cambiar a tab Ventas
+      var ventasBtn = document.querySelector('.tab-btn[data-tab="ventas"]');
+      if (ventasBtn) {
+        switchTab('ventas', ventasBtn);
+        loadVentasDelDia();
+      }
+      // Pre-seleccionar el perfume tras un mini delay (para que el tab esté visible)
+      setTimeout(function() {
+        try {
+          selectVentaPerfume(slug);
+          // Foco en el campo cliente para que la empleada arranque tipeando
+          var clienteInp = document.getElementById('ventaCliente');
+          if (clienteInp) clienteInp.focus();
+        } catch(e) {}
+      }, 100);
+    }
+
+    // ============================================================
+    // SUPABASE REALTIME — sincronización de stock entre tablets
+    //
+    // Cuando una empleada registra una venta en su tablet, todas las
+    // demás tablets del local reciben el cambio en menos de 1 segundo.
+    // Sin necesidad de refrescar manualmente.
+    //
+    // Suscripción a UPDATEs en perfume_overrides (la tabla donde se
+    // guarda el stock_qty). También a INSERTs en `ventas` para que el
+    // tab de Ventas se mantenga en vivo si dos empleadas trabajan.
+    // ============================================================
+    function setupRealtimeStock() {
+      try {
+        sb.channel('admin-stock-sync')
+          .on('postgres_changes',
+              { event: 'UPDATE', schema: 'public', table: 'perfume_overrides' },
+              function(payload) {
+                var ov = payload.new;
+                if (!ov || !ov.slug) return;
+                var p = PERFUMES.find(function(pf) { return pf.slug === ov.slug; });
+                if (!p) return;
+                // Actualizar el cache local
+                if (typeof ov.stock_qty === 'number') p._stockQty = ov.stock_qty;
+                if (ov.stock_status) p._stockStatus = ov.stock_status;
+                // Re-renderizar la tabla Precios & Stock con highlight
+                try {
+                  renderPrecios();
+                  // Buscar la fila del perfume y darle un parpadeo amarillo
+                  setTimeout(function() {
+                    var row = document.querySelector('#tbodyPrecios tr td.td-stock');
+                    var allRows = document.querySelectorAll('#tbodyPrecios tr');
+                    allRows.forEach(function(tr) {
+                      if (tr.querySelector('.badge-stock') && tr.querySelector('[onclick*="' + ov.slug + '"]')) {
+                        tr.style.transition = 'background-color .4s ease';
+                        tr.style.backgroundColor = 'rgba(232,184,0,.18)';
+                        setTimeout(function() { tr.style.backgroundColor = ''; }, 1800);
+                      }
+                    });
+                  }, 50);
+                } catch(e) {}
+                // Si el form de ventas tiene este perfume seleccionado, actualizar banner
+                if (ventaSelectedSlug === ov.slug) {
+                  try { updateVentaStockBanner(); } catch(e) {}
+                }
+              }
+          )
+          .on('postgres_changes',
+              { event: 'INSERT', schema: 'public', table: 'ventas' },
+              function() {
+                // Si el tab Ventas está abierto, refrescar la lista
+                var ventasTab = document.getElementById('tab-ventas');
+                if (ventasTab && ventasTab.classList.contains('active')) {
+                  try { loadVentasDelDia(); } catch(e) {}
+                }
+              }
+          )
+          .subscribe();
+      } catch(e) {
+        console.error('No se pudo activar Realtime:', e);
+      }
+    }
+    // Activar Realtime cuando el panel admin esté listo (después del login).
+    // Se llama desde finishLogin() / resumeSession() vía setTimeout.
+    setTimeout(setupRealtimeStock, 1500);
 
     // ============================================================
     // DOCTOR DEL CATÁLOGO — diagnóstico de calidad de los perfumes.

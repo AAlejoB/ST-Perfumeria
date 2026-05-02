@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS ventas (
   perfume_nombre  TEXT NOT NULL,
   marca           TEXT,
   cliente_nombre  TEXT NOT NULL,
+  cantidad        INTEGER NOT NULL DEFAULT 1,
   monto_mp        NUMERIC DEFAULT 0,
   monto_efectivo  NUMERIC DEFAULT 0,
   monto_total     NUMERIC NOT NULL,
@@ -18,6 +19,9 @@ CREATE TABLE IF NOT EXISTS ventas (
   vendedor        TEXT,
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Si la tabla ya existía sin la columna `cantidad`, la agregamos:
+ALTER TABLE ventas ADD COLUMN IF NOT EXISTS cantidad INTEGER NOT NULL DEFAULT 1;
 
 -- Índices para queries rápidas por fecha y por perfume
 CREATE INDEX IF NOT EXISTS idx_ventas_fecha ON ventas(fecha DESC);
