@@ -645,6 +645,28 @@
     body.role-empleado [data-role="jefe"]:not(.tab-btn) { display: none !important; }
 
     /* ============================================================
+       VENTAS DEL DÍA — stats grid (reusa estilos de Stock dashboard)
+       ============================================================ */
+    .ventas-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .6rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 900px) {
+      .ventas-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .ventas-stats { grid-template-columns: 1fr; gap: .45rem; }
+    }
+    /* Stack vertical del form en mobile */
+    @media (max-width: 720px) {
+      #tab-ventas div[style*="grid-template-columns:1.2fr 1fr 1fr 1.5fr"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* ============================================================
        MINI-DASHBOARD DE STOCK — 4 stat cards arriba de la tabla
        ============================================================ */
     .stock-stats {
@@ -858,9 +880,10 @@
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this)">💰 Precios & Stock</button>
-      <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
-      <button class="tab-btn" data-role="jefe" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
-      <button class="tab-btn" data-role="jefe" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
+      <button class="tab-btn" data-tab="ventas" onclick="switchTab('ventas',this);loadVentasDelDia()">💵 Ventas del día</button>
+      <button class="tab-btn" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
+      <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
+      <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
       <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" data-role="jefe" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
@@ -918,6 +941,119 @@
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th><th>Accion</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
       </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         TAB: VENTAS DEL DÍA
+         Reemplaza el papel y lápiz de Sofia/Angelina/Lautaro.
+         Cada venta:
+           - Resta automáticamente 1 del stock del perfume vendido.
+           - Queda registrada para estadísticas (top vendidos, etc.).
+           - El empleado solo registra, no edita ni elimina ventas viejas.
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="tab-content" id="tab-ventas">
+      <!-- Stats del día -->
+      <div class="ventas-stats">
+        <div class="stat-card stat-units">
+          <div class="stat-icon">💵</div>
+          <div class="stat-value" id="ventasTotalDia">$0</div>
+          <div class="stat-label">Total del día</div>
+        </div>
+        <div class="stat-card stat-perfumes">
+          <div class="stat-icon">🛍️</div>
+          <div class="stat-value" id="ventasCountDia">0</div>
+          <div class="stat-label">Ventas de hoy</div>
+        </div>
+        <div class="stat-card stat-value-inv">
+          <div class="stat-icon">💳</div>
+          <div class="stat-value" id="ventasMpDia">$0</div>
+          <div class="stat-label">MercadoPago</div>
+        </div>
+        <div class="stat-card stat-out" style="background:linear-gradient(180deg,#1a2a16 0%,#0e1a0c 100%);border-color:rgba(46,204,113,.25);">
+          <div class="stat-icon">💴</div>
+          <div class="stat-value" id="ventasEfeDia" style="color:#2ecc71;">$0</div>
+          <div class="stat-label">Efectivo / Transf.</div>
+        </div>
+      </div>
+
+      <!-- Form de registro de venta -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+        <h3 style="color:var(--amarillo);font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:600;margin-bottom:.8rem;">Registrar nueva venta</h3>
+
+        <!-- Selector de perfume con buscador -->
+        <div style="margin-bottom:.8rem;">
+          <label class="modal-label">Perfume vendido</label>
+          <div class="perfume-picker">
+            <input type="text" class="perfume-picker-input" id="ventaPerfumeInput" placeholder="Buscar perfume..." oninput="filterVentaPerfumeOptions(this.value)" onfocus="document.getElementById('ventaPerfumeDropdown').classList.add('open')" autocomplete="off"/>
+            <button class="perfume-picker-clear" id="ventaPerfumeClear" onclick="clearVentaPerfume()" type="button">✕</button>
+            <div class="perfume-picker-dropdown" id="ventaPerfumeDropdown"></div>
+          </div>
+        </div>
+
+        <!-- Fila estilo papel: Cliente | MP | Efectivo | Notas -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 1.5fr;gap:.6rem;margin-bottom:.8rem;">
+          <div>
+            <label class="modal-label">Cliente</label>
+            <input type="text" class="modal-input" id="ventaCliente" placeholder="Nombre del cliente" maxlength="80" style="margin-bottom:0;"/>
+          </div>
+          <div>
+            <label class="modal-label">MercadoPago $</label>
+            <input type="number" class="modal-input" id="ventaMp" placeholder="0" min="0" style="margin-bottom:0;"/>
+          </div>
+          <div>
+            <label class="modal-label">Efectivo / Transf $</label>
+            <input type="number" class="modal-input" id="ventaEfectivo" placeholder="0" min="0" style="margin-bottom:0;"/>
+          </div>
+          <div>
+            <label class="modal-label">Notas (opcional)</label>
+            <input type="text" class="modal-input" id="ventaNotas" placeholder="Ej: regalo, pedido especial..." maxlength="200" style="margin-bottom:0;"/>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+          <button class="modal-btn modal-btn-price" id="ventaSubmitBtn" onclick="registrarVenta()" style="flex:1;min-width:200px;max-width:300px;">✓ Registrar venta (resta del stock)</button>
+          <span id="ventaMsg" style="font-size:.78rem;color:#2ecc71;"></span>
+        </div>
+      </div>
+
+      <!-- Filtro de fecha + lista de ventas -->
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.6rem;">
+        <label class="modal-label" style="margin:0;">Ver ventas de:</label>
+        <select class="admin-search" id="ventasFecha" onchange="loadVentasDelDia()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
+          <option value="hoy">Hoy</option>
+          <option value="ayer">Ayer</option>
+          <option value="semana">Última semana</option>
+          <option value="mes">Último mes</option>
+        </select>
+        <span id="ventasCountInfo" style="font-size:.7rem;color:var(--gris);margin-left:.4rem;"></span>
+      </div>
+
+      <!-- Tabla de ventas -->
+      <table class="precios-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Hora</th>
+            <th style="text-align:left;">Perfume</th>
+            <th style="text-align:left;">Cliente</th>
+            <th>MP</th>
+            <th>Efectivo</th>
+            <th style="text-align:left;">Notas</th>
+            <th>Vendedor</th>
+            <th data-role="jefe">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyVentas">
+          <tr><td colspan="8" style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Top vendidos -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem 1.2rem;margin-top:1.2rem;">
+        <h3 style="color:var(--amarillo);font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;font-weight:600;margin-bottom:.6rem;">🔥 Top vendidos del período</h3>
+        <ol id="ventasTopList" style="margin:0;padding-left:1.4rem;color:#ccc;font-size:.85rem;line-height:1.8;">
+          <li style="color:var(--gris);">Sin ventas todavía.</li>
+        </ol>
+      </div>
     </div>
 
     <!-- TAB: EDITAR PERFUME EXISTENTE -->
@@ -3454,6 +3590,24 @@
       document.getElementById('modalStockQty').value = initQty;
       document.getElementById('modalStockPaused').checked = (p._stockStatus === 'pausado');
 
+      // Para EMPLEADO: bloquear el input numérico (solo puede usar - / +).
+      // Y deshabilitar el botón "+" para que solo pueda RESTAR (vendió un
+      // perfume → resta 1). Si necesita SUMAR stock (recibió pedido), tiene
+      // que pedirle al jefe. Esto evita errores y deja el control de
+      // ingreso de mercadería en manos del jefe.
+      var qtyInp = document.getElementById('modalStockQty');
+      var initialQty = initQty;
+      qtyInp.dataset.initialQty = initialQty;
+      if (currentRole === 'empleado') {
+        qtyInp.readOnly = true;
+        qtyInp.min = 0;
+        qtyInp.max = initialQty;
+      } else {
+        qtyInp.readOnly = false;
+        qtyInp.min = 0;
+        qtyInp.max = 999;
+      }
+
       document.getElementById('modalStockBtn').disabled = false;
       document.getElementById('modalStockMsg').textContent = '';
       updateStockPreview();
@@ -3465,7 +3619,22 @@
       var inp = document.getElementById('modalStockQty');
       var curr = parseInt(inp.value, 10);
       if (isNaN(curr)) curr = 0;
+      // Empleado: solo puede DECREMENTAR. El + queda inhabilitado.
+      if (currentRole === 'empleado' && delta > 0) {
+        var msg = document.getElementById('modalStockMsg');
+        if (msg) {
+          msg.textContent = '⚠ Solo el jefe puede agregar stock. Vos podés restar (vendiste un perfume).';
+          msg.style.color = '#e67e22';
+          setTimeout(function() { if (msg) msg.textContent = ''; }, 3500);
+        }
+        return;
+      }
       curr = Math.max(0, Math.min(999, curr + delta));
+      // Empleado: no permitir superar el stock inicial (no sumar al revés).
+      if (currentRole === 'empleado') {
+        var initialQty = parseInt(inp.dataset.initialQty || '0', 10);
+        if (curr > initialQty) curr = initialQty;
+      }
       inp.value = curr;
       updateStockPreview();
     }
@@ -5976,6 +6145,335 @@
     // 🩺 DOCTOR DE CATÁLOGO
     //
     // Escanea todos los perfumes y detecta problemas:
+    // ============================================================
+    // VENTAS DEL DÍA — registro digital que reemplaza el papel y lápiz
+    //
+    // Flujo:
+    //  1. Empleado/jefe abre el tab "💵 Ventas del día"
+    //  2. Selecciona el perfume vendido (con buscador), llena cliente +
+    //     monto MP/efectivo + notas opcionales
+    //  3. Click "Registrar venta" → INSERT en tabla `ventas` de Supabase
+    //     + UPDATE -1 en perfume_overrides (resta stock automáticamente)
+    //  4. El total del día y top vendidos se actualizan automáticamente
+    //
+    // Tabla `ventas` esperada (ver SQL en respuesta del agente):
+    //   id, fecha (timestamptz), slug_perfume, perfume_nombre, marca,
+    //   cliente_nombre, monto_mp, monto_efectivo, monto_total, notas,
+    //   vendedor (string), created_at
+    // ============================================================
+    var ventaSelectedSlug = null; // perfume actualmente seleccionado para registrar
+
+    function getVentasFechaRange(filter) {
+      var now = new Date();
+      var start, end;
+      end = new Date(); end.setHours(23, 59, 59, 999);
+      if (filter === 'hoy') {
+        start = new Date(); start.setHours(0, 0, 0, 0);
+      } else if (filter === 'ayer') {
+        start = new Date(); start.setDate(start.getDate() - 1); start.setHours(0, 0, 0, 0);
+        end = new Date(start); end.setHours(23, 59, 59, 999);
+      } else if (filter === 'semana') {
+        start = new Date(); start.setDate(start.getDate() - 7); start.setHours(0, 0, 0, 0);
+      } else if (filter === 'mes') {
+        start = new Date(); start.setDate(start.getDate() - 30); start.setHours(0, 0, 0, 0);
+      } else {
+        start = new Date(); start.setHours(0, 0, 0, 0);
+      }
+      return { start: start.toISOString(), end: end.toISOString() };
+    }
+
+    // Render del dropdown de perfumes en el form de ventas
+    function filterVentaPerfumeOptions(query) {
+      var dropdown = document.getElementById('ventaPerfumeDropdown');
+      var clearBtn = document.getElementById('ventaPerfumeClear');
+      var input = document.getElementById('ventaPerfumeInput');
+      if (!dropdown) return;
+      var q = stripAccents(String(query || '').toLowerCase().trim());
+      clearBtn.style.display = (input.value || ventaSelectedSlug) ? 'block' : 'none';
+      var list = PERFUMES.filter(function(p) { return !p.esSet; });
+      var matches;
+      if (!q) {
+        matches = list.slice(0, 30);
+      } else {
+        matches = list.filter(function(p) {
+          var hay = stripAccents(((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).toLowerCase());
+          if (hay.indexOf(q) !== -1) return true;
+          // fallback sin espacios
+          return hay.replace(/\s+/g, '').indexOf(q.replace(/\s+/g, '')) !== -1;
+        }).slice(0, 30);
+      }
+      if (matches.length === 0) {
+        dropdown.innerHTML = '<div class="perfume-picker-empty">Sin resultados</div>';
+        dropdown.classList.add('open');
+        return;
+      }
+      dropdown.innerHTML = matches.map(function(p) {
+        var brand = p.marca_real || p.marca || '';
+        return '<div class="perfume-picker-option" onclick="selectVentaPerfume(\'' + p.slug + '\')">'
+          + '<span class="pick-name">' + p.name + '</span>'
+          + (brand ? '<span class="pick-brand">' + brand + '</span>' : '')
+          + '</div>';
+      }).join('');
+      dropdown.classList.add('open');
+    }
+
+    function selectVentaPerfume(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      ventaSelectedSlug = slug;
+      var input = document.getElementById('ventaPerfumeInput');
+      var brand = p.marca_real || p.marca || '';
+      input.value = p.name + (brand ? ' · ' + brand : '');
+      input.classList.add('has-value');
+      document.getElementById('ventaPerfumeDropdown').classList.remove('open');
+      document.getElementById('ventaPerfumeClear').style.display = 'block';
+      // Auto-rellenar el monto MP con el precio efectivo si está vacío
+      var mpInput = document.getElementById('ventaMp');
+      if (mpInput && !mpInput.value && p.price) {
+        var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+        if (basePrice > 0) mpInput.placeholder = String(Math.round(basePrice));
+      }
+    }
+
+    function clearVentaPerfume() {
+      ventaSelectedSlug = null;
+      var input = document.getElementById('ventaPerfumeInput');
+      input.value = '';
+      input.classList.remove('has-value');
+      document.getElementById('ventaPerfumeClear').style.display = 'none';
+      document.getElementById('ventaPerfumeDropdown').classList.remove('open');
+      document.getElementById('ventaMp').placeholder = '0';
+    }
+
+    // Cierra el dropdown al hacer click fuera
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.perfume-picker') && !e.target.closest('#ventaPerfumeDropdown')) {
+        var dd = document.getElementById('ventaPerfumeDropdown');
+        if (dd) dd.classList.remove('open');
+      }
+    });
+
+    async function registrarVenta() {
+      var msg = document.getElementById('ventaMsg');
+      var btn = document.getElementById('ventaSubmitBtn');
+
+      if (!ventaSelectedSlug) {
+        msg.textContent = '⚠ Seleccioná un perfume primero.';
+        msg.style.color = '#e74c3c';
+        return;
+      }
+      var p = PERFUMES.find(function(pf) { return pf.slug === ventaSelectedSlug; });
+      if (!p) {
+        msg.textContent = '⚠ Perfume no encontrado.';
+        msg.style.color = '#e74c3c';
+        return;
+      }
+      var cliente = document.getElementById('ventaCliente').value.trim();
+      var mp = parseFloat(document.getElementById('ventaMp').value || '0');
+      var efe = parseFloat(document.getElementById('ventaEfectivo').value || '0');
+      var notas = document.getElementById('ventaNotas').value.trim();
+
+      if (!cliente) {
+        msg.textContent = '⚠ Falta el nombre del cliente.';
+        msg.style.color = '#e74c3c';
+        return;
+      }
+      if (!mp && !efe) {
+        msg.textContent = '⚠ Indicá al menos un monto (MP o Efectivo).';
+        msg.style.color = '#e74c3c';
+        return;
+      }
+
+      btn.disabled = true;
+      msg.textContent = 'Registrando...';
+      msg.style.color = '#888';
+
+      try {
+        var total = (isNaN(mp) ? 0 : mp) + (isNaN(efe) ? 0 : efe);
+        var brand = p.marca_real || p.marca || '';
+        var vendor = currentRole || 'admin';
+
+        // INSERT venta
+        var ins = await sb.from('ventas').insert({
+          fecha: new Date().toISOString(),
+          slug_perfume: p.slug,
+          perfume_nombre: p.name,
+          marca: brand,
+          cliente_nombre: cliente,
+          monto_mp: isNaN(mp) ? 0 : Math.round(mp),
+          monto_efectivo: isNaN(efe) ? 0 : Math.round(efe),
+          monto_total: Math.round(total),
+          notas: notas || null,
+          vendedor: vendor
+        });
+        if (ins.error) throw ins.error;
+
+        // RESTAR 1 del stock del perfume vendido
+        var currentQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
+        if (currentQty !== null && currentQty > 0) {
+          var newQty = Math.max(0, currentQty - 1);
+          var newStatus = newQty === 0 ? 'out' : (newQty === 1 ? 'low' : 'ok');
+          try {
+            await sb.from('perfume_overrides').upsert({
+              slug: p.slug,
+              stock_qty: newQty,
+              stock_status: newStatus,
+              editado_por: vendor
+            }, { onConflict: 'slug' });
+            p._stockQty = newQty;
+            p._stockStatus = newStatus;
+            try { renderPrecios(); } catch(e) {}
+          } catch(e) {
+            console.error('No se pudo actualizar stock automático:', e);
+          }
+        }
+
+        // Notificar Telegram
+        try {
+          notifyTelegram('💵 *Venta registrada*\n👤 Cliente: ' + cliente
+            + '\n🌸 Perfume: ' + p.name + (brand ? ' (' + brand + ')' : '')
+            + '\n💳 MP: $' + (isNaN(mp) ? 0 : Math.round(mp)).toLocaleString('es-AR')
+            + '\n💴 Efectivo: $' + (isNaN(efe) ? 0 : Math.round(efe)).toLocaleString('es-AR')
+            + '\n💰 Total: $' + Math.round(total).toLocaleString('es-AR')
+            + '\n📤 Por: ' + vendor
+            + (notas ? '\n📝 ' + notas : '')
+          );
+        } catch(e) {}
+
+        // Limpiar form y refrescar lista
+        msg.textContent = '✅ Venta registrada · stock actualizado';
+        msg.style.color = '#2ecc71';
+        clearVentaPerfume();
+        document.getElementById('ventaCliente').value = '';
+        document.getElementById('ventaMp').value = '';
+        document.getElementById('ventaEfectivo').value = '';
+        document.getElementById('ventaNotas').value = '';
+        loadVentasDelDia();
+
+        setTimeout(function() { msg.textContent = ''; }, 3500);
+      } catch(e) {
+        console.error('Error registrando venta:', e);
+        msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar');
+        msg.style.color = '#e74c3c';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function loadVentasDelDia() {
+      var sel = document.getElementById('ventasFecha');
+      var filter = sel ? sel.value : 'hoy';
+      var range = getVentasFechaRange(filter);
+      var tbody = document.getElementById('tbodyVentas');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</td></tr>';
+
+      try {
+        var r = await sb.from('ventas')
+          .select('*')
+          .gte('fecha', range.start)
+          .lte('fecha', range.end)
+          .order('fecha', { ascending: false });
+        if (r.error) throw r.error;
+        var ventas = r.data || [];
+        renderVentasTable(ventas);
+        renderVentasStats(ventas);
+        renderVentasTop(ventas);
+      } catch(e) {
+        console.error('Error cargando ventas:', e);
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#e74c3c;padding:2rem;">No se pudieron cargar las ventas. ¿Falta crear la tabla en Supabase?</td></tr>';
+      }
+    }
+
+    function renderVentasTable(ventas) {
+      var tbody = document.getElementById('tbodyVentas');
+      var info = document.getElementById('ventasCountInfo');
+      if (info) info.textContent = ventas.length === 1 ? '· 1 venta' : '· ' + ventas.length + ' ventas';
+      if (ventas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gris);padding:2rem;">Sin ventas en este período.</td></tr>';
+        return;
+      }
+      var fmt = function(n) { return '$' + Math.round(n || 0).toLocaleString('es-AR'); };
+      tbody.innerHTML = ventas.map(function(v) {
+        var d = new Date(v.fecha);
+        var hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        var fechaCorta = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+        return '<tr>'
+          + '<td style="font-size:.72rem;color:var(--gris-claro);">' + fechaCorta + ' · ' + hora + '</td>'
+          + '<td><strong>' + (v.perfume_nombre || '—') + '</strong>' + (v.marca ? '<br><span style="font-size:.6rem;color:var(--gris);">' + v.marca + '</span>' : '') + '</td>'
+          + '<td>' + (v.cliente_nombre || '—') + '</td>'
+          + '<td style="text-align:right;color:#3498db;font-weight:600;">' + (v.monto_mp ? fmt(v.monto_mp) : '—') + '</td>'
+          + '<td style="text-align:right;color:#2ecc71;font-weight:600;">' + (v.monto_efectivo ? fmt(v.monto_efectivo) : '—') + '</td>'
+          + '<td style="font-size:.72rem;color:var(--gris-claro);">' + (v.notas || '—') + '</td>'
+          + '<td style="font-size:.7rem;color:var(--gris);">' + (v.vendedor || 'admin') + '</td>'
+          + '<td data-role="jefe"><button class="action-btn btn-danger" onclick="eliminarVenta(' + v.id + ')" style="font-size:.6rem;">✕</button></td>'
+        + '</tr>';
+      }).join('');
+    }
+
+    function renderVentasStats(ventas) {
+      var totalMp = 0, totalEfe = 0, total = 0;
+      ventas.forEach(function(v) {
+        totalMp += parseFloat(v.monto_mp || 0);
+        totalEfe += parseFloat(v.monto_efectivo || 0);
+        total += parseFloat(v.monto_total || 0);
+      });
+      var fmt = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
+      var setT = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+      setT('ventasTotalDia', fmt(total));
+      setT('ventasCountDia', String(ventas.length));
+      setT('ventasMpDia', fmt(totalMp));
+      setT('ventasEfeDia', fmt(totalEfe));
+    }
+
+    function renderVentasTop(ventas) {
+      var ol = document.getElementById('ventasTopList');
+      if (!ol) return;
+      if (ventas.length === 0) {
+        ol.innerHTML = '<li style="color:var(--gris);">Sin ventas todavía.</li>';
+        return;
+      }
+      var counts = {};
+      ventas.forEach(function(v) {
+        var key = v.perfume_nombre || '—';
+        if (!counts[key]) counts[key] = { count: 0, total: 0, marca: v.marca || '' };
+        counts[key].count++;
+        counts[key].total += parseFloat(v.monto_total || 0);
+      });
+      var sorted = Object.keys(counts).map(function(k) {
+        return { name: k, count: counts[k].count, total: counts[k].total, marca: counts[k].marca };
+      }).sort(function(a, b) { return b.count - a.count; }).slice(0, 5);
+
+      ol.innerHTML = sorted.map(function(p) {
+        return '<li><strong>' + p.name + '</strong>'
+          + (p.marca ? ' <span style="color:var(--gris);font-size:.75rem;">(' + p.marca + ')</span>' : '')
+          + ' — ' + p.count + (p.count === 1 ? ' venta' : ' ventas')
+          + ' · <span style="color:var(--amarillo);">$' + Math.round(p.total).toLocaleString('es-AR') + '</span></li>';
+      }).join('');
+    }
+
+    async function eliminarVenta(id) {
+      if (currentRole && currentRole !== 'jefe') {
+        alert('Solo el jefe puede eliminar ventas registradas.');
+        return;
+      }
+      if (!confirm('¿Eliminar esta venta? Esta acción no se puede deshacer.')) return;
+      try {
+        var r = await sb.from('ventas').delete().eq('id', id);
+        if (r.error) throw r.error;
+        loadVentasDelDia();
+      } catch(e) {
+        alert('Error eliminando venta: ' + (e.message || 'desconocido'));
+      }
+    }
+
+    // Pre-cargar el dropdown del form al abrir el tab por primera vez
+    setTimeout(function() {
+      try { filterVentaPerfumeOptions(''); } catch(e) {}
+    }, 500);
+
+    // ============================================================
+    // DOCTOR DEL CATÁLOGO — diagnóstico de calidad de los perfumes.
     // - Sin foto, sin precio, sin notas, sin marca, sin categoría, sin ml
     // Genera un reporte con puntaje de salud y lista de ajustes.
     // ============================================================
