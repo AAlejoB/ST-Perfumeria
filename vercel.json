@@ -33,5 +33,11 @@
     { "source": "/armaf",                 "destination": "/api/category?slug=armaf" },
     { "source": "/maison-alhambra",       "destination": "/api/category?slug=maison-alhambra" },
     { "source": "/rasasi",                "destination": "/api/category?slug=rasasi" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/backup",
+      "schedule": "0 */2 * * *"
+    }
   ]
 }

@@ -7560,28 +7560,32 @@
       if (backupAutoRan) return;
       backupAutoRan = true;
       try {
-        // ¿Cuándo fue el último?
+        // El backup PRINCIPAL ahora es Vercel Cron (cada 2hs, server-side).
+        // Esta función queda como FALLBACK: si por algún motivo el cron no
+        // corrió en >3hs (Vercel caído, deploy en progreso, etc.), creamos
+        // un backup manual desde el cliente al abrir el admin.
         var { data, error } = await sb.from('admin_backups')
           .select('created_at')
           .order('created_at', { ascending: false })
           .limit(1);
         if (error) { console.warn('[backup] auto check fallo:', error); return; }
 
+        var FALLBACK_THRESHOLD_MS = 3 * 60 * 60 * 1000; // 3 horas
         var needNew = false;
         if (!data || data.length === 0) {
           needNew = true;
         } else {
           var last = new Date(data[0].created_at).getTime();
-          if (Date.now() - last > 24 * 60 * 60 * 1000) needNew = true;
+          if (Date.now() - last > FALLBACK_THRESHOLD_MS) needNew = true;
         }
 
         if (needNew) {
-          console.log('[backup] auto: creando snapshot (>24h sin backup)...');
-          var b = await createBackup('auto');
-          logAdminAction('backup_create_auto', null, { size_bytes: b.size_bytes });
-          console.log('[backup] auto: creado (' + formatBytes(b.size_bytes) + ')');
+          console.log('[backup] fallback: creando snapshot (cron parece haber fallado)...');
+          var b = await createBackup('fallback');
+          logAdminAction('backup_create_fallback', null, { size_bytes: b.size_bytes });
+          console.log('[backup] fallback: creado (' + formatBytes(b.size_bytes) + ')');
         } else {
-          console.log('[backup] auto: skip (último fue hace < 24h)');
+          console.log('[backup] cron OK · último backup hace <3h, skip fallback');
         }
       } catch(e) {
         console.warn('[backup] auto fallo:', e);
