@@ -622,11 +622,11 @@
     .nav-icons {
       display: flex;
       align-items: center;
-      gap: .25rem;
+      gap: .5rem;          /* Más respiro: ahora hay menos elementos */
       flex-shrink: 0;
     }
     @media (min-width: 768px) {
-      .nav-icons { gap: .35rem; }
+      .nav-icons { gap: .7rem; }
     }
 
     .nav-icon-btn {
