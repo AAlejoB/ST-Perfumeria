@@ -6818,8 +6818,23 @@
       try {
         var total = (isNaN(mp) ? 0 : mp) + (isNaN(efe) ? 0 : efe);
 
-        // INSERT venta (con cantidad)
-        var ins = await sb.from('ventas').insert({
+        // ── PUNTOS: calcular cuántos sumar según tipo de producto ──
+        // Reglas: perfume normal (esSet=false) = puntos_por_perfume × cantidad
+        //         set/combo (esSet=true)        = puntos_por_set_combo × cantidad
+        // (decants se manejan en otro flujo, no acá)
+        var puntosOtorgados = 0;
+        var clienteIdPuntos = null;
+        try {
+          var cfgRes = await sb.from('puntos_config').select('*').limit(1);
+          var cfg = (cfgRes && cfgRes.data && cfgRes.data[0]) || { puntos_por_perfume: 1, puntos_por_set_combo: 2 };
+          var puntosUnit = p.esSet ? Number(cfg.puntos_por_set_combo) : Number(cfg.puntos_por_perfume);
+          puntosOtorgados = Math.round(puntosUnit * cantidad * 100) / 100; // 2 decimales
+        } catch(e) {
+          // Si la tabla puntos_config no existe, no sumamos (quedan en 0).
+        }
+
+        // INSERT venta (con cantidad y puntos_otorgados para auditoría)
+        var ventaPayload = {
           fecha: new Date().toISOString(),
           slug_perfume: p.slug,
           perfume_nombre: p.name,
@@ -6830,9 +6845,47 @@
           monto_efectivo: isNaN(efe) ? 0 : Math.round(efe),
           monto_total: Math.round(total),
           notas: (notas || '') + (overrideStock ? ' [override jefe: stock era 0]' : ''),
-          vendedor: vendor
-        });
+          vendedor: vendor,
+          puntos_otorgados: puntosOtorgados
+        };
+        var ins = await sb.from('ventas').insert(ventaPayload).select().single();
         if (ins.error) throw ins.error;
+        var insertedVentaId = (ins.data && ins.data.id) ? ins.data.id : null;
+
+        // ── PUNTOS: buscar cliente por nombre y sumar puntos ──
+        // Si el cliente existe en `clientes`, le sumamos. Si no, no rompemos
+        // (la venta queda registrada con puntos_otorgados anotados pero sin
+        // sumar a nadie — el jefe puede sumarlos manual después).
+        if (puntosOtorgados > 0) {
+          try {
+            var matchCli = await sb.from('clientes')
+              .select('id, nombre, telefono, puntos')
+              .ilike('nombre', cliente.trim())
+              .limit(1);
+            if (matchCli && matchCli.data && matchCli.data.length) {
+              var cli = matchCli.data[0];
+              clienteIdPuntos = cli.id;
+              var nuevoSaldo = (Number(cli.puntos) || 0) + puntosOtorgados;
+              await sb.from('clientes').update({ puntos: nuevoSaldo }).eq('id', cli.id);
+              // Log del movimiento
+              await sb.from('puntos_log').insert({
+                cliente_id: cli.id,
+                cliente_telefono: cli.telefono || null,
+                cliente_nombre: cli.nombre,
+                delta: puntosOtorgados,
+                motivo: 'venta_auto',
+                venta_id: insertedVentaId,
+                actor: vendor
+              });
+              // Actualizar la venta con el cliente_id_puntos
+              if (insertedVentaId) {
+                await sb.from('ventas').update({ cliente_id_puntos: cli.id }).eq('id', insertedVentaId);
+              }
+            }
+          } catch(e) {
+            console.warn('[puntos] no se pudieron sumar puntos:', e);
+          }
+        }
 
         // RESTAR `cantidad` del stock (no -1)
         if (currentQty !== null) {
@@ -6990,10 +7043,45 @@
         alert('Solo el jefe puede eliminar ventas registradas.');
         return;
       }
-      if (!confirm('¿Eliminar esta venta? Esta acción no se puede deshacer.')) return;
+      if (!confirm('¿Eliminar esta venta? Esta acción no se puede deshacer.\n\nSi sumó puntos al cliente, se los vamos a restar automáticamente.')) return;
       try {
+        // Antes de borrar, leer puntos_otorgados y cliente_id_puntos
+        // para devolver los puntos.
+        var ventaPrev = await sb.from('ventas')
+          .select('puntos_otorgados, cliente_id_puntos, perfume_nombre, cantidad, cliente_nombre')
+          .eq('id', id).maybeSingle();
+        var puntosADevolver = 0;
+        var cliId = null;
+        if (ventaPrev && ventaPrev.data) {
+          puntosADevolver = Number(ventaPrev.data.puntos_otorgados) || 0;
+          cliId = ventaPrev.data.cliente_id_puntos || null;
+        }
+
+        // Borrar la venta
         var r = await sb.from('ventas').delete().eq('id', id);
         if (r.error) throw r.error;
+
+        // Devolver puntos si corresponde
+        if (puntosADevolver > 0 && cliId) {
+          try {
+            var cli = await sb.from('clientes').select('id, nombre, telefono, puntos').eq('id', cliId).maybeSingle();
+            if (cli && cli.data) {
+              var saldoNuevo = Math.max(0, (Number(cli.data.puntos) || 0) - puntosADevolver);
+              await sb.from('clientes').update({ puntos: saldoNuevo }).eq('id', cliId);
+              await sb.from('puntos_log').insert({
+                cliente_id: cliId,
+                cliente_telefono: cli.data.telefono || null,
+                cliente_nombre: cli.data.nombre,
+                delta: -puntosADevolver,
+                motivo: 'venta_eliminada',
+                venta_id: id,
+                actor: currentRole || 'admin'
+              });
+            }
+          } catch(e) {
+            console.warn('[puntos] no se pudieron devolver puntos al eliminar venta:', e);
+          }
+        }
         loadVentasDelDia();
       } catch(e) {
         alert('Error eliminando venta: ' + (e.message || 'desconocido'));

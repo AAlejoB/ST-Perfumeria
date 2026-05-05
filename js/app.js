@@ -535,6 +535,8 @@
         if (drawerLogout) drawerLogout.style.display = 'none';
         if (navLogoutBtn) navLogoutBtn.style.display = 'none';
       }
+      // Re-render del banner contextual de puntos (puede haber cambiado el cliente)
+      if (typeof renderPuntosBanner === 'function') setTimeout(renderPuntosBanner, 200);
     }
 
     // Check session on load (localStorage)
@@ -5560,6 +5562,62 @@
         else floatBtn.classList.remove('visible');
       }
     }
+
+    // ============================================================
+    // SISTEMA DE PUNTOS — banner contextual en la home
+    // Si el cliente está logueado y tiene puntos, se muestra debajo
+    // del cartel "EXPLORÁ NUESTRO CATÁLOGO". Si no, queda oculto.
+    // ============================================================
+    async function renderPuntosBanner() {
+      var el = document.getElementById('puntosContextBanner');
+      if (!el) return;
+      // Sin cliente logueado: ocultar
+      if (typeof currentUser === 'undefined' || !currentUser || !currentUser.telefono) {
+        el.style.display = 'none';
+        return;
+      }
+      try {
+        if (typeof sb === 'undefined' || !sb) return;
+        // Traer saldo de puntos + config en paralelo
+        var [cliRes, cfgRes] = await Promise.all([
+          sb.from('clientes').select('puntos, nombre').eq('telefono', currentUser.telefono).maybeSingle(),
+          sb.from('puntos_config').select('*').limit(1)
+        ]);
+        var puntos = (cliRes && cliRes.data && Number(cliRes.data.puntos)) || 0;
+        var nombreCli = (cliRes && cliRes.data && cliRes.data.nombre) || (currentUser.nombre || 'Cliente');
+        var cfg = (cfgRes && cfgRes.data && cfgRes.data[0]) || { threshold_proximo_premio: 5, mensaje_promo: '¡Sumá 1 punto más y consultanos por un premio especial! 🎁' };
+        // Lógica de mensaje:
+        //  - puntos === 0: invitamos a sumar
+        //  - puntos múltiplo del threshold: aviso "Estás listo, consultanos"
+        //  - puntos = (threshold - 1) mod threshold: estás a 1 del próximo premio
+        //  - else: solo mostrar saldo
+        var threshold = Number(cfg.threshold_proximo_premio) || 5;
+        var resto = threshold > 0 ? (puntos % threshold) : 0;
+        var msg;
+        if (puntos === 0) {
+          msg = '¡Hola ' + escapeHTML(nombreCli) + '! Sumá <strong>puntos por cada compra</strong> y consultanos por premios.';
+        } else if (resto === 0 && puntos >= threshold) {
+          msg = '⭐ Tenés <strong>' + (Math.round(puntos*10)/10) + ' puntos</strong> · ¡Pedinos un premio en tu próxima compra!';
+        } else if (resto >= threshold - 1) {
+          msg = '⭐ Tenés <strong>' + (Math.round(puntos*10)/10) + ' puntos</strong> · ' + escapeHTML(cfg.mensaje_promo || '¡Estás cerca de un premio!');
+        } else {
+          msg = 'Hola ' + escapeHTML(nombreCli) + '! Saldo de puntos: <strong>' + (Math.round(puntos*10)/10) + '</strong>';
+        }
+        el.innerHTML = msg;
+        el.style.display = 'block';
+      } catch(e) {
+        // Si las tablas no existen todavía o falla, ocultamos
+        el.style.display = 'none';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      // Render inicial; se vuelve a llamar después del login
+      setTimeout(renderPuntosBanner, 800);
+    });
+    // Hook: cuando cambia el currentUser (login/logout), re-renderizar
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'st_cliente') setTimeout(renderPuntosBanner, 200);
+    });
 
     // Cache de perfumes custom de decants (cargados desde Supabase).
     // Aparecen al final del grid del armador como opciones extra.

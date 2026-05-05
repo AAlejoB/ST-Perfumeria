@@ -549,16 +549,20 @@
   </section>
 
   <!-- ========== Banner promocional: explorá el catálogo ==========
-       Mismo estilo que el banner de decants. Click → scroll al filter-bar
-       (#catalogo) que está al fondo de la home. -->
-  <div class="price-banner-wrap">
-    <button type="button" class="price-banner" onclick="var c=document.getElementById('catalogo');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});" aria-label="Ir al catálogo completo">
+       Mismo estilo que el banner de decants pero MÁS GRANDE
+       (clase --big). Click → scroll al filter-bar (#catalogo). -->
+  <div class="price-banner-wrap price-banner-wrap--big">
+    <button type="button" class="price-banner price-banner--big" onclick="var c=document.getElementById('catalogo');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});" aria-label="Ir al catálogo completo">
       <span class="price-banner-text">&#9670; EXPLOR&Aacute; NUESTRO CAT&Aacute;LOGO &middot; +150 PERFUMES &#9670;</span>
       <span class="price-banner-cta">
         <span>Ver</span>
         <span aria-hidden="true">&rarr;</span>
       </span>
     </button>
+    <!-- Mensaje contextual de puntos: aparece SOLO si el cliente está
+         logueado y tiene puntos. Lo rellena renderPuntosBanner() en JS.
+         Si no hay nada que mostrar, queda display:none. -->
+    <div id="puntosContextBanner" class="puntos-context-banner" style="display:none;"></div>
   </div>
 
   <section class="section-cats" id="categorias">

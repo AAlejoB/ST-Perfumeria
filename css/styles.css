@@ -174,6 +174,65 @@
       .price-banner-cta { font-size: .75rem; padding: .35rem .7rem; }
     }
 
+    /* Versión BIG del banner promocional (rectangular, más alto/letras grandes).
+       Usado específicamente para el banner "EXPLORÁ NUESTRO CATÁLOGO". */
+    .price-banner-wrap--big { margin-bottom: .5rem; }
+    .price-banner--big {
+      padding: 1.2rem 1.1rem;
+      font-size: .82rem;
+      letter-spacing: .14em;
+      gap: .8rem;
+      border-radius: 6px;
+      line-height: 1.3;
+    }
+    .price-banner--big .price-banner-text {
+      font-size: .95rem;
+    }
+    .price-banner--big .price-banner-cta {
+      font-size: .72rem;
+      padding: .45rem .75rem;
+    }
+    @media (min-width: 768px) {
+      .price-banner--big {
+        padding: 1.6rem 1.8rem;
+        font-size: 1.15rem;
+        letter-spacing: .18em;
+        gap: 1.4rem;
+      }
+      .price-banner--big .price-banner-text {
+        font-size: 1.25rem;
+      }
+      .price-banner--big .price-banner-cta {
+        font-size: .9rem;
+        padding: .55rem 1rem;
+      }
+    }
+
+    /* Banner contextual de puntos (debajo del cartel "EXPLORÁ").
+       Mensaje minimalista que aparece solo si el cliente logueado
+       tiene puntos o está cerca de un threshold. */
+    .puntos-context-banner {
+      margin-top: .55rem;
+      padding: .65rem 1rem;
+      background: linear-gradient(180deg, rgba(232,184,0,.08) 0%, rgba(232,184,0,.03) 100%);
+      border: 1px solid rgba(232,184,0,.25);
+      border-radius: 6px;
+      color: var(--blanco);
+      font-size: .78rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .puntos-context-banner strong {
+      color: var(--amarillo);
+      font-weight: 700;
+    }
+    @media (min-width: 768px) {
+      .puntos-context-banner {
+        padding: .85rem 1.2rem;
+        font-size: .9rem;
+      }
+    }
+
     /* ================================================
        HOME TOP BANNER — texto B/N de pagos, editable desde admin
        Diseño minimalista: blanco sobre negro, full-width.
