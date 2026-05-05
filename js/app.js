@@ -519,7 +519,8 @@
       // tener que re-renderizar cards cuando alguien logea/desloga.
       document.body.classList.toggle('is-guest', !currentUser);
       if (currentUser) {
-        regBtn.innerHTML = '<span class="auth-user-bar"><strong>' + currentUser.nombre + '</strong></span>';
+        var _firstName = String(currentUser.nombre || '').trim().split(/\s+/)[0] || 'Vos';
+        regBtn.innerHTML = '<span class="auth-user-bar"><svg class="auth-user-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>' + _firstName + '</strong></span>';
         regBtn.setAttribute('onclick', 'event.preventDefault();openEditProfile()');
         regBtn.setAttribute('title', 'Editar perfil');
         if (drawerAuth) { drawerAuth.textContent = '\u270f\ufe0f Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
