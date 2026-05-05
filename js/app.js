@@ -3134,6 +3134,11 @@
       clearBtn.classList.toggle('visible', currentSearch.length > 0);
       applyFilters();
       showSearchSuggestions(query.trim());
+      // Espejo del nav search (sincronización bidireccional)
+      var navInp = document.getElementById('navSearchInput');
+      var navClr = document.getElementById('navSearchClear');
+      if (navInp && navInp.value !== query) navInp.value = query;
+      if (navClr) navClr.style.display = query.trim().length > 0 ? 'flex' : 'none';
     }
 
     function clearSearch() {
@@ -3142,7 +3147,48 @@
       document.getElementById('searchClear').classList.remove('visible');
       hideSearchSuggestions();
       applyFilters();
+      // Espejo del nav search
+      var navInp = document.getElementById('navSearchInput');
+      var navClr = document.getElementById('navSearchClear');
+      if (navInp) navInp.value = '';
+      if (navClr) navClr.style.display = 'none';
     }
+
+    // Búsqueda desde el nav: sincroniza con el #searchInput del catálogo
+    // y dispara la misma lógica de filtrado. Si hay query, scrollea al
+    // catálogo después de un breve debounce para que el usuario vea los
+    // resultados sin tener que scrollear manualmente.
+    function onNavSearchInput(value) {
+      var v = String(value || '');
+      var navClr = document.getElementById('navSearchClear');
+      if (navClr) navClr.style.display = v.length > 0 ? 'flex' : 'none';
+      var mainInp = document.getElementById('searchInput');
+      if (mainInp) mainInp.value = v;
+      var clearBtn = document.getElementById('searchClear');
+      if (clearBtn) clearBtn.classList.toggle('visible', v.length > 0);
+      if (typeof debouncedSearch === 'function') debouncedSearch(v);
+      // Scrollear al catálogo si el usuario empezó a escribir y NO está
+      // ya mirando el catálogo. Sin scroll si está vacío (no molestamos).
+      if (v.trim().length >= 2) {
+        var cat = document.getElementById('catalogo');
+        if (cat) {
+          var rect = cat.getBoundingClientRect();
+          if (rect.top > window.innerHeight * 0.5 || rect.bottom < 0) {
+            if (typeof scrollToCatalog === 'function') {
+              setTimeout(scrollToCatalog, 280);
+            }
+          }
+        }
+      }
+    }
+    window.onNavSearchInput = onNavSearchInput;
+
+    function clearNavSearch() {
+      var navInp = document.getElementById('navSearchInput');
+      if (navInp) { navInp.value = ''; navInp.focus(); }
+      onNavSearchInput('');
+    }
+    window.clearNavSearch = clearNavSearch;
 
     // ============================================================
     // AUTOCOMPLETADO — Sugerencias al escribir en el buscador

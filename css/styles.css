@@ -466,53 +466,114 @@
     }
     .nav-hamburger:hover span { background: var(--amarillo); }
 
+    /* NAV reorganizado: ☰ ST [🔍 búsqueda] 👤 ❤ 👋
+       Logo ya no es absolute centrado, va inline con flex.
+       La barra de búsqueda ocupa el espacio del medio y se sincroniza
+       con el #searchInput del catálogo (ver onNavSearchInput en app.js). */
     .nav-logo {
-      position: absolute; left: 50%; transform: translateX(-50%);
-      text-decoration: none; display: flex; align-items: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
     }
     .nav-logo img {
-      height: 32px; width: auto; object-fit: contain;
+      height: 30px; width: auto; object-fit: contain;
     }
-
-    /* En tablet+ logo más grande */
     @media (min-width: 768px) {
-      .nav-logo img { height: 40px; }
+      .nav-logo img { height: 38px; }
     }
 
-    .nav-icons { display: flex; align-items: center; gap: .8rem; }
-    /* Mobile: ocultar Iniciar sesión y Contacto del nav (están en drawer) */
-    @media (max-width: 767px) {
-      .nav-icons { gap: .5rem; }
-      .nav-register-btn, .nav-icons > a[href="#contacto"] { display: none !important; }
+    /* Barra de búsqueda inline en el nav */
+    .nav-search {
+      flex: 1;
+      min-width: 0;
+      max-width: 460px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 0 .4rem;
+    }
+    @media (min-width: 768px) {
+      .nav-search { margin: 0 1rem; max-width: 520px; }
+    }
+    .nav-search-icon {
+      position: absolute;
+      left: .6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px; height: 14px;
+      color: var(--gris, #888);
+      pointer-events: none;
+    }
+    .nav-search-input {
+      width: 100%;
+      height: 34px;
+      padding: 0 2rem 0 1.95rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      color: var(--blanco, #f0ede8);
+      font-family: var(--font-body);
+      font-size: .78rem;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    .nav-search-input::placeholder { color: var(--gris, #888); }
+    .nav-search-input:focus {
+      border-color: var(--amarillo, #E8B800);
+      background: rgba(255,255,255,.08);
+    }
+    @media (min-width: 768px) {
+      .nav-search-input { height: 38px; font-size: .85rem; }
+    }
+    .nav-search-clear {
+      position: absolute;
+      right: .35rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px; height: 22px;
+      background: rgba(255,255,255,.1);
+      border: none;
+      border-radius: 50%;
+      color: var(--gris-claro, #bbb);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .nav-search-clear:hover { background: rgba(255,255,255,.18); color: #fff; }
+    body.light .nav-search-input { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.08); color: #1a1a1a; }
+    body.light .nav-search-input::placeholder { color: #666; }
+
+    .nav-icons {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+      flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+      .nav-icons { gap: .35rem; }
     }
 
     .nav-icon-btn {
       background: none; border: none; cursor: pointer;
-      color: var(--gris-claro); display: flex; align-items: center; gap: .35rem;
+      color: var(--gris-claro); display: flex; align-items: center; justify-content: center;
       text-decoration: none; font-family: var(--font-body);
-      font-size: 0;             /* mobile: solo ícono, sin texto */
+      font-size: 0;             /* solo ícono, sin texto (todas las viewports) */
       font-weight: 500; letter-spacing: .1em; transition: color .3s;
+      width: 34px; height: 34px;
     }
-
-    /* Solo en desktop real (>=1200px) aparece el texto al lado del ícono.
-       En tablets (768-1199) quedan solo íconos para que el logo centrado
-       no se superponga con la columna de iconos a la derecha. */
-    @media (min-width: 1200px) {
-      .nav-icon-btn { font-size: .72rem; }
-    }
-
     .nav-icon-btn:hover { color: var(--amarillo); }
     .nav-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
 
     .nav-register-btn {
       color: var(--amarillo) !important;
       border: 1px solid var(--amarillo);
-      border-radius: 20px;
-      padding: 4px 6px;
-    }
-    /* Padding ancho solo en desktop real, donde aparece el texto */
-    @media (min-width: 1200px) {
-      .nav-register-btn { padding: 4px 12px; }
+      border-radius: 50%;
+      padding: 0;
     }
     .nav-register-btn:hover { background: var(--amarillo); color: var(--negro) !important; }
     .nav-register-btn:hover svg { stroke: var(--negro); }
@@ -522,20 +583,11 @@
     .nav-logout-btn {
       color: #e74c3c !important;
       border: 1px solid rgba(231,76,60,.45);
-      border-radius: 20px;
-      padding: 4px 6px;
-    }
-    /* Padding ancho solo en desktop real, donde aparece el texto */
-    @media (min-width: 1200px) {
-      .nav-logout-btn { padding: 4px 12px; }
+      border-radius: 50%;
+      padding: 0;
     }
     .nav-logout-btn:hover { background: #e74c3c; color: #fff !important; }
     .nav-logout-btn:hover svg { stroke: #fff; }
-    /* Mobile: ocultar el texto y dejar solo el icono para no apretar la nav. */
-    @media (max-width: 480px) {
-      .nav-logout-btn { font-size: 0; padding: 6px; }
-      .nav-logout-btn svg { width: 18px; height: 18px; }
-    }
 
     .nav-fav-wrap { position: relative; display: inline-flex; }
     .fav-badge {
