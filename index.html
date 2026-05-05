@@ -737,71 +737,6 @@
       </div>
     </div>
 
-    <!-- Cultura + Mi Selección ST (side by side desktop) -->
-    <div class="cultura-misel-row">
-    <div class="nosotros-cultura">
-      <div class="cultura-poll" id="culturaPoll">
-        <p class="section-eyebrow" style="margin-bottom:.3rem">Nuestra cultura</p>
-        <p class="poll-question">&#191;Cu&#225;l de estas palabras sent&#237;s que nos identifica m&#225;s?</p>
-        <div class="poll-options" id="pollOptions">
-          <button class="poll-opt" onclick="votePoll(this,'Cercano')">Cercano</button>
-          <button class="poll-opt" onclick="votePoll(this,'Divertido')">Divertido</button>
-          <button class="poll-opt" onclick="votePoll(this,'Especializado')">Especializado</button>
-          <button class="poll-opt" onclick="votePoll(this,'Diferente')">Diferente</button>
-          <button class="poll-opt" onclick="votePoll(this,'Enfocado')">Enfocado</button>
-        </div>
-        <p class="poll-result" id="pollResult"></p>
-      </div>
-    </div>
-
-    <!-- Desafío ST -->
-    <div class="misel-section" style="border:1px solid rgba(232,184,0,.2);border-radius:10px;padding:1.5rem;background:linear-gradient(135deg, rgba(232,184,0,.03) 0%, transparent 60%);">
-      <div style="margin-bottom:.5rem;"><span class="set-badge" style="font-size:.6rem;">&#127183; DESAF&Iacute;O INTERACTIVO</span></div>
-      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
-      <p style="font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
-
-      <div class="misel-content" id="miselContent" style="display:none;">
-        <div class="misel-picker">
-          <div class="misel-slots" id="miselSlots">
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
-          </div>
-          <div class="misel-search-wrap">
-            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
-            <div class="misel-dropdown" id="miselDropdown"></div>
-          </div>
-          <p class="misel-msg" id="miselMsg"></p>
-        </div>
-
-        <!-- Carta misteriosa -->
-        <div class="desafio-reveal" id="desafioReveal" style="display:none;">
-          <div class="desafio-card-flip" id="desafioCard" onclick="flipDesafioCard()">
-            <div class="desafio-card-inner" id="desafioCardInner">
-              <div class="desafio-card-front">
-                <span class="desafio-question">?</span>
-                <p class="desafio-tap">Toc&#225; para descubrir</p>
-              </div>
-              <div class="desafio-card-back" id="desafioCardBack">
-              </div>
-            </div>
-          </div>
-          <div class="desafio-actions" id="desafioActions" style="display:none;">
-            <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
-            <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
-            <button class="desafio-btn-share" onclick="shareDesafio()">&#128172; Compartir resultado</button>
-            <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
-          </div>
-          <p class="misel-global-stat" id="miselGlobalStat"></p>
-        </div>
-      </div>
-
-      <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
-        <span>&#128274; Inici&aacute; sesi&oacute;n para jugar</span>
-      </div>
-    </div>
-    </div><!-- /cultura-misel-row -->
-
   </section>
 
   <!-- ════════════════════════════════════════════════════════════════
@@ -877,7 +812,7 @@
     </div>
   </section>
 
-  <!-- ========== QUIZ — Encontrá tu perfume ========== -->
+  <!-- ========== JUEGOS ST — Quiz + Desafío (side-by-side desktop, stack mobile) ========== -->
   <section class="quiz-section" id="quizSection">
     <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
     <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
@@ -885,6 +820,7 @@
     <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
     <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
     <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
+    <div class="cultura-misel-row">
     <div class="quiz-box" id="quizBox">
       <div style="margin-bottom:.6rem;"><span class="set-badge" style="font-size:.6rem;">&#127942; JUGÁ GRATIS</span></div>
       <div class="quiz-icon">&#128142;</div>
@@ -940,6 +876,55 @@
 
       <div class="quiz-results" id="quizResults"></div>
     </div>
+
+    <!-- Desafío ST -->
+    <div class="misel-section" style="border:1px solid rgba(232,184,0,.2);border-radius:10px;padding:1.5rem;background:linear-gradient(135deg, rgba(232,184,0,.03) 0%, transparent 60%);">
+      <div style="margin-bottom:.5rem;"><span class="set-badge" style="font-size:.6rem;">&#127183; DESAF&Iacute;O INTERACTIVO</span></div>
+      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
+      <p style="font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
+
+      <div class="misel-content" id="miselContent" style="display:none;">
+        <div class="misel-picker">
+          <div class="misel-slots" id="miselSlots">
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
+          </div>
+          <div class="misel-search-wrap">
+            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
+            <div class="misel-dropdown" id="miselDropdown"></div>
+          </div>
+          <p class="misel-msg" id="miselMsg"></p>
+        </div>
+
+        <!-- Carta misteriosa -->
+        <div class="desafio-reveal" id="desafioReveal" style="display:none;">
+          <div class="desafio-card-flip" id="desafioCard" onclick="flipDesafioCard()">
+            <div class="desafio-card-inner" id="desafioCardInner">
+              <div class="desafio-card-front">
+                <span class="desafio-question">?</span>
+                <p class="desafio-tap">Toc&#225; para descubrir</p>
+              </div>
+              <div class="desafio-card-back" id="desafioCardBack">
+              </div>
+            </div>
+          </div>
+          <div class="desafio-actions" id="desafioActions" style="display:none;">
+            <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
+            <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
+            <button class="desafio-btn-share" onclick="shareDesafio()">&#128172; Compartir resultado</button>
+            <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
+          </div>
+          <p class="misel-global-stat" id="miselGlobalStat"></p>
+        </div>
+      </div>
+
+      <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
+        <span>&#128274; Inici&aacute; sesi&oacute;n para jugar</span>
+      </div>
+    </div>
+
+    </div><!-- /cultura-misel-row -->
   </section>
 
   <!-- Header del catálogo: keywords transaccionales visibles + eyebrow discreto.
@@ -959,6 +944,32 @@
         <span>Consultar</span>
       </span>
     </button>
+  </div>
+
+  <!-- DECANTS BANNER -->
+  <div class="decant-banner">
+    <div class="decant-b-left">
+      <p class="decant-b-label">◆ ST Perfumería</p>
+      <h2 class="decant-b-title">Decants <span class="decant-b-sep" aria-hidden="true"></span><span>tu fragancia, tu medida</span></h2>
+      <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
+      <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">🧪 Armá tu pack de decants →</button>
+    </div>
+    <div class="decant-b-right">
+      <div class="decant-b-vial">
+        <div class="decant-b-bottle"></div>
+        <span class="decant-b-ml">5 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-10"></div>
+        <span class="decant-b-ml">10 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-20"></div>
+        <span class="decant-b-ml">20 ml</span>
+      </div>
+    </div>
   </div>
 
   <!--
@@ -1000,32 +1011,6 @@
         </div>
       </div>
       <span class="filter-count" id="filterCount">6 fragancias</span>
-    </div>
-  </div>
-
-  <!-- DECANTS BANNER -->
-  <div class="decant-banner">
-    <div class="decant-b-left">
-      <p class="decant-b-label">◆ ST Perfumería</p>
-      <h2 class="decant-b-title">Decants <span class="decant-b-sep" aria-hidden="true"></span><span>tu fragancia, tu medida</span></h2>
-      <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
-      <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">🧪 Armá tu pack de decants →</button>
-    </div>
-    <div class="decant-b-right">
-      <div class="decant-b-vial">
-        <div class="decant-b-bottle"></div>
-        <span class="decant-b-ml">5 ml</span>
-      </div>
-      <div class="decant-b-vial coming-soon">
-        <div class="decant-ribbon">Próximamente</div>
-        <div class="decant-b-bottle size-10"></div>
-        <span class="decant-b-ml">10 ml</span>
-      </div>
-      <div class="decant-b-vial coming-soon">
-        <div class="decant-ribbon">Próximamente</div>
-        <div class="decant-b-bottle size-20"></div>
-        <span class="decant-b-ml">20 ml</span>
-      </div>
     </div>
   </div>
 
