@@ -452,6 +452,7 @@
     <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()">Nosotros</a>
     <a href="/blog" class="drawer-link" onclick="toggleDrawer()">Blog</a>
     <a href="#contacto" class="drawer-link" onclick="toggleDrawer()">Contacto</a>
+    <a href="#dondeEncontrarnos" class="drawer-link" onclick="toggleDrawer()">Dónde encontrarnos</a>
     <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDarkMode();" id="drawerTheme"><span class="dark-toggle-icon">🌙</span> Cambiar tema</a>
     <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth">Iniciar sesi&oacute;n</a>
     <a href="#" class="drawer-link" style="display:none;color:#e74c3c;" onclick="event.preventDefault();toggleDrawer();logout()" id="drawerLogout">Cerrar sesi&#243;n</a>
@@ -1112,11 +1113,65 @@
     </div>
   </section>
 
-  <section style="padding:5rem 1.2rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1.5rem;position:relative;overflow:hidden" id="contacto">
+  <section style="padding:5rem 1.2rem 3rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1.5rem;position:relative;overflow:hidden" id="contacto">
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(232,184,0,.05) 0%,transparent 70%);pointer-events:none"></div>
     <h2 style="font-family:var(--font-display);font-size:clamp(2rem,5vw,4rem);font-weight:300;line-height:1.05;max-width:600px">&#191;No sab&#233;s cu&#225;l elegir? <em style="font-style:italic;color:#E8B800">Consult&#225;nos.</em></h2>
     <p style="font-size:.9rem;color:var(--gris-claro);max-width:360px;line-height:1.7;font-weight:300">Cont&#225;nos tu estilo y el momento &#8212; te recomendamos el perfume que te va a hacer llover halagos.</p>
     <a href="https://www.whatsapp.com/catalog/5492975416017/?app_absent=0" target="_blank" style="display:inline-block;background:#E8B800;color:#080808;font-family:var(--font-body);font-size:.78rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:1rem 2.5rem;text-decoration:none;border-radius:2px;transition:all .3s" onmouseover="this.style.background='#F5CD3D';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#E8B800';this.style.transform='translateY(0)'">Escribir por WhatsApp</a>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       DÓNDE ENCONTRARNOS — dirección + horarios + Google Maps embed
+       Inspirado en la sección Contacto de la Tarea4 de CoderHouse,
+       adaptado al estilo oscuro/dorado del sitio.
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="map-section" id="dondeEncontrarnos" aria-label="Dónde encontrarnos">
+    <div class="map-section-inner">
+      <p class="map-section-eyebrow">Visitanos</p>
+      <h2 class="map-section-title">Dónde encontrarnos</h2>
+
+      <div class="map-section-grid">
+        <!-- Datos de ubicación -->
+        <div class="map-info">
+          <div class="map-info-row">
+            <span class="map-info-icon" aria-hidden="true">📍</span>
+            <div>
+              <p class="map-info-label">Dirección</p>
+              <p class="map-info-text"><strong>San Martín 570, Local Nº 8</strong><br>Comodoro Rivadavia, Chubut (9000)<br>Argentina</p>
+            </div>
+          </div>
+          <div class="map-info-row">
+            <span class="map-info-icon" aria-hidden="true">🕐</span>
+            <div>
+              <p class="map-info-label">Horarios</p>
+              <p class="map-info-text"><strong>Lunes a Viernes</strong> 10:00 a 20:00 hs<br><strong>Sábados</strong> 10:00 a 14:00 hs<br><strong>Domingos</strong> Cerrado</p>
+            </div>
+          </div>
+          <div class="map-info-row">
+            <span class="map-info-icon" aria-hidden="true">📲</span>
+            <div>
+              <p class="map-info-label">Contacto directo</p>
+              <p class="map-info-text">
+                <a href="https://wa.me/5492975416017" target="_blank" rel="noopener" class="map-info-link">WhatsApp +54 9 297 541-6017</a><br>
+                <a href="https://www.instagram.com/st.perfumeria_" target="_blank" rel="noopener" class="map-info-link">@st.perfumeria_</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google Maps embed -->
+        <div class="map-embed-wrap">
+          <iframe
+            class="map-embed"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2478.226807595303!2d-67.48480902392377!3d-45.86113913529941!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xbde4545110a01eb1%3A0x8864a5b39d8726ac!2sSan%20Mart%C3%ADn%20570%2C%20U9000AIL%20Comodoro%20Rivadavia%2C%20Chubut!5e1!3m2!1ses!2sar!4v1773088956042!5m2!1ses!2sar"
+            title="Ubicación de ST Scent &amp; Textures en Google Maps"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen></iframe>
+          <a href="https://maps.google.com/?q=San+Martin+570,+Comodoro+Rivadavia" target="_blank" rel="noopener" class="map-cta">📍 Cómo llegar →</a>
+        </div>
+      </div>
+    </div>
   </section>
 
   <footer>

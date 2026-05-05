@@ -852,7 +852,10 @@
       var dotsWrap = document.getElementById('homeSliderDots');
       if (!track || !dotsWrap) return;
       var isPlaceholder = !slides || slides.length === 0;
-      var list = isPlaceholder ? [{}, {}, {}] : slides;
+      // 8 placeholders cuando la tabla está vacía (antes eran 3).
+      // Suficientes para que el slider se vea "lleno" mientras el admin
+      // empieza a subir slides reales desde el panel.
+      var list = isPlaceholder ? [{}, {}, {}, {}, {}, {}, {}, {}] : slides;
       track.innerHTML = list.map(function(s, i) { return buildSlideHTML(s, isPlaceholder, i); }).join('');
       dotsWrap.innerHTML = list.map(function(_, i) {
         return '<button class="home-slider-dot' + (i === 0 ? ' is-active' : '') + '" data-idx="' + i + '" role="tab" aria-label="Slide ' + (i + 1) + '"></button>';

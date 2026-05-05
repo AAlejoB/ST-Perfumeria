@@ -4408,6 +4408,150 @@
     body.light .seo-hub-desc { color: #555; }
 
     /* ================================================
+       DÓNDE ENCONTRARNOS — sección con dirección + Google Maps
+       Inspirado en Tarea4 CoderHouse, adaptado al estilo del sitio.
+    ================================================ */
+    .map-section {
+      padding: 1rem 1.2rem 4rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) {
+      .map-section { padding: 2rem 2rem 5rem; }
+    }
+    .map-section-inner {
+      background: linear-gradient(180deg, #131316 0%, #0e0e10 100%);
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: 2rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    @media (min-width: 768px) {
+      .map-section-inner { padding: 2.5rem 2.5rem; }
+    }
+    .map-section-inner::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent 0%, var(--amarillo) 30%, var(--amarillo) 70%, transparent 100%);
+    }
+    .map-section-eyebrow {
+      color: var(--amarillo);
+      font-size: .68rem;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: .4rem;
+    }
+    .map-section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 4.5vw, 2.6rem);
+      font-weight: 400;
+      color: #fff;
+      text-align: center;
+      letter-spacing: -.01em;
+      line-height: 1.1;
+      margin-bottom: 2rem;
+    }
+    .map-section-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 880px) {
+      .map-section-grid { grid-template-columns: 1fr 1.3fr; gap: 2rem; align-items: stretch; }
+    }
+    .map-info {
+      display: flex; flex-direction: column;
+      gap: 1.4rem;
+    }
+    .map-info-row {
+      display: flex;
+      gap: .9rem;
+      align-items: flex-start;
+    }
+    .map-info-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      background: rgba(232,184,0,.1);
+      border: 1px solid rgba(232,184,0,.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .map-info-label {
+      color: var(--amarillo);
+      font-size: .6rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: .25rem;
+    }
+    .map-info-text {
+      color: var(--blanco);
+      font-size: .85rem;
+      line-height: 1.55;
+      font-weight: 300;
+    }
+    .map-info-text strong { color: #fff; font-weight: 600; }
+    .map-info-link {
+      color: var(--amarillo);
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(232,184,0,.4);
+      transition: color .2s, border-color .2s;
+    }
+    .map-info-link:hover {
+      color: var(--amarillo-claro);
+      border-color: var(--amarillo);
+    }
+
+    .map-embed-wrap {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0a0a0a;
+      border: 1px solid rgba(232,184,0,.18);
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+    }
+    .map-embed {
+      width: 100%;
+      flex: 1;
+      min-height: 280px;
+      border: 0;
+      display: block;
+    }
+    @media (min-width: 880px) {
+      .map-embed { min-height: 340px; }
+    }
+    .map-cta {
+      display: block;
+      text-align: center;
+      background: var(--amarillo);
+      color: #000;
+      font-weight: 700;
+      font-size: .78rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .85rem 1rem;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .map-cta:hover { background: var(--amarillo-claro); }
+
+    /* Light mode */
+    body.light .map-section-inner {
+      background: linear-gradient(180deg, #fffaf0 0%, #fff5e0 100%);
+      border-color: rgba(184,140,0,.2);
+    }
+    body.light .map-section-title { color: #1a1a1a; }
+    body.light .map-info-text { color: #2a2a2a; }
+    body.light .map-info-text strong { color: #000; }
+
+    /* ================================================
        FAQ — PREGUNTAS FRECUENTES
     ================================================ */
     .section-faq {
