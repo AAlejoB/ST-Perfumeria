@@ -6358,3 +6358,40 @@
     body:not(.dark-mode) #navDrawer button[onclick*="toggleDrawer"],
     body:not(.dark-mode) .nav-drawer .drawer-close,
     body:not(.dark-mode) .nav-drawer button { color: #f0ede8; }
+
+    /* ════════════════════════════════════════════════════════════════
+       FIX MOBILE · "Deck" de filtros que se montaba todo encima
+       Bug visual: con bg transparent + buttons apilados con 3px de
+       offset, los textos TODOS/UNISEX/HOMBRE/MUJER/NUEVOS/❤ se veían
+       superpuestos en mobile. Fix:
+       - CERRADO: solo se muestra el botón activo (los otros opacity:0
+         y pointer-events:none, así no roban clicks).
+       - ABIERTO: todos los botones con bg sólido para que no se vean
+         transparencias entre ellos.
+       ──────────────────────────────────────────────────────────────── */
+    @media (max-width: 767px) {
+      .filter-zone--left:not(.deck-open) .filter-btn {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .filter-zone--left:not(.deck-open) .filter-btn.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .filter-zone--left.deck-open .filter-btn {
+        opacity: 1;
+        pointer-events: auto;
+        /* Solido para que no haya bleed-through entre cards apilados */
+        background: #1a1a1d;
+        border-color: rgba(232,184,0,.35);
+      }
+      body:not(.dark-mode) .filter-zone--left.deck-open .filter-btn {
+        background: #ffffff;
+        border-color: rgba(120,90,0,.3);
+        color: #1a1a1d;
+      }
+      .filter-zone--left.deck-open .filter-btn.active {
+        background: var(--amarillo);
+        color: #1a1a1d;
+      }
+    }
