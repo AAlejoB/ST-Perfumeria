@@ -509,6 +509,19 @@
     </div>
   </div>
 
+  <section class="hero">
+    <span class="hero-blob hero-blob-1" aria-hidden="true"></span>
+    <span class="hero-blob hero-blob-2" aria-hidden="true"></span>
+    <span class="hero-blob hero-blob-3" aria-hidden="true"></span>
+    <p class="hero-tagline">Perfumer&#237;a &#225;rabe original &middot; Comodoro Rivadavia</p>
+    <h1 class="hero-title">"Tu aroma, tu <em>identidad."</em></h1>
+    <p class="hero-sub">Perfumes &#225;rabes importados de larga duraci&#243;n y gran estela. Comprá originales en Comodoro Rivadavia con 3 cuotas sin interés y envíos a todo el país. Pas&#225;s y la gente gira.</p>
+    <div class="store-status" id="storeStatus" style="display:none;">
+      <span class="dot"></span>
+      <span id="storeStatusText"></span>
+    </div>
+  </section>
+
   <!-- ========== HOME SLIDER — slides cuadrados editables (1:1 mobile, 16:9 desktop) ==========
        Tabla Supabase: home_slides (id, orden, media_url, media_tipo, titulo, link_a, activo).
        Sin librerías externas: scroll-snap CSS + JS minimalista para dots + autoplay 5s.
@@ -535,16 +548,315 @@
     </div>
   </section>
 
-  <section class="hero">
-    <span class="hero-blob hero-blob-1" aria-hidden="true"></span>
-    <span class="hero-blob hero-blob-2" aria-hidden="true"></span>
-    <span class="hero-blob hero-blob-3" aria-hidden="true"></span>
-    <p class="hero-tagline">Perfumer&#237;a &#225;rabe original &middot; Comodoro Rivadavia</p>
-    <h1 class="hero-title">"Tu aroma, tu <em>identidad."</em></h1>
-    <p class="hero-sub">Perfumes &#225;rabes importados de larga duraci&#243;n y gran estela. Comprá originales en Comodoro Rivadavia con 3 cuotas sin interés y envíos a todo el país. Pas&#225;s y la gente gira.</p>
-    <div class="store-status" id="storeStatus" style="display:none;">
-      <span class="dot"></span>
-      <span id="storeStatusText"></span>
+  <section class="section-cats" id="categorias">
+    <div class="section-header">
+      <div><p class="section-eyebrow">Explor&#225; por</p><h2 class="section-title">Categor&#237;as</h2></div>
+      <a href="#" class="section-link">Ver todas</a>
+    </div>
+    <div class="cat-grid" id="catGrid">
+      <!-- Categorías generadas dinámicamente -->
+    </div>
+  </section>
+
+  <!-- ========== PACKS & SETS ========== -->
+  <section class="sets-section" id="setsSection">
+    <div class="sets-header">
+      <p class="sets-title">&#127873; Packs &amp; Sets</p>
+      <p class="sets-sub">Combos exclusivos para regalar o regalarte &mdash; comprando en set ahorrás</p>
+    </div>
+    <div class="sets-nav-wrap">
+      <button class="sets-arrow sets-arrow--left" onclick="scrollSets(-1)">&#9664;</button>
+      <div class="sets-grid" id="setsGrid"></div>
+      <button class="sets-arrow sets-arrow--right" onclick="scrollSets(1)">&#9654;</button>
+    </div>
+  </section>
+
+  <section class="section-seo-hub" id="explorar" aria-label="Explorá nuestro catálogo de perfumes">
+    <div class="seo-hub-header">
+      <p class="section-eyebrow">Buscás algo puntual?</p>
+      <h2 class="section-title">Explorá nuestro catálogo</h2>
+      <p class="seo-hub-tagline">Comprá perfumes importados originales en Comodoro Rivadavia con 3 cuotas sin interés y envíos a todo el país.</p>
+    </div>
+
+    <div class="seo-hub-grid">
+      <a href="/perfumes-hombre" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🤵</span>
+        <h3 class="seo-hub-title">Perfumes Hombre</h3>
+        <p class="seo-hub-desc">Fragancias masculinas duraderas y con estela. Comprar perfumes hombre en Argentina con envío a domicilio.</p>
+        <span class="seo-hub-cta">Ver perfumes hombre →</span>
+      </a>
+
+      <a href="/perfumes-mujer" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">💃</span>
+        <h3 class="seo-hub-title">Perfumes Mujer</h3>
+        <p class="seo-hub-desc">Perfumes femeninos importados con gran proyección. Comprar perfumes mujer en Argentina con cuotas sin interés.</p>
+        <span class="seo-hub-cta">Ver perfumes mujer →</span>
+      </a>
+
+      <a href="/perfumes-unisex" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🌸</span>
+        <h3 class="seo-hub-title">Perfumes Unisex</h3>
+        <p class="seo-hub-desc">Fragancias para todos. Perfumes unisex originales con envío a todo el país y precios accesibles.</p>
+        <span class="seo-hub-cta">Ver perfumes unisex →</span>
+      </a>
+
+      <a href="/perfumes-arabes" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🕌</span>
+        <h3 class="seo-hub-title">Perfumes Árabes</h3>
+        <p class="seo-hub-desc">Lattafa, Afnan, Armaf, Maison Alhambra y Rasasi. Comprar perfumes árabes originales en Argentina.</p>
+        <span class="seo-hub-cta">Ver perfumes árabes →</span>
+      </a>
+
+      <a href="/perfumes-duraderos" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">⏰</span>
+        <h3 class="seo-hub-title">Perfumes Duraderos</h3>
+        <p class="seo-hub-desc">Fragancias intensas que duran todo el día. Perfumes duraderos con estela notable a precio accesible.</p>
+        <span class="seo-hub-cta">Ver perfumes duraderos →</span>
+      </a>
+
+      <a href="/seleccion-st" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">⭐</span>
+        <h3 class="seo-hub-title">Selección ST</h3>
+        <p class="seo-hub-desc">Los perfumes que el equipo recomienda. Selección curada con los más vendidos y mejor valorados de ST.</p>
+        <span class="seo-hub-cta">Ver selección →</span>
+      </a>
+
+      <a href="/nuevos" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🆕</span>
+        <h3 class="seo-hub-title">Perfumes Nuevos</h3>
+        <p class="seo-hub-desc">Las últimas fragancias importadas que llegaron a ST. Lanzamientos del mes con 3 cuotas sin interés.</p>
+        <span class="seo-hub-cta">Ver nuevos →</span>
+      </a>
+
+      <a href="/perfumes-en-cuotas" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">💳</span>
+        <h3 class="seo-hub-title">Perfumes en Cuotas</h3>
+        <p class="seo-hub-desc">Comprar perfumes en 3 cuotas sin interés con tarjeta. Financiación accesible y envío a todo el país.</p>
+        <span class="seo-hub-cta">Ver financiación →</span>
+      </a>
+
+      <a href="/ofertas" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">🎁</span>
+        <h3 class="seo-hub-title">Ofertas y Descuentos</h3>
+        <p class="seo-hub-desc">Promociones activas y descuentos en perfumería. 10% off pagando en efectivo o transferencia.</p>
+        <span class="seo-hub-cta">Ver ofertas →</span>
+      </a>
+
+      <a href="/decants" class="seo-hub-card">
+        <span class="seo-hub-icon" aria-hidden="true">💧</span>
+        <h3 class="seo-hub-title">Decants y Mini Talles</h3>
+        <p class="seo-hub-desc">Probá fragancias originales en formato mini. Decants de perfumes árabes con envío a todo el país.</p>
+        <span class="seo-hub-cta">Ver decants →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ========== SELECCIÓN ST — Top Ventas (movida debajo del banner de decants para aliviar el primer render) ========== -->
+  <section class="seleccion-st" id="destacados">
+    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
+    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
+    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
+    <div class="seleccion-st-header">
+      <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
+      <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
+    </div>
+    <div class="seleccion-st-grid" id="seleccionGrid"></div>
+  </section>
+
+  <!-- ================================================
+       SOBRE NOSOTROS — contenido real de ST
+  ================================================ -->
+  <section class="section-nosotros" id="nosotros">
+
+    <!-- Encabezado -->
+    <div class="nosotros-header">
+      <p class="section-eyebrow">Sobre ST</p>
+      <h2 class="section-title">Perfumes &#225;rabes en el<br>centro de <em>Comodoro.</em></h2>
+      <p class="nosotros-tagline"><strong>Intensos. Duraderos. Con identidad.</strong></p>
+    </div>
+
+    <!-- Bloque: Qui&#233;nes somos + C&#243;mo nace -->
+    <div class="nosotros-grid-top">
+      <div class="nosotros-block border-left-amarillo">
+        <h3 class="nosotros-block-title">Qui&#233;nes somos</h3>
+        <p>ST es el <strong>primer local en el centro de Comodoro Rivadavia especializado exclusivamente en <a href="#explorar" class="nosotros-link">perfumes &#225;rabes</a></strong>.</p>
+        <p>Nacimos con una idea clara: traer a la ciudad una propuesta distinta. No m&#225;s lo mismo de siempre. No farmacias con miles de productos mezclados. Un espacio dedicado 100% a fragancias intensas, duraderas y con identidad.</p>
+        <p>Hoy somos el punto de referencia para quienes buscan <strong>lujo accesible</strong>, <a href="#explorar" class="nosotros-link">perfumes potentes</a>, con personalidad y excelente relaci&#243;n precio-calidad.</p>
+      </div>
+      <div class="nosotros-block border-left-blanco">
+        <h3 class="nosotros-block-title">C&#243;mo nace ST</h3>
+        <p>En Comodoro hab&#237;a perfumes de dise&#241;ador&#8230; pero nadie apostaba fuerte al universo &#225;rabe. Mientras en redes el mundo hablaba de Lattafa, Afnan, Maison Alhambra y Armaf, ac&#225; no hab&#237;a un lugar especializado donde probarlos y entenderlos.</p>
+        <blockquote class="nosotros-quote">
+          "Decidimos llenar ese vac&#237;o. Abrimos el primer local enfocado en perfumes &#225;rabes, con asesoramiento real, pruebas en piel y experiencia personalizada.<br><strong>No quer&#237;amos vender cajas. Quer&#237;amos vender identidad.</strong>"
+        </blockquote>
+      </div>
+    </div>
+
+    <!-- Bloque: Por qu&#233; + Equipo -->
+    <div class="nosotros-grid-bottom">
+      <div class="nosotros-block border-left-amarillo">
+        <h3 class="nosotros-block-title">Por qu&#233; perfumes &#225;rabes</h3>
+        <p>Porque creemos que no ten&#233;s que gastar una fortuna para oler exclusivo. Un perfume tiene que proyectar, durar y dejar huella. Los perfumes &#225;rabes nos permiten ofrecer:</p>
+        <ul class="nosotros-list">
+          <li>Mayor duraci&#243;n y mejor proyecci&#243;n</li>
+          <li>Notas intensas y memorables</li>
+          <li>Precios m&#225;s accesibles que muchos dise&#241;adores</li>
+        </ul>
+        <p>Y adem&#225;s, nos encanta el concepto de que <strong>no todos huelan igual</strong>.</p>
+      </div>
+      <div class="nosotros-block border-left-blanco">
+        <h3 class="nosotros-block-title">Nuestro equipo</h3>
+        <p>ST est&#225; formado por un equipo joven, cercano y apasionado por el mundo de las fragancias.</p>
+        <ul class="nosotros-list">
+          <li>Atenci&#243;n personalizada</li>
+          <li>Asesoramiento honesto</li>
+          <li>Prueba real en piel</li>
+          <li>Explicaci&#243;n clara, sin tecnicismos</li>
+        </ul>
+        <p class="nosotros-cierre">No vendemos por presi&#243;n.<br><strong>Vendemos porque el perfume te convenci&#243;.</strong></p>
+      </div>
+    </div>
+
+    <!-- Cultura + Mi Selección ST (side by side desktop) -->
+    <div class="cultura-misel-row">
+    <div class="nosotros-cultura">
+      <div class="cultura-poll" id="culturaPoll">
+        <p class="section-eyebrow" style="margin-bottom:.3rem">Nuestra cultura</p>
+        <p class="poll-question">&#191;Cu&#225;l de estas palabras sent&#237;s que nos identifica m&#225;s?</p>
+        <div class="poll-options" id="pollOptions">
+          <button class="poll-opt" onclick="votePoll(this,'Cercano')">Cercano</button>
+          <button class="poll-opt" onclick="votePoll(this,'Divertido')">Divertido</button>
+          <button class="poll-opt" onclick="votePoll(this,'Especializado')">Especializado</button>
+          <button class="poll-opt" onclick="votePoll(this,'Diferente')">Diferente</button>
+          <button class="poll-opt" onclick="votePoll(this,'Enfocado')">Enfocado</button>
+        </div>
+        <p class="poll-result" id="pollResult"></p>
+      </div>
+    </div>
+
+    <!-- Desafío ST -->
+    <div class="misel-section" style="border:1px solid rgba(232,184,0,.2);border-radius:10px;padding:1.5rem;background:linear-gradient(135deg, rgba(232,184,0,.03) 0%, transparent 60%);">
+      <div style="margin-bottom:.5rem;"><span class="set-badge" style="font-size:.6rem;">&#127183; DESAF&Iacute;O INTERACTIVO</span></div>
+      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
+      <p style="font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
+
+      <div class="misel-content" id="miselContent" style="display:none;">
+        <div class="misel-picker">
+          <div class="misel-slots" id="miselSlots">
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
+          </div>
+          <div class="misel-search-wrap">
+            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
+            <div class="misel-dropdown" id="miselDropdown"></div>
+          </div>
+          <p class="misel-msg" id="miselMsg"></p>
+        </div>
+
+        <!-- Carta misteriosa -->
+        <div class="desafio-reveal" id="desafioReveal" style="display:none;">
+          <div class="desafio-card-flip" id="desafioCard" onclick="flipDesafioCard()">
+            <div class="desafio-card-inner" id="desafioCardInner">
+              <div class="desafio-card-front">
+                <span class="desafio-question">?</span>
+                <p class="desafio-tap">Toc&#225; para descubrir</p>
+              </div>
+              <div class="desafio-card-back" id="desafioCardBack">
+              </div>
+            </div>
+          </div>
+          <div class="desafio-actions" id="desafioActions" style="display:none;">
+            <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
+            <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
+            <button class="desafio-btn-share" onclick="shareDesafio()">&#128172; Compartir resultado</button>
+            <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
+          </div>
+          <p class="misel-global-stat" id="miselGlobalStat"></p>
+        </div>
+      </div>
+
+      <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
+        <span>&#128274; Inici&aacute; sesi&oacute;n para jugar</span>
+      </div>
+    </div>
+    </div><!-- /cultura-misel-row -->
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SEO HUB — "Explorá nuestro catálogo"
+       Sección con texto rico orientado a búsqueda local transaccional.
+       Cada bloque usa una keyword principal del paso de generación SEO
+       y linkea al catálogo. Mejora crawlability + autoridad por categoría.
+       ════════════════════════════════════════════════════════════════ -->
+  <!-- ========== FAQ ========== -->
+  <section class="section-faq" id="faq">
+    <div class="faq-header">
+      <p class="section-eyebrow">FAQ</p>
+      <h2 class="section-title">Preguntas frecuentes</h2>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Los perfumes son originales?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>Sí, todos nuestros perfumes son 100% originales de marcas árabes reconocidas como Lattafa, Afnan, Maison Alhambra, Armaf, entre otras. No vendemos imitaciones ni réplicas.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Cuánto duran en piel?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>La mayoría de nuestros perfumes tienen una duración de entre 8 y 12+ horas. Los perfumes árabes se destacan justamente por su larga duración y excelente proyección.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Hacen envíos?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p><strong>¡Sí! Hacemos envíos a todo el país 🇦🇷</strong> No importa en qué provincia estés — coordinamos por correo a cualquier punto de Argentina. En Comodoro Rivadavia y alrededores tenemos entrega rápida. Consultanos por WhatsApp para conocer las opciones y costos.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Puedo probar los perfumes antes de comprar?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>¡Por supuesto! Podés venir al local y probar todos los que quieras. Te asesoramos sin compromiso y sin presión. La prueba en piel es la mejor forma de elegir tu fragancia.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Qué medios de pago aceptan?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>Aceptamos todos los medios de pago y ofrecemos <a href="#explorar" class="nosotros-link">3 cuotas sin interés</a>, además en efectivo o transferencia tenés un 10% de descuento.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Qué diferencia hay entre perfume árabe y uno de diseñador?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer">
+        <p>Los <a href="#explorar" class="nosotros-link">perfumes árabes</a> suelen tener mayor concentración de aceites esenciales, lo que les da más duración y proyección. Muchos son inspirados en fragancias de diseñador pero con su propia identidad.</p>
+        <p>Además, la relación precio-calidad es muy superior: conseguís un perfume potente y duradero a una fracción del precio de un diseñador.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        ¿Dónde están ubicados?
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer"><p>Estamos en el centro de Comodoro Rivadavia, Chubut. Podés ver nuestros horarios en el footer de la página o consultarnos por WhatsApp para coordinar tu visita.</p></div>
     </div>
   </section>
 
@@ -707,21 +1019,6 @@
         - Si no hay ninguno visible para este visitante, el contenedor queda display:none. -->
   <div id="publicAnnouncement" class="public-announcement" style="display:none;"></div>
 
-  <!-- ========== SELECCIÓN ST — Top Ventas (movida debajo del banner de decants para aliviar el primer render) ========== -->
-  <section class="seleccion-st" id="destacados">
-    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
-    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
-    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
-    <div class="seleccion-st-header">
-      <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
-      <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
-    </div>
-    <div class="seleccion-st-grid" id="seleccionGrid"></div>
-  </section>
-
   <section class="catalog-section">
     <div class="filters-bar">
       <div class="occasion-wrap">
@@ -771,303 +1068,6 @@
     <div class="cta-register" id="ctaRegister">
       <p class="cta-register-text"><strong>Cre&#225; tu cuenta gratis</strong> y guard&#225; tus perfumes favoritos, vot&#225; el perfume del mes y mucho m&#225;s.</p>
       <button class="cta-register-btn" onclick="openAuth()">Iniciar sesi&oacute;n</button>
-    </div>
-  </section>
-
-  <!-- ========== PACKS & SETS ========== -->
-  <section class="sets-section" id="setsSection">
-    <div class="sets-header">
-      <p class="sets-title">&#127873; Packs &amp; Sets</p>
-      <p class="sets-sub">Combos exclusivos para regalar o regalarte &mdash; comprando en set ahorrás</p>
-    </div>
-    <div class="sets-nav-wrap">
-      <button class="sets-arrow sets-arrow--left" onclick="scrollSets(-1)">&#9664;</button>
-      <div class="sets-grid" id="setsGrid"></div>
-      <button class="sets-arrow sets-arrow--right" onclick="scrollSets(1)">&#9654;</button>
-    </div>
-  </section>
-
-  <section class="section-cats" id="categorias">
-    <div class="section-header">
-      <div><p class="section-eyebrow">Explor&#225; por</p><h2 class="section-title">Categor&#237;as</h2></div>
-      <a href="#" class="section-link">Ver todas</a>
-    </div>
-    <div class="cat-grid" id="catGrid">
-      <!-- Categorías generadas dinámicamente -->
-    </div>
-  </section>
-
-  <!-- ================================================
-       SOBRE NOSOTROS — contenido real de ST
-  ================================================ -->
-  <section class="section-nosotros" id="nosotros">
-
-    <!-- Encabezado -->
-    <div class="nosotros-header">
-      <p class="section-eyebrow">Sobre ST</p>
-      <h2 class="section-title">Perfumes &#225;rabes en el<br>centro de <em>Comodoro.</em></h2>
-      <p class="nosotros-tagline"><strong>Intensos. Duraderos. Con identidad.</strong></p>
-    </div>
-
-    <!-- Bloque: Qui&#233;nes somos + C&#243;mo nace -->
-    <div class="nosotros-grid-top">
-      <div class="nosotros-block border-left-amarillo">
-        <h3 class="nosotros-block-title">Qui&#233;nes somos</h3>
-        <p>ST es el <strong>primer local en el centro de Comodoro Rivadavia especializado exclusivamente en <a href="#explorar" class="nosotros-link">perfumes &#225;rabes</a></strong>.</p>
-        <p>Nacimos con una idea clara: traer a la ciudad una propuesta distinta. No m&#225;s lo mismo de siempre. No farmacias con miles de productos mezclados. Un espacio dedicado 100% a fragancias intensas, duraderas y con identidad.</p>
-        <p>Hoy somos el punto de referencia para quienes buscan <strong>lujo accesible</strong>, <a href="#explorar" class="nosotros-link">perfumes potentes</a>, con personalidad y excelente relaci&#243;n precio-calidad.</p>
-      </div>
-      <div class="nosotros-block border-left-blanco">
-        <h3 class="nosotros-block-title">C&#243;mo nace ST</h3>
-        <p>En Comodoro hab&#237;a perfumes de dise&#241;ador&#8230; pero nadie apostaba fuerte al universo &#225;rabe. Mientras en redes el mundo hablaba de Lattafa, Afnan, Maison Alhambra y Armaf, ac&#225; no hab&#237;a un lugar especializado donde probarlos y entenderlos.</p>
-        <blockquote class="nosotros-quote">
-          "Decidimos llenar ese vac&#237;o. Abrimos el primer local enfocado en perfumes &#225;rabes, con asesoramiento real, pruebas en piel y experiencia personalizada.<br><strong>No quer&#237;amos vender cajas. Quer&#237;amos vender identidad.</strong>"
-        </blockquote>
-      </div>
-    </div>
-
-    <!-- Bloque: Por qu&#233; + Equipo -->
-    <div class="nosotros-grid-bottom">
-      <div class="nosotros-block border-left-amarillo">
-        <h3 class="nosotros-block-title">Por qu&#233; perfumes &#225;rabes</h3>
-        <p>Porque creemos que no ten&#233;s que gastar una fortuna para oler exclusivo. Un perfume tiene que proyectar, durar y dejar huella. Los perfumes &#225;rabes nos permiten ofrecer:</p>
-        <ul class="nosotros-list">
-          <li>Mayor duraci&#243;n y mejor proyecci&#243;n</li>
-          <li>Notas intensas y memorables</li>
-          <li>Precios m&#225;s accesibles que muchos dise&#241;adores</li>
-        </ul>
-        <p>Y adem&#225;s, nos encanta el concepto de que <strong>no todos huelan igual</strong>.</p>
-      </div>
-      <div class="nosotros-block border-left-blanco">
-        <h3 class="nosotros-block-title">Nuestro equipo</h3>
-        <p>ST est&#225; formado por un equipo joven, cercano y apasionado por el mundo de las fragancias.</p>
-        <ul class="nosotros-list">
-          <li>Atenci&#243;n personalizada</li>
-          <li>Asesoramiento honesto</li>
-          <li>Prueba real en piel</li>
-          <li>Explicaci&#243;n clara, sin tecnicismos</li>
-        </ul>
-        <p class="nosotros-cierre">No vendemos por presi&#243;n.<br><strong>Vendemos porque el perfume te convenci&#243;.</strong></p>
-      </div>
-    </div>
-
-    <!-- Cultura + Mi Selección ST (side by side desktop) -->
-    <div class="cultura-misel-row">
-    <div class="nosotros-cultura">
-      <div class="cultura-poll" id="culturaPoll">
-        <p class="section-eyebrow" style="margin-bottom:.3rem">Nuestra cultura</p>
-        <p class="poll-question">&#191;Cu&#225;l de estas palabras sent&#237;s que nos identifica m&#225;s?</p>
-        <div class="poll-options" id="pollOptions">
-          <button class="poll-opt" onclick="votePoll(this,'Cercano')">Cercano</button>
-          <button class="poll-opt" onclick="votePoll(this,'Divertido')">Divertido</button>
-          <button class="poll-opt" onclick="votePoll(this,'Especializado')">Especializado</button>
-          <button class="poll-opt" onclick="votePoll(this,'Diferente')">Diferente</button>
-          <button class="poll-opt" onclick="votePoll(this,'Enfocado')">Enfocado</button>
-        </div>
-        <p class="poll-result" id="pollResult"></p>
-      </div>
-    </div>
-
-    <!-- Desafío ST -->
-    <div class="misel-section" style="border:1px solid rgba(232,184,0,.2);border-radius:10px;padding:1.5rem;background:linear-gradient(135deg, rgba(232,184,0,.03) 0%, transparent 60%);">
-      <div style="margin-bottom:.5rem;"><span class="set-badge" style="font-size:.6rem;">&#127183; DESAF&Iacute;O INTERACTIVO</span></div>
-      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
-      <p style="font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
-
-      <div class="misel-content" id="miselContent" style="display:none;">
-        <div class="misel-picker">
-          <div class="misel-slots" id="miselSlots">
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
-          </div>
-          <div class="misel-search-wrap">
-            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
-            <div class="misel-dropdown" id="miselDropdown"></div>
-          </div>
-          <p class="misel-msg" id="miselMsg"></p>
-        </div>
-
-        <!-- Carta misteriosa -->
-        <div class="desafio-reveal" id="desafioReveal" style="display:none;">
-          <div class="desafio-card-flip" id="desafioCard" onclick="flipDesafioCard()">
-            <div class="desafio-card-inner" id="desafioCardInner">
-              <div class="desafio-card-front">
-                <span class="desafio-question">?</span>
-                <p class="desafio-tap">Toc&#225; para descubrir</p>
-              </div>
-              <div class="desafio-card-back" id="desafioCardBack">
-              </div>
-            </div>
-          </div>
-          <div class="desafio-actions" id="desafioActions" style="display:none;">
-            <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
-            <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
-            <button class="desafio-btn-share" onclick="shareDesafio()">&#128172; Compartir resultado</button>
-            <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
-          </div>
-          <p class="misel-global-stat" id="miselGlobalStat"></p>
-        </div>
-      </div>
-
-      <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
-        <span>&#128274; Inici&aacute; sesi&oacute;n para jugar</span>
-      </div>
-    </div>
-    </div><!-- /cultura-misel-row -->
-
-  </section>
-
-  <!-- ════════════════════════════════════════════════════════════════
-       SEO HUB — "Explorá nuestro catálogo"
-       Sección con texto rico orientado a búsqueda local transaccional.
-       Cada bloque usa una keyword principal del paso de generación SEO
-       y linkea al catálogo. Mejora crawlability + autoridad por categoría.
-       ════════════════════════════════════════════════════════════════ -->
-  <section class="section-seo-hub" id="explorar" aria-label="Explorá nuestro catálogo de perfumes">
-    <div class="seo-hub-header">
-      <p class="section-eyebrow">Buscás algo puntual?</p>
-      <h2 class="section-title">Explorá nuestro catálogo</h2>
-      <p class="seo-hub-tagline">Comprá perfumes importados originales en Comodoro Rivadavia con 3 cuotas sin interés y envíos a todo el país.</p>
-    </div>
-
-    <div class="seo-hub-grid">
-      <a href="/perfumes-hombre" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">🤵</span>
-        <h3 class="seo-hub-title">Perfumes Hombre</h3>
-        <p class="seo-hub-desc">Fragancias masculinas duraderas y con estela. Comprar perfumes hombre en Argentina con envío a domicilio.</p>
-        <span class="seo-hub-cta">Ver perfumes hombre →</span>
-      </a>
-
-      <a href="/perfumes-mujer" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">💃</span>
-        <h3 class="seo-hub-title">Perfumes Mujer</h3>
-        <p class="seo-hub-desc">Perfumes femeninos importados con gran proyección. Comprar perfumes mujer en Argentina con cuotas sin interés.</p>
-        <span class="seo-hub-cta">Ver perfumes mujer →</span>
-      </a>
-
-      <a href="/perfumes-unisex" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">🌸</span>
-        <h3 class="seo-hub-title">Perfumes Unisex</h3>
-        <p class="seo-hub-desc">Fragancias para todos. Perfumes unisex originales con envío a todo el país y precios accesibles.</p>
-        <span class="seo-hub-cta">Ver perfumes unisex →</span>
-      </a>
-
-      <a href="/perfumes-arabes" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">🕌</span>
-        <h3 class="seo-hub-title">Perfumes Árabes</h3>
-        <p class="seo-hub-desc">Lattafa, Afnan, Armaf, Maison Alhambra y Rasasi. Comprar perfumes árabes originales en Argentina.</p>
-        <span class="seo-hub-cta">Ver perfumes árabes →</span>
-      </a>
-
-      <a href="/perfumes-duraderos" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">⏰</span>
-        <h3 class="seo-hub-title">Perfumes Duraderos</h3>
-        <p class="seo-hub-desc">Fragancias intensas que duran todo el día. Perfumes duraderos con estela notable a precio accesible.</p>
-        <span class="seo-hub-cta">Ver perfumes duraderos →</span>
-      </a>
-
-      <a href="/seleccion-st" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">⭐</span>
-        <h3 class="seo-hub-title">Selección ST</h3>
-        <p class="seo-hub-desc">Los perfumes que el equipo recomienda. Selección curada con los más vendidos y mejor valorados de ST.</p>
-        <span class="seo-hub-cta">Ver selección →</span>
-      </a>
-
-      <a href="/nuevos" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">🆕</span>
-        <h3 class="seo-hub-title">Perfumes Nuevos</h3>
-        <p class="seo-hub-desc">Las últimas fragancias importadas que llegaron a ST. Lanzamientos del mes con 3 cuotas sin interés.</p>
-        <span class="seo-hub-cta">Ver nuevos →</span>
-      </a>
-
-      <a href="/perfumes-en-cuotas" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">💳</span>
-        <h3 class="seo-hub-title">Perfumes en Cuotas</h3>
-        <p class="seo-hub-desc">Comprar perfumes en 3 cuotas sin interés con tarjeta. Financiación accesible y envío a todo el país.</p>
-        <span class="seo-hub-cta">Ver financiación →</span>
-      </a>
-
-      <a href="/ofertas" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">🎁</span>
-        <h3 class="seo-hub-title">Ofertas y Descuentos</h3>
-        <p class="seo-hub-desc">Promociones activas y descuentos en perfumería. 10% off pagando en efectivo o transferencia.</p>
-        <span class="seo-hub-cta">Ver ofertas →</span>
-      </a>
-
-      <a href="/decants" class="seo-hub-card">
-        <span class="seo-hub-icon" aria-hidden="true">💧</span>
-        <h3 class="seo-hub-title">Decants y Mini Talles</h3>
-        <p class="seo-hub-desc">Probá fragancias originales en formato mini. Decants de perfumes árabes con envío a todo el país.</p>
-        <span class="seo-hub-cta">Ver decants →</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- ========== FAQ ========== -->
-  <section class="section-faq" id="faq">
-    <div class="faq-header">
-      <p class="section-eyebrow">FAQ</p>
-      <h2 class="section-title">Preguntas frecuentes</h2>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        ¿Los perfumes son originales?
-        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="faq-answer"><p>Sí, todos nuestros perfumes son 100% originales de marcas árabes reconocidas como Lattafa, Afnan, Maison Alhambra, Armaf, entre otras. No vendemos imitaciones ni réplicas.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        ¿Cuánto duran en piel?
-        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="faq-answer"><p>La mayoría de nuestros perfumes tienen una duración de entre 8 y 12+ horas. Los perfumes árabes se destacan justamente por su larga duración y excelente proyección.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        ¿Hacen envíos?
-        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="faq-answer"><p><strong>¡Sí! Hacemos envíos a todo el país 🇦🇷</strong> No importa en qué provincia estés — coordinamos por correo a cualquier punto de Argentina. En Comodoro Rivadavia y alrededores tenemos entrega rápida. Consultanos por WhatsApp para conocer las opciones y costos.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        ¿Puedo probar los perfumes antes de comprar?
-        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="faq-answer"><p>¡Por supuesto! Podés venir al local y probar todos los que quieras. Te asesoramos sin compromiso y sin presión. La prueba en piel es la mejor forma de elegir tu fragancia.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        ¿Qué medios de pago aceptan?
-        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="faq-answer"><p>Aceptamos todos los medios de pago y ofrecemos <a href="#explorar" class="nosotros-link">3 cuotas sin interés</a>, además en efectivo o transferencia tenés un 10% de descuento.</p></div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        ¿Qué diferencia hay entre perfume árabe y uno de diseñador?
-        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="faq-answer">
-        <p>Los <a href="#explorar" class="nosotros-link">perfumes árabes</a> suelen tener mayor concentración de aceites esenciales, lo que les da más duración y proyección. Muchos son inspirados en fragancias de diseñador pero con su propia identidad.</p>
-        <p>Además, la relación precio-calidad es muy superior: conseguís un perfume potente y duradero a una fracción del precio de un diseñador.</p>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFaq(this)">
-        ¿Dónde están ubicados?
-        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="faq-answer"><p>Estamos en el centro de Comodoro Rivadavia, Chubut. Podés ver nuestros horarios en el footer de la página o consultarnos por WhatsApp para coordinar tu visita.</p></div>
     </div>
   </section>
 

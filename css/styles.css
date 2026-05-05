@@ -1229,12 +1229,29 @@
       .catalog-section { padding: 2rem 2.5rem 4rem; }
     }
 
-    /* Desktop grande: más padding lateral y gap generoso */
-    @media (min-width: 1200px) {
+    /* Desktop medio (1024px+): 3 columnas, cards más chicas */
+    @media (min-width: 1024px) {
       .catalog-grid {
-        gap: 2rem;                /* aún más respiro entre cards */
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.4rem;
       }
-      .catalog-section { padding: 2.5rem 5rem 5rem; }
+    }
+
+    /* Desktop grande (1280px+): mantenemos 3 cols pero con más respiro */
+    @media (min-width: 1280px) {
+      .catalog-grid {
+        gap: 1.6rem;
+      }
+      .catalog-section { padding: 2.5rem 4rem 5rem; }
+    }
+
+    /* Desktop XL (1600px+): 4 columnas para pantallas muy grandes */
+    @media (min-width: 1600px) {
+      .catalog-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.6rem;
+      }
+      .catalog-section { padding: 2.5rem 6rem 5rem; }
     }
 
     /*
