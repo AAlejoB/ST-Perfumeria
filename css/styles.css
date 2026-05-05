@@ -6008,24 +6008,26 @@
        "Tenés X puntos".
        ──────────────────────────────────────────────────────────────── */
     body:not(.dark-mode) {
-      --negro:        #f6f3ec;
-      --negro-card:   #ffffff;
-      --negro-hover:  #efece5;
-      --blanco:       #1a1a1d;
-      --gris:         #666;
-      --gris-claro:   #333;
-      --borde:        rgba(180,140,0,.30);
-      --borde-sutil:  rgba(0,0,0,.08);
-      background: #f6f3ec;
+      /* Paleta cálida (no blanco puro): inspirada en la sección
+         "Categorías" — fondo crema + texto carbón + acentos dorados. */
+      --negro:        #ede5d2;   /* fondo principal — crema cálido */
+      --negro-card:   #f5efde;   /* cards — crema un toque más claro */
+      --negro-hover:  #e3dac4;
+      --blanco:       #1a1a1d;   /* texto principal */
+      --gris:         #5e564a;
+      --gris-claro:   #2a2622;
+      --borde:        rgba(120,90,0,.28);
+      --borde-sutil:  rgba(0,0,0,.06);
+      background: #ede5d2;
       color: #1a1a1d;
     }
     body:not(.dark-mode) nav.nav,
     body:not(.dark-mode) .nav {
-      background: rgba(246,243,236,.92) !important;
+      background: rgba(237,229,210,.92) !important;
       border-bottom-color: rgba(0,0,0,.08);
     }
     body:not(.dark-mode) .nav-search,
-    body:not(.dark-mode) .nav-search-input { background: #fff; color: #1a1a1d; border-color: rgba(0,0,0,.12); }
+    body:not(.dark-mode) .nav-search-input { background: #f5efde; color: #1a1a1d; border-color: rgba(0,0,0,.12); }
     body:not(.dark-mode) .nav-search-input::placeholder { color: #888; }
     body:not(.dark-mode) .nav-icon-btn { color: #444; }
     body:not(.dark-mode) .nav-icon-btn svg { stroke: currentColor; }
@@ -6034,8 +6036,9 @@
     body:not(.dark-mode) .hero-tagline,
     body:not(.dark-mode) .hero-sub { color: #1a1a1d; }
     body:not(.dark-mode) .section-title,
-    body:not(.dark-mode) .section-eyebrow,
     body:not(.dark-mode) h1, body:not(.dark-mode) h2, body:not(.dark-mode) h3 { color: #1a1a1d; }
+    /* Eyebrows en dorado-marrón para mantener la calidez de la paleta */
+    body:not(.dark-mode) .section-eyebrow { color: #8a6d00; }
     body:not(.dark-mode) p, body:not(.dark-mode) li { color: #2a2a2d; }
     body:not(.dark-mode) .home-slider-viewport { background: #e8e4d8; border-color: rgba(0,0,0,.08); }
     body:not(.dark-mode) .home-top-banner { background: #1a1a1d; color: #fff; }
@@ -6053,7 +6056,22 @@
     body:not(.dark-mode) .faq-item,
     body:not(.dark-mode) .sector-card,
     body:not(.dark-mode) .set-card,
-    body:not(.dark-mode) .nosotros-block { background: #ffffff !important; border-color: rgba(180,140,0,.25); color: #1a1a1d; }
+    body:not(.dark-mode) .nosotros-block { background: #f5efde !important; border-color: rgba(120,90,0,.25); color: #1a1a1d; }
+    /* Decant banner: ambos lados al mismo crema, separator dorado */
+    body:not(.dark-mode) .decant-banner { background: transparent !important; border: 1px solid rgba(120,90,0,.25); border-radius: 8px; }
+    body:not(.dark-mode) .decant-b-left {
+      background: linear-gradient(135deg, #f5efde, #ede5d2) !important;
+      border-right-color: rgba(120,90,0,.4) !important;
+      color: #1a1a1d;
+    }
+    body:not(.dark-mode) .decant-b-right {
+      background: linear-gradient(180deg, rgba(232,184,0,.10), transparent) !important;
+    }
+    body:not(.dark-mode) .decant-b-title { color: #1a1a1d !important; }
+    body:not(.dark-mode) .decant-b-sub { color: #5e564a !important; }
+    @media (max-width: 767px) {
+      body:not(.dark-mode) .decant-b-left { border-bottom-color: rgba(120,90,0,.4) !important; }
+    }
     body:not(.dark-mode) .quiz-question,
     body:not(.dark-mode) .quiz-title,
     body:not(.dark-mode) .quiz-subtitle,
