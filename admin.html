@@ -3791,26 +3791,13 @@
     }
 
     // Helpers del modal de stock (+/-, preview en vivo)
+    // Empleado y jefe pueden sumar/restar libremente — el control
+    // de ingreso de mercadería es responsabilidad compartida del equipo.
     function stockQtyStep(delta) {
       var inp = document.getElementById('modalStockQty');
       var curr = parseInt(inp.value, 10);
       if (isNaN(curr)) curr = 0;
-      // Empleado: solo puede DECREMENTAR. El + queda inhabilitado.
-      if (currentRole === 'empleado' && delta > 0) {
-        var msg = document.getElementById('modalStockMsg');
-        if (msg) {
-          msg.textContent = '⚠ Solo el jefe puede agregar stock. Vos podés restar (vendiste un perfume).';
-          msg.style.color = '#e67e22';
-          setTimeout(function() { if (msg) msg.textContent = ''; }, 3500);
-        }
-        return;
-      }
       curr = Math.max(0, Math.min(999, curr + delta));
-      // Empleado: no permitir superar el stock inicial (no sumar al revés).
-      if (currentRole === 'empleado') {
-        var initialQty = parseInt(inp.dataset.initialQty || '0', 10);
-        if (curr > initialQty) curr = initialQty;
-      }
       inp.value = curr;
       updateStockPreview();
     }

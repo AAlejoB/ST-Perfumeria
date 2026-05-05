@@ -6028,7 +6028,26 @@
     body:not(.dark-mode) .nav-search-input::placeholder { color: #888; }
     body:not(.dark-mode) .nav-icon-btn { color: #444; }
     body:not(.dark-mode) .nav-icon-btn svg { stroke: currentColor; }
-    body:not(.dark-mode) .hero { background: transparent; color: #1a1a1d; }
+    /* Hero light: gradiente cálido + borde dorado en desktop para
+       diferenciarlo del slider (oscuro) y de las cards (crema plano). */
+    body:not(.dark-mode) .hero {
+      background:
+        radial-gradient(circle at 30% 20%, rgba(232,184,0,.12), transparent 55%),
+        radial-gradient(circle at 70% 80%, rgba(180,140,0,.08), transparent 60%),
+        linear-gradient(180deg, #f7f0db 0%, #ede5d2 100%);
+      color: #1a1a1d;
+      border-bottom: 1px solid rgba(120,90,0,.15);
+    }
+    @media (min-width: 768px) {
+      body:not(.dark-mode) .hero {
+        margin: 1rem auto;
+        max-width: 1200px;
+        border-radius: 14px;
+        border: 1px solid rgba(120,90,0,.22);
+        box-shadow: 0 4px 24px rgba(120,90,0,.08);
+      }
+    }
+    body:not(.dark-mode) .hero-blob { opacity: .35 !important; }
     body:not(.dark-mode) .hero-title,
     body:not(.dark-mode) .hero-tagline,
     body:not(.dark-mode) .hero-sub { color: #1a1a1d; }
