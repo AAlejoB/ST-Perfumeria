@@ -679,6 +679,22 @@
       .nav-catalog-btn { display: none; }
     }
 
+    /* Botón theme toggle desktop — al lado de CATÁLOGO */
+    .nav-theme-btn {
+      color: var(--amarillo) !important;
+      border: 1px solid var(--amarillo);
+      border-radius: 50%;
+      padding: 0;
+      font-size: 14px !important;
+      line-height: 1;
+    }
+    .nav-theme-btn:hover { background: var(--amarillo); transform: translateY(-1px); }
+    .nav-theme-ico { font-size: 14px; line-height: 1; }
+    @media (max-width: 767px) {
+      /* En mobile ya existe el .dark-float flotante abajo a la izq */
+      .nav-theme-btn { display: none; }
+    }
+
     .nav-register-btn {
       color: var(--amarillo) !important;
       border: 1px solid var(--amarillo);
@@ -773,6 +789,11 @@
       border-bottom: 1px solid var(--borde-sutil); transition: color .3s; letter-spacing: .05em;
     }
     .drawer-link:hover { color: var(--amarillo); }
+    /* Desktop: drawer compacto (font-size grande de mobile queda mal) */
+    @media (min-width: 768px) {
+      .nav-drawer { padding: 1.6rem 1.4rem; gap: .15rem; width: 240px; }
+      .drawer-link { font-size: 1.05rem; padding: .55rem 0; letter-spacing: .04em; }
+    }
     .drawer-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,.6);
       z-index: 199; opacity: 0; pointer-events: none; transition: opacity .4s;

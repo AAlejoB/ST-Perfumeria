@@ -5265,6 +5265,8 @@
       var floatIcon = document.getElementById('darkFloatIcon');
       if (icon) icon.textContent = emoji;
       if (floatIcon) floatIcon.textContent = emoji;
+      var navIcon = document.getElementById('navThemeIcon');
+      if (navIcon) navIcon.textContent = emoji;
       localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
     }
 

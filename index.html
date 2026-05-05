@@ -478,6 +478,9 @@
       <!-- Atajo al catálogo: pill con texto, entre el buscador y los iconos.
            Click → scrollea suave al #catalogo (filter-bar). En mobile chico
            (<420px) el texto se acorta a "CAT." para ahorrar espacio. -->
+      <button type="button" class="nav-icon-btn nav-theme-btn" id="navThemeBtn" onclick="toggleDarkMode()" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+        <span class="nav-theme-ico" id="navThemeIcon">🌙</span>
+      </button>
       <a href="#catalogo" class="nav-catalog-btn" title="Ir al catálogo completo" onclick="event.preventDefault();var c=document.getElementById('catalogo');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});">
         <span class="nav-catalog-full">CATÁLOGO</span>
         <span class="nav-catalog-short">CAT.</span>
