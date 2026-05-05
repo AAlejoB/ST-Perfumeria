@@ -6332,3 +6332,29 @@
       background: #fef7d8 !important;
       border-color: #b48c00 !important;
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · Hamburger + Drawer
+       ──────────────────────────────────────────────────────────────── */
+
+    /* Hamburger en dorado (más prolijo que el carbón sobre crema, y
+       hace juego con los iconos del nav). */
+    body:not(.dark-mode) .nav-hamburger span { background: var(--amarillo); }
+    body:not(.dark-mode) .nav-hamburger:hover span { background: #b48c00; }
+
+    /* Drawer: mantiene fondo oscuro (modal-like) pero los textos
+       deben ir cremas/claros, no carbón (que con --blanco = dark
+       quedaban invisibles). */
+    body:not(.dark-mode) .nav-drawer {
+      background: #0d0d0d !important;
+      border-right-color: rgba(232,184,0,.25) !important;
+    }
+    body:not(.dark-mode) .drawer-link {
+      color: #f0ede8 !important;
+      border-bottom-color: rgba(255,255,255,.06) !important;
+    }
+    body:not(.dark-mode) .drawer-link:hover { color: var(--amarillo) !important; }
+    body:not(.dark-mode) .drawer-link[id="drawerLogout"] { color: #e74c3c !important; }
+    body:not(.dark-mode) #navDrawer button[onclick*="toggleDrawer"],
+    body:not(.dark-mode) .nav-drawer .drawer-close,
+    body:not(.dark-mode) .nav-drawer button { color: #f0ede8; }
