@@ -1358,28 +1358,25 @@
       .catalog-section { padding: 2rem 2.5rem 4rem; }
     }
 
-    /* Desktop medio (1024px+): 3 columnas, cards más chicas */
+    /* Desktop (1024px+): mantenemos 2 columnas para que el layout
+       horizontal info|imagen tenga espacio real y el efecto mirror
+       (alternancia izq/der) sea visible y prolijo. Con 3 cols las
+       cards quedan demasiado angostas y la imagen se ve chiquita
+       con bandas vacías arriba/abajo (look roto). */
     @media (min-width: 1024px) {
       .catalog-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.4rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.6rem;
+        max-width: 1200px;
+        margin: 0 auto;
       }
     }
-
-    /* Desktop grande (1280px+): mantenemos 3 cols pero con más respiro */
     @media (min-width: 1280px) {
-      .catalog-grid {
-        gap: 1.6rem;
-      }
+      .catalog-grid { gap: 1.8rem; max-width: 1300px; }
       .catalog-section { padding: 2.5rem 4rem 5rem; }
     }
-
-    /* Desktop XL (1600px+): 4 columnas para pantallas muy grandes */
     @media (min-width: 1600px) {
-      .catalog-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.6rem;
-      }
+      .catalog-grid { max-width: 1400px; }
       .catalog-section { padding: 2.5rem 6rem 5rem; }
     }
 
@@ -6129,3 +6126,136 @@
       border-color: rgba(232,184,0,.4) !important;
     }
     body:not(.dark-mode) .puntos-context-banner * { color: inherit !important; }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · FIXES PUNTUALES (BUGS 1, 3-9)
+       ──────────────────────────────────────────────────────────────── */
+
+    /* BUG 1 · Decant builder modal */
+    body:not(.dark-mode) .decant-builder-overlay { background: rgba(40,30,10,.55); }
+    body:not(.dark-mode) .decant-builder {
+      background: #f5efde !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .decant-builder * { color: inherit; }
+    body:not(.dark-mode) .decant-builder-title,
+    body:not(.dark-mode) .decant-builder-subtitle { color: #1a1a1d !important; }
+    body:not(.dark-mode) .decant-builder-search {
+      background: #fff !important; color: #1a1a1d !important;
+      border-color: rgba(0,0,0,.15) !important;
+    }
+    body:not(.dark-mode) .decant-builder-search::placeholder { color: #888; }
+    body:not(.dark-mode) .decant-builder-counter,
+    body:not(.dark-mode) .decant-builder-grid > * {
+      background: #fff !important;
+      border-color: rgba(120,90,0,.2) !important;
+      color: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .decant-builder-aviso { color: #5e564a !important; }
+
+    /* BUG 3 · Modal Editar Perfil + Auth en general */
+    body:not(.dark-mode) .auth-overlay { background: rgba(40,30,10,.55); }
+    body:not(.dark-mode) .auth-modal {
+      background: #f5efde !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .auth-title,
+    body:not(.dark-mode) .auth-subtitle { color: #1a1a1d !important; }
+    body:not(.dark-mode) .auth-input {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(0,0,0,.18) !important;
+    }
+    body:not(.dark-mode) .auth-input::placeholder { color: #999 !important; }
+    body:not(.dark-mode) .auth-close { color: #1a1a1d; }
+    body:not(.dark-mode) .phone-preview { color: #5e564a !important; }
+
+    /* BUG 4 · Tu Sector — textareas, inputs y mensajes */
+    body:not(.dark-mode) .tu-sector textarea,
+    body:not(.dark-mode) .tu-sector input,
+    body:not(.dark-mode) .board-textarea,
+    body:not(.dark-mode) .board-input {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.25) !important;
+    }
+    body:not(.dark-mode) .tu-sector textarea::placeholder,
+    body:not(.dark-mode) .board-textarea::placeholder { color: #888 !important; }
+    body:not(.dark-mode) .board-msg,
+    body:not(.dark-mode) .voto-card,
+    body:not(.dark-mode) .voto-categorias > * {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.25) !important;
+    }
+    body:not(.dark-mode) .board-msg-text,
+    body:not(.dark-mode) .voto-cat-name,
+    body:not(.dark-mode) .voto-perfume-name { color: #1a1a1d !important; }
+    body:not(.dark-mode) .voto-perfume-empty,
+    body:not(.dark-mode) .voto-meta { color: #5e564a !important; }
+
+    /* BUG 5 · Dónde encontrarnos */
+    body:not(.dark-mode) .map-section { background: transparent; color: #1a1a1d; }
+    body:not(.dark-mode) .map-section-eyebrow { color: #8a6d00 !important; }
+    body:not(.dark-mode) .map-section-title { color: #1a1a1d !important; }
+    body:not(.dark-mode) .map-info-row {
+      background: #f5efde !important;
+      border-color: rgba(120,90,0,.2) !important;
+    }
+    body:not(.dark-mode) .map-info-label { color: #8a6d00 !important; }
+    body:not(.dark-mode) .map-info-text,
+    body:not(.dark-mode) .map-info-text strong { color: #1a1a1d !important; }
+    body:not(.dark-mode) .map-info-link { color: #8a6d00 !important; }
+    body:not(.dark-mode) .map-info-link:hover { color: #5a4500 !important; }
+    body:not(.dark-mode) .map-embed-wrap { border-color: rgba(120,90,0,.25); }
+
+    /* BUG 6 · Footer — fuerza colores legibles sobre fondo oscuro */
+    body:not(.dark-mode) footer { background: #1a1a1d !important; color: #f0ede8 !important; }
+    body:not(.dark-mode) .footer-col-title { color: #f0ede8 !important; }
+    body:not(.dark-mode) .footer-col-text { color: #c9c5bd !important; }
+    body:not(.dark-mode) .footer-social-btn {
+      color: #f0ede8 !important;
+      border-color: rgba(232,184,0,.4) !important;
+    }
+    body:not(.dark-mode) .footer-copy { color: #999 !important; }
+    body:not(.dark-mode) footer * { color: inherit; }
+    body:not(.dark-mode) .footer-col-title { color: var(--amarillo) !important; }
+
+    /* BUG 7 · Juegos ST — distinguir las dos cards con un tinte
+       diferente para que se note la división claramente. */
+    body:not(.dark-mode) .quiz-section .quiz-box {
+      background: linear-gradient(135deg, #f5efde 0%, #f0e8d0 100%) !important;
+      border-color: rgba(232,184,0,.4) !important;
+    }
+    body:not(.dark-mode) .quiz-section .misel-section {
+      background: linear-gradient(135deg, #ede5d2 0%, #e3d9bd 100%) !important;
+      border-color: rgba(120,90,0,.4) !important;
+    }
+
+    /* BUG 8 · Selección ST — collectible cards */
+    body:not(.dark-mode) .collectible-card {
+      background: #f5efde !important;
+      border-color: rgba(120,90,0,.25) !important;
+    }
+    body:not(.dark-mode) .collectible-img-wrap {
+      background: #ffffff !important;
+      border-color: rgba(0,0,0,.06) !important;
+    }
+    body:not(.dark-mode) .collectible-info,
+    body:not(.dark-mode) .collectible-info * { color: #1a1a1d !important; }
+    body:not(.dark-mode) .collectible-name { color: #1a1a1d !important; }
+    body:not(.dark-mode) .collectible-brand { color: #5e564a !important; }
+    body:not(.dark-mode) .seleccion-st-title,
+    body:not(.dark-mode) .seleccion-st-sub { color: #1a1a1d !important; }
+
+    /* BUG 9 · Trust badges — el contenedor queda oscuro pero
+       hay que asegurar legibilidad de todos los textos internos. */
+    body:not(.dark-mode) .trust-badge {
+      background: #121214 !important;
+      border-color: rgba(232,184,0,.3) !important;
+    }
+    body:not(.dark-mode) .trust-badge-icon { color: var(--amarillo) !important; }
+    body:not(.dark-mode) .trust-badge-title { color: #f0ede8 !important; font-weight: 700; }
+    body:not(.dark-mode) .trust-badge-desc { color: #bbb !important; }
