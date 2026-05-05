@@ -884,6 +884,8 @@
       <button class="tab-btn" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
       <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
       <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
+      <button class="tab-btn" data-tab="badges" onclick="switchTab('badges',this);loadBadgesAdmin()">🏷️ Beneficios</button>
+      <button class="tab-btn" data-tab="home" onclick="switchTab('home',this);loadHomeAdmin()">🏠 Home</button>
       <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" data-role="jefe" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
@@ -1419,6 +1421,64 @@
       <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Destacados actuales (<span id="destacadosCount">0</span>/7)</p>
       <div id="destacadosList" style="display:flex;flex-direction:column;gap:.5rem;"></div>
       <p class="modal-success" id="destacadoMsg" style="margin-top:.8rem;"></p>
+    </div>
+
+    <!-- TAB: BENEFICIOS (TrustBadges) — 4 cuadros editables que se muestran en el index -->
+    <div class="tab-content" id="tab-badges">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Beneficios destacados (TrustBadges)</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Los 4 cuadros negro+dorado del inicio. Editá ícono, t&iacute;tulo, bajada y opcionalmente un link (#seccion para scroll suave o /ruta para navegar). Si dejás un campo vac&iacute;o, se usan los valores por defecto.</p>
+        <div id="badgesList" style="display:flex;flex-direction:column;gap:.8rem;"></div>
+        <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap;">
+          <button class="modal-btn" onclick="saveBadges()" style="background:var(--amarillo);color:#000;font-weight:600;">💾 Guardar cambios</button>
+          <button class="modal-btn" onclick="resetBadgesToDefaults()" style="background:#333;color:#fff;">↻ Restaurar por defecto</button>
+        </div>
+        <p class="modal-success" id="badgesMsg" style="margin-top:.8rem;"></p>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TAB: HOME — Banner B/N + Slider de la home (jefe + empleado)
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="tab-content" id="tab-home">
+      <!-- A) BANNER B/N -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Banner superior B/N</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">El texto en blanco/negro que aparece arriba de todo, debajo del nav. Ideal para info de pagos, env&iacute;os o promos. M&aacute;ximo ~80 caracteres si quer&eacute;s que entre sin marquee.</p>
+        <div style="margin-bottom:.8rem;">
+          <label class="modal-label">Texto del banner</label>
+          <input type="text" class="modal-input" id="homeBannerTexto" placeholder="Ej: 3 CUOTAS SIN INTER&Eacute;S · ENV&Iacute;OS A TODO EL PA&Iacute;S" maxlength="200" style="margin-bottom:0;"/>
+        </div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem;">
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;color:var(--gris-claro);">
+            <input type="checkbox" id="homeBannerActivo" style="width:16px;height:16px;accent-color:var(--amarillo);"/>
+            Activo (mostrar en la home)
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;color:var(--gris-claro);">
+            <input type="checkbox" id="homeBannerMarquee" style="width:16px;height:16px;accent-color:var(--amarillo);"/>
+            Forzar scroll (marquee)
+          </label>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <button class="modal-btn" onclick="saveHomeBanner()" style="background:var(--amarillo);color:#000;font-weight:600;">💾 Guardar banner</button>
+        </div>
+        <p class="modal-success" id="homeBannerMsg" style="margin-top:.8rem;"></p>
+      </div>
+
+      <!-- B) SLIDER -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+          <div>
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Slider de la home</p>
+            <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Hasta 6-8 slides cuadrados (1:1 mobile, 16:9 desktop). Se rotan autom&aacute;ticamente cada 5 segundos. Cada slide puede llevar a una secci&oacute;n del sitio (ej: <code style="background:rgba(232,184,0,.15);padding:1px 5px;border-radius:3px;">#categorias</code>) o a una ruta (ej: <code style="background:rgba(232,184,0,.15);padding:1px 5px;border-radius:3px;">/blog</code>).</p>
+          </div>
+          <button class="modal-btn" onclick="addNewSlide()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Nuevo slide</button>
+        </div>
+        <div id="homeSlidesAdminList" style="display:flex;flex-direction:column;gap:.8rem;">
+          <p style="text-align:center;color:var(--gris);padding:1.5rem;font-size:.78rem;">Cargando slides…</p>
+        </div>
+        <p class="modal-success" id="homeSlidesMsg" style="margin-top:.8rem;"></p>
+      </div>
     </div>
 
     <!-- TAB: HORARIO -->
@@ -3600,23 +3660,14 @@
       document.getElementById('modalStockQty').value = initQty;
       document.getElementById('modalStockPaused').checked = (p._stockStatus === 'pausado');
 
-      // Para EMPLEADO: bloquear el input numérico (solo puede usar - / +).
-      // Y deshabilitar el botón "+" para que solo pueda RESTAR (vendió un
-      // perfume → resta 1). Si necesita SUMAR stock (recibió pedido), tiene
-      // que pedirle al jefe. Esto evita errores y deja el control de
-      // ingreso de mercadería en manos del jefe.
+      // El empleado puede modificar el stock libremente (sumar y restar).
+      // El control de ingreso de mercadería es responsabilidad compartida
+      // del equipo. Lo único bloqueado para empleado sigue siendo el
+      // botón "Editar precio" (eso queda jefe-only).
       var qtyInp = document.getElementById('modalStockQty');
-      var initialQty = initQty;
-      qtyInp.dataset.initialQty = initialQty;
-      if (currentRole === 'empleado') {
-        qtyInp.readOnly = true;
-        qtyInp.min = 0;
-        qtyInp.max = initialQty;
-      } else {
-        qtyInp.readOnly = false;
-        qtyInp.min = 0;
-        qtyInp.max = 999;
-      }
+      qtyInp.readOnly = false;
+      qtyInp.min = 0;
+      qtyInp.max = 999;
 
       document.getElementById('modalStockBtn').disabled = false;
       document.getElementById('modalStockMsg').textContent = '';
@@ -5010,6 +5061,321 @@
       var { data } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
       cachedDestacados = data ? data.map(function(d) { return d.slug; }) : [];
       renderDestacados();
+    }
+
+    // ============================================================
+    // BENEFICIOS (TrustBadges) — CRUD editor
+    // Tabla Supabase: trust_badges (id, orden, icono, titulo, bajada, link_a, activo)
+    // Editable por jefe + empleados (mismo permiso que destacados/horario)
+    // ============================================================
+    var BADGES_ADMIN_DEFAULTS = [
+      { orden: 1, icono: '$',  titulo: '10% OFF',       bajada: 'Pagando en efectivo o transferencia', link_a: '',          activo: true },
+      { orden: 2, icono: '★',  titulo: 'SUMÁ PUNTOS',   bajada: 'Promos para clientes registrados',     link_a: '',          activo: true },
+      { orden: 3, icono: '⌂',  titulo: 'RETIRO GRATIS', bajada: 'En tienda Comodoro Rivadavia',          link_a: '#contacto', activo: true },
+      { orden: 4, icono: '◆',  titulo: '3 CUOTAS',      bajada: 'Sin interés con tarjeta',               link_a: '',          activo: true }
+    ];
+
+    async function loadBadgesAdmin() {
+      var msg = document.getElementById('badgesMsg');
+      if (msg) msg.textContent = '';
+      var rows = [];
+      try {
+        var res = await sb.from('trust_badges').select('id, orden, icono, titulo, bajada, link_a, activo').order('orden', { ascending: true });
+        if (!res.error && res.data && res.data.length) rows = res.data;
+      } catch (e) {}
+      if (!rows.length) rows = BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); });
+      renderBadgesEditor(rows);
+    }
+
+    function renderBadgesEditor(rows) {
+      var cont = document.getElementById('badgesList');
+      if (!cont) return;
+      // Aseguramos siempre 4 filas (rellena con defaults si faltan)
+      while (rows.length < 4) {
+        var d = BADGES_ADMIN_DEFAULTS[rows.length] || { orden: rows.length + 1, icono: '◆', titulo: '', bajada: '', link_a: '', activo: true };
+        rows.push(Object.assign({}, d));
+      }
+      rows = rows.slice(0, 4);
+      var html = '';
+      rows.forEach(function(b, i) {
+        html += '<div class="badge-row" data-i="' + i + '" style="border:1px solid var(--borde);border-radius:6px;padding:.8rem;background:#0d0d0d;">'
+          + '<p style="font-size:.65rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cuadro #' + (i+1) + '</p>'
+          + '<div style="display:grid;grid-template-columns:1fr 2fr;gap:.5rem;margin-bottom:.5rem;">'
+            + '<div><label class="modal-label">Ícono</label><input class="modal-input badge-icono" value="' + (b.icono || '') + '" maxlength="3" placeholder="$"/></div>'
+            + '<div><label class="modal-label">Título</label><input class="modal-input badge-titulo" value="' + (b.titulo || '') + '" maxlength="24" placeholder="10% OFF"/></div>'
+          + '</div>'
+          + '<label class="modal-label">Bajada</label>'
+          + '<input class="modal-input badge-bajada" value="' + (b.bajada || '').replace(/"/g, '&quot;') + '" maxlength="60" placeholder="Pagando en efectivo"/>'
+          + '<label class="modal-label">Link (opcional, ej: #contacto)</label>'
+          + '<input class="modal-input badge-link" value="' + (b.link_a || '') + '" maxlength="120" placeholder="#contacto o /blog"/>'
+          + '<label style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--gris-claro);margin-top:.3rem;">'
+            + '<input type="checkbox" class="badge-activo"' + (b.activo !== false ? ' checked' : '') + '/> Mostrar en el sitio'
+          + '</label>'
+        + '</div>';
+      });
+      cont.innerHTML = html;
+    }
+
+    async function saveBadges() {
+      var msg = document.getElementById('badgesMsg');
+      if (msg) { msg.style.color = ''; msg.textContent = 'Guardando...'; }
+      var rows = Array.prototype.slice.call(document.querySelectorAll('#badgesList .badge-row'));
+      var payload = rows.map(function(row, i) {
+        return {
+          orden: i + 1,
+          icono: (row.querySelector('.badge-icono').value || '◆').trim(),
+          titulo: (row.querySelector('.badge-titulo').value || '').trim(),
+          bajada: (row.querySelector('.badge-bajada').value || '').trim(),
+          link_a: (row.querySelector('.badge-link').value || '').trim(),
+          activo: !!row.querySelector('.badge-activo').checked
+        };
+      });
+      try {
+        // Estrategia simple: borramos todo y reinsertamos en orden.
+        // Es 4 filas, no hay problema de performance.
+        var del = await sb.from('trust_badges').delete().neq('id', 0);
+        if (del.error) throw del.error;
+        var ins = await sb.from('trust_badges').insert(payload);
+        if (ins.error) throw ins.error;
+        if (typeof logAdminAction === 'function') logAdminAction('badges_update', null, { rows: payload });
+        if (msg) { msg.style.color = 'var(--verde, #4ade80)'; msg.textContent = '✓ Beneficios actualizados. Refrescá el sitio para verlos.'; }
+      } catch (e) {
+        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar. ¿Creaste la tabla trust_badges en Supabase?'); }
+      }
+    }
+
+    function resetBadgesToDefaults() {
+      if (!confirm('¿Restaurar los 4 cuadros a sus valores por defecto? (no se guarda hasta que toques "Guardar cambios")')) return;
+      renderBadgesEditor(BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); }));
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // HOME ADMIN — Banner B/N + Slider de la home
+    // Ambos editables por jefe Y empleados (ambos autenticados).
+    // ════════════════════════════════════════════════════════════════
+    var HOME_BANNER_CACHE = null;     // {id, texto, activo, modo_marquee}
+    var HOME_SLIDES_CACHE = [];
+
+    async function loadHomeAdmin() {
+      await Promise.all([loadHomeBannerAdmin(), loadHomeSlidesAdmin()]);
+    }
+
+    // ─── Banner B/N ──────────────────────────────────────────────────
+    async function loadHomeBannerAdmin() {
+      var msg = document.getElementById('homeBannerMsg');
+      try {
+        var res = await sb.from('home_top_banner')
+          .select('id, texto, activo, modo_marquee')
+          .order('id', { ascending: false })
+          .limit(1);
+        if (res.error) throw res.error;
+        if (res.data && res.data.length) {
+          HOME_BANNER_CACHE = res.data[0];
+        } else {
+          HOME_BANNER_CACHE = { id: null, texto: '3 CUOTAS SIN INTERÉS · ACEPTAMOS TODOS LOS MEDIOS DE PAGO', activo: true, modo_marquee: false };
+        }
+        document.getElementById('homeBannerTexto').value = HOME_BANNER_CACHE.texto || '';
+        document.getElementById('homeBannerActivo').checked = !!HOME_BANNER_CACHE.activo;
+        document.getElementById('homeBannerMarquee').checked = !!HOME_BANNER_CACHE.modo_marquee;
+      } catch (e) {
+        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo cargar. ¿Creaste la tabla home_top_banner?'); }
+      }
+    }
+
+    async function saveHomeBanner() {
+      var msg = document.getElementById('homeBannerMsg');
+      var texto = (document.getElementById('homeBannerTexto').value || '').trim();
+      var activo = document.getElementById('homeBannerActivo').checked;
+      var marquee = document.getElementById('homeBannerMarquee').checked;
+      if (!texto) {
+        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '⚠ El texto no puede estar vacío.'; }
+        return;
+      }
+      msg.style.color = ''; msg.textContent = 'Guardando...';
+      try {
+        var payload = { texto: texto, activo: activo, modo_marquee: marquee, updated_at: new Date().toISOString() };
+        var res;
+        if (HOME_BANNER_CACHE && HOME_BANNER_CACHE.id) {
+          res = await sb.from('home_top_banner').update(payload).eq('id', HOME_BANNER_CACHE.id);
+        } else {
+          res = await sb.from('home_top_banner').insert(payload).select().single();
+          if (res.data) HOME_BANNER_CACHE = res.data;
+        }
+        if (res.error) throw res.error;
+        if (typeof logAdminAction === 'function') logAdminAction('home_banner_update', null, payload);
+        msg.style.color = '#4ade80';
+        msg.textContent = '✓ Banner guardado. Refrescá la home para verlo.';
+        await loadHomeBannerAdmin();
+      } catch (e) {
+        msg.style.color = '#ff6b6b';
+        msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar.');
+      }
+    }
+
+    // ─── Slides ──────────────────────────────────────────────────────
+    async function loadHomeSlidesAdmin() {
+      var list = document.getElementById('homeSlidesAdminList');
+      try {
+        var res = await sb.from('home_slides')
+          .select('id, orden, media_url, media_tipo, titulo, link_a, activo')
+          .order('orden', { ascending: true });
+        if (res.error) throw res.error;
+        HOME_SLIDES_CACHE = res.data || [];
+        renderSlidesAdmin();
+      } catch (e) {
+        if (list) {
+          list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">✗ Error: ' + (e.message || 'no se pudo cargar. ¿Creaste la tabla home_slides?') + '</p>';
+        }
+      }
+    }
+
+    function renderSlidesAdmin() {
+      var list = document.getElementById('homeSlidesAdminList');
+      if (!list) return;
+      if (!HOME_SLIDES_CACHE.length) {
+        list.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1.5rem;font-size:.78rem;">Sin slides cargados. Tocá "+ Nuevo slide" para agregar el primero.</p>';
+        return;
+      }
+      list.innerHTML = HOME_SLIDES_CACHE.map(function(s) {
+        var isVideo = s.media_tipo === 'video';
+        var thumb = isVideo
+          ? '<div style="width:80px;height:80px;background:#000;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--amarillo);font-size:1.3rem;flex-shrink:0;">▶</div>'
+          : '<img src="' + (s.media_url || '') + '" style="width:80px;height:80px;object-fit:cover;border-radius:6px;flex-shrink:0;background:#1a1a1a;" alt=""/>';
+        return ''
+          + '<div data-slide-id="' + s.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:8px;padding:.8rem;display:flex;gap:.8rem;align-items:flex-start;flex-wrap:wrap;">'
+          +   thumb
+          +   '<div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:.5rem;">'
+          +     '<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">'
+          +       '<input type="text" class="modal-input slide-titulo" value="' + (s.titulo || '').replace(/"/g, '&quot;') + '" placeholder="Título (opcional)" style="margin-bottom:0;flex:1;min-width:160px;font-size:.78rem;"/>'
+          +       '<input type="number" class="modal-input slide-orden" value="' + (s.orden || 0) + '" min="0" max="999" style="margin-bottom:0;width:70px;font-size:.78rem;text-align:center;" title="Orden"/>'
+          +     '</div>'
+          +     '<input type="text" class="modal-input slide-link" value="' + (s.link_a || '').replace(/"/g, '&quot;') + '" placeholder="Link opcional: #catalogo, #explorar, /blog..." style="margin-bottom:0;font-size:.78rem;"/>'
+          +     '<div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;font-size:.7rem;color:var(--gris-claro);">'
+          +       '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;"><input type="checkbox" class="slide-activo" ' + (s.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo</label>'
+          +       '<button class="modal-btn" onclick="reuploadSlideMedia(' + s.id + ')" style="background:#333;color:#fff;font-size:.65rem;padding:.3rem .6rem;">📷 Cambiar imagen/video</button>'
+          +       '<button class="modal-btn" onclick="saveSlide(' + s.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.65rem;padding:.3rem .6rem;">💾 Guardar</button>'
+          +       '<button class="modal-btn" onclick="deleteSlide(' + s.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.3rem .6rem;">🗑️</button>'
+          +     '</div>'
+          +     '<input type="file" id="slideFile_' + s.id + '" accept="image/*,video/*" style="display:none;" onchange="onSlideFileChange(' + s.id + ', this)"/>'
+          +   '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    async function addNewSlide() {
+      var msg = document.getElementById('homeSlidesMsg');
+      var fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*,video/*';
+      fileInput.style.display = 'none';
+      document.body.appendChild(fileInput);
+      fileInput.click();
+      fileInput.onchange = async function() {
+        var file = fileInput.files[0];
+        if (!file) { document.body.removeChild(fileInput); return; }
+        msg.style.color = ''; msg.textContent = 'Subiendo media...';
+        try {
+          var uploaded = await uploadSlideFile(file);
+          var maxOrden = HOME_SLIDES_CACHE.reduce(function(m, s) { return Math.max(m, s.orden || 0); }, 0);
+          var ins = await sb.from('home_slides').insert({
+            orden: maxOrden + 1,
+            media_url: uploaded.url,
+            media_tipo: uploaded.tipo,
+            titulo: '',
+            link_a: '',
+            activo: true
+          }).select().single();
+          if (ins.error) throw ins.error;
+          if (typeof logAdminAction === 'function') logAdminAction('home_slide_add', null, { url: uploaded.url, tipo: uploaded.tipo });
+          msg.style.color = '#4ade80';
+          msg.textContent = '✓ Slide agregado.';
+          await loadHomeSlidesAdmin();
+        } catch (e) {
+          msg.style.color = '#ff6b6b';
+          msg.textContent = '✗ Error: ' + (e.message || 'no se pudo agregar.');
+        } finally {
+          document.body.removeChild(fileInput);
+        }
+      };
+    }
+
+    function reuploadSlideMedia(id) {
+      var input = document.getElementById('slideFile_' + id);
+      if (input) input.click();
+    }
+
+    async function onSlideFileChange(id, inputEl) {
+      var msg = document.getElementById('homeSlidesMsg');
+      var file = inputEl.files[0];
+      if (!file) return;
+      msg.style.color = ''; msg.textContent = 'Subiendo media...';
+      try {
+        var uploaded = await uploadSlideFile(file);
+        var upd = await sb.from('home_slides').update({ media_url: uploaded.url, media_tipo: uploaded.tipo }).eq('id', id);
+        if (upd.error) throw upd.error;
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Media actualizada.';
+        await loadHomeSlidesAdmin();
+      } catch (e) {
+        msg.style.color = '#ff6b6b';
+        msg.textContent = '✗ Error subiendo media: ' + (e.message || '');
+      } finally {
+        inputEl.value = '';
+      }
+    }
+
+    async function uploadSlideFile(file) {
+      // Reusamos el bucket "perfume-fotos" con prefijo "home-slide-".
+      // Si el archivo es video, lo dejamos como mp4/webm sin compresión.
+      var ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+      var isVideo = file.type.startsWith('video/');
+      var fileName = 'home-slide-' + Date.now() + '-' + Math.floor(Math.random()*9999) + '.' + ext;
+      var contentType = file.type || (isVideo ? 'video/mp4' : 'image/jpeg');
+      var up = await sb.storage.from('perfume-fotos').upload(fileName, file, {
+        contentType: contentType,
+        upsert: false
+      });
+      if (up.error) throw up.error;
+      var pub = sb.storage.from('perfume-fotos').getPublicUrl(fileName);
+      var url = pub.data.publicUrl + '?v=' + Date.now();
+      return { url: url, tipo: isVideo ? 'video' : 'img' };
+    }
+
+    async function saveSlide(id) {
+      var msg = document.getElementById('homeSlidesMsg');
+      var card = document.querySelector('[data-slide-id="' + id + '"]');
+      if (!card) return;
+      var payload = {
+        titulo: (card.querySelector('.slide-titulo').value || '').trim(),
+        link_a: (card.querySelector('.slide-link').value || '').trim(),
+        orden:  parseInt(card.querySelector('.slide-orden').value, 10) || 0,
+        activo: !!card.querySelector('.slide-activo').checked
+      };
+      msg.style.color = ''; msg.textContent = 'Guardando…';
+      try {
+        var upd = await sb.from('home_slides').update(payload).eq('id', id);
+        if (upd.error) throw upd.error;
+        if (typeof logAdminAction === 'function') logAdminAction('home_slide_update', null, Object.assign({ id: id }, payload));
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Slide guardado.';
+        await loadHomeSlidesAdmin();
+      } catch (e) {
+        msg.style.color = '#ff6b6b';
+        msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar.');
+      }
+    }
+
+    async function deleteSlide(id) {
+      if (!confirm('¿Eliminar este slide del slider de la home?')) return;
+      var msg = document.getElementById('homeSlidesMsg');
+      try {
+        var del = await sb.from('home_slides').delete().eq('id', id);
+        if (del.error) throw del.error;
+        if (typeof logAdminAction === 'function') logAdminAction('home_slide_delete', null, { id: id });
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Slide eliminado.';
+        await loadHomeSlidesAdmin();
+      } catch (e) {
+        msg.style.color = '#ff6b6b';
+        msg.textContent = '✗ Error: ' + (e.message || 'no se pudo eliminar.');
+      }
     }
 
     async function syncDestacadosToDB(slugs) {

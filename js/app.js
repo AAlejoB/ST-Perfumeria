@@ -749,6 +749,275 @@
     });
 
     // ============================================================
+    // HOME TOP BANNER — texto B/N de pagos editable desde admin
+    // Tabla Supabase: home_top_banner (id, texto, activo, modo_marquee).
+    // Si la tabla está vacía o falla, se muestra texto fallback.
+    // ============================================================
+    var HOME_TOP_BANNER_FALLBACK = '3 CUOTAS SIN INTERÉS · ACEPTAMOS TODOS LOS MEDIOS DE PAGO';
+
+    function renderHomeTopBanner(texto, marquee) {
+      var wrap = document.getElementById('topPaymentBanner');
+      var textEl = document.getElementById('homeTopBannerText');
+      if (!wrap || !textEl) return;
+      var t = (texto && String(texto).trim()) ? String(texto).trim() : '';
+      if (!t) { wrap.style.display = 'none'; return; }
+      wrap.style.display = 'block';
+      textEl.textContent = t;
+      // Activar modo marquee si: lo pidió el admin, o si el texto no entra
+      if (marquee) {
+        wrap.classList.add('is-marquee');
+      } else {
+        wrap.classList.remove('is-marquee');
+        // Auto-detección: si después de un frame el texto desborda, activamos marquee
+        requestAnimationFrame(function() {
+          try {
+            var trackW = wrap.querySelector('.home-top-banner-track').clientWidth;
+            var textW = textEl.scrollWidth;
+            if (textW > trackW - 16) wrap.classList.add('is-marquee');
+          } catch(e){}
+        });
+      }
+    }
+
+    async function loadHomeTopBanner() {
+      // Render inmediato del fallback (zero-flash)
+      renderHomeTopBanner(HOME_TOP_BANNER_FALLBACK, false);
+      try {
+        if (typeof sb === 'undefined' || !sb) return;
+        var res = await sb.from('home_top_banner')
+          .select('texto, activo, modo_marquee')
+          .eq('activo', true)
+          .order('id', { ascending: false })
+          .limit(1);
+        if (res && !res.error && res.data && res.data.length) {
+          var row = res.data[0];
+          renderHomeTopBanner(row.texto, !!row.modo_marquee);
+        } else if (res && !res.error && res.data && res.data.length === 0) {
+          // Si la tabla existe pero está vacía, mantenemos el fallback visible.
+        }
+      } catch(e) {
+        // Tabla no existe todavía: se queda el fallback. No molestamos al usuario.
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadHomeTopBanner);
+
+    // ============================================================
+    // HOME SLIDER — slides cuadrados con scroll-snap + autoplay
+    // Tabla Supabase: home_slides (id, orden, media_url, media_tipo,
+    // titulo, link_a, activo).
+    // Si la tabla está vacía, mostramos 3 placeholders.
+    // ============================================================
+    var HOME_SLIDER = {
+      slides: [],
+      currentIdx: 0,
+      autoplayTimer: null,
+      paused: false
+    };
+
+    function buildSlideHTML(slide, isPlaceholder, idx) {
+      if (isPlaceholder) {
+        return '<div class="home-slide is-placeholder" data-idx="' + idx + '">'
+          + '<p class="home-slide-title">Próximamente — Slide N°' + (idx + 1) + '</p>'
+          + '</div>';
+      }
+      var clickable = !!(slide.link_a && slide.link_a.trim());
+      var attrs = 'data-idx="' + idx + '"';
+      if (clickable) attrs += ' onclick="homeSlideGo(\'' + escapeHTML(slide.link_a).replace(/'/g, "\\'") + '\')" role="button" tabindex="0"';
+      var media = '';
+      if (slide.media_tipo === 'video') {
+        media = '<video class="home-slide-media" src="' + escapeHTML(slide.media_url) + '" autoplay muted loop playsinline preload="metadata"></video>';
+      } else {
+        media = '<img class="home-slide-img" src="' + escapeHTML(slide.media_url) + '" alt="' + escapeHTML(slide.titulo || 'Slide ' + (idx + 1)) + '" loading="lazy" decoding="async"/>';
+      }
+      var overlay = '';
+      if (slide.titulo && slide.titulo.trim()) {
+        overlay = '<div class="home-slide-overlay"><p class="home-slide-title">' + escapeHTML(slide.titulo) + '</p></div>';
+      }
+      return '<div class="home-slide" ' + attrs + '>' + media + overlay + '</div>';
+    }
+
+    function homeSlideGo(link) {
+      if (!link) return;
+      if (link.charAt(0) === '#') {
+        var el = document.querySelector(link);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.location.href = link;
+      }
+    }
+    window.homeSlideGo = homeSlideGo;
+
+    function renderHomeSlider(slides) {
+      var track = document.getElementById('homeSliderTrack');
+      var dotsWrap = document.getElementById('homeSliderDots');
+      if (!track || !dotsWrap) return;
+      var isPlaceholder = !slides || slides.length === 0;
+      var list = isPlaceholder ? [{}, {}, {}] : slides;
+      track.innerHTML = list.map(function(s, i) { return buildSlideHTML(s, isPlaceholder, i); }).join('');
+      dotsWrap.innerHTML = list.map(function(_, i) {
+        return '<button class="home-slider-dot' + (i === 0 ? ' is-active' : '') + '" data-idx="' + i + '" role="tab" aria-label="Slide ' + (i + 1) + '"></button>';
+      }).join('');
+      HOME_SLIDER.slides = list;
+      HOME_SLIDER.currentIdx = 0;
+      attachHomeSliderListeners();
+      startHomeSliderAutoplay();
+    }
+
+    function attachHomeSliderListeners() {
+      var track = document.getElementById('homeSliderTrack');
+      var dotsWrap = document.getElementById('homeSliderDots');
+      if (!track || !dotsWrap) return;
+      // Click en dots
+      dotsWrap.querySelectorAll('.home-slider-dot').forEach(function(dot) {
+        dot.addEventListener('click', function() {
+          var idx = parseInt(dot.getAttribute('data-idx'), 10);
+          goToHomeSlide(idx);
+          pauseHomeSliderTemporarily();
+        });
+      });
+      // Detectar slide actual cuando el usuario scrollea manual
+      var scrollTimer = null;
+      track.addEventListener('scroll', function() {
+        if (scrollTimer) clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(updateActiveDotFromScroll, 80);
+      }, { passive: true });
+      // Pausar autoplay en hover (desktop) y touch (mobile)
+      track.addEventListener('mouseenter', function() { HOME_SLIDER.paused = true; });
+      track.addEventListener('mouseleave', function() { HOME_SLIDER.paused = false; });
+      track.addEventListener('touchstart', function() { pauseHomeSliderTemporarily(); }, { passive: true });
+    }
+
+    function updateActiveDotFromScroll() {
+      var track = document.getElementById('homeSliderTrack');
+      if (!track) return;
+      var slideW = track.clientWidth;
+      var idx = Math.round(track.scrollLeft / slideW);
+      setActiveDot(idx);
+    }
+
+    function setActiveDot(idx) {
+      HOME_SLIDER.currentIdx = idx;
+      var dots = document.querySelectorAll('#homeSliderDots .home-slider-dot');
+      dots.forEach(function(d, i) {
+        d.classList.toggle('is-active', i === idx);
+      });
+    }
+
+    function goToHomeSlide(idx) {
+      var track = document.getElementById('homeSliderTrack');
+      if (!track || !HOME_SLIDER.slides.length) return;
+      var n = HOME_SLIDER.slides.length;
+      var i = ((idx % n) + n) % n; // wrap
+      track.scrollTo({ left: track.clientWidth * i, behavior: 'smooth' });
+      setActiveDot(i);
+    }
+
+    function startHomeSliderAutoplay() {
+      stopHomeSliderAutoplay();
+      if (!HOME_SLIDER.slides || HOME_SLIDER.slides.length < 2) return;
+      HOME_SLIDER.autoplayTimer = setInterval(function() {
+        if (HOME_SLIDER.paused) return;
+        if (document.hidden) return; // no avanzar si la pestaña no está visible
+        goToHomeSlide(HOME_SLIDER.currentIdx + 1);
+      }, 5000);
+    }
+
+    function stopHomeSliderAutoplay() {
+      if (HOME_SLIDER.autoplayTimer) {
+        clearInterval(HOME_SLIDER.autoplayTimer);
+        HOME_SLIDER.autoplayTimer = null;
+      }
+    }
+
+    function pauseHomeSliderTemporarily() {
+      HOME_SLIDER.paused = true;
+      setTimeout(function() { HOME_SLIDER.paused = false; }, 8000);
+    }
+
+    async function loadHomeSlides() {
+      // Render inmediato de placeholders mientras la query corre
+      renderHomeSlider([]);
+      try {
+        if (typeof sb === 'undefined' || !sb) return;
+        var res = await sb.from('home_slides')
+          .select('id, orden, media_url, media_tipo, titulo, link_a, activo')
+          .eq('activo', true)
+          .order('orden', { ascending: true });
+        if (res && !res.error && res.data && res.data.length) {
+          renderHomeSlider(res.data);
+        }
+      } catch(e) {
+        // Tabla no existe: queda placeholder. Sin error visible.
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadHomeSlides);
+
+    // ============================================================
+    // TRUST BADGES — 4 beneficios destacados (editables desde admin)
+    // Tabla Supabase: trust_badges (id, orden, icono, titulo, bajada,
+    // link_a, activo). Si la consulta falla o la tabla está vacía,
+    // mostramos los defaults harcodeados acá abajo.
+    // ============================================================
+    var TRUST_BADGES_DEFAULTS = [
+      { icono: '$',  titulo: '10% OFF',       bajada: 'Pagando en efectivo o transferencia', link_a: '' },
+      { icono: '★',  titulo: 'SUMÁ PUNTOS',   bajada: 'Promos para clientes registrados',    link_a: '' },
+      { icono: '⌂',  titulo: 'RETIRO GRATIS', bajada: 'En tienda Comodoro Rivadavia',         link_a: '#contacto' },
+      { icono: '◆',  titulo: '3 CUOTAS',      bajada: 'Sin interés con tarjeta',              link_a: '' }
+    ];
+
+    function escapeHTML(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+        return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
+      });
+    }
+
+    function renderTrustBadges(items) {
+      var grid = document.getElementById('trustBadgesGrid');
+      if (!grid) return;
+      var list = (items && items.length) ? items : TRUST_BADGES_DEFAULTS;
+      grid.innerHTML = list.map(function(b) {
+        var hasLink = b.link_a && b.link_a.trim() !== '';
+        var cls = 'trust-badge-card' + (hasLink ? ' is-link' : '');
+        var clickAttr = hasLink ? ' onclick="trustBadgeGo(' + JSON.stringify(b.link_a).replace(/"/g,'&quot;') + ')" role="button" tabindex="0"' : '';
+        return ''
+          + '<div class="' + cls + '"' + clickAttr + '>'
+          +   '<span class="trust-badge-icon" aria-hidden="true">' + escapeHTML(b.icono || '◆') + '</span>'
+          +   '<span class="trust-badge-title">' + escapeHTML(b.titulo || '') + '</span>'
+          +   (b.bajada ? '<p class="trust-badge-desc">' + escapeHTML(b.bajada) + '</p>' : '')
+          + '</div>';
+      }).join('');
+    }
+
+    function trustBadgeGo(link) {
+      if (!link) return;
+      if (link.charAt(0) === '#') {
+        var el = document.querySelector(link);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.location.href = link;
+      }
+    }
+    window.trustBadgeGo = trustBadgeGo;
+
+    async function loadTrustBadges() {
+      // Render inmediato del fallback para que no haya "flash" vacío
+      renderTrustBadges(TRUST_BADGES_DEFAULTS);
+      try {
+        if (typeof sb === 'undefined' || !sb) return;
+        var res = await sb.from('trust_badges')
+          .select('icono, titulo, bajada, link_a, orden, activo')
+          .eq('activo', true)
+          .order('orden', { ascending: true });
+        if (res && !res.error && res.data && res.data.length) {
+          renderTrustBadges(res.data);
+        }
+      } catch (e) {
+        // Si la tabla todavía no existe, queda el fallback. No molestamos al usuario.
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadTrustBadges);
+
+    // ============================================================
     // FAVORITOS — Supabase (logueado) + localStorage (fallback)
     // ============================================================
     var favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
@@ -1922,6 +2191,17 @@
     }
 
     // ============================================================
+    // BANNER DECANTS — abre WhatsApp con saludo personalizado
+    // ============================================================
+    function openDecantsBannerWA() {
+      var nombre = (currentUser && currentUser.nombre) ? String(currentUser.nombre).trim().split(' ')[0] : '';
+      var saludo = nombre ? ('Hola, soy ' + nombre + '!') : 'Hola!';
+      var msg = saludo + ' Quisiera saber más información acerca de los decants de diseñador 🤩';
+      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+    }
+    window.openDecantsBannerWA = openDecantsBannerWA;
+
+    // ============================================================
     // COMPARTIR PERFUME
     // ============================================================
     function sharePerfume(slug, btn, e) {
@@ -2854,6 +3134,11 @@
       clearBtn.classList.toggle('visible', currentSearch.length > 0);
       applyFilters();
       showSearchSuggestions(query.trim());
+      // Espejo del nav search (sincronización bidireccional)
+      var navInp = document.getElementById('navSearchInput');
+      var navClr = document.getElementById('navSearchClear');
+      if (navInp && navInp.value !== query) navInp.value = query;
+      if (navClr) navClr.style.display = query.trim().length > 0 ? 'flex' : 'none';
     }
 
     function clearSearch() {
@@ -2862,7 +3147,48 @@
       document.getElementById('searchClear').classList.remove('visible');
       hideSearchSuggestions();
       applyFilters();
+      // Espejo del nav search
+      var navInp = document.getElementById('navSearchInput');
+      var navClr = document.getElementById('navSearchClear');
+      if (navInp) navInp.value = '';
+      if (navClr) navClr.style.display = 'none';
     }
+
+    // Búsqueda desde el nav: sincroniza con el #searchInput del catálogo
+    // y dispara la misma lógica de filtrado. Si hay query, scrollea al
+    // catálogo después de un breve debounce para que el usuario vea los
+    // resultados sin tener que scrollear manualmente.
+    function onNavSearchInput(value) {
+      var v = String(value || '');
+      var navClr = document.getElementById('navSearchClear');
+      if (navClr) navClr.style.display = v.length > 0 ? 'flex' : 'none';
+      var mainInp = document.getElementById('searchInput');
+      if (mainInp) mainInp.value = v;
+      var clearBtn = document.getElementById('searchClear');
+      if (clearBtn) clearBtn.classList.toggle('visible', v.length > 0);
+      if (typeof debouncedSearch === 'function') debouncedSearch(v);
+      // Scrollear al catálogo si el usuario empezó a escribir y NO está
+      // ya mirando el catálogo. Sin scroll si está vacío (no molestamos).
+      if (v.trim().length >= 2) {
+        var cat = document.getElementById('catalogo');
+        if (cat) {
+          var rect = cat.getBoundingClientRect();
+          if (rect.top > window.innerHeight * 0.5 || rect.bottom < 0) {
+            if (typeof scrollToCatalog === 'function') {
+              setTimeout(scrollToCatalog, 280);
+            }
+          }
+        }
+      }
+    }
+    window.onNavSearchInput = onNavSearchInput;
+
+    function clearNavSearch() {
+      var navInp = document.getElementById('navSearchInput');
+      if (navInp) { navInp.value = ''; navInp.focus(); }
+      onNavSearchInput('');
+    }
+    window.clearNavSearch = clearNavSearch;
 
     // ============================================================
     // AUTOCOMPLETADO — Sugerencias al escribir en el buscador

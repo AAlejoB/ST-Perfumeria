@@ -452,6 +452,7 @@
     <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()">Nosotros</a>
     <a href="/blog" class="drawer-link" onclick="toggleDrawer()">Blog</a>
     <a href="#contacto" class="drawer-link" onclick="toggleDrawer()">Contacto</a>
+    <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDarkMode();" id="drawerTheme"><span class="dark-toggle-icon">🌙</span> Cambiar tema</a>
     <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth">Iniciar sesi&oacute;n</a>
     <a href="#" class="drawer-link" style="display:none;color:#e74c3c;" onclick="event.preventDefault();toggleDrawer();logout()" id="drawerLogout">Cerrar sesi&#243;n</a>
   </div>
@@ -461,34 +462,70 @@
       <span></span><span></span><span></span>
     </button>
     <a href="#" class="nav-logo"><img src="img/logo-st.webp" alt="ST Scent & Textures" fetchpriority="high" decoding="async" width="40" height="40"></a>
+
+    <!-- Barra de búsqueda inline en el nav: en mobile ocupa el espacio
+         disponible, en desktop tiene un max-width razonable. Está
+         sincronizada con #searchInput del catálogo: al tipear acá,
+         filtra el catálogo y scrollea suave hacia las cards. -->
+    <div class="nav-search">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="nav-search-input" id="navSearchInput" placeholder="Buscar perfume..." aria-label="Buscar perfume" autocomplete="off" oninput="onNavSearchInput(this.value)" onkeydown="if(event.key==='Enter'){scrollToCatalog&&scrollToCatalog();this.blur();}"/>
+      <button type="button" class="nav-search-clear" id="navSearchClear" onclick="clearNavSearch()" aria-label="Limpiar búsqueda" style="display:none;">×</button>
+    </div>
+
     <div class="nav-icons">
-      <button class="nav-dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Cambiar tema">
-        <span class="dark-toggle-icon">🌙</span>
-        <span class="nav-dark-toggle-label">Tema</span>
-      </button>
-      <a href="#catalogo" class="nav-icon-btn nav-fav-btn" title="Favoritos" onclick="showFavorites(event)">
+      <a href="#" class="nav-icon-btn nav-register-btn" title="Iniciar sesi&oacute;n" onclick="event.preventDefault();openAuth()" aria-label="Iniciar sesión">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      </a>
+      <a href="#catalogo" class="nav-icon-btn nav-fav-btn" title="Favoritos" onclick="showFavorites(event)" aria-label="Favoritos">
         <span class="nav-fav-wrap">
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           <span class="fav-badge" id="favBadge">0</span>
         </span>
-        Favoritos
-      </a>
-      <a href="#" class="nav-icon-btn nav-register-btn" title="Iniciar sesi&oacute;n" onclick="event.preventDefault();openAuth()">
-        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        Iniciar sesi&oacute;n
       </a>
       <!-- Solo visible cuando hay sesion. updateAuthUI() en app.js lo muestra/oculta. -->
-      <a href="#" class="nav-icon-btn nav-logout-btn" id="navLogoutBtn" title="Cerrar sesi&oacute;n" onclick="event.preventDefault();logout()" style="display:none;">
+      <a href="#" class="nav-icon-btn nav-logout-btn" id="navLogoutBtn" title="Cerrar sesi&oacute;n" onclick="event.preventDefault();logout()" style="display:none;" aria-label="Cerrar sesión">
         <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar sesi&oacute;n
-      </a>
-      <a href="#contacto" class="nav-icon-btn" title="Contacto">
-        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.27-.85a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        Contacto
       </a>
     </div>
   </nav>
 
+
+  <!-- ========== TOP PAYMENT BANNER — texto B/N editable desde admin ==========
+       Tabla Supabase: home_top_banner (id, texto, activo, modo_marquee).
+       Diseño minimalista: blanco sobre negro, ~38px de alto en mobile.
+       Si modo_marquee=true y el texto no entra, hace scroll horizontal infinito. -->
+  <div id="topPaymentBanner" class="home-top-banner" style="display:none;" aria-label="Información de pagos">
+    <div class="home-top-banner-track" id="homeTopBannerTrack">
+      <span class="home-top-banner-text" id="homeTopBannerText"></span>
+    </div>
+  </div>
+
+  <!-- ========== HOME SLIDER — slides cuadrados editables (1:1 mobile, 16:9 desktop) ==========
+       Tabla Supabase: home_slides (id, orden, media_url, media_tipo, titulo, link_a, activo).
+       Sin librerías externas: scroll-snap CSS + JS minimalista para dots + autoplay 5s.
+       Lazy-load de imágenes para no bloquear el render del hero. -->
+  <section id="homeSliderSection" class="home-slider-section" aria-label="Destacados">
+    <div class="home-slider-viewport" id="homeSliderViewport">
+      <div class="home-slider-track" id="homeSliderTrack" role="region" aria-roledescription="carrusel">
+        <!-- Slides renderizadas dinámicamente desde Supabase. Si la tabla está vacía,
+             se muestran 3 placeholders con bg negro y texto "Próximamente". -->
+      </div>
+    </div>
+    <div class="home-slider-dots" id="homeSliderDots" role="tablist"></div>
+  </section>
+
+
+  <!-- ========== TRUST BADGES — 4 beneficios editables desde admin (Supabase) ========== -->
+  <!-- NOTA: Esta sección se ubica acá temporalmente. Cuando Claude Code
+       termine el banner B/N + slider en el "first view", puede quedar
+       inmediatamente debajo de su slider y arriba del hero. -->
+  <section class="trust-badges" id="trustBadges" aria-label="Beneficios">
+    <div class="trust-badges-grid" id="trustBadgesGrid">
+      <!-- Cards renderizadas dinámicamente desde Supabase (tabla trust_badges).
+           Si la tabla está vacía o falla la consulta, se muestra el fallback. -->
+    </div>
+  </section>
 
   <section class="hero">
     <span class="hero-blob hero-blob-1" aria-hidden="true"></span>
@@ -574,6 +611,17 @@
     <p class="section-eyebrow">Nuestro catálogo</p>
     <h2 class="catalog-intro-title">Perfumes importados originales en Comodoro Rivadavia</h2>
     <p class="catalog-intro-desc">Hombre, mujer y unisex. Más de 150 fragancias árabes con 3 cuotas sin interés y envíos a todo el país.</p>
+  </div>
+
+  <!-- ========== Banner promocional: mejor precio en decants ========== -->
+  <div class="price-banner-wrap">
+    <button type="button" class="price-banner" onclick="openDecantsBannerWA()" aria-label="Consultar por decants de dise&ntilde;ador por WhatsApp">
+      <span class="price-banner-text">&#9670; EL MEJOR PRECIO DEL PA&Iacute;S EN DECANTS DE DISE&Ntilde;ADOR &#9670;</span>
+      <span class="price-banner-cta">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+        <span>Consultar</span>
+      </span>
+    </button>
   </div>
 
   <!--
