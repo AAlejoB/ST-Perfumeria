@@ -6278,3 +6278,57 @@
     body:not(.dark-mode) .trust-badge-icon { color: var(--amarillo) !important; }
     body:not(.dark-mode) .trust-badge-title { color: #f0ede8 !important; font-weight: 700; }
     body:not(.dark-mode) .trust-badge-desc { color: #bbb !important; }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · Desafío ST (misel-*) — fix contraste
+       ──────────────────────────────────────────────────────────────── */
+    body:not(.dark-mode) .misel-section .nosotros-block-title { color: #1a1a1d !important; }
+    body:not(.dark-mode) .misel-slot {
+      background: #ffffff !important;
+      border: 2px dashed rgba(120,90,0,.45) !important;
+    }
+    body:not(.dark-mode) .misel-slot.filled {
+      border-style: solid !important;
+      border-color: #b48c00 !important;
+      box-shadow: 0 2px 8px rgba(180,140,0,.18);
+    }
+    body:not(.dark-mode) .misel-slot-num {
+      color: #5e564a !important;
+      font-size: .75rem !important;
+    }
+    body:not(.dark-mode) .misel-search {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border: 1px solid rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .misel-search::placeholder { color: #888 !important; }
+    body:not(.dark-mode) .misel-search:focus { border-color: #b48c00 !important; }
+    body:not(.dark-mode) .misel-dropdown {
+      background: #ffffff !important;
+      border: 1px solid rgba(120,90,0,.25) !important;
+      color: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .misel-dropdown > * { color: #1a1a1d !important; }
+    body:not(.dark-mode) .misel-msg { color: #5e564a !important; }
+    body:not(.dark-mode) .misel-lock {
+      background: rgba(180,140,0,.08) !important;
+      color: #1a1a1d !important;
+      border: 1px dashed rgba(120,90,0,.35) !important;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    body:not(.dark-mode) .misel-lock:hover { background: rgba(180,140,0,.15) !important; }
+
+    /* También aplico a la quiz-box los .quiz-opt para que se vean
+       botones reales con borde dorado en light, no plano. */
+    body:not(.dark-mode) .quiz-box .quiz-opt {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border: 1px solid rgba(120,90,0,.3) !important;
+      box-shadow: 0 2px 6px rgba(120,90,0,.06);
+    }
+    body:not(.dark-mode) .quiz-box .quiz-opt:hover {
+      background: #fef7d8 !important;
+      border-color: #b48c00 !important;
+    }
