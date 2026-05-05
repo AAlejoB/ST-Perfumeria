@@ -7,6 +7,37 @@
     var currentUser = null;
 
     // ============================================================
+    // PERF · deferTask — para diferir loaders no críticos hasta
+    // que el browser esté idle (después del primer paint mobile).
+    // En 4G real bajamos el tiempo a interactivo ~1-2s porque
+    // dejamos de hacer 6+ queries Supabase en paralelo al inicio.
+    // ============================================================
+    function deferTask(fn, opts) {
+      opts = opts || {};
+      var run = function() { try { fn(); } catch(e) { /* swallow */ } };
+      // Estrategia: esperamos a 'load' (todo el HTML ya parseado +
+      // recursos críticos descargados) y después al primer idle.
+      var schedule = function() {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(run, { timeout: opts.timeout || 2500 });
+        } else {
+          setTimeout(run, opts.delay || 50);
+        }
+      };
+      if (document.readyState === 'complete') {
+        schedule();
+      } else {
+        window.addEventListener('load', schedule, { once: true });
+      }
+    }
+    function onDeferred(fn) {
+      // Helper para registrar loaders no críticos:
+      // - Espera a DOMContentLoaded
+      // - Después espera idle/load
+      document.addEventListener('DOMContentLoaded', function() { deferTask(fn); });
+    }
+
+    // ============================================================
     // ANALYTICS — tracking de clicks por perfume
     // ============================================================
     function trackClick(slug) {
@@ -861,6 +892,9 @@
         // Si la tabla está vacía o falla, queda el fallback visible.
       } catch(e) { /* tabla no existe: queda fallback */ }
     }
+    // Banner top: ejecutamos loadHomeTopBanner inmediatamente para que el
+    // fallback se pinte sin demora (es zero-flash); la query Supabase
+    // adentro es async así que no bloquea.
     document.addEventListener('DOMContentLoaded', loadHomeTopBanner);
     // Pausar rotación cuando la pestaña no está visible
     document.addEventListener('visibilitychange', function() {
@@ -1020,7 +1054,7 @@
         // Tabla no existe: queda placeholder. Sin error visible.
       }
     }
-    document.addEventListener('DOMContentLoaded', loadHomeSlides);
+    onDeferred(loadHomeSlides);
 
     // ============================================================
     // TRUST BADGES — 4 beneficios destacados (editables desde admin)
@@ -1085,7 +1119,7 @@
         // Si la tabla todavía no existe, queda el fallback. No molestamos al usuario.
       }
     }
-    document.addEventListener('DOMContentLoaded', loadTrustBadges);
+    onDeferred(loadTrustBadges);
 
     // ============================================================
     // FAVORITOS — Supabase (logueado) + localStorage (fallback)
@@ -1727,7 +1761,9 @@
     var TOP_VENTAS_SLUGS = DEFAULT_TOP_SLUGS;
 
     // Cargar destacados desde Supabase (visible para TODOS los visitantes)
-    (async function loadDestacadosFromDB() {
+    // Deferido: se renderiza con DEFAULT_TOP_SLUGS y luego se actualiza
+    // si Supabase devuelve override. No es above-the-fold mobile.
+    async function loadDestacadosFromDB() {
       try {
         var { data } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
         if (data && data.length > 0) {
@@ -1735,7 +1771,8 @@
           renderSeleccionST();
         }
       } catch(e) {}
-    })();
+    }
+    deferTask(loadDestacadosFromDB);
 
     // ============================================================
     // ANUNCIO PÚBLICO — banner entre DECANTS y SELECCIÓN ST
@@ -1752,7 +1789,7 @@
     //  - Fallo silencioso: si la tabla no existe, simplemente no
     //    se muestra nada. No rompe el catálogo.
     // ============================================================
-    (async function loadAnnouncement() {
+    async function loadAnnouncement() {
       var wrap = document.getElementById('publicAnnouncement');
       if (!wrap) return;
 
@@ -1838,10 +1875,11 @@
       } catch(e) {
         console.warn('[announcement] no se pudo cargar:', e);
       }
-    })();
+    }
+    deferTask(loadAnnouncement);
 
     // Cargar combos desde Supabase
-    (async function loadCombosFromDB() {
+    async function loadCombosFromDB() {
       try {
         var { data, error } = await sb.from('combos').select('*');
         if (error) return;
@@ -1854,7 +1892,8 @@
           renderSets();
         }
       } catch(e) {}
-    })();
+    }
+    deferTask(loadCombosFromDB);
 
     function renderSeleccionST() {
       var grid = document.getElementById('seleccionGrid');
@@ -3778,19 +3817,27 @@
       } catch(e) {}
     }
 
+    // Path crítico: nuevos perfumes + overrides → render del catálogo.
+    // loadPerfumeViews (stats) NO bloquea el render — se difiere.
     loadPerfumesNuevos().then(function() {
       return loadOverrides();
     }).then(function() {
       markNewPerfumes();
-      return loadPerfumeViews();
-    }).then(function() {
       renderCatalog();
       sortCards('price-desc');
       checkDeepLink();
+      // Stats de views: diferido, solo afecta el contador "+N personas vieron…"
+      deferTask(function() {
+        loadPerfumeViews().then(function() {
+          // Re-render selectivo si hay views nuevos (no rompe nada si no hay)
+          if (typeof renderCatalog === 'function') renderCatalog();
+        });
+      });
     });
     renderCategories();
-    loadVotacionFromDB();
-    checkStoreStatus();
+    // Diferidas: votación y horario del local no son above-the-fold
+    deferTask(loadVotacionFromDB);
+    deferTask(checkStoreStatus);
 
     // ============================================================
     // HORARIO DEL LOCAL
@@ -5613,10 +5660,7 @@
         el.style.display = 'none';
       }
     }
-    document.addEventListener('DOMContentLoaded', function() {
-      // Render inicial; se vuelve a llamar después del login
-      setTimeout(renderPuntosBanner, 800);
-    });
+    onDeferred(renderPuntosBanner);
     // Hook: cuando cambia el currentUser (login/logout), re-renderizar
     window.addEventListener('storage', function(e) {
       if (e.key === 'st_cliente') setTimeout(renderPuntosBanner, 200);
@@ -5637,7 +5681,7 @@
         }
       } catch(e) { /* tabla no existe: queda lista vacía */ }
     }
-    document.addEventListener('DOMContentLoaded', loadDecantsCustomForArmador);
+    onDeferred(loadDecantsCustomForArmador);
 
     function renderDecantGrid() {
       var gridEl = document.getElementById('decantGrid');
