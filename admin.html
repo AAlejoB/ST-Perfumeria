@@ -896,6 +896,7 @@
       <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
       <button class="tab-btn" data-role="jefe" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
       <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
+      <button class="tab-btn" data-role="jefe" data-tab="puntos" onclick="switchTab('puntos',this);loadPuntosAdmin()">🎯 Puntos</button>
       <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog()">📋 Log</button>
       <button class="tab-btn" data-role="jefe" data-tab="analytics" onclick="switchTab('analytics',this);loadAnalytics()">📊 Analytics</button>
       <button class="tab-btn" data-role="jefe" data-tab="backups" onclick="switchTab('backups',this);loadBackups()">💾 Backup</button>
@@ -2157,6 +2158,82 @@
           <th style="width:90px;">Acción</th>
         </tr></thead>
         <tbody id="tbodyBackups">
+          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: PUNTOS -->
+  <div class="tab-content" id="tab-puntos">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <p style="font-size:2rem;margin-bottom:.3rem;">🎯</p>
+      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Sistema de Puntos</p>
+      <p style="font-size:.7rem;color:var(--gris);">Config global · Ranking de clientes · Historial de movimientos</p>
+    </div>
+
+    <!-- Config -->
+    <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:1rem;margin-bottom:1.2rem;">
+      <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.8rem;">⚙️ Configuración global</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;">
+        <div>
+          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por perfume</label>
+          <input type="number" step="0.01" id="cfgPuntosPerfume" class="modal-input" style="margin:0;"/>
+        </div>
+        <div>
+          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por decant</label>
+          <input type="number" step="0.01" id="cfgPuntosDecant" class="modal-input" style="margin:0;"/>
+        </div>
+        <div>
+          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por set/combo</label>
+          <input type="number" step="0.01" id="cfgPuntosCombo" class="modal-input" style="margin:0;"/>
+        </div>
+        <div>
+          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Threshold (múltiplo)</label>
+          <input type="number" step="1" id="cfgThreshold" class="modal-input" style="margin:0;"/>
+        </div>
+      </div>
+      <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje promo (cuando cliente está a 1 del threshold)</label>
+      <input type="text" id="cfgMensajePromo" class="modal-input" style="margin:0;"/>
+      <button class="action-btn" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Guardar config</button>
+      <span id="cfgPuntosMsg" style="font-size:.7rem;color:#9bd28b;margin-left:.6rem;"></span>
+    </div>
+
+    <!-- Ranking -->
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1.2rem;">
+      <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+        <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">🏆 Ranking de clientes</p>
+        <input type="text" id="puntosFilterCliente" placeholder="Buscar nombre/teléfono…" oninput="renderPuntosRanking()" style="background:#0a0a0c;border:1px solid var(--borde);color:#fff;padding:.35rem .6rem;border-radius:6px;font-size:.72rem;width:200px;"/>
+      </div>
+      <table class="admin-table" style="margin:0;">
+        <thead><tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Teléfono</th>
+          <th style="text-align:right;">Puntos</th>
+          <th style="width:140px;">Acciones</th>
+        </tr></thead>
+        <tbody id="tbodyPuntosRanking">
+          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Historial -->
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+      <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;">
+        <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">📋 Historial de movimientos</p>
+        <button class="action-btn" onclick="loadPuntosHistory()" style="padding:.3rem .7rem;font-size:.7rem;">↺</button>
+      </div>
+      <table class="admin-table" style="margin:0;">
+        <thead><tr>
+          <th style="width:130px;">Fecha</th>
+          <th>Cliente</th>
+          <th style="text-align:right;width:80px;">Δ</th>
+          <th>Motivo</th>
+          <th>Actor</th>
+        </tr></thead>
+        <tbody id="tbodyPuntosLog">
           <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
         </tbody>
       </table>
@@ -8229,6 +8306,154 @@
         }
       } catch(e) {
         console.warn('[backup] auto fallo:', e);
+      }
+    }
+
+    // ═══ PUNTOS ADMIN ═══
+    var _puntosRankingData = [];
+    async function loadPuntosAdmin() {
+      // Cargar config + ranking + historial en paralelo
+      await Promise.all([loadPuntosConfig(), loadPuntosRanking(), loadPuntosHistory()]);
+    }
+
+    async function loadPuntosConfig() {
+      try {
+        var r = await sb.from('puntos_config').select('*').order('id').limit(1);
+        var cfg = (r.data && r.data[0]) || {};
+        var byId = function(id){ return document.getElementById(id); };
+        if (byId('cfgPuntosPerfume')) byId('cfgPuntosPerfume').value = cfg.puntos_por_perfume != null ? cfg.puntos_por_perfume : 1;
+        if (byId('cfgPuntosDecant')) byId('cfgPuntosDecant').value = cfg.puntos_por_decant != null ? cfg.puntos_por_decant : 0.10;
+        if (byId('cfgPuntosCombo')) byId('cfgPuntosCombo').value = cfg.puntos_por_set_combo != null ? cfg.puntos_por_set_combo : 2;
+        if (byId('cfgThreshold')) byId('cfgThreshold').value = cfg.threshold_proximo_premio != null ? cfg.threshold_proximo_premio : 5;
+        if (byId('cfgMensajePromo')) byId('cfgMensajePromo').value = cfg.mensaje_promo || '';
+        window._puntosCfgId = cfg.id;
+      } catch(e) { console.warn('[puntos] loadConfig', e); }
+    }
+
+    async function savePuntosConfig() {
+      var msg = document.getElementById('cfgPuntosMsg');
+      var byId = function(id){ return document.getElementById(id); };
+      var payload = {
+        puntos_por_perfume: parseFloat(byId('cfgPuntosPerfume').value) || 0,
+        puntos_por_decant: parseFloat(byId('cfgPuntosDecant').value) || 0,
+        puntos_por_set_combo: parseFloat(byId('cfgPuntosCombo').value) || 0,
+        threshold_proximo_premio: parseInt(byId('cfgThreshold').value, 10) || 5,
+        mensaje_promo: byId('cfgMensajePromo').value || '',
+        updated_at: new Date().toISOString()
+      };
+      try {
+        var q;
+        if (window._puntosCfgId) {
+          q = await sb.from('puntos_config').update(payload).eq('id', window._puntosCfgId);
+        } else {
+          q = await sb.from('puntos_config').insert(payload);
+        }
+        if (q.error) throw q.error;
+        if (msg) { msg.textContent = '✓ Guardado'; setTimeout(function(){ msg.textContent=''; }, 2500); }
+      } catch(e) {
+        if (msg) { msg.style.color='#ff7a7a'; msg.textContent = '✗ ' + (e.message||e); }
+      }
+    }
+
+    async function loadPuntosRanking() {
+      var tbody = document.getElementById('tbodyPuntosRanking');
+      if (!tbody) return;
+      try {
+        var r = await sb.from('clientes').select('id,nombre,telefono,puntos').order('puntos', { ascending: false }).limit(500);
+        _puntosRankingData = r.data || [];
+        renderPuntosRanking();
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">Error: '+ (e.message||e) +'</td></tr>';
+      }
+    }
+
+    function renderPuntosRanking() {
+      var tbody = document.getElementById('tbodyPuntosRanking');
+      var f = (document.getElementById('puntosFilterCliente')||{}).value || '';
+      f = f.trim().toLowerCase();
+      var rows = _puntosRankingData;
+      if (f) rows = rows.filter(function(c){
+        return ((c.nombre||'').toLowerCase().indexOf(f) !== -1) || ((c.telefono||'').toLowerCase().indexOf(f) !== -1);
+      });
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gris);">Sin clientes</td></tr>';
+        return;
+      }
+      var html = '';
+      for (var i=0;i<rows.length;i++){
+        var c = rows[i];
+        var pts = Number(c.puntos||0).toFixed(2).replace(/\.?0+$/,'');
+        html += '<tr>'
+          + '<td style="color:var(--gris);">'+ (i+1) +'</td>'
+          + '<td style="font-weight:600;">'+ (c.nombre||'—') +'</td>'
+          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ (c.telefono||'—') +'</td>'
+          + '<td style="text-align:right;font-weight:700;color:#E8B800;">'+ pts +'</td>'
+          + '<td>'
+            + '<button class="action-btn" onclick="adjustPuntosManual('+ c.id +',1)" style="padding:.25rem .5rem;font-size:.7rem;">+</button> '
+            + '<button class="action-btn" onclick="adjustPuntosManual('+ c.id +',-1)" style="padding:.25rem .5rem;font-size:.7rem;">−</button>'
+          + '</td>'
+        + '</tr>';
+      }
+      tbody.innerHTML = html;
+    }
+
+    async function adjustPuntosManual(clienteId, sign) {
+      var c = _puntosRankingData.find(function(x){ return x.id === clienteId; });
+      if (!c) return;
+      var raw = prompt('¿Cuántos puntos ' + (sign>0?'sumar':'restar') + ' a ' + (c.nombre||'cliente') + '? (motivo opcional al final, separado por |)\nEj: 3 | regalo cumpleaños');
+      if (raw == null) return;
+      var parts = String(raw).split('|');
+      var amt = parseFloat(parts[0]);
+      if (!isFinite(amt) || amt <= 0) { alert('Cantidad inválida'); return; }
+      var motivo = (parts[1]||'').trim() || (sign>0 ? 'manual_jefe' : 'manual_jefe_resta');
+      var delta = sign * amt;
+      var nuevo = Number(c.puntos||0) + delta;
+      try {
+        var u = await sb.from('clientes').update({ puntos: nuevo }).eq('id', clienteId);
+        if (u.error) throw u.error;
+        var actor = (window.currentUser && window.currentUser.email) || 'jefe';
+        await sb.from('puntos_log').insert({
+          cliente_id: clienteId,
+          cliente_telefono: c.telefono || null,
+          cliente_nombre: c.nombre || null,
+          delta: delta,
+          motivo: motivo,
+          actor: actor
+        });
+        c.puntos = nuevo;
+        // Re-sort
+        _puntosRankingData.sort(function(a,b){ return Number(b.puntos||0) - Number(a.puntos||0); });
+        renderPuntosRanking();
+        loadPuntosHistory();
+      } catch(e) { alert('Error: ' + (e.message||e)); }
+    }
+
+    async function loadPuntosHistory() {
+      var tbody = document.getElementById('tbodyPuntosLog');
+      if (!tbody) return;
+      try {
+        var r = await sb.from('puntos_log').select('*').order('created_at', { ascending: false }).limit(200);
+        var rows = r.data || [];
+        if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gris);">Sin movimientos</td></tr>'; return; }
+        var html = '';
+        for (var i=0;i<rows.length;i++){
+          var l = rows[i];
+          var d = new Date(l.created_at);
+          var fecha = d.toLocaleDateString('es-AR') + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+          var delta = Number(l.delta||0);
+          var color = delta >= 0 ? '#9bd28b' : '#ff9b9b';
+          var sign = delta >= 0 ? '+' : '';
+          html += '<tr>'
+            + '<td style="font-size:.7rem;color:var(--gris-claro);">'+ fecha +'</td>'
+            + '<td>'+ (l.cliente_nombre || l.cliente_telefono || ('#'+(l.cliente_id||'?'))) +'</td>'
+            + '<td style="text-align:right;font-weight:700;color:'+ color +';">'+ sign + delta.toFixed(2).replace(/\.?0+$/,'') +'</td>'
+            + '<td style="font-size:.7rem;">'+ (l.motivo||'—') +'</td>'
+            + '<td style="font-size:.7rem;color:var(--gris);">'+ (l.actor||'—') +'</td>'
+          + '</tr>';
+        }
+        tbody.innerHTML = html;
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">Error: '+ (e.message||e) +'</td></tr>';
       }
     }
 
