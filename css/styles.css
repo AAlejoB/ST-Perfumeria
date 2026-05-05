@@ -175,6 +175,181 @@
     }
 
     /* ================================================
+       HOME TOP BANNER — texto B/N de pagos, editable desde admin
+       Diseño minimalista: blanco sobre negro, full-width.
+       Si modo_marquee=true, hace scroll horizontal infinito.
+       ================================================ */
+    .home-top-banner {
+      width: 100%;
+      background: #000;
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .home-top-banner-track {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 8px 16px;
+    }
+    .home-top-banner-text {
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      text-align: center;
+      white-space: nowrap;
+      color: #fff;
+    }
+    @media (min-width: 768px) {
+      .home-top-banner-track { min-height: 44px; padding: 10px 24px; }
+      .home-top-banner-text { font-size: .78rem; letter-spacing: .18em; }
+    }
+    /* Modo marquee: el texto se duplica y se anima en loop infinito */
+    .home-top-banner.is-marquee .home-top-banner-track {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+    }
+    .home-top-banner.is-marquee .home-top-banner-text {
+      display: inline-block;
+      padding-left: 100%;
+      animation: htbMarquee 22s linear infinite;
+    }
+    @keyframes htbMarquee {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-200%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .home-top-banner.is-marquee .home-top-banner-text {
+        animation: none;
+        padding-left: 0;
+      }
+      .home-top-banner.is-marquee .home-top-banner-track { justify-content: center; }
+    }
+
+    /* ================================================
+       HOME SLIDER — slides cuadrados (1:1 mobile, 16:9 desktop)
+       Sin librerías. CSS scroll-snap + JS minimalista para dots/autoplay.
+       Tabla Supabase: home_slides.
+       ================================================ */
+    .home-slider-section {
+      max-width: 1200px;
+      margin: 1rem auto 1.2rem;
+      padding: 0 1rem;
+    }
+    @media (min-width: 768px) {
+      .home-slider-section { margin: 1.2rem auto 1.5rem; padding: 0 2rem; }
+    }
+    .home-slider-viewport {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #0a0a0a;
+      border: 1px solid var(--borde, rgba(232,184,0,.12));
+    }
+    .home-slider-track {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .home-slider-track::-webkit-scrollbar { display: none; }
+    .home-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      scroll-snap-align: start;
+      position: relative;
+      background: #0a0a0a;
+      cursor: pointer;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 768px) {
+      .home-slide { aspect-ratio: 16 / 9; }
+    }
+    .home-slide-media,
+    .home-slide-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border: none;
+    }
+    .home-slide-overlay {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 1rem 1.2rem;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.7) 100%);
+      pointer-events: none;
+    }
+    .home-slide-title {
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      line-height: 1.2;
+      margin: 0;
+      text-shadow: 0 2px 8px rgba(0,0,0,.6);
+    }
+    @media (min-width: 768px) {
+      .home-slide-overlay { padding: 1.4rem 1.8rem; }
+      .home-slide-title { font-size: 1.5rem; }
+    }
+    /* Placeholder cuando no hay slides cargados */
+    .home-slide.is-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      cursor: default;
+    }
+    .home-slide.is-placeholder .home-slide-title {
+      font-size: .85rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+      text-shadow: none;
+    }
+
+    /* Dots de paginación */
+    .home-slider-dots {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: .45rem;
+      margin-top: .7rem;
+      min-height: 18px;
+    }
+    .home-slider-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.22);
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: all .25s ease;
+    }
+    .home-slider-dot.is-active {
+      background: var(--amarillo, #E8B800);
+      width: 22px;
+      border-radius: 4px;
+    }
+    .home-slider-dot:hover { background: rgba(255,255,255,.45); }
+    .home-slider-dot.is-active:hover { background: var(--amarillo-claro, #F5CD3D); }
+
+    /* ================================================
        TRUST BADGES — 4 beneficios destacados (negro + dorado)
        - Mobile-first: en mobile (≥150px) entran 2x2; desktop 4 en fila.
        - Editables desde admin (tabla Supabase trust_badges).

@@ -490,6 +490,31 @@
   </nav>
 
 
+  <!-- ========== TOP PAYMENT BANNER — texto B/N editable desde admin ==========
+       Tabla Supabase: home_top_banner (id, texto, activo, modo_marquee).
+       Diseño minimalista: blanco sobre negro, ~38px de alto en mobile.
+       Si modo_marquee=true y el texto no entra, hace scroll horizontal infinito. -->
+  <div id="topPaymentBanner" class="home-top-banner" style="display:none;" aria-label="Información de pagos">
+    <div class="home-top-banner-track" id="homeTopBannerTrack">
+      <span class="home-top-banner-text" id="homeTopBannerText"></span>
+    </div>
+  </div>
+
+  <!-- ========== HOME SLIDER — slides cuadrados editables (1:1 mobile, 16:9 desktop) ==========
+       Tabla Supabase: home_slides (id, orden, media_url, media_tipo, titulo, link_a, activo).
+       Sin librerías externas: scroll-snap CSS + JS minimalista para dots + autoplay 5s.
+       Lazy-load de imágenes para no bloquear el render del hero. -->
+  <section id="homeSliderSection" class="home-slider-section" aria-label="Destacados">
+    <div class="home-slider-viewport" id="homeSliderViewport">
+      <div class="home-slider-track" id="homeSliderTrack" role="region" aria-roledescription="carrusel">
+        <!-- Slides renderizadas dinámicamente desde Supabase. Si la tabla está vacía,
+             se muestran 3 placeholders con bg negro y texto "Próximamente". -->
+      </div>
+    </div>
+    <div class="home-slider-dots" id="homeSliderDots" role="tablist"></div>
+  </section>
+
+
   <!-- ========== TRUST BADGES — 4 beneficios editables desde admin (Supabase) ========== -->
   <!-- NOTA: Esta sección se ubica acá temporalmente. Cuando Claude Code
        termine el banner B/N + slider en el "first view", puede quedar
