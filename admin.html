@@ -5180,6 +5180,24 @@
 
     // ============================================================
     // BENEFICIOS (TrustBadges) — CRUD editor
+    // ═══ HELPER: dropdown de secciones del sitio para link_a ═══
+    // Evita que el jefe tenga que recordar #explorar / #catalogo / etc.
+    // El select copia su valor al input hermano con la clase indicada.
+    function sectionPickerHTML(targetClass) {
+      return '<select class="modal-input link-section-picker" '
+        + 'onchange="if(this.value){var i=this.parentNode.querySelector(\'.' + targetClass + '\'); if(i){i.value=this.value;}} this.selectedIndex=0;" '
+        + 'style="margin-bottom:.4rem;font-size:.72rem;cursor:pointer;">'
+        + '<option value="">📍 Elegir sección de la web…</option>'
+        + '<option value="#destacados">⭐ Destacados (Selección ST)</option>'
+        + '<option value="#explorar">🔍 Explorá nuestro catálogo (SEO Hub)</option>'
+        + '<option value="#catalogo">🛍️ Catálogo (filtros + grid)</option>'
+        + '<option value="#quizSection">🎮 Juegos ST (Quiz + Desafío)</option>'
+        + '<option value="#faq">❓ Preguntas frecuentes</option>'
+        + '<option value="#nosotros">🏠 Nosotros</option>'
+        + '<option value="#contacto">📍 Contacto / Mapa</option>'
+        + '</select>';
+    }
+
     // Tabla Supabase: trust_badges (id, orden, icono, titulo, bajada, link_a, activo)
     // Editable por jefe + empleados (mismo permiso que destacados/horario)
     // ============================================================
@@ -5221,8 +5239,9 @@
           + '</div>'
           + '<label class="modal-label">Bajada</label>'
           + '<input class="modal-input badge-bajada" value="' + (b.bajada || '').replace(/"/g, '&quot;') + '" maxlength="60" placeholder="Pagando en efectivo"/>'
-          + '<label class="modal-label">Link (opcional, ej: #contacto)</label>'
-          + '<input class="modal-input badge-link" value="' + (b.link_a || '') + '" maxlength="120" placeholder="#contacto o /blog"/>'
+          + '<label class="modal-label">Link (opcional)</label>'
+          + sectionPickerHTML('badge-link')
+          + '<input class="modal-input badge-link" value="' + (b.link_a || '') + '" maxlength="120" placeholder="o pegá una URL personalizada (#contacto, /blog…)"/>'
           + '<label style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--gris-claro);margin-top:.3rem;">'
             + '<input type="checkbox" class="badge-activo"' + (b.activo !== false ? ' checked' : '') + '/> Mostrar en el sitio'
           + '</label>'
@@ -5412,7 +5431,8 @@
           +       '<input type="text" class="modal-input slide-titulo" value="' + (s.titulo || '').replace(/"/g, '&quot;') + '" placeholder="Título (opcional)" style="margin-bottom:0;flex:1;min-width:160px;font-size:.78rem;"/>'
           +       '<input type="number" class="modal-input slide-orden" value="' + (s.orden || 0) + '" min="0" max="999" style="margin-bottom:0;width:70px;font-size:.78rem;text-align:center;" title="Orden"/>'
           +     '</div>'
-          +     '<input type="text" class="modal-input slide-link" value="' + (s.link_a || '').replace(/"/g, '&quot;') + '" placeholder="Link opcional: #catalogo, #explorar, /blog..." style="margin-bottom:0;font-size:.78rem;"/>'
+          +     sectionPickerHTML('slide-link')
+          +     '<input type="text" class="modal-input slide-link" value="' + (s.link_a || '').replace(/"/g, '&quot;') + '" placeholder="o URL personalizada (#contacto, /blog…)" style="margin-bottom:0;font-size:.78rem;"/>'
           +     '<div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;font-size:.7rem;color:var(--gris-claro);">'
           +       '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;"><input type="checkbox" class="slide-activo" ' + (s.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo</label>'
           +       '<button class="modal-btn" onclick="reuploadSlideMedia(' + s.id + ')" style="background:#333;color:#fff;font-size:.65rem;padding:.3rem .6rem;">📷 Cambiar imagen/video</button>'

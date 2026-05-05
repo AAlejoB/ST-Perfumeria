@@ -13,7 +13,7 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-var CACHE_VERSION = 'v1.0.39';
+var CACHE_VERSION = 'v1.0.40';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
