@@ -884,6 +884,7 @@
       <button class="tab-btn" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
       <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
       <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
+      <button class="tab-btn" data-tab="badges" onclick="switchTab('badges',this);loadBadgesAdmin()">🏷️ Beneficios</button>
       <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this)">Horario</button>
       <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
       <button class="tab-btn" data-role="jefe" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
@@ -1419,6 +1420,20 @@
       <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Destacados actuales (<span id="destacadosCount">0</span>/7)</p>
       <div id="destacadosList" style="display:flex;flex-direction:column;gap:.5rem;"></div>
       <p class="modal-success" id="destacadoMsg" style="margin-top:.8rem;"></p>
+    </div>
+
+    <!-- TAB: BENEFICIOS (TrustBadges) — 4 cuadros editables que se muestran en el index -->
+    <div class="tab-content" id="tab-badges">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Beneficios destacados (TrustBadges)</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Los 4 cuadros negro+dorado del inicio. Editá ícono, t&iacute;tulo, bajada y opcionalmente un link (#seccion para scroll suave o /ruta para navegar). Si dejás un campo vac&iacute;o, se usan los valores por defecto.</p>
+        <div id="badgesList" style="display:flex;flex-direction:column;gap:.8rem;"></div>
+        <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap;">
+          <button class="modal-btn" onclick="saveBadges()" style="background:var(--amarillo);color:#000;font-weight:600;">💾 Guardar cambios</button>
+          <button class="modal-btn" onclick="resetBadgesToDefaults()" style="background:#333;color:#fff;">↻ Restaurar por defecto</button>
+        </div>
+        <p class="modal-success" id="badgesMsg" style="margin-top:.8rem;"></p>
+      </div>
     </div>
 
     <!-- TAB: HORARIO -->
@@ -5001,6 +5016,92 @@
       var { data } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
       cachedDestacados = data ? data.map(function(d) { return d.slug; }) : [];
       renderDestacados();
+    }
+
+    // ============================================================
+    // BENEFICIOS (TrustBadges) — CRUD editor
+    // Tabla Supabase: trust_badges (id, orden, icono, titulo, bajada, link_a, activo)
+    // Editable por jefe + empleados (mismo permiso que destacados/horario)
+    // ============================================================
+    var BADGES_ADMIN_DEFAULTS = [
+      { orden: 1, icono: '$',  titulo: '10% OFF',       bajada: 'Pagando en efectivo o transferencia', link_a: '',          activo: true },
+      { orden: 2, icono: '★',  titulo: 'SUMÁ PUNTOS',   bajada: 'Promos para clientes registrados',     link_a: '',          activo: true },
+      { orden: 3, icono: '⌂',  titulo: 'RETIRO GRATIS', bajada: 'En tienda Comodoro Rivadavia',          link_a: '#contacto', activo: true },
+      { orden: 4, icono: '◆',  titulo: '3 CUOTAS',      bajada: 'Sin interés con tarjeta',               link_a: '',          activo: true }
+    ];
+
+    async function loadBadgesAdmin() {
+      var msg = document.getElementById('badgesMsg');
+      if (msg) msg.textContent = '';
+      var rows = [];
+      try {
+        var res = await sb.from('trust_badges').select('id, orden, icono, titulo, bajada, link_a, activo').order('orden', { ascending: true });
+        if (!res.error && res.data && res.data.length) rows = res.data;
+      } catch (e) {}
+      if (!rows.length) rows = BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); });
+      renderBadgesEditor(rows);
+    }
+
+    function renderBadgesEditor(rows) {
+      var cont = document.getElementById('badgesList');
+      if (!cont) return;
+      // Aseguramos siempre 4 filas (rellena con defaults si faltan)
+      while (rows.length < 4) {
+        var d = BADGES_ADMIN_DEFAULTS[rows.length] || { orden: rows.length + 1, icono: '◆', titulo: '', bajada: '', link_a: '', activo: true };
+        rows.push(Object.assign({}, d));
+      }
+      rows = rows.slice(0, 4);
+      var html = '';
+      rows.forEach(function(b, i) {
+        html += '<div class="badge-row" data-i="' + i + '" style="border:1px solid var(--borde);border-radius:6px;padding:.8rem;background:#0d0d0d;">'
+          + '<p style="font-size:.65rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cuadro #' + (i+1) + '</p>'
+          + '<div style="display:grid;grid-template-columns:1fr 2fr;gap:.5rem;margin-bottom:.5rem;">'
+            + '<div><label class="modal-label">Ícono</label><input class="modal-input badge-icono" value="' + (b.icono || '') + '" maxlength="3" placeholder="$"/></div>'
+            + '<div><label class="modal-label">Título</label><input class="modal-input badge-titulo" value="' + (b.titulo || '') + '" maxlength="24" placeholder="10% OFF"/></div>'
+          + '</div>'
+          + '<label class="modal-label">Bajada</label>'
+          + '<input class="modal-input badge-bajada" value="' + (b.bajada || '').replace(/"/g, '&quot;') + '" maxlength="60" placeholder="Pagando en efectivo"/>'
+          + '<label class="modal-label">Link (opcional, ej: #contacto)</label>'
+          + '<input class="modal-input badge-link" value="' + (b.link_a || '') + '" maxlength="120" placeholder="#contacto o /blog"/>'
+          + '<label style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--gris-claro);margin-top:.3rem;">'
+            + '<input type="checkbox" class="badge-activo"' + (b.activo !== false ? ' checked' : '') + '/> Mostrar en el sitio'
+          + '</label>'
+        + '</div>';
+      });
+      cont.innerHTML = html;
+    }
+
+    async function saveBadges() {
+      var msg = document.getElementById('badgesMsg');
+      if (msg) { msg.style.color = ''; msg.textContent = 'Guardando...'; }
+      var rows = Array.prototype.slice.call(document.querySelectorAll('#badgesList .badge-row'));
+      var payload = rows.map(function(row, i) {
+        return {
+          orden: i + 1,
+          icono: (row.querySelector('.badge-icono').value || '◆').trim(),
+          titulo: (row.querySelector('.badge-titulo').value || '').trim(),
+          bajada: (row.querySelector('.badge-bajada').value || '').trim(),
+          link_a: (row.querySelector('.badge-link').value || '').trim(),
+          activo: !!row.querySelector('.badge-activo').checked
+        };
+      });
+      try {
+        // Estrategia simple: borramos todo y reinsertamos en orden.
+        // Es 4 filas, no hay problema de performance.
+        var del = await sb.from('trust_badges').delete().neq('id', 0);
+        if (del.error) throw del.error;
+        var ins = await sb.from('trust_badges').insert(payload);
+        if (ins.error) throw ins.error;
+        if (typeof logAdminAction === 'function') logAdminAction('badges_update', null, { rows: payload });
+        if (msg) { msg.style.color = 'var(--verde, #4ade80)'; msg.textContent = '✓ Beneficios actualizados. Refrescá el sitio para verlos.'; }
+      } catch (e) {
+        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar. ¿Creaste la tabla trust_badges en Supabase?'); }
+      }
+    }
+
+    function resetBadgesToDefaults() {
+      if (!confirm('¿Restaurar los 4 cuadros a sus valores por defecto? (no se guarda hasta que toques "Guardar cambios")')) return;
+      renderBadgesEditor(BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); }));
     }
 
     async function syncDestacadosToDB(slugs) {

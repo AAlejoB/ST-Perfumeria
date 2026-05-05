@@ -175,6 +175,81 @@
     }
 
     /* ================================================
+       TRUST BADGES — 4 beneficios destacados (negro + dorado)
+       - Mobile-first: en mobile (≥150px) entran 2x2; desktop 4 en fila.
+       - Editables desde admin (tabla Supabase trust_badges).
+       - Cada card es opcionalmente clickeable si trae link_a.
+       ================================================ */
+    .trust-badges {
+      max-width: 1200px;
+      margin: 1rem auto 1.5rem;
+      padding: 0 1rem;
+    }
+    @media (min-width: 768px) {
+      .trust-badges { margin: 1.5rem auto 2rem; padding: 0 2rem; }
+    }
+    .trust-badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: .7rem;
+    }
+    @media (min-width: 768px) {
+      .trust-badges-grid { gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    }
+    .trust-badge-card {
+      background: #000;
+      border: 1px solid rgba(232, 184, 0, 0.28);
+      border-radius: 8px;
+      padding: 1rem .7rem;
+      text-align: center;
+      color: #fff;
+      cursor: default;
+      transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .35rem;
+      min-height: 110px;
+      justify-content: center;
+    }
+    .trust-badge-card.is-link { cursor: pointer; }
+    .trust-badge-card.is-link:hover {
+      border-color: var(--amarillo);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(232, 184, 0, 0.18);
+    }
+    @media (min-width: 768px) {
+      .trust-badge-card { padding: 1.3rem 1rem; min-height: 130px; }
+    }
+    .trust-badge-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      color: var(--amarillo);
+      margin-bottom: .15rem;
+      font-weight: 700;
+    }
+    @media (min-width: 768px) { .trust-badge-icon { font-size: 1.7rem; } }
+    .trust-badge-title {
+      color: var(--amarillo);
+      font-weight: 800;
+      font-size: .82rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+    @media (min-width: 768px) { .trust-badge-title { font-size: .95rem; letter-spacing: .1em; } }
+    .trust-badge-desc {
+      color: #bdbdbd;
+      font-size: .68rem;
+      line-height: 1.35;
+      margin: 0;
+    }
+    @media (min-width: 768px) { .trust-badge-desc { font-size: .78rem; } }
+    /* Light mode: invertimos para que se vea bien sobre fondo claro */
+    body.light .trust-badge-card { background: #1a1a1a; }
+    body.light .trust-badge-desc { color: #d4d4d4; }
+
+    /* ================================================
        NAV — Barra de navegación superior
 
        "sticky" = se queda pegada arriba cuando

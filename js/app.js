@@ -749,6 +749,71 @@
     });
 
     // ============================================================
+    // TRUST BADGES — 4 beneficios destacados (editables desde admin)
+    // Tabla Supabase: trust_badges (id, orden, icono, titulo, bajada,
+    // link_a, activo). Si la consulta falla o la tabla está vacía,
+    // mostramos los defaults harcodeados acá abajo.
+    // ============================================================
+    var TRUST_BADGES_DEFAULTS = [
+      { icono: '$',  titulo: '10% OFF',       bajada: 'Pagando en efectivo o transferencia', link_a: '' },
+      { icono: '★',  titulo: 'SUMÁ PUNTOS',   bajada: 'Promos para clientes registrados',    link_a: '' },
+      { icono: '⌂',  titulo: 'RETIRO GRATIS', bajada: 'En tienda Comodoro Rivadavia',         link_a: '#contacto' },
+      { icono: '◆',  titulo: '3 CUOTAS',      bajada: 'Sin interés con tarjeta',              link_a: '' }
+    ];
+
+    function escapeHTML(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+        return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
+      });
+    }
+
+    function renderTrustBadges(items) {
+      var grid = document.getElementById('trustBadgesGrid');
+      if (!grid) return;
+      var list = (items && items.length) ? items : TRUST_BADGES_DEFAULTS;
+      grid.innerHTML = list.map(function(b) {
+        var hasLink = b.link_a && b.link_a.trim() !== '';
+        var cls = 'trust-badge-card' + (hasLink ? ' is-link' : '');
+        var clickAttr = hasLink ? ' onclick="trustBadgeGo(' + JSON.stringify(b.link_a).replace(/"/g,'&quot;') + ')" role="button" tabindex="0"' : '';
+        return ''
+          + '<div class="' + cls + '"' + clickAttr + '>'
+          +   '<span class="trust-badge-icon" aria-hidden="true">' + escapeHTML(b.icono || '◆') + '</span>'
+          +   '<span class="trust-badge-title">' + escapeHTML(b.titulo || '') + '</span>'
+          +   (b.bajada ? '<p class="trust-badge-desc">' + escapeHTML(b.bajada) + '</p>' : '')
+          + '</div>';
+      }).join('');
+    }
+
+    function trustBadgeGo(link) {
+      if (!link) return;
+      if (link.charAt(0) === '#') {
+        var el = document.querySelector(link);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.location.href = link;
+      }
+    }
+    window.trustBadgeGo = trustBadgeGo;
+
+    async function loadTrustBadges() {
+      // Render inmediato del fallback para que no haya "flash" vacío
+      renderTrustBadges(TRUST_BADGES_DEFAULTS);
+      try {
+        if (typeof sb === 'undefined' || !sb) return;
+        var res = await sb.from('trust_badges')
+          .select('icono, titulo, bajada, link_a, orden, activo')
+          .eq('activo', true)
+          .order('orden', { ascending: true });
+        if (res && !res.error && res.data && res.data.length) {
+          renderTrustBadges(res.data);
+        }
+      } catch (e) {
+        // Si la tabla todavía no existe, queda el fallback. No molestamos al usuario.
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadTrustBadges);
+
+    // ============================================================
     // FAVORITOS — Supabase (logueado) + localStorage (fallback)
     // ============================================================
     var favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
