@@ -2858,6 +2858,12 @@
         if (gridEl) gridEl.style.display = '';
         if (loadWrap) loadWrap.style.display = '';
       }
+      // Layout especial cuando hay 1-2 cards visibles (sino se ve roto en desktop:
+      // la card sola queda en la columna izq con mucho espacio vacío al lado).
+      if (gridEl) {
+        gridEl.classList.toggle('catalog-grid--single', totalMatch === 1);
+        gridEl.classList.toggle('catalog-grid--two', totalMatch === 2);
+      }
       updateLoadMoreBtn(matchIndex, totalMatch);
       applyMirrorClasses();
       updateActiveFilters();

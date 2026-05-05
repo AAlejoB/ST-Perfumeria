@@ -1400,10 +1400,20 @@
     ================================================
     */
     @media (min-width: 768px) {
-      .catalog-grid .product-card:only-child {
+      /* :only-child no funciona aquí porque las cards filtradas
+         siguen como children con display:none. Usamos clase aplicada
+         por JS (.catalog-grid--single) cuando solo queda 1 card visible. */
+      .catalog-grid .product-card:only-child,
+      .catalog-grid--single .product-card {
         grid-column: 1 / -1;         /* ocupa todo el ancho del grid */
         max-width: 560px;            /* pero no se estira infinitamente */
         margin: 0 auto;             /* centrada horizontalmente */
+      }
+      /* 2 cards visibles: grid 2 cols, no 3 (queda raro media fila vacía) */
+      .catalog-grid--two {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        max-width: 880px;
+        margin: 0 auto;
       }
     }
 
@@ -5165,9 +5175,9 @@
     .cultura-misel-row {
       display: flex;
       flex-direction: column;
-      gap: 2rem;
+      gap: 1.5rem;       /* mismo gap que .tu-sector-grid */
       align-items: center;
-      max-width: 1320px;
+      max-width: 1100px; /* mismo ancho que .tu-sector-inner */
       margin: 0 auto;
       width: 100%;
       position: relative;
