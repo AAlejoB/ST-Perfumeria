@@ -5585,7 +5585,7 @@
         ]);
         var puntos = (cliRes && cliRes.data && Number(cliRes.data.puntos)) || 0;
         var nombreCli = (cliRes && cliRes.data && cliRes.data.nombre) || (currentUser.nombre || 'Cliente');
-        var cfg = (cfgRes && cfgRes.data && cfgRes.data[0]) || { threshold_proximo_premio: 5, mensaje_promo: 'SUMÁ 1 MÁS Y CONSULTÁ PARA TU BENEFICIO' };
+        var cfg = (cfgRes && cfgRes.data && cfgRes.data[0]) || { threshold_proximo_premio: 5, mensaje_promo: 'SUMÁ 1 MÁS Y CONSULTÁ POR TU PREMIO 📲' };
         // Lógica de mensaje:
         //  - puntos === 0: invitamos a sumar
         //  - puntos múltiplo del threshold: aviso "Estás listo, consultanos"

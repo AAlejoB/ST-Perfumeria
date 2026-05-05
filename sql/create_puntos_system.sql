@@ -32,13 +32,14 @@ CREATE POLICY "puntos_config_write_auth" ON puntos_config
 
 -- Seed inicial: 1 fila con valores por defecto
 INSERT INTO puntos_config (puntos_por_perfume, puntos_por_decant, puntos_por_set_combo, threshold_proximo_premio, mensaje_promo)
-SELECT 1.00, 0.10, 2.00, 5, 'SUMÁ 1 MÁS Y CONSULTÁ PARA TU BENEFICIO'
+SELECT 1.00, 0.10, 2.00, 5, 'SUMÁ 1 MÁS Y CONSULTÁ POR TU PREMIO 📲'
 WHERE NOT EXISTS (SELECT 1 FROM puntos_config);
 
 -- Si la tabla ya existía con el mensaje viejo, actualizamos al nuevo copy
 UPDATE puntos_config
-   SET mensaje_promo = 'SUMÁ 1 MÁS Y CONSULTÁ PARA TU BENEFICIO'
- WHERE mensaje_promo LIKE '%Sumá 1 punto más%';
+   SET mensaje_promo = 'SUMÁ 1 MÁS Y CONSULTÁ POR TU PREMIO 📲'
+ WHERE mensaje_promo LIKE '%Sumá 1 punto más%'
+    OR mensaje_promo LIKE '%PARA TU BENEFICIO%';
 
 
 -- ─── 2) puntos_log (historial por cliente) ───────────────────────────

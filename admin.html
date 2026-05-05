@@ -2240,6 +2240,38 @@
     </div>
   </div>
 
+  <!-- MODAL: AJUSTAR PUNTOS -->
+  <div class="modal-overlay" id="modalPuntos" onclick="closeModal('modalPuntos',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalPuntos')">&times;</button>
+      <p class="modal-title">Ajustar puntos</p>
+      <p id="modalPuntosCliente" style="text-align:center;font-weight:600;margin-bottom:.3rem;"></p>
+      <p id="modalPuntosActual" style="text-align:center;font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;"></p>
+
+      <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
+        <button type="button" class="action-btn" id="modalPuntosTabSumar" onclick="setPuntosModalMode('sumar')" style="flex:1;padding:.5rem;background:#1a4a1a;color:#9bd28b;font-weight:700;border:1px solid #9bd28b;">＋ Sumar</button>
+        <button type="button" class="action-btn" id="modalPuntosTabRestar" onclick="setPuntosModalMode('restar')" style="flex:1;padding:.5rem;background:#0a0a0c;color:#ff9b9b;font-weight:700;border:1px solid var(--borde);">− Restar</button>
+      </div>
+
+      <label class="modal-label">Cantidad</label>
+      <input type="number" step="0.1" min="0" class="modal-input" id="modalPuntosCantidad" placeholder="Ej: 1, 2, 0.5"/>
+
+      <label class="modal-label">Motivo</label>
+      <select class="modal-input" id="modalPuntosMotivo">
+        <option value="manual_jefe">Ajuste manual</option>
+        <option value="canje">Canje de premio</option>
+        <option value="regalo">Regalo / cumpleaños</option>
+        <option value="correccion">Corrección</option>
+        <option value="otro">Otro</option>
+      </select>
+
+      <input type="text" class="modal-input" id="modalPuntosNota" placeholder="Nota libre (opcional)" style="margin-top:.5rem;"/>
+
+      <button class="modal-btn modal-btn-price" id="modalPuntosBtn" onclick="confirmPuntosModal()">✓ Confirmar</button>
+      <p class="modal-success" id="modalPuntosMsg"></p>
+    </div>
+  </div>
+
   <!-- MODAL: CAMBIAR PRECIO -->
   <div class="modal-overlay" id="modalPrice" onclick="closeModal('modalPrice',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -8389,43 +8421,84 @@
           + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ (c.telefono||'—') +'</td>'
           + '<td style="text-align:right;font-weight:700;color:#E8B800;">'+ pts +'</td>'
           + '<td>'
-            + '<button class="action-btn" onclick="adjustPuntosManual('+ c.id +',1)" style="padding:.25rem .5rem;font-size:.7rem;">+</button> '
-            + '<button class="action-btn" onclick="adjustPuntosManual('+ c.id +',-1)" style="padding:.25rem .5rem;font-size:.7rem;">−</button>'
+            + '<button class="action-btn" onclick="openPuntosModal('+ c.id +')" style="padding:.3rem .7rem;font-size:.72rem;background:#E8B800;color:#121214;font-weight:700;">Ajustar</button>'
           + '</td>'
         + '</tr>';
       }
       tbody.innerHTML = html;
     }
 
-    async function adjustPuntosManual(clienteId, sign) {
+    var _puntosModalCliente = null;
+    var _puntosModalMode = 'sumar';
+    function openPuntosModal(clienteId) {
       var c = _puntosRankingData.find(function(x){ return x.id === clienteId; });
       if (!c) return;
-      var raw = prompt('¿Cuántos puntos ' + (sign>0?'sumar':'restar') + ' a ' + (c.nombre||'cliente') + '? (motivo opcional al final, separado por |)\nEj: 3 | regalo cumpleaños');
-      if (raw == null) return;
-      var parts = String(raw).split('|');
-      var amt = parseFloat(parts[0]);
-      if (!isFinite(amt) || amt <= 0) { alert('Cantidad inválida'); return; }
-      var motivo = (parts[1]||'').trim() || (sign>0 ? 'manual_jefe' : 'manual_jefe_resta');
+      _puntosModalCliente = c;
+      _puntosModalMode = 'sumar';
+      var pts = Number(c.puntos||0).toFixed(2).replace(/\.?0+$/,'');
+      document.getElementById('modalPuntosCliente').textContent = c.nombre || '—';
+      document.getElementById('modalPuntosActual').textContent = 'Puntos actuales: ' + pts + (c.telefono ? ' · ' + c.telefono : '');
+      document.getElementById('modalPuntosCantidad').value = '';
+      document.getElementById('modalPuntosNota').value = '';
+      document.getElementById('modalPuntosMotivo').value = 'manual_jefe';
+      document.getElementById('modalPuntosMsg').textContent = '';
+      setPuntosModalMode('sumar');
+      var ov = document.getElementById('modalPuntos');
+      if (ov) ov.classList.add('active');
+      setTimeout(function(){ document.getElementById('modalPuntosCantidad').focus(); }, 50);
+    }
+    function setPuntosModalMode(mode) {
+      _puntosModalMode = mode;
+      var s = document.getElementById('modalPuntosTabSumar');
+      var r = document.getElementById('modalPuntosTabRestar');
+      if (mode === 'sumar') {
+        s.style.background = '#1a4a1a'; s.style.color = '#9bd28b'; s.style.border = '1px solid #9bd28b';
+        r.style.background = '#0a0a0c'; r.style.color = '#ff9b9b'; r.style.border = '1px solid var(--borde)';
+      } else {
+        r.style.background = '#4a1a1a'; r.style.color = '#ff9b9b'; r.style.border = '1px solid #ff9b9b';
+        s.style.background = '#0a0a0c'; s.style.color = '#9bd28b'; s.style.border = '1px solid var(--borde)';
+      }
+    }
+    async function confirmPuntosModal() {
+      var c = _puntosModalCliente;
+      if (!c) return;
+      var amt = parseFloat(document.getElementById('modalPuntosCantidad').value);
+      var msg = document.getElementById('modalPuntosMsg');
+      msg.style.color = '';
+      if (!isFinite(amt) || amt <= 0) { msg.style.color = '#ff7a7a'; msg.textContent = 'Cantidad inválida'; return; }
+      var motivoSel = document.getElementById('modalPuntosMotivo').value || 'manual_jefe';
+      var nota = (document.getElementById('modalPuntosNota').value||'').trim();
+      var motivoFinal = nota ? (motivoSel + ': ' + nota) : motivoSel;
+      var sign = (_puntosModalMode === 'restar') ? -1 : 1;
       var delta = sign * amt;
-      var nuevo = Number(c.puntos||0) + delta;
+      var nuevo = Math.round((Number(c.puntos||0) + delta) * 100) / 100;
+      var btn = document.getElementById('modalPuntosBtn');
+      btn.disabled = true; btn.textContent = '...';
       try {
-        var u = await sb.from('clientes').update({ puntos: nuevo }).eq('id', clienteId);
+        var u = await sb.from('clientes').update({ puntos: nuevo }).eq('id', c.id);
         if (u.error) throw u.error;
-        var actor = (window.currentUser && window.currentUser.email) || 'jefe';
+        var actor = (window.currentUser && (window.currentUser.email || window.currentUser.nombre)) || 'jefe';
         await sb.from('puntos_log').insert({
-          cliente_id: clienteId,
+          cliente_id: c.id,
           cliente_telefono: c.telefono || null,
           cliente_nombre: c.nombre || null,
           delta: delta,
-          motivo: motivo,
+          motivo: motivoFinal,
           actor: actor
         });
         c.puntos = nuevo;
-        // Re-sort
         _puntosRankingData.sort(function(a,b){ return Number(b.puntos||0) - Number(a.puntos||0); });
         renderPuntosRanking();
         loadPuntosHistory();
-      } catch(e) { alert('Error: ' + (e.message||e)); }
+        msg.style.color = '#9bd28b';
+        msg.textContent = '✓ ' + (sign>0?'Sumado':'Restado') + ' ' + amt + ' pts';
+        setTimeout(function(){ closeModal('modalPuntos'); }, 800);
+      } catch(e) {
+        msg.style.color = '#ff7a7a';
+        msg.textContent = '✗ ' + (e.message||e);
+      } finally {
+        btn.disabled = false; btn.textContent = '✓ Confirmar';
+      }
     }
 
     async function loadPuntosHistory() {
