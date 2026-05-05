@@ -925,10 +925,15 @@
       var attrs = 'data-idx="' + idx + '"';
       if (clickable) attrs += ' onclick="homeSlideGo(\'' + escapeHTML(slide.link_a).replace(/'/g, "\\'") + '\')" role="button" tabindex="0"';
       var media = '';
+      // Slide #0 es above-the-fold: fetchpriority alto, sin lazy.
+      // Resto: lazy + decoding async para no robar ancho de banda.
+      var isFirst = idx === 0;
+      var imgPrio = isFirst ? ' fetchpriority="high"' : ' loading="lazy"';
+      var videoPrio = isFirst ? ' preload="auto"' : ' preload="none"';
       if (slide.media_tipo === 'video') {
-        media = '<video class="home-slide-media" src="' + escapeHTML(slide.media_url) + '" autoplay muted loop playsinline preload="metadata"></video>';
+        media = '<video class="home-slide-media" src="' + escapeHTML(slide.media_url) + '" autoplay muted loop playsinline' + videoPrio + ' width="900" height="506"></video>';
       } else {
-        media = '<img class="home-slide-img" src="' + escapeHTML(slide.media_url) + '" alt="' + escapeHTML(slide.titulo || 'Slide ' + (idx + 1)) + '" loading="lazy" decoding="async"/>';
+        media = '<img class="home-slide-img" src="' + escapeHTML(slide.media_url) + '" alt="' + escapeHTML(slide.titulo || 'Slide ' + (idx + 1)) + '"' + imgPrio + ' decoding="async" width="900" height="506"/>';
       }
       var overlay = '';
       if (slide.titulo && slide.titulo.trim()) {
@@ -1559,14 +1564,14 @@
 
       if (fotosPool.length >= 2) {
         var slides = fotosPool.map(function(url) {
-          return '<div class="card-gallery-slide"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async"></div>';
+          return '<div class="card-gallery-slide"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
         }).join('');
         var navInnerFilled = navInnerHTML.replace('PLACEHOLDER', fotosPool.length);
         galleryNavOnImage = '<div class="card-gallery-nav card-gallery-nav--image">' + navInnerFilled + '</div>';
         galleryNavOnInfo  = '<div class="card-gallery-nav card-gallery-nav--info">'  + navInnerFilled + '</div>';
         imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>' + galleryNavOnImage;
       } else if (fotosPool.length === 1) {
-        imageHTML = '<img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async">';
+        imageHTML = '<img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400">';
       } else {
         imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
       }
@@ -1905,7 +1910,7 @@
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         // Lazy + decoding async para que los destacados no frenen el first paint
         var imgHTML = p.foto
-          ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">'
+          ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async" width="300" height="300">'
           : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + p.name.charAt(0) + '</div>';
         html += '<div class="collectible-card" onclick="scrollToPerfume(\'' + slug + '\')">'
           + '<div class="collectible-card-inner">'
