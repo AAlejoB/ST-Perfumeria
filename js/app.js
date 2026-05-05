@@ -755,51 +755,115 @@
     // ============================================================
     var HOME_TOP_BANNER_FALLBACK = '3 CUOTAS SIN INTERÉS · ACEPTAMOS TODOS LOS MEDIOS DE PAGO';
 
-    function renderHomeTopBanner(texto, marquee) {
+    // Carrusel del banner B/N: si hay varios mensajes activos en
+    // home_top_banner, rotamos cada 4.5 seg con fade. Si hay solo 1,
+    // se muestra estático (con marquee si desborda como antes).
+    var HOME_BANNER_CYCLE = {
+      messages: [],   // [{texto, marquee}, ...]
+      idx: 0,
+      timer: null
+    };
+
+    function applyBannerMarqueeIfNeeded(wrap, textEl, marquee) {
+      if (marquee) {
+        wrap.classList.add('is-marquee');
+        return;
+      }
+      wrap.classList.remove('is-marquee');
+      requestAnimationFrame(function() {
+        try {
+          var trackW = wrap.querySelector('.home-top-banner-track').clientWidth;
+          var textW = textEl.scrollWidth;
+          if (textW > trackW - 16) wrap.classList.add('is-marquee');
+        } catch(e){}
+      });
+    }
+
+    function showBannerMessage(idx) {
       var wrap = document.getElementById('topPaymentBanner');
       var textEl = document.getElementById('homeTopBannerText');
       if (!wrap || !textEl) return;
-      var t = (texto && String(texto).trim()) ? String(texto).trim() : '';
-      if (!t) { wrap.style.display = 'none'; return; }
-      wrap.style.display = 'block';
-      textEl.textContent = t;
-      // Activar modo marquee si: lo pidió el admin, o si el texto no entra
-      if (marquee) {
-        wrap.classList.add('is-marquee');
-      } else {
-        wrap.classList.remove('is-marquee');
-        // Auto-detección: si después de un frame el texto desborda, activamos marquee
-        requestAnimationFrame(function() {
-          try {
-            var trackW = wrap.querySelector('.home-top-banner-track').clientWidth;
-            var textW = textEl.scrollWidth;
-            if (textW > trackW - 16) wrap.classList.add('is-marquee');
-          } catch(e){}
-        });
+      var msgs = HOME_BANNER_CYCLE.messages;
+      if (!msgs.length) { wrap.style.display = 'none'; return; }
+      var n = msgs.length;
+      var i = ((idx % n) + n) % n;
+      HOME_BANNER_CYCLE.idx = i;
+      var m = msgs[i];
+      // Fade out → cambiar texto → fade in
+      textEl.style.transition = 'opacity .35s ease';
+      textEl.style.opacity = '0';
+      setTimeout(function() {
+        textEl.textContent = m.texto;
+        applyBannerMarqueeIfNeeded(wrap, textEl, !!m.marquee);
+        textEl.style.opacity = '1';
+      }, 350);
+    }
+
+    function startBannerCycle() {
+      stopBannerCycle();
+      var msgs = HOME_BANNER_CYCLE.messages;
+      if (msgs.length < 2) return; // 1 solo mensaje: no rotar
+      HOME_BANNER_CYCLE.timer = setInterval(function() {
+        if (document.hidden) return; // no rotar si la pestaña no está visible
+        showBannerMessage(HOME_BANNER_CYCLE.idx + 1);
+      }, 4500);
+    }
+
+    function stopBannerCycle() {
+      if (HOME_BANNER_CYCLE.timer) {
+        clearInterval(HOME_BANNER_CYCLE.timer);
+        HOME_BANNER_CYCLE.timer = null;
       }
     }
 
+    function setHomeBannerMessages(messages) {
+      var wrap = document.getElementById('topPaymentBanner');
+      var textEl = document.getElementById('homeTopBannerText');
+      if (!wrap || !textEl) return;
+      // Filtrar mensajes vacíos
+      var clean = (messages || []).filter(function(m) {
+        return m && String(m.texto || '').trim();
+      }).map(function(m) {
+        return { texto: String(m.texto).trim(), marquee: !!m.marquee };
+      });
+      HOME_BANNER_CYCLE.messages = clean;
+      HOME_BANNER_CYCLE.idx = 0;
+      stopBannerCycle();
+      if (clean.length === 0) {
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = 'block';
+      textEl.textContent = clean[0].texto;
+      textEl.style.opacity = '1';
+      applyBannerMarqueeIfNeeded(wrap, textEl, clean[0].marquee);
+      startBannerCycle();
+    }
+
     async function loadHomeTopBanner() {
-      // Render inmediato del fallback (zero-flash)
-      renderHomeTopBanner(HOME_TOP_BANNER_FALLBACK, false);
+      // Render inmediato del fallback (zero-flash) — solo 1 mensaje
+      setHomeBannerMessages([{ texto: HOME_TOP_BANNER_FALLBACK, marquee: false }]);
       try {
         if (typeof sb === 'undefined' || !sb) return;
         var res = await sb.from('home_top_banner')
-          .select('texto, activo, modo_marquee')
+          .select('texto, activo, modo_marquee, id')
           .eq('activo', true)
-          .order('id', { ascending: false })
-          .limit(1);
+          .order('id', { ascending: true });
         if (res && !res.error && res.data && res.data.length) {
-          var row = res.data[0];
-          renderHomeTopBanner(row.texto, !!row.modo_marquee);
-        } else if (res && !res.error && res.data && res.data.length === 0) {
-          // Si la tabla existe pero está vacía, mantenemos el fallback visible.
+          var msgs = res.data.map(function(r) {
+            return { texto: r.texto, marquee: !!r.modo_marquee };
+          });
+          setHomeBannerMessages(msgs);
         }
-      } catch(e) {
-        // Tabla no existe todavía: se queda el fallback. No molestamos al usuario.
-      }
+        // Si la tabla está vacía o falla, queda el fallback visible.
+      } catch(e) { /* tabla no existe: queda fallback */ }
     }
     document.addEventListener('DOMContentLoaded', loadHomeTopBanner);
+    // Pausar rotación cuando la pestaña no está visible
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) stopBannerCycle();
+      else if (HOME_BANNER_CYCLE.messages.length > 1) startBannerCycle();
+    });
 
     // ============================================================
     // HOME SLIDER — slides cuadrados con scroll-snap + autoplay
@@ -5497,6 +5561,23 @@
       }
     }
 
+    // Cache de perfumes custom de decants (cargados desde Supabase).
+    // Aparecen al final del grid del armador como opciones extra.
+    var DECANTS_CUSTOM_LIST = [];
+    async function loadDecantsCustomForArmador() {
+      try {
+        if (typeof sb === 'undefined' || !sb) return;
+        var res = await sb.from('decants_custom')
+          .select('id, nombre, marca, orden')
+          .eq('activo', true)
+          .order('orden', { ascending: true });
+        if (res && !res.error && res.data) {
+          DECANTS_CUSTOM_LIST = res.data;
+        }
+      } catch(e) { /* tabla no existe: queda lista vacía */ }
+    }
+    document.addEventListener('DOMContentLoaded', loadDecantsCustomForArmador);
+
     function renderDecantGrid() {
       var gridEl = document.getElementById('decantGrid');
       if (!gridEl) return;
@@ -5511,19 +5592,22 @@
         return hay.indexOf(qNorm) !== -1;
       });
 
+      // Filtrar custom por búsqueda también
+      var customFiltered = DECANTS_CUSTOM_LIST.filter(function(c) {
+        if (!qNorm) return true;
+        var hay = stripAccents(((c.nombre||'') + ' ' + (c.marca||'')).toLowerCase());
+        return hay.indexOf(qNorm) !== -1;
+      });
+
       // Contar qty por slug (para mostrar en cada card)
       var counts = {};
       decantsPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
 
-      if (list.length === 0) {
+      if (list.length === 0 && customFiltered.length === 0) {
         gridEl.innerHTML = '<p class="decant-grid-empty">Sin resultados para "' + q + '"</p>';
         return;
       }
 
-      // FIX bug mobile: antes estaba slice(0, 80) — cortaba el catálogo
-      // a la mitad si tenías más de 80 perfumes. El loading="lazy" en las
-      // imágenes ya garantiza que solo se descarguen las visibles, así que
-      // mostrar todas no impacta performance.
       var html = list.map(function(p) {
         var qty = counts[p.slug] || 0;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
@@ -5547,6 +5631,26 @@
           + '</div>'
         + '</div>';
       }).join('');
+
+      // Sumar perfumes custom al final con prefijo "custom-" para diferenciarlos
+      // del slug normal (así no chocan con perfumes regulares en decantsPack).
+      html += customFiltered.map(function(c) {
+        var slug = 'custom-' + c.id;
+        var qty = counts[slug] || 0;
+        return '<div class="decant-card decant-card-custom' + (qty > 0 ? ' has-qty' : '') + '">'
+          + '<div class="decant-card-img"><div class="decant-card-img-ph" style="background:rgba(232,184,0,.12);color:var(--amarillo);">★</div></div>'
+          + '<div class="decant-card-info">'
+            + '<p class="decant-card-name">' + escapeHTML(c.nombre) + '</p>'
+            + '<p class="decant-card-brand">' + escapeHTML(c.marca || 'Especial') + '</p>'
+          + '</div>'
+          + '<div class="decant-card-ctrl">'
+            + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(\'' + slug + '\')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
+            + '<span class="decant-ctrl-qty">' + qty + '</span>'
+            + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + slug + '\')" aria-label="Agregar">+</button>'
+          + '</div>'
+        + '</div>';
+      }).join('');
+
       gridEl.innerHTML = html;
     }
 
@@ -5605,8 +5709,16 @@
       var unit = getDecantUnitPrice(qty);
       var total = qty * unit;
       var lines = Object.keys(counts).map(function(slug) {
-        var p = PERFUMES.find(function(x) { return x.slug === slug; });
-        var name = p ? p.name : slug;
+        var name;
+        if (slug.indexOf('custom-') === 0) {
+          // Perfume personalizado: buscar en DECANTS_CUSTOM_LIST por id
+          var cid = parseInt(slug.replace('custom-', ''), 10);
+          var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
+          name = c ? (c.nombre + (c.marca ? ' (' + c.marca + ')' : '') + ' ⭐') : slug;
+        } else {
+          var p = PERFUMES.find(function(x) { return x.slug === slug; });
+          name = p ? p.name : slug;
+        }
         var n = counts[slug];
         return '• ' + name + (n > 1 ? ' (x' + n + ')' : '');
       });

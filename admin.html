@@ -1441,26 +1441,17 @@
          TAB: HOME — Banner B/N + Slider de la home (jefe + empleado)
          ════════════════════════════════════════════════════════════════ -->
     <div class="tab-content" id="tab-home">
-      <!-- A) BANNER B/N -->
+      <!-- A) BANNER B/N — múltiples mensajes (carrusel) -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Banner superior B/N</p>
-        <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">El texto en blanco/negro que aparece arriba de todo, debajo del nav. Ideal para info de pagos, env&iacute;os o promos. M&aacute;ximo ~80 caracteres si quer&eacute;s que entre sin marquee.</p>
-        <div style="margin-bottom:.8rem;">
-          <label class="modal-label">Texto del banner</label>
-          <input type="text" class="modal-input" id="homeBannerTexto" placeholder="Ej: 3 CUOTAS SIN INTER&Eacute;S · ENV&Iacute;OS A TODO EL PA&Iacute;S" maxlength="200" style="margin-bottom:0;"/>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem;">
+          <div>
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Banner superior B/N (carrusel)</p>
+            <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Los mensajes en blanco/negro que aparecen arriba de todo, debajo del nav. Si cargás varios, rotan automáticamente cada 4.5 segundos. Si solo querés uno, dejá uno solo activo.</p>
+          </div>
+          <button class="modal-btn" onclick="addHomeBannerMessage()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar mensaje</button>
         </div>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem;">
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;color:var(--gris-claro);">
-            <input type="checkbox" id="homeBannerActivo" style="width:16px;height:16px;accent-color:var(--amarillo);"/>
-            Activo (mostrar en la home)
-          </label>
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;color:var(--gris-claro);">
-            <input type="checkbox" id="homeBannerMarquee" style="width:16px;height:16px;accent-color:var(--amarillo);"/>
-            Forzar scroll (marquee)
-          </label>
-        </div>
-        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-          <button class="modal-btn" onclick="saveHomeBanner()" style="background:var(--amarillo);color:#000;font-weight:600;">💾 Guardar banner</button>
+        <div id="homeBannerList" style="display:flex;flex-direction:column;gap:.6rem;margin-top:1rem;">
+          <p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando mensajes…</p>
         </div>
         <p class="modal-success" id="homeBannerMsg" style="margin-top:.8rem;"></p>
       </div>
@@ -1970,6 +1961,21 @@
       <button class="action-btn" onclick="loadDecantsAdmin()" style="padding:.5rem 1rem;">↺ Recargar</button>
     </div>
     <p class="modal-success" id="decMsg"></p>
+
+    <!-- ─── Perfumes personalizados (NO están en stock) ─── -->
+    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-top:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem;">
+        <div>
+          <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Perfumes personalizados</p>
+          <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Para perfumes especiales (de diseñador, importaciones puntuales, etc.) que <strong>NO están cargados al stock regular</strong> pero querés ofrecerlos en el armador de decants. Aparecen al final del grid del armador, marcados como "especial".</p>
+        </div>
+        <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
+      </div>
+      <div id="decantsCustomList" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.8rem;">
+        <p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando…</p>
+      </div>
+      <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
+    </div>
   </div>
 
   <!-- TAB: AUDIT LOG (solo jefe) -->
@@ -5153,62 +5159,110 @@
     // HOME ADMIN — Banner B/N + Slider de la home
     // Ambos editables por jefe Y empleados (ambos autenticados).
     // ════════════════════════════════════════════════════════════════
-    var HOME_BANNER_CACHE = null;     // {id, texto, activo, modo_marquee}
+    var HOME_BANNER_LIST = [];        // [{id, texto, activo, modo_marquee}, ...]
     var HOME_SLIDES_CACHE = [];
 
     async function loadHomeAdmin() {
       await Promise.all([loadHomeBannerAdmin(), loadHomeSlidesAdmin()]);
     }
 
-    // ─── Banner B/N ──────────────────────────────────────────────────
+    // ─── Banner B/N (carrusel multi-mensaje) ──────────────────────────
     async function loadHomeBannerAdmin() {
       var msg = document.getElementById('homeBannerMsg');
       try {
         var res = await sb.from('home_top_banner')
           .select('id, texto, activo, modo_marquee')
-          .order('id', { ascending: false })
-          .limit(1);
+          .order('id', { ascending: true });
         if (res.error) throw res.error;
-        if (res.data && res.data.length) {
-          HOME_BANNER_CACHE = res.data[0];
-        } else {
-          HOME_BANNER_CACHE = { id: null, texto: '3 CUOTAS SIN INTERÉS · ACEPTAMOS TODOS LOS MEDIOS DE PAGO', activo: true, modo_marquee: false };
-        }
-        document.getElementById('homeBannerTexto').value = HOME_BANNER_CACHE.texto || '';
-        document.getElementById('homeBannerActivo').checked = !!HOME_BANNER_CACHE.activo;
-        document.getElementById('homeBannerMarquee').checked = !!HOME_BANNER_CACHE.modo_marquee;
+        HOME_BANNER_LIST = res.data || [];
+        renderHomeBannerList();
       } catch (e) {
         if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo cargar. ¿Creaste la tabla home_top_banner?'); }
       }
     }
 
-    async function saveHomeBanner() {
+    function renderHomeBannerList() {
+      var list = document.getElementById('homeBannerList');
+      if (!list) return;
+      if (!HOME_BANNER_LIST.length) {
+        list.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Sin mensajes. Tocá "+ Agregar mensaje" para crear el primero.</p>';
+        return;
+      }
+      list.innerHTML = HOME_BANNER_LIST.map(function(b) {
+        var safeTexto = (b.texto || '').replace(/"/g, '&quot;');
+        return ''
+          + '<div data-banner-id="' + b.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.7rem;display:flex;flex-direction:column;gap:.5rem;">'
+          +   '<input type="text" class="modal-input banner-msg-text" value="' + safeTexto + '" placeholder="Texto del mensaje" maxlength="200" style="margin-bottom:0;font-size:.78rem;"/>'
+          +   '<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;font-size:.7rem;color:var(--gris-claro);">'
+          +     '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;">'
+          +       '<input type="checkbox" class="banner-msg-activo" ' + (b.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo'
+          +     '</label>'
+          +     '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;">'
+          +       '<input type="checkbox" class="banner-msg-marquee" ' + (b.modo_marquee ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Marquee'
+          +     '</label>'
+          +     '<button class="modal-btn" onclick="saveHomeBannerMsg(' + b.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.65rem;padding:.3rem .6rem;margin-left:auto;">💾 Guardar</button>'
+          +     '<button class="modal-btn" onclick="deleteHomeBannerMsg(' + b.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.3rem .6rem;">🗑️</button>'
+          +   '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    async function addHomeBannerMessage() {
       var msg = document.getElementById('homeBannerMsg');
-      var texto = (document.getElementById('homeBannerTexto').value || '').trim();
-      var activo = document.getElementById('homeBannerActivo').checked;
-      var marquee = document.getElementById('homeBannerMarquee').checked;
+      msg.style.color = ''; msg.textContent = 'Creando...';
+      try {
+        var ins = await sb.from('home_top_banner').insert({
+          texto: 'Nuevo mensaje',
+          activo: true,
+          modo_marquee: false,
+          updated_at: new Date().toISOString()
+        }).select().single();
+        if (ins.error) throw ins.error;
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Mensaje agregado. Editá el texto.';
+        await loadHomeBannerAdmin();
+      } catch (e) {
+        msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo agregar.');
+      }
+    }
+
+    async function saveHomeBannerMsg(id) {
+      var msg = document.getElementById('homeBannerMsg');
+      var card = document.querySelector('[data-banner-id="' + id + '"]');
+      if (!card) return;
+      var texto = (card.querySelector('.banner-msg-text').value || '').trim();
+      var activo = !!card.querySelector('.banner-msg-activo').checked;
+      var marquee = !!card.querySelector('.banner-msg-marquee').checked;
       if (!texto) {
-        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '⚠ El texto no puede estar vacío.'; }
+        msg.style.color = '#ff6b6b'; msg.textContent = '⚠ El texto no puede estar vacío.';
         return;
       }
       msg.style.color = ''; msg.textContent = 'Guardando...';
       try {
         var payload = { texto: texto, activo: activo, modo_marquee: marquee, updated_at: new Date().toISOString() };
-        var res;
-        if (HOME_BANNER_CACHE && HOME_BANNER_CACHE.id) {
-          res = await sb.from('home_top_banner').update(payload).eq('id', HOME_BANNER_CACHE.id);
-        } else {
-          res = await sb.from('home_top_banner').insert(payload).select().single();
-          if (res.data) HOME_BANNER_CACHE = res.data;
-        }
-        if (res.error) throw res.error;
-        if (typeof logAdminAction === 'function') logAdminAction('home_banner_update', null, payload);
+        var upd = await sb.from('home_top_banner').update(payload).eq('id', id);
+        if (upd.error) throw upd.error;
+        if (typeof logAdminAction === 'function') logAdminAction('home_banner_msg_update', null, Object.assign({ id: id }, payload));
         msg.style.color = '#4ade80';
-        msg.textContent = '✓ Banner guardado. Refrescá la home para verlo.';
+        msg.textContent = '✓ Guardado.';
         await loadHomeBannerAdmin();
       } catch (e) {
         msg.style.color = '#ff6b6b';
         msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar.');
+      }
+    }
+
+    async function deleteHomeBannerMsg(id) {
+      if (!confirm('¿Eliminar este mensaje del banner B/N?')) return;
+      var msg = document.getElementById('homeBannerMsg');
+      msg.style.color = ''; msg.textContent = 'Eliminando…';
+      try {
+        var del = await sb.from('home_top_banner').delete().eq('id', id);
+        if (del.error) throw del.error;
+        if (typeof logAdminAction === 'function') logAdminAction('home_banner_msg_delete', null, { id: id });
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Mensaje eliminado.';
+        await loadHomeBannerAdmin();
+      } catch (e) {
+        msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo eliminar.');
       }
     }
 
@@ -7020,12 +7074,24 @@
           )
           .on('postgres_changes',
               { event: 'INSERT', schema: 'public', table: 'ventas' },
-              function() {
+              function(payload) {
+                var v = payload.new;
                 // Si el tab Ventas está abierto, refrescar la lista
                 var ventasTab = document.getElementById('tab-ventas');
                 if (ventasTab && ventasTab.classList.contains('active')) {
                   try { loadVentasDelDia(); } catch(e) {}
                 }
+                // TOAST de notificación de venta — visible siempre
+                // (no solo en tab ventas) para que las otras empleadas
+                // sepan que hubo una venta y el stock cambió.
+                try {
+                  var nombre = (v && v.perfume_nombre) ? v.perfume_nombre : 'un perfume';
+                  var qty = (v && v.cantidad) ? v.cantidad : 1;
+                  var vendedor = (v && v.vendedor) ? v.vendedor : 'alguien';
+                  var msgTxt = '💵 ' + vendedor.charAt(0).toUpperCase() + vendedor.slice(1)
+                    + ' vendió ' + nombre + (qty > 1 ? ' (×' + qty + ')' : '');
+                  showSaleToast(msgTxt);
+                } catch(e) {}
               }
           )
           .subscribe();
@@ -7033,6 +7099,30 @@
         console.error('No se pudo activar Realtime:', e);
       }
     }
+
+    // Toast notification de venta (aparece arriba a la derecha 5 seg).
+    // Se acumulan si llegan varios a la vez (uno debajo del otro).
+    function showSaleToast(text) {
+      var stack = document.getElementById('saleToastStack');
+      if (!stack) {
+        stack = document.createElement('div');
+        stack.id = 'saleToastStack';
+        stack.style.cssText = 'position:fixed;top:80px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:340px;';
+        document.body.appendChild(stack);
+      }
+      var toast = document.createElement('div');
+      toast.style.cssText = 'background:linear-gradient(180deg,#1a3520 0%,#0f2014 100%);border:1px solid rgba(46,204,113,.5);border-radius:8px;padding:.7rem 1rem;color:#dff;font-size:.78rem;box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateX(120%);transition:transform .35s ease,opacity .35s ease;pointer-events:auto;cursor:pointer;font-weight:500;';
+      toast.textContent = text;
+      toast.onclick = function() { toast.style.opacity = '0'; setTimeout(function(){ toast.remove(); }, 300); };
+      stack.appendChild(toast);
+      requestAnimationFrame(function() { toast.style.transform = 'translateX(0)'; });
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(120%)';
+        setTimeout(function(){ toast.remove(); }, 400);
+      }, 5000);
+    }
+
     // Activar Realtime cuando el panel admin esté listo (después del login).
     // Se llama desde finishLogin() / resumeSession() vía setTimeout.
     setTimeout(setupRealtimeStock, 1500);
@@ -7457,7 +7547,103 @@
     // ========================================================
     // DECANTS CONFIG (admin)
     // ========================================================
+    // ─── Perfumes personalizados de decants (no están en stock) ───
+    var DECANTS_CUSTOM_CACHE = [];
+
+    async function loadDecantsCustom() {
+      var list = document.getElementById('decantsCustomList');
+      try {
+        if (!sb) return;
+        var res = await sb.from('decants_custom')
+          .select('id, nombre, marca, activo, orden')
+          .order('orden', { ascending: true });
+        if (res.error) throw res.error;
+        DECANTS_CUSTOM_CACHE = res.data || [];
+        renderDecantsCustomList();
+      } catch (e) {
+        if (list) list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">✗ ' + (e.message || 'No se pudo cargar. ¿Creaste la tabla decants_custom?') + '</p>';
+      }
+    }
+
+    function renderDecantsCustomList() {
+      var list = document.getElementById('decantsCustomList');
+      if (!list) return;
+      if (!DECANTS_CUSTOM_CACHE.length) {
+        list.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Sin perfumes personalizados. Tocá "+ Agregar perfume" para crear el primero.</p>';
+        return;
+      }
+      list.innerHTML = DECANTS_CUSTOM_CACHE.map(function(p) {
+        return ''
+          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:1fr 1fr 70px auto auto;gap:.5rem;align-items:center;">'
+          +   '<input type="text" class="modal-input dc-nombre" value="' + (p.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre" style="margin-bottom:0;font-size:.78rem;"/>'
+          +   '<input type="text" class="modal-input dc-marca" value="' + (p.marca || '').replace(/"/g, '&quot;') + '" placeholder="Marca (opcional)" style="margin-bottom:0;font-size:.78rem;"/>'
+          +   '<input type="number" class="modal-input dc-orden" value="' + (p.orden || 0) + '" min="0" style="margin-bottom:0;font-size:.78rem;text-align:center;" title="Orden"/>'
+          +   '<label style="display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:var(--gris-claro);cursor:pointer;"><input type="checkbox" class="dc-activo" ' + (p.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo</label>'
+          +   '<div style="display:flex;gap:.3rem;flex-shrink:0;">'
+          +     '<button class="modal-btn" onclick="saveDecantCustom(' + p.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.65rem;padding:.3rem .6rem;">💾</button>'
+          +     '<button class="modal-btn" onclick="deleteDecantCustom(' + p.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.3rem .6rem;">🗑️</button>'
+          +   '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    async function addDecantCustom() {
+      var msg = document.getElementById('decantsCustomMsg');
+      msg.style.color = ''; msg.textContent = 'Creando…';
+      try {
+        var maxOrden = DECANTS_CUSTOM_CACHE.reduce(function(m, p) { return Math.max(m, p.orden || 0); }, 0);
+        var ins = await sb.from('decants_custom').insert({
+          nombre: 'Nuevo perfume',
+          marca: '',
+          activo: true,
+          orden: maxOrden + 1
+        }).select().single();
+        if (ins.error) throw ins.error;
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Agregado. Editá el nombre.';
+        await loadDecantsCustom();
+      } catch (e) {
+        msg.style.color = '#ff6b6b'; msg.textContent = '✗ ' + (e.message || 'Error');
+      }
+    }
+
+    async function saveDecantCustom(id) {
+      var msg = document.getElementById('decantsCustomMsg');
+      var card = document.querySelector('[data-custom-id="' + id + '"]');
+      if (!card) return;
+      var nombre = (card.querySelector('.dc-nombre').value || '').trim();
+      if (!nombre) { msg.style.color = '#ff6b6b'; msg.textContent = '⚠ Nombre obligatorio.'; return; }
+      msg.style.color = ''; msg.textContent = 'Guardando…';
+      try {
+        var upd = await sb.from('decants_custom').update({
+          nombre: nombre,
+          marca: (card.querySelector('.dc-marca').value || '').trim(),
+          orden: parseInt(card.querySelector('.dc-orden').value, 10) || 0,
+          activo: !!card.querySelector('.dc-activo').checked
+        }).eq('id', id);
+        if (upd.error) throw upd.error;
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Guardado.';
+        await loadDecantsCustom();
+      } catch (e) {
+        msg.style.color = '#ff6b6b'; msg.textContent = '✗ ' + (e.message || 'Error');
+      }
+    }
+
+    async function deleteDecantCustom(id) {
+      if (!confirm('¿Eliminar este perfume personalizado?')) return;
+      var msg = document.getElementById('decantsCustomMsg');
+      try {
+        var del = await sb.from('decants_custom').delete().eq('id', id);
+        if (del.error) throw del.error;
+        msg.style.color = '#4ade80'; msg.textContent = '✓ Eliminado.';
+        await loadDecantsCustom();
+      } catch (e) {
+        msg.style.color = '#ff6b6b'; msg.textContent = '✗ ' + (e.message || 'Error');
+      }
+    }
+
     async function loadDecantsAdmin() {
+      // Cargar también la lista de custom al abrir el tab.
+      loadDecantsCustom();
       var msg = document.getElementById('decMsg');
       if (msg) { msg.textContent = ''; msg.style.color = ''; }
       var def = {

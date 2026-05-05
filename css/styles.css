@@ -186,6 +186,14 @@
       border-bottom: 1px solid rgba(255,255,255,.06);
       overflow: hidden;
       font-family: var(--font-body);
+      /* Sticky: queda fijo debajo del nav al scrollear (mobile y desktop).
+         z-index 99 está justo debajo del nav (100), así no se solapan. */
+      position: sticky;
+      top: 58px; /* mismo height del nav en mobile */
+      z-index: 99;
+    }
+    @media (min-width: 768px) {
+      .home-top-banner { top: 64px; } /* nav desktop tiene 64px */
     }
     .home-top-banner-track {
       display: flex;

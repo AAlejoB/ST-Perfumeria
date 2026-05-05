@@ -14,3 +14,5 @@ notas_pendientes.xlsx
 .claude/
 package.json
 package-lock.json
+.vercel
+.env*.local
