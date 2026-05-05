@@ -569,6 +569,45 @@
     .nav-icon-btn:hover { color: var(--amarillo); }
     .nav-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
 
+    /* Atajo al catálogo desde el nav: pill compacto con texto.
+       Muestra "CATÁLOGO" en pantallas normales y "CAT." en mobile chico
+       para que no apretee al botón de iniciar sesión + favoritos. */
+    .nav-catalog-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 30px;
+      padding: 0 .85rem;
+      background: transparent;
+      color: var(--amarillo);
+      border: 1px solid var(--amarillo);
+      border-radius: 999px;
+      text-decoration: none;
+      font-family: var(--font-body);
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: background .2s, color .2s, transform .15s;
+      flex-shrink: 0;
+    }
+    .nav-catalog-btn:hover {
+      background: var(--amarillo);
+      color: #080808;
+      transform: translateY(-1px);
+    }
+    .nav-catalog-short { display: none; }
+    @media (max-width: 480px) {
+      .nav-catalog-full { display: none; }
+      .nav-catalog-short { display: inline; }
+      .nav-catalog-btn { height: 28px; padding: 0 .55rem; font-size: .6rem; letter-spacing: .08em; }
+    }
+    /* Mobile MUY chico: oculto el botón para no romper layout */
+    @media (max-width: 360px) {
+      .nav-catalog-btn { display: none; }
+    }
+
     .nav-register-btn {
       color: var(--amarillo) !important;
       border: 1px solid var(--amarillo);
@@ -631,6 +670,20 @@
       z-index: 199; opacity: 0; pointer-events: none; transition: opacity .4s;
     }
     .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+    /* FIX: ocultar TODOS los botones flotantes cuando el drawer del nav
+       está abierto. Antes el scroll-top (z-index 998) y otros flotantes
+       quedaban encima del texto del drawer (z-index 200), generando un
+       overlap visual feo. Con :has() lo detectamos sin tocar JS. */
+    body:has(.nav-drawer.open) .scroll-top,
+    body:has(.nav-drawer.open) .dark-float,
+    body:has(.nav-drawer.open) .cart-float,
+    body:has(.nav-drawer.open) .decant-float,
+    body:has(.nav-drawer.open) .store-status {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity .25s ease !important;
+    }
 
     /* ================================================
        HERO — BASE (mobile)
