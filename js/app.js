@@ -1922,6 +1922,17 @@
     }
 
     // ============================================================
+    // BANNER DECANTS — abre WhatsApp con saludo personalizado
+    // ============================================================
+    function openDecantsBannerWA() {
+      var nombre = (currentUser && currentUser.nombre) ? String(currentUser.nombre).trim().split(' ')[0] : '';
+      var saludo = nombre ? ('Hola, soy ' + nombre + '!') : 'Hola!';
+      var msg = saludo + ' Quisiera saber más información acerca de los decants de diseñador 🤩';
+      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+    }
+    window.openDecantsBannerWA = openDecantsBannerWA;
+
+    // ============================================================
     // COMPARTIR PERFUME
     // ============================================================
     function sharePerfume(slug, btn, e) {

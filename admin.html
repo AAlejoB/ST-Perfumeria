@@ -3600,23 +3600,14 @@
       document.getElementById('modalStockQty').value = initQty;
       document.getElementById('modalStockPaused').checked = (p._stockStatus === 'pausado');
 
-      // Para EMPLEADO: bloquear el input numérico (solo puede usar - / +).
-      // Y deshabilitar el botón "+" para que solo pueda RESTAR (vendió un
-      // perfume → resta 1). Si necesita SUMAR stock (recibió pedido), tiene
-      // que pedirle al jefe. Esto evita errores y deja el control de
-      // ingreso de mercadería en manos del jefe.
+      // El empleado puede modificar el stock libremente (sumar y restar).
+      // El control de ingreso de mercadería es responsabilidad compartida
+      // del equipo. Lo único bloqueado para empleado sigue siendo el
+      // botón "Editar precio" (eso queda jefe-only).
       var qtyInp = document.getElementById('modalStockQty');
-      var initialQty = initQty;
-      qtyInp.dataset.initialQty = initialQty;
-      if (currentRole === 'empleado') {
-        qtyInp.readOnly = true;
-        qtyInp.min = 0;
-        qtyInp.max = initialQty;
-      } else {
-        qtyInp.readOnly = false;
-        qtyInp.min = 0;
-        qtyInp.max = 999;
-      }
+      qtyInp.readOnly = false;
+      qtyInp.min = 0;
+      qtyInp.max = 999;
 
       document.getElementById('modalStockBtn').disabled = false;
       document.getElementById('modalStockMsg').textContent = '';
