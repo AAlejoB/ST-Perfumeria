@@ -1064,7 +1064,10 @@
         // Tabla no existe: queda placeholder. Sin error visible.
       }
     }
-    onDeferred(loadHomeSlides);
+    // Slider de la home descontinuado — el HTML del slider ya no existe
+    // en index.html, así que no llamamos a loadHomeSlides() y evitamos
+    // una query innecesaria a Supabase. La función queda definida por si
+    // se quiere reactivar más adelante. (No-op: onDeferred(loadHomeSlides) eliminado)
 
     // ============================================================
     // TRUST BADGES — 4 beneficios destacados (editables desde admin)

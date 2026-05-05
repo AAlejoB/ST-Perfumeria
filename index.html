@@ -525,21 +525,6 @@
     </div>
   </section>
 
-  <!-- ========== HOME SLIDER — slides cuadrados editables (1:1 mobile, 16:9 desktop) ==========
-       Tabla Supabase: home_slides (id, orden, media_url, media_tipo, titulo, link_a, activo).
-       Sin librerías externas: scroll-snap CSS + JS minimalista para dots + autoplay 5s.
-       Lazy-load de imágenes para no bloquear el render del hero. -->
-  <section id="homeSliderSection" class="home-slider-section" aria-label="Destacados">
-    <div class="home-slider-viewport" id="homeSliderViewport">
-      <div class="home-slider-track" id="homeSliderTrack" role="region" aria-roledescription="carrusel">
-        <!-- Slides renderizadas dinámicamente desde Supabase. Si la tabla está vacía,
-             se muestran 3 placeholders con bg negro y texto "Próximamente". -->
-      </div>
-    </div>
-    <div class="home-slider-dots" id="homeSliderDots" role="tablist"></div>
-  </section>
-
-
   <!-- ========== TRUST BADGES — 4 beneficios editables desde admin (Supabase) ========== -->
   <!-- NOTA: Esta sección se ubica acá temporalmente. Cuando Claude Code
        termine el banner B/N + slider en el "first view", puede quedar
@@ -567,6 +552,162 @@
          Si no hay nada que mostrar, queda display:none. -->
     <div id="puntosContextBanner" class="puntos-context-banner" style="display:none;"></div>
   </div>
+
+  <!-- ========== SELECCIÓN ST — Top Ventas (movida debajo del banner de decants para aliviar el primer render) ========== -->
+  <section class="seleccion-st" id="destacados">
+    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
+    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
+    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
+    <div class="seleccion-st-header">
+      <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
+      <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
+    </div>
+    <div class="seleccion-st-grid" id="seleccionGrid"></div>
+  </section>
+
+  <!-- ================================================
+       SOBRE NOSOTROS — contenido real de ST
+  ================================================ -->
+  <!-- DECANTS BANNER -->
+  <div class="decant-banner" id="decants">
+    <div class="decant-b-left">
+      <p class="decant-b-label">◆ ST Perfumería</p>
+      <h2 class="decant-b-title">Decants <span class="decant-b-sep" aria-hidden="true"></span><span>tu fragancia, tu medida</span></h2>
+      <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
+      <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">🧪 Armá tu pack de decants →</button>
+    </div>
+    <div class="decant-b-right">
+      <div class="decant-b-vial">
+        <div class="decant-b-bottle"></div>
+        <span class="decant-b-ml">5 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-10"></div>
+        <span class="decant-b-ml">10 ml</span>
+      </div>
+      <div class="decant-b-vial coming-soon">
+        <div class="decant-ribbon">Próximamente</div>
+        <div class="decant-b-bottle size-20"></div>
+        <span class="decant-b-ml">20 ml</span>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    FILTROS: ahora usan .filter-group para que los botones
+    queden centrados en mobile y alineados a la izquierda en desktop
+  -->
+  <div class="filter-bar" id="catalogo">
+    <div class="filter-zone filter-zone--left" id="filterDeck">
+      <div class="deck-label" id="deckLabel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/></svg>
+        <span class="deck-label-text">Todos</span>
+        <svg class="deck-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <button id="filtro-todos"  class="filter-btn active" data-cat="all"     onclick="filterBy('all',this)">Todos</button>
+      <button id="filtro-unisex" class="filter-btn"        data-cat="Unisex"  onclick="filterBy('Unisex',this)">Unisex</button>
+      <button id="filtro-hombre" class="filter-btn"        data-cat="Hombre"  onclick="filterBy('Hombre',this)">Hombre</button>
+      <button id="filtro-mujer"  class="filter-btn"        data-cat="Mujer"   onclick="filterBy('Mujer',this)">Mujer</button>
+      <button class="filter-btn" onclick="filterByNew(this)">&#128293; Nuevos</button>
+      <button class="filter-btn fav-filter-btn" id="btnFavFilter" onclick="filterByFavs(this)">&#9829;</button>
+    </div>
+    <div class="filter-zone filter-zone--center">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, marca o nota..." oninput="debouncedSearch(this.value)" autocomplete="off">
+        <button class="search-clear" id="searchClear" onclick="clearSearch()">&times;</button>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+      </div>
+    </div>
+    <div class="filter-zone filter-zone--right">
+      <div class="sort-wrapper">
+        <button class="filter-btn" onclick="toggleSortMenu(this)">Ordenar <svg viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2"/></svg></button>
+        <div class="sort-menu" id="sortMenu">
+          <button onclick="sortCards('alpha-asc')">A &rarr; Z</button>
+          <button onclick="sortCards('alpha-desc')">Z &rarr; A</button>
+          <button onclick="sortCards('price-asc')">Precio: menor a mayor</button>
+          <button onclick="sortCards('price-desc')">Precio: mayor a menor</button>
+          <button onclick="sortCards('views-desc')">&#128065; M&aacute;s visitados</button>
+          <button onclick="sortCards('views-asc')">&#128065; Menos visitados</button>
+        </div>
+      </div>
+      <span class="filter-count" id="filterCount">6 fragancias</span>
+    </div>
+  </div>
+
+  <!-- ========== Banner promocional: mejor precio en decants ========== -->
+  <div class="price-banner-wrap">
+    <button type="button" class="price-banner" onclick="openDecantsBannerWA()" aria-label="Consultar por decants de dise&ntilde;ador por WhatsApp">
+      <span class="price-banner-text">&#9670; EL MEJOR PRECIO DEL PA&Iacute;S EN DECANTS DE DISE&Ntilde;ADOR &#9670;</span>
+      <span class="price-banner-cta">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+        <span>Consultar</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- ========== ANUNCIO DEL DÍA — últimos 3 pushes apilados (7 días) ========== -->
+  <!-- El contenido lo inyecta loadAnnouncement() en app.js:
+        - Pide los últimos 3 announcements (tabla Supabase) de los últimos 7 días.
+        - Cada uno se puede cerrar individualmente (silenciado 24hs en localStorage).
+        - Si no hay ninguno visible para este visitante, el contenedor queda display:none. -->
+  <div id="publicAnnouncement" class="public-announcement" style="display:none;"></div>
+
+  <section class="catalog-section">
+    <div class="filters-bar">
+      <div class="occasion-wrap">
+        <div class="occasion-toggle">
+          <span class="occasion-title">OCASI&#211;N</span>
+          <span class="occasion-label" id="labelDia" onclick="setOccasion('dia')" style="cursor:pointer;">D&#237;a</span>
+          <button class="ios-toggle" id="occasionToggle" onclick="toggleOccasion()"></button>
+          <span class="occasion-label" id="labelNoche" onclick="setOccasion('noche')" style="cursor:pointer;">Noche</span>
+        </div>
+        <span class="occasion-hint" id="occasionHint"></span>
+      </div>
+      <div class="filter-sep"></div>
+      <button class="notes-expand-btn" id="notesExpandBtn" onclick="toggleNotesPanel()">🎵 Notas ▾</button>
+      <button class="price-expand-btn" id="priceExpandBtn" onclick="togglePricePanel()">&#128176; Precio ▾</button>
+    </div>
+    <div class="price-filter-wrap" id="priceFilterWrap">
+      <div class="price-slider-row">
+        <span class="price-slider-label" id="priceMinLabel">$0</span>
+        <div class="price-slider-track" id="priceSliderTrack">
+          <div class="price-slider-bar"></div>
+          <div class="price-slider-fill" id="priceSliderFill"></div>
+          <input type="range" id="priceRangeMin" min="0" max="200000" step="5000" value="0" oninput="onPriceSlider()"/>
+          <input type="range" id="priceRangeMax" min="0" max="200000" step="5000" value="200000" oninput="onPriceSlider()"/>
+        </div>
+        <span class="price-slider-label" id="priceMaxLabel">$200.000</span>
+        <button class="price-clear-btn" onclick="clearPriceFilter()">&times; Limpiar</button>
+      </div>
+    </div>
+    <div class="note-filter-wrap" id="noteFilterWrap"></div>
+    <div class="active-filters-bar" id="activeFiltersBar" style="display:none;">
+      <div class="active-filters-chips" id="activeFiltersChips"></div>
+      <button class="active-filters-clear" id="activeFiltersClearAll" onclick="clearAllFilters()">Limpiar todo &times;</button>
+    </div>
+    <div class="favs-empty" id="favsEmpty" style="display:none;">
+      <span class="favs-empty-icon">&#9825;</span>
+      <p class="favs-empty-title">Todav&iacute;a no ten&eacute;s favoritos</p>
+      <p class="favs-empty-desc">Toc&aacute; el <span class="favs-empty-heart">&#9829;</span> en cualquier perfume para guardarlo ac&aacute;. Despu&eacute;s pod&eacute;s encontrarlos r&aacute;pido, compararlos y armar tu carrito en segundos.</p>
+    </div>
+    <div class="catalog-grid" id="catalogGrid">
+      <!-- Cards generadas dinámicamente desde perfumes.js -->
+    </div>
+    <div class="load-more-wrap" id="loadMoreWrap">
+      <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">Ver m&#225;s fragancias</button>
+      <p class="load-more-count" id="loadMoreCount"></p>
+    </div>
+
+    <div class="cta-register" id="ctaRegister">
+      <p class="cta-register-text"><strong>Cre&#225; tu cuenta gratis</strong> y guard&#225; tus perfumes favoritos, vot&#225; el perfume del mes y mucho m&#225;s.</p>
+      <button class="cta-register-btn" onclick="openAuth()">Iniciar sesi&oacute;n</button>
+    </div>
+  </section>
 
   <section class="section-cats" id="categorias">
     <div class="section-header">
@@ -671,24 +812,6 @@
     </div>
   </section>
 
-  <!-- ========== SELECCIÓN ST — Top Ventas (movida debajo del banner de decants para aliviar el primer render) ========== -->
-  <section class="seleccion-st" id="destacados">
-    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
-    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
-    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
-    <div class="seleccion-st-header">
-      <p class="seleccion-st-title">&#9670; Selecci&#243;n ST &#9670;</p>
-      <p class="seleccion-st-sub">Los m&#225;s elegidos por nuestros clientes</p>
-    </div>
-    <div class="seleccion-st-grid" id="seleccionGrid"></div>
-  </section>
-
-  <!-- ================================================
-       SOBRE NOSOTROS — contenido real de ST
-  ================================================ -->
   <section class="section-nosotros" id="nosotros">
 
     <!-- Encabezado -->
@@ -938,19 +1061,8 @@
     <p class="catalog-intro-desc">Hombre, mujer y unisex. Más de 150 fragancias árabes con 3 cuotas sin interés y envíos a todo el país.</p>
   </div>
 
-  <!-- ========== Banner promocional: mejor precio en decants ========== -->
-  <div class="price-banner-wrap">
-    <button type="button" class="price-banner" onclick="openDecantsBannerWA()" aria-label="Consultar por decants de dise&ntilde;ador por WhatsApp">
-      <span class="price-banner-text">&#9670; EL MEJOR PRECIO DEL PA&Iacute;S EN DECANTS DE DISE&Ntilde;ADOR &#9670;</span>
-      <span class="price-banner-cta">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-        <span>Consultar</span>
-      </span>
-    </button>
-  </div>
-
-  <!-- DECANTS BANNER -->
-  <div class="decant-banner" id="decants">
+  <!-- DECANTS BANNER (2da aparición — pre tu-sector) -->
+  <div class="decant-banner" >
     <div class="decant-b-left">
       <p class="decant-b-label">◆ ST Perfumería</p>
       <h2 class="decant-b-title">Decants <span class="decant-b-sep" aria-hidden="true"></span><span>tu fragancia, tu medida</span></h2>
@@ -1016,65 +1128,6 @@
       <span class="filter-count" id="filterCount">6 fragancias</span>
     </div>
   </div>
-
-  <!-- ========== ANUNCIO DEL DÍA — últimos 3 pushes apilados (7 días) ========== -->
-  <!-- El contenido lo inyecta loadAnnouncement() en app.js:
-        - Pide los últimos 3 announcements (tabla Supabase) de los últimos 7 días.
-        - Cada uno se puede cerrar individualmente (silenciado 24hs en localStorage).
-        - Si no hay ninguno visible para este visitante, el contenedor queda display:none. -->
-  <div id="publicAnnouncement" class="public-announcement" style="display:none;"></div>
-
-  <section class="catalog-section">
-    <div class="filters-bar">
-      <div class="occasion-wrap">
-        <div class="occasion-toggle">
-          <span class="occasion-title">OCASI&#211;N</span>
-          <span class="occasion-label" id="labelDia" onclick="setOccasion('dia')" style="cursor:pointer;">D&#237;a</span>
-          <button class="ios-toggle" id="occasionToggle" onclick="toggleOccasion()"></button>
-          <span class="occasion-label" id="labelNoche" onclick="setOccasion('noche')" style="cursor:pointer;">Noche</span>
-        </div>
-        <span class="occasion-hint" id="occasionHint"></span>
-      </div>
-      <div class="filter-sep"></div>
-      <button class="notes-expand-btn" id="notesExpandBtn" onclick="toggleNotesPanel()">🎵 Notas ▾</button>
-      <button class="price-expand-btn" id="priceExpandBtn" onclick="togglePricePanel()">&#128176; Precio ▾</button>
-    </div>
-    <div class="price-filter-wrap" id="priceFilterWrap">
-      <div class="price-slider-row">
-        <span class="price-slider-label" id="priceMinLabel">$0</span>
-        <div class="price-slider-track" id="priceSliderTrack">
-          <div class="price-slider-bar"></div>
-          <div class="price-slider-fill" id="priceSliderFill"></div>
-          <input type="range" id="priceRangeMin" min="0" max="200000" step="5000" value="0" oninput="onPriceSlider()"/>
-          <input type="range" id="priceRangeMax" min="0" max="200000" step="5000" value="200000" oninput="onPriceSlider()"/>
-        </div>
-        <span class="price-slider-label" id="priceMaxLabel">$200.000</span>
-        <button class="price-clear-btn" onclick="clearPriceFilter()">&times; Limpiar</button>
-      </div>
-    </div>
-    <div class="note-filter-wrap" id="noteFilterWrap"></div>
-    <div class="active-filters-bar" id="activeFiltersBar" style="display:none;">
-      <div class="active-filters-chips" id="activeFiltersChips"></div>
-      <button class="active-filters-clear" id="activeFiltersClearAll" onclick="clearAllFilters()">Limpiar todo &times;</button>
-    </div>
-    <div class="favs-empty" id="favsEmpty" style="display:none;">
-      <span class="favs-empty-icon">&#9825;</span>
-      <p class="favs-empty-title">Todav&iacute;a no ten&eacute;s favoritos</p>
-      <p class="favs-empty-desc">Toc&aacute; el <span class="favs-empty-heart">&#9829;</span> en cualquier perfume para guardarlo ac&aacute;. Despu&eacute;s pod&eacute;s encontrarlos r&aacute;pido, compararlos y armar tu carrito en segundos.</p>
-    </div>
-    <div class="catalog-grid" id="catalogGrid">
-      <!-- Cards generadas dinámicamente desde perfumes.js -->
-    </div>
-    <div class="load-more-wrap" id="loadMoreWrap">
-      <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">Ver m&#225;s fragancias</button>
-      <p class="load-more-count" id="loadMoreCount"></p>
-    </div>
-
-    <div class="cta-register" id="ctaRegister">
-      <p class="cta-register-text"><strong>Cre&#225; tu cuenta gratis</strong> y guard&#225; tus perfumes favoritos, vot&#225; el perfume del mes y mucho m&#225;s.</p>
-      <button class="cta-register-btn" onclick="openAuth()">Iniciar sesi&oacute;n</button>
-    </div>
-  </section>
 
   <!-- ========== TU SECTOR ========== -->
   <section class="tu-sector" id="tuSector">

@@ -1457,20 +1457,9 @@
         <p class="modal-success" id="homeBannerMsg" style="margin-top:.8rem;"></p>
       </div>
 
-      <!-- B) SLIDER -->
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
-          <div>
-            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Slider de la home</p>
-            <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Hasta 6-8 slides cuadrados (1:1 mobile, 16:9 desktop). Se rotan autom&aacute;ticamente cada 5 segundos. Cada slide puede llevar a una secci&oacute;n del sitio (ej: <code style="background:rgba(232,184,0,.15);padding:1px 5px;border-radius:3px;">#categorias</code>) o a una ruta (ej: <code style="background:rgba(232,184,0,.15);padding:1px 5px;border-radius:3px;">/blog</code>).</p>
-          </div>
-          <button class="modal-btn" onclick="addNewSlide()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Nuevo slide</button>
-        </div>
-        <div id="homeSlidesAdminList" style="display:flex;flex-direction:column;gap:.8rem;">
-          <p style="text-align:center;color:var(--gris);padding:1.5rem;font-size:.78rem;">Cargando slides…</p>
-        </div>
-        <p class="modal-success" id="homeSlidesMsg" style="margin-top:.8rem;"></p>
-      </div>
+      <!-- (Slider de la home eliminado — se descontinuó la sección
+           del slider en el index.html y en el admin para simplificar
+           el primer paint del home y bajar el TTI mobile.) -->
     </div>
 
     <!-- TAB: HORARIO -->
@@ -5280,7 +5269,8 @@
     var HOME_SLIDES_CACHE = [];
 
     async function loadHomeAdmin() {
-      await Promise.all([loadHomeBannerAdmin(), loadHomeSlidesAdmin()]);
+      // Slider eliminado — solo cargamos el banner B/N
+      await loadHomeBannerAdmin();
     }
 
     // ─── Banner B/N (carrusel multi-mensaje) ──────────────────────────
