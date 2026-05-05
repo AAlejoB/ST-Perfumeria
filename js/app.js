@@ -945,6 +945,11 @@
     function homeSlideGo(link) {
       if (!link) return;
       if (link.charAt(0) === '#') {
+        // #top o #inicio → scroll al top de la página
+        if (link === '#top' || link === '#inicio') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
         var el = document.querySelector(link);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
