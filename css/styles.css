@@ -5997,3 +5997,117 @@
       .pub-ann-title { font-size: .72rem; }
       .pub-ann-text { font-size: .72rem; }
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME — body sin .dark-mode
+       Estrategia: redefinimos las variables base, así casi todos los
+       componentes (que usan var(--negro), var(--blanco), etc) flippean
+       solos. Excepciones (mantienen estética oscura/dorada por pedido
+       del jefe): trust-badges (4 cuadros), section-cats (3 cuadros),
+       price-banner big "Explorá nuestro catálogo", y puntos-context-banner
+       "Tenés X puntos".
+       ──────────────────────────────────────────────────────────────── */
+    body:not(.dark-mode) {
+      --negro:        #f6f3ec;
+      --negro-card:   #ffffff;
+      --negro-hover:  #efece5;
+      --blanco:       #1a1a1d;
+      --gris:         #666;
+      --gris-claro:   #333;
+      --borde:        rgba(180,140,0,.30);
+      --borde-sutil:  rgba(0,0,0,.08);
+      background: #f6f3ec;
+      color: #1a1a1d;
+    }
+    body:not(.dark-mode) nav.nav,
+    body:not(.dark-mode) .nav {
+      background: rgba(246,243,236,.92) !important;
+      border-bottom-color: rgba(0,0,0,.08);
+    }
+    body:not(.dark-mode) .nav-search,
+    body:not(.dark-mode) .nav-search-input { background: #fff; color: #1a1a1d; border-color: rgba(0,0,0,.12); }
+    body:not(.dark-mode) .nav-search-input::placeholder { color: #888; }
+    body:not(.dark-mode) .nav-icon-btn { color: #444; }
+    body:not(.dark-mode) .nav-icon-btn svg { stroke: currentColor; }
+    body:not(.dark-mode) .hero { background: transparent; color: #1a1a1d; }
+    body:not(.dark-mode) .hero-title,
+    body:not(.dark-mode) .hero-tagline,
+    body:not(.dark-mode) .hero-sub { color: #1a1a1d; }
+    body:not(.dark-mode) .section-title,
+    body:not(.dark-mode) .section-eyebrow,
+    body:not(.dark-mode) h1, body:not(.dark-mode) h2, body:not(.dark-mode) h3 { color: #1a1a1d; }
+    body:not(.dark-mode) p, body:not(.dark-mode) li { color: #2a2a2d; }
+    body:not(.dark-mode) .home-slider-viewport { background: #e8e4d8; border-color: rgba(0,0,0,.08); }
+    body:not(.dark-mode) .home-top-banner { background: #1a1a1d; color: #fff; }
+    body:not(.dark-mode) .sets-section,
+    body:not(.dark-mode) .section-seo-hub,
+    body:not(.dark-mode) .section-nosotros,
+    body:not(.dark-mode) .section-faq,
+    body:not(.dark-mode) .quiz-section,
+    body:not(.dark-mode) .tu-sector,
+    body:not(.dark-mode) .decant-banner { background: transparent; color: #1a1a1d; }
+    body:not(.dark-mode) .quiz-box,
+    body:not(.dark-mode) .misel-section,
+    body:not(.dark-mode) .nosotros-cultura,
+    body:not(.dark-mode) .seo-hub-card,
+    body:not(.dark-mode) .faq-item,
+    body:not(.dark-mode) .sector-card,
+    body:not(.dark-mode) .set-card,
+    body:not(.dark-mode) .nosotros-block { background: #ffffff !important; border-color: rgba(180,140,0,.25); color: #1a1a1d; }
+    body:not(.dark-mode) .quiz-question,
+    body:not(.dark-mode) .quiz-title,
+    body:not(.dark-mode) .quiz-subtitle,
+    body:not(.dark-mode) .faq-question,
+    body:not(.dark-mode) .faq-answer,
+    body:not(.dark-mode) .seo-hub-title,
+    body:not(.dark-mode) .seo-hub-desc { color: #1a1a1d; }
+    body:not(.dark-mode) .quiz-opt,
+    body:not(.dark-mode) .poll-opt,
+    body:not(.dark-mode) .filter-btn { background: #fff; color: #1a1a1d; border-color: rgba(0,0,0,.15); }
+    body:not(.dark-mode) .quiz-opt:hover,
+    body:not(.dark-mode) .poll-opt:hover,
+    body:not(.dark-mode) .filter-btn:hover { background: #fef7d8; }
+    body:not(.dark-mode) .filter-btn.active { background: var(--amarillo); color: #1a1a1d; }
+    body:not(.dark-mode) .decant-b-left,
+    body:not(.dark-mode) .decant-b-right { color: #1a1a1d; }
+    body:not(.dark-mode) .decant-b-title,
+    body:not(.dark-mode) .decant-b-label,
+    body:not(.dark-mode) .decant-b-sub { color: #1a1a1d; }
+    body:not(.dark-mode) footer,
+    body:not(.dark-mode) .site-footer { background: #1a1a1d; color: #f0ede8; }
+
+    /* ─── Excepciones: mantienen estética oscura/dorada (siempre) ─── */
+    body:not(.dark-mode) .trust-badges,
+    body:not(.dark-mode) .trust-badges-grid,
+    body:not(.dark-mode) .trust-badge,
+    body:not(.dark-mode) .trust-badge-icon,
+    body:not(.dark-mode) .trust-badge-title,
+    body:not(.dark-mode) .trust-badge-sub {
+      /* heredan los estilos originales — forzamos fondo oscuro */
+    }
+    body:not(.dark-mode) .trust-badge {
+      background: #121214 !important;
+      border-color: rgba(232,184,0,.18) !important;
+      color: #f0ede8 !important;
+    }
+    body:not(.dark-mode) .trust-badge-title { color: var(--amarillo) !important; }
+    body:not(.dark-mode) .trust-badge-sub { color: #bbb !important; }
+
+    body:not(.dark-mode) .section-cats .cat-card,
+    body:not(.dark-mode) .cat-grid .cat-card {
+      background: #121214 !important;
+      color: #f0ede8 !important;
+      border-color: rgba(232,184,0,.18) !important;
+    }
+    body:not(.dark-mode) .cat-card * { color: inherit !important; }
+
+    body:not(.dark-mode) .price-banner-wrap--big .price-banner,
+    body:not(.dark-mode) .price-banner--big {
+      /* mantiene su gradiente amarillo original */
+    }
+    body:not(.dark-mode) .puntos-context-banner {
+      background: linear-gradient(135deg, #1a1a1d, #232325) !important;
+      color: #f0ede8 !important;
+      border-color: rgba(232,184,0,.4) !important;
+    }
+    body:not(.dark-mode) .puntos-context-banner * { color: inherit !important; }
