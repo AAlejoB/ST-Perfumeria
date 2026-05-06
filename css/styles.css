@@ -6513,3 +6513,21 @@
     body:not(.dark-mode) .note-label {
       color: #8a6d00 !important;
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · .card-reveal (panel hover con notas piramidales)
+       Bug: el panel tenía bg rgba(17,17,17,.95) → en light quedaba
+       oscuro y mi texto-carbón anterior era invisible.
+       Fix: bg crema en light + borde dorado.
+       ──────────────────────────────────────────────────────────────── */
+    body:not(.dark-mode) .card-reveal {
+      background: rgba(245,239,222,.97) !important;
+      border: 1px solid rgba(120,90,0,.25) !important;
+      box-shadow: 0 4px 16px rgba(120,90,0,.12);
+    }
+    body:not(.dark-mode) .card-reveal .scent-note,
+    body:not(.dark-mode) .card-reveal .reveal-name,
+    body:not(.dark-mode) .card-reveal .reveal-brand { color: #1a1a1d !important; }
+    body:not(.dark-mode) .card-reveal .scent-note strong { color: #000 !important; }
+    body:not(.dark-mode) .card-reveal .note-label { color: #8a6d00 !important; }
+    body:not(.dark-mode) .card-reveal .ver-similares-btn { color: #8a6d00 !important; }
