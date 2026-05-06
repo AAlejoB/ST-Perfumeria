@@ -1030,7 +1030,10 @@
     }
     @media (min-width: 768px) {
       .filter-bar {
-        top: 64px;
+        /* En desktop NO sticky — quedaba flotando sobre Tu Sector
+           cuando se scrolleaba pasado el catálogo (look raro). */
+        position: static;
+        top: auto;
         flex-wrap: nowrap;
         padding: .7rem 2rem;
         gap: 1rem;
