@@ -6495,3 +6495,21 @@
     }
     body:not(.dark-mode) .voto-empty-title { color: #8a6d00; }
     body:not(.dark-mode) .voto-empty-sub { color: #5e564a; }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · Notas de perfume (Salida/Corazón/Base) en cards
+       Antes: color: #999 / #e0e0e0 → invisible sobre crema en light.
+       Ahora: carbón medio para legibilidad real.
+       ──────────────────────────────────────────────────────────────── */
+    body:not(.dark-mode) .note-prev,
+    body:not(.dark-mode) .scent-note,
+    body:not(.dark-mode) .bs-note {
+      color: #2a2622 !important;
+    }
+    body:not(.dark-mode) .scent-note strong,
+    body:not(.dark-mode) .bs-note strong {
+      color: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .note-label {
+      color: #8a6d00 !important;
+    }
