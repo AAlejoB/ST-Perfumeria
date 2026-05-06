@@ -2615,7 +2615,11 @@
       renderSets();                   // renderizar sets/combos
       renderNoteFilters();            // renderizar filtros por notas
       initGalleryAutoplay();          // fotos pasan solas (desktop, viewport-aware)
-
+      // Default sort: precio descendente (más caro primero) — siempre,
+      // así cualquier re-render (login, fav-sync, override-update) deja
+      // el catálogo ordenado por precio descendente sin importar lo que
+      // haya pasado antes.
+      try { sortCards('price-desc'); } catch(e) {}
     }
 
     // ============================================================
