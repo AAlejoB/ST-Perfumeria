@@ -799,7 +799,11 @@
     };
 
     function applyBannerMarqueeIfNeeded(wrap, textEl, marquee) {
-      if (marquee) {
+      // En mobile (<768px) SIEMPRE marquee — da más vida al banner B/N
+      // y evita el bug del auto-detect que a veces no disparaba porque
+      // el clientWidth medía mal con flex+nowrap.
+      var isMobile = window.matchMedia('(max-width: 767px)').matches;
+      if (marquee || isMobile) {
         wrap.classList.add('is-marquee');
         return;
       }
