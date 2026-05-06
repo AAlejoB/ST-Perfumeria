@@ -2744,10 +2744,14 @@
     .reveal-pricing .card-price-original-discount { font-size: .45rem; color: #666; text-decoration: line-through; }
     .reveal-pricing .card-price-discount { color: #e74c3c; }
 
-    /* MOBILE: ocultar reveal lateral, mostrar notas en card, bottom sheet al tocar */
+    /* MOBILE: tags pills SIEMPRE visibles (UNISEX/100ml/VERSÁTIL).
+       Antes el diseño ocultaba los tags y mostraba la pirámide de
+       notas inline — pero el jefe prefiere los pills (más legibles
+       de un vistazo). Las notas siguen accesibles tocando la card
+       (bottom-sheet). */
     @media (max-width: 767px) {
-      .card-tags { display: none; }
-      .card-notes-preview { display: flex; }
+      .card-tags { display: flex; }
+      .card-notes-preview { display: none; }
       .product-card:hover .card-reveal { transform: translateX(100%); opacity: 0; pointer-events: none; }
       .card-reveal { display: none !important; }
     }
