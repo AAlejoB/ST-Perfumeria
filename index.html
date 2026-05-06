@@ -1049,56 +1049,6 @@
     </div><!-- /cultura-misel-row -->
   </section>
 
-  <!-- Header del catálogo: keywords transaccionales visibles + eyebrow discreto.
-       Antes era seo-hidden, ahora visible como section header semántico. -->
-  <div class="catalog-intro">
-    <p class="section-eyebrow">Nuestro catálogo</p>
-    <h2 class="catalog-intro-title">Perfumes importados originales en Comodoro Rivadavia</h2>
-    <p class="catalog-intro-desc">Hombre, mujer y unisex. Más de 150 fragancias árabes con 3 cuotas sin interés y envíos a todo el país.</p>
-  </div>
-
-  <!--
-    FILTROS: ahora usan .filter-group para que los botones
-    queden centrados en mobile y alineados a la izquierda en desktop
-  -->
-  <div class="filter-bar" id="catalogo">
-    <div class="filter-zone filter-zone--left" id="filterDeck">
-      <div class="deck-label" id="deckLabel">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/></svg>
-        <span class="deck-label-text">Todos</span>
-        <svg class="deck-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
-      <button id="filtro-todos"  class="filter-btn active" data-cat="all"     onclick="filterBy('all',this)">Todos</button>
-      <button id="filtro-unisex" class="filter-btn"        data-cat="Unisex"  onclick="filterBy('Unisex',this)">Unisex</button>
-      <button id="filtro-hombre" class="filter-btn"        data-cat="Hombre"  onclick="filterBy('Hombre',this)">Hombre</button>
-      <button id="filtro-mujer"  class="filter-btn"        data-cat="Mujer"   onclick="filterBy('Mujer',this)">Mujer</button>
-      <button class="filter-btn" onclick="filterByNew(this)">&#128293; Nuevos</button>
-      <button class="filter-btn fav-filter-btn" id="btnFavFilter" onclick="filterByFavs(this)">&#9829;</button>
-    </div>
-    <div class="filter-zone filter-zone--center">
-      <div class="search-wrapper">
-        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, marca o nota..." oninput="debouncedSearch(this.value)" autocomplete="off">
-        <button class="search-clear" id="searchClear" onclick="clearSearch()">&times;</button>
-        <div class="search-suggestions" id="searchSuggestions"></div>
-      </div>
-    </div>
-    <div class="filter-zone filter-zone--right">
-      <div class="sort-wrapper">
-        <button class="filter-btn" onclick="toggleSortMenu(this)">Ordenar <svg viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2"/></svg></button>
-        <div class="sort-menu" id="sortMenu">
-          <button onclick="sortCards('alpha-asc')">A &rarr; Z</button>
-          <button onclick="sortCards('alpha-desc')">Z &rarr; A</button>
-          <button onclick="sortCards('price-asc')">Precio: menor a mayor</button>
-          <button onclick="sortCards('price-desc')">Precio: mayor a menor</button>
-          <button onclick="sortCards('views-desc')">&#128065; M&aacute;s visitados</button>
-          <button onclick="sortCards('views-asc')">&#128065; Menos visitados</button>
-        </div>
-      </div>
-      <span class="filter-count" id="filterCount">6 fragancias</span>
-    </div>
-  </div>
-
   <!-- ========== TU SECTOR ========== -->
   <section class="tu-sector" id="tuSector">
     <div class="tu-sector-inner">
