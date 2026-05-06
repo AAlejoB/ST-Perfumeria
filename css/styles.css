@@ -2073,6 +2073,15 @@
       background-size: cover;
       background-position: center;
       overflow: hidden;
+      width: 100%;
+      min-height: 250px;     /* asegura altura aunque el img sea chico */
+      align-self: stretch;   /* clave para single-photo: estira al height del .card-image */
+    }
+    /* En single-photo, además forzamos el slide a ocupar todo el .card-image
+       (sino solo se estira al tamaño del img y quedan bandas grises del padre). */
+    .card-gallery-slide--single {
+      width: 100%;
+      height: 100%;
     }
     .card-gallery-slide::before {
       content: '';
