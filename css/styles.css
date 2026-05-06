@@ -1409,12 +1409,12 @@
         max-width: 560px;            /* pero no se estira infinitamente */
         margin: 0 auto;             /* centrada horizontalmente */
       }
-      /* 2 cards visibles: grid 2 cols, no 3 (queda raro media fila vacía) */
-      .catalog-grid--two {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        max-width: 880px;
-        margin: 0 auto;
-      }
+      /* (Antes había una regla .catalog-grid--two que ajustaba el max-width
+         a 880px cuando había 2 cards visibles. Removida porque cambiaba el
+         tamaño de las cards al filtrar — generaba animación incómoda y las
+         cards "se achicaban" cuando bajabas a 2 resultados.)
+         Ahora 2 cards usan el grid default (max-width 1200px) igual que 3+,
+         así el ancho de cada card es consistente entre filtros. */
     }
 
     /* Botón Ver más */
