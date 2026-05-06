@@ -4262,7 +4262,10 @@
         var hoyISO = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
         var hoyStr = hoyISO.getFullYear() + '-' + String(hoyISO.getMonth()+1).padStart(2,'0') + '-' + String(hoyISO.getDate()).padStart(2,'0');
         var ajuste = results[2][0];
-        if (ajuste && ajuste.desde <= hoyStr && ajuste.hasta >= hoyStr) {
+        // Si desde/hasta son null o falsy, los tratamos como "siempre vigente"
+        // para no bloquear el update por un null en la DB.
+        var enRango = !!ajuste && (!ajuste.desde || ajuste.desde <= hoyStr) && (!ajuste.hasta || ajuste.hasta >= hoyStr);
+        if (enRango) {
           // Sobreescribir horarios L-V con los del ajuste
           for (var d = 1; d <= 5; d++) {
             HORARIOS[d] = { open: ajuste.hora_abre, close: ajuste.hora_cierra };

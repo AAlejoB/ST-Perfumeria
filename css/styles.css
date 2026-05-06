@@ -6412,3 +6412,18 @@
     body:not(.dark-mode) .map-info-nota { color: #8a6d00 !important; }
     /* CTA Cómo llegar mantiene el dorado */
     body:not(.dark-mode) .map-cta { background: var(--amarillo) !important; color: #1a1a1d !important; }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · "Dónde encontrarnos" — sacar el negro del inner
+       El bug: .map-section-inner tiene un linear-gradient negro
+       hardcoded; en light mode quedaba ese fondo oscuro detrás del
+       título "Dónde encontrarnos" (washed-out con el dark-on-dark).
+       ──────────────────────────────────────────────────────────────── */
+    body:not(.dark-mode) .map-section-inner {
+      background: linear-gradient(180deg, #f7f0db 0%, #ede5d2 100%) !important;
+      border: 1px solid rgba(120,90,0,.25) !important;
+      box-shadow: 0 4px 20px rgba(120,90,0,.06);
+    }
+    body:not(.dark-mode) .map-section-inner::before {
+      background: linear-gradient(90deg, transparent 0%, var(--amarillo) 30%, var(--amarillo) 70%, transparent 100%);
+    }
