@@ -4445,37 +4445,125 @@
     function renderSimilaresSlots(currentSlug, existing) {
       var wrap = document.getElementById('editSimilaresSlots');
       if (!wrap) return;
-      // Ordenar perfumes alfabeticamente por nombre para que sea fácil buscar
+      // Pool ordenado alfabético — cacheado en window para usar al filtrar
       var pool = PERFUMES.filter(function(p) {
         return !p.esSet && !p._oculto && p.slug !== currentSlug;
       }).sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+      window.__similaresPool = pool;
 
       var html = '';
       for (var i = 0; i < 5; i++) {
         var selected = existing[i] || '';
-        html += '<select class="modal-input edit-similar-slot" data-idx="' + i + '" style="margin-bottom:0;font-size:.68rem;">'
-          + '<option value="">— Slot ' + (i + 1) + ' (vacío) —</option>';
-        pool.forEach(function(p) {
-          var sel = p.slug === selected ? ' selected' : '';
-          // Mostramos name + marca_real entre paréntesis para desambiguar
-          var label = p.name + (p.marca_real ? ' · ' + p.marca_real : '');
-          html += '<option value="' + p.slug + '"' + sel + '>' + label + '</option>';
-        });
-        html += '</select>';
+        var selectedP = selected ? pool.find(function(p) { return p.slug === selected; }) : null;
+        var selectedLabel = selectedP ? (selectedP.name + (selectedP.marca_real ? ' · ' + selectedP.marca_real : '')) : '';
+        html += '<div class="sim-picker" data-idx="' + i + '" style="position:relative;margin-bottom:.5rem;">'
+          + '<div style="position:relative;">'
+          +   '<input type="text" class="modal-input sim-picker-input" '
+          +        'placeholder="— Slot ' + (i + 1) + ' (vacío) — tipeá para buscar" '
+          +        'value="' + selectedLabel.replace(/"/g, '&quot;') + '" '
+          +        'autocomplete="off" '
+          +        'oninput="onSimPickerInput(this)" '
+          +        'onfocus="openSimPicker(this)" '
+          +        'onkeydown="onSimPickerKey(event,this)" '
+          +        'style="margin-bottom:0;font-size:.7rem;padding-right:1.8rem;"/>'
+          +   '<button type="button" class="sim-picker-clear" onclick="clearSimPicker(this)" '
+          +           'aria-label="Vaciar slot" '
+          +           'style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;'
+          +           (selected ? '' : 'display:none;') + '">×</button>'
+          + '</div>'
+          + '<input type="hidden" class="sim-picker-slug" value="' + selected + '"/>'
+          + '<div class="sim-picker-dropdown" hidden style="position:absolute;top:100%;left:0;right:0;z-index:50;max-height:200px;overflow-y:auto;background:#1a1a1d;border:1px solid var(--borde);border-radius:6px;margin-top:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);"></div>'
+        + '</div>';
       }
       wrap.innerHTML = html;
     }
 
+    function _renderSimPickerOptions(dropdown, list) {
+      if (!list.length) {
+        dropdown.innerHTML = '<div style="padding:.6rem;color:#888;font-size:.7rem;text-align:center;">Sin resultados</div>';
+        return;
+      }
+      dropdown.innerHTML = list.slice(0, 30).map(function(p) {
+        var label = p.name + (p.marca_real ? ' · ' + p.marca_real : '');
+        return '<div class="sim-picker-opt" data-slug="' + p.slug + '" '
+          + 'onmousedown="selectSimPickerOpt(this)" '
+          + 'onmouseover="this.style.background=\'rgba(232,184,0,.15)\'" '
+          + 'onmouseout="this.style.background=\'\'" '
+          + 'style="padding:.45rem .65rem;cursor:pointer;font-size:.72rem;color:#f0ede8;border-bottom:1px solid rgba(255,255,255,.04);">'
+          + label + '</div>';
+      }).join('');
+    }
+
+    function openSimPicker(input) {
+      var wrap = input.closest('.sim-picker');
+      var dropdown = wrap.querySelector('.sim-picker-dropdown');
+      var pool = window.__similaresPool || [];
+      var q = (input.value || '').trim().toLowerCase();
+      var list = q ? pool.filter(function(p) {
+        var lbl = (p.name + ' ' + (p.marca_real || '')).toLowerCase();
+        return lbl.indexOf(q) !== -1;
+      }) : pool;
+      _renderSimPickerOptions(dropdown, list);
+      dropdown.hidden = false;
+    }
+
+    function onSimPickerInput(input) {
+      var wrap = input.closest('.sim-picker');
+      var hidden = wrap.querySelector('.sim-picker-slug');
+      var clearBtn = wrap.querySelector('.sim-picker-clear');
+      // Si tipea algo nuevo, invalidamos el slug seleccionado hasta que elija
+      hidden.value = '';
+      if (clearBtn) clearBtn.style.display = input.value ? '' : 'none';
+      openSimPicker(input);
+    }
+
+    function onSimPickerKey(e, input) {
+      if (e.key === 'Escape') {
+        input.blur();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        var wrap = input.closest('.sim-picker');
+        var first = wrap.querySelector('.sim-picker-opt');
+        if (first) selectSimPickerOpt(first);
+      }
+    }
+
+    function selectSimPickerOpt(optEl) {
+      var wrap = optEl.closest('.sim-picker');
+      var slug = optEl.dataset.slug;
+      var pool = window.__similaresPool || [];
+      var p = pool.find(function(x) { return x.slug === slug; });
+      if (!p) return;
+      var label = p.name + (p.marca_real ? ' · ' + p.marca_real : '');
+      wrap.querySelector('.sim-picker-input').value = label;
+      wrap.querySelector('.sim-picker-slug').value = slug;
+      var clearBtn = wrap.querySelector('.sim-picker-clear');
+      if (clearBtn) clearBtn.style.display = '';
+      wrap.querySelector('.sim-picker-dropdown').hidden = true;
+    }
+
+    function clearSimPicker(btn) {
+      var wrap = btn.closest('.sim-picker');
+      wrap.querySelector('.sim-picker-input').value = '';
+      wrap.querySelector('.sim-picker-slug').value = '';
+      btn.style.display = 'none';
+      wrap.querySelector('.sim-picker-dropdown').hidden = true;
+    }
+
+    // Cerrar dropdowns al clickear afuera
+    document.addEventListener('mousedown', function(e) {
+      if (!e.target.closest('.sim-picker')) {
+        document.querySelectorAll('.sim-picker-dropdown').forEach(function(d) { d.hidden = true; });
+      }
+    });
+
     function getSimilaresManuales() {
-      var selects = document.querySelectorAll('#editSimilaresSlots .edit-similar-slot');
+      var hiddens = document.querySelectorAll('#editSimilaresSlots .sim-picker-slug');
       var out = [];
       var seen = {};
-      selects.forEach(function(s) {
-        var v = s.value;
-        if (v && !seen[v]) { // dedup por si el admin repite un slug
-          out.push(v);
-          seen[v] = true;
-        }
+      hiddens.forEach(function(h) {
+        var v = h.value;
+        if (v && !seen[v]) { out.push(v); seen[v] = true; }
       });
       return out;
     }
