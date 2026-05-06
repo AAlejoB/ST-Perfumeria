@@ -1576,14 +1576,20 @@
 
       if (fotosPool.length >= 2) {
         var slides = fotosPool.map(function(url) {
-          return '<div class="card-gallery-slide"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
+          // Backdrop blur con la misma foto para llenar bandas vacías
+          // cuando la botella es alta y angosta (object-fit: contain).
+          var bgStyle = 'background-image:url(\'' + url.replace(/'/g, "%27") + '\')';
+          return '<div class="card-gallery-slide" style="' + bgStyle + '"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
         }).join('');
         var navInnerFilled = navInnerHTML.replace('PLACEHOLDER', fotosPool.length);
         galleryNavOnImage = '<div class="card-gallery-nav card-gallery-nav--image">' + navInnerFilled + '</div>';
         galleryNavOnInfo  = '<div class="card-gallery-nav card-gallery-nav--info">'  + navInnerFilled + '</div>';
         imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>' + galleryNavOnImage;
       } else if (fotosPool.length === 1) {
-        imageHTML = '<img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400">';
+        // Wrap en .card-gallery-slide con backdrop blur para evitar bandas
+        // vacías cuando la botella es alta y angosta.
+        var _bgStyle1 = 'background-image:url(\'' + fotosPool[0].replace(/'/g, "%27") + '\')';
+        imageHTML = '<div class="card-gallery-slide card-gallery-slide--single" style="' + _bgStyle1 + '"><img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
       } else {
         imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
       }
