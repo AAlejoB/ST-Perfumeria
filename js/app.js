@@ -4256,7 +4256,16 @@
           })
           .catch(function() { return []; }),
         sb.from('cierres_especiales').select('fecha,motivo').then(function(r) { return r.data || []; }).catch(function() { return []; }),
-        sb.from('ajuste_horario').select('*').order('created_at', { ascending: false }).limit(1).then(function(r) { return r.data || []; }).catch(function() { return []; })
+        sb.from('ajuste_horario').select('*').order('created_at', { ascending: false }).limit(1).then(function(r) {
+          if (r.error) {
+            console.warn('[horario] no se pudo leer ajuste_horario (¿RLS bloqueando anon?):', r.error.message);
+            return [];
+          }
+          if (!r.data || r.data.length === 0) {
+            console.info('[horario] ajuste_horario vacío — usando HORARIOS por defecto');
+          }
+          return r.data || [];
+        }).catch(function(e) { console.warn('[horario] excepción:', e); return []; })
       ]).then(function(results) {
         // Aplicar horario modificado si hay uno vigente hoy
         var hoyISO = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
