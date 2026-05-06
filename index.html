@@ -1179,7 +1179,13 @@
             <span class="map-info-icon" aria-hidden="true">🕐</span>
             <div>
               <p class="map-info-label">Horarios</p>
-              <p class="map-info-text"><strong>Lunes a Viernes</strong> 10:00 a 20:00 hs<br><strong>Sábados</strong> 10:00 a 14:00 hs<br><strong>Domingos</strong> Cerrado</p>
+              <p class="map-info-text">
+                <span id="mapHorarioLV"><strong>Lunes a Viernes</strong> 10:00 a 20:00 hs</span><br>
+                <span id="mapHorarioSab"><strong>Sábados</strong> 10:00 a 14:00 hs</span><br>
+                <span id="mapHorarioDom"><strong>Domingos</strong> Cerrado</span>
+              </p>
+              <!-- Nota dinámica si hay ajuste de horario vigente desde admin -->
+              <p class="map-info-nota" id="mapHorarioNota" style="display:none;font-size:.78rem;color:#E8B800;font-style:italic;margin-top:.4rem;"></p>
             </div>
           </div>
           <div class="map-info-row">

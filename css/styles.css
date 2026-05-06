@@ -6395,3 +6395,20 @@
         color: #1a1a1d;
       }
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · "Dónde encontrarnos" — fix título washed-out
+       Antes el título quedaba muy claro (color heredado) sobre el
+       fondo crema. Forzamos carbón con fuerza visual.
+       ──────────────────────────────────────────────────────────────── */
+    body:not(.dark-mode) .map-section-title {
+      color: #1a1a1d !important;
+      text-shadow: none;
+    }
+    body:not(.dark-mode) .map-section-eyebrow {
+      color: #8a6d00 !important;
+      letter-spacing: .25em;
+    }
+    body:not(.dark-mode) .map-info-nota { color: #8a6d00 !important; }
+    /* CTA Cómo llegar mantiene el dorado */
+    body:not(.dark-mode) .map-cta { background: var(--amarillo) !important; color: #1a1a1d !important; }

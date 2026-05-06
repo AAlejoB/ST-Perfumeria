@@ -4282,6 +4282,16 @@
             elNota.textContent = '\ud83d\udcc5 ' + ajuste.motivo;
             elNota.style.display = 'block';
           }
+          // Mismo update para "D\u00f3nde encontrarnos" (map-section)
+          var mapLV = document.getElementById('mapHorarioLV');
+          var mapSab = document.getElementById('mapHorarioSab');
+          var mapNota = document.getElementById('mapHorarioNota');
+          if (mapLV) mapLV.innerHTML = '<strong>Lunes a Viernes</strong> ' + ajuste.hora_abre + ':00 a ' + ajuste.hora_cierra + ':00 hs';
+          if (mapSab) mapSab.innerHTML = '<strong>S\u00e1bados</strong> ' + ajuste.hora_abre + ':00 a ' + cierreSab + ':00 hs';
+          if (mapNota && ajuste.mostrar_nota && ajuste.motivo) {
+            mapNota.textContent = '\ud83d\udcc5 ' + ajuste.motivo;
+            mapNota.style.display = 'block';
+          }
         }
         updateStatus(results[0], results[1]);
       });
