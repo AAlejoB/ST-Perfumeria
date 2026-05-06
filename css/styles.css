@@ -6427,3 +6427,68 @@
     body:not(.dark-mode) .map-section-inner::before {
       background: linear-gradient(90deg, transparent 0%, var(--amarillo) 30%, var(--amarillo) 70%, transparent 100%);
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       VOTACIÓN · "Coming soon" card cuando no hay candidatos del mes
+       Reemplaza el plain text "Próximamente" por una card con
+       más personalidad (icono + título + bajada + gradient sutil).
+       ──────────────────────────────────────────────────────────────── */
+    .voto-empty-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .35rem;
+      padding: 1.4rem 1rem;
+      border: 1px dashed rgba(232,184,0,.4);
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(232,184,0,.06), rgba(232,184,0,.02) 60%);
+      text-align: center;
+      overflow: hidden;
+    }
+    .voto-empty-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 200%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,184,0,.6), transparent);
+      animation: voto-empty-shimmer 4s ease-in-out infinite;
+    }
+    @keyframes voto-empty-shimmer {
+      0%   { left: -100%; }
+      50%  { left: 50%; }
+      100% { left: 200%; }
+    }
+    .voto-empty-ico {
+      font-size: 1.6rem;
+      filter: grayscale(.2);
+      animation: voto-empty-tilt 2.4s ease-in-out infinite;
+      display: inline-block;
+    }
+    @keyframes voto-empty-tilt {
+      0%, 100% { transform: rotate(-8deg); }
+      50%      { transform: rotate(8deg); }
+    }
+    .voto-empty-title {
+      font-family: var(--font-body);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      margin: 0;
+    }
+    .voto-empty-sub {
+      font-size: .68rem;
+      font-style: italic;
+      color: var(--gris-claro);
+      margin: 0;
+    }
+    /* Light theme */
+    body:not(.dark-mode) .voto-empty-card {
+      background: linear-gradient(135deg, rgba(232,184,0,.10), rgba(232,184,0,.03) 60%);
+      border-color: rgba(120,90,0,.45);
+    }
+    body:not(.dark-mode) .voto-empty-title { color: #8a6d00; }
+    body:not(.dark-mode) .voto-empty-sub { color: #5e564a; }

@@ -1259,12 +1259,12 @@
           candidatosFem = data.candidatos_fem || [];
           renderVotoButtons();
         } else {
-          document.getElementById('votoMasc').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
-          document.getElementById('votoFem').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
+          document.getElementById('votoMasc').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
+          document.getElementById('votoFem').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
         }
       } catch(e) {
-        document.getElementById('votoMasc').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
-        document.getElementById('votoFem').innerHTML = '<p style="font-size:.65rem;color:var(--gris);text-align:center;">Pr\u00f3ximamente</p>';
+        document.getElementById('votoMasc').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
+        document.getElementById('votoFem').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
       }
     }
 
