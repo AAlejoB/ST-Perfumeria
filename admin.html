@@ -5803,11 +5803,16 @@
       // Borrar ajustes anteriores (solo 1 activo a la vez)
       await sb.from('ajuste_horario').delete().neq('id', 0);
 
+      // FECHA HOY en zona horaria Argentina (no UTC) — antes guardaba
+      // UTC y a la noche eso ya era "mañana", haciendo que el ajuste
+      // recién aplicara al día siguiente.
+      var hoyAR = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+      var hoyARStr = hoyAR.getFullYear() + '-' + String(hoyAR.getMonth()+1).padStart(2,'0') + '-' + String(hoyAR.getDate()).padStart(2,'0');
       var row = {
         hora_abre: horaAbre,
         hora_cierra: horaCierra,
         hora_cierra_sab: horaCierraSab,
-        desde: desde || new Date().toISOString().split('T')[0],
+        desde: desde || hoyARStr,
         hasta: hasta || '2099-12-31',
         motivo: motivo || null,
         mostrar_nota: mostrarNota

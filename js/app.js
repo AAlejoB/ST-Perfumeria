@@ -4271,9 +4271,14 @@
         var hoyISO = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
         var hoyStr = hoyISO.getFullYear() + '-' + String(hoyISO.getMonth()+1).padStart(2,'0') + '-' + String(hoyISO.getDate()).padStart(2,'0');
         var ajuste = results[2][0];
-        // Si desde/hasta son null o falsy, los tratamos como "siempre vigente"
-        // para no bloquear el update por un null en la DB.
-        var enRango = !!ajuste && (!ajuste.desde || ajuste.desde <= hoyStr) && (!ajuste.hasta || ajuste.hasta >= hoyStr);
+        // Margen de 1 día en "desde" para tolerar ajustes guardados con TZ
+        // shifted (admin viejo guardaba UTC, que de noche ya era "mañana").
+        var manianaAR = new Date(hoyISO); manianaAR.setDate(manianaAR.getDate() + 1);
+        var manianaStr = manianaAR.getFullYear() + '-' + String(manianaAR.getMonth()+1).padStart(2,'0') + '-' + String(manianaAR.getDate()).padStart(2,'0');
+        // Si desde/hasta son null/falsy → tratamos como "siempre vigente"
+        var enRango = !!ajuste
+          && (!ajuste.desde || ajuste.desde <= manianaStr)
+          && (!ajuste.hasta || ajuste.hasta >= hoyStr);
         if (enRango) {
           // Sobreescribir horarios L-V con los del ajuste
           for (var d = 1; d <= 5; d++) {
