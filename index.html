@@ -1268,7 +1268,10 @@
             <span class="decant-counter-qty"><span id="decantQty">0</span>/<span id="decantMax">10</span> decants</span>
             <span class="decant-counter-unit" id="decantUnit"></span>
           </div>
-          <span class="decant-counter-total" id="decantTotal">$0</span>
+          <div class="decant-counter-right">
+            <button type="button" class="decant-counter-minus" id="decantCounterMinus" onclick="removeLastDecant()" aria-label="Quitar el último decant agregado" disabled>−</button>
+            <span class="decant-counter-total" id="decantTotal">$0</span>
+          </div>
         </div>
         <p class="decant-builder-savings" id="decantSavings" hidden></p>
         <p class="decant-builder-ladder" id="decantLadder"></p>

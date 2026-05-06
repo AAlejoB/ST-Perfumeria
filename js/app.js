@@ -5580,6 +5580,24 @@
       renderDecantGrid();
     }
 
+    // Quitar el ÚLTIMO decant agregado (botón − del contador global).
+    // Más práctico que tener que buscar el perfume en la grilla y restarle.
+    function removeLastDecant() {
+      if (decantsPack.length === 0) return;
+      var lastSlug = decantsPack.pop();
+      saveDecantsPack();
+      updateDecantUI();
+      renderDecantGrid();
+      // Feedback visual sutil en el contador
+      var qtyEl = document.getElementById('decantQty');
+      if (qtyEl) {
+        qtyEl.style.transition = 'color .25s';
+        qtyEl.style.color = '#e74c3c';
+        setTimeout(function() { qtyEl.style.color = ''; }, 600);
+      }
+    }
+    window.removeLastDecant = removeLastDecant;
+
     function clearDecantsPack() {
       if (decantsPack.length === 0) return;
       if (!confirm('¿Vaciar el pack de decants?')) return;
@@ -5600,6 +5618,9 @@
       setTxt('decantMaxLabel', DECANTS_CONFIG.max_decants);
       setTxt('decantTotal', '$' + total.toLocaleString('es-AR'));
       setTxt('decantUnit', '$' + unit.toLocaleString('es-AR') + ' c/u');
+      // Botón − del contador: solo activo si hay al menos 1 decant
+      var minusBtn = document.getElementById('decantCounterMinus');
+      if (minusBtn) minusBtn.disabled = qty === 0;
 
       // Escalera de precio
       var ladder = '';

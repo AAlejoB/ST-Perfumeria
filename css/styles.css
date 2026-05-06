@@ -6531,3 +6531,51 @@
     body:not(.dark-mode) .card-reveal .scent-note strong { color: #000 !important; }
     body:not(.dark-mode) .card-reveal .note-label { color: #8a6d00 !important; }
     body:not(.dark-mode) .card-reveal .ver-similares-btn { color: #8a6d00 !important; }
+
+    /* ════════════════════════════════════════════════════════════════
+       DECANT BUILDER · botón − global en el contador
+       Permite quitar el último decant agregado sin tener que buscar
+       el perfume en la grilla.
+       ──────────────────────────────────────────────────────────────── */
+    .decant-counter-right {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .decant-counter-minus {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--amarillo);
+      background: rgba(232,184,0,.08);
+      color: var(--amarillo);
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .decant-counter-minus:hover:not(:disabled) {
+      background: var(--amarillo);
+      color: #1a1a1d;
+      transform: translateY(-1px);
+    }
+    .decant-counter-minus:active:not(:disabled) { transform: scale(.95); }
+    .decant-counter-minus:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      border-color: rgba(232,184,0,.3);
+    }
+    body:not(.dark-mode) .decant-counter-minus {
+      border-color: #b48c00;
+      color: #8a6d00;
+      background: rgba(180,140,0,.08);
+    }
+    body:not(.dark-mode) .decant-counter-minus:hover:not(:disabled) {
+      background: var(--amarillo);
+      color: #1a1a1d;
+    }
