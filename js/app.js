@@ -4812,17 +4812,23 @@
         btnFav.style.color = nowFav ? '#e74c3c' : '';
       };
 
-      // Botón comparar
+      // Botón comparar — texto contextual según cantidad ya en lista
       var btnCompare = document.getElementById('bsBtnCompare');
+      function compareBtnLabel(isIn) {
+        if (!isIn) return '&#9878; Comparar';
+        var n = compareList.length;
+        if (n <= 1) return '&#9878; Elegí 1 perfume más';
+        return '&#9878; Comparando (' + n + ')';
+      }
       var inCompare = compareList.indexOf(slug) !== -1;
-      btnCompare.innerHTML = inCompare ? '&#9878; Comparando' : '&#9878; Comparar';
+      btnCompare.innerHTML = compareBtnLabel(inCompare);
       btnCompare.style.color = inCompare ? 'var(--amarillo)' : '';
       btnCompare.onclick = function(e) {
         var cardEl = document.querySelector('[data-slug="' + slug + '"]');
         var cmpBtn = cardEl ? cardEl.querySelector('.compare-btn') : null;
         toggleCompare(slug, cmpBtn, e);
         var nowIn = compareList.indexOf(slug) !== -1;
-        btnCompare.innerHTML = nowIn ? '&#9878; Comparando' : '&#9878; Comparar';
+        btnCompare.innerHTML = compareBtnLabel(nowIn);
         btnCompare.style.color = nowIn ? 'var(--amarillo)' : '';
       };
 

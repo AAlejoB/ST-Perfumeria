@@ -6579,3 +6579,48 @@
       background: var(--amarillo);
       color: #1a1a1d;
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · Bottom sheet (modal del perfume — desktop = side panel)
+       Antes: bg #111 hardcoded → en light se veía oscuro con texto
+       washed-out. Ahora: bg crema con bordes dorados y textos en
+       carbón.
+       ──────────────────────────────────────────────────────────────── */
+    body:not(.dark-mode) .bottom-sheet {
+      background: #f5efde !important;
+      color: #1a1a1d !important;
+      border: 1px solid rgba(120,90,0,.2) !important;
+    }
+    body:not(.dark-mode) .bottom-sheet .bs-name { color: #1a1a1d !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-brand { color: #5e564a !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-brand-st { color: #8a6d00 !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-note { color: #2a2622 !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-note strong { color: #1a1a1d !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-note .note-label { color: #8a6d00 !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-divider {
+      background: linear-gradient(90deg, #b48c00, transparent) !important;
+    }
+    body:not(.dark-mode) .bottom-sheet .price-promo,
+    body:not(.dark-mode) .bottom-sheet .price-original { color: #1a1a1d !important; }
+    body:not(.dark-mode) .bottom-sheet .price-cash { color: #2e7d32 !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-handle-arrow { color: #5e564a !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-handle { background: rgba(120,90,0,.4) !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-img-placeholder {
+      background: #ede5d2 !important;
+      color: rgba(120,90,0,.4) !important;
+    }
+    body:not(.dark-mode) .bottom-sheet .bs-btn-secondary {
+      background: #ffffff !important;
+      color: #8a6d00 !important;
+      border-color: rgba(120,90,0,.4) !important;
+    }
+    body:not(.dark-mode) .bottom-sheet .bs-btn-secondary:hover {
+      background: #fef7d8 !important;
+    }
+    body:not(.dark-mode) .bottom-sheet .tag-cat,
+    body:not(.dark-mode) .bottom-sheet .tag-ml,
+    body:not(.dark-mode) .bottom-sheet .tag-acorde {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
