@@ -6057,17 +6057,18 @@
        "Tenés X puntos".
        ──────────────────────────────────────────────────────────────── */
     body:not(.dark-mode) {
-      /* Paleta cálida (no blanco puro): inspirada en la sección
-         "Categorías" — fondo crema + texto carbón + acentos dorados. */
-      --negro:        #ede5d2;   /* fondo principal — crema cálido */
-      --negro-card:   #f5efde;   /* cards — crema un toque más claro */
-      --negro-hover:  #e3dac4;
+      /* Paleta cálida más SATURADA (no blanco tiza). El usuario decía
+         que el blanco brilloso liquidaba a los textos — bajamos a un
+         crema-arena con más cuerpo. */
+      --negro:        #e3d6b3;   /* fondo principal — beige arena más cálido */
+      --negro-card:   #ede2c2;   /* cards — un toque más claro pero NO blanco */
+      --negro-hover:  #d8caa3;
       --blanco:       #1a1a1d;   /* texto principal */
       --gris:         #5e564a;
       --gris-claro:   #2a2622;
       --borde:        rgba(120,90,0,.28);
       --borde-sutil:  rgba(0,0,0,.06);
-      background: #ede5d2;
+      background: #e3d6b3;
       color: #1a1a1d;
     }
     body:not(.dark-mode) nav.nav,
@@ -6902,4 +6903,71 @@
     body:not(.dark-mode) .reveal-pricing .price-label {
       color: #8a6d00 !important;
       font-size: .5rem !important;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       FIXES MOBILE LIGHT — feedback del jefe
+       ──────────────────────────────────────────────────────────────── */
+
+    /* #1 — Sacar buscador del nav en mobile (el filter-bar ya tiene uno) */
+    @media (max-width: 767px) {
+      .nav-search { display: none !important; }
+    }
+
+    /* #2 — DECANTS section con MÁS color (no crema washed) */
+    body:not(.dark-mode) .decant-b-left {
+      background: linear-gradient(135deg, #f4d96a 0%, #e8b800 100%) !important;
+      color: #1a1a1d !important;
+      border-right-color: #b48c00 !important;
+    }
+    body:not(.dark-mode) .decant-b-right {
+      background: linear-gradient(180deg, rgba(232,184,0,.18), rgba(232,184,0,.05)) !important;
+    }
+    body:not(.dark-mode) .decant-b-title,
+    body:not(.dark-mode) .decant-b-label,
+    body:not(.dark-mode) .decant-b-sub { color: #1a1a1d !important; }
+    body:not(.dark-mode) .decant-b-cta {
+      background: #1a1a1d !important;
+      color: var(--amarillo) !important;
+      border-color: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .decant-b-cta:hover {
+      background: #000 !important;
+    }
+    @media (max-width: 767px) {
+      body:not(.dark-mode) .decant-b-left { border-bottom-color: #b48c00 !important; }
+    }
+
+    /* #3 — "FILTROS" deck-label se montaba sobre el botón TODOS.
+       Aumentamos el padding-top del filter-zone--left para dejarle aire. */
+    @media (max-width: 767px) {
+      .filter-zone--left { padding-top: 30px !important; }
+      .deck-label { top: -28px !important; }
+    }
+
+    /* #4 — "162 fragancias" en blanco sobre el fondo oscuro del filter-bar */
+    body:not(.dark-mode) .filter-count {
+      color: #ffffff !important;
+      font-weight: 600;
+    }
+
+    /* #5 — Botón "PRECIO" con identidad propia (verde/dorado distintivo) */
+    body:not(.dark-mode) .price-expand-btn {
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid #1b5e20 !important;
+      font-weight: 700 !important;
+    }
+    body:not(.dark-mode) .price-expand-btn:hover {
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%) !important;
+    }
+    /* Que el "Notas" también tenga color distintivo (paleta ST) */
+    body:not(.dark-mode) .notes-expand-btn {
+      background: linear-gradient(135deg, #6a1b9a 0%, #4a148c 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid #4a148c !important;
+      font-weight: 700 !important;
+    }
+    body:not(.dark-mode) .notes-expand-btn:hover {
+      background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%) !important;
     }
