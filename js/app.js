@@ -5784,11 +5784,23 @@
         return hay.indexOf(qNorm) !== -1;
       });
 
-      // Filtrar custom por búsqueda también
+      // Sort A → Z por nombre (defensivo: si name falta, va al final)
+      list.sort(function(a, b) {
+        var an = (a && a.name ? String(a.name) : '￿').toLowerCase();
+        var bn = (b && b.name ? String(b.name) : '￿').toLowerCase();
+        return an.localeCompare(bn);
+      });
+
+      // Filtrar custom por búsqueda también + sort A→Z
       var customFiltered = DECANTS_CUSTOM_LIST.filter(function(c) {
         if (!qNorm) return true;
         var hay = stripAccents(((c.nombre||'') + ' ' + (c.marca||'')).toLowerCase());
         return hay.indexOf(qNorm) !== -1;
+      });
+      customFiltered.sort(function(a, b) {
+        var an = (a && a.nombre ? String(a.nombre) : '￿').toLowerCase();
+        var bn = (b && b.nombre ? String(b.nombre) : '￿').toLowerCase();
+        return an.localeCompare(bn);
       });
 
       // Contar qty por slug (para mostrar en cada card)
@@ -5800,7 +5812,8 @@
         return;
       }
 
-      var html = list.map(function(p) {
+      // Helper para HTML de un perfume regular
+      function cardHTML(p) {
         var qty = counts[p.slug] || 0;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         if (!fotoSrc && typeof getGamaFotos === 'function') {
@@ -5822,11 +5835,10 @@
             + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + p.slug + '\')" aria-label="Agregar">+</button>'
           + '</div>'
         + '</div>';
-      }).join('');
+      }
 
-      // Sumar perfumes custom al final con prefijo "custom-" para diferenciarlos
-      // del slug normal (así no chocan con perfumes regulares en decantsPack).
-      html += customFiltered.map(function(c) {
+      // Helper para HTML de un decant custom
+      function customCardHTML(c) {
         var slug = 'custom-' + c.id;
         var qty = counts[slug] || 0;
         return '<div class="decant-card decant-card-custom' + (qty > 0 ? ' has-qty' : '') + '">'
@@ -5841,7 +5853,32 @@
             + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + slug + '\')" aria-label="Agregar">+</button>'
           + '</div>'
         + '</div>';
-      }).join('');
+      }
+
+      // Particionar: AGREGADOS arriba (qty > 0), resto abajo. Mantengo
+      // sort alfabético dentro de cada grupo. Esto resuelve "los agregados
+      // quedan al fondo" — ahora siempre los ves arriba para sumar/restar.
+      var seleccionadosRegulares = list.filter(function(p) { return (counts[p.slug]||0) > 0; });
+      var disponiblesRegulares   = list.filter(function(p) { return (counts[p.slug]||0) === 0; });
+      var seleccionadosCustom    = customFiltered.filter(function(c) { return (counts['custom-' + c.id]||0) > 0; });
+      var disponiblesCustom      = customFiltered.filter(function(c) { return (counts['custom-' + c.id]||0) === 0; });
+
+      var seleccionadosCount = seleccionadosRegulares.length + seleccionadosCustom.length;
+      var disponiblesCount   = disponiblesRegulares.length + disponiblesCustom.length;
+
+      var html = '';
+      if (seleccionadosCount > 0) {
+        html += '<p class="decant-grid-section-title">★ Agregados a tu pack (' + seleccionadosCount + ')</p>';
+        html += seleccionadosRegulares.map(cardHTML).join('');
+        html += seleccionadosCustom.map(customCardHTML).join('');
+      }
+      if (disponiblesCount > 0) {
+        if (seleccionadosCount > 0) {
+          html += '<p class="decant-grid-section-title">Resto del catálogo (' + disponiblesCount + ')</p>';
+        }
+        html += disponiblesRegulares.map(cardHTML).join('');
+        html += disponiblesCustom.map(customCardHTML).join('');
+      }
 
       gridEl.innerHTML = html;
     }
