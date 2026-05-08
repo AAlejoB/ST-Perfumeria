@@ -6673,3 +6673,205 @@
       color: #1a1a1d !important;
       border-color: rgba(120,90,0,.3) !important;
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · PARCHE COMPLETO DE LEGIBILIDAD (mobile + desktop)
+       Sweep masivo de todos los textos hardcoded con #999/#888/#777/
+       #ccc/etc que en light mode quedan washed-out sobre crema.
+       Estrategia: forzar carbón medio (#2a2622) o pleno (#1a1a1d)
+       según jerarquía. Acentos en dorado-marrón (#8a6d00).
+       ──────────────────────────────────────────────────────────────── */
+
+    /* ── Botón AGREGAR (el peor bug visible) ── */
+    body:not(.dark-mode) .bs-btn-cart {
+      color: #1a1a1d !important;
+      background: #ffffff !important;
+      border: 1px solid rgba(120,90,0,.4) !important;
+    }
+    body:not(.dark-mode) .bs-btn-cart:hover {
+      background: var(--amarillo) !important;
+      border-color: var(--amarillo) !important;
+      color: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .bs-btn-cart.added {
+      background: rgba(46,204,113,.15) !important;
+      border-color: #2e7d32 !important;
+      color: #1b5e20 !important;
+    }
+
+    /* ── Notas y subtítulos (jerarquía secundaria) ── */
+    body:not(.dark-mode) .bs-note,
+    body:not(.dark-mode) .scent-note,
+    body:not(.dark-mode) .note-prev,
+    body:not(.dark-mode) .card-views,
+    body:not(.dark-mode) .card-views *,
+    body:not(.dark-mode) .price-label,
+    body:not(.dark-mode) .price-original,
+    body:not(.dark-mode) .card-brand,
+    body:not(.dark-mode) .seleccion-st-sub,
+    body:not(.dark-mode) .sets-sub,
+    body:not(.dark-mode) .seo-hub-desc,
+    body:not(.dark-mode) .nosotros-block-text,
+    body:not(.dark-mode) .nosotros-cierre,
+    body:not(.dark-mode) .nosotros-text,
+    body:not(.dark-mode) .nosotros-list li,
+    body:not(.dark-mode) .faq-answer p,
+    body:not(.dark-mode) .tu-sector-subtitle,
+    body:not(.dark-mode) .map-info-text,
+    body:not(.dark-mode) .quiz-subtitle,
+    body:not(.dark-mode) .misel-msg,
+    body:not(.dark-mode) .decant-builder-subtitle,
+    body:not(.dark-mode) .decant-builder-aviso,
+    body:not(.dark-mode) .auth-subtitle,
+    body:not(.dark-mode) .auth-modal p,
+    body:not(.dark-mode) .modal-label {
+      color: #2a2622 !important;
+    }
+
+    /* ── Strong dentro de esos textos (jerarquía pleno carbón) ── */
+    body:not(.dark-mode) .bs-note strong,
+    body:not(.dark-mode) .scent-note strong,
+    body:not(.dark-mode) .map-info-text strong,
+    body:not(.dark-mode) .nosotros-cierre strong,
+    body:not(.dark-mode) .faq-answer strong { color: #1a1a1d !important; }
+
+    /* ── Labels y eyebrows (acento dorado consistente) ── */
+    body:not(.dark-mode) .note-label,
+    body:not(.dark-mode) .bs-brand-st,
+    body:not(.dark-mode) .map-info-label,
+    body:not(.dark-mode) .map-section-eyebrow,
+    body:not(.dark-mode) .seo-hub-eyebrow,
+    body:not(.dark-mode) .sets-eyebrow,
+    body:not(.dark-mode) .quiz-title,
+    body:not(.dark-mode) .seleccion-st-title,
+    body:not(.dark-mode) .nosotros-block-title { color: #8a6d00 !important; }
+    body:not(.dark-mode) .price-cash { color: #1b5e20 !important; }
+
+    /* ── Cards del catálogo: nombres + precios ── */
+    body:not(.dark-mode) .card-name,
+    body:not(.dark-mode) .reveal-name { color: #1a1a1d !important; }
+    body:not(.dark-mode) .price-promo,
+    body:not(.dark-mode) .reveal-pricing .price-promo { color: #1a1a1d !important; }
+
+    /* ── Tags de card (UNISEX/100ml/FRESCO) ── */
+    body:not(.dark-mode) .tag-cat,
+    body:not(.dark-mode) .tag-ml,
+    body:not(.dark-mode) .tag-acorde {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border: 1px solid rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .tag-cat { background: rgba(232,184,0,.2) !important; }
+
+    /* ── Botones secundarios de card ── */
+    body:not(.dark-mode) .compare-btn,
+    body:not(.dark-mode) .fav-btn,
+    body:not(.dark-mode) .avisame-btn,
+    body:not(.dark-mode) .card-cta-mobile {
+      color: #1a1a1d !important;
+      background: rgba(255,255,255,.6) !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+
+    /* ── "Ver más" del catálogo ── */
+    body:not(.dark-mode) .load-more-btn {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.4) !important;
+    }
+    body:not(.dark-mode) .load-more-btn:hover { background: var(--amarillo) !important; }
+
+    /* ── Filter count + active filters ── */
+    body:not(.dark-mode) .filter-count { color: #5e564a !important; }
+    body:not(.dark-mode) .active-filters-bar { background: rgba(232,184,0,.10); border-color: rgba(120,90,0,.25); }
+    body:not(.dark-mode) .active-filters-chips > * {
+      color: #1a1a1d !important;
+      background: rgba(232,184,0,.15) !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .active-filters-clear {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+
+    /* ── Sort menu (Ordenar) ── */
+    body:not(.dark-mode) .sort-menu {
+      background: #ffffff !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .sort-menu button { color: #1a1a1d !important; }
+    body:not(.dark-mode) .sort-menu button:hover { background: rgba(232,184,0,.15) !important; }
+
+    /* ── Carrito (drawer + toast) ── */
+    body:not(.dark-mode) .cart-panel,
+    body:not(.dark-mode) .cart-toast {
+      background: #f5efde !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .cart-empty,
+    body:not(.dark-mode) .cart-toast-text { color: #2a2622 !important; }
+    body:not(.dark-mode) .cart-item-name { color: #1a1a1d !important; }
+    body:not(.dark-mode) .cart-item-meta { color: #5e564a !important; }
+
+    /* ── Categorías (cards quedan oscuras por excepción, refuerzo legibilidad) ── */
+    body:not(.dark-mode) .cat-card .cat-num { color: var(--amarillo) !important; }
+    body:not(.dark-mode) .cat-card .cat-name,
+    body:not(.dark-mode) .cat-card .cat-count { color: #f0ede8 !important; }
+
+    /* ── Sets/Packs ── */
+    body:not(.dark-mode) .set-card { background: #f5efde !important; color: #1a1a1d !important; }
+    body:not(.dark-mode) .set-name,
+    body:not(.dark-mode) .set-price,
+    body:not(.dark-mode) .set-sub { color: #1a1a1d !important; }
+    body:not(.dark-mode) .set-eyebrow { color: #8a6d00 !important; }
+    body:not(.dark-mode) .set-cta {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.4) !important;
+    }
+
+    /* ── Search nav (placeholder + sugerencias) ── */
+    body:not(.dark-mode) .search-input {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .search-input::placeholder { color: #888 !important; }
+    body:not(.dark-mode) .search-icon { stroke: #5e564a !important; }
+    body:not(.dark-mode) .search-suggestions {
+      background: #ffffff !important;
+      border-color: rgba(120,90,0,.3) !important;
+      color: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .search-suggestions > * { color: #1a1a1d !important; }
+    body:not(.dark-mode) .search-suggestions > *:hover { background: rgba(232,184,0,.15) !important; }
+    body:not(.dark-mode) .search-sug-img { background: #ede5d2 !important; }
+
+    /* ── Modales genéricos (price, stock, confirmaciones) ── */
+    body:not(.dark-mode) .modal-box {
+      background: #f5efde !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .modal-title { color: #1a1a1d !important; }
+    body:not(.dark-mode) .modal-input {
+      background: #ffffff !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.3) !important;
+    }
+    body:not(.dark-mode) .modal-input::placeholder { color: #888 !important; }
+
+    /* ── Welcome overlay (bienvenida) ── */
+    body:not(.dark-mode) .welcome-box {
+      background: #f5efde !important;
+      color: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .welcome-title,
+    body:not(.dark-mode) .welcome-brand { color: #1a1a1d !important; }
+    body:not(.dark-mode) .welcome-sub,
+    body:not(.dark-mode) .welcome-city { color: #5e564a !important; }
+
+    /* ── Status pill (Abierto/Cerrado) ── */
+    body:not(.dark-mode) .store-status { background: #fff !important; }
