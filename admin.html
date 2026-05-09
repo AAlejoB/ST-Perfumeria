@@ -917,9 +917,9 @@
           <option value="stock-out">Sin stock primero</option>
         </select>
       </div>
-      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock, y <strong>Editar</strong> para cambiar el precio. Se guardan al apretar <strong>OK</strong>, sin necesidad de tipear ST (eso solo en la pestaña Editar).</p>
+      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
       <table class="admin-table">
-        <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th><th>Accion</th></tr></thead>
+        <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
       </table>
     </div>
@@ -929,8 +929,7 @@
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
           <div style="flex:1;min-width:220px;">
-            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Editar perfume existente</p>
-            <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Buscá un perfume de los 151 ya cargados. Los cambios se guardan en Supabase y se aplican sobre el catálogo original sin tocar el código.</p>
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Editar perfume existente</p>
           </div>
           <button onclick="migrarTipos()" title="Asigna tipo (Desodorante, Crema, etc.) a productos viejos basado en keywords del nombre. Correr 1 sola vez."
             style="background:transparent;border:1px solid rgba(232,184,0,.3);color:var(--amarillo);font-size:.6rem;padding:.4rem .7rem;border-radius:4px;cursor:pointer;white-space:nowrap;letter-spacing:.05em;">
@@ -2858,9 +2857,6 @@
           + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
           + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
-          + '<td style="white-space:nowrap;">'
-            + '<button data-role="jefe" class="action-btn btn-price" onclick="openPriceModal(\'' + p.slug + '\')">Editar</button>'
-          + '</td>'
           + '</tr>';
       });
       tbody.innerHTML = html;
