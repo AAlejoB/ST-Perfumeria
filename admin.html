@@ -6654,7 +6654,6 @@
                   renderPrecios();
                   // Buscar la fila del perfume y darle un parpadeo amarillo
                   setTimeout(function() {
-                    var row = document.querySelector('#tbodyPrecios tr td.td-stock');
                     var allRows = document.querySelectorAll('#tbodyPrecios tr');
                     allRows.forEach(function(tr) {
                       if (tr.querySelector('.badge-stock') && tr.querySelector('[onclick*="' + ov.slug + '"]')) {
@@ -6665,8 +6664,6 @@
                     });
                   }, 50);
                 } catch(e) {}
-catch(e) {}
-                }
               }
           )
           .subscribe();
