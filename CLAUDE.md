@@ -64,7 +64,7 @@ Tablas principales:
 | Tabla | Función |
 |---|---|
 | `clientes` | Auth custom (telefono + password en plano) + datos + `puntos` |
-| `ventas` | Cada venta registrada (perfume, qty, vendedor, total, `puntos_otorgados`, `cliente_id_puntos`) |
+| `ventas` | Tabla histórica (la tab "Registrar Venta" del admin fue eliminada — el jefe va a re-pensar el flujo). NO escribir desde el front por ahora. |
 | `perfume_overrides` | Stock + status por perfume (`stock_qty`, `stock_status`, `nota_*`) |
 | `perfumes_nuevos` | Perfumes agregados por admin (extra al seed) |
 | `combos` | Packs/sets de perfumes |
