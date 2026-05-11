@@ -1767,20 +1767,21 @@
 
     <!-- Precios y tamaño -->
     <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Precios escalonados</p>
+      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Precios escalonados</p>
+      <p style="font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Tipear sin puntos ni comas (ej: 9500, no 9.500).</p>
 
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem;">
         <div>
           <label class="modal-label">1-2 decants ($/u)</label>
-          <input type="number" class="modal-input" id="decPrecio1" placeholder="9500" style="margin-bottom:0;"/>
+          <input type="number" class="modal-input" id="decPrecio1" placeholder="Ej: 9500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
         </div>
         <div>
           <label class="modal-label">3-4 decants ($/u)</label>
-          <input type="number" class="modal-input" id="decPrecio3" placeholder="8500" style="margin-bottom:0;"/>
+          <input type="number" class="modal-input" id="decPrecio3" placeholder="Ej: 8500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
         </div>
         <div>
           <label class="modal-label">5+ decants ($/u)</label>
-          <input type="number" class="modal-input" id="decPrecio5" placeholder="7500" style="margin-bottom:0;"/>
+          <input type="number" class="modal-input" id="decPrecio5" placeholder="Ej: 7500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
         </div>
       </div>
 
@@ -1818,15 +1819,17 @@
         </div>
         <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
       </div>
-      <!-- Mini-header de columnas para que se entienda qué es cada cosa -->
-      <div style="display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px auto auto;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
+      <!-- Mini-header de columnas — anchos FIJOS en las últimas 2 columnas
+           (checkbox + acciones) para que matcheen exactamente con las rows.
+           Antes "auto auto" hacía que cada row tuviera anchos distintos. -->
+      <div style="display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
         <span style="text-align:center;" title="Foto del perfume (opcional)">Foto</span>
         <span>Nombre</span>
         <span>Marca</span>
-        <span style="text-align:right;" title="Precio fijo por unidad. Si está vacío usa la escalera global (1-2/3-4/5+).">$ Precio</span>
+        <span style="text-align:right;" title="Precio fijo por unidad. Tipear sin puntos ni comas (ej: 29000 no 29.000). Si está vacío usa la escalera global (1-2/3-4/5+).">$ Precio <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#888;">(sin puntos)</span></span>
         <span style="text-align:center;" title="Posición en el grid del armador (menor = más arriba)">Orden</span>
-        <span></span>
-        <span></span>
+        <span style="text-align:center;">Activo</span>
+        <span style="text-align:center;">Acciones</span>
       </div>
       <div id="decantsCustomList" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem;">
         <p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando…</p>
@@ -7149,14 +7152,14 @@
           + '</div>';
 
         return ''
-          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px auto auto;gap:.5rem;align-items:center;">'
+          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;align-items:center;">'
           +   fotoCell
           +   '<input type="text" class="modal-input dc-nombre" value="' + (p.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre" style="margin-bottom:0;font-size:.78rem;"/>'
           +   '<input type="text" class="modal-input dc-marca" value="' + (p.marca || '').replace(/"/g, '&quot;') + '" placeholder="Marca (opcional)" style="margin-bottom:0;font-size:.78rem;"/>'
-          +   '<input type="number" class="modal-input dc-precio" value="' + precioVal + '" min="0" step="100" placeholder="$ Precio" style="margin-bottom:0;font-size:.78rem;text-align:right;" title="Precio fijo por unidad. Si está vacío usa la escalera global del armador (1-2/3-4/5+)."/>'
+          +   '<input type="number" class="modal-input dc-precio" value="' + precioVal + '" min="0" step="100" placeholder="Ej: 29000" style="margin-bottom:0;font-size:.78rem;text-align:right;" title="Precio fijo por unidad. SIN puntos ni comas (ej: 29000 no 29.000). Si está vacío usa la escalera global del armador (1-2/3-4/5+)."/>'
           +   '<input type="number" class="modal-input dc-orden" value="' + (p.orden || 0) + '" min="0" style="margin-bottom:0;font-size:.78rem;text-align:center;" title="ORDEN: posición en el grid del armador (menor número = aparece más arriba)"/>'
-          +   '<label style="display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:var(--gris-claro);cursor:pointer;"><input type="checkbox" class="dc-activo" ' + (p.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo</label>'
-          +   '<div style="display:flex;gap:.3rem;flex-shrink:0;">'
+          +   '<label style="display:flex;align-items:center;justify-content:center;gap:.3rem;font-size:.7rem;color:var(--gris-claro);cursor:pointer;"><input type="checkbox" class="dc-activo" ' + (p.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo</label>'
+          +   '<div style="display:flex;gap:.3rem;justify-content:center;align-items:center;">'
           +     '<button class="modal-btn" onclick="saveDecantCustom(' + p.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.65rem;padding:.3rem .6rem;" title="Guardar cambios">💾</button>'
           +     '<button class="modal-btn" onclick="deleteDecantCustom(' + p.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.3rem .6rem;" title="Eliminar este perfume">🗑️</button>'
           +   '</div>'
