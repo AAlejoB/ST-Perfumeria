@@ -6993,3 +6993,126 @@
       color: #8a6d00;
       border-bottom-color: rgba(120,90,0,.3);
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       Banner Juegos ST — CTA al Quiz "Encontrá tu perfume"
+       Variante "game-show energético": violeta → magenta con emoji
+       bouncing. Distinto del banner amarillo "EXPLORÁ +150" para que
+       NO compitan visualmente. Va antes de Selección ST.
+       ──────────────────────────────────────────────────────────────── */
+    .quiz-cta-wrap {
+      max-width: 1300px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+    .quiz-cta-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 40%, #b71c5c 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      gap: 1.5rem;
+      box-shadow: 0 10px 30px rgba(74,20,140,.4);
+      cursor: pointer;
+      transition: transform .25s, box-shadow .25s;
+      position: relative;
+      overflow: hidden;
+      font-family: inherit;
+    }
+    .quiz-cta-banner:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(74,20,140,.5);
+    }
+    .quiz-cta-banner:active { transform: translateY(0); }
+    .quiz-cta-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 80% 50%, rgba(255,255,255,.15), transparent 50%);
+      pointer-events: none;
+    }
+    .quiz-cta-content {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      z-index: 1;
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+    }
+    .quiz-cta-icon {
+      font-size: 2.4rem;
+      animation: quizCtaBounce 1.6s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes quizCtaBounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-4px); }
+    }
+    .quiz-cta-text {
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.35;
+    }
+    .quiz-cta-text strong {
+      display: block;
+      font-weight: 900;
+      color: #ffd900;
+      margin-top: .2rem;
+      letter-spacing: .05em;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+    }
+    .quiz-cta-cta {
+      font-family: 'Inter', sans-serif;
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      color: #4a148c;
+      background: #fff;
+      padding: .9rem 1.6rem;
+      border-radius: 30px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      box-shadow: 0 6px 18px rgba(0,0,0,.3);
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+    .quiz-cta-cta::after {
+      content: '→';
+      font-size: 1.1rem;
+      transition: transform .2s;
+    }
+    .quiz-cta-banner:hover .quiz-cta-cta::after {
+      transform: translateX(4px);
+    }
+
+    /* Mobile: stack vertical */
+    @media (max-width: 700px) {
+      .quiz-cta-banner {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.3rem 1.2rem;
+        gap: 1rem;
+      }
+      .quiz-cta-content {
+        flex-direction: column;
+        text-align: center;
+        gap: .8rem;
+      }
+      .quiz-cta-text { font-size: .85rem; }
+      .quiz-cta-text strong { font-size: .95rem; }
+      .quiz-cta-cta {
+        width: 100%;
+        justify-content: center;
+        padding: .85rem 1.2rem;
+      }
+    }
