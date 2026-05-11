@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Preview · Banners para Juegos ST</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,500&family=Inter:wght@300;400;600;800&family=Bodoni+Moda:wght@400;700;800;900&display=swap">
+<style>
+  :root {
+    --amarillo: #E8B800;
+    --amarillo-claro: #f7d96a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #121214;
+    color: #f0ede8;
+    font-family: 'Inter', sans-serif;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: .5rem;
+  }
+  .intro {
+    text-align: center;
+    color: #999;
+    max-width: 700px;
+    margin: 0 auto 3rem;
+    line-height: 1.6;
+    font-size: .9rem;
+  }
+  .label {
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .25em;
+    color: var(--amarillo);
+    margin: 3rem auto .8rem;
+    text-transform: uppercase;
+  }
+  .label-desc {
+    text-align: center;
+    color: #888;
+    font-size: .78rem;
+    margin-bottom: 1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    font-style: italic;
+  }
+
+  /* ═════════════════════════════════════════════════════════════
+     VARIANTE 1 — PREMIUM ROYAL
+     Negro profundo con dorado, tipo invitación de gala.
+     Sobrio, sofisticado, "esto es algo importante".
+     ═════════════════════════════════════════════════════════════ */
+  .v1-wrap {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .v1 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #0d0d0e 0%, #1a1a1d 50%, #0d0d0e 100%);
+    border: 1px solid var(--amarillo);
+    border-radius: 6px;
+    padding: 1.4rem 2rem;
+    gap: 1.5rem;
+    box-shadow: 0 8px 28px rgba(232,184,0,.18), inset 0 0 0 1px rgba(232,184,0,.1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .25s;
+  }
+  .v1:hover { transform: translateY(-2px); }
+  .v1::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -50%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(232,184,0,.15), transparent);
+    animation: shine 4s ease-in-out infinite;
+  }
+  @keyframes shine {
+    0%, 100% { left: -50%; }
+    50% { left: 100%; }
+  }
+  .v1-content { display: flex; align-items: center; gap: 1rem; z-index: 1; flex: 1; min-width: 0; }
+  .v1-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 8px rgba(232,184,0,.4));
+  }
+  .v1-text {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #f0ede8;
+    letter-spacing: .06em;
+    line-height: 1.3;
+  }
+  .v1-text strong { color: var(--amarillo); font-weight: 900; }
+  .v1-cta {
+    font-family: 'Bodoni Moda', serif;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .2em;
+    color: #0d0d0e;
+    background: var(--amarillo);
+    padding: .85rem 1.5rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    z-index: 1;
+    border: 1px solid var(--amarillo);
+    box-shadow: 0 4px 12px rgba(232,184,0,.3);
+  }
+
+  /* ═════════════════════════════════════════════════════════════
+     VARIANTE 2 — GAME-SHOW ENERGÉTICO
+     Violeta eléctrico con magenta, vibe de jugar/divertirse.
+     Distinto del banner amarillo así no compiten visualmente.
+     ═════════════════════════════════════════════════════════════ */
+  .v2-wrap {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .v2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 40%, #b71c5c 100%);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    gap: 1.5rem;
+    box-shadow: 0 10px 30px rgba(74,20,140,.4);
+    cursor: pointer;
+    transition: transform .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .v2:hover { transform: translateY(-2px); }
+  .v2::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 50%, rgba(255,255,255,.15), transparent 50%);
+    pointer-events: none;
+  }
+  .v2-content {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    z-index: 1;
+    flex: 1;
+    min-width: 0;
+  }
+  .v2-icon {
+    font-size: 2.4rem;
+    animation: bounce 1.6s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .v2-text {
+    font-family: 'Inter', sans-serif;
+    font-size: .95rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.35;
+  }
+  .v2-text strong {
+    font-weight: 900;
+    color: #ffd900;
+    display: block;
+    margin-top: .2rem;
+    letter-spacing: .05em;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+  }
+  .v2-cta {
+    font-family: 'Inter', sans-serif;
+    font-size: .82rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    color: #4a148c;
+    background: #fff;
+    padding: .9rem 1.6rem;
+    border-radius: 30px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(0,0,0,.3);
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    z-index: 1;
+  }
+  .v2-cta::after {
+    content: '→';
+    font-size: 1.1rem;
+    transition: transform .2s;
+  }
+  .v2:hover .v2-cta::after { transform: translateX(4px); }
+
+  /* ═════════════════════════════════════════════════════════════
+     VARIANTE 3 — EDITORIAL VINTAGE
+     Crema + burgundy + serifa italic con ornamentos.
+     Tipo aviso de revista de perfumes de los 50.
+     ═════════════════════════════════════════════════════════════ */
+  .v3-wrap {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .v3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background:
+      radial-gradient(ellipse at top, rgba(114,47,55,.05), transparent 60%),
+      linear-gradient(135deg, #ede2c2 0%, #d4c599 100%);
+    border: 1px solid rgba(114,47,55,.3);
+    border-radius: 2px;
+    padding: 1.8rem 2.2rem;
+    gap: 1.5rem;
+    box-shadow: 0 6px 20px rgba(120,90,0,.18);
+    position: relative;
+    cursor: pointer;
+    transition: transform .25s;
+  }
+  .v3:hover { transform: translateY(-2px); }
+  /* Bordes ornamentales arriba y abajo */
+  .v3::before, .v3::after {
+    content: '';
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    width: 60%; height: 1px;
+    background: linear-gradient(90deg, transparent, #722f37, transparent);
+  }
+  .v3::before { top: 8px; }
+  .v3::after { bottom: 8px; }
+  .v3-content { display: flex; align-items: center; gap: 1.2rem; flex: 1; min-width: 0; }
+  .v3-ornament {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 1.4rem;
+    color: #722f37;
+    font-weight: 700;
+  }
+  .v3-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: #2a1a1a;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+  .v3-text strong {
+    display: block;
+    font-style: normal;
+    font-family: 'Bodoni Moda', serif;
+    font-weight: 800;
+    color: #722f37;
+    font-size: 1rem;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    margin-top: .25rem;
+  }
+  .v3-cta {
+    font-family: 'Bodoni Moda', serif;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .25em;
+    color: #ede2c2;
+    background: #722f37;
+    padding: .9rem 1.6rem;
+    border-radius: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid #722f37;
+    transition: all .2s;
+  }
+  .v3:hover .v3-cta {
+    background: #5a242b;
+  }
+
+  /* MOBILE */
+  @media (max-width: 700px) {
+    .v1, .v2, .v3 { flex-direction: column; text-align: center; padding: 1.2rem; }
+    .v1-content, .v2-content, .v3-content { flex-direction: column; }
+    .v1-cta, .v2-cta, .v3-cta { width: 100%; text-align: center; justify-content: center; }
+    .v1-text, .v2-text, .v3-text { font-size: .88rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>3 propuestas — Banner Juegos ST</h1>
+<p class="intro">
+  Cada banner usa una paleta y tipografía distintas para que NO compita con el banner amarillo
+  "EXPLORÁ NUESTRO CATÁLOGO" que ya existe. Mirálos y decime cuál (1, 2 ó 3) y dónde lo querés
+  insertar.
+</p>
+
+<!-- ═══ VARIANTE 1 ═══════════════════════════════════════════ -->
+<p class="label">VARIANTE 1 · Premium Royal</p>
+<p class="label-desc">Negro profundo con dorado y "shine" sutil que cruza. Tipo invitación de gala — sobrio, sofisticado.</p>
+<div class="v1-wrap">
+  <button class="v1" type="button">
+    <div class="v1-content">
+      <span class="v1-icon">💎</span>
+      <span class="v1-text">¿Alguna vez te recomendaron <strong>3 perfumes con 4 preguntas?</strong></span>
+    </div>
+    <span class="v1-cta">Jugá gratis →</span>
+  </button>
+</div>
+
+<!-- ═══ VARIANTE 2 ═══════════════════════════════════════════ -->
+<p class="label">VARIANTE 2 · Game-Show Energético</p>
+<p class="label-desc">Violeta y magenta con animación. Distinto a todo lo demás — vibe de "esto es un juego, vení a divertirte".</p>
+<div class="v2-wrap">
+  <button class="v2" type="button">
+    <div class="v2-content">
+      <span class="v2-icon">🎯</span>
+      <span class="v2-text">
+        ¿Alguna vez te recomendaron 3 perfumes con solo 4 preguntas?
+        <strong>Jugá gratis y elegí</strong>
+      </span>
+    </div>
+    <span class="v2-cta">Probar</span>
+  </button>
+</div>
+
+<!-- ═══ VARIANTE 3 ═══════════════════════════════════════════ -->
+<p class="label">VARIANTE 3 · Editorial Vintage</p>
+<p class="label-desc">Crema con burgundy y tipografías italic. Estilo aviso de revista de perfumes de los 50 — encaja perfecto con la tipografía DIOR que ya estás usando.</p>
+<div class="v3-wrap">
+  <button class="v3" type="button">
+    <div class="v3-content">
+      <span class="v3-ornament">◆</span>
+      <span class="v3-text">
+        ¿Alguna vez te recomendaron 3 perfumes con 4 preguntas?
+        <strong>Jugá gratis y elegí</strong>
+      </span>
+      <span class="v3-ornament">◆</span>
+    </div>
+    <span class="v3-cta">Jugar →</span>
+  </button>
+</div>
+
+<p class="intro" style="margin-top:3rem;font-size:.78rem;">
+  Cuando elijas, decime: <strong>"variante N"</strong> + <strong>dónde lo querés</strong>
+  (ej: "entre Selección ST y Decants" o "debajo de FAQ").<br>
+  Después borro este archivo de preview y dejo solo el banner elegido en el sitio.
+</p>
+
+</body>
+</html>
