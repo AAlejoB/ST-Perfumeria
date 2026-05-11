@@ -4,6 +4,19 @@
 > Contiene contexto, convenciones y reglas del proyecto.
 > Si modificás algo importante, actualizá este archivo.
 
+## 📚 Documentación detallada (deep dives)
+
+Si necesitás profundizar en un área específica:
+
+| Si tu pregunta es sobre... | Leé |
+|---|---|
+| UI, CSS, HTML, light mode, layout, performance del front | [`docs/FRONTEND.md`](docs/FRONTEND.md) |
+| Auth, Realtime, SW, push, cron, Vercel functions, audit log | [`docs/BACKEND.md`](docs/BACKEND.md) |
+| Tablas, schemas, RLS, migraciones, índices | [`docs/DATABASE.md`](docs/DATABASE.md) |
+| Decisiones tomadas, bugs históricos, evolución | [`docs/HISTORIA.md`](docs/HISTORIA.md) |
+
+Este archivo (`CLAUDE.md`) tiene el resumen general. Para dive deep, andá a la doc específica.
+
 ---
 
 ## 🎯 Qué es este proyecto
