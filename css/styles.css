@@ -7151,3 +7151,64 @@
       letter-spacing: .03em;
     }
     body:not(.dark-mode) .decant-card-price { color: #8a6d00 !important; }
+
+    /* ════════════════════════════════════════════════════════════════
+       LIGHT THEME · Controles +/- y footer del decant builder
+       Bug: .decant-builder * { color: inherit } forzaba carbón a todo,
+       y el footer tiene bg oscuro propio → textos invisibles.
+       ──────────────────────────────────────────────────────────────── */
+
+    /* Botones +/- de cada card: bg charcoal sólido + texto dorado.
+       Visible y legible sobre las cards crema, sin pelear con la paleta. */
+    body:not(.dark-mode) .decant-ctrl-btn {
+      background: #1a1a1d !important;
+      color: #f0ede8 !important;
+      border: 1px solid rgba(120,90,0,.4) !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    body:not(.dark-mode) .decant-ctrl-btn:hover:not(:disabled) {
+      background: var(--amarillo) !important;
+      color: #1a1a1d !important;
+      border-color: var(--amarillo) !important;
+    }
+    body:not(.dark-mode) .decant-ctrl-plus {
+      border-color: var(--amarillo) !important;
+      color: var(--amarillo) !important;
+      background: #1a1a1d !important;
+    }
+    body:not(.dark-mode) .decant-ctrl-plus:hover:not(:disabled) {
+      background: var(--amarillo) !important;
+      color: #1a1a1d !important;
+    }
+    /* Cantidad "0" / "1" / "2" entre los botones: carbón pleno (era #fff
+       que con la regla * { color: inherit } se volvía gris ilegible) */
+    body:not(.dark-mode) .decant-ctrl-qty {
+      color: #1a1a1d !important;
+      font-weight: 900;
+    }
+
+    /* Footer del builder: mantiene su bg oscuro propio, pero TODO el
+       texto adentro queda cremoso para legibilidad. */
+    body:not(.dark-mode) .decant-builder-footer {
+      background: #1a1a1d !important;
+      border-top-color: rgba(232,184,0,.35) !important;
+      color: #f0ede8 !important;
+    }
+    body:not(.dark-mode) .decant-builder-footer * { color: inherit; }
+    body:not(.dark-mode) .decant-builder-footer .decant-builder-aviso {
+      color: #c9c5bd !important;
+    }
+    /* Botón "Vaciar": rojo más visible sobre fondo oscuro */
+    body:not(.dark-mode) .decant-builder-clear {
+      background: rgba(231,76,60,.12) !important;
+      color: #ff8a80 !important;
+      border-color: rgba(231,76,60,.55) !important;
+    }
+    body:not(.dark-mode) .decant-builder-clear:hover {
+      background: rgba(231,76,60,.25) !important;
+    }
+    /* Botón "Consultar por WhatsApp": ya verde, asegurar que el ícono y
+       texto se vean blancos puros (no afectado por inherit del builder). */
+    body:not(.dark-mode) .decant-builder-wa {
+      color: #ffffff !important;
+    }
