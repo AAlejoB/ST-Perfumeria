@@ -7108,8 +7108,11 @@
       var list = document.getElementById('decantsCustomList');
       try {
         if (!sb) return;
+        // SELECT * para tolerar si la columna precio_unit todavía no fue
+        // agregada vía ALTER TABLE (sino una query con columna inexistente
+        // tira 400 y rompe el listado completo).
         var res = await sb.from('decants_custom')
-          .select('id, nombre, marca, activo, orden, precio_unit')
+          .select('*')
           .order('orden', { ascending: true });
         if (res.error) throw res.error;
         DECANTS_CUSTOM_CACHE = res.data || [];
@@ -7175,13 +7178,26 @@
         var precioVal = precioRaw === '' ? null : parseFloat(precioRaw);
         if (precioVal !== null && (!isFinite(precioVal) || precioVal < 0)) precioVal = null;
 
-        var upd = await sb.from('decants_custom').update({
+        var payload = {
           nombre: nombre,
           marca: (card.querySelector('.dc-marca').value || '').trim(),
           orden: parseInt(card.querySelector('.dc-orden').value, 10) || 0,
           activo: !!card.querySelector('.dc-activo').checked,
           precio_unit: precioVal
-        }).eq('id', id);
+        };
+        var upd = await sb.from('decants_custom').update(payload).eq('id', id);
+        // Si la columna precio_unit no existe aún (no se corrió el ALTER
+        // TABLE), retry sin esa columna así no se pierde el resto del save.
+        if (upd.error && /precio_unit/i.test(upd.error.message || '')) {
+          delete payload.precio_unit;
+          upd = await sb.from('decants_custom').update(payload).eq('id', id);
+          if (!upd.error) {
+            msg.style.color = '#fbbf24';
+            msg.textContent = '⚠ Guardado SIN precio (falta correr el ALTER TABLE para precio_unit).';
+            await loadDecantsCustom();
+            return;
+          }
+        }
         if (upd.error) throw upd.error;
         msg.style.color = '#4ade80'; msg.textContent = '✓ Guardado.';
         await loadDecantsCustom();

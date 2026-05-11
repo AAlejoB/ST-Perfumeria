@@ -5844,8 +5844,9 @@
     async function loadDecantsCustomForArmador() {
       try {
         if (typeof sb === 'undefined' || !sb) return;
+        // SELECT * tolera si precio_unit no fue agregada via ALTER TABLE
         var res = await sb.from('decants_custom')
-          .select('id, nombre, marca, orden, precio_unit')
+          .select('*')
           .eq('activo', true)
           .order('orden', { ascending: true });
         if (res && !res.error && res.data) {
