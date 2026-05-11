@@ -1935,7 +1935,7 @@
             + '<div class="collectible-img-wrap">' + imgHTML + '</div>'
             + '<div class="collectible-info">'
               + '<p class="collectible-name">' + p.name + '</p>'
-              + '<span class="collectible-badge">Top ventas</span>'
+              + '<span class="collectible-badge">HOT SALE</span>'
             + '</div>'
           + '</div>'
         + '</div>';
