@@ -5932,8 +5932,13 @@
         if (c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
           priceTag = '<p class="decant-card-price">$' + Math.round(parseFloat(c.precio_unit)).toLocaleString('es-AR') + ' c/u</p>';
         }
+        // Imagen: si tiene foto_url usa la imagen, sino el placeholder ⭐
+        var hasFoto = !!(c.foto_url && (c.foto_url + '').trim());
+        var imgHTML = hasFoto
+          ? '<img src="' + escapeHTML(c.foto_url) + '" alt="' + escapeHTML(c.nombre) + '" loading="lazy" decoding="async">'
+          : '<div class="decant-card-img-ph" style="background:rgba(232,184,0,.12);color:var(--amarillo);">★</div>';
         return '<div class="decant-card decant-card-custom' + (qty > 0 ? ' has-qty' : '') + '">'
-          + '<div class="decant-card-img"><div class="decant-card-img-ph" style="background:rgba(232,184,0,.12);color:var(--amarillo);">★</div></div>'
+          + '<div class="decant-card-img">' + imgHTML + '</div>'
           + '<div class="decant-card-info">'
             + '<p class="decant-card-name">' + escapeHTML(c.nombre) + '</p>'
             + '<p class="decant-card-brand">' + escapeHTML(c.marca || 'Especial') + '</p>'

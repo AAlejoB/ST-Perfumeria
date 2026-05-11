@@ -1819,7 +1819,8 @@
         <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
       </div>
       <!-- Mini-header de columnas para que se entienda qué es cada cosa -->
-      <div style="display:grid;grid-template-columns:1.4fr 1fr 110px 70px auto auto;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
+      <div style="display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px auto auto;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
+        <span style="text-align:center;" title="Foto del perfume (opcional)">Foto</span>
         <span>Nombre</span>
         <span>Marca</span>
         <span style="text-align:right;" title="Precio fijo por unidad. Si está vacío usa la escalera global (1-2/3-4/5+).">$ Precio</span>
@@ -7131,8 +7132,25 @@
       }
       list.innerHTML = DECANTS_CUSTOM_CACHE.map(function(p) {
         var precioVal = (p.precio_unit != null && p.precio_unit !== '') ? p.precio_unit : '';
+        // Foto: preview + botón cámara para subir + (si tiene foto) botón X
+        var hasFoto = !!(p.foto_url && p.foto_url.trim());
+        var fotoCell = ''
+          + '<div style="position:relative;display:flex;align-items:center;justify-content:center;width:54px;height:54px;border:1px dashed rgba(232,184,0,.35);border-radius:6px;background:rgba(232,184,0,.04);overflow:hidden;">'
+          +   (hasFoto
+                ? '<img src="' + (p.foto_url + '').replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;"/>'
+                : '<span style="color:rgba(232,184,0,.6);font-size:1.2rem;">⭐</span>')
+          +   '<label style="position:absolute;inset:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.0);transition:background .15s;" onmouseover="this.style.background=\'rgba(0,0,0,.4)\'" onmouseout="this.style.background=\'rgba(0,0,0,0)\'" title="Subir foto">'
+          +     '<input type="file" accept="image/*" style="display:none;" onchange="uploadDecantCustomFoto(' + p.id + ', this)"/>'
+          +     '<span style="font-size:.75rem;color:#fff;opacity:0;transition:opacity .15s;" onmouseover="this.style.opacity=\'1\'" onmouseout="this.style.opacity=\'0\'">📷</span>'
+          +   '</label>'
+          +   (hasFoto
+                ? '<button type="button" onclick="clearDecantCustomFoto(' + p.id + ')" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#7a1f1f;color:#fff;border:none;cursor:pointer;font-size:.7rem;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;z-index:2;" title="Quitar foto">×</button>'
+                : '')
+          + '</div>';
+
         return ''
-          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:1.4fr 1fr 110px 70px auto auto;gap:.5rem;align-items:center;">'
+          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px auto auto;gap:.5rem;align-items:center;">'
+          +   fotoCell
           +   '<input type="text" class="modal-input dc-nombre" value="' + (p.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre" style="margin-bottom:0;font-size:.78rem;"/>'
           +   '<input type="text" class="modal-input dc-marca" value="' + (p.marca || '').replace(/"/g, '&quot;') + '" placeholder="Marca (opcional)" style="margin-bottom:0;font-size:.78rem;"/>'
           +   '<input type="number" class="modal-input dc-precio" value="' + precioVal + '" min="0" step="100" placeholder="$ Precio" style="margin-bottom:0;font-size:.78rem;text-align:right;" title="Precio fijo por unidad. Si está vacío usa la escalera global del armador (1-2/3-4/5+)."/>'
@@ -7216,6 +7234,66 @@
         await loadDecantsCustom();
       } catch (e) {
         msg.style.color = '#ff6b6b'; msg.textContent = '✗ ' + (e.message || 'Error');
+      }
+    }
+
+    // ─── Foto del custom decant: subir a Storage + guardar URL en DB ───
+    async function uploadDecantCustomFoto(id, input) {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var msg = document.getElementById('decantsCustomMsg');
+      msg.style.color = '#e8b800'; msg.textContent = 'Comprimiendo y subiendo foto…';
+      try {
+        // Comprimir a WebP (reusamos la función ya existente en este admin)
+        var compressed = await compressToWebP(file, 700, 0.8);
+        var fileName = 'decant-custom-' + id + '-' + Date.now() + '.webp';
+        var up = await sb.storage.from('perfume-fotos').upload(fileName, compressed, {
+          contentType: 'image/webp',
+          upsert: true
+        });
+        if (up.error) throw up.error;
+        var pub = sb.storage.from('perfume-fotos').getPublicUrl(fileName);
+        var fotoUrl = pub.data.publicUrl + '?v=' + Date.now();
+
+        // Guardar en DB (tolerante si la columna foto_url aún no existe)
+        var payload = { foto_url: fotoUrl };
+        var upd = await sb.from('decants_custom').update(payload).eq('id', id);
+        if (upd.error && /foto_url/i.test(upd.error.message || '')) {
+          msg.style.color = '#fbbf24';
+          msg.textContent = '⚠ Foto subida pero NO guardada en DB. Falta correr: ALTER TABLE decants_custom ADD COLUMN foto_url TEXT;';
+          input.value = '';
+          return;
+        }
+        if (upd.error) throw upd.error;
+
+        // Actualizar cache local + refrescar UI sin re-fetchear todo
+        var idx = DECANTS_CUSTOM_CACHE.findIndex(function(p) { return p.id === id; });
+        if (idx !== -1) DECANTS_CUSTOM_CACHE[idx].foto_url = fotoUrl;
+        renderDecantsCustomList();
+        msg.style.color = '#4ade80';
+        msg.textContent = '✓ Foto subida (' + Math.round(compressed.size / 1024) + ' KB WebP).';
+      } catch (e) {
+        msg.style.color = '#ff6b6b';
+        msg.textContent = '✗ Error: ' + (e.message || e);
+      }
+      input.value = '';
+    }
+
+    async function clearDecantCustomFoto(id) {
+      var msg = document.getElementById('decantsCustomMsg');
+      msg.style.color = ''; msg.textContent = 'Quitando foto…';
+      try {
+        var upd = await sb.from('decants_custom').update({ foto_url: null }).eq('id', id);
+        if (upd.error) throw upd.error;
+        // Actualizar cache local
+        var idx = DECANTS_CUSTOM_CACHE.findIndex(function(p) { return p.id === id; });
+        if (idx !== -1) DECANTS_CUSTOM_CACHE[idx].foto_url = null;
+        renderDecantsCustomList();
+        msg.style.color = '#4ade80';
+        msg.textContent = '✓ Foto quitada (vuelve al placeholder ⭐).';
+      } catch (e) {
+        msg.style.color = '#ff6b6b';
+        msg.textContent = '✗ ' + (e.message || 'Error');
       }
     }
 
