@@ -6924,8 +6924,33 @@
       color: #1a1a1d !important;
       border-right-color: #b48c00 !important;
     }
+    /* Right half del decant banner en light: oscuro para que los
+       frasquitos amarillos contrasten (antes era amarillo sobre amarillo
+       y no se veía nada). */
     body:not(.dark-mode) .decant-b-right {
-      background: linear-gradient(180deg, rgba(232,184,0,.18), rgba(232,184,0,.05)) !important;
+      background: linear-gradient(135deg, #1a1a1d 0%, #2a2a2d 100%) !important;
+    }
+    /* Frasquitos: borde dorado pleno + fill semi-transparente con
+       degradé hacia abajo para que se vean como ámpulas reales. */
+    body:not(.dark-mode) .decant-b-bottle {
+      background: linear-gradient(180deg, rgba(232,184,0,.4), rgba(232,184,0,.15)) !important;
+      border: 1.5px solid var(--amarillo) !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    body:not(.dark-mode) .decant-b-bottle::before {
+      background: var(--amarillo) !important;
+    }
+    /* Labels "5 ml" / "10 ml" / "20 ml" en cremoso, no amarillo */
+    body:not(.dark-mode) .decant-b-ml {
+      color: #f0ede8 !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    }
+    /* Ribbon "PROXIMAMENTE": invertimos — bg dorado pero más sólido,
+       texto carbón para legibilidad sobre cualquier fondo */
+    body:not(.dark-mode) .decant-ribbon {
+      background: linear-gradient(135deg, #ffd700, #b48c00) !important;
+      color: #1a1a1d !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,.4);
     }
     body:not(.dark-mode) .decant-b-title,
     body:not(.dark-mode) .decant-b-label,
