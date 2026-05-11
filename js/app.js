@@ -5723,10 +5723,16 @@
       var minusBtn = document.getElementById('decantCounterMinus');
       if (minusBtn) minusBtn.disabled = qty === 0;
 
-      // Escalera de precio
+      // Escalera de precio — SOLO si NO hay items con precio fijo en el pack.
+      // Si hay aunque sea 1 custom con precio fijo, la escalera se vuelve
+      // engañosa (los "ahorrás $X" no aplican a los especiales). Mejor no
+      // mostrar nada para evitar que el cliente le pida a las chicas algo
+      // que ya no aplica.
       var ladder = '';
       var p1 = DECANTS_CONFIG.precio_1, p3 = DECANTS_CONFIG.precio_3, p5 = DECANTS_CONFIG.precio_5;
-      if (qty === 0) {
+      if (fixedCount > 0) {
+        ladder = '';   // ocultamos la escalera cuando hay especiales con precio fijo
+      } else if (qty === 0) {
         ladder = '💡 1-2: $' + p1.toLocaleString('es-AR') + ' · 3-4: $' + p3.toLocaleString('es-AR') + ' · 5+: $' + p5.toLocaleString('es-AR') + ' c/u';
       } else if (qty < 3) {
         var falta1 = 3 - qty;
@@ -5748,7 +5754,10 @@
       // En qty >= 5 lo destacamos con clase .is-max y badge de % OFF.
       var savingsEl = document.getElementById('decantSavings');
       if (savingsEl) {
-        if (qty >= 3) {
+        // Igual que la escalera: si hay items con precio fijo, ocultamos
+        // los "te ahorrás $X vs comprarlos sueltos" — el cálculo no aplica
+        // a los especiales y confunde al cliente.
+        if (fixedCount === 0 && qty >= 3) {
           var precioSinPack = qty * p1;
           var ahorroReal = precioSinPack - total;
           var pctOff = precioSinPack > 0 ? Math.round((ahorroReal / precioSinPack) * 100) : 0;
@@ -5964,17 +5973,25 @@
       var disponiblesCount   = disponiblesRegulares.length + disponiblesCustom.length;
 
       var html = '';
+      // Sección 1 — AGREGADOS al pack (qty > 0)
       if (seleccionadosCount > 0) {
         html += '<p class="decant-grid-section-title">★ Agregados a tu pack (' + seleccionadosCount + ')</p>';
         html += seleccionadosRegulares.map(cardHTML).join('');
         html += seleccionadosCustom.map(customCardHTML).join('');
       }
-      if (disponiblesCount > 0) {
-        if (seleccionadosCount > 0) {
-          html += '<p class="decant-grid-section-title">Resto del catálogo (' + disponiblesCount + ')</p>';
+      // Sección 2 — ESPECIALES (custom decants disponibles, "rompen" el
+      // orden alfabético para que se vean primero — son los más rentables
+      // y el jefe los quiere bien visibles)
+      if (disponiblesCustom.length > 0) {
+        html += '<p class="decant-grid-section-title">⭐ Especiales (' + disponiblesCustom.length + ')</p>';
+        html += disponiblesCustom.map(customCardHTML).join('');
+      }
+      // Sección 3 — RESTO del catálogo (regulares A → Z)
+      if (disponiblesRegulares.length > 0) {
+        if (seleccionadosCount > 0 || disponiblesCustom.length > 0) {
+          html += '<p class="decant-grid-section-title">Catálogo · A → Z (' + disponiblesRegulares.length + ')</p>';
         }
         html += disponiblesRegulares.map(cardHTML).join('');
-        html += disponiblesCustom.map(customCardHTML).join('');
       }
 
       gridEl.innerHTML = html;
