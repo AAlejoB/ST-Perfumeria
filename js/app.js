@@ -1576,20 +1576,23 @@
 
       if (fotosPool.length >= 2) {
         var slides = fotosPool.map(function(url) {
-          // Backdrop blur con la misma foto para llenar bandas vacías
-          // cuando la botella es alta y angosta (object-fit: contain).
-          var bgStyle = 'background-image:url(\'' + url.replace(/'/g, "%27") + '\')';
-          return '<div class="card-gallery-slide" style="' + bgStyle + '"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
+          // Backdrop blur LAZY: pongo la URL en data-bg, IntersectionObserver
+          // la activa como background-image solo cuando la card entra (o está
+          // a 300px de entrar) al viewport. Sin esto, el browser pedía las
+          // 162 imágenes de backdrop al inicio (bypasseando loading="lazy"
+          // del <img>, que NO aplica a CSS background-image).
+          var bgUrl = url.replace(/'/g, "%27").replace(/"/g, '&quot;');
+          return '<div class="card-gallery-slide" data-bg="' + bgUrl + '"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
         }).join('');
         var navInnerFilled = navInnerHTML.replace('PLACEHOLDER', fotosPool.length);
         galleryNavOnImage = '<div class="card-gallery-nav card-gallery-nav--image">' + navInnerFilled + '</div>';
         galleryNavOnInfo  = '<div class="card-gallery-nav card-gallery-nav--info">'  + navInnerFilled + '</div>';
         imageHTML = '<div class="card-gallery" onscroll="updateGalleryDots(this)">' + slides + '</div>' + galleryNavOnImage;
       } else if (fotosPool.length === 1) {
-        // Wrap en .card-gallery-slide con backdrop blur para evitar bandas
-        // vacías cuando la botella es alta y angosta.
-        var _bgStyle1 = 'background-image:url(\'' + fotosPool[0].replace(/'/g, "%27") + '\')';
-        imageHTML = '<div class="card-gallery-slide card-gallery-slide--single" style="' + _bgStyle1 + '"><img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
+        // Wrap en .card-gallery-slide con backdrop blur LAZY (data-bg, igual
+        // que el caso multi-foto — el IntersectionObserver lo activa).
+        var _bgUrl = fotosPool[0].replace(/'/g, "%27").replace(/"/g, '&quot;');
+        imageHTML = '<div class="card-gallery-slide card-gallery-slide--single" data-bg="' + _bgUrl + '"><img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
       } else {
         imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
       }
@@ -2625,6 +2628,7 @@
       renderSets();                   // renderizar sets/combos
       renderNoteFilters();            // renderizar filtros por notas
       initGalleryAutoplay();          // fotos pasan solas (desktop, viewport-aware)
+      initCardBgLazy();               // lazy-load del backdrop blur (cada slide)
       // Default sort: precio descendente (más caro primero) — siempre,
       // así cualquier re-render (login, fav-sync, override-update) deja
       // el catálogo ordenado por precio descendente sin importar lo que
@@ -2652,6 +2656,56 @@
     // ============================================================
     var GALLERY_AUTOPLAY_MS = 3500;
     var _galleryObserver = null;
+
+    // ============================================================
+    // LAZY BACKDROP BLUR — initCardBgLazy
+    //
+    // Cada .card-gallery-slide tiene la foto como data-bg (NO inline
+    // como style="background-image:..." porque eso bypassea cualquier
+    // lazy y el browser pedía las 162 fotos de golpe al cargar).
+    //
+    // IntersectionObserver activa el background cuando la card está a
+    // 300px de entrar al viewport. Una vez aplicado, se desconecta el
+    // observer para esa card (single-shot).
+    //
+    // Resultado en mobile: las primeras 1-2 cards visibles cargan su
+    // backdrop al inicio; el resto se carga a medida que scrolleás.
+    // ============================================================
+    var _cardBgObserver = null;
+    function initCardBgLazy() {
+      // Cleanup observer anterior (si renderCatalog se re-invocó)
+      if (_cardBgObserver) { try { _cardBgObserver.disconnect(); } catch(_){} }
+
+      var slides = document.querySelectorAll('.card-gallery-slide[data-bg]:not([data-bg-applied])');
+      if (!slides.length) return;
+
+      // Fallback: si no hay IntersectionObserver, aplicar todos directo
+      if (!('IntersectionObserver' in window)) {
+        slides.forEach(function(slide) {
+          var url = slide.getAttribute('data-bg');
+          if (url) {
+            slide.style.backgroundImage = "url('" + url.replace(/&quot;/g, '"') + "')";
+            slide.setAttribute('data-bg-applied', '1');
+          }
+        });
+        return;
+      }
+
+      _cardBgObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (!entry.isIntersecting) return;
+          var el = entry.target;
+          var url = el.getAttribute('data-bg');
+          if (url && !el.hasAttribute('data-bg-applied')) {
+            el.style.backgroundImage = "url('" + url.replace(/&quot;/g, '"') + "')";
+            el.setAttribute('data-bg-applied', '1');
+          }
+          _cardBgObserver.unobserve(el);
+        });
+      }, { rootMargin: '300px 0px' });
+
+      slides.forEach(function(slide) { _cardBgObserver.observe(slide); });
+    }
 
     function initGalleryAutoplay() {
       if (window.innerWidth < 768) return;
