@@ -7141,3 +7141,13 @@
         padding: .85rem 1.2rem;
       }
     }
+
+    /* Precio fijo inline en cards del armador (perfumes custom con precio_unit) */
+    .decant-card-price {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--amarillo);
+      margin-top: 2px;
+      letter-spacing: .03em;
+    }
+    body:not(.dark-mode) .decant-card-price { color: #8a6d00 !important; }

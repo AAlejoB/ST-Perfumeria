@@ -1818,7 +1818,16 @@
         </div>
         <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
       </div>
-      <div id="decantsCustomList" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.8rem;">
+      <!-- Mini-header de columnas para que se entienda qué es cada cosa -->
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 110px 70px auto auto;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
+        <span>Nombre</span>
+        <span>Marca</span>
+        <span style="text-align:right;" title="Precio fijo por unidad. Si está vacío usa la escalera global (1-2/3-4/5+).">$ Precio</span>
+        <span style="text-align:center;" title="Posición en el grid del armador (menor = más arriba)">Orden</span>
+        <span></span>
+        <span></span>
+      </div>
+      <div id="decantsCustomList" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem;">
         <p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando…</p>
       </div>
       <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
@@ -7100,7 +7109,7 @@
       try {
         if (!sb) return;
         var res = await sb.from('decants_custom')
-          .select('id, nombre, marca, activo, orden')
+          .select('id, nombre, marca, activo, orden, precio_unit')
           .order('orden', { ascending: true });
         if (res.error) throw res.error;
         DECANTS_CUSTOM_CACHE = res.data || [];
@@ -7118,15 +7127,17 @@
         return;
       }
       list.innerHTML = DECANTS_CUSTOM_CACHE.map(function(p) {
+        var precioVal = (p.precio_unit != null && p.precio_unit !== '') ? p.precio_unit : '';
         return ''
-          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:1fr 1fr 70px auto auto;gap:.5rem;align-items:center;">'
+          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:1.4fr 1fr 110px 70px auto auto;gap:.5rem;align-items:center;">'
           +   '<input type="text" class="modal-input dc-nombre" value="' + (p.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre" style="margin-bottom:0;font-size:.78rem;"/>'
           +   '<input type="text" class="modal-input dc-marca" value="' + (p.marca || '').replace(/"/g, '&quot;') + '" placeholder="Marca (opcional)" style="margin-bottom:0;font-size:.78rem;"/>'
-          +   '<input type="number" class="modal-input dc-orden" value="' + (p.orden || 0) + '" min="0" style="margin-bottom:0;font-size:.78rem;text-align:center;" title="Orden"/>'
+          +   '<input type="number" class="modal-input dc-precio" value="' + precioVal + '" min="0" step="100" placeholder="$ Precio" style="margin-bottom:0;font-size:.78rem;text-align:right;" title="Precio fijo por unidad. Si está vacío usa la escalera global del armador (1-2/3-4/5+)."/>'
+          +   '<input type="number" class="modal-input dc-orden" value="' + (p.orden || 0) + '" min="0" style="margin-bottom:0;font-size:.78rem;text-align:center;" title="ORDEN: posición en el grid del armador (menor número = aparece más arriba)"/>'
           +   '<label style="display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:var(--gris-claro);cursor:pointer;"><input type="checkbox" class="dc-activo" ' + (p.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo</label>'
           +   '<div style="display:flex;gap:.3rem;flex-shrink:0;">'
-          +     '<button class="modal-btn" onclick="saveDecantCustom(' + p.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.65rem;padding:.3rem .6rem;">💾</button>'
-          +     '<button class="modal-btn" onclick="deleteDecantCustom(' + p.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.3rem .6rem;">🗑️</button>'
+          +     '<button class="modal-btn" onclick="saveDecantCustom(' + p.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.65rem;padding:.3rem .6rem;" title="Guardar cambios">💾</button>'
+          +     '<button class="modal-btn" onclick="deleteDecantCustom(' + p.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.3rem .6rem;" title="Eliminar este perfume">🗑️</button>'
           +   '</div>'
           + '</div>';
       }).join('');
@@ -7159,11 +7170,17 @@
       if (!nombre) { msg.style.color = '#ff6b6b'; msg.textContent = '⚠ Nombre obligatorio.'; return; }
       msg.style.color = ''; msg.textContent = 'Guardando…';
       try {
+        // precio_unit: vacío = null (usa escalera global del armador)
+        var precioRaw = (card.querySelector('.dc-precio').value || '').trim();
+        var precioVal = precioRaw === '' ? null : parseFloat(precioRaw);
+        if (precioVal !== null && (!isFinite(precioVal) || precioVal < 0)) precioVal = null;
+
         var upd = await sb.from('decants_custom').update({
           nombre: nombre,
           marca: (card.querySelector('.dc-marca').value || '').trim(),
           orden: parseInt(card.querySelector('.dc-orden').value, 10) || 0,
-          activo: !!card.querySelector('.dc-activo').checked
+          activo: !!card.querySelector('.dc-activo').checked,
+          precio_unit: precioVal
         }).eq('id', id);
         if (upd.error) throw upd.error;
         msg.style.color = '#4ade80'; msg.textContent = '✓ Guardado.';

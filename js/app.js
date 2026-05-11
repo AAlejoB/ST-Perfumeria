@@ -5679,15 +5679,46 @@
 
     function updateDecantUI() {
       var qty = decantsPack.length;
-      var unit = getDecantUnitPrice(qty);
-      var total = qty * unit;
       function setTxt(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+
+      // Separar slugs en 2 grupos:
+      //  - "fixed": customs con precio_unit definido (no entran a la escalera)
+      //  - "ladder": el resto (regulares + customs sin precio_unit)
+      var fixedCount = 0;
+      var fixedTotal = 0;
+      var ladderCount = 0;
+      decantsPack.forEach(function(s) {
+        if (typeof s === 'string' && s.indexOf('custom-') === 0) {
+          var cid = parseInt(s.replace('custom-', ''), 10);
+          var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
+          if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
+            fixedCount++;
+            fixedTotal += parseFloat(c.precio_unit);
+            return;
+          }
+        }
+        ladderCount++;
+      });
+      var unit = getDecantUnitPrice(ladderCount);          // tier según los que SÍ usan escalera
+      var total = (ladderCount * unit) + fixedTotal;
+
       setTxt('decantQty', qty);
       setTxt('decantMax', DECANTS_CONFIG.max_decants);
       setTxt('decantMlLabel', DECANTS_CONFIG.ml);
       setTxt('decantMaxLabel', DECANTS_CONFIG.max_decants);
-      setTxt('decantTotal', '$' + total.toLocaleString('es-AR'));
-      setTxt('decantUnit', '$' + unit.toLocaleString('es-AR') + ' c/u');
+      setTxt('decantTotal', '$' + Math.round(total).toLocaleString('es-AR'));
+      // "c/u" del header: si hay items con precio fijo y otros con escalera,
+      // mostramos el de escalera con nota. Sino el normal.
+      if (fixedCount > 0 && ladderCount > 0) {
+        setTxt('decantUnit', '$' + unit.toLocaleString('es-AR') + ' c/u (mixto)');
+      } else if (fixedCount > 0 && ladderCount === 0) {
+        setTxt('decantUnit', 'Precio fijo');
+      } else {
+        setTxt('decantUnit', '$' + unit.toLocaleString('es-AR') + ' c/u');
+      }
+      // Variables que la escalera de abajo necesita
+      qty = qty;  // re-asignación no-op para claridad
+      total = total;
       // Botón − del contador: solo activo si hay al menos 1 decant
       var minusBtn = document.getElementById('decantCounterMinus');
       if (minusBtn) minusBtn.disabled = qty === 0;
@@ -5814,7 +5845,7 @@
       try {
         if (typeof sb === 'undefined' || !sb) return;
         var res = await sb.from('decants_custom')
-          .select('id, nombre, marca, orden')
+          .select('id, nombre, marca, orden, precio_unit')
           .eq('activo', true)
           .order('orden', { ascending: true });
         if (res && !res.error && res.data) {
@@ -5895,11 +5926,17 @@
       function customCardHTML(c) {
         var slug = 'custom-' + c.id;
         var qty = counts[slug] || 0;
+        // Si tiene precio fijo, mostrarlo inline para que el cliente lo vea
+        var priceTag = '';
+        if (c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
+          priceTag = '<p class="decant-card-price">$' + Math.round(parseFloat(c.precio_unit)).toLocaleString('es-AR') + ' c/u</p>';
+        }
         return '<div class="decant-card decant-card-custom' + (qty > 0 ? ' has-qty' : '') + '">'
           + '<div class="decant-card-img"><div class="decant-card-img-ph" style="background:rgba(232,184,0,.12);color:var(--amarillo);">★</div></div>'
           + '<div class="decant-card-info">'
             + '<p class="decant-card-name">' + escapeHTML(c.nombre) + '</p>'
             + '<p class="decant-card-brand">' + escapeHTML(c.marca || 'Especial') + '</p>'
+            + priceTag
           + '</div>'
           + '<div class="decant-card-ctrl">'
             + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(\'' + slug + '\')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
@@ -5989,25 +6026,52 @@
       if (qty < 1) return;
       var counts = {};
       decantsPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
-      var unit = getDecantUnitPrice(qty);
-      var total = qty * unit;
+
+      // Separar customs con precio fijo de los regulares
+      var fixedTotal = 0;
+      var ladderCount = 0;
+      decantsPack.forEach(function(s) {
+        if (typeof s === 'string' && s.indexOf('custom-') === 0) {
+          var cid = parseInt(s.replace('custom-', ''), 10);
+          var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
+          if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
+            fixedTotal += parseFloat(c.precio_unit);
+            return;
+          }
+        }
+        ladderCount++;
+      });
+      var unit = getDecantUnitPrice(ladderCount);
+      var total = (ladderCount * unit) + fixedTotal;
+
       var lines = Object.keys(counts).map(function(slug) {
-        var name;
+        var name, priceNote = '';
         if (slug.indexOf('custom-') === 0) {
-          // Perfume personalizado: buscar en DECANTS_CUSTOM_LIST por id
           var cid = parseInt(slug.replace('custom-', ''), 10);
           var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
           name = c ? (c.nombre + (c.marca ? ' (' + c.marca + ')' : '') + ' ⭐') : slug;
+          if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
+            priceNote = ' — $' + Math.round(parseFloat(c.precio_unit)).toLocaleString('es-AR') + ' c/u';
+          }
         } else {
           var p = PERFUMES.find(function(x) { return x.slug === slug; });
           name = p ? p.name : slug;
         }
         var n = counts[slug];
-        return '• ' + name + (n > 1 ? ' (x' + n + ')' : '');
+        return '• ' + name + (n > 1 ? ' (x' + n + ')' : '') + priceNote;
       });
+
+      var resumen;
+      if (fixedTotal > 0 && ladderCount > 0) {
+        resumen = ladderCount + ' x $' + unit.toLocaleString('es-AR') + ' + especiales = $' + Math.round(total).toLocaleString('es-AR');
+      } else if (fixedTotal > 0 && ladderCount === 0) {
+        resumen = 'Total: $' + Math.round(total).toLocaleString('es-AR');
+      } else {
+        resumen = qty + ' x $' + unit.toLocaleString('es-AR') + ' = $' + Math.round(total).toLocaleString('es-AR');
+      }
       var msg = 'Hola! Quiero armar un pack de ' + qty + ' decants de ' + DECANTS_CONFIG.ml + 'ml:\n\n'
         + lines.join('\n') + '\n\n'
-        + qty + ' x $' + unit.toLocaleString('es-AR') + ' = $' + total.toLocaleString('es-AR') + '\n'
+        + resumen + '\n'
         + '¿Confirmás stock?';
       var url = 'https://wa.me/5492975416017?text=' + encodeURIComponent(msg);
       window.open(url, '_blank');
