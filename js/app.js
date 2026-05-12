@@ -2620,20 +2620,34 @@
       // 2. Mapear: convertir cada perfume a HTML con buildCard()
       // 3. Join: unir todo el HTML en un solo string
       // Excluir: sets/combos (tienen su sección propia) y perfumes ocultos por el admin
-      grid.innerHTML = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; }).map(buildCard).join('');
+      // Defensivo: si un perfume tira error en buildCard (p.ej. name undefined),
+      // lo saltamos en vez de romper el render entero. Antes una sola card mala
+      // dejaba toda la grilla vacía.
+      var cardsHTML = '';
+      var failedCount = 0;
+      PERFUMES.forEach(function(p) {
+        if (p.esSet || p._oculto) return;
+        try {
+          cardsHTML += buildCard(p);
+        } catch(e) {
+          failedCount++;
+          console.warn('[renderCatalog] saltado:', p && p.slug, e && e.message);
+        }
+      });
+      grid.innerHTML = cardsHTML;
+      if (failedCount > 0) console.warn('[renderCatalog] cards saltadas por error:', failedCount);
+
       cardsShown = CARDS_INITIAL;    // mostrar solo las primeras N cards
-      applyCardVisibility();          // aplicar filtros y mostrar/ocultar
-      updateFavBadge();               // actualizar contador de favoritos
-      renderSeleccionST();            // renderizar sección "Selección ST"
-      renderSets();                   // renderizar sets/combos
-      renderNoteFilters();            // renderizar filtros por notas
-      initGalleryAutoplay();          // fotos pasan solas (desktop, viewport-aware)
-      initCardBgLazy();               // lazy-load del backdrop blur (cada slide)
-      // Default sort: precio descendente (más caro primero) — siempre,
-      // así cualquier re-render (login, fav-sync, override-update) deja
-      // el catálogo ordenado por precio descendente sin importar lo que
-      // haya pasado antes.
-      try { sortCards('price-desc'); } catch(e) {}
+      // Cada paso aislado: si falla uno, los demás siguen funcionando.
+      try { applyCardVisibility(); } catch(e) { console.warn('[renderCatalog] applyCardVisibility:', e); }
+      try { updateFavBadge(); }      catch(e) { console.warn('[renderCatalog] updateFavBadge:', e); }
+      try { renderSeleccionST(); }   catch(e) { console.warn('[renderCatalog] renderSeleccionST:', e); }
+      try { renderSets(); }          catch(e) { console.warn('[renderCatalog] renderSets:', e); }
+      try { renderNoteFilters(); }   catch(e) { console.warn('[renderCatalog] renderNoteFilters:', e); }
+      try { initGalleryAutoplay(); } catch(e) { console.warn('[renderCatalog] initGalleryAutoplay:', e); }
+      try { initCardBgLazy(); }      catch(e) { console.warn('[renderCatalog] initCardBgLazy:', e); }
+      // Default sort: precio descendente (más caro primero) — siempre.
+      try { sortCards('price-desc'); } catch(e) { console.warn('[renderCatalog] sortCards:', e); }
     }
 
     // ============================================================
