@@ -4692,8 +4692,13 @@
     function updateCartUI() {
       var btn = document.getElementById('cartFloat');
       var countEl = document.getElementById('cartFloatCount');
-      countEl.textContent = cart.length;
-      btn.classList.toggle('visible', cart.length > 0);
+      if (countEl) countEl.textContent = cart.length;
+      if (btn) btn.classList.toggle('visible', cart.length > 0);
+      // Sincronizar también el badge del nav (nuevo botón carrito en navbar)
+      var navBadge = document.getElementById('navCartBadge');
+      var navBtn = document.getElementById('navCartBtn');
+      if (navBadge) navBadge.textContent = cart.length;
+      if (navBtn) navBtn.classList.toggle('has-items', cart.length > 0);
       sessionStorage.setItem('st_cart', JSON.stringify(cart));
     }
 

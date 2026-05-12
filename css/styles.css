@@ -7870,3 +7870,37 @@
     body:not(.dark-mode) .decant-b-sub { color: rgba(255,255,255,.85) !important; }
     body:not(.dark-mode) .decant-b-label { color: rgba(255,217,0,.95) !important; }
     body:not(.dark-mode) .decant-b-ml { color: #ffffff !important; }
+
+    /* ════════════════════════════════════════════════════════════════
+       [NAV-CART] Carrito en el nav — botón con badge sincronizado al
+       cart drawer existente. El cart-float flotante queda como respaldo
+       visual (solo aparece cuando hay items, abajo a la derecha).
+       ──────────────────────────────────────────────────────────────── */
+    .nav-cart-btn { position: relative; }
+    .nav-cart-wrap { position: relative; display: inline-flex; }
+    .nav-cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      background: #e74c3c;
+      color: #fff;
+      font-size: .55rem;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      line-height: 16px;
+      text-align: center;
+      border-radius: 50%;
+      padding: 0 3px;
+      display: none;
+    }
+    .nav-cart-btn.has-items .nav-cart-badge { display: block; }
+    /* Animación pop al agregar primer item */
+    .nav-cart-btn.has-items {
+      animation: navCartBounce .35s ease-out;
+    }
+    @keyframes navCartBounce {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }

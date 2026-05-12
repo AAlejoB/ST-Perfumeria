@@ -481,6 +481,13 @@
       <a href="#" class="nav-icon-btn nav-register-btn" title="Iniciar sesi&oacute;n" onclick="event.preventDefault();openAuth()" aria-label="Iniciar sesión">
         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
       </a>
+      <!-- Carrito en el nav: badge con count + abre el cart drawer existente -->
+      <button type="button" class="nav-icon-btn nav-cart-btn" id="navCartBtn" onclick="openCartPanel()" title="Tu pedido" aria-label="Ver carrito">
+        <span class="nav-cart-wrap">
+          <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+          <span class="nav-cart-badge" id="navCartBadge">0</span>
+        </span>
+      </button>
       <a href="#catalogo" class="nav-icon-btn nav-fav-btn" title="Favoritos" onclick="showFavorites(event)" aria-label="Favoritos">
         <span class="nav-fav-wrap">
           <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
