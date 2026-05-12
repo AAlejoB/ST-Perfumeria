@@ -307,6 +307,7 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.08 | [LCP-PRELOAD] + [CLS-RESERVE] fix Lighthouse |
 | v1.1.09 | [FCP-CSS] CSS no bloqueante + critical inline |
 | v1.1.10 | [IMG-DIMS] aspect-ratio defensivo en imgs |
+| v1.1.11 | [PENDULO] cart-float circular gemelo del wa-float |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -398,6 +399,7 @@ Fixes aplicados:
 Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos features con sus keywords y Claude sabe a qué te referís:
 
 - `[NAV-CART]` — carrito en navbar
+- `[PENDULO]` — cart-float convertido en círculo gemelo del wa-float (justo arriba, gap 12px)
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
 - `[FCP-CSS]` — CSS no bloqueante + critical inline
@@ -405,6 +407,8 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[SDK-DEFER]` — Supabase SDK con defer (ya estaba)
 
 Y para mejoras futuras planteadas pero no hechas:
+- `[ZAPATO]` — pulido del admin con dimensiones pensadas para Samsung Galaxy Tab A9 (tablet del local) + asegurar que TODAS las funciones se vean
+
 - `[LCP-V2]` — segunda capa de LCP (comprimir logo, lazy real cards 7+)
 - `[HERO-OPTIMIZE]` — optimización específica del hero
 - `[JS-CHUNK]` — splittear app.js en módulos (invasivo, dejar para una semana sin cambios)
