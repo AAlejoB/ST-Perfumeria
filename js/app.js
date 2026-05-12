@@ -1421,6 +1421,32 @@
       return '$' + num.toLocaleString('es-AR').replace(/,/g, '.'); // formato AR con punto de miles
     }
 
+    // [HOTSALE] Pricing helpers — fuente única de verdad.
+    // Modelo: p.price = precio TARJETA (base para cuotas). p.promo = precio EFECTIVO/TRANSFER override.
+    // Cuando hay promo, ese ES el cash final (no aplicar otro 0.9). Default: cash = price * 0.9.
+    var HOT_SALE_LABEL = '🔥 HOT SALE EFECTIVO';
+    function getListaPrice(p) {
+      var n = parseFloat(String(p && p.price || '').replace(/[^0-9.\-]/g, ''));
+      return isNaN(n) ? 0 : n;
+    }
+    function getCashPrice(p) {
+      var promo = parseFloat(String(p && p.promo || '').replace(/[^0-9.\-]/g, ''));
+      if (!isNaN(promo) && promo > 0) return Math.round(promo);
+      return Math.round(getListaPrice(p) * 0.9);
+    }
+    function getCuotaPrice(p) {
+      return Math.round(getListaPrice(p) / 3);
+    }
+    function hasHotSale(p) {
+      var promo = parseFloat(String(p && p.promo || '').replace(/[^0-9.\-]/g, ''));
+      return !isNaN(promo) && promo > 0;
+    }
+    function getDiscountPct(p) {
+      var lista = getListaPrice(p);
+      if (lista <= 0) return 0;
+      return Math.round((1 - getCashPrice(p) / lista) * 100);
+    }
+
     // primaryCat: de una cadena "Unisex, Hombre" saca solo la primera categoría
     // Útil porque algunos perfumes tienen múltiples categorías
     function primaryCat(catStr) {
@@ -1678,22 +1704,20 @@
         imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
       }
 
-      var effectivePrice = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
-      var cashPrice = Math.round(effectivePrice * 0.9);
+      // [HOTSALE] Las cuotas siempre se calculan sobre precio TARJETA (p.price).
+      // El cash sale del helper: si hay promo, ese ES el cash; sino, price * 0.9.
+      var listaFormatted = '$' + getListaPrice(p).toLocaleString('es-AR').replace(/,/g, '.');
+      var cashPrice = getCashPrice(p);
       var cashFormatted = '$' + cashPrice.toLocaleString('es-AR').replace(/,/g, '.');
-
+      var discountPct = getDiscountPct(p);
       var pricingHTML;
-      if (p._precioOriginal) {
-        // Tiene descuento temporal activo → precio tachado + nuevo precio en rojo
-        pricingHTML = '<span class="card-price-original-discount">' + p._precioOriginal + '</span>'
-          + '<span class="price-promo card-price-discount">' + priceFormatted + '</span>'
+      if (hasHotSale(p)) {
+        pricingHTML = '<span class="price-promo">' + listaFormatted + '</span>'
           + '<span class="price-label">3 cuotas sin interés</span>'
-          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
-      } else if (p.promo) {
-        pricingHTML = '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span><span class="price-original">' + originalFormatted + '</span>'
-          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
+          + '<span class="price-cash price-cash--hotsale">' + HOT_SALE_LABEL + ': ' + cashFormatted + ' (' + discountPct + '% off)</span>';
       } else {
-        pricingHTML = '<span class="price-promo">' + priceFormatted + '</span><span class="price-label">3 cuotas sin interés</span>'
+        pricingHTML = '<span class="price-promo">' + listaFormatted + '</span>'
+          + '<span class="price-label">3 cuotas sin interés</span>'
           + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
       }
 
@@ -1734,33 +1758,10 @@
         ribbonHTML = '<div class="card-ribbon" style="background:' + ribbonColor + ';">' + p.etiqueta + '</div>';
       }
 
-      // Descuento temporal: verificar si está activo
+      // [HOTSALE] Descuento temporal (descuento_pct + descuento_hasta) sacado del front.
+      // Los campos siguen en DB y admin; si se reactiva la feature en el futuro, restaurar acá.
       var discountHTML = '';
       var discountTimerHTML = '';
-      if (p.descuento_pct && p.descuento_pct > 0 && p.descuento_hasta) {
-        var ahora = new Date();
-        var vence = new Date(p.descuento_hasta);
-        if (vence > ahora) {
-          // Descuento activo → calcular nuevo precio
-          var diff = vence - ahora;
-          var dias = Math.floor(diff / 86400000);
-          var horas = Math.floor((diff % 86400000) / 3600000);
-          var timerText = dias > 0 ? dias + 'd ' + horas + 'h' : horas + 'h';
-
-          discountHTML = '<div class="card-discount-badge"><span class="discount-pct">' + p.descuento_pct + '%</span> OFF</div>';
-          discountTimerHTML = '<div class="card-discount-timer">⏰ ' + timerText + '</div>';
-
-          // Recalcular precio con descuento
-          var basePrice = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
-          var discountedPrice = Math.round(basePrice * (1 - p.descuento_pct / 100));
-          // Guardar el precio original para tachar
-          p._precioOriginal = priceFormatted;
-          priceFormatted = '$' + discountedPrice.toLocaleString('es-AR').replace(/,/g, '.');
-          // Recalcular cash con el precio descontado
-          var discCash = Math.round(discountedPrice * 0.9);
-          cashFormatted = '$' + discCash.toLocaleString('es-AR').replace(/,/g, '.');
-        }
-      }
 
       // ML del producto
       var mlText = (p.ml || 100) + ' ml';
@@ -4954,12 +4955,16 @@
         cashEl.textContent = '';
       } else {
         var html = '';
-        var total = 0;
+        var listaTotal = 0;
+        var cashTotal = 0;
+        var anyHotSale = false;
         cart.forEach(function(slug) {
           var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
           if (!p) return;
-          var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
-          total += priceNum;
+          var listaPrice = getListaPrice(p);
+          listaTotal += listaPrice;
+          cashTotal += getCashPrice(p);
+          if (hasHotSale(p)) anyHotSale = true;
           var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
           var imgHTML = fotoSrc
             ? '<img class="cart-item-img" src="' + fotoSrc + '" alt="' + p.name + '">'
@@ -4967,15 +4972,16 @@
           html += '<div class="cart-item">'
             + imgHTML
             + '<div class="cart-item-info"><p class="cart-item-name">' + p.name + '</p><p class="cart-item-brand">' + (p.marca_real || p.marca) + '</p></div>'
-            + '<span class="cart-item-price">$' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.') + '</span>'
+            + '<span class="cart-item-price">$' + Math.round(listaPrice).toLocaleString('es-AR').replace(/,/g, '.') + '</span>'
             + '<button class="cart-item-remove" onclick="removeFromCart(\'' + slug + '\')">&times;</button>'
           + '</div>';
         });
         container.innerHTML = html;
-        var cuota = Math.round(total / 3);
+        var cuota = Math.round(listaTotal / 3);
         totalEl.textContent = '$' + cuota.toLocaleString('es-AR').replace(/,/g, '.');
-        var cashTotal = Math.round(total * 0.9);
-        cashEl.textContent = 'Efectivo/transf: $' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + ' (total $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + ' con 10% off)';
+        var pctOff = listaTotal > 0 ? Math.round((1 - cashTotal / listaTotal) * 100) : 0;
+        var cashLabel = anyHotSale ? HOT_SALE_LABEL : 'Efectivo/transf';
+        cashEl.textContent = cashLabel + ': $' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + ' (total $' + Math.round(listaTotal).toLocaleString('es-AR').replace(/,/g, '.') + ' con ' + pctOff + '% off)';
       }
       document.getElementById('cartPanelOverlay').classList.add('active');
     }
@@ -4998,37 +5004,42 @@
       closeCartPanel();
     }
 
-    // [GATO] Mensaje WA unificado: usado por carrito, "Consultar" individual y set.
-    // El vendedor recibe siempre el mismo formato con precio, cuotas y efectivo off.
+    // [GATO][HOTSALE] Mensaje WA unificado: usado por carrito, "Consultar" individual y set.
+    // Cuotas SIEMPRE sobre precio TARJETA (p.price). Cash desde getCashPrice (promo si hay, sino 10%).
+    // % off calculado dinámicamente para reflejar el descuento real (10% default, 15% en Hot Sale, etc).
     function buildWaMessage(items, note) {
       if (!items || !items.length) return '';
       var lines = [];
       lines.push('Hola! 👋 Me interesan estos perfumes:');
       lines.push('');
 
-      var total = 0;
+      var listaTotal = 0;
+      var cashTotal = 0;
+      var anyHotSale = false;
       var num = 0;
       items.forEach(function(p) {
         if (!p) return;
-        var priceRaw = p.promo || p.price;
-        var priceNum = priceRaw ? parseFloat(String(priceRaw).replace(/[^0-9.\-]/g, '')) : 0;
-        if (isNaN(priceNum)) priceNum = 0;
-        total += priceNum;
+        var listaPrice = getListaPrice(p);
+        listaTotal += listaPrice;
+        cashTotal += getCashPrice(p);
+        if (hasHotSale(p)) anyHotSale = true;
         num++;
         var marca = p.marca_real || p.marca || '';
         lines.push(num + '. *' + p.name + '*' + (marca ? ' — ' + marca : ''));
-        if (priceNum > 0) {
-          lines.push('   💰 $' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.'));
+        if (listaPrice > 0) {
+          lines.push('   💰 $' + Math.round(listaPrice).toLocaleString('es-AR').replace(/,/g, '.'));
         }
       });
 
-      if (total > 0) {
+      if (listaTotal > 0) {
         lines.push('');
         lines.push('📦 *' + num + (num === 1 ? ' perfume' : ' perfumes') + '*');
-        var cuota = Math.round(total / 3);
-        lines.push('💳 3 cuotas sin interés de *$' + cuota.toLocaleString('es-AR').replace(/,/g, '.') + '* (total $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + ')');
-        var cashTotal = Math.round(total * 0.9);
-        lines.push('💵 Efectivo/transf: *$' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + '* (10% off)');
+        var cuota = Math.round(listaTotal / 3);
+        lines.push('💳 3 cuotas sin interés de *$' + cuota.toLocaleString('es-AR').replace(/,/g, '.') + '* (total $' + Math.round(listaTotal).toLocaleString('es-AR').replace(/,/g, '.') + ')');
+        var pctOff = Math.round((1 - cashTotal / listaTotal) * 100);
+        var cashEmoji = anyHotSale ? '🔥' : '💵';
+        var cashLabel = anyHotSale ? 'Efectivo/transf HOT SALE' : 'Efectivo/transf';
+        lines.push(cashEmoji + ' ' + cashLabel + ': *$' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + '* (' + pctOff + '% off)');
       }
 
       if (note) {
@@ -5208,16 +5219,18 @@
         + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
         + tipoBadge;
 
-      // Precio
-      var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
-      var cashNum = Math.round(priceNum * 0.9);
+      // [HOTSALE] Precio en modal de detalle: misma lógica que la card del catálogo.
+      var bsListaFormatted = '$' + getListaPrice(p).toLocaleString('es-AR').replace(/,/g, '.');
+      var bsCashNum = getCashPrice(p);
+      var bsCashFormatted = '$' + bsCashNum.toLocaleString('es-AR').replace(/,/g, '.');
+      var bsPctOff = getDiscountPct(p);
       var priceHTML = '';
-      if (p.promo) {
-        priceHTML = '<span class="price-promo">$' + formatPrice(p.promo) + '</span> <span class="price-label">3 cuotas sin interés</span> <span class="price-original">$' + formatPrice(p.price) + '</span>'
-          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' descuento efectivo/transf.</span>';
+      if (hasHotSale(p)) {
+        priceHTML = '<span class="price-promo">' + bsListaFormatted + '</span> <span class="price-label">3 cuotas sin interés</span>'
+          + '<br><span class="price-cash price-cash--hotsale">' + HOT_SALE_LABEL + ': ' + bsCashFormatted + ' (' + bsPctOff + '% off)</span>';
       } else {
-        priceHTML = '<span class="price-promo">$' + formatPrice(p.price) + '</span> <span class="price-label">3 cuotas sin interés</span>'
-          + '<br><span class="price-cash">$' + cashNum.toLocaleString('es-AR').replace(/,/g, '.') + ' descuento efectivo/transf.</span>';
+        priceHTML = '<span class="price-promo">' + bsListaFormatted + '</span> <span class="price-label">3 cuotas sin interés</span>'
+          + '<br><span class="price-cash">' + bsCashFormatted + ' descuento efectivo/transf.</span>';
       }
       document.getElementById('bsPrice').innerHTML = priceHTML;
 

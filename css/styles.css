@@ -2694,6 +2694,13 @@
     .price-original { font-size: .9rem; color: #999; text-decoration: line-through; }
     .price-label { font-size: .55rem; color: #bbb; font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
     .price-cash { width: 100%; font-size: .85rem; color: #4caf50; font-weight: 600; }
+    /* [HOTSALE] Label cash cuando hay promo activa (Hot Sale, descuento custom, etc) */
+    .price-cash--hotsale {
+      color: #ff7043 !important;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    body:not(.dark-mode) .price-cash--hotsale { color: #c2410c !important; }
 
     /* REVEAL LATERAL — sobre el área de imagen (30%), precio queda visible */
     .card-reveal {
