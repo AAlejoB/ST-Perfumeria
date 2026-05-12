@@ -3855,14 +3855,50 @@
       return Promise.race([promise, timeoutP]);
     }
 
+    // Helper: cache local de queries Supabase con TTL.
+    // Patrón "Stale-While-Revalidate" para data de DB:
+    //  - Antes de la query, devuelve cached si existe y no expiró (instant).
+    //  - Lanza la query en background: si OK actualiza cache, si falla
+    //    no pasa nada (sigue con el cached).
+    //  - Si NO HAY cached → espera la query con timeout.
+    // Resultado: aunque Supabase esté caído, el cliente ve la última data
+    // conocida en lugar de pantalla vacía.
+    var DB_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
+    function readCache(key) {
+      try {
+        var raw = localStorage.getItem('st_cache_' + key);
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        if (!obj || !obj.ts || !obj.data) return null;
+        if (Date.now() - obj.ts > DB_CACHE_TTL_MS) return null; // expirado
+        return obj.data;
+      } catch(e) { return null; }
+    }
+    function writeCache(key, data) {
+      try {
+        localStorage.setItem('st_cache_' + key, JSON.stringify({ ts: Date.now(), data: data }));
+      } catch(e) {}
+    }
+
     async function loadPerfumesNuevos() {
+      // Pre-aplicar cache si existe (instant fallback)
+      var cached = readCache('perfumes_nuevos');
+      if (cached && Array.isArray(cached)) {
+        cached.forEach(function(p) {
+          if (PERFUMES.find(function(pf) { return pf.slug === p.slug; })) return;
+          PERFUMES.push(p);
+        });
+        console.log('[loadPerfumesNuevos] aplicado desde cache:', cached.length, 'items');
+      }
       try {
         var { data, error } = await withTimeout(
           sb.from('perfumes_nuevos').select('*'),
-          5000,
+          3000,
           'perfumes_nuevos'
         );
         if (error) { console.warn('[loadPerfumesNuevos] supabase error:', error.message); return; }
+        // Cachear los rows transformados (igual estructura que se pushea)
+        var newPerfumesToCache = [];
         if (data && data.length > 0) {
           data.forEach(function(p) {
             // No duplicar si ya existe
@@ -3872,7 +3908,7 @@
               if (!n) return '';
               return n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
-            PERFUMES.push({
+            var pNorm = {
               slug: p.slug, name: p.name, marca: p.marca, marca_real: p.marca_real || '',
               cat: p.cat, perfil: p.perfil, tipo: p.tipo || '', alias: p.alias || '',
               price: intToPrice(p.price),
@@ -3880,65 +3916,71 @@
               foto: p.foto || '', ml: p.ml || 100,
               notas_salida: p.notas_salida || '', notas_corazon: p.notas_corazon || '',
               notas_base: p.notas_base || '', _isNew: true
-            });
+            };
+            PERFUMES.push(pNorm);
+            newPerfumesToCache.push(pNorm);
           });
+          writeCache('perfumes_nuevos', newPerfumesToCache);
         }
       } catch(e) {
-        console.warn('[loadPerfumesNuevos] timeout o error:', e.message);
+        console.warn('[loadPerfumesNuevos] timeout o error:', e.message, '— usando cache si hay');
       }
+    }
+
+    // Helper compartido — aplica UN override (de Supabase o de cache) a su perfume.
+    // Tiene que estar SINCRO con el forEach de loadOverrides.
+    function applyOverrideToPerfume(o) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
+      if (!p) return;
+      if (o.oculto === true) { p._oculto = true; return; }
+      if (o.name) p.name = o.name;
+      if (o.marca) p.marca = o.marca;
+      if (o.marca_real) p.marca_real = o.marca_real;
+      if (o.cat) p.cat = o.cat;
+      if (o.perfil) p.perfil = o.perfil;
+      if (o.price) p.price = o.price;
+      if (o.promo !== null && o.promo !== undefined) p.promo = o.promo;
+      if (o.foto) p.foto = o.foto;
+      if (o.notas_salida) p.notas_salida = o.notas_salida;
+      if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
+      if (o.notas_base) p.notas_base = o.notas_base;
+      if (o.stock_status) p._stockStatus = o.stock_status;
+      if (o.stock_qty !== null && o.stock_qty !== undefined) p._stockQty = o.stock_qty;
+      if (o.fotos_extra) p.fotos_extra = o.fotos_extra;
+      if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';
+      if (o.etiqueta_color) p.etiqueta_color = o.etiqueta_color;
+      if (o.descuento_pct) p.descuento_pct = o.descuento_pct;
+      if (o.descuento_hasta) p.descuento_hasta = o.descuento_hasta;
+      if (o.tipo !== undefined && o.tipo !== null) p.tipo = o.tipo;
+      if (o.alias !== undefined && o.alias !== null) p.alias = o.alias;
+      if (o.similares_manuales !== undefined && o.similares_manuales !== null) p.similares_manuales = o.similares_manuales;
+      if (o.similares_nota !== undefined && o.similares_nota !== null) p.similares_nota = o.similares_nota;
+      if (o.nota_ultimo !== undefined && o.nota_ultimo !== null) p.nota_ultimo = o.nota_ultimo;
+      if (o.nota_sin_stock !== undefined && o.nota_sin_stock !== null) p.nota_sin_stock = o.nota_sin_stock;
+      if (o.nota_proximamente !== undefined && o.nota_proximamente !== null) p.nota_proximamente = o.nota_proximamente;
     }
 
     // Cargar overrides desde Supabase y aplicar sobre perfumes.js
     async function loadOverrides() {
+      // Pre-aplicar cache si existe (instant fallback)
+      var cached = readCache('perfume_overrides');
+      if (cached && Array.isArray(cached)) {
+        cached.forEach(applyOverrideToPerfume);
+        console.log('[loadOverrides] aplicado desde cache:', cached.length, 'overrides');
+      }
       try {
         var { data, error } = await withTimeout(
           sb.from('perfume_overrides').select('*'),
-          5000,
+          3000,
           'perfume_overrides'
         );
         if (error) { console.warn('[loadOverrides] supabase error:', error.message); return; }
         if (data && data.length > 0) {
-          data.forEach(function(o) {
-            var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
-            if (!p) return;
-            // Si está marcado como oculto por el admin, lo ocultamos del catálogo
-            if (o.oculto === true) { p._oculto = true; return; }
-            // Solo sobreescribir campos que tengan valor
-            if (o.name) p.name = o.name;
-            if (o.marca) p.marca = o.marca;
-            if (o.marca_real) p.marca_real = o.marca_real;
-            if (o.cat) p.cat = o.cat;
-            if (o.perfil) p.perfil = o.perfil;
-            if (o.price) p.price = o.price;
-            if (o.promo !== null && o.promo !== undefined) p.promo = o.promo;
-            if (o.foto) p.foto = o.foto;
-            if (o.notas_salida) p.notas_salida = o.notas_salida;
-            if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
-            if (o.notas_base) p.notas_base = o.notas_base;
-            if (o.stock_status) p._stockStatus = o.stock_status;
-            // Fotos extra para galería
-            if (o.fotos_extra) p.fotos_extra = o.fotos_extra;
-            // Etiqueta de cinta personalizada (se puede poner y quitar)
-            if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';
-            if (o.etiqueta_color) p.etiqueta_color = o.etiqueta_color;
-            // Descuento temporal
-            if (o.descuento_pct) p.descuento_pct = o.descuento_pct;
-            if (o.descuento_hasta) p.descuento_hasta = o.descuento_hasta;
-            // Tipo de producto (Desodorante/Crema/etc) — permite string vacío para "volver a perfume"
-            if (o.tipo !== undefined && o.tipo !== null) p.tipo = o.tipo;
-            // Apodos / alias para búsqueda (admite string vacío)
-            if (o.alias !== undefined && o.alias !== null) p.alias = o.alias;
-            // Similares manuales (override humano) — nota de texto + array de slugs recomendados
-            if (o.similares_manuales !== undefined && o.similares_manuales !== null) p.similares_manuales = o.similares_manuales;
-            if (o.similares_nota !== undefined && o.similares_nota !== null) p.similares_nota = o.similares_nota;
-            // Notas de stock — textos escritos por jefe/empleado que aparecen al tocar la badge
-            if (o.nota_ultimo !== undefined && o.nota_ultimo !== null) p.nota_ultimo = o.nota_ultimo;
-            if (o.nota_sin_stock !== undefined && o.nota_sin_stock !== null) p.nota_sin_stock = o.nota_sin_stock;
-            if (o.nota_proximamente !== undefined && o.nota_proximamente !== null) p.nota_proximamente = o.nota_proximamente;
-          });
+          writeCache('perfume_overrides', data);
+          data.forEach(applyOverrideToPerfume);
         }
       } catch(e) {
-        console.warn('[loadOverrides] timeout o error:', e.message);
+        console.warn('[loadOverrides] timeout o error:', e.message, '— usando cache si hay');
       }
     }
 
