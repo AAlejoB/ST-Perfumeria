@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ST Admin — Mockup [ZAPATO] + [SIRENITA]</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     [ZAPATO] Mockup admin con sidebar lateral.
+     Standalone — no toca admin.html ni nada de producción.
+     ============================================================ */
+  :root {
+    --bg:         #0a0a0c;
+    --bg-elev:    #131316;
+    --bg-elev-2:  #1a1a1d;
+    --borde:      #2a2a2e;
+    --borde-sub:  rgba(255,255,255,.05);
+    --txt:        #f0f0f0;
+    --txt-sub:    #999;
+    --txt-dim:    #666;
+    --amarillo:   #E8B800;
+    --amarillo-2: #c99a00;
+    --rojo:       #e74c3c;
+    --verde:      #27ae60;
+    --naranja:    #ff7043;
+    --azul:       #3498db;
+  }
+  body.light-mode {
+    --bg:         #e3d6b3;
+    --bg-elev:    #ede2c2;
+    --bg-elev-2:  #f5ead0;
+    --borde:      #c8b486;
+    --borde-sub:  rgba(0,0,0,.06);
+    --txt:        #1a1a1d;
+    --txt-sub:    #5a5046;
+    --txt-dim:    #8a7e6e;
+    --amarillo:   #8a6d00;
+    --amarillo-2: #6e5700;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--txt);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ──────── MOCKUP CONTROLS (no van en producción) ──────── */
+  .mockup-toolbar {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+    display: flex;
+    gap: 8px;
+    background: rgba(20,20,22,.95);
+    border: 1px solid var(--amarillo);
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    backdrop-filter: blur(8px);
+  }
+  body.light-mode .mockup-toolbar {
+    background: rgba(245,234,208,.95);
+  }
+  .mock-btn {
+    background: var(--bg-elev-2);
+    color: var(--txt);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .2s;
+  }
+  .mock-btn:hover { border-color: var(--amarillo); }
+  .mock-btn.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+  .mock-label {
+    font-size: .58rem;
+    color: var(--amarillo);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    align-self: center;
+    padding: 0 6px;
+    font-weight: 700;
+  }
+
+  /* ──────── APP SHELL ──────── */
+  .app-shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    height: 100vh;
+  }
+  /* Modo "vertical apretado" (Tab A9 vertical 800px) */
+  @media (max-width: 850px) {
+    .app-shell { grid-template-columns: 200px 1fr; }
+  }
+
+  /* ──────── SIDEBAR ──────── */
+  .sidebar {
+    background: var(--bg-elev);
+    border-right: 1px solid var(--borde);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-header {
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--borde-sub);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sidebar-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--amarillo);
+    line-height: 1;
+  }
+  .sidebar-brand {
+    font-size: .58rem;
+    color: var(--txt-sub);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .sidebar-user {
+    padding: 10px 14px;
+    font-size: .68rem;
+    color: var(--txt-sub);
+    border-bottom: 1px solid var(--borde-sub);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .role-pill {
+    background: var(--amarillo);
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+  }
+  body.role-empleada .role-pill::before { content: '👷 EMPLEADA'; }
+  body.role-jefe .role-pill::before { content: '👑 JEFE'; }
+
+  .sidebar-groups {
+    flex: 1;
+    padding: 8px 6px;
+  }
+  .sidebar-group {
+    margin-bottom: 4px;
+  }
+  .sidebar-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    font-size: .58rem;
+    color: var(--txt-dim);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 4px;
+    transition: background .15s;
+  }
+  .sidebar-group-header:hover { background: var(--borde-sub); }
+  .sidebar-group-header.locked { cursor: default; opacity: .9; }
+  .sidebar-group-header .chev {
+    font-size: .65rem;
+    transition: transform .2s;
+  }
+  .sidebar-group.collapsed .chev { transform: rotate(-90deg); }
+  .sidebar-group.collapsed .sidebar-tab-list { display: none; }
+
+  .sidebar-tab-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 2px 0 6px;
+  }
+  .sidebar-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    font-size: .76rem;
+    font-weight: 500;
+    color: var(--txt);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    transition: all .15s;
+    min-height: 36px;
+  }
+  .sidebar-tab .ico { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+  .sidebar-tab:hover { background: var(--borde-sub); }
+  .sidebar-tab.active {
+    background: var(--amarillo);
+    color: #000;
+    font-weight: 700;
+  }
+  .sidebar-tab .badge-new {
+    background: var(--rojo);
+    color: #fff;
+    font-size: .5rem;
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-weight: 800;
+    margin-left: auto;
+  }
+  .sidebar-tab.active .badge-new { background: rgba(0,0,0,.6); color: var(--amarillo); }
+
+  /* Role-jefe-only tabs: ocultas para empleada */
+  body.role-empleada [data-role="jefe"] { display: none !important; }
+  /* Si todas las tabs del grupo son jefe, ocultar grupo entero para empleada */
+  body.role-empleada .sidebar-group[data-jefe-only="true"] { display: none; }
+
+  /* ──────── CONTENT ──────── */
+  .content {
+    overflow-y: auto;
+    padding: 20px 24px;
+  }
+  @media (max-width: 850px) {
+    .content { padding: 14px 16px; }
+  }
+  .content-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--borde-sub);
+  }
+  .content-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--amarillo);
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+  }
+  .content-meta {
+    font-size: .68rem;
+    color: var(--txt-sub);
+  }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; animation: fadeIn .3s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ──────── STATS CARDS ──────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .stat-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .stat-card .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--amarillo); }
+  .stat-card .stat-lbl { font-size: .58rem; color: var(--txt-sub); letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; }
+  .stat-card.warn .stat-val { color: var(--rojo); }
+  .stat-card.ok   .stat-val { color: var(--verde); }
+
+  /* ──────── TABLE ──────── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-elev);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--borde);
+  }
+  .data-table th {
+    background: var(--bg-elev-2);
+    text-align: left;
+    padding: 10px 12px;
+    font-size: .58rem;
+    color: var(--txt-sub);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    border-bottom: 1px solid var(--borde);
+  }
+  .data-table td {
+    padding: 12px;
+    font-size: .78rem;
+    border-bottom: 1px solid var(--borde-sub);
+    vertical-align: middle;
+  }
+  .data-table tr:hover td { background: var(--borde-sub); }
+  .data-table .perfume-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .perfume-thumb {
+    width: 32px; height: 42px;
+    background: var(--bg-elev-2);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--amarillo);
+    font-weight: 700;
+    font-size: .75rem;
+    border: 1px solid var(--borde);
+  }
+  .perfume-name { font-weight: 600; }
+  .perfume-brand { font-size: .62rem; color: var(--txt-sub); margin-top: 1px; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: .58rem;
+    font-weight: 700;
+    border-radius: 4px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .badge-ok    { background: rgba(39,174,96,.18); color: #4caf50; }
+  .badge-low   { background: rgba(255,152,0,.18); color: #ffb74d; }
+  .badge-out   { background: rgba(231,76,60,.18); color: #ef5350; }
+  .badge-hot   { background: rgba(255,112,67,.18); color: var(--naranja); }
+
+  .btn-touch {
+    background: var(--bg-elev-2);
+    color: var(--txt);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .72rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    min-height: 44px;
+    min-width: 44px;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-touch:hover { border-color: var(--amarillo); }
+  .btn-touch.primary { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+  .btn-touch.danger { color: var(--rojo); border-color: rgba(231,76,60,.3); }
+
+  /* ──────── CAMPAÑAS [SIRENITA] ──────── */
+  .campaign-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all .2s;
+  }
+  .campaign-card.active {
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 1px var(--naranja), 0 4px 16px rgba(255,112,67,.1);
+  }
+  .campaign-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .campaign-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--txt);
+  }
+  .campaign-status {
+    font-size: .58rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: .05em;
+  }
+  .campaign-status.on  { background: var(--naranja); color: #fff; }
+  .campaign-status.off { background: var(--bg-elev-2); color: var(--txt-sub); border: 1px solid var(--borde); }
+
+  .campaign-preview {
+    background: var(--bg);
+    border: 1px dashed var(--borde);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 10px 0;
+    font-size: .72rem;
+  }
+  .campaign-preview .label-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,112,67,.15);
+    color: var(--naranja);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: .68rem;
+  }
+  .campaign-preview-meta { color: var(--txt-sub); margin-top: 6px; }
+
+  .campaign-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: .68rem;
+    color: var(--txt-sub);
+    margin: 10px 0;
+  }
+  .campaign-meta strong { color: var(--txt); font-weight: 600; }
+  .campaign-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  /* ──────── PLACEHOLDER PANE ──────── */
+  .pane-placeholder {
+    background: var(--bg-elev);
+    border: 1px dashed var(--borde);
+    border-radius: 10px;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--txt-sub);
+  }
+  .pane-placeholder .ico-big { font-size: 3rem; opacity: .4; margin-bottom: 12px; }
+  .pane-placeholder p { margin: 4px 0; font-size: .8rem; }
+  .pane-placeholder small { font-size: .65rem; color: var(--txt-dim); }
+
+  /* ──────── INPUT ──────── */
+  .field-label { display: block; font-size: .62rem; color: var(--txt-sub); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; font-weight: 600; }
+  .input {
+    background: var(--bg);
+    border: 1px solid var(--borde);
+    color: var(--txt);
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: .82rem;
+    font-family: inherit;
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+  .input:focus { outline: none; border-color: var(--amarillo); }
+  .field-row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .field-row > div { flex: 1; }
+
+  /* ──────── DEMO PRECIOS & STOCK ──────── */
+  .precio-edit-mini {
+    background: var(--bg);
+    border: 1px solid var(--borde);
+    color: var(--txt);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: .76rem;
+    font-family: inherit;
+    width: 110px;
+    min-height: 36px;
+  }
+</style>
+</head>
+<body class="dark-mode role-jefe">
+
+<!-- TOOLBAR (solo mockup, no producción) -->
+<div class="mockup-toolbar">
+  <span class="mock-label">MOCKUP</span>
+  <button class="mock-btn" id="btnRoleEmpleada" onclick="setRole('empleada')">👷 Empleada</button>
+  <button class="mock-btn active" id="btnRoleJefe" onclick="setRole('jefe')">👑 Jefe</button>
+  <button class="mock-btn active" id="btnDark" onclick="setTheme('dark')">🌙</button>
+  <button class="mock-btn" id="btnLight" onclick="setTheme('light')">☀️</button>
+</div>
+
+<div class="app-shell">
+
+  <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div>
+        <div class="sidebar-logo">ST</div>
+        <div class="sidebar-brand">Admin</div>
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <span class="role-pill"></span>
+    </div>
+
+    <div class="sidebar-groups">
+
+      <!-- ⭐ TOP (pinned, no se colapsa) -->
+      <div class="sidebar-group" data-group="top">
+        <div class="sidebar-group-header locked">
+          <span>⭐ Top</span>
+        </div>
+        <div class="sidebar-tab-list">
+          <button class="sidebar-tab active" data-tab="precios" onclick="setTab('precios', this)">
+            <span class="ico">💰</span> Precios & Stock
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="editar" onclick="setTab('editar', this)">
+            <span class="ico">✏️</span> Editar
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="espera" onclick="setTab('espera', this)">
+            <span class="ico">📍</span> Espera
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="decants" onclick="setTab('decants', this)">
+            <span class="ico">💧</span> Decants
+          </button>
+          <button class="sidebar-tab" data-tab="clientes" onclick="setTab('clientes', this)">
+            <span class="ico">👥</span> Clientes
+          </button>
+        </div>
+      </div>
+
+      <!-- 📦 PRODUCTOS -->
+      <div class="sidebar-group" data-group="productos">
+        <div class="sidebar-group-header" onclick="toggleGroup(this)">
+          <span>📦 Productos</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="sidebar-tab-list">
+          <button class="sidebar-tab" data-tab="editar-empleada" onclick="setTab('editar-empleada', this)">
+            <span class="ico">✏️</span> Editar
+          </button>
+          <button class="sidebar-tab" data-tab="nuevos" onclick="setTab('nuevos', this)">
+            <span class="ico">➕</span> Perfume
+          </button>
+          <button class="sidebar-tab" data-tab="combos" onclick="setTab('combos', this)">
+            <span class="ico">🍱</span> Combos
+          </button>
+        </div>
+      </div>
+
+      <!-- 👥 CLIENTES (jefe only) -->
+      <div class="sidebar-group" data-group="clientes" data-jefe-only="true">
+        <div class="sidebar-group-header" onclick="toggleGroup(this)">
+          <span>👥 Clientes</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="sidebar-tab-list">
+          <button class="sidebar-tab" data-role="jefe" data-tab="opiniones" onclick="setTab('opiniones', this)">
+            <span class="ico">💬</span> Opiniones
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="puntos" onclick="setTab('puntos', this)">
+            <span class="ico">🎯</span> Puntos
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="votacion" onclick="setTab('votacion', this)">
+            <span class="ico">🏆</span> Votación
+          </button>
+        </div>
+      </div>
+
+      <!-- 📣 MARKETING & HOME -->
+      <div class="sidebar-group" data-group="marketing">
+        <div class="sidebar-group-header" onclick="toggleGroup(this)">
+          <span>📣 Marketing & Home</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="sidebar-tab-list">
+          <button class="sidebar-tab" data-tab="destacados" onclick="setTab('destacados', this)">
+            <span class="ico">⭐</span> Destacados
+          </button>
+          <button class="sidebar-tab" data-tab="campanas" data-role="jefe" onclick="setTab('campanas', this)">
+            <span class="ico">🔥</span> Campañas <span class="badge-new">NEW</span>
+          </button>
+          <button class="sidebar-tab" data-tab="badges" onclick="setTab('badges', this)">
+            <span class="ico">🏷️</span> Beneficios
+          </button>
+          <button class="sidebar-tab" data-tab="home" onclick="setTab('home', this)">
+            <span class="ico">🏠</span> Home
+          </button>
+          <button class="sidebar-tab" data-tab="push" onclick="setTab('push', this)">
+            <span class="ico">🔔</span> Notificaciones
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="horario" onclick="setTab('horario', this)">
+            <span class="ico">⏰</span> Horario
+          </button>
+        </div>
+      </div>
+
+      <!-- 🛠️ SISTEMA (jefe only, colapsado por default) -->
+      <div class="sidebar-group collapsed" data-group="sistema" data-jefe-only="true">
+        <div class="sidebar-group-header" onclick="toggleGroup(this)">
+          <span>🛠️ Sistema</span>
+          <span class="chev">▾</span>
+        </div>
+        <div class="sidebar-tab-list">
+          <button class="sidebar-tab" data-tab="stats" onclick="setTab('stats', this)">
+            <span class="ico">📊</span> Estadísticas
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="analytics" onclick="setTab('analytics', this)">
+            <span class="ico">📈</span> Analytics
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="auditlog" onclick="setTab('auditlog', this)">
+            <span class="ico">📋</span> Log
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="backups" onclick="setTab('backups', this)">
+            <span class="ico">💾</span> Backup
+          </button>
+          <button class="sidebar-tab" data-role="jefe" data-tab="doctor" onclick="setTab('doctor', this)">
+            <span class="ico">🩺</span> Doctor
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════ CONTENT ═══════════════════════ -->
+  <main class="content">
+
+    <!-- 💰 PRECIOS & STOCK -->
+    <div class="tab-pane active" data-pane="precios">
+      <div class="content-header">
+        <h1 class="content-title">💰 Precios & Stock</h1>
+        <span class="content-meta">147 perfumes · sync en vivo</span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val">147</div><div class="stat-lbl">Perfumes activos</div></div>
+        <div class="stat-card warn"><div class="stat-val">3</div><div class="stat-lbl">Sin stock</div></div>
+        <div class="stat-card"><div class="stat-val">12</div><div class="stat-lbl">Último frasco</div></div>
+        <div class="stat-card ok"><div class="stat-val">$8.4M</div><div class="stat-lbl">Valor inventario</div></div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Perfume</th>
+            <th>Estado</th>
+            <th>Precio tarjeta</th>
+            <th>Precio cash (promo)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="perfume-cell">
+                <div class="perfume-thumb">YT</div>
+                <div>
+                  <div class="perfume-name">YOUR TOUCH INTENSE</div>
+                  <div class="perfume-brand">Maison Alhambra · 100ml</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-ok">En stock</span></td>
+            <td><input class="precio-edit-mini" value="$75.000"></td>
+            <td><input class="precio-edit-mini" value="$63.750" style="border-color:var(--naranja);"></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="perfume-cell">
+                <div class="perfume-thumb">AO</div>
+                <div>
+                  <div class="perfume-name">AMBER OUD DUBAI NIGHT</div>
+                  <div class="perfume-brand">Al Haramain · 100ml</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-hot">HOT SALE 🔥</span></td>
+            <td><input class="precio-edit-mini" value="$149.000"></td>
+            <td><input class="precio-edit-mini" value="$126.650" style="border-color:var(--naranja);"></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="perfume-cell">
+                <div class="perfume-thumb">CO</div>
+                <div>
+                  <div class="perfume-name">CONFIDENTIAL PLATINUM</div>
+                  <div class="perfume-brand">Lattafa · 100ml</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-low">Último</span></td>
+            <td><input class="precio-edit-mini" value="$58.500"></td>
+            <td><input class="precio-edit-mini" value="" placeholder="vacío = 10% off"></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="perfume-cell">
+                <div class="perfume-thumb">YR</div>
+                <div>
+                  <div class="perfume-name">YARA TOUS</div>
+                  <div class="perfume-brand">Lattafa · 100ml</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-out">Sin stock</span></td>
+            <td><input class="precio-edit-mini" value="$72.000"></td>
+            <td><input class="precio-edit-mini" value="" placeholder="vacío = 10% off"></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="perfume-cell">
+                <div class="perfume-thumb">BK</div>
+                <div>
+                  <div class="perfume-name">BHARARA KING</div>
+                  <div class="perfume-brand">Bharara · 100ml</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-hot">HOT SALE 🔥</span></td>
+            <td><input class="precio-edit-mini" value="$139.000"></td>
+            <td><input class="precio-edit-mini" value="$118.150" style="border-color:var(--naranja);"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:.68rem;color:var(--txt-sub);margin-top:14px;">
+        💡 Tip: <strong>Precio cash</strong> vacío = automáticamente 10% off del precio tarjeta. Cargá un valor manual para Hot Sale o cualquier campaña activa.
+      </p>
+    </div>
+
+    <!-- 🔥 CAMPAÑAS [SIRENITA] -->
+    <div class="tab-pane" data-pane="campanas">
+      <div class="content-header">
+        <h1 class="content-title">🔥 Campañas</h1>
+        <button class="btn-touch primary">+ Nueva campaña</button>
+      </div>
+
+      <p style="font-size:.78rem;color:var(--txt-sub);margin-bottom:18px;line-height:1.5;">
+        Cada campaña define <strong>cómo se muestra el descuento</strong> en el público (texto, emoji, color). El precio numérico sigue siendo el "Precio cash" que cargás en cada perfume. Solo <strong>1 campaña activa</strong> por vez.
+      </p>
+
+      <!-- Campaña activa -->
+      <div class="campaign-card active">
+        <div class="campaign-head">
+          <p class="campaign-name">🔥 Hot Sale Mayo 2026</p>
+          <span class="campaign-status on">ACTIVA</span>
+        </div>
+
+        <div class="campaign-preview">
+          <strong style="font-size:.62rem;color:var(--txt-sub);">Así se ve en el público:</strong>
+          <div style="margin-top:8px;">
+            <span class="label-preview">🔥 HOT SALE EFECTIVO: $126.650 (15% off)</span>
+          </div>
+          <div class="campaign-preview-meta">
+            WA: "🔥 Efectivo/transf HOT SALE: $126.650 (15% off)"
+          </div>
+        </div>
+
+        <div class="campaign-meta">
+          <div>🏷️ Texto card: <strong>🔥 HOT SALE EFECTIVO</strong></div>
+          <div>🎨 Color: <strong style="color:#ff7043;">●</strong> Naranja</div>
+          <div>📅 Hasta: <strong>15 May 2026 21:00</strong></div>
+          <div>📦 Perfumes con promo: <strong>47</strong></div>
+        </div>
+
+        <div class="campaign-actions">
+          <button class="btn-touch">✏️ Editar</button>
+          <button class="btn-touch">⏸️ Pausar</button>
+          <button class="btn-touch danger">🗑️ Limpiar promos en masa</button>
+        </div>
+      </div>
+
+      <!-- Campaña inactiva (futura) -->
+      <div class="campaign-card">
+        <div class="campaign-head">
+          <p class="campaign-name">⚫ Black Friday 2026</p>
+          <span class="campaign-status off">Lista para activar</span>
+        </div>
+        <div class="campaign-meta">
+          <div>🏷️ Texto card: <strong>⚫ BLACK FRIDAY</strong></div>
+          <div>🎨 Color: <strong style="color:#1a1a1a;">●</strong> Negro</div>
+          <div>📅 Sin fecha programada</div>
+          <div>📦 Perfumes con promo: <strong>0</strong></div>
+        </div>
+        <div class="campaign-actions">
+          <button class="btn-touch primary">▶️ Activar</button>
+          <button class="btn-touch">✏️ Editar</button>
+          <button class="btn-touch danger">🗑️ Borrar</button>
+        </div>
+      </div>
+
+      <!-- Campaña inactiva -->
+      <div class="campaign-card">
+        <div class="campaign-head">
+          <p class="campaign-name">🎂 Aniversario ST 5 años</p>
+          <span class="campaign-status off">Lista para activar</span>
+        </div>
+        <div class="campaign-meta">
+          <div>🏷️ Texto card: <strong>🎂 ANIVERSARIO ST</strong></div>
+          <div>🎨 Color: <strong style="color:#E8B800;">●</strong> Dorado</div>
+          <div>📅 Sin fecha programada</div>
+          <div>📦 Perfumes con promo: <strong>0</strong></div>
+        </div>
+        <div class="campaign-actions">
+          <button class="btn-touch primary">▶️ Activar</button>
+          <button class="btn-touch">✏️ Editar</button>
+          <button class="btn-touch danger">🗑️ Borrar</button>
+        </div>
+      </div>
+
+      <!-- Form crear nueva (preview) -->
+      <details style="margin-top:18px;">
+        <summary style="cursor:pointer;font-size:.82rem;color:var(--amarillo);font-weight:600;padding:8px 0;">+ Crear nueva campaña</summary>
+        <div style="background:var(--bg-elev);border:1px solid var(--borde);border-radius:10px;padding:16px;margin-top:8px;">
+          <div class="field-row">
+            <div>
+              <label class="field-label">Nombre</label>
+              <input class="input" placeholder="Ej: Cyber Monday 2026">
+            </div>
+            <div>
+              <label class="field-label">Color hex</label>
+              <input class="input" value="#ff7043">
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label class="field-label">Texto card</label>
+              <input class="input" placeholder="🔥 HOT SALE EFECTIVO">
+            </div>
+            <div>
+              <label class="field-label">Texto WhatsApp</label>
+              <input class="input" placeholder="Efectivo/transf HOT SALE">
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label class="field-label">Emoji WhatsApp</label>
+              <input class="input" value="🔥" style="text-align:center;">
+            </div>
+            <div>
+              <label class="field-label">Fecha fin (opcional)</label>
+              <input class="input" type="datetime-local">
+            </div>
+          </div>
+          <button class="btn-touch primary" style="margin-top:8px;">💾 Guardar campaña</button>
+        </div>
+      </details>
+    </div>
+
+    <!-- 👥 CLIENTES -->
+    <div class="tab-pane" data-pane="clientes">
+      <div class="content-header">
+        <h1 class="content-title">👥 Clientes</h1>
+        <span class="content-meta">324 registrados · 47 con puntos</span>
+      </div>
+
+      <input class="input" placeholder="🔎 Buscar por nombre, teléfono o nota..." style="margin-bottom:14px;">
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Cliente</th><th>Teléfono</th><th>Puntos</th><th>Última compra</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>María González</strong></td>
+            <td>+54 9 297 541-6017</td>
+            <td><span class="badge badge-ok">12 pts</span></td>
+            <td>Hace 3 días</td>
+            <td><button class="btn-touch">Ver</button></td>
+          </tr>
+          <tr>
+            <td><strong>Carlos Pérez</strong></td>
+            <td>+54 9 297 423-1122</td>
+            <td><span class="badge badge-low">3 pts</span></td>
+            <td>Hace 1 mes</td>
+            <td><button class="btn-touch">Ver</button></td>
+          </tr>
+          <tr>
+            <td><strong>Lucía Fernández</strong></td>
+            <td>+54 9 297 681-9982</td>
+            <td><span class="badge badge-ok">8 pts</span></td>
+            <td>Hace 1 semana</td>
+            <td><button class="btn-touch">Ver</button></td>
+          </tr>
+          <tr>
+            <td><strong>Diego Romero</strong></td>
+            <td>+54 9 297 552-7733</td>
+            <td>0 pts</td>
+            <td>Nunca</td>
+            <td><button class="btn-touch">Ver</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ⭐ DESTACADOS -->
+    <div class="tab-pane" data-pane="destacados">
+      <div class="content-header">
+        <h1 class="content-title">⭐ Destacados</h1>
+        <span class="content-meta">8 / 10 slots usados</span>
+      </div>
+      <div class="pane-placeholder">
+        <div class="ico-big">⭐</div>
+        <p><strong>Mockup TBD</strong></p>
+        <small>Drag-drop grid con perfumes destacados. La idea es slots reordenables.</small>
+      </div>
+    </div>
+
+    <!-- Otras tabs con placeholder -->
+    <div class="tab-pane" data-pane="editar">
+      <div class="content-header"><h1 class="content-title">✏️ Editar (Top — jefe)</h1></div>
+      <div class="pane-placeholder">
+        <div class="ico-big">✏️</div>
+        <p><strong>Una de las tabs que las empleadas dijeron "se ve denso"</strong></p>
+        <small>Form de ~30 campos. Mockup propuesto: 2 columnas en horizontal, 1 columna scrolleable en vertical, con tabs internas por sección (Básico / Notas / Foto / SEO).</small>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-pane="espera">
+      <div class="content-header"><h1 class="content-title">📍 Lista de Espera</h1></div>
+      <div class="pane-placeholder">
+        <div class="ico-big">📍</div>
+        <p><strong>La otra que reportaste con letras chicas en desktop</strong></p>
+        <small>Mockup propuesto: tarjetas grandes en lugar de tabla minúscula, con CTA directo a WhatsApp del cliente esperando.</small>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-pane="decants">
+      <div class="content-header"><h1 class="content-title">💧 Decants</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">💧</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="editar-empleada">
+      <div class="content-header"><h1 class="content-title">✏️ Editar</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">✏️</div><p>Mockup TBD (igual que el de jefe)</p></div>
+    </div>
+    <div class="tab-pane" data-pane="nuevos">
+      <div class="content-header"><h1 class="content-title">➕ Perfume nuevo</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">➕</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="combos">
+      <div class="content-header"><h1 class="content-title">🍱 Combos</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">🍱</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="opiniones">
+      <div class="content-header"><h1 class="content-title">💬 Opiniones</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">💬</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="puntos">
+      <div class="content-header"><h1 class="content-title">🎯 Puntos</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">🎯</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="votacion">
+      <div class="content-header"><h1 class="content-title">🏆 Votación</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">🏆</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="badges">
+      <div class="content-header"><h1 class="content-title">🏷️ Beneficios</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">🏷️</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="home">
+      <div class="content-header"><h1 class="content-title">🏠 Home</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">🏠</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="push">
+      <div class="content-header"><h1 class="content-title">🔔 Notificaciones</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">🔔</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="horario">
+      <div class="content-header"><h1 class="content-title">⏰ Horario</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">⏰</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="stats">
+      <div class="content-header"><h1 class="content-title">📊 Estadísticas</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">📊</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="analytics">
+      <div class="content-header"><h1 class="content-title">📈 Analytics</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">📈</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="auditlog">
+      <div class="content-header"><h1 class="content-title">📋 Log</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">📋</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="backups">
+      <div class="content-header"><h1 class="content-title">💾 Backup</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">💾</div><p>Mockup TBD</p></div>
+    </div>
+    <div class="tab-pane" data-pane="doctor">
+      <div class="content-header"><h1 class="content-title">🩺 Doctor</h1></div>
+      <div class="pane-placeholder"><div class="ico-big">🩺</div><p>Mockup TBD</p></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function setRole(role) {
+    document.body.classList.remove('role-jefe', 'role-empleada');
+    document.body.classList.add('role-' + role);
+    document.getElementById('btnRoleEmpleada').classList.toggle('active', role === 'empleada');
+    document.getElementById('btnRoleJefe').classList.toggle('active', role === 'jefe');
+    // Si está en una tab solo-jefe y cambia a empleada, fallback a precios
+    if (role === 'empleada') {
+      var activeTab = document.querySelector('.sidebar-tab.active');
+      if (activeTab && activeTab.dataset.role === 'jefe') {
+        setTab('precios', document.querySelector('[data-tab="precios"]'));
+      }
+    }
+  }
+
+  function setTheme(theme) {
+    document.body.classList.toggle('light-mode', theme === 'light');
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+    document.getElementById('btnDark').classList.toggle('active', theme === 'dark');
+    document.getElementById('btnLight').classList.toggle('active', theme === 'light');
+  }
+
+  function toggleGroup(header) {
+    if (header.classList.contains('locked')) return;
+    header.parentElement.classList.toggle('collapsed');
+  }
+
+  function setTab(tab, btn) {
+    document.querySelectorAll('.sidebar-tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    else {
+      var b = document.querySelector('[data-tab="' + tab + '"]');
+      if (b) b.classList.add('active');
+    }
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    var pane = document.querySelector('[data-pane="' + tab + '"]');
+    if (pane) pane.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
