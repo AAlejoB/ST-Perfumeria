@@ -13,7 +13,7 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-var CACHE_VERSION = 'v1.0.93';
+var CACHE_VERSION = 'v1.0.94';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
@@ -123,19 +123,25 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // CSS/JS/fuentes: stale-while-revalidate
+  // CSS/JS/fuentes: NETWORK-FIRST con fallback a cache.
+  // Antes era stale-while-revalidate (te daba el cacheado y bajaba el nuevo
+  // en background). El problema: si el cacheado tenía bug, el user veía
+  // 1 reload entero con bug antes de actualizar. Y si su browser no
+  // refresheaba el SW por cache de 24h, quedaba bloqueado.
+  // Ahora: pedimos a red primero, si hay respuesta la usamos y cacheamos;
+  // si red falla, caemos al cache. Cuesta unos ms más en cargas con buena
+  // conexión pero garantiza versión fresca SIEMPRE.
   if (req.destination === 'style' || req.destination === 'script' || req.destination === 'font' ||
       /\.(css|js|woff2?|ttf)$/i.test(url.pathname)) {
     event.respondWith(
-      caches.match(req).then(function(cached) {
-        var fetchPromise = fetch(req).then(function(resp) {
-          if (resp && resp.status === 200 && resp.type === 'basic') {
-            var copy = resp.clone();
-            caches.open(CACHE_STATIC).then(function(cache) { cache.put(req, copy); });
-          }
-          return resp;
-        }).catch(function() { return cached; });
-        return cached || fetchPromise;
+      fetch(req).then(function(resp) {
+        if (resp && resp.status === 200 && resp.type === 'basic') {
+          var copy = resp.clone();
+          caches.open(CACHE_STATIC).then(function(cache) { cache.put(req, copy); });
+        }
+        return resp;
+      }).catch(function() {
+        return caches.match(req);
       })
     );
     return;

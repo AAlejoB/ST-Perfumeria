@@ -4068,7 +4068,10 @@
     // SERVICE WORKER (PWA) — registro + actualización auto
     // ============================================================
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      // updateViaCache: 'none' → el browser NUNCA cachea el sw.js mismo.
+      // Sin esto, podía pasar hasta 24h hasta que detectara una versión
+      // nueva del SW. Con esto, en cada navegación revalida.
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function(reg) {
         // Detectar updates: si hay SW nuevo, avisarle que se active
         reg.addEventListener('updatefound', function() {
           var newSW = reg.installing;
