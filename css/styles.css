@@ -7656,3 +7656,152 @@
     body:not(.dark-mode) .recent-view-name { color: #1a1a1d; }
     body:not(.dark-mode) .recent-view-price { color: #8a6d00; }
     body:not(.dark-mode) .recent-view-img { background: rgba(0,0,0,.04); }
+
+    /* ════════════════════════════════════════════════════════════════
+       SCROLL-MARGIN — para que los anchors no queden tapados por el nav
+       sticky (64px desktop / 58px mobile) + banner B/N (~38px).
+       Aplica a CUALQUIER sección que sea target de un scroll automático.
+       ──────────────────────────────────────────────────────────────── */
+    .hero,
+    .trust-badges,
+    .seleccion-st,
+    .decant-banner,
+    .price-banner-wrap,
+    .quiz-cta-wrap,
+    .catalog-section,
+    .filter-bar,
+    .section-cats,
+    .sets-section,
+    .section-seo-hub,
+    .section-nosotros,
+    .section-faq,
+    .quiz-section,
+    .recent-views,
+    .tu-sector,
+    .map-section,
+    #contacto,
+    #decants,
+    #catalogo,
+    #destacados,
+    #categorias,
+    #explorar,
+    #nosotros,
+    #faq,
+    #quizSection,
+    #tuSector,
+    #dondeEncontrarnos {
+      scroll-margin-top: 115px;   /* nav 64px + banner B/N ~38px + 13px aire */
+    }
+    @media (max-width: 767px) {
+      .hero, .trust-badges, .seleccion-st, .decant-banner,
+      .price-banner-wrap, .quiz-cta-wrap, .catalog-section,
+      .filter-bar, .section-cats, .sets-section, .section-seo-hub,
+      .section-nosotros, .section-faq, .quiz-section, .recent-views,
+      .tu-sector, .map-section, #contacto,
+      #decants, #catalogo, #destacados, #categorias, #explorar,
+      #nosotros, #faq, #quizSection, #tuSector, #dondeEncontrarnos {
+        scroll-margin-top: 105px;  /* nav 58 + banner 38 + 9px aire */
+      }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       REDISEÑO — Decant banner con look "premium violeta-magenta"
+       (Inspirado en el .quiz-cta-banner para mantener consistencia
+       visual entre los CTAs grandes del home: ambos usan el mismo
+       gradient + estilo de borde + sombra)
+       ──────────────────────────────────────────────────────────────── */
+    .decant-banner {
+      background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 40%, #b71c5c 100%) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 10px 30px rgba(74,20,140,.4);
+      max-width: 1300px;
+      margin: 1.5rem auto !important;
+      width: calc(100% - 2rem);
+      overflow: hidden;
+      position: relative;
+    }
+    /* Glow ambient en la esquina sup-der como el quiz-cta */
+    .decant-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 80% 50%, rgba(255,255,255,.15), transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .decant-banner > * { position: relative; z-index: 1; }
+
+    /* Left side: el texto sobre violeta */
+    .decant-b-left {
+      background: transparent !important;
+      border-right: 1px dashed rgba(255,255,255,.18) !important;
+    }
+    .decant-b-label { color: rgba(255,217,0,.95) !important; }
+    .decant-b-title { color: #ffffff !important; }
+    .decant-b-title span { color: #ffd900 !important; }
+    .decant-b-sub { color: rgba(255,255,255,.85) !important; }
+
+    /* CTA "Armá tu pack" — pill blanca igual que el quiz-cta-cta */
+    .decant-b-cta {
+      background: #ffffff !important;
+      color: #4a148c !important;
+      border: none !important;
+      border-radius: 30px !important;
+      padding: .9rem 1.6rem !important;
+      font-weight: 800 !important;
+      letter-spacing: .12em !important;
+      box-shadow: 0 6px 18px rgba(0,0,0,.3);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .decant-b-cta:hover {
+      background: #ffffff !important;
+      color: #4a148c !important;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0,0,0,.4);
+    }
+
+    /* Right side: frasquitos sobre tono magenta más claro */
+    .decant-b-right {
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)) !important;
+    }
+    .decant-b-bottle {
+      background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.08)) !important;
+      border: 1.5px solid rgba(255,255,255,.6) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,.25);
+    }
+    .decant-b-bottle::before {
+      background: rgba(255,255,255,.85) !important;
+    }
+    .decant-b-ml {
+      color: #ffffff !important;
+      text-shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+    .decant-ribbon {
+      background: linear-gradient(135deg, #ffd700, #b48c00) !important;
+      color: #1a1a1d !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    }
+    .decant-b-vial.coming-soon .decant-b-bottle { opacity: .5; }
+    .decant-b-vial.coming-soon .decant-b-ml { opacity: .7; }
+
+    /* Mobile: stack vertical pero el banner sigue siendo violeta */
+    @media (max-width: 767px) {
+      .decant-banner { margin: 1rem .5rem !important; width: calc(100% - 1rem); }
+      .decant-b-left {
+        border-right: none !important;
+        border-bottom: 1px dashed rgba(255,255,255,.2) !important;
+      }
+    }
+
+    /* Light mode: misma identidad violeta-magenta (NO se vuelve crema) */
+    body:not(.dark-mode) .decant-banner {
+      background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 40%, #b71c5c 100%) !important;
+    }
+    body:not(.dark-mode) .decant-b-left { background: transparent !important; }
+    body:not(.dark-mode) .decant-b-right {
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)) !important;
+    }
+    body:not(.dark-mode) .decant-b-title { color: #ffffff !important; }
+    body:not(.dark-mode) .decant-b-sub { color: rgba(255,255,255,.85) !important; }
+    body:not(.dark-mode) .decant-b-label { color: rgba(255,217,0,.95) !important; }
+    body:not(.dark-mode) .decant-b-ml { color: #ffffff !important; }
