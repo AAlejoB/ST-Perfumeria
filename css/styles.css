@@ -7992,32 +7992,12 @@
     @media (min-width: 768px) { .hero { min-height: 380px; } }
 
     /* ════════════════════════════════════════════════════════════════
-       [IMG-DIMS] Defensa CLS — aspect-ratio en imágenes de grids.
-       Sin dimensiones explícitas, el browser no sabe cuánto espacio
-       reservar para una <img loading="lazy"> hasta que llega → layout
-       shift cuando carga. Estos defaults le dan aspect-ratio default
-       a las imgs de cada componente, así el espacio queda reservado
-       desde el primer paint.
+       [FANTASMA] Revert parcial de [IMG-DIMS] (v1.1.10).
+       El bloque original sobreescribía width/height de imgs que YA
+       tenían dimensiones explícitas (search-sug-img 32x42, quiz 60x75,
+       set-img-slot 100%/100%, recent-view 100%/100%, etc) — el dropdown
+       de búsqueda mostraba la foto a 463x463 px.
+       Las cards del catálogo ya tienen width="400" height="400" en el
+       HTML (app.js:1666), así que el browser reserva espacio sin necesitar
+       este hack CSS.
        ──────────────────────────────────────────────────────────────── */
-    .card-gallery-slide img,
-    .collectible-img-wrap img,
-    .set-img-slot img,
-    .search-sug-img,
-    .similar-item img,
-    .quiz-result-img,
-    .recent-view-img img {
-      aspect-ratio: 1 / 1;
-      width: 100%;
-      height: auto;
-      object-fit: contain;
-    }
-    /* Cart items y modales — reserva espacio incluso en modal-only */
-    .cart-item-img,
-    .cart-toast-img,
-    .compare-col-img,
-    .bs-img,
-    .splash-img {
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      background: rgba(255,255,255,.04);
-    }
