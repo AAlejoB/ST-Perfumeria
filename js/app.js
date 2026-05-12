@@ -3920,11 +3920,16 @@
 
     // Path crítico: nuevos perfumes + overrides → render del catálogo.
     // loadPerfumeViews (stats) NO bloquea el render — se difiere.
+    console.log('[catalog] STEP 1: PERFUMES base =', PERFUMES.length, 'items');
     loadPerfumesNuevos().then(function() {
+      console.log('[catalog] STEP 2: loadPerfumesNuevos OK, PERFUMES =', PERFUMES.length);
       return loadOverrides();
     }).then(function() {
+      console.log('[catalog] STEP 3: loadOverrides OK');
       markNewPerfumes();
+      console.log('[catalog] STEP 4: markNewPerfumes OK, llamando renderCatalog...');
       renderCatalog();
+      console.log('[catalog] STEP 5: renderCatalog OK, grid tiene', document.querySelectorAll('#catalogGrid .product-card').length, 'cards');
       sortCards('price-desc');
       checkDeepLink();
       // Stats de views: diferido, solo afecta el contador "+N personas vieron…"
@@ -3934,6 +3939,18 @@
           if (typeof renderCatalog === 'function') renderCatalog();
         });
       });
+    }).catch(function(err) {
+      // FALLBACK CRÍTICO: si algo en la cadena loadNuevos→loadOverrides→render
+      // tira excepción no atrapada, igual renderizamos el catálogo con los
+      // datos de perfumes.js (seed) para que el cliente no quede sin nada.
+      console.error('[catalog] FALLO en cadena de carga:', err);
+      try {
+        renderCatalog();
+        sortCards('price-desc');
+        console.warn('[catalog] FALLBACK: renderizado con seed solo');
+      } catch(e) {
+        console.error('[catalog] FALLBACK también falló:', e);
+      }
     });
     renderCategories();
     // Diferidas: votación y horario del local no son above-the-fold
