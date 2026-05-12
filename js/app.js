@@ -1857,7 +1857,7 @@
           + urgencyHTML
           + viewsHTML
           + liveViewersHTML
-          + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + p.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
+          + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
           + waitlistHTML
         + '</div>'
         + '<div class="card-reveal">'
@@ -2199,7 +2199,7 @@
               + (origHTML ? '<span class="set-price-original">' + origHTML + '</span>' : '')
             + '</div>'
             + ahorroHTML
-            + (setPaused ? '' : '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + s.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="set-cta">Consultar &#8594;</a>')
+            + (setPaused ? '' : '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([s], '')) + '" target="_blank" class="set-cta">Consultar &#8594;</a>')
           + '</div>'
         + '</div>';
       });
@@ -4998,36 +4998,38 @@
       closeCartPanel();
     }
 
-    // sendCartToWA: arma un mensaje profesional y lo manda por WhatsApp
-    // Incluye: lista de perfumes, marca, precio, total en cuotas,
-    // total en efectivo, cantidad de items, y nota del cliente si hay.
-    function sendCartToWA() {
-      if (cart.length === 0) return;
-      var note = document.getElementById('cartNote').value.trim();
-
+    // [GATO] Mensaje WA unificado: usado por carrito, "Consultar" individual y set.
+    // El vendedor recibe siempre el mismo formato con precio, cuotas y efectivo off.
+    function buildWaMessage(items, note) {
+      if (!items || !items.length) return '';
       var lines = [];
       lines.push('Hola! 👋 Me interesan estos perfumes:');
       lines.push('');
 
       var total = 0;
       var num = 0;
-      cart.forEach(function(slug) {
-        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      items.forEach(function(p) {
         if (!p) return;
-        var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+        var priceRaw = p.promo || p.price;
+        var priceNum = priceRaw ? parseFloat(String(priceRaw).replace(/[^0-9.\-]/g, '')) : 0;
+        if (isNaN(priceNum)) priceNum = 0;
         total += priceNum;
         num++;
-        var marca = p.marca_real || p.marca;
-        lines.push(num + '. *' + p.name + '* — ' + marca);
-        lines.push('   💰 $' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.'));
+        var marca = p.marca_real || p.marca || '';
+        lines.push(num + '. *' + p.name + '*' + (marca ? ' — ' + marca : ''));
+        if (priceNum > 0) {
+          lines.push('   💰 $' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.'));
+        }
       });
 
-      lines.push('');
-      lines.push('📦 *' + num + (num === 1 ? ' perfume' : ' perfumes') + '*');
-      var cuota = Math.round(total / 3);
-      lines.push('💳 3 cuotas sin interés de *$' + cuota.toLocaleString('es-AR').replace(/,/g, '.') + '* (total $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + ')');
-      var cashTotal = Math.round(total * 0.9);
-      lines.push('💵 Efectivo/transf: *$' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + '* (10% off)');
+      if (total > 0) {
+        lines.push('');
+        lines.push('📦 *' + num + (num === 1 ? ' perfume' : ' perfumes') + '*');
+        var cuota = Math.round(total / 3);
+        lines.push('💳 3 cuotas sin interés de *$' + cuota.toLocaleString('es-AR').replace(/,/g, '.') + '* (total $' + Math.round(total).toLocaleString('es-AR').replace(/,/g, '.') + ')');
+        var cashTotal = Math.round(total * 0.9);
+        lines.push('💵 Efectivo/transf: *$' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + '* (10% off)');
+      }
 
       if (note) {
         lines.push('');
@@ -5037,7 +5039,17 @@
       lines.push('');
       lines.push('¿Tienen disponibilidad? 🙏');
 
-      var msg = lines.join('\n');
+      return lines.join('\n');
+    }
+
+    function sendCartToWA() {
+      if (cart.length === 0) return;
+      var note = document.getElementById('cartNote').value.trim();
+      var items = cart.map(function(slug) {
+        return PERFUMES.find(function(pf) { return pf.slug === slug; });
+      }).filter(Boolean);
+
+      var msg = buildWaMessage(items, note);
       closeCartPanel();
 
       // IMPORTANTE: abrir WhatsApp PRIMERO, sincrónicamente.
@@ -5088,7 +5100,7 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       trackEvent('wa_click', { slug: slug, meta: { isSet: !!p.esSet } });
-      var msg = 'Hola! Me interesa el ' + p.name + (p.esSet ? ' (Set)' : '') + '. ¿Tienen disponibilidad?';
+      var msg = buildWaMessage([p], '');
       // Abrir WhatsApp sincrónicamente para que no lo bloquee el anti-popup
       window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
       showSplash(p);

@@ -308,6 +308,7 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.09 | [FCP-CSS] CSS no bloqueante + critical inline |
 | v1.1.10 | [IMG-DIMS] aspect-ratio defensivo en imgs |
 | v1.1.11 | [PENDULO] cart-float circular gemelo del wa-float |
+| v1.1.12 | [GATO] mensaje WA unificado (carrito + Consultar individual + sets) |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -400,6 +401,7 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 
 - `[NAV-CART]` — carrito en navbar
 - `[PENDULO]` — cart-float convertido en círculo gemelo del wa-float (justo arriba, gap 12px)
+- `[GATO]` — `buildWaMessage(items, note)` unifica el mensaje de WhatsApp: carrito, "Consultar" en card individual y "Consultar" en sets generan el mismo formato (lista numerada + 💰 precio + 📦 N + 💳 cuotas + 💵 efectivo off). Casos especiales (stockNote, decants armador, banner decants) quedan con su lógica propia.
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
 - `[FCP-CSS]` — CSS no bloqueante + critical inline
