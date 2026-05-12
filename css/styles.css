@@ -528,27 +528,37 @@
     }
 
     .nav-hamburger {
-      display: flex; flex-direction: column; gap: 5px;
-      cursor: pointer; padding: 6px; border: none; background: none;
+      display: flex; flex-direction: column; gap: 6px;
+      cursor: pointer; padding: 8px; border: none; background: none;
     }
     .nav-hamburger span {
-      display: block; width: 22px; height: 1.5px;
+      display: block; width: 26px; height: 2px;
       background: var(--blanco); transition: background .3s;
+      border-radius: 1px;
     }
     .nav-hamburger:hover span { background: var(--amarillo); }
+    @media (min-width: 768px) {
+      .nav-hamburger { padding: 10px; gap: 7px; }
+      .nav-hamburger span { width: 30px; height: 2px; }
+    }
 
-    /* NAV reorganizado: ☰ ST [🔍 búsqueda] 👤 ❤ 👋
-       Logo ya no es absolute centrado, va inline con flex.
-       La barra de búsqueda ocupa el espacio del medio y se sincroniza
-       con el #searchInput del catálogo (ver onNavSearchInput en app.js). */
+    /* NAV: ☰ ST [iconos]
+       Barra de búsqueda eliminada — el logo ST queda PROTAGONISTA
+       en el centro / izq, y los íconos a la derecha son más prominentes. */
     .nav-logo {
       text-decoration: none;
       display: flex;
       align-items: center;
       flex-shrink: 0;
+      margin: 0 auto;  /* centrado en el nav ahora que no hay search */
     }
     .nav-logo img {
-      height: 30px; width: auto; object-fit: contain;
+      height: 42px; width: auto; object-fit: contain;
+      transition: transform .25s ease;
+    }
+    .nav-logo:hover img { transform: scale(1.06); }
+    @media (min-width: 768px) {
+      .nav-logo img { height: 52px; }
     }
     @media (min-width: 768px) {
       .nav-logo img { height: 38px; }
@@ -622,11 +632,11 @@
     .nav-icons {
       display: flex;
       align-items: center;
-      gap: .5rem;          /* Más respiro: ahora hay menos elementos */
+      gap: .6rem;          /* Más respiro: ahora hay menos elementos */
       flex-shrink: 0;
     }
     @media (min-width: 768px) {
-      .nav-icons { gap: .7rem; }
+      .nav-icons { gap: .9rem; }
     }
 
     .nav-icon-btn {
@@ -634,11 +644,15 @@
       color: var(--gris-claro); display: flex; align-items: center; justify-content: center;
       text-decoration: none; font-family: var(--font-body);
       font-size: 0;             /* solo ícono, sin texto (todas las viewports) */
-      font-weight: 500; letter-spacing: .1em; transition: color .3s;
-      width: 34px; height: 34px;
+      font-weight: 500; letter-spacing: .1em; transition: color .3s, transform .2s;
+      width: 42px; height: 42px;
     }
-    .nav-icon-btn:hover { color: var(--amarillo); }
-    .nav-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+    .nav-icon-btn:hover { color: var(--amarillo); transform: scale(1.08); }
+    .nav-icon-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+    @media (min-width: 768px) {
+      .nav-icon-btn { width: 46px; height: 46px; }
+      .nav-icon-btn svg { width: 24px; height: 24px; }
+    }
 
     /* Atajo al catálogo desde el nav: pill compacto con texto.
        Muestra "CATÁLOGO" en pantallas normales y "CAT." en mobile chico
@@ -685,11 +699,11 @@
       border: 1px solid var(--amarillo);
       border-radius: 50%;
       padding: 0;
-      font-size: 14px !important;
+      font-size: 18px !important;
       line-height: 1;
     }
-    .nav-theme-btn:hover { background: var(--amarillo); transform: translateY(-1px); }
-    .nav-theme-ico { font-size: 14px; line-height: 1; }
+    .nav-theme-btn:hover { background: var(--amarillo); transform: translateY(-1px) scale(1.06); }
+    .nav-theme-ico { font-size: 18px; line-height: 1; }
     @media (max-width: 767px) {
       /* En mobile ya existe el .dark-float flotante abajo a la izq */
       .nav-theme-btn { display: none; }

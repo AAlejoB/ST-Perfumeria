@@ -464,15 +464,8 @@
     </button>
     <a href="#" class="nav-logo"><img src="img/logo-st.webp" alt="ST Scent & Textures" fetchpriority="high" decoding="async" width="40" height="40"></a>
 
-    <!-- Barra de búsqueda inline en el nav: en mobile ocupa el espacio
-         disponible, en desktop tiene un max-width razonable. Está
-         sincronizada con #searchInput del catálogo: al tipear acá,
-         filtra el catálogo y scrollea suave hacia las cards. -->
-    <div class="nav-search">
-      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" class="nav-search-input" id="navSearchInput" placeholder="Buscar perfume..." aria-label="Buscar perfume" autocomplete="off" oninput="onNavSearchInput(this.value)" onkeydown="if(event.key==='Enter'){scrollToCatalog&&scrollToCatalog();this.blur();}"/>
-      <button type="button" class="nav-search-clear" id="navSearchClear" onclick="clearNavSearch()" aria-label="Limpiar búsqueda" style="display:none;">×</button>
-    </div>
+    <!-- (Barra de búsqueda del nav eliminada — el catálogo tiene su
+         propio buscador, y el nav queda más limpio + logo más prominente.) -->
 
     <div class="nav-icons">
       <!-- (Botón CATÁLOGO eliminado — el catálogo ya quedó arriba en
