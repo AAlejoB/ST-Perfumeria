@@ -445,17 +445,21 @@
   <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
   <div class="nav-drawer" id="navDrawer">
-    <button class="drawer-close" onclick="toggleDrawer()">&#x2715;</button>
-    <a href="#" class="drawer-link" onclick="toggleDrawer()">Inicio</a>
-    <a href="#catalogo" class="drawer-link" onclick="toggleDrawer()">Cat&#225;logo</a>
-    <a href="#categorias" class="drawer-link" onclick="toggleDrawer()">Categor&#237;as</a>
-    <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()">Nosotros</a>
-    <a href="/blog" class="drawer-link" onclick="toggleDrawer()">Blog</a>
-    <a href="#contacto" class="drawer-link" onclick="toggleDrawer()">Contacto</a>
-    <a href="#dondeEncontrarnos" class="drawer-link" onclick="toggleDrawer()">Dónde encontrarnos</a>
-    <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDarkMode();" id="drawerTheme"><span class="dark-toggle-icon">🌙</span> Cambiar tema</a>
-    <a href="#" class="drawer-link" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth">Iniciar sesi&oacute;n</a>
-    <a href="#" class="drawer-link" style="display:none;color:#e74c3c;" onclick="event.preventDefault();toggleDrawer();logout()" id="drawerLogout">Cerrar sesi&#243;n</a>
+    <button class="drawer-close" onclick="toggleDrawer()" aria-label="Cerrar menú">&#x2715;</button>
+    <a href="#" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🏠</span> Inicio</a>
+    <a href="#catalogo" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🛍️</span> Cat&#225;logo</a>
+    <a href="#categorias" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">📂</span> Categor&#237;as</a>
+    <a href="#destacados" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">⭐</span> Selecci&#243;n ST</a>
+    <a href="#decants" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🧪</span> Decants</a>
+    <a href="#quizSection" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🎮</span> Juegos ST</a>
+    <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">👋</span> Nosotros</a>
+    <a href="/blog" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">📰</span> Blog</a>
+    <a href="#contacto" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">💬</span> Contacto</a>
+    <a href="#dondeEncontrarnos" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">📍</span> D&oacute;nde encontrarnos</a>
+    <div class="drawer-divider" aria-hidden="true"></div>
+    <a href="#" class="drawer-link drawer-link-action" onclick="event.preventDefault();toggleDarkMode();" id="drawerTheme"><span class="drawer-link-ico dark-toggle-icon">🌙</span> Cambiar tema</a>
+    <a href="#" class="drawer-link drawer-link-action" onclick="event.preventDefault();toggleDrawer();openAuth()" id="drawerAuth"><span class="drawer-link-ico">🔐</span> Iniciar sesi&oacute;n</a>
+    <a href="#" class="drawer-link drawer-link-action" style="display:none;color:#e74c3c;" onclick="event.preventDefault();toggleDrawer();logout()" id="drawerLogout"><span class="drawer-link-ico">🚪</span> Cerrar sesi&#243;n</a>
   </div>
 
   <nav>

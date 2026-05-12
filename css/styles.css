@@ -785,28 +785,79 @@
     .nav-drawer {
       position: fixed; top: 0; left: 0; width: 280px; height: 100vh;
       background: #0d0d0d; border-right: 1px solid var(--borde);
-      z-index: 200; padding: 2rem;
+      z-index: 200; padding: 1.2rem 1rem;
       transform: translateX(-100%);
       transition: transform .4s cubic-bezier(.25,.46,.45,.94);
-      display: flex; flex-direction: column; gap: .5rem;
+      display: flex; flex-direction: column; gap: .15rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .nav-drawer.open { transform: translateX(0); }
     .drawer-close {
-      align-self: flex-end; background: none; border: none;
-      color: var(--gris-claro); font-size: 1.4rem;
-      cursor: pointer; margin-bottom: 1.5rem; transition: color .3s;
+      align-self: flex-end; background: none; border: 1px solid rgba(232,184,0,.3);
+      color: var(--amarillo); font-size: 1rem;
+      cursor: pointer; margin-bottom: 1rem; transition: all .25s;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    .drawer-close:hover { color: var(--amarillo); }
+    .drawer-close:hover {
+      background: var(--amarillo);
+      color: #1a1a1d;
+      transform: scale(1.05);
+    }
+    /* Items del drawer — diseño tipo "app moderna":
+       font sans, tamaño moderado, icono al inicio, hover sutil */
     .drawer-link {
-      font-family: var(--font-display); font-size: 2rem; font-weight: 300;
-      color: var(--blanco); text-decoration: none; padding: .5rem 0;
-      border-bottom: 1px solid var(--borde-sutil); transition: color .3s; letter-spacing: .05em;
+      font-family: var(--font-body);
+      font-size: .92rem;
+      font-weight: 500;
+      letter-spacing: .02em;
+      color: var(--blanco);
+      text-decoration: none;
+      padding: .65rem .8rem;
+      border-radius: 8px;
+      transition: background .2s, color .2s, padding-left .25s;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      border-bottom: none;        /* sin línea: usamos el spacing como separador */
     }
-    .drawer-link:hover { color: var(--amarillo); }
-    /* Desktop: drawer compacto (font-size grande de mobile queda mal) */
+    .drawer-link:hover,
+    .drawer-link:focus-visible {
+      background: rgba(232,184,0,.12);
+      color: var(--amarillo);
+      padding-left: 1rem;        /* micro indent al hover */
+      outline: none;
+    }
+    .drawer-link-ico {
+      font-size: 1.1rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      flex-shrink: 0;
+    }
+    /* Separador entre nav-links y acciones (tema/login) */
+    .drawer-divider {
+      height: 1px;
+      background: rgba(232,184,0,.15);
+      margin: .8rem .4rem;
+      flex-shrink: 0;
+    }
+    /* Items de "acción" (tema/login) — un toque diferenciados */
+    .drawer-link-action {
+      font-size: .85rem;
+      opacity: .9;
+    }
+
+    /* Desktop: ya está chico, dejamos default */
     @media (min-width: 768px) {
-      .nav-drawer { padding: 1.6rem 1.4rem; gap: .15rem; width: 240px; }
-      .drawer-link { font-size: 1.05rem; padding: .55rem 0; letter-spacing: .04em; }
+      .nav-drawer { padding: 1.4rem 1.2rem; width: 260px; }
+      .drawer-link { font-size: .85rem; padding: .55rem .75rem; }
+      .drawer-link-ico { font-size: 1rem; width: 20px; }
     }
     .drawer-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,.6);
