@@ -391,11 +391,37 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bodoni+Moda:wght@400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
   <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bodoni+Moda:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/></noscript>
   <link rel="preconnect" href="https://rtgjzzkjrwbkdhkslxix.supabase.co" crossorigin/>
+  <!-- DNS prefetch para CDNs no críticos (Supabase Storage, jsdelivr) -->
+  <link rel="dns-prefetch" href="//rtgjzzkjrwbkdhkslxix.supabase.co"/>
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net"/>
+  <link rel="dns-prefetch" href="//wa.me"/>
   <!-- Preloads críticos: arrancan descarga ANTES de que el parser los descubra
        (mejora FCP/LCP en mobile lento) -->
   <link rel="preload" as="image" href="img/logo-st.webp" fetchpriority="high"/>
-  <link rel="preload" as="style" href="css/styles.css"/>
-  <link rel="stylesheet" href="css/styles.css"/>
+
+  <!-- [FCP-CSS] CSS principal cargado de forma NO bloqueante.
+       Patrón estándar: preload + onload swap a stylesheet.
+       Esto mejora FCP porque el browser puede pintar el HTML antes
+       de descargar 280KB de CSS. El mini critical CSS inline de abajo
+       cubre el primer paint para evitar FOUC. -->
+  <link rel="preload" as="style" href="css/styles.css" onload="this.onload=null;this.rel='stylesheet'"/>
+  <noscript><link rel="stylesheet" href="css/styles.css"/></noscript>
+
+  <!-- Critical CSS inline (above-the-fold) — evita Flash of Unstyled
+       Content durante los ~100-300ms que tarda en llegar styles.css.
+       Solo lo MÍNIMO: body bg, nav bg, hero bg, font-family default. -->
+  <style>
+    html, body { background: #121214; color: #f0ede8; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    body.is-guest { background: #121214; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(8,8,8,.94); position: sticky; top: 0; z-index: 100; min-height: 58px; }
+    .hero { min-height: 320px; padding: 3rem 1.5rem 2.5rem; text-align: center; background: #121214; }
+    .home-top-banner { background: #000; color: #fff; min-height: 38px; text-align: center; }
+    .nav-logo img { height: 42px; width: auto; }
+    .nav-hamburger { background: none; border: none; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .nav-hamburger span { display: block; width: 26px; height: 2px; background: #f0ede8; }
+    .catalog-grid { min-height: 900px; display: grid; grid-template-columns: 1fr; gap: 1rem; padding: 0 1rem; }
+    @media (min-width: 768px) { nav { padding: 16px 24px; min-height: 64px; } .nav-logo img { height: 52px; } .catalog-grid { grid-template-columns: repeat(2, 1fr); min-height: 760px; } }
+  </style>
 </head>
 <body class="is-guest">
 
