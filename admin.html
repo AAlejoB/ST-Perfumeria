@@ -2402,21 +2402,50 @@
       var pass = document.getElementById('loginPass').value;
       if (!pass) return;
 
+      // UX: deshabilitar input + indicar "verificando" para que el user no
+      // piense que el bot\u00f3n no respondi\u00f3 cuando Supabase est\u00e1 lento.
+      var passInput = document.getElementById('loginPass');
+      var errEl = document.getElementById('loginError');
+      if (passInput) passInput.disabled = true;
+      if (errEl) { errEl.style.color = '#e8b800'; errEl.textContent = 'Verificando\u2026'; }
+
+      // Helper local: race entre la promesa de signInWithPassword y un
+      // timeout. Sin esto, si Supabase est\u00e1 degradado (free tier saturado),
+      // el await queda esperando para siempre y el panel no abre nunca.
+      function _loginWithTimeout(promise, ms, label) {
+        var timeoutP = new Promise(function(_, reject) {
+          setTimeout(function() { reject(new Error('Supabase tard\u00f3 >' + Math.round(ms/1000) + 's en responder (' + label + ')')); }, ms);
+        });
+        return Promise.race([promise, timeoutP]);
+      }
+
       // Autenticar contra Supabase Auth. Probamos primero como jefe, luego
       // como empleado. La pass NO viaja a ning\u00fan string hardcodeado; Supabase
       // compara contra el hash que tiene en su tabla auth.users.
       var role = null;
+      var loginError = null;
       try {
-        var r1 = await sb.auth.signInWithPassword({ email: JEFE_EMAIL, password: pass });
+        var r1 = await _loginWithTimeout(
+          sb.auth.signInWithPassword({ email: JEFE_EMAIL, password: pass }),
+          8000,
+          'login jefe'
+        );
         if (r1 && r1.data && r1.data.user) {
           role = 'jefe';
         } else {
-          var r2 = await sb.auth.signInWithPassword({ email: EMPLEADO_EMAIL, password: pass });
+          var r2 = await _loginWithTimeout(
+            sb.auth.signInWithPassword({ email: EMPLEADO_EMAIL, password: pass }),
+            8000,
+            'login empleado'
+          );
           if (r2 && r2.data && r2.data.user) role = 'empleado';
         }
       } catch (e) {
         console.error('[login] error auth:', e);
+        loginError = e && e.message ? e.message : 'error desconocido';
       }
+
+      if (passInput) passInput.disabled = false;
 
       if (role) {
         clearLockoutState(); // login exitoso resetea el contador
@@ -2426,6 +2455,19 @@
         // Auto-backup silencioso si pasaron > 24h desde el último (tarda unos segundos, no bloquea)
         setTimeout(function() { maybeAutoBackup(); }, 3000);
       } else {
+        // \u00bfFue un timeout de Supabase o una pass mal? Distinguir importa
+        // mucho para no contar como "intento fallido" cuando Supabase est\u00e1
+        // ca\u00eddo (sino la cuenta queda bloqueada por un problema externo).
+        var isTimeout = loginError && loginError.indexOf('tard\u00f3') !== -1;
+        if (isTimeout) {
+          if (errEl) {
+            errEl.style.color = '#e74c3c';
+            errEl.innerHTML = '\u23f1 Supabase no respondi\u00f3. Prob\u00e1 de nuevo en unos segundos.<br><span style="font-size:.6rem;color:#999;">Si segu\u00eds sin poder entrar, revis\u00e1 el estado del proyecto en Supabase Dashboard.</span>';
+          }
+          // NO contar como intento fallido \u2014 fue infraestructura
+          notifyTelegram('\u26a0\ufe0f Login admin timeout (Supabase lento)\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
+          return;
+        }
         // Sumar fallo y aplicar lockout si corresponde
         var st = getLockoutState();
         st.fails = (st.fails || 0) + 1;
@@ -2439,7 +2481,7 @@
         } else {
           setLockoutState(st);
           var left = 5 - (st.fails % 5);
-          document.getElementById('loginError').textContent = 'Contrase\u00f1a incorrecta (' + left + ' intento' + (left === 1 ? '' : 's') + ' antes del bloqueo)';
+          if (errEl) { errEl.style.color = '#e74c3c'; errEl.textContent = 'Contrase\u00f1a incorrecta (' + left + ' intento' + (left === 1 ? '' : 's') + ' antes del bloqueo)'; }
           notifyTelegram('\ud83d\udea8 Intento fallido en Panel Admin (' + st.fails + ' acumulados)\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
         }
       }
