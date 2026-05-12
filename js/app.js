@@ -3845,9 +3845,24 @@
     // ============================================================
 
     // Cargar perfumes nuevos desde Supabase y combinar con perfumes.js
+    // Helper: race entre una query Supabase y un timeout — para que el
+    // catálogo NUNCA se cuelgue eternamente esperando una query que no
+    // responde (Supabase pausado, RLS rota, red lenta, etc.).
+    function withTimeout(promise, ms, label) {
+      var timeoutP = new Promise(function(_, reject) {
+        setTimeout(function() { reject(new Error('timeout ' + ms + 'ms: ' + label)); }, ms);
+      });
+      return Promise.race([promise, timeoutP]);
+    }
+
     async function loadPerfumesNuevos() {
       try {
-        var { data } = await sb.from('perfumes_nuevos').select('*');
+        var { data, error } = await withTimeout(
+          sb.from('perfumes_nuevos').select('*'),
+          5000,
+          'perfumes_nuevos'
+        );
+        if (error) { console.warn('[loadPerfumesNuevos] supabase error:', error.message); return; }
         if (data && data.length > 0) {
           data.forEach(function(p) {
             // No duplicar si ya existe
@@ -3868,13 +3883,20 @@
             });
           });
         }
-      } catch(e) {}
+      } catch(e) {
+        console.warn('[loadPerfumesNuevos] timeout o error:', e.message);
+      }
     }
 
     // Cargar overrides desde Supabase y aplicar sobre perfumes.js
     async function loadOverrides() {
       try {
-        var { data } = await sb.from('perfume_overrides').select('*');
+        var { data, error } = await withTimeout(
+          sb.from('perfume_overrides').select('*'),
+          5000,
+          'perfume_overrides'
+        );
+        if (error) { console.warn('[loadOverrides] supabase error:', error.message); return; }
         if (data && data.length > 0) {
           data.forEach(function(o) {
             var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
@@ -3915,7 +3937,9 @@
             if (o.nota_proximamente !== undefined && o.nota_proximamente !== null) p.nota_proximamente = o.nota_proximamente;
           });
         }
-      } catch(e) {}
+      } catch(e) {
+        console.warn('[loadOverrides] timeout o error:', e.message);
+      }
     }
 
     // Path crítico: nuevos perfumes + overrides → render del catálogo.
