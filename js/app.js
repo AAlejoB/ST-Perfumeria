@@ -1725,6 +1725,17 @@
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
+      // 🔥 URGENCY — "Solo queda N" cuando stock real es 1-3
+      // Stock real del perfume (viene de perfume_overrides). Mostramos
+      // badge de urgencia solo si stock está entre 1 y 3 — crea FOMO
+      // basado en data verdadera, no en marketing falso.
+      var urgencyHTML = '';
+      var stockQty = typeof p._stockQty === 'number' ? p._stockQty : null;
+      if (stockQty !== null && stockQty >= 1 && stockQty <= 3 && !isPaused) {
+        var urgencyText = stockQty === 1 ? '🔥 Solo queda 1' : '🔥 Solo quedan ' + stockQty;
+        urgencyHTML = '<span class="card-urgency" title="Stock real del local — ¡apurate!">' + urgencyText + '</span>';
+      }
+
       // ✨ SOCIAL PROOF — "X personas mirando ahora"
       // Algoritmo determinista basado en slug + ventana de 5 min:
       // genera un número 1-5 estable que cambia cada 5 min. Da sensación
@@ -1792,6 +1803,7 @@
             + '</div>'
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
+          + urgencyHTML
           + viewsHTML
           + liveViewersHTML
           + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + p.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
@@ -6305,3 +6317,72 @@
 
     // Cargar config al inicio (no bloquea, con defaults)
     loadDecantsConfig();
+    // ============================================================
+    // 🎯 CUSTOM CURSOR — dot dorado que sigue el mouse (desktop only)
+    // Lerp suave (~12fps perceived) sin sentirse pesado. Solo se activa
+    // si hover + pointer fine (desktop con mouse). En mobile/touch
+    // queda display:none por CSS y este JS no hace nada.
+    // ============================================================
+    (function initCustomCursor() {
+      // Skip si no es desktop con mouse fino
+      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      // Skip si el user pidió reduced motion
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      var cursor = document.getElementById('customCursor');
+      if (!cursor) return;
+
+      var targetX = -100, targetY = -100;     // posición real del mouse
+      var currentX = -100, currentY = -100;   // posición animada del cursor
+      var isActive = false;
+
+      document.addEventListener('mousemove', function(e) {
+        targetX = e.clientX;
+        targetY = e.clientY;
+        if (!isActive) {
+          isActive = true;
+          cursor.classList.add('is-active');
+        }
+      });
+
+      document.addEventListener('mouseleave', function() {
+        isActive = false;
+        cursor.classList.remove('is-active');
+      });
+
+      document.addEventListener('mousedown', function() {
+        cursor.classList.add('is-clicking');
+      });
+      document.addEventListener('mouseup', function() {
+        cursor.classList.remove('is-clicking');
+      });
+
+      // Hover sobre elementos interactivos → cursor crece
+      var hoverSelector = 'a, button, .product-card, .filter-btn, .nav-icon-btn, .cat-card, .set-card, .seleccion-card, .collectible-card, [role="button"], input, select, label.cursor-pointer';
+      document.addEventListener('mouseover', function(e) {
+        if (e.target.closest && e.target.closest(hoverSelector)) {
+          cursor.classList.add('is-hover');
+        }
+      });
+      document.addEventListener('mouseout', function(e) {
+        if (e.target.closest && e.target.closest(hoverSelector)) {
+          // Verificar que el relatedTarget NO sea también un interactivo
+          var related = e.relatedTarget;
+          if (!related || !related.closest || !related.closest(hoverSelector)) {
+            cursor.classList.remove('is-hover');
+          }
+        }
+      });
+
+      // Loop de animación con lerp (interpolación suave). Setea left/top
+      // en vez de transform — el CSS reserva transform para los scales
+      // (is-active, is-hover, is-clicking) sin que el JS lo sobreescriba.
+      function animateCursor() {
+        currentX += (targetX - currentX) * 0.25;
+        currentY += (targetY - currentY) * 0.25;
+        cursor.style.left = currentX + 'px';
+        cursor.style.top  = currentY + 'px';
+        requestAnimationFrame(animateCursor);
+      }
+      requestAnimationFrame(animateCursor);
+    })();
