@@ -2646,6 +2646,7 @@
       try { renderNoteFilters(); }   catch(e) { console.warn('[renderCatalog] renderNoteFilters:', e); }
       try { initGalleryAutoplay(); } catch(e) { console.warn('[renderCatalog] initGalleryAutoplay:', e); }
       try { initCardBgLazy(); }      catch(e) { console.warn('[renderCatalog] initCardBgLazy:', e); }
+      try { initCardFadeIn(); }      catch(e) { console.warn('[renderCatalog] initCardFadeIn:', e); }
       // Default sort: precio descendente (más caro primero) — siempre.
       try { sortCards('price-desc'); } catch(e) { console.warn('[renderCatalog] sortCards:', e); }
     }
@@ -2685,6 +2686,45 @@
     // Resultado en mobile: las primeras 1-2 cards visibles cargan su
     // backdrop al inicio; el resto se carga a medida que scrolleás.
     // ============================================================
+    // ============================================================
+    // FADE-IN ON SCROLL — initCardFadeIn
+    //
+    // Cada .product-card arranca con opacity:0 + translateY(20px) (CSS).
+    // Cuando entra al viewport, IO le agrega .is-visible → fade-in
+    // suave (550ms) con stagger en las primeras 6 (efecto cascade).
+    //
+    // Acompaña al backdrop blur lazy: ambos observers corren juntos
+    // pero independientes.
+    // ============================================================
+    var _cardFadeObserver = null;
+    function initCardFadeIn() {
+      if (_cardFadeObserver) { try { _cardFadeObserver.disconnect(); } catch(_){} }
+      // Si el user pidió reduced-motion, mostrar todas directo
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('.product-card:not(.is-visible)').forEach(function(c) {
+          c.classList.add('is-visible');
+        });
+        return;
+      }
+      // Sin IO: mostrar todas directo (fallback)
+      if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll('.product-card:not(.is-visible)').forEach(function(c) {
+          c.classList.add('is-visible');
+        });
+        return;
+      }
+      _cardFadeObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          _cardFadeObserver.unobserve(entry.target); // single-shot
+        });
+      }, { rootMargin: '0px 0px -80px 0px', threshold: 0.05 });
+      document.querySelectorAll('.product-card:not(.is-visible)').forEach(function(c) {
+        _cardFadeObserver.observe(c);
+      });
+    }
+
     var _cardBgObserver = null;
     function initCardBgLazy() {
       // Cleanup observer anterior (si renderCatalog se re-invocó)
@@ -2935,6 +2975,9 @@
       });
       var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
       document.getElementById('filterCount').textContent = label;
+      // Re-observar cards recién visibles (load more / cambio de filtro)
+      // para que tengan fade-in también, no aparezcan abruptas.
+      try { initCardFadeIn(); } catch(_) {}
       // Empty state para favoritos
       var favsEmpty = document.getElementById('favsEmpty');
       var gridEl = document.getElementById('catalogGrid');

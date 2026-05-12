@@ -656,7 +656,7 @@
           <button onclick="sortCards('views-asc')">&#128065; Menos visitados</button>
         </div>
       </div>
-      <span class="filter-count" id="filterCount">6 fragancias</span>
+      <span class="filter-count" id="filterCount">Cargando…</span>
     </div>
   </div>
 
@@ -706,7 +706,14 @@
       <p class="favs-empty-desc">Toc&aacute; el <span class="favs-empty-heart">&#9829;</span> en cualquier perfume para guardarlo ac&aacute;. Despu&eacute;s pod&eacute;s encontrarlos r&aacute;pido, compararlos y armar tu carrito en segundos.</p>
     </div>
     <div class="catalog-grid" id="catalogGrid">
-      <!-- Cards generadas dinámicamente desde perfumes.js -->
+      <!-- Skeleton loader: 6 cards fantasma con shimmer mientras renderCatalog corre.
+           Se reemplazan automáticamente cuando JS pobla el grid. -->
+      <div class="card-skel"><div class="card-skel-img"></div><div class="card-skel-body"><div class="card-skel-line w-70"></div><div class="card-skel-line w-40"></div><div class="card-skel-line w-50"></div></div></div>
+      <div class="card-skel"><div class="card-skel-img"></div><div class="card-skel-body"><div class="card-skel-line w-60"></div><div class="card-skel-line w-30"></div><div class="card-skel-line w-50"></div></div></div>
+      <div class="card-skel"><div class="card-skel-img"></div><div class="card-skel-body"><div class="card-skel-line w-80"></div><div class="card-skel-line w-40"></div><div class="card-skel-line w-50"></div></div></div>
+      <div class="card-skel"><div class="card-skel-img"></div><div class="card-skel-body"><div class="card-skel-line w-65"></div><div class="card-skel-line w-30"></div><div class="card-skel-line w-50"></div></div></div>
+      <div class="card-skel"><div class="card-skel-img"></div><div class="card-skel-body"><div class="card-skel-line w-75"></div><div class="card-skel-line w-40"></div><div class="card-skel-line w-50"></div></div></div>
+      <div class="card-skel"><div class="card-skel-img"></div><div class="card-skel-body"><div class="card-skel-line w-55"></div><div class="card-skel-line w-35"></div><div class="card-skel-line w-50"></div></div></div>
     </div>
     <div class="load-more-wrap" id="loadMoreWrap">
       <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">Ver m&#225;s fragancias</button>

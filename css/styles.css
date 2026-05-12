@@ -7212,3 +7212,112 @@
     body:not(.dark-mode) .decant-builder-wa {
       color: #ffffff !important;
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       UX PASS: skeleton loader + fade-in on scroll
+       (Inspirado en sitios como Bascope Jeans / Tiendanube, pero
+       implementado nativo con IntersectionObserver — cero librerías)
+       ──────────────────────────────────────────────────────────────── */
+
+    /* ── Skeleton placeholder mientras renderCatalog corre ── */
+    .card-skel {
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(232,184,0,.08);
+      border-radius: 6px;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+    body:not(.dark-mode) .card-skel {
+      background: #ede2c2;
+      border-color: rgba(120,90,0,.15);
+    }
+    .card-skel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,.05) 50%,
+        transparent 100%
+      );
+      animation: cardSkelShimmer 1.6s ease-in-out infinite;
+    }
+    body:not(.dark-mode) .card-skel::before {
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,.3) 50%,
+        transparent 100%
+      );
+    }
+    @keyframes cardSkelShimmer {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .card-skel-img {
+      width: 30%;
+      flex-shrink: 0;
+      aspect-ratio: 1;
+      background: rgba(255,255,255,.04);
+      border-radius: 4px;
+    }
+    body:not(.dark-mode) .card-skel-img { background: rgba(0,0,0,.06); }
+    .card-skel-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .card-skel-line {
+      height: 14px;
+      background: rgba(255,255,255,.04);
+      border-radius: 3px;
+    }
+    body:not(.dark-mode) .card-skel-line { background: rgba(0,0,0,.06); }
+    .card-skel-line.w-30 { width: 30%; }
+    .card-skel-line.w-40 { width: 40%; }
+    .card-skel-line.w-50 { width: 50%; height: 22px; margin-top: .3rem; }
+    .card-skel-line.w-55 { width: 55%; }
+    .card-skel-line.w-60 { width: 60%; }
+    .card-skel-line.w-65 { width: 65%; }
+    .card-skel-line.w-70 { width: 70%; }
+    .card-skel-line.w-75 { width: 75%; }
+    .card-skel-line.w-80 { width: 80%; }
+
+    /* Respeta accesibilidad: si el user pidió reduced motion, sin shimmer */
+    @media (prefers-reduced-motion: reduce) {
+      .card-skel::before { animation: none; }
+    }
+
+    /* ── Fade-in on scroll de las cards del catálogo ──
+       Cada card arranca con opacity:0 + translateY(20px). Cuando
+       IntersectionObserver detecta que entra al viewport, le aplica
+       .is-visible y la card se anima a su posición final. */
+    .product-card {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .55s cubic-bezier(.25,.46,.45,.94),
+                  transform .55s cubic-bezier(.25,.46,.45,.94),
+                  box-shadow .3s ease,
+                  border-color .3s;
+    }
+    .product-card.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    /* Efecto stagger: las cards aparecen escalonadas (premium look) */
+    .product-card.is-visible:nth-child(2) { transition-delay: .06s; }
+    .product-card.is-visible:nth-child(3) { transition-delay: .12s; }
+    .product-card.is-visible:nth-child(4) { transition-delay: .18s; }
+    .product-card.is-visible:nth-child(5) { transition-delay: .24s; }
+    .product-card.is-visible:nth-child(6) { transition-delay: .30s; }
+    /* Más allá de la 6 no escalonamos (sino tarda demasiado) */
+
+    /* Accesibilidad: si reduced-motion, mostrar directo sin animación */
+    @media (prefers-reduced-motion: reduce) {
+      .product-card { opacity: 1; transform: none; transition: none; }
+      .product-card.is-visible { transition: none; }
+    }
