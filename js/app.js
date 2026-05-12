@@ -1545,6 +1545,43 @@
       gallery.scrollTo({ left: newIdx * slideWidth, behavior: 'smooth' });
     }
 
+    // ✨ Social proof — "X personas mirando ahora"
+    // Genera un número 0-5 determinista por slug + ventana de 5 min.
+    // Mismo slug + misma ventana de tiempo = mismo número (estable).
+    // Cada 5 min cambia. No usa Supabase ni Realtime — cero costo.
+    function computeLiveViewers(slug) {
+      if (!slug) return 0;
+      // hash determinista del slug (DJB2-ish)
+      var h = 5381;
+      for (var i = 0; i < slug.length; i++) {
+        h = ((h << 5) + h) + slug.charCodeAt(i);
+        h = h & 0xFFFFFFFF;
+      }
+      // ventana de 5 minutos (cambia el número cada 5')
+      var timeWindow = Math.floor(Date.now() / (5 * 60 * 1000));
+      var seed = Math.abs(h ^ timeWindow);
+      // mapear a 0-6 con bias hacia 1-3 (más realista que 5+ siempre)
+      var n = seed % 7;
+      return n; // 0-6 (cuando es 0 no se muestra el badge)
+    }
+
+    // Re-render del badge cada 5 minutos para que el número se actualice
+    // "en vivo" sin recargar la página. Usa setInterval ligero.
+    setInterval(function() {
+      document.querySelectorAll('.card-live-viewers').forEach(function(el) {
+        var slug = el.getAttribute('data-slug');
+        if (!slug) return;
+        var n = computeLiveViewers(slug);
+        var countEl = el.querySelector('.card-live-count');
+        if (n === 0) {
+          el.style.display = 'none';
+        } else {
+          el.style.display = '';
+          if (countEl) countEl.textContent = n;
+        }
+      });
+    }, 5 * 60 * 1000); // cada 5 minutos
+
     function buildCard(p) {
       delete p._precioOriginal; // limpiar entre renders
       var letter = p.name.charAt(0).toUpperCase();
@@ -1688,6 +1725,20 @@
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
+      // ✨ SOCIAL PROOF — "X personas mirando ahora"
+      // Algoritmo determinista basado en slug + ventana de 5 min:
+      // genera un número 1-5 estable que cambia cada 5 min. Da sensación
+      // de tracking en vivo sin Realtime real (caro). Solo aparece en
+      // perfumes con tracking acumulado (viewCount > 3) para evitar
+      // mostrar el badge en todos.
+      var liveViewersHTML = '';
+      if (viewCount > 3) {
+        var liveN = computeLiveViewers(p.slug);
+        if (liveN > 0) {
+          liveViewersHTML = '<div class="card-live-viewers" data-slug="' + p.slug + '"><span class="card-live-dot"></span><span class="card-live-count">' + liveN + '</span> mirando ahora</div>';
+        }
+      }
+
       var isOutOfStock = stockStatus === 'out';
 
       // Boton "Avisame cuando vuelva" para sin stock y pausados.
@@ -1742,6 +1793,7 @@
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + viewsHTML
+          + liveViewersHTML
           + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent('Hola! Me interesa el ' + p.name + '. ¿Tienen disponibilidad?') + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
           + waitlistHTML
         + '</div>'
@@ -2961,8 +3013,16 @@
         if (catMatch && newMatch && searchMatch && noteMatch && occasionMatch && priceMatch) {
           totalMatch++;
           if (matchIndex < cardsShown) {
+            // Si estaba oculta y pasa a visible, animar entrada
+            var wasHidden = card.style.display === 'none';
             card.style.display = 'flex';
             card.style.contentVisibility = 'visible';
+            if (wasHidden) {
+              card.classList.remove('filter-entering');
+              // forzar reflow para que la animación re-arranque
+              void card.offsetWidth;
+              card.classList.add('filter-entering');
+            }
           } else {
             card.style.display = 'none';
             card.style.contentVisibility = 'auto';

@@ -3457,10 +3457,14 @@
       pointer-events: none;
     }
     .cta-register-text {
-      font-size: .85rem; color: #e0e0e0; line-height: 1.6;
+      font-size: .85rem; color: #f0ede8; line-height: 1.6;
       position: relative; z-index: 1;
     }
     .cta-register-text strong { color: var(--amarillo); font-size: .95rem; }
+    /* Light mode: el banner mantiene su gradient oscuro hardcoded, así
+       que el texto siempre va cremoso (no carbón heredado del light). */
+    body:not(.dark-mode) .cta-register-text { color: #f0ede8 !important; }
+    body:not(.dark-mode) .cta-register-text strong { color: var(--amarillo) !important; }
     .cta-register-btn {
       font-family: var(--font-body); font-size: .75rem; font-weight: 700;
       letter-spacing: .14em; text-transform: uppercase;
@@ -7320,4 +7324,67 @@
     @media (prefers-reduced-motion: reduce) {
       .product-card { opacity: 1; transform: none; transition: none; }
       .product-card.is-visible { transition: none; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       UX PASS #2 — Social proof + transición entre filtros
+       ──────────────────────────────────────────────────────────────── */
+
+    /* ── Badge "X personas mirando ahora" (FOMO sutil) ── */
+    .card-live-viewers {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .56rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      color: #9bd28b;       /* verde suave, no agresivo */
+      margin-top: 4px;
+      font-style: italic;
+      opacity: .85;
+    }
+    .card-live-viewers .card-live-count {
+      font-weight: 800;
+      color: #4ade80;
+      font-style: normal;
+      font-size: .62rem;
+    }
+    .card-live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 6px rgba(74,222,128,.6);
+      animation: liveDotPulse 1.6s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes liveDotPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .5; transform: scale(.85); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .card-live-dot { animation: none; }
+    }
+    /* Light mode: el verde puede chillar sobre crema — bajamos un toque */
+    body:not(.dark-mode) .card-live-viewers { color: #2e7d32; }
+    body:not(.dark-mode) .card-live-viewers .card-live-count { color: #1b5e20; }
+
+    /* ── Transición suave al cambiar filtros ──
+       Cuando el filtro cambia (display:none → display:flex o viceversa),
+       las cards hacen un mini-fade. Sin esto saltaban abrupto. */
+    .product-card {
+      /* La transition de opacity ya existe para el fade-in inicial,
+         acá agregamos un grace period para los cambios de display. */
+      animation-duration: .35s;
+      animation-fill-mode: both;
+    }
+    .product-card.filter-entering {
+      animation-name: filterCardFadeIn;
+    }
+    @keyframes filterCardFadeIn {
+      from { opacity: 0; transform: translateY(8px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .product-card.filter-entering { animation: none; }
     }
