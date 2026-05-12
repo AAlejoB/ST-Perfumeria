@@ -2750,6 +2750,16 @@
         }
       });
       grid.innerHTML = cardsHTML;
+      // [LCP-PRELOAD] Boost al loading de la PRIMERA imagen visible
+      // del catálogo — es el LCP candidato más probable en mobile.
+      // Cambia loading="lazy" → "eager" + fetchpriority="high" en la 1ra card.
+      try {
+        var firstImg = grid.querySelector('.product-card img');
+        if (firstImg) {
+          firstImg.removeAttribute('loading');
+          firstImg.setAttribute('fetchpriority', 'high');
+        }
+      } catch(e) {}
       if (failedCount > 0) console.warn('[renderCatalog] cards saltadas por error:', failedCount);
 
       cardsShown = CARDS_INITIAL;    // mostrar solo las primeras N cards

@@ -7904,3 +7904,61 @@
       40%  { transform: scale(1.15); }
       100% { transform: scale(1); }
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       [CLS-RESERVE] Reservar espacio para evitar Layout Shift (CLS 0.684→<0.1)
+       Problema: cuando renderCatalog termina y reemplaza skeletons por cards
+       reales, las dimensiones eran distintas → todo se movía abajo.
+       Solución: skeleton del MISMO tamaño que .product-card.
+       ──────────────────────────────────────────────────────────────── */
+
+    /* Match exacto del alto de skeleton con product-card real */
+    .card-skel {
+      min-height: 230px;           /* alto típico de product-card */
+      padding: 15px !important;
+      border-radius: 5px !important;
+      box-sizing: border-box;
+    }
+    @media (min-width: 768px) {
+      .card-skel { min-height: 260px; }   /* product-card desktop padding 22 */
+    }
+    @media (min-width: 1024px) {
+      .card-skel { min-height: 280px; }
+    }
+    .card-skel-img {
+      width: 30% !important;        /* mismo % que card-image en product-card */
+      flex-shrink: 0;
+    }
+
+    /* Reservar min-height al catalog-grid para que NO colapse durante
+       el loading inicial. Sino hero/categorías/footer "saltan" para arriba. */
+    .catalog-grid {
+      min-height: 900px;            /* 6 skeletons de 230 + gap ≈ 900px */
+    }
+    @media (min-width: 768px) {
+      .catalog-grid { min-height: 760px; }  /* 2 cols × 3 rows = ~3 cards alto */
+    }
+    @media (min-width: 1024px) {
+      .catalog-grid { min-height: 580px; }
+    }
+
+    /* Reservar espacio para el banner contextual de puntos (aparece/oculta
+       según user). Sin esto, cuando aparece desplaza todo abajo. */
+    #puntosContextBanner {
+      min-height: 0;
+      transition: min-height .3s ease;
+    }
+    #puntosContextBanner:not([style*="display:none"]):not([style*="display: none"]) {
+      min-height: 48px;
+    }
+
+    /* Las imágenes lazy DEBEN tener width/height para no causar reflow al
+       cargar. Defensa global: aspect-ratio default si falta. */
+    .card-gallery-slide img {
+      aspect-ratio: 1 / 1;
+      max-width: 100%;
+    }
+
+    /* Hero: reservar altura mínima para evitar shift al cargar fonts */
+    .hero { min-height: 320px; }
+    @media (min-width: 768px) { .hero { min-height: 380px; } }
