@@ -287,8 +287,93 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.0.71-72 | Backdrop blur en cards |
 | v1.0.76-78 | Parche masivo de legibilidad light |
 | v1.0.79 | Decants alfabético + agregados arriba |
+| v1.0.80-82 | Refactor Ventas + edición precio centralizada |
+| v1.0.83-85 | Decants custom (precio_unit + foto_url) |
+| v1.0.86-87 | Light theme fixes (decant frasquitos, controles +/-) |
+| v1.0.88 | Tolerancia SELECT * para columnas opcionales |
+| v1.0.89-90 | Upload foto custom decants + especiales primero en armador |
+| v1.0.91-93 | Mobile light fixes + bug crítico setupRealtimeStock + cache invalidation |
+| v1.0.94-95 | SW network-first JS/CSS + updateViaCache:'none' |
+| v1.0.96-98 | Timeout 3s en queries + cache local stale-while-revalidate |
+| v1.0.99 | Login admin con timeout 8s + feedback "Verificando…" |
+| v1.1.00 | 🎉 Milestone — Skeleton loader + fade-in scroll + counter "Cargando…" |
+| v1.1.01 | Social proof "X mirando ahora" + transición filtros |
+| v1.1.02 | Badge "🔥 Solo quedan N" + custom cursor dorado desktop |
+| v1.1.03 | Pack de 5 UX premium (sonido, heart pop, perfume del mes, infinite scroll, visto recientemente) |
+| v1.1.04 | Scroll-to-section margin fix + decant banner look quiz-cta |
+| v1.1.05 | Nav sin search + logo y íconos más grandes |
+| v1.1.06 | Drawer hamburguesa rediseñado (Inter sans + emojis + más compacto) |
+| v1.1.07 | 🛒 [NAV-CART] Carrito en navbar con badge |
+| v1.1.08 | [LCP-PRELOAD] + [CLS-RESERVE] fix Lighthouse |
+| v1.1.09 | [FCP-CSS] CSS no bloqueante + critical inline |
+| v1.1.10 | [IMG-DIMS] aspect-ratio defensivo en imgs |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
+
+---
+
+## 🎉 Sesión mayo 11-12 2026 — Plan UX + Lighthouse + Supabase Pro
+
+Sesión maratónica con muchas decisiones grandes. Resumen:
+
+### Decisiones de infra
+- **Supabase Pro contratado** (USD 25/mes) — el free tier estaba degradado, latencia errática, queries colgándose. Pro da compute dedicado.
+- **Cache local stale-while-revalidate** para queries críticas (perfumes_nuevos, perfume_overrides) — aunque Supabase falle, el cliente ve la última versión cached por 30 min.
+- **Timeout 3-8s** en TODAS las queries Supabase (login admin + lecturas público) — sin esto el sitio se colgaba indefinidamente cuando Supabase estaba lento.
+
+### UX premium implementado (sin librerías)
+1. **Skeleton loader** con shimmer mientras carga el catálogo
+2. **Fade-in con stagger** al scrollear cards (IntersectionObserver, primeras 6 escalonadas)
+3. **Backdrop blur lazy** en imágenes de cards (data-bg + IO con rootMargin 300px)
+4. **Live viewers** "X personas mirando ahora" — algoritmo determinista por slug + window de 5min, cero realtime
+5. **Urgency badge** "🔥 Solo quedan N" cuando stock 1-3 (data real del admin, no marketing falso)
+6. **Transición entre filtros** con scale .97 → 1 al cambiar de categoría
+7. **Custom cursor dorado** desktop con lerp suave, crece sobre interactivos
+8. **Sonido sutil al carrito** Web Audio API (E5+B5, 200ms cálido)
+9. **Heart pop con partículas** al toggle favorito (6 partículas rojas dispersas)
+10. **Badge "Perfume del mes"** en ganador de votación, gradient dorado animado
+11. **Infinite scroll** con IO sobre #loadMoreWrap (rootMargin 400px, throttle 300ms)
+12. **Visto recientemente** carousel — localStorage trackea últimos 8 vistos
+13. **Sort default price-desc** en cada renderCatalog (no solo en load inicial)
+14. **deferTask + onDeferred** para queries no críticas (announcement, votación, etc)
+
+### Bugs significativos resueltos
+- **Filter-bar duplicado** post reorder de home → IDs duplicados causaban dropdown flotante raro
+- **setupRealtimeStock con sintaxis rota** (regex DOTALL me dejó `catch(e){}` huérfano) → admin login no respondía
+- **Timezone en ajuste_horario** → admin guardaba "desde" en UTC, frontend comparaba en ART → ajuste invisible 24h
+- **RLS sin SELECT pública** en ajuste_horario → frontend público no podía leer aunque admin sí
+- **Login admin sin timeout** → si Supabase lento, signInWithPassword esperaba infinito
+- **renderCatalog roto si UN perfume malo** (p.name undefined rompía .map.join entero) → defensivo con forEach + try/catch por card
+- **CSS background-image bypasea loading="lazy"** → todas las fotos del backdrop blur se pedían al inicio (162 fetches)
+
+### Refactor estructural
+- **Sección Ventas eliminada** del admin (pendiente repensar flujo)
+- **Columna ACCIÓN eliminada** de Precios & Stock (edición vía tab Editar)
+- **Mensaje "151 perfumes" eliminado** de pestaña Editar
+- **Nav buscador eliminado** definitivamente (mobile + desktop)
+- **Drawer hamburguesa rediseñado** — Inter sans .92rem + emojis + estilo app moderna
+
+### Decisiones de diseño
+- **Decant banner con look del quiz-cta** — gradient violeta-magenta para consistencia visual entre CTAs grandes
+- **Logo del nav más grande** (40→52px desktop, 30→42px mobile) — protagonista del nav
+- **Íconos del nav más grandes** (34→46px desktop, 34→42px mobile)
+- **Custom cursor dorado** solo activado en hover+pointer fine + respeta reduced-motion
+
+### Plan C — Lighthouse fix (commits 1.1.07 a 1.1.10)
+Métricas mobile reportadas por el jefe:
+- FCP 4.3s (crítico)
+- LCP 7.9s (catastrófico)
+- TBT 90ms (OK)
+- CLS 0.684 (6.8x peor que el límite "malo")
+- Speed Index 4.3s
+
+Fixes aplicados:
+- **[NAV-CART]**: carrito en navbar con badge sincronizado
+- **[LCP-PRELOAD]**: fetchpriority="high" en 1ra img del catálogo + reserve heights del skeleton/grid
+- **[FCP-CSS]**: CSS no bloqueante (preload + onload swap) + critical CSS inline (~1KB) para evitar FOUC + dns-prefetch
+- **[IMG-DIMS]**: aspect-ratio defensivo en imgs de grids + width/height correctos en logos
+
+**Score esperado post-fix:** FCP ~1.5-2s, LCP ~3-4s, CLS <0.1.
 
 ---
 
@@ -303,5 +388,26 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 
 ---
 
-**Última actualización:** Mayo 2026.
-**Próxima revisión cuando:** se haga la migración a bcrypt, se agregue la tab Orden de Compra, o cualquier cambio de arquitectura.
+**Última actualización:** Mayo 12, 2026 — fin de sesión maratónica con plan UX completo + Lighthouse fixes + Supabase Pro contratado.
+**Próxima revisión cuando:** se haga la migración a bcrypt, se agregue la tab Orden de Compra, se mida Lighthouse mobile real post-fixes, o cualquier cambio de arquitectura.
+
+---
+
+## 🔑 Keywords para retomar en próxima conversación
+
+Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos features con sus keywords y Claude sabe a qué te referís:
+
+- `[NAV-CART]` — carrito en navbar
+- `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
+- `[CLS-RESERVE]` — min-height reservado en skeleton/grid
+- `[FCP-CSS]` — CSS no bloqueante + critical inline
+- `[IMG-DIMS]` — aspect-ratio defensivo en imgs
+- `[SDK-DEFER]` — Supabase SDK con defer (ya estaba)
+
+Y para mejoras futuras planteadas pero no hechas:
+- `[LCP-V2]` — segunda capa de LCP (comprimir logo, lazy real cards 7+)
+- `[HERO-OPTIMIZE]` — optimización específica del hero
+- `[JS-CHUNK]` — splittear app.js en módulos (invasivo, dejar para una semana sin cambios)
+- `[BCRYPT-MIGRATION]` — hashear passwords lazy migration
+- `[SUPABASE-AUTH]` — migrar de custom auth a Supabase Auth nativo
+- `[ORDEN-COMPRA-TAB]` — tab admin con sugerencias de pedido
