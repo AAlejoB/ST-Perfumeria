@@ -1192,12 +1192,41 @@
         favs.push(slug);
         btn.classList.add('liked');
         btn.innerHTML = '\u2665';
+        // \u2764\ufe0f Efecto "pop" al agregar a favoritos
+        spawnHeartParticles(btn);
+        btn.classList.remove('heart-pop');
+        void btn.offsetWidth;  // force reflow para re-trigger animation
+        btn.classList.add('heart-pop');
         if (currentUser) {
           sb.from('favoritos').insert({ user_id: currentUser.id, slug: slug }).then(function(){});
         }
       }
       saveFavs();
       if (currentFilter === 'favs') applyFilters();
+    }
+
+    // \u2764\ufe0f Spawn de part\u00edculas peque\u00f1as alrededor del coraz\u00f3n al agregar fav
+    function spawnHeartParticles(btn) {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var rect = btn.getBoundingClientRect();
+      var cx = rect.left + rect.width / 2;
+      var cy = rect.top + rect.height / 2;
+      // Spawn 6 part\u00edculas dispersas
+      for (var i = 0; i < 6; i++) {
+        (function(angle) {
+          var dot = document.createElement('span');
+          dot.className = 'heart-particle';
+          dot.style.left = cx + 'px';
+          dot.style.top  = cy + 'px';
+          var dist = 22 + Math.random() * 10;
+          var tx = Math.cos(angle) * dist;
+          var ty = Math.sin(angle) * dist - 8; // tirar levemente hacia arriba
+          dot.style.setProperty('--tx', tx + 'px');
+          dot.style.setProperty('--ty', ty + 'px');
+          document.body.appendChild(dot);
+          setTimeout(function() { dot.remove(); }, 700);
+        })((Math.PI * 2 * i) / 6 + Math.random() * 0.4);
+      }
     }
 
     function showFavorites(event) {
@@ -1243,16 +1272,31 @@
             counts[v.categoria][v.slug] = (counts[v.categoria][v.slug] || 0) + 1;
           });
           var ganadores = [];
+          var ganadoresSlugs = [];
           ['masculino', 'femenino'].forEach(function(cat) {
             var top = null, topN = 0;
             Object.keys(counts[cat] || {}).forEach(function(s) {
               if (counts[cat][s] > topN) { topN = counts[cat][s]; top = s; }
             });
-            if (top) ganadores.push((cat === 'masculino' ? '\ud83d\udc51 ' : '\ud83d\udc51 ') + top);
+            if (top) {
+              ganadores.push((cat === 'masculino' ? '\ud83d\udc51 ' : '\ud83d\udc51 ') + top);
+              ganadoresSlugs.push(top);
+            }
+          });
+          // \ud83d\udc51 Marcar los slugs ganadores en PERFUMES para badge en cards
+          ganadoresSlugs.forEach(function(slug) {
+            var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+            if (p) p._perfumeDelMes = true;
           });
           if (ganadores.length > 0) {
-            document.getElementById('votoGanadorBanner').style.display = 'block';
-            document.getElementById('votoGanadorText').textContent = ganadores.join('  |  ');
+            var bannerEl = document.getElementById('votoGanadorBanner');
+            var textEl = document.getElementById('votoGanadorText');
+            if (bannerEl) bannerEl.style.display = 'block';
+            if (textEl) textEl.textContent = ganadores.join('  |  ');
+            // Re-render del cat\u00e1logo para que aparezcan los badges
+            if (typeof renderCatalog === 'function') {
+              try { renderCatalog(); } catch(e) {}
+            }
           }
         }
 
@@ -1725,6 +1769,12 @@
       var viewCount = perfumeViews[p.slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
 
+      // 👑 PERFUME DEL MES — badge dorado para el ganador de votación
+      var perfumeDelMesHTML = '';
+      if (p._perfumeDelMes) {
+        perfumeDelMesHTML = '<span class="card-pdm-badge" title="Ganador del mes anterior — votación de clientes">👑 Perfume del mes</span>';
+      }
+
       // 🔥 URGENCY — "Solo queda N" cuando stock real es 1-3
       // Stock real del perfume (viene de perfume_overrides). Mostramos
       // badge de urgencia solo si stock está entre 1 y 3 — crea FOMO
@@ -1803,6 +1853,7 @@
             + '</div>'
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
+          + perfumeDelMesHTML
           + urgencyHTML
           + viewsHTML
           + liveViewersHTML
@@ -2711,6 +2762,7 @@
       try { initGalleryAutoplay(); } catch(e) { console.warn('[renderCatalog] initGalleryAutoplay:', e); }
       try { initCardBgLazy(); }      catch(e) { console.warn('[renderCatalog] initCardBgLazy:', e); }
       try { initCardFadeIn(); }      catch(e) { console.warn('[renderCatalog] initCardFadeIn:', e); }
+      try { renderRecentViews(); }   catch(e) { console.warn('[renderCatalog] renderRecentViews:', e); }
       // Default sort: precio descendente (más caro primero) — siempre.
       try { sortCards('price-desc'); } catch(e) { console.warn('[renderCatalog] sortCards:', e); }
     }
@@ -3102,6 +3154,39 @@
       cardsShown += CARDS_INCREMENT;
       applyCardVisibility();
     }
+
+    // ⬇️ INFINITE SCROLL — cargar más cards automáticamente al llegar al final
+    // El botón "Ver más" se mantiene como fallback / control manual visible.
+    // Pero también, IntersectionObserver sobre el loadMoreWrap dispara
+    // loadMore() apenas se ve. Throttled para no spamear.
+    var _infiniteScrollObs = null;
+    var _infiniteScrollThrottle = 0;
+    function initInfiniteScroll() {
+      var wrap = document.getElementById('loadMoreWrap');
+      if (!wrap) return;
+      if (!('IntersectionObserver' in window)) return;
+      if (_infiniteScrollObs) return;  // ya inicializado
+
+      _infiniteScrollObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (!entry.isIntersecting) return;
+          // Throttle 300ms para no disparar múltiples loadMore seguidos
+          var now = Date.now();
+          if (now - _infiniteScrollThrottle < 300) return;
+          _infiniteScrollThrottle = now;
+          // Solo si el botón "Ver más" es visible (todavía hay más para cargar)
+          if (!wrap.classList.contains('hidden')) {
+            loadMore();
+          }
+        });
+      }, { rootMargin: '400px 0px' });  // 400px antes de llegar al wrap
+
+      _infiniteScrollObs.observe(wrap);
+    }
+    // Auto-init después de un pequeño delay (cuando el DOM ya está estable)
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(initInfiniteScroll, 800);
+    });
 
     // ============================================================
     // FILTROS ACTIVOS — chips removibles
@@ -4655,6 +4740,40 @@
       }, 1500);
     }
 
+    // 🔊 Sonido sutil al agregar al carrito (Web Audio API, sin assets)
+    // Toca un "pop" warm de ~200ms generado on-the-fly. Sin archivos
+    // mp3. Respeta preferencia user (localStorage 'st_sound_muted') y
+    // prefers-reduced-motion.
+    var _audioCtx = null;
+    function playCartSound() {
+      try {
+        if (localStorage.getItem('st_sound_muted') === '1') return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!_audioCtx) {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          _audioCtx = new AC();
+        }
+        var ctx = _audioCtx;
+        var now = ctx.currentTime;
+        // Dos osciladores: E5 + B5 (quinta) — armónico cálido tipo Apple
+        function tone(freq, startOffset, duration, gainPeak) {
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, now + startOffset);
+          gain.gain.linearRampToValueAtTime(gainPeak, now + startOffset + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + startOffset + duration);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(now + startOffset);
+          osc.stop(now + startOffset + duration + 0.02);
+        }
+        tone(659.25, 0,    0.18, 0.08);   // E5
+        tone(987.77, 0.04, 0.16, 0.05);   // B5
+      } catch(e) { /* fail silent */ }
+    }
+
     function addToCart(slug, btn, e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
       if (cart.indexOf(slug) !== -1) {
@@ -4670,6 +4789,7 @@
         if (btn) { btn.textContent = '\u2713 Agregado'; btn.classList.add('added'); }
         flyToCart(slug, btn);
         showCartToast(slug);
+        playCartSound();      // \ud83d\udd0a feedback sonoro premium
       }
       updateCartUI();
     }
@@ -4967,6 +5087,48 @@
     // ============================================================
     var currentBsSlug = null;
 
+    // 🕐 Tracking de "Visto recientemente" (localStorage, max 8)
+    function pushRecentView(slug) {
+      try {
+        var raw = localStorage.getItem('st_recent_views');
+        var arr = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(arr)) arr = [];
+        arr = arr.filter(function(s) { return s !== slug; }); // dedup
+        arr.unshift(slug);                                    // más reciente al inicio
+        if (arr.length > 8) arr = arr.slice(0, 8);
+        localStorage.setItem('st_recent_views', JSON.stringify(arr));
+        renderRecentViews();
+      } catch(e) {}
+    }
+    function renderRecentViews() {
+      var section = document.getElementById('recentViewsSection');
+      var track = document.getElementById('recentViewsTrack');
+      if (!section || !track) return;
+      var raw = localStorage.getItem('st_recent_views');
+      var arr = [];
+      try { arr = raw ? JSON.parse(raw) : []; } catch(_) {}
+      if (!Array.isArray(arr) || arr.length < 2) {
+        section.style.display = 'none';
+        return;
+      }
+      var html = arr.map(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!p) return '';
+        var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
+        var img = fotoSrc
+          ? '<img src="' + fotoSrc + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async">'
+          : '<div class="recent-view-letter">' + escapeHTML(p.name.charAt(0)) + '</div>';
+        var price = '$' + parseInt(String(p.promo || p.price).replace(/,/g, ''), 10).toLocaleString('es-AR');
+        return '<button class="recent-view-card" onclick="scrollToPerfume(\'' + slug + '\')">'
+          + '<div class="recent-view-img">' + img + '</div>'
+          + '<p class="recent-view-name">' + escapeHTML(p.name) + '</p>'
+          + '<p class="recent-view-price">' + price + '</p>'
+          + '</button>';
+      }).join('');
+      track.innerHTML = html;
+      section.style.display = '';
+    }
+
     function openBottomSheet(slug) {
       // Antes este guard frenaba el modal en desktop. Ahora desktop
       // muestra el modal como SIDE PANEL deslizable desde la derecha
@@ -4975,6 +5137,7 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       currentBsSlug = slug;
+      pushRecentView(slug);   // 🕐 trackear "visto recientemente"
 
       // SEO/UX: actualizar URL del navegador con ?perfume=slug.
       // Beneficios:
