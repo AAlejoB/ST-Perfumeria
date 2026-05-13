@@ -61,6 +61,37 @@
     }
     .panel-logout:hover { color: #fff; border-color: #fff; }
 
+    /* SYNC INDICATOR — estado del watchdog de Realtime (ver bloque JS al final) */
+    .sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--gris-claro);
+      padding: .35rem .65rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--borde);
+      cursor: default;
+      user-select: none;
+    }
+    .sync-indicator .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .sync-indicator .sync-text {
+      white-space: nowrap;
+    }
+    @media (max-width: 480px) {
+      .sync-indicator .sync-text { display: none; }  /* en mobile dejamos solo el puntito */
+    }
+
     /* TABS */
     .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .tab-btn {
@@ -848,6 +879,7 @@
     <div class="panel-header">
       <p class="panel-title">ST Admin Panel <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:.5rem;vertical-align:middle;"></span></p>
       <div style="display:flex;align-items:center;gap:.5rem;">
+        <span id="syncIndicator" class="sync-indicator" style="display:none;" title="Estado de sincronización entre tablets"></span>
         <button id="themeToggleBtn" onclick="toggleAdminTheme()" title="Alternar tema claro / oscuro"
           style="background:transparent;border:1px solid var(--borde);color:var(--gris-claro);font-size:.7rem;padding:.35rem .6rem;border-radius:4px;cursor:pointer;letter-spacing:.05em;display:flex;align-items:center;gap:.3rem;">
           <span id="themeToggleIcon">🌙</span>
@@ -2361,6 +2393,9 @@
       tabLoaded['precios'] = true;
       tabLoaded['destacados'] = true;
       tabLoaded['nuevos'] = true;
+      // Realtime + watchdog (1 sola vez por sesión, idempotente).
+      // Ver bloque "SUPABASE REALTIME + WATCHDOG" más abajo y docs/HISTORIA.md.
+      setupRealtimeStock();
     }
 
     // ============================================================
@@ -3763,6 +3798,10 @@
         return;
       }
 
+      // Anti-echo del watchdog: evitamos que esta misma tablet flashee su propio
+      // upsert cuando le vuelva el evento de Realtime en los próximos ms.
+      lastLocalUpsert = { slug: editingSlug, at: Date.now() };
+
       // Historial local (para el panel "Historial de cambios" dentro del modal).
       // No se usa para renderizar el precio actual — ese lo manda Supabase.
       var history = JSON.parse(localStorage.getItem('st_price_history') || '{}');
@@ -3872,6 +3911,9 @@
         msgEl.style.color = '#e74c3c';
         return;
       }
+
+      // Anti-echo del watchdog: ver savePrice para detalles.
+      lastLocalUpsert = { slug: editingSlug, at: Date.now() };
 
       logAdminAction('stock_update', editingSlug, {
         stock_status: { old: prevStatus, new: newStatus },
@@ -6687,45 +6729,224 @@
     // las otras tablets del local lo reflejan en menos de 1 segundo.
     // Suscripción a UPDATEs en perfume_overrides (donde vive stock_qty).
     // ============================================================
-    function setupRealtimeStock() {
+    // ============================================================
+    // SUPABASE REALTIME + WATCHDOG — sincronización entre tablets.
+    //
+    // Diseño:
+    //   - Estado del canal: 'INIT' | 'CONNECTING' | 'LIVE' | 'DEGRADED' | 'RECONNECTING'
+    //   - Si Realtime cae, polling cada 10s toma el relevo (resync diferencial
+    //     usando updated_at).
+    //   - visibilitychange / online → forzar resync + reintentar canal.
+    //   - Backoff exponencial en reconexiones (2s, 4s, 8s, ..., 60s max).
+    //   - Indicador visual #syncIndicator en el header (verde/amarillo/naranja).
+    //   - Echo silencioso: si recibo el UPDATE que yo mismo upserté, no flasheo
+    //     la fila (ver lastLocalUpsert).
+    //
+    // Histórico: ver docs/HISTORIA.md → "Watchdog de Realtime (mayo 2026)".
+    // Plan original: PLAN_REALTIME_WATCHDOG.md
+    // ============================================================
+    let rtState         = 'INIT';
+    let rtChannel       = null;
+    let rtBackoffMs     = 2000;
+    let rtBackoffTimer  = null;
+    let rtPollTimer     = null;
+    let rtHeartbeatTimer = null;
+    let rtLastMessageAt = 0;
+    let rtLastSyncAt    = null;          // ISO string de la última fila procesada
+    let rtWatchdogStarted = false;
+    let lastLocalUpsert = { slug: null, at: 0 };  // anti-echo (ver savePrice/saveStock)
+
+    const RT_POLL_INTERVAL_MS      = 10 * 1000;  // 10s — agresivo (Pro permite holgura de egress)
+    const RT_HEARTBEAT_INTERVAL_MS = 60 * 1000;
+    const RT_STALE_THRESHOLD_MS    = 90 * 1000;
+    const RT_BACKOFF_MAX_MS        = 60 * 1000;
+
+    function setRtState(next) {
+      if (rtState === next) return;
+      console.log('[realtime] ' + rtState + ' → ' + next);
+      rtState = next;
+      renderSyncIndicator();
+    }
+
+    function renderSyncIndicator() {
+      const el = document.getElementById('syncIndicator');
+      if (!el) return;
+      const cfg = {
+        INIT:         { dot: '#888',     text: '',                 title: 'Iniciando' },
+        CONNECTING:   { dot: '#e8b800',  text: 'Conectando…',      title: 'Conectando al canal en vivo' },
+        LIVE:         { dot: '#2ecc71',  text: 'En vivo',          title: 'Sincronización en tiempo real activa' },
+        DEGRADED:     { dot: '#e67e22',  text: 'Modo respaldo',    title: 'Sin tiempo real. Actualizando cada 10s.' },
+        RECONNECTING: { dot: '#e8b800',  text: 'Reconectando…',    title: 'Intentando recuperar tiempo real' }
+      }[rtState] || {};
+      el.innerHTML = '<span class="sync-dot" style="background:' + cfg.dot + '"></span>'
+                   + '<span class="sync-text">' + (cfg.text || '') + '</span>';
+      el.title = cfg.title || '';
+      el.style.display = (rtState === 'INIT') ? 'none' : 'inline-flex';
+    }
+
+    function applyOverrideRowToMemory(ov) {
+      if (!ov || !ov.slug) return false;
+      const p = PERFUMES.find(function(pf) { return pf.slug === ov.slug; });
+      if (!p) return false;
+      let changed = false;
+      if (typeof ov.stock_qty === 'number' && p._stockQty !== ov.stock_qty) { p._stockQty = ov.stock_qty; changed = true; }
+      if (ov.stock_status && p._stockStatus !== ov.stock_status)            { p._stockStatus = ov.stock_status; changed = true; }
+      if (ov.price && p.price !== ov.price)                                 { p.price = ov.price; changed = true; }
+      if (typeof ov.promo !== 'undefined' && p.promo !== ov.promo)          { p.promo = ov.promo; changed = true; }
+      return changed;
+    }
+
+    function flashRow(slug) {
+      const rows = document.querySelectorAll('#tbodyPrecios tr');
+      rows.forEach(function(tr) {
+        if (tr.querySelector('.badge-stock') && tr.querySelector('[onclick*="' + slug + '"]')) {
+          tr.style.transition = 'background-color .4s ease';
+          tr.style.backgroundColor = 'rgba(232,184,0,.18)';
+          setTimeout(function() { tr.style.backgroundColor = ''; }, 1800);
+        }
+      });
+    }
+
+    function handleRealtimePayload(payload) {
+      rtLastMessageAt = Date.now();
+      if (rtState !== 'LIVE') setRtState('LIVE');
+      const ov = payload && payload.new;
+      if (!ov || !ov.slug) return;
+      const changed = applyOverrideRowToMemory(ov);
+      if (ov.updated_at) rtLastSyncAt = ov.updated_at;
+      if (!changed) return;
+      try { renderPrecios(); } catch(e) {}
+      // Anti-echo: si yo upserté hace <2s este mismo slug, no flasheo (es mi propio eco)
+      const isEcho = lastLocalUpsert.slug === ov.slug && (Date.now() - lastLocalUpsert.at) < 2000;
+      if (!isEcho) setTimeout(function() { flashRow(ov.slug); }, 50);
+    }
+
+    function subscribeChannel() {
+      if (rtChannel) {
+        try { sb.removeChannel(rtChannel); } catch(e) {}
+        rtChannel = null;
+      }
+      setRtState('CONNECTING');
+      rtChannel = sb.channel('admin-stock-sync-v2')
+        .on('postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'perfume_overrides' },
+            handleRealtimePayload)
+        .subscribe(function(status, err) {
+          if (status === 'SUBSCRIBED') {
+            rtBackoffMs = 2000;        // reset backoff
+            rtLastMessageAt = Date.now();
+            stopPolling();             // si estaba polleando, basta
+            setRtState('LIVE');
+            // Resync por las dudas (puede haber habido cambios mientras estábamos caídos)
+            resyncFromDB({ silent: true });
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            console.warn('[realtime] estado problemático:', status, err || '');
+            startDegradedMode();
+          }
+        });
+    }
+
+    function scheduleReconnect() {
+      if (rtBackoffTimer) clearTimeout(rtBackoffTimer);
+      setRtState('RECONNECTING');
+      console.log('[realtime] reintento en ' + (rtBackoffMs / 1000) + 's');
+      rtBackoffTimer = setTimeout(function() {
+        rtBackoffTimer = null;
+        subscribeChannel();
+      }, rtBackoffMs);
+      rtBackoffMs = Math.min(rtBackoffMs * 2, RT_BACKOFF_MAX_MS);
+    }
+
+    function startDegradedMode() {
+      setRtState('DEGRADED');
+      startPolling();
+      scheduleReconnect();
+    }
+
+    function startPolling() {
+      if (rtPollTimer) return;
+      rtPollTimer = setInterval(function() { resyncFromDB(); }, RT_POLL_INTERVAL_MS);
+    }
+
+    function stopPolling() {
+      if (rtPollTimer) { clearInterval(rtPollTimer); rtPollTimer = null; }
+    }
+
+    async function resyncFromDB(opts) {
+      opts = opts || {};
       try {
-        sb.channel('admin-stock-sync')
-          .on('postgres_changes',
-              { event: 'UPDATE', schema: 'public', table: 'perfume_overrides' },
-              function(payload) {
-                var ov = payload.new;
-                if (!ov || !ov.slug) return;
-                var p = PERFUMES.find(function(pf) { return pf.slug === ov.slug; });
-                if (!p) return;
-                // Actualizar el cache local
-                if (typeof ov.stock_qty === 'number') p._stockQty = ov.stock_qty;
-                if (ov.stock_status) p._stockStatus = ov.stock_status;
-                // Re-renderizar la tabla Precios & Stock con highlight
-                try {
-                  renderPrecios();
-                  // Buscar la fila del perfume y darle un parpadeo amarillo
-                  setTimeout(function() {
-                    var allRows = document.querySelectorAll('#tbodyPrecios tr');
-                    allRows.forEach(function(tr) {
-                      if (tr.querySelector('.badge-stock') && tr.querySelector('[onclick*="' + ov.slug + '"]')) {
-                        tr.style.transition = 'background-color .4s ease';
-                        tr.style.backgroundColor = 'rgba(232,184,0,.18)';
-                        setTimeout(function() { tr.style.backgroundColor = ''; }, 1800);
-                      }
-                    });
-                  }, 50);
-                } catch(e) {}
-              }
-          )
-          .subscribe();
+        let query = sb.from('perfume_overrides')
+          .select('slug, stock_qty, stock_status, price, promo, updated_at')
+          .order('updated_at', { ascending: true });
+        if (rtLastSyncAt) query = query.gt('updated_at', rtLastSyncAt);
+        const { data, error } = await query;
+        if (error) { console.warn('[resync] error:', error.message); return; }
+        if (!data || !data.length) return;
+        let touchedAny = false;
+        data.forEach(function(ov) {
+          if (applyOverrideRowToMemory(ov)) touchedAny = true;
+          if (ov.updated_at) rtLastSyncAt = ov.updated_at;
+        });
+        if (touchedAny) {
+          try { renderPrecios(); } catch(e) {}
+          if (!opts.silent) {
+            // En modo polling SÍ flasheamos lo que cambió, así la empleada lo nota
+            data.forEach(function(ov) { flashRow(ov.slug); });
+          }
+        }
       } catch(e) {
-        console.error('No se pudo activar Realtime:', e);
+        console.warn('[resync] excepción:', e);
       }
     }
 
-    // Activar Realtime cuando el panel admin esté listo (después del login).
-    // Se llama desde finishLogin() / resumeSession() vía setTimeout.
-    setTimeout(setupRealtimeStock, 1500);
+    function startHeartbeat() {
+      if (rtHeartbeatTimer) return;
+      rtHeartbeatTimer = setInterval(function() {
+        if (rtState === 'LIVE') {
+          const since = Date.now() - rtLastMessageAt;
+          if (since > RT_STALE_THRESHOLD_MS) {
+            console.warn('[realtime] heartbeat: ' + Math.round(since/1000) + 's sin mensajes, sospechoso. Resync forzado.');
+            resyncFromDB({ silent: true });
+          }
+        }
+      }, RT_HEARTBEAT_INTERVAL_MS);
+    }
+
+    function onVisibilityChange() {
+      if (document.visibilityState !== 'visible') return;
+      // Al volver al foco, SIEMPRE resync. Y si el canal no está LIVE, forzar resubscribe.
+      resyncFromDB({ silent: false });
+      if (rtState !== 'LIVE') {
+        if (rtBackoffTimer) { clearTimeout(rtBackoffTimer); rtBackoffTimer = null; }
+        rtBackoffMs = 2000;
+        subscribeChannel();
+      }
+    }
+
+    function onOnline() {
+      console.log('[network] online');
+      if (rtBackoffTimer) { clearTimeout(rtBackoffTimer); rtBackoffTimer = null; }
+      rtBackoffMs = 2000;
+      subscribeChannel();
+      resyncFromDB({ silent: false });
+    }
+
+    function onOffline() {
+      console.log('[network] offline');
+      setRtState('DEGRADED');
+      stopPolling();   // si no hay red, polling tampoco va a andar
+    }
+
+    // Entry point. Llamar UNA sola vez desde enterAdminPanel (post-login).
+    function setupRealtimeStock() {
+      if (rtWatchdogStarted) return;
+      rtWatchdogStarted = true;
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      window.addEventListener('online', onOnline);
+      window.addEventListener('offline', onOffline);
+      startHeartbeat();
+      subscribeChannel();
+    }
 
     // ============================================================
     // DOCTOR DEL CATÁLOGO — diagnóstico de calidad de los perfumes.

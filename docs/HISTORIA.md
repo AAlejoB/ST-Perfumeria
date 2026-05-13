@@ -47,14 +47,23 @@
 **Por qué manual:** simple, transparente, sin tooling.
 **Costo:** olvidarse de bumpear → users ven versión vieja. Hay que recordarlo.
 
-### 3. Realtime entre tablets del local
+### 3. Realtime entre tablets del local (con watchdog desde mayo 2026)
 
-Las dos empleadas trabajan al mismo tiempo desde dos tablets. Cuando una vende un perfume, la otra ve un toast y la fila parpadea amarillo. También el stock se actualiza en vivo.
+Las dos empleadas trabajan al mismo tiempo desde dos tablets. Cuando una modifica precio o stock, la otra ve el cambio en vivo (fila parpadea amarillo).
 
-**Implementación:**
-- `setupRealtimeStock()` en `admin.html` se subscribe al canal `admin-stock-sync`
-- Escucha `UPDATE` en `perfume_overrides` y `INSERT` en `ventas`
-- Activa 1.5s después del login
+**Implementación (post mayo-2026):**
+- `setupRealtimeStock()` en `admin.html` es ahora una **máquina de estados** con watchdog (`INIT` / `CONNECTING` / `LIVE` / `DEGRADED` / `RECONNECTING`).
+- En `LIVE`: canal `admin-stock-sync-v2` recibe `UPDATE` de `perfume_overrides` por WebSocket.
+- Si el WS se cae (pantalla apagada, WiFi microcortes, tab en background) → pasa a `DEGRADED` y arranca polling diferencial cada 10s (`gt('updated_at', rtLastSyncAt)`).
+- Reintenta reconectar con backoff exponencial 2s → 60s max.
+- Listeners: `visibilitychange` (volver al foco → resync + reconectar), `online`/`offline`, heartbeat propio cada 60s.
+- Anti-echo: la tablet no flashea su propio upsert si recibe el eco <2s después.
+- Indicador visual `#syncIndicator` en el header (verde/amarillo/naranja) — la empleada ve si su tablet está sincronizada antes de cobrar.
+
+**Implementación (legacy, antes de mayo 2026):**
+- `setupRealtimeStock()` se subscribía a `admin-stock-sync` y `INSERT` en `ventas`.
+- Sin watchdog → cuando el WS se caía no se reenganchaba, había que F5.
+- Ver bug "Watchdog de Realtime" más abajo.
 
 ### 4. Modo claro como override de `body:not(.dark-mode)`
 
@@ -124,6 +133,34 @@ Las botellas no tienen aspect ratio uniforme. Con `object-fit: contain` y max-he
 ---
 
 ## 🐛 Bugs significativos resueltos
+
+### Watchdog de Realtime (mayo 2026)
+
+**Síntoma:** la Tablet B mostraba stock viejo cuando la Tablet A vendía un perfume; sólo se actualizaba con F5. Era inconsistente — a veces andaba 10 minutos perfecto y después se "congelaba".
+
+**Causa raíz:** el Realtime de Supabase funcionaba al inicio pero el WebSocket se caía silenciosamente cuando:
+- La pantalla de la tablet se apagaba (navegador suspende la pestaña).
+- El WiFi del local tenía un microcorte.
+- La empleada cambiaba a otra app (WhatsApp, calculadora) → pestaña en background.
+
+El canal quedaba en `CHANNEL_ERROR` / `CLOSED` y **no se reconectaba solo**. No había indicador visual, así que la empleada no sabía que estaba desincronizada.
+
+**Fix:** se reescribió `setupRealtimeStock` como máquina de estados con:
+- Detección de desconexión vía callback de `.subscribe(status, err)`.
+- Backoff exponencial para reintentos (2s, 4s, 8s, 16s, 30s, 60s max).
+- Polling de respaldo cada 10s **solo en modo DEGRADED**, con filtro diferencial `gt('updated_at', rtLastSyncAt)` — barato (~52 MB egress/mes en peor caso, 0.02% del límite Pro).
+- Listeners de `visibilitychange`, `online`, `offline` para forzar resync.
+- Heartbeat propio cada 60s: si >90s sin mensajes en LIVE → resync forzado silencioso.
+- Indicador visual `#syncIndicator` (verde / amarillo / naranja) en el header.
+- Anti-echo: la tablet no flashea su propio upsert si el eco vuelve <2s después (evita ruido visual).
+
+También requirió:
+- **Trigger SQL** para que `updated_at` se bumpee automáticamente en cada `UPDATE` de `perfume_overrides`. Sin esto el polling diferencial no funcionaba (la columna tenía `DEFAULT now()` que sólo aplica en INSERT). Guardado en `sql/add_updated_at_trigger.sql` y aplicado en prod vía Supabase MCP el 2026-05-13.
+- Mover la llamada a `setupRealtimeStock` desde el nivel de módulo (`setTimeout(..., 1500)` que corría antes del login) hacia adentro de `enterAdminPanel` (post-login).
+
+**Decisión consciente:** flash en polling DEGRADED **sí**, flash en resync silencioso post-`SUBSCRIBED` **no**. Razón: en DEGRADED la empleada necesita ver "esto cambió ahora aunque haya 10s de delay". En el resync post-reconnect podrían venir cambios de hace mucho — flashearlos sería confuso.
+
+**Lección:** los WebSockets en clientes con vida larga (tablets de 12h, PWAs) **siempre** necesitan watchdog. El cliente `supabase-js` no se reengancha solo. Patrón replicable para cualquier otra tabla que necesite sync en tiempo real.
 
 ### Timezone bug en horario (mayo 2026)
 **Síntoma:** el jefe guardaba un horario nuevo en admin a las 23:08 ARG y la web pública seguía mostrando el horario default.
@@ -311,6 +348,7 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.12 | [GATO] mensaje WA unificado (carrito + Consultar individual + sets) |
 | v1.1.13 | [FANTASMA] revert parcial de [IMG-DIMS] — dropdown search no más imagen 463×463 |
 | v1.1.14 | [HOTSALE] promo = precio cash directo + cuotas sobre tarjeta + % dinámico |
+| v1.1.15 | [WATCHDOG] Realtime con máquina de estados + polling de respaldo + indicador visual |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -406,6 +444,7 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[GATO]` — `buildWaMessage(items, note)` unifica el mensaje de WhatsApp: carrito, "Consultar" en card individual y "Consultar" en sets generan el mismo formato (lista numerada + 💰 precio + 📦 N + 💳 cuotas + 💵 efectivo off). Casos especiales (stockNote, decants armador, banner decants) quedan con su lógica propia.
 - `[FANTASMA]` — revert parcial de [IMG-DIMS] (v1.1.10). El bloque CSS sobreescribía width/height explícitos de search-sug-img (32x42 → 463x463), set-img-slot, collectible, recent-view, quiz, etc. Las cards del catálogo ya tienen width/height en HTML attrs (app.js:1666) → no necesitaban el CSS hack. Se mantiene el segundo bloque para cart/modales.
 - `[HOTSALE]` — refactor de pricing. `p.price` = precio TARJETA (base para cuotas), `p.promo` = precio EFECTIVO/TRANSFER override (si existe, ES el cash final sin doble descuento; si no, default 10% off). Helpers `getListaPrice / getCashPrice / getCuotaPrice / hasHotSale / getDiscountPct`. Label "🔥 HOT SALE EFECTIVO" hardcoded en constante `HOT_SALE_LABEL`. % off calculado dinámico. Eliminado del front el render de `descuento_pct + descuento_hasta` (DB intacta para futuro). Aplicado a card del catálogo, cart panel, buildWaMessage y modal bsPrice. Sets NO modificados (tienen modelo distinto).
+- `[WATCHDOG]` — máquina de estados para Realtime en `admin.html`. Estados `INIT/CONNECTING/LIVE/DEGRADED/RECONNECTING`. Si el WS se cae arranca polling diferencial cada 10s (`gt('updated_at')`) y reintenta con backoff 2s→60s. Listeners `visibilitychange`/`online`/`offline`/heartbeat. Indicador `#syncIndicator` en el header. Trigger SQL `perfume_overrides_updated_at` aplicado en prod. Anti-echo en `savePrice`/`saveStock` via `lastLocalUpsert`. Plan original en `PLAN_REALTIME_WATCHDOG.md`. Ver bug "Watchdog de Realtime (mayo 2026)" arriba.
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
 - `[FCP-CSS]` — CSS no bloqueante + critical inline

@@ -113,23 +113,61 @@ Migrar a `auth.users` con relación a `clientes` vía `auth_uid`. Beneficios:
 
 ## 🔄 Realtime entre tablets
 
-### Setup
+### Setup (con watchdog, mayo 2026 en adelante)
 
-```js
-// admin.html
-function setupRealtimeStock() {
-  sb.channel('admin-stock-sync')
-    .on('postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'perfume_overrides' },
-        function(payload) {
-          // Actualiza cache local y re-renderiza
-          // Parpadeo amarillo en la fila modificada
-        }
-    )
-    .subscribe();
-}
-setTimeout(setupRealtimeStock, 1500); // tras login
+`admin.html` mantiene una máquina de estados para el canal de Realtime que
+se reengancha sola, hace polling de respaldo, y muestra un indicador visual
+del estado de sincronización.
+
+**Estados:** `INIT` → `CONNECTING` → `LIVE` ↔ `DEGRADED` ↔ `RECONNECTING`
+
+| Estado | Qué hace | UI |
+|---|---|---|
+| INIT | Recién montado, sin canal | (oculto) |
+| CONNECTING | Pidió subscribe, esperando | 🟡 "Conectando…" |
+| LIVE | Recibiendo eventos en tiempo real | 🟢 "En vivo" |
+| DEGRADED | WebSocket caído, polling cada 10s | 🟠 "Modo respaldo" |
+| RECONNECTING | Intentando volver a LIVE, backoff 2s→60s | 🟡 "Reconectando…" |
+
+**Triggers de transición:**
+- Callback de `.subscribe(status, err)` (`SUBSCRIBED` / `CHANNEL_ERROR` / `TIMED_OUT` / `CLOSED`).
+- `visibilitychange` (vuelve al foco) → `resyncFromDB` + reintentar canal si no estaba LIVE.
+- `online` / `offline` events del navegador.
+- Heartbeat propio cada 60s: si >90s sin mensajes en LIVE → resync forzado silencioso.
+
+**En modo DEGRADED:**
+- Polling cada 10s sobre `perfume_overrides` con `select` mínimo + filtro `gt('updated_at', rtLastSyncAt)` (diferencial).
+- Backoff exponencial para reintentar el canal: 2s, 4s, 8s, 16s, 30s, 60s (max).
+- Si el resync trae cambios, las filas afectadas **sí** parpadean (la empleada tiene que ver que algo cambió).
+- Reset de backoff sólo al pasar a `SUBSCRIBED`.
+
+**Resync silencioso post-SUBSCRIBED:**
+- Al volver a LIVE, `resyncFromDB({ silent: true })` recupera lo que se perdió mientras estaba caído.
+- En este caso **no** flashea filas (sería ruido visual si trae cambios viejos). Los próximos UPDATEs por Realtime sí flashearán.
+
+**Anti-echo:** cada `savePrice` / `saveStock` setea `lastLocalUpsert = { slug, at: Date.now() }`. Cuando llega el evento de Realtime, si el slug coincide y pasaron <2s, no se flashea la fila (es mi propio eco).
+
+**Indicador visual:** pill `#syncIndicator` en el header. Definido en CSS `.sync-indicator` y manejado por `renderSyncIndicator()`. En pantallas <480px sólo se muestra el puntito (texto oculto, `title` queda).
+
+### Trigger SQL requerido (one-time)
+
+```sql
+-- Ver sql/add_updated_at_trigger.sql
+CREATE TRIGGER perfume_overrides_updated_at
+  BEFORE UPDATE ON perfume_overrides
+  FOR EACH ROW
+  EXECUTE FUNCTION trg_perfume_overrides_set_updated_at();
 ```
+
+Sin este trigger, `updated_at` queda fijo en el `DEFAULT NOW()` del INSERT
+inicial y el polling diferencial nunca devuelve cambios.
+
+Aplicado en producción el 2026-05-13 via Supabase MCP (`apply_migration`).
+
+### Consumo (Supabase Pro)
+
+Polling 10s × 2 tablets × 12h/día ≈ 1.7 MB egress/día ≈ 52 MB/mes.
+Estás usando el **0.02%** del límite Pro de 250 GB.
 
 ### Qué escuchaba antes (ELIMINADO)
 
@@ -147,6 +185,10 @@ La función `showSaleToast` y `saleToastStack` también fueron eliminadas.
      callback
    ).subscribe();
    ```
+3. Si necesitás polling diferencial: agregar columna `updated_at` con trigger
+   `BEFORE UPDATE` (ver patrón en `sql/add_updated_at_trigger.sql`).
+4. Considerá si necesitás también el watchdog completo (estados / backoff /
+   indicador). Si la tabla es crítica como `perfume_overrides`, copiá el patrón.
 
 ---
 
