@@ -147,12 +147,14 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 
 ```js
 // sw.js línea 16
-var CACHE_VERSION = 'v1.1.33';   // ← incrementá este
+var CACHE_VERSION = 'v1.1.35';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.33**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.35**.
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
+>
+> **Desde v1.1.35 (sesión 15-may-2026)** existe `[SW-UPDATE-BANNER]` en admin: cuando se detecta una versión nueva, aparece una pill amarilla sticky-top "Hay una versión nueva del panel disponible · Actualizar →". A diferencia del público, en admin **NO hace auto-reload** — la chica decide cuándo (podrían estar en medio de una venta).
 
 Estrategias por tipo de recurso (definidas en `sw.js`):
 - HTML → network-first con fallback a cache + offline
@@ -274,4 +276,4 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Mayo 15, 2026 — sesión SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD. 3 commits live (`3c9246a` + `d1724ae` + `d4deab5`). SW v1.1.22 → v1.1.33. 10 keywords nuevos. 2 pendientes flageados (UI admin `nota_jefe` + move físico HTML #quizSection).
+**Última actualización:** Mayo 15, 2026 — sesión SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD + SELECCION-BADGE + SW-UPDATE-BANNER. **6 commits live** (`3c9246a` + `d1724ae` + `d4deab5` + `be49c34` + `5f6b9f3` + `31f76a7`). SW v1.1.22 → **v1.1.35**. 12 keywords nuevos. 2 pendientes flageados (UI admin `nota_jefe` + move físico HTML #quizSection).
