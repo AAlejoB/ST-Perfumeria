@@ -46,24 +46,30 @@ Este archivo (`CLAUDE.md`) tiene el resumen general. Para dive deep, andá a la 
 ```
 ST_Perfumeria/
 ├── index.html              ← Página pública (catálogo, decants, etc.)
-├── admin.html              ← Panel admin (jefe + empleadas)
+├── admin.html              ← Panel admin (jefe + empleadas) — con sidebar lateral desde [ZAPATO] may-2026
 ├── offline.html
 ├── sw.js                   ← Service Worker (versionado manual)
 ├── manifest.json           ← PWA
+├── mockups.html            ← Archivo único de mockups (convención may-2026, lección #7). Esqueleto vacío entre sesiones.
 ├── js/
-│   ├── app.js              ← TODO el JS del front público (~6000 líneas)
+│   ├── app.js              ← Core JS del front público (~6500 líneas tras [JS-CHUNK])
+│   ├── extras.js           ← Chunk lazy-loaded (armador decants) — se carga con requestIdleCallback
 │   └── perfumes.js         ← Array de los ~150 perfumes (catálogo seed)
 ├── css/
-│   └── styles.css          ← TODO el CSS (~6700 líneas) — incluye light mode
+│   └── styles.css          ← TODO el CSS (~8000 líneas) — incluye light mode + admin sidebar
 ├── img/                    ← Logos, banners
 ├── api/                    ← Vercel serverless functions
 │   ├── cron/backup.js      ← Backup diario a Supabase
 │   └── og/perfume.js       ← OG image dinámica
 ├── sql/
-│   └── create_puntos_system.sql  ← Schema de puntos
+│   ├── create_puntos_system.sql      ← Schema de puntos
+│   └── add_updated_at_trigger.sql    ← Trigger para [WATCHDOG] Realtime (may-2026)
 └── docs/
-    ├── HISTORIA.md         ← Decisiones tomadas, bugs significativos
-    └── (futuros)
+    ├── HISTORIA.md         ← Decisiones tomadas, bugs significativos, keywords
+    ├── FRONTEND.md         ← Patrones de frontend
+    ├── BACKEND.md          ← Auth, Realtime, watchdog, resilencia Supabase
+    ├── DATABASE.md         ← Tablas, RLS, migraciones
+    └── planes-archivados/  ← Planes históricos (ej. PLAN_REALTIME_WATCHDOG.md)
 ```
 
 ⚠️ Tanto `app.js` como `admin.html` y `styles.css` son **monolitos grandes**. Cuando edites, andá con cuidado: usá Grep + Read primero, evitá rewrites masivos.

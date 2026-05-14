@@ -12,7 +12,8 @@
 | Inicio | Sitio estático con catálogo hardcoded |
 | Primer trimestre | Migración a Supabase + admin panel |
 | Mid-año | Sistema de puntos, decants armables, push notifications |
-| Reciente | Light mode completo, reorder home, performance pass mobile |
+| Mayo 11-12 / 2026 | Light mode completo, reorder home, performance pass mobile, Supabase Pro |
+| Mayo 13-14 / 2026 | Sesión maratónica · 11 features deployadas (SW v1.1.10→v1.1.21) · [JS-CHUNK] iter 1 · `mockups.html` único · admin sidebar lateral · banner decants SVG · armador UX (progress bar + empty state + bottom-sheet + anim) |
 
 ---
 
@@ -495,8 +496,35 @@ Sesión maratónica nocturna (~6 horas, desde la tarde hasta madrugada del 14). 
 
 ---
 
-**Última actualización:** Mayo 14, 2026 (madrugada) — fin de sesión maratónica con 10 commits live + 2 mockups + 1 incidente Supabase documentado.
+**Última actualización:** Mayo 14, 2026 (madrugada) — fin de sesión maratónica con 11 commits live + mockups.html + 1 incidente Supabase + cierre por context al 86%.
 **Próxima revisión cuando:** se haga la migración a bcrypt, se agregue la tab Orden de Compra, se mida Lighthouse mobile real post-fixes, o cualquier cambio de arquitectura.
+
+---
+
+## 🚀 Cómo arrancar la próxima sesión (handoff para Claude que vuelve)
+
+Cuando Alejo abra un chat nuevo de Claude Code en este repo:
+
+1. **Leer `CLAUDE.md`** (convenciones generales, estructura, NO ROMPER, stack)
+2. **Leer este archivo `docs/HISTORIA.md`** (TODO el histórico)
+3. **Si hay tarea específica:** preguntar qué quiere atacar
+4. **Si no hay tarea:** ofrecer la lista de pendientes:
+   - `[DECANTS-BANNER-V2]` — decidir entre 3 opciones del banner post foto IA
+   - `[DECANTS-UX]` armador iter 2 — tab switcher #4 + "Combinás bien con" #6
+   - `[SIRENITA]` — sistema de Campañas multi-promo (tabla DB nueva)
+   - `[JS-CHUNK]` iter 2 — mover quiz, juegos, custom cursor a `extras.js`
+   - `[BCRYPT-MIGRATION]` — hashear passwords lazy migration
+   - `[SUPABASE-AUTH]` — migrar de custom auth a Supabase Auth
+   - `[ORDEN-COMPRA-TAB]` — tab admin con sugerencias de pedido
+
+**Reglas de oro al arrancar:**
+- Antes de cambios grandes / riesgosos: **explicarle a Alejo el riesgo** y dar opciones.
+- Si toca el admin: **deploy fuera de 10-21 ARG** (horario operativo del local).
+- Si toca el catálogo público: deploy con cuidado pero menos crítico.
+- Siempre **bumpear SW** al tocar HTML/JS/CSS cacheado (regla sagrada).
+- Mockups nuevos van a **`mockups.html`** (NO crear archivos nuevos sueltos).
+- Castellano rioplatense, vos (no usted).
+- Emojis con moderación en respuestas, NO en código salvo pedido.
 
 ---
 
