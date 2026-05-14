@@ -354,6 +354,7 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.18 | [PACK-CHIVATO] defensa anti-slugs inválidos en sendDecantPackToWA + emojis en el mensaje al vendedor |
 | v1.1.19 | [CATALOGO-POLISH] 6 fixes visuales del catálogo: placeholder elegante, CTA banner grande, marquee suavizado, light mode legible, cuotas con valor, fav-filter consistente |
 | v1.1.20 | [JS-CHUNK] iter 1 — armador de decants en `js/extras.js` lazy-loaded |
+| v1.1.21 | [DECANTS-UX] banner SVG + 4 mejoras armador (progress bar, empty state, bottom-sheet, anim al +) |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 

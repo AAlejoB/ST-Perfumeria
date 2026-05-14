@@ -6066,6 +6066,28 @@
       saveDecantsPack();
       updateDecantUI();
       renderDecantGrid();
+      // [#5 ANIMATION] Feedback visual al + — flash verde + check en la card recién agregada.
+      // Se aplica DESPUÉS del re-render para que la clase quede en la card actual del DOM.
+      try {
+        var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!prefersReduced) {
+          // Buscar la card cuyo botón + apunta a este slug
+          requestAnimationFrame(function() {
+            var btns = document.querySelectorAll('.decant-card .decant-ctrl-plus');
+            for (var i = 0; i < btns.length; i++) {
+              var oc = btns[i].getAttribute('onclick') || '';
+              if (oc.indexOf("addDecant('" + slug + "')") !== -1) {
+                var card = btns[i].closest('.decant-card');
+                if (card) {
+                  card.classList.add('just-added');
+                  setTimeout(function() { card.classList.remove('just-added'); }, 600);
+                }
+                break;
+              }
+            }
+          });
+        }
+      } catch(e) { /* silent */ }
     }
 
     function removeDecant(slug) {
@@ -6204,12 +6226,117 @@
         }
       }
 
+      // [#1 PROGRESS BAR] Barra visual hacia el siguiente tier de precio.
+      // Solo aplica si la escalera está activa (no hay items con precio fijo).
+      var progressEl = document.getElementById('decantProgress');
+      if (progressEl) {
+        if (fixedCount === 0 && qty >= 1 && qty < 5) {
+          // Cuál es el siguiente tier y cuánto falta
+          var tierTo, falta, ahorroAlSiguiente, fillPct, currentLabel, msg;
+          if (qty < 3) {
+            // Estamos en tier 1-2, falta llegar a 3 para tier 3-4
+            tierTo = p3; falta = 3 - qty;
+            // Ahorro real al pasar al siguiente tier: lo que pagás ahora vs lo que pagarías con qty+falta a precio p3
+            var costoActual = qty * p1;
+            var costoSiguiente = (qty + falta) * p3;
+            ahorroAlSiguiente = (qty + falta) * p1 - costoSiguiente;
+            fillPct = ((qty - 1) / 2) * 50;  // 1→0%, 2→25%, 3→50%
+            currentLabel = '$' + p1.toLocaleString('es-AR');
+          } else {
+            // Estamos en tier 3-4, falta llegar a 5 para tier 5+
+            tierTo = p5; falta = 5 - qty;
+            ahorroAlSiguiente = (qty + falta) * p3 - (qty + falta) * p5;
+            fillPct = 50 + ((qty - 3) / 2) * 50;  // 3→50%, 4→75%, 5→100%
+            currentLabel = '$' + p3.toLocaleString('es-AR');
+          }
+          var fillEl = document.getElementById('decantProgressFill');
+          if (fillEl) fillEl.style.width = Math.min(100, Math.max(5, fillPct)) + '%';
+          msg = '🎯 Te falta <strong>' + falta + ' decant' + (falta > 1 ? 's' : '') + '</strong> para bajar a $' + tierTo.toLocaleString('es-AR') + ' c/u';
+          if (ahorroAlSiguiente > 0) {
+            msg += '<span class="savings-tag">Ahorrás $' + Math.round(ahorroAlSiguiente).toLocaleString('es-AR') + '</span>';
+          }
+          var msgEl = document.getElementById('decantProgressMsg');
+          if (msgEl) {
+            msgEl.classList.remove('locked-max');
+            msgEl.innerHTML = msg;
+          }
+          var tiersEl = document.getElementById('decantProgressTiers');
+          if (tiersEl) {
+            tiersEl.innerHTML =
+              '<span class="' + (qty >= 1 ? 'unlocked' : '') + (qty < 3 ? ' current' : '') + '">$' + p1.toLocaleString('es-AR') + ' (1-2)' + (qty < 3 ? ' ●' : ' ✓') + '</span>' +
+              '<span class="' + (qty >= 3 ? 'unlocked' : '') + (qty >= 3 && qty < 5 ? ' current' : '') + '">$' + p3.toLocaleString('es-AR') + ' (3-4)' + (qty >= 5 ? ' ✓' : (qty >= 3 ? ' ●' : '')) + '</span>' +
+              '<span class="' + (qty >= 5 ? 'current' : '') + '">$' + p5.toLocaleString('es-AR') + ' (5+)' + (qty >= 5 ? ' ●' : '') + '</span>';
+          }
+          progressEl.hidden = false;
+        } else if (fixedCount === 0 && qty >= 5) {
+          // Máximo tier alcanzado — felicitación
+          var fillEl2 = document.getElementById('decantProgressFill');
+          if (fillEl2) fillEl2.style.width = '100%';
+          var msgEl2 = document.getElementById('decantProgressMsg');
+          if (msgEl2) {
+            msgEl2.classList.add('locked-max');
+            msgEl2.innerHTML = '✨ <strong>Precio óptimo desbloqueado</strong> · $' + p5.toLocaleString('es-AR') + ' c/u';
+          }
+          var tiersEl2 = document.getElementById('decantProgressTiers');
+          if (tiersEl2) {
+            tiersEl2.innerHTML =
+              '<span class="unlocked">$' + p1.toLocaleString('es-AR') + ' (1-2) ✓</span>' +
+              '<span class="unlocked">$' + p3.toLocaleString('es-AR') + ' (3-4) ✓</span>' +
+              '<span class="current">$' + p5.toLocaleString('es-AR') + ' (5+) ●</span>';
+          }
+          progressEl.hidden = false;
+        } else {
+          // Pack vacío o hay precios fijos — ocultar la barra
+          progressEl.hidden = true;
+        }
+      }
+
+      // [#2 EMPTY STATE] Mostrar hero con quick-pick si el pack está vacío
+      var heroEl = document.getElementById('decantEmptyHero');
+      if (heroEl) {
+        if (qty === 0) {
+          // Top 6 perfumes por views/clicks (data real) — fallback: primeros 6 elegibles
+          var topElegibles = PERFUMES.filter(function(p) {
+            return p && p.slug && !p.esSet && !p._oculto && (p._stockStatus !== 'out');
+          });
+          topElegibles.sort(function(a, b) {
+            var va = perfumeViews[a.slug] || 0;
+            var vb = perfumeViews[b.slug] || 0;
+            return vb - va;  // más views primero
+          });
+          var top6 = topElegibles.slice(0, 6);
+          var qpGrid = document.getElementById('decantQuickpickGrid');
+          if (qpGrid && top6.length) {
+            qpGrid.innerHTML = top6.map(function(p) {
+              var foto = p.foto ? p.foto.replace(/ /g, '%20') : '';
+              var imgHTML = foto
+                ? '<img src="' + foto + '" alt="' + p.name + '" loading="lazy">'
+                : (p.name.charAt(0) || '•');
+              return '<div class="decant-quickpick-card" onclick="addDecant(\'' + p.slug + '\')">'
+                + '<div class="decant-quickpick-img">' + imgHTML + '</div>'
+                + '<p class="decant-quickpick-name">' + p.name + '</p>'
+                + '<button type="button" class="decant-quickpick-add" onclick="event.stopPropagation();addDecant(\'' + p.slug + '\')">+ AGREGAR</button>'
+                + '</div>';
+            }).join('');
+          }
+          heroEl.hidden = false;
+        } else {
+          heroEl.hidden = true;
+        }
+      }
+
       // Aviso de conservación
       setTxt('decantAviso', DECANTS_CONFIG.aviso_conservacion || '');
 
       // Botón WA habilitado si qty >= 1
       var btn = document.getElementById('decantBuilderWA');
       if (btn) btn.disabled = qty < 1;
+
+      // [#3 BOTTOM-SHEET] Footer "elevado" + resumen cuando hay items
+      var footerEl = document.getElementById('decantBuilderFooter');
+      if (footerEl) footerEl.classList.toggle('has-items', qty > 0);
+      setTxt('decantBsQty', qty);
+      setTxt('decantBsTotal', '$' + Math.round(total).toLocaleString('es-AR'));
 
       // Contador del botón flotante
       var floatCount = document.getElementById('decantFloatCount');

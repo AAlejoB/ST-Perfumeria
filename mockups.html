@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockups · ST Perfumería</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     mockups.html — Archivo único de mockups para iteración rápida.
+     Convención acordada mayo 2026: TODOS los mockups van acá, en
+     secciones internas. Ver docs/HISTORIA.md lección #7.
+     Sección activa: Armador UX (6 ideas ilustradas).
+     ============================================================ */
+
+  :root {
+    --bg:        #0a0a0c;
+    --bg-elev:   #131316;
+    --bg-elev2:  #1a1a1d;
+    --borde:     #2a2a2e;
+    --txt:       #f0f0f0;
+    --txt-sub:   #999;
+    --txt-dim:   #666;
+    --amarillo:  #E8B800;
+    --naranja:   #ff7043;
+    --verde:     #4caf50;
+    --magenta:   #e91e63;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--txt);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    position: sticky; top: 0;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--borde);
+    padding: 12px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    z-index: 100;
+    flex-wrap: wrap;
+  }
+  .toolbar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700;
+    color: var(--amarillo);
+    margin: 0;
+  }
+  .toolbar-sub {
+    font-size: .65rem; color: var(--txt-sub);
+    letter-spacing: .1em; text-transform: uppercase;
+  }
+
+  /* NAV-ANCHORS */
+  .nav-anchors {
+    background: var(--bg-elev2);
+    border-bottom: 1px solid var(--borde);
+    padding: 8px 18px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+    overflow-x: auto;
+  }
+  .nav-anchor {
+    background: transparent;
+    color: var(--txt-sub);
+    border: 1px solid var(--borde);
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: .68rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+  .nav-anchor:hover { color: var(--amarillo); border-color: var(--amarillo); }
+
+  /* SECTION */
+  .section {
+    padding: 26px 18px;
+    max-width: 1400px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--borde);
+  }
+  .section-head { margin-bottom: 20px; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .section-sub { color: var(--txt-sub); font-size: .85rem; margin: 0; }
+
+  .ab-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 14px;
+  }
+  @media (max-width: 900px) { .ab-grid { grid-template-columns: 1fr; } }
+
+  .ab-col {
+    background: var(--bg-elev);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .ab-col.bad  { border-left: 3px solid #ef5350; }
+  .ab-col.good { border-left: 3px solid var(--verde); }
+  .ab-label {
+    font-size: .58rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; margin: 0 0 6px;
+  }
+  .ab-col.bad  .ab-label { color: #ef5350; }
+  .ab-col.good .ab-label { color: var(--verde); }
+  .ab-desc { font-size: .75rem; color: var(--txt-sub); margin: 0 0 12px; }
+
+  .idea-tag {
+    display: inline-block;
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    background: rgba(232,184,0,.15);
+    color: var(--amarillo);
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     ARMADOR — replica fiel del modal real (bg #0d0d0d, header dorado)
+     ════════════════════════════════════════════════════════════ */
+  .arm-modal {
+    background: #0d0d0d;
+    border-top: 2px solid var(--amarillo);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 380px;
+    max-height: 460px;
+  }
+  .arm-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #2a2a2e;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .arm-close {
+    position: absolute; top: 12px; right: 14px;
+    background: transparent; border: 0; color: #888;
+    font-size: 1.2rem; cursor: pointer;
+  }
+  .arm-title {
+    font-size: .9rem; font-weight: 700; color: var(--txt);
+    margin: 0 0 2px;
+  }
+  .arm-subtitle {
+    font-size: .6rem; color: var(--txt-sub);
+    letter-spacing: .05em; margin: 0 0 10px;
+  }
+  .arm-counter {
+    background: rgba(232,184,0,.06);
+    border: 1px solid rgba(232,184,0,.25);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .arm-counter-left { display: flex; flex-direction: column; gap: 2px; }
+  .arm-counter-qty {
+    font-size: .72rem; color: #fff; font-weight: 600;
+  }
+  .arm-counter-qty strong { color: var(--amarillo); font-weight: 800; font-size: .9rem; }
+  .arm-counter-unit { font-size: .58rem; color: #888; }
+  .arm-counter-right {
+    display: flex; align-items: center; gap: .55rem;
+  }
+  .arm-counter-minus {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(232,184,0,.08);
+    border: 1px solid rgba(232,184,0,.4);
+    color: var(--amarillo);
+    cursor: pointer;
+    font-size: 1rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .arm-counter-total {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 800;
+    color: var(--amarillo);
+  }
+  .arm-search {
+    margin: 10px 14px 8px;
+    background: #1a1a1d;
+    border: 1px solid #2a2a2e;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: .76rem;
+    font-family: inherit;
+  }
+  .arm-grid {
+    flex: 1; overflow-y: auto;
+    padding: 0 14px 8px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .arm-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    background: #1a1a1d;
+    border: 1px solid #2a2a2e;
+    border-radius: 8px;
+  }
+  .arm-card.has-qty { border-color: rgba(232,184,0,.4); background: rgba(232,184,0,.05); }
+  .arm-card-img {
+    width: 36px; height: 50px;
+    background: #2a2a2e;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: #999; font-weight: 700; font-size: .72rem;
+    flex-shrink: 0;
+  }
+  .arm-card-info { flex: 1; min-width: 0; }
+  .arm-card-name { font-size: .76rem; font-weight: 700; color: #fff; margin: 0; }
+  .arm-card-brand { font-size: .58rem; color: #888; margin: 0; }
+  .arm-card-ctrl { display: flex; align-items: center; gap: 6px; }
+  .arm-ctrl-btn {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(232,184,0,.08);
+    border: 1px solid rgba(232,184,0,.4);
+    color: var(--amarillo);
+    font-size: .9rem; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .arm-ctrl-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .arm-ctrl-qty {
+    min-width: 18px; text-align: center;
+    color: var(--amarillo); font-weight: 800; font-size: .82rem;
+  }
+  .arm-footer {
+    padding: 10px 14px;
+    border-top: 1px solid #2a2a2e;
+    flex-shrink: 0;
+    display: flex; gap: 8px;
+  }
+  .arm-footer-clear {
+    background: transparent; color: #888;
+    border: 1px solid #2a2a2e;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: .68rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    cursor: pointer;
+  }
+  .arm-footer-send {
+    background: var(--amarillo);
+    color: #1a1a1d;
+    border: 0;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: .72rem; font-weight: 800;
+    letter-spacing: .06em; text-transform: uppercase;
+    cursor: pointer;
+    flex: 1;
+  }
+  .arm-footer-send:disabled { opacity: .3; }
+
+  /* ════════════════════ #1 PROGRESS BAR ════════════════════ */
+  .pb-wrap {
+    background: linear-gradient(90deg, rgba(232,184,0,.08), transparent);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 8px;
+  }
+  .pb-msg {
+    font-size: .72rem; color: #fff;
+    margin: 0 0 6px; display: flex; align-items: center; gap: 4px;
+  }
+  .pb-msg strong { color: var(--verde); font-weight: 800; }
+  .pb-msg .savings {
+    background: var(--verde); color: #fff;
+    padding: 1px 6px; border-radius: 3px;
+    font-size: .6rem; font-weight: 800; margin-left: 4px;
+  }
+  .pb-bar {
+    position: relative;
+    height: 10px;
+    background: #1a1a1d;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .pb-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--amarillo), var(--naranja));
+    border-radius: 5px;
+    transition: width .4s;
+  }
+  .pb-tiers {
+    display: flex; justify-content: space-between;
+    margin-top: 4px;
+    font-size: .54rem;
+    color: #666;
+    letter-spacing: .05em;
+  }
+  .pb-tiers span { position: relative; }
+  .pb-tiers span.current { color: var(--amarillo); font-weight: 800; }
+  .pb-tiers span.unlocked { color: var(--verde); }
+
+  /* ════════════════════ #2 EMPTY STATE ════════════════════ */
+  .empty-hero {
+    text-align: center;
+    padding: 14px 12px;
+  }
+  .empty-icon {
+    font-size: 2.4rem;
+    opacity: .6;
+    margin-bottom: 6px;
+  }
+  .empty-title {
+    font-size: .82rem;
+    color: #fff;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .empty-sub {
+    font-size: .68rem;
+    color: #888;
+    margin: 0 0 12px;
+  }
+  .quickpick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 500px) { .quickpick-grid { grid-template-columns: repeat(2, 1fr); } }
+  .quickpick-card {
+    background: #1a1a1d;
+    border: 1px solid #2a2a2e;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .quickpick-card:hover { border-color: var(--amarillo); transform: translateY(-2px); }
+  .quickpick-img {
+    width: 100%; aspect-ratio: 3/4;
+    background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(232,184,0,.4);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .quickpick-name {
+    font-size: .55rem; color: #fff;
+    font-weight: 700; letter-spacing: .04em;
+    margin: 0 0 2px;
+    text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .quickpick-add {
+    background: var(--amarillo); color: #1a1a1d;
+    border: 0; width: 100%;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: .6rem; font-weight: 800;
+    cursor: pointer;
+  }
+  .quickpick-fire { font-size: .5rem; color: var(--naranja); }
+
+  /* ════════════════════ #3 BOTTOM SHEET MOBILE ════════════════════ */
+  .mobile-wrap {
+    max-width: 360px;
+    margin: 0 auto;
+    background: #0d0d0d;
+    border: 1px solid #2a2a2e;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 30px rgba(0,0,0,.4);
+  }
+  .mobile-status-bar {
+    height: 22px; background: #000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px; color: #fff;
+    font-size: .55rem;
+    font-weight: 700;
+  }
+  .mobile-content {
+    padding: 0; min-height: 400px;
+    background: #0d0d0d;
+    position: relative;
+  }
+  .ms-header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid #2a2a2e;
+  }
+  .ms-title { font-size: .85rem; font-weight: 700; color: #fff; margin: 0; }
+  .ms-subtitle { font-size: .58rem; color: #888; margin: 0; }
+  .ms-list {
+    padding: 8px 12px 80px; /* padding-bottom = altura del bottom-sheet */
+  }
+  .ms-card {
+    background: #1a1a1d;
+    border: 1px solid #2a2a2e;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ms-card-info { flex: 1; }
+  .ms-card-name { font-size: .68rem; font-weight: 700; color: #fff; margin: 0; }
+  .ms-card-brand { font-size: .52rem; color: #888; margin: 0; }
+  .ms-card-qty {
+    background: rgba(232,184,0,.15);
+    color: var(--amarillo);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: .58rem; font-weight: 700;
+  }
+  /* Bottom-sheet floating */
+  .bottom-sheet {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, #1a1a1d, #0d0d0d);
+    border-top: 2px solid var(--amarillo);
+    border-radius: 14px 14px 0 0;
+    padding: 12px 14px;
+    box-shadow: 0 -10px 30px rgba(0,0,0,.6);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .bs-info { flex: 1; }
+  .bs-qty {
+    font-size: .58rem; color: #888;
+    letter-spacing: .08em; text-transform: uppercase;
+    margin: 0;
+  }
+  .bs-qty strong { color: #fff; font-weight: 800; }
+  .bs-total {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 800;
+    color: var(--amarillo);
+    margin: 0;
+  }
+  .bs-cta {
+    background: var(--amarillo); color: #1a1a1d;
+    border: 0; padding: 12px 16px;
+    border-radius: 24px;
+    font-size: .68rem; font-weight: 800;
+    letter-spacing: .06em; text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(232,184,0,.35);
+  }
+
+  /* ════════════════════ #4 TAB SWITCHER ════════════════════ */
+  .tab-switch-wrap {
+    display: flex;
+    background: #0d0d0d;
+    border: 1px solid #2a2a2e;
+    border-radius: 30px;
+    padding: 3px;
+    margin: 10px 14px 0;
+    gap: 3px;
+  }
+  .tab-switch-btn {
+    flex: 1;
+    background: transparent;
+    color: #888;
+    border: 0;
+    padding: 7px 12px;
+    border-radius: 30px;
+    font-size: .68rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .tab-switch-btn.active {
+    background: var(--amarillo);
+    color: #1a1a1d;
+  }
+  .tab-switch-badge {
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: .55rem;
+    font-weight: 800;
+  }
+  .tab-switch-btn.active .tab-switch-badge {
+    background: rgba(0,0,0,.2);
+    color: #1a1a1d;
+  }
+
+  /* ════════════════════ #5 ANIMACIÓN AL + ════════════════════ */
+  .anim-demo {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 8px;
+  }
+  @media (max-width: 700px) { .anim-demo { grid-template-columns: repeat(2, 1fr); } }
+  .anim-step {
+    background: #1a1a1d;
+    border: 1px solid #2a2a2e;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    position: relative;
+  }
+  .anim-step-label {
+    font-size: .55rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--amarillo);
+    margin: 0 0 8px;
+    font-weight: 800;
+  }
+  .anim-mini-card {
+    background: #2a2a2e;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 6px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 4px;
+    min-height: 50px;
+    position: relative;
+  }
+  .anim-mini-card .plus {
+    width: 26px; height: 26px;
+    background: rgba(232,184,0,.15);
+    border: 1px solid var(--amarillo);
+    color: var(--amarillo);
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .8rem; font-weight: 700;
+  }
+  .anim-step.s2 .anim-mini-card { animation: scaleUp 1.2s ease-in-out infinite; }
+  .anim-step.s2 .plus { background: var(--amarillo); color: #1a1a1d; }
+  .anim-step.s3 .anim-mini-card { background: rgba(76,175,80,.18); border-color: var(--verde); }
+  .anim-step.s3 .plus {
+    background: var(--verde); color: #fff; border-color: var(--verde);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .anim-step.s4 .anim-mini-card { background: rgba(232,184,0,.08); border-color: rgba(232,184,0,.4); }
+  .anim-step.s4 .qty {
+    font-size: 1rem; color: var(--amarillo); font-weight: 800;
+    margin: 0 4px;
+  }
+  .anim-arrow {
+    position: absolute;
+    right: -7px; top: 50%; transform: translateY(-50%);
+    font-size: 1rem; color: var(--amarillo);
+    z-index: 1;
+  }
+  @keyframes scaleUp {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(76,175,80,.6); }
+    50%      { box-shadow: 0 0 0 8px rgba(76,175,80,0); }
+  }
+
+  /* ════════════════════ #6 COMBINA BIEN ════════════════════ */
+  .combina-wrap {
+    background: linear-gradient(135deg, rgba(232,184,0,.08), rgba(255,217,0,.03));
+    border: 1px dashed rgba(232,184,0,.4);
+    border-radius: 10px;
+    padding: 12px;
+    margin: 8px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .combina-label {
+    font-size: .52rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--amarillo);
+    font-weight: 800;
+    margin: 0 0 2px;
+  }
+  .combina-name {
+    font-size: .76rem;
+    color: #fff;
+    font-weight: 700;
+    margin: 0 0 1px;
+  }
+  .combina-reason {
+    font-size: .58rem;
+    color: #888;
+    margin: 0;
+  }
+  .combina-img {
+    width: 40px; height: 56px;
+    background: linear-gradient(135deg, #3a2a4a, #1a1a1a);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(232,184,0,.6);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .combina-info { flex: 1; min-width: 0; }
+  .combina-add {
+    background: var(--amarillo); color: #1a1a1d;
+    border: 0;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: .6rem; font-weight: 800;
+    letter-spacing: .06em; text-transform: uppercase;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(232,184,0,.25);
+  }
+
+  /* PROS / CONS */
+  .pros-cons {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    font-size: .72rem;
+  }
+  @media (max-width: 700px) { .pros-cons { grid-template-columns: 1fr; } }
+  .pros, .cons {
+    background: var(--bg-elev);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .pros { border-left: 2px solid var(--verde); }
+  .cons { border-left: 2px solid #ef5350; }
+  .pros-title, .cons-title {
+    font-size: .55rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase;
+    margin: 0 0 4px;
+  }
+  .pros-title { color: var(--verde); }
+  .cons-title { color: #ef5350; }
+  .pros ul, .cons ul { margin: 0; padding-left: 14px; color: var(--txt-sub); font-size: .7rem; }
+  .pros li, .cons li { margin-bottom: 2px; }
+
+  .est { font-size: .58rem; color: var(--txt-dim); letter-spacing: .08em; margin-left: 6px; }
+
+  .footer {
+    padding: 30px 18px 60px;
+    text-align: center;
+    color: var(--txt-dim);
+    font-size: .7rem;
+  }
+
+  /* Banner Decants: aplicado con Opción B (SVG real) — pendiente de
+     pegar al index.html cuando confirmes. */
+  .banner-decision {
+    background: rgba(76,175,80,.08);
+    border: 1px solid var(--verde);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+  .banner-decision strong { color: var(--verde); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div>
+    <p class="toolbar-title">🎨 Mockups · ST Perfumería</p>
+    <p class="toolbar-sub">Archivo único · convención mayo 2026</p>
+  </div>
+</div>
+
+<nav class="nav-anchors">
+  <a class="nav-anchor" href="#idea-1">#1 · Progress bar</a>
+  <a class="nav-anchor" href="#idea-2">#2 · Empty state</a>
+  <a class="nav-anchor" href="#idea-3">#3 · Bottom sheet</a>
+  <a class="nav-anchor" href="#idea-4">#4 · Tab switcher</a>
+  <a class="nav-anchor" href="#idea-5">#5 · Anim al +</a>
+  <a class="nav-anchor" href="#idea-6">#6 · Combina bien</a>
+</nav>
+
+<div class="section" style="border-bottom: 0;">
+  <div class="banner-decision">
+    ✅ <strong>Banner Decants — confirmado Opción B (SVG real).</strong> Lo aplicaré al `index.html` real apenas confirmemos las ideas del armador. Mientras tanto la sección de banner del mockup se eliminó para mantener el archivo limpio.
+  </div>
+</div>
+
+<!-- ════════════════════ #1 PROGRESS BAR AL SIGUIENTE TIER ════════════════════ -->
+<section class="section" id="idea-1">
+  <div class="section-head">
+    <span class="idea-tag">#1 · GAMIFICACIÓN</span>
+    <h2 class="section-title">Progress bar al siguiente tier de precio</h2>
+    <p class="section-sub">El armador ya tiene una "escalera" (1-2: $9.500 · 3-4: $8.500 · 5+: $7.500). Hoy esa info está en texto chico y suelta. Lo convertimos en <strong>una barra visual con marcador</strong> y un mensaje "te faltan X para ahorrar $Y".</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Contador + texto "$8.500 c/u" sin contexto. El cliente no sabe que sumando 1 más AHORRA $4.000 en total.</p>
+      <div class="arm-modal" style="min-height: 220px; max-height: 220px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">Decants de 5 ml · Máx 100</p>
+          <div class="arm-counter">
+            <div class="arm-counter-left">
+              <span class="arm-counter-qty"><strong>4</strong>/10 decants</span>
+              <span class="arm-counter-unit">$8.500 c/u</span>
+            </div>
+            <div class="arm-counter-right">
+              <button class="arm-counter-minus">−</button>
+              <span class="arm-counter-total">$34.000</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Mensaje claro de cuánto falta + barra visual con tres tiers + ahorro destacado. <strong>Te gamifica</strong>: ves que estás a 1 decant del próximo nivel.</p>
+      <div class="arm-modal" style="min-height: 320px; max-height: 320px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">Decants de 5 ml</p>
+          <div class="arm-counter">
+            <div class="arm-counter-left">
+              <span class="arm-counter-qty"><strong>4</strong>/10 decants</span>
+              <span class="arm-counter-unit">$8.500 c/u</span>
+            </div>
+            <div class="arm-counter-right">
+              <button class="arm-counter-minus">−</button>
+              <span class="arm-counter-total">$34.000</span>
+            </div>
+          </div>
+          <div class="pb-wrap">
+            <p class="pb-msg">🎯 Te falta <strong>1 decant más</strong> para bajar a $7.500 c/u<span class="savings">Ahorrás $5.000</span></p>
+            <div class="pb-bar">
+              <div class="pb-fill" style="width: 80%;"></div>
+            </div>
+            <div class="pb-tiers">
+              <span class="unlocked">$9.500 (1-2) ✓</span>
+              <span class="current">$8.500 (3-4) ●</span>
+              <span>$7.500 (5+)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Por qué sirve</p>
+      <ul>
+        <li>El cliente entiende inmediatamente que conviene sumar 1 más</li>
+        <li>Estímulo a aumentar ticket promedio sin presión vendedora</li>
+        <li>Visualmente "premium" — apps tipo Spotify, MercadoLibre lo usan</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <p class="cons-title">⚠️ A considerar</p>
+      <ul>
+        <li>Si cliente lleva 1 perfume, ve "ahorrás $X si llevás 2" — puede sentirse manipulativo si no se redacta bien</li>
+        <li>Solo aplica si la escalera está activa (sin perfumes con precio fijo)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ #2 EMPTY STATE ════════════════════ -->
+<section class="section" id="idea-2">
+  <div class="section-head">
+    <span class="idea-tag">#2 · ONBOARDING</span>
+    <h2 class="section-title">Empty state motivador con "Top elegidos"</h2>
+    <p class="section-sub">Cuando el cliente abre el armador por primera vez (pack vacío), hoy ve un grid frío de 162 perfumes A→Z. Le proponemos <strong>destacar primero los más elegidos</strong> con quick-add para que arme en 2 toques.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Grid frío arrancando con "A...". El cliente no sabe por dónde empezar y se pierde scrolleando.</p>
+      <div class="arm-modal" style="min-height: 320px; max-height: 320px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">Decants de 5 ml</p>
+        </div>
+        <input class="arm-search" placeholder="🔎 Buscar perfume..." />
+        <div class="arm-grid">
+          <div class="arm-card">
+            <div class="arm-card-img">A</div>
+            <div class="arm-card-info"><p class="arm-card-name">ASAD BOURBON</p><p class="arm-card-brand">Lattafa</p></div>
+            <div class="arm-card-ctrl"><button class="arm-ctrl-btn" disabled>−</button><span class="arm-ctrl-qty">0</span><button class="arm-ctrl-btn">+</button></div>
+          </div>
+          <div class="arm-card">
+            <div class="arm-card-img">A</div>
+            <div class="arm-card-info"><p class="arm-card-name">AMBER OUD</p><p class="arm-card-brand">Al Haramain</p></div>
+            <div class="arm-card-ctrl"><button class="arm-ctrl-btn" disabled>−</button><span class="arm-ctrl-qty">0</span><button class="arm-ctrl-btn">+</button></div>
+          </div>
+          <div class="arm-card">
+            <div class="arm-card-img">A</div>
+            <div class="arm-card-info"><p class="arm-card-name">ARABIAN OUD</p><p class="arm-card-brand">Maison Alhambra</p></div>
+            <div class="arm-card-ctrl"><button class="arm-ctrl-btn" disabled>−</button><span class="arm-ctrl-qty">0</span><button class="arm-ctrl-btn">+</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Si <code>decantsPack.length === 0</code>, mostrar primero los <strong>top 6 más elegidos</strong> como tarjetas grandes con + de un toque. Después del grid sigue normal.</p>
+      <div class="arm-modal" style="min-height: 460px; max-height: 460px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">Decants de 5 ml</p>
+        </div>
+        <div style="overflow-y: auto; flex: 1;">
+          <div class="empty-hero">
+            <div class="empty-icon">💧</div>
+            <p class="empty-title">¿No sabés por dónde empezar?</p>
+            <p class="empty-sub">Acá están los más elegidos por nuestros clientes ⭐</p>
+            <div class="quickpick-grid">
+              <div class="quickpick-card">
+                <div class="quickpick-img">YT</div>
+                <p class="quickpick-name">YOUR TOUCH</p>
+                <button class="quickpick-add">+ AGREGAR</button>
+                <p class="quickpick-fire" style="margin-top:4px;">🔥 Top ventas</p>
+              </div>
+              <div class="quickpick-card">
+                <div class="quickpick-img">AB</div>
+                <p class="quickpick-name">ASAD BOURBON</p>
+                <button class="quickpick-add">+ AGREGAR</button>
+                <p class="quickpick-fire" style="margin-top:4px;">⭐ Premium</p>
+              </div>
+              <div class="quickpick-card">
+                <div class="quickpick-img">YR</div>
+                <p class="quickpick-name">YARA ROSA</p>
+                <button class="quickpick-add">+ AGREGAR</button>
+                <p class="quickpick-fire" style="margin-top:4px;">🔥 Top ventas</p>
+              </div>
+            </div>
+            <p class="empty-sub" style="margin: 6px 0;">— o explorá todo el catálogo —</p>
+          </div>
+          <input class="arm-search" placeholder="🔎 Buscar perfume..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Por qué sirve</p>
+      <ul>
+        <li>Cliente nuevo se siente guiado (no abandonado en un catálogo de 162)</li>
+        <li>El "social proof" (Top ventas) inspira confianza</li>
+        <li>Reduce fricción a la primera compra</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <p class="cons-title">⚠️ A considerar</p>
+      <ul>
+        <li>Necesitamos definir QUÉ perfumes van en "Top ventas" (data real de ventas, o setear desde admin)</li>
+        <li>Solo aparece si pack vacío — apenas agreguen 1, se va el hero</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ #3 BOTTOM SHEET MOBILE ════════════════════ -->
+<section class="section" id="idea-3">
+  <div class="section-head">
+    <span class="idea-tag">#3 · MOBILE UX</span>
+    <h2 class="section-title">Bottom-sheet flotante con resumen + CTA</h2>
+    <p class="section-sub">En mobile, cuando el cliente scrollea entre 162 cards, el botón "Consultar por WhatsApp" queda lejos abajo. La <strong>bottom-sheet flotante</strong> mantiene visible siempre cuántos llevás y el botón mandar.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Scrolleás 50 perfumes, perdés de vista el contador y el CTA queda al fondo.</p>
+      <div class="mobile-wrap">
+        <div class="mobile-status-bar"><span>9:41</span><span>📶 📡 🔋</span></div>
+        <div class="mobile-content">
+          <div class="ms-header">
+            <p class="ms-title">🧪 Armá tu pack</p>
+            <p class="ms-subtitle">4 decants · $34.000</p>
+          </div>
+          <div class="ms-list" style="padding-bottom: 8px;">
+            <div class="ms-card"><div class="arm-card-img">A</div><div class="ms-card-info"><p class="ms-card-name">ASAD BOURBON</p><p class="ms-card-brand">Lattafa</p></div><span class="ms-card-qty">×1</span></div>
+            <div class="ms-card"><div class="arm-card-img">A</div><div class="ms-card-info"><p class="ms-card-name">AMBER OUD</p><p class="ms-card-brand">Al Haramain</p></div><span class="ms-card-qty">×2</span></div>
+            <div class="ms-card"><div class="arm-card-img">B</div><div class="ms-card-info"><p class="ms-card-name">BHARARA KING</p><p class="ms-card-brand">Bharara</p></div><span class="ms-card-qty">×1</span></div>
+            <div class="ms-card"><div class="arm-card-img">C</div><div class="ms-card-info"><p class="ms-card-name">CONFIDENTIAL PLATINUM</p><p class="ms-card-brand">Lattafa</p></div><span class="ms-card-qty">×0</span></div>
+            <div style="text-align:center; padding: 10px; font-size: .58rem; color:#666;">↓ scroll y scroll y scroll ↓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">La barra <strong>queda fija al pie del modal</strong> mientras scrolleas. Siempre ves cuánto llevás y el botón mandar está a 1 toque.</p>
+      <div class="mobile-wrap">
+        <div class="mobile-status-bar"><span>9:41</span><span>📶 📡 🔋</span></div>
+        <div class="mobile-content">
+          <div class="ms-header">
+            <p class="ms-title">🧪 Armá tu pack</p>
+            <p class="ms-subtitle">Decants de 5 ml</p>
+          </div>
+          <div class="ms-list">
+            <div class="ms-card"><div class="arm-card-img">A</div><div class="ms-card-info"><p class="ms-card-name">ASAD BOURBON</p><p class="ms-card-brand">Lattafa</p></div><span class="ms-card-qty">×1</span></div>
+            <div class="ms-card"><div class="arm-card-img">A</div><div class="ms-card-info"><p class="ms-card-name">AMBER OUD</p><p class="ms-card-brand">Al Haramain</p></div><span class="ms-card-qty">×2</span></div>
+            <div class="ms-card"><div class="arm-card-img">B</div><div class="ms-card-info"><p class="ms-card-name">BHARARA KING</p><p class="ms-card-brand">Bharara</p></div><span class="ms-card-qty">×1</span></div>
+            <div class="ms-card"><div class="arm-card-img">C</div><div class="ms-card-info"><p class="ms-card-name">CONFIDENTIAL</p><p class="ms-card-brand">Lattafa</p></div><span class="ms-card-qty">×0</span></div>
+          </div>
+          <div class="bottom-sheet">
+            <div class="bs-info">
+              <p class="bs-qty"><strong>4 decants</strong> · 5+ = $7.500 c/u</p>
+              <p class="bs-total">$30.000</p>
+            </div>
+            <button class="bs-cta">📲 Consultar →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Por qué sirve</p>
+      <ul>
+        <li>El CTA siempre está a la vista — el cliente no busca dónde mandar</li>
+        <li>Combina perfecto con la barra de progreso (#1)</li>
+        <li>Patrón estándar de e-commerce mobile (MercadoLibre, Amazon, etc)</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <p class="cons-title">⚠️ A considerar</p>
+      <ul>
+        <li>Ocupa 70-80px del viewport — menos espacio para el grid</li>
+        <li>Solo si pack tiene >0 items (sino sería ruido)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ #4 TAB SWITCHER ════════════════════ -->
+<section class="section" id="idea-4">
+  <div class="section-head">
+    <span class="idea-tag">#4 · NAVEGACIÓN</span>
+    <h2 class="section-title">Tab switcher "Catálogo / Mis decants"</h2>
+    <p class="section-sub">Hoy si querés ver SOLO los decants que ya agregaste al pack, tenés que scrollear todo el catálogo (los agregados aparecen arriba pero igual están mezclados). Le ponemos <strong>2 tabs</strong> que filtran al toque.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Todo el catálogo en una sola vista. Los agregados arriba, el resto abajo, mezclados visualmente.</p>
+      <div class="arm-modal" style="min-height: 320px; max-height: 320px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">4 decants · $34.000</p>
+        </div>
+        <input class="arm-search" placeholder="🔎 Buscar perfume..." />
+        <div class="arm-grid">
+          <p style="font-size: .55rem; color:var(--amarillo); margin: 0 0 4px; letter-spacing:.1em;">★ AGREGADOS AL PACK (3)</p>
+          <div class="arm-card has-qty"><div class="arm-card-img">A</div><div class="arm-card-info"><p class="arm-card-name">ASAD BOURBON</p><p class="arm-card-brand">Lattafa</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn">−</button><span class="arm-ctrl-qty">1</span><button class="arm-ctrl-btn">+</button></div></div>
+          <p style="font-size: .55rem; color:#666; margin: 8px 0 4px; letter-spacing:.1em;">CATÁLOGO · A→Z (159)</p>
+          <div class="arm-card"><div class="arm-card-img">A</div><div class="arm-card-info"><p class="arm-card-name">ARABIAN OUD</p><p class="arm-card-brand">Maison Alhambra</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn" disabled>−</button><span class="arm-ctrl-qty">0</span><button class="arm-ctrl-btn">+</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Tabs con badge de cantidad. "Mis decants (4)" muestra SOLO los agregados, perfecto para revisar el pack antes de mandar.</p>
+      <div class="arm-modal" style="min-height: 380px; max-height: 380px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">4 decants · $34.000</p>
+          <div class="tab-switch-wrap" style="margin: 10px 0 0;">
+            <button class="tab-switch-btn">📚 Catálogo <span class="tab-switch-badge">162</span></button>
+            <button class="tab-switch-btn active">💎 Mis decants <span class="tab-switch-badge">4</span></button>
+          </div>
+        </div>
+        <div class="arm-grid">
+          <div class="arm-card has-qty"><div class="arm-card-img">A</div><div class="arm-card-info"><p class="arm-card-name">ASAD BOURBON</p><p class="arm-card-brand">Lattafa</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn">−</button><span class="arm-ctrl-qty">1</span><button class="arm-ctrl-btn">+</button></div></div>
+          <div class="arm-card has-qty"><div class="arm-card-img">A</div><div class="arm-card-info"><p class="arm-card-name">AMBER OUD</p><p class="arm-card-brand">Al Haramain</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn">−</button><span class="arm-ctrl-qty">2</span><button class="arm-ctrl-btn">+</button></div></div>
+          <div class="arm-card has-qty"><div class="arm-card-img">B</div><div class="arm-card-info"><p class="arm-card-name">BHARARA KING</p><p class="arm-card-brand">Bharara</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn">−</button><span class="arm-ctrl-qty">1</span><button class="arm-ctrl-btn">+</button></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Por qué sirve</p>
+      <ul>
+        <li>Pre-mandar revisás SOLO los agregados sin scroll</li>
+        <li>Más rápido cambiar cantidades del pack</li>
+        <li>Sensación de "mi selección" — apego emocional</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <p class="cons-title">⚠️ A considerar</p>
+      <ul>
+        <li>1 tap extra para ir a "Mis decants" (vs el flow actual)</li>
+        <li>Solo útil si pack tiene 2+ items (sino sobra)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ #5 ANIMACIÓN AL + ════════════════════ -->
+<section class="section" id="idea-5">
+  <div class="section-head">
+    <span class="idea-tag">#5 · MICRO-INTERACCIÓN</span>
+    <h2 class="section-title">Confirmación visual al hacer "+"</h2>
+    <p class="section-sub">Hoy hacés "+" y el botón se hunde 1px, sin feedback claro. Le metemos <strong>animación de 200ms</strong> con bounce + check verde + bump del contador — el cliente SIENTE que agregó.</p>
+  </div>
+
+  <p style="font-size: .85rem; color: #fff; margin: 0 0 4px;">📺 Secuencia de la animación (200ms total):</p>
+  <p style="font-size: .7rem; color: var(--txt-sub); margin: 0 0 12px;">Mirá la card en el estado "2 · CLICK!" → se infla. En el estado "3 · ✓" sale el check verde con pulse.</p>
+
+  <div class="anim-demo">
+    <div class="anim-step s1">
+      <p class="anim-step-label">1 · Idle</p>
+      <div class="anim-mini-card">
+        <span style="color:#fff; font-size:.6rem;">YOUR TOUCH</span>
+        <span class="plus">+</span>
+      </div>
+      <p style="font-size: .55rem; color: #666; margin: 6px 0 0;">El usuario hace tap</p>
+      <span class="anim-arrow">›</span>
+    </div>
+    <div class="anim-step s2">
+      <p class="anim-step-label">2 · Click!</p>
+      <div class="anim-mini-card">
+        <span style="color:#fff; font-size:.6rem;">YOUR TOUCH</span>
+        <span class="plus">+</span>
+      </div>
+      <p style="font-size: .55rem; color: #666; margin: 6px 0 0;">Card se infla scale 1→1.05→1</p>
+      <span class="anim-arrow">›</span>
+    </div>
+    <div class="anim-step s3">
+      <p class="anim-step-label">3 · ✓ Agregado</p>
+      <div class="anim-mini-card">
+        <span style="color:var(--verde); font-size:.6rem; font-weight:800;">YOUR TOUCH ✓</span>
+        <span class="plus">✓</span>
+      </div>
+      <p style="font-size: .55rem; color: #666; margin: 6px 0 0;">Check verde + pulse halo 200ms</p>
+      <span class="anim-arrow">›</span>
+    </div>
+    <div class="anim-step s4">
+      <p class="anim-step-label">4 · Final</p>
+      <div class="anim-mini-card">
+        <span style="color:var(--amarillo); font-size:.6rem; font-weight:800;">YOUR TOUCH</span>
+        <span class="qty">×1</span>
+        <span class="plus">+</span>
+      </div>
+      <p style="font-size: .55rem; color: #666; margin: 6px 0 0;">Card queda destacada con qty: 1</p>
+    </div>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Por qué sirve</p>
+      <ul>
+        <li>Feedback inmediato — el cliente sabe que "agregó" sin mirar el contador arriba</li>
+        <li>Sensación premium tipo app moderna (Spotify, Instagram)</li>
+        <li>Respeta `prefers-reduced-motion` (sin animación si el user lo prefiere)</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <p class="cons-title">⚠️ A considerar</p>
+      <ul>
+        <li>200ms es el sweet spot — más largo entorpece, más corto no se nota</li>
+        <li>El cart-add ya tiene un sonido (con [PENDULO]) — coordinar para no duplicar</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ #6 COMBINA BIEN ════════════════════ -->
+<section class="section" id="idea-6">
+  <div class="section-head">
+    <span class="idea-tag">#6 · IA SUGESTIVA</span>
+    <h2 class="section-title">"Combinás bien con: X" — sugerencia inteligente</h2>
+    <p class="section-sub">Cuando el cliente lleva 1+ decants, mostramos una sugerencia <strong>basada en las notas/perfil del perfume que ya agregó</strong>. Aumenta ticket promedio sin ser invasivo.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">El cliente busca por marca o nombre que ya conoce. Quedan "huérfanos" los perfumes que combinarían — el cliente no los descubre.</p>
+      <div class="arm-modal" style="min-height: 280px; max-height: 280px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">1 decant · $9.500</p>
+        </div>
+        <div class="arm-grid">
+          <div class="arm-card has-qty"><div class="arm-card-img">YT</div><div class="arm-card-info"><p class="arm-card-name">YOUR TOUCH INTENSE</p><p class="arm-card-brand">Maison Alhambra · Dulce</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn">−</button><span class="arm-ctrl-qty">1</span><button class="arm-ctrl-btn">+</button></div></div>
+          <div class="arm-card"><div class="arm-card-img">A</div><div class="arm-card-info"><p class="arm-card-name">ARABIAN OUD</p><p class="arm-card-brand">Maison Alhambra</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn" disabled>−</button><span class="arm-ctrl-qty">0</span><button class="arm-ctrl-btn">+</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Caja sugerida con perfume "que combina" + razón (misma familia, notas similares, etc) + botón + de un toque.</p>
+      <div class="arm-modal" style="min-height: 380px; max-height: 380px;">
+        <div class="arm-header">
+          <p class="arm-title">🧪 Armá tu pack de decants</p>
+          <p class="arm-subtitle">1 decant · $9.500</p>
+        </div>
+        <div class="combina-wrap">
+          <div class="combina-img">YA</div>
+          <div class="combina-info">
+            <p class="combina-label">🌟 Combinás bien con</p>
+            <p class="combina-name">YARA AMETHYST</p>
+            <p class="combina-reason">Misma familia dulce · notas de vainilla en común</p>
+          </div>
+          <button class="combina-add">+ Sumar</button>
+        </div>
+        <div class="arm-grid">
+          <div class="arm-card has-qty"><div class="arm-card-img">YT</div><div class="arm-card-info"><p class="arm-card-name">YOUR TOUCH INTENSE</p><p class="arm-card-brand">Maison Alhambra · Dulce</p></div><div class="arm-card-ctrl"><button class="arm-ctrl-btn">−</button><span class="arm-ctrl-qty">1</span><button class="arm-ctrl-btn">+</button></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Por qué sirve</p>
+      <ul>
+        <li>Descubrimiento orgánico — el cliente conoce perfumes nuevos</li>
+        <li>Aumenta ticket promedio sin presión vendedora</li>
+        <li>"Curado por ST" se siente premium</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <p class="cons-title">⚠️ A considerar</p>
+      <ul>
+        <li>Necesita algoritmo de similitud (notas, perfil, marca, gama)</li>
+        <li>Tu repo YA tiene un sistema parecido (`detectProductType` + matching por notas en el quiz)</li>
+        <li>Costo: 1-2hs si reutilizamos el algoritmo del quiz; 4-5hs si lo armamos desde cero</li>
+        <li>La sugerencia podría rotar al azar entre 2-3 candidatos para no aburrir</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ RESUMEN / COMBO ════════════════════ -->
+<section class="section">
+  <div class="section-head">
+    <h2 class="section-title">📋 Resumen y combos sugeridos</h2>
+  </div>
+
+  <table style="width: 100%; border-collapse: collapse; font-size: .76rem;">
+    <thead>
+      <tr style="border-bottom: 1px solid var(--borde);">
+        <th style="text-align:left; padding: 8px; color: var(--amarillo); font-size: .58rem; letter-spacing:.15em; text-transform:uppercase; font-weight:800;">Idea</th>
+        <th style="text-align:center; padding: 8px; color: var(--amarillo); font-size: .58rem; letter-spacing:.15em; text-transform:uppercase; font-weight:800;">Esfuerzo</th>
+        <th style="text-align:center; padding: 8px; color: var(--amarillo); font-size: .58rem; letter-spacing:.15em; text-transform:uppercase; font-weight:800;">Impacto</th>
+        <th style="text-align:left; padding: 8px; color: var(--amarillo); font-size: .58rem; letter-spacing:.15em; text-transform:uppercase; font-weight:800;">Combo "core"</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #1a1a1d;"><td style="padding:8px;">#1 · Progress bar tier</td><td style="text-align:center;">30 min</td><td style="text-align:center;">🟢 Alto</td><td>✅ Recomendado</td></tr>
+      <tr style="border-bottom: 1px solid #1a1a1d;"><td style="padding:8px;">#2 · Empty state quick-pick</td><td style="text-align:center;">45 min</td><td style="text-align:center;">🟢 Alto</td><td>✅ Recomendado</td></tr>
+      <tr style="border-bottom: 1px solid #1a1a1d;"><td style="padding:8px;">#3 · Bottom-sheet mobile</td><td style="text-align:center;">30 min</td><td style="text-align:center;">🟢 Alto</td><td>✅ Recomendado</td></tr>
+      <tr style="border-bottom: 1px solid #1a1a1d;"><td style="padding:8px;">#4 · Tab switcher</td><td style="text-align:center;">20 min</td><td style="text-align:center;">🟡 Medio</td><td>—</td></tr>
+      <tr style="border-bottom: 1px solid #1a1a1d;"><td style="padding:8px;">#5 · Anim al +</td><td style="text-align:center;">15 min</td><td style="text-align:center;">🟡 Medio</td><td>—</td></tr>
+      <tr><td style="padding:8px;">#6 · Combina bien con</td><td style="text-align:center;">1-2 hs</td><td style="text-align:center;">🟢 Alto</td><td>📌 En 2da iter</td></tr>
+    </tbody>
+  </table>
+
+  <div style="background: var(--bg-elev); border: 1px solid var(--amarillo); border-radius: 10px; padding: 16px 20px; margin-top: 20px;">
+    <p style="font-size: .6rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--amarillo); margin: 0 0 8px;">🎯 Mi recomendación</p>
+    <p style="font-size: .82rem; color: var(--txt); margin: 0 0 8px;">
+      <strong>Combo "core" (≈2h):</strong> hacemos <strong>#1 + #2 + #3 + #5</strong> en una sola tanda → ahí ya queda muchísimo mejor el armador.
+    </p>
+    <p style="font-size: .82rem; color: var(--txt); margin: 0 0 8px;">
+      <strong>Después (otra sesión):</strong> #4 + #6 — el tab switcher es nice-to-have y el "combina bien" reutiliza algoritmo del quiz pero requiere testeo.
+    </p>
+    <p style="font-size: .72rem; color: var(--txt-sub); margin: 0;">
+      📦 También aplico la <strong>Opción B (SVG real)</strong> del banner cuando confirmes este plan — todo en un mismo commit grande.
+    </p>
+  </div>
+</section>
+
+<div class="footer">
+  mockups.html · convención mayo 2026 · sección activa: Armador UX
+</div>
+
+</body>
+</html>
