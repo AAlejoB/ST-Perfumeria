@@ -611,78 +611,100 @@
   <!-- ================================================
        SOBRE NOSOTROS — contenido real de ST
   ================================================ -->
-  <!-- DECANTS BANNER -->
+  <!-- DECANTS BANNER · [BANNER-V2] Opción 2 (CSS+SVG) desktop + Variante C mobile -->
   <div class="decant-banner" id="decants">
     <div class="decant-b-left">
-      <p class="decant-b-label">◆ ST Perfumería</p>
-      <h2 class="decant-b-title">Decants <span class="decant-b-sep" aria-hidden="true"></span><span>tu fragancia, tu medida</span></h2>
-      <p class="decant-b-sub">Las mejores fragancias en formato mini</p>
-      <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">🧪 Armá tu pack de decants →</button>
+      <p class="decant-b-label">ST Perfumería</p>
+      <h2 class="decant-b-title">Decants</h2>
+      <p class="decant-b-tagline">tu fragancia, tu medida</p>
+      <p class="decant-b-sub">Las mejores fragancias en formato mini.</p>
+      <button type="button" class="decant-b-cta" onclick="openDecantBuilder()">
+        <span class="decant-b-cta-ico" aria-hidden="true">💧</span> Armá tu pack →
+      </button>
     </div>
-    <div class="decant-b-right">
-      <!-- [BANNER-B] SVG real de frasco perfume: tapón cuentagotas + cuerpo curvo + etiqueta legible + líquido dorado + brillo lateral -->
-      <div class="decant-b-vial">
-        <svg class="decant-b-svg" width="48" height="92" viewBox="0 0 48 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="20" y="0" width="8" height="6" rx="2" fill="#1a1a1a"/>
-          <rect x="16" y="6" width="16" height="10" rx="2" fill="url(#tap5)"/>
-          <path d="M 14 16 L 14 22 Q 14 26 12 30 L 12 80 Q 12 88 20 88 L 28 88 Q 36 88 36 80 L 36 30 Q 34 26 34 22 L 34 16 Z" fill="url(#body5)" stroke="rgba(255,255,255,.4)" stroke-width=".6"/>
-          <path d="M 14 28 L 14 80 Q 14 86 20 86 L 28 86 Q 34 86 34 80 L 34 28 Z" fill="url(#liquid5)"/>
-          <rect x="15.5" y="42" width="17" height="22" rx="1" fill="rgba(255,255,255,.95)"/>
-          <text x="24" y="51" font-family="'Playfair Display',serif" font-size="4" font-weight="700" text-anchor="middle" fill="#4a148c">ST</text>
-          <text x="24" y="56" font-family="Inter,sans-serif" font-size="2.4" font-weight="600" text-anchor="middle" fill="#666">PERFUMERÍA</text>
-          <line x1="17" y1="59" x2="31" y2="59" stroke="#4a148c" stroke-width=".4" opacity=".4"/>
-          <text x="24" y="62.5" font-family="Inter,sans-serif" font-size="2.2" font-weight="600" text-anchor="middle" fill="#666">5 ml</text>
-          <ellipse cx="17" cy="40" rx="1.8" ry="14" fill="rgba(255,255,255,.18)"/>
-          <defs>
-            <linearGradient id="tap5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset="1" stop-color="#0a0a0a"/></linearGradient>
-            <linearGradient id="body5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.1)"/><stop offset="1" stop-color="rgba(255,255,255,.05)"/></linearGradient>
-            <linearGradient id="liquid5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd700" stop-opacity=".6"/><stop offset="1" stop-color="#b8860b" stop-opacity=".9"/></linearGradient>
-          </defs>
-        </svg>
-        <span class="decant-b-ml">5 ml</span>
-        <span class="decant-b-badge">✓ Disponible</span>
+
+    <div class="decant-b-center">
+      <div class="decant-b-smoke" aria-hidden="true"></div>
+      <div class="decant-b-flower" aria-hidden="true">🪻</div>
+
+      <!-- 5ml — el único disponible: protagonista en mobile, primero en desktop -->
+      <div class="decant-b-podium decant-b-featured" data-size="5">
+        <div class="decant-b-vial">
+          <svg class="decant-b-bottle-svg" width="44" height="120" viewBox="0 0 44 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+            <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+            <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
+            <path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liqB5)"/>
+            <ellipse cx="16" cy="60" rx="1.4" ry="22" fill="rgba(255,255,255,.3)"/>
+            <defs>
+              <linearGradient id="liqB5" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffb74d" stop-opacity=".5"/>
+                <stop offset="1" stop-color="#e65100" stop-opacity=".85"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="decant-b-podium-base"></div>
+        <span class="decant-b-podium-label">5 ml <span class="decant-b-check">✓</span></span>
       </div>
-      <div class="decant-b-vial coming-soon">
-        <div class="decant-ribbon">Próximamente</div>
-        <svg class="decant-b-svg" width="56" height="104" viewBox="0 0 48 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="20" y="0" width="8" height="6" rx="2" fill="#1a1a1a"/>
-          <rect x="16" y="6" width="16" height="10" rx="2" fill="url(#tap10)"/>
-          <path d="M 14 16 L 14 22 Q 14 26 12 30 L 12 80 Q 12 88 20 88 L 28 88 Q 36 88 36 80 L 36 30 Q 34 26 34 22 L 34 16 Z" fill="url(#body10)" stroke="rgba(255,255,255,.4)" stroke-width=".6"/>
-          <path d="M 14 28 L 14 80 Q 14 86 20 86 L 28 86 Q 34 86 34 80 L 34 28 Z" fill="url(#liquid10)"/>
-          <rect x="15.5" y="42" width="17" height="22" rx="1" fill="rgba(255,255,255,.95)"/>
-          <text x="24" y="51" font-family="'Playfair Display',serif" font-size="4" font-weight="700" text-anchor="middle" fill="#4a148c">ST</text>
-          <text x="24" y="56" font-family="Inter,sans-serif" font-size="2.4" font-weight="600" text-anchor="middle" fill="#666">PERFUMERÍA</text>
-          <line x1="17" y1="59" x2="31" y2="59" stroke="#4a148c" stroke-width=".4" opacity=".4"/>
-          <text x="24" y="62.5" font-family="Inter,sans-serif" font-size="2.2" font-weight="600" text-anchor="middle" fill="#666">10 ml</text>
-          <ellipse cx="17" cy="40" rx="1.8" ry="14" fill="rgba(255,255,255,.18)"/>
-          <defs>
-            <linearGradient id="tap10" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset="1" stop-color="#0a0a0a"/></linearGradient>
-            <linearGradient id="body10" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.1)"/><stop offset="1" stop-color="rgba(255,255,255,.05)"/></linearGradient>
-            <linearGradient id="liquid10" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd700" stop-opacity=".6"/><stop offset="1" stop-color="#b8860b" stop-opacity=".9"/></linearGradient>
-          </defs>
-        </svg>
-        <span class="decant-b-ml">10 ml</span>
+
+      <!-- 10ml — próximamente -->
+      <div class="decant-b-podium decant-b-thumb" data-size="10">
+        <div class="decant-b-vial">
+          <svg class="decant-b-bottle-svg" width="48" height="138" viewBox="0 0 44 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+            <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+            <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+            <path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liqB10)"/>
+            <ellipse cx="16" cy="60" rx="1.4" ry="26" fill="rgba(255,255,255,.25)"/>
+            <defs>
+              <linearGradient id="liqB10" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/>
+                <stop offset="1" stop-color="#e65100" stop-opacity=".75"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="decant-b-ribbon">Próximamente</span>
+        </div>
+        <div class="decant-b-podium-base"></div>
+        <span class="decant-b-podium-label">10 ml</span>
       </div>
-      <div class="decant-b-vial coming-soon">
-        <div class="decant-ribbon">Próximamente</div>
-        <svg class="decant-b-svg" width="64" height="116" viewBox="0 0 48 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="20" y="0" width="8" height="6" rx="2" fill="#1a1a1a"/>
-          <rect x="16" y="6" width="16" height="10" rx="2" fill="url(#tap20)"/>
-          <path d="M 14 16 L 14 22 Q 14 26 12 30 L 12 80 Q 12 88 20 88 L 28 88 Q 36 88 36 80 L 36 30 Q 34 26 34 22 L 34 16 Z" fill="url(#body20)" stroke="rgba(255,255,255,.4)" stroke-width=".6"/>
-          <path d="M 14 28 L 14 80 Q 14 86 20 86 L 28 86 Q 34 86 34 80 L 34 28 Z" fill="url(#liquid20)"/>
-          <rect x="15.5" y="42" width="17" height="22" rx="1" fill="rgba(255,255,255,.95)"/>
-          <text x="24" y="51" font-family="'Playfair Display',serif" font-size="4" font-weight="700" text-anchor="middle" fill="#4a148c">ST</text>
-          <text x="24" y="56" font-family="Inter,sans-serif" font-size="2.4" font-weight="600" text-anchor="middle" fill="#666">PERFUMERÍA</text>
-          <line x1="17" y1="59" x2="31" y2="59" stroke="#4a148c" stroke-width=".4" opacity=".4"/>
-          <text x="24" y="62.5" font-family="Inter,sans-serif" font-size="2.2" font-weight="600" text-anchor="middle" fill="#666">20 ml</text>
-          <ellipse cx="17" cy="40" rx="1.8" ry="14" fill="rgba(255,255,255,.18)"/>
-          <defs>
-            <linearGradient id="tap20" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset="1" stop-color="#0a0a0a"/></linearGradient>
-            <linearGradient id="body20" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.1)"/><stop offset="1" stop-color="rgba(255,255,255,.05)"/></linearGradient>
-            <linearGradient id="liquid20" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd700" stop-opacity=".6"/><stop offset="1" stop-color="#b8860b" stop-opacity=".9"/></linearGradient>
-          </defs>
-        </svg>
-        <span class="decant-b-ml">20 ml</span>
+
+      <!-- 20ml — próximamente -->
+      <div class="decant-b-podium decant-b-thumb" data-size="20">
+        <div class="decant-b-vial">
+          <svg class="decant-b-bottle-svg" width="52" height="156" viewBox="0 0 44 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+            <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+            <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+            <path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liqB20)"/>
+            <ellipse cx="16" cy="62" rx="1.4" ry="30" fill="rgba(255,255,255,.25)"/>
+            <defs>
+              <linearGradient id="liqB20" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/>
+                <stop offset="1" stop-color="#e65100" stop-opacity=".75"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="decant-b-ribbon">Próximamente</span>
+        </div>
+        <div class="decant-b-podium-base"></div>
+        <span class="decant-b-podium-label">20 ml</span>
+      </div>
+    </div>
+
+    <div class="decant-b-trusts">
+      <div class="decant-b-trust">
+        <div class="decant-b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div>
+        <div><p class="decant-b-trust-title">100% Originales</p><p class="decant-b-trust-desc">Garantía de autenticidad</p></div>
+      </div>
+      <div class="decant-b-trust">
+        <div class="decant-b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div>
+        <div><p class="decant-b-trust-title">Ideales para viajar</p><p class="decant-b-trust-desc">Llevá tu fragancia a donde vayas</p></div>
+      </div>
+      <div class="decant-b-trust">
+        <div class="decant-b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div>
+        <div><p class="decant-b-trust-title">Probá antes</p><p class="decant-b-trust-desc">Descubrí tu próxima fragancia favorita</p></div>
       </div>
     </div>
   </div>
