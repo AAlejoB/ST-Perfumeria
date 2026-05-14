@@ -47,7 +47,11 @@
     .login-error { font-size: .75rem; color: #e74c3c; margin-top: .8rem; min-height: 1.2rem; }
 
     /* PANEL */
-    .panel { display: none; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+    /* [ZAPATO] panel ocupa todo el viewport (antes max-width:900px del tab-bar viejo).
+       El padding lo maneja .admin-main; el panel solo aporta el header arriba. */
+    .panel { display: none; padding: 0; max-width: none; margin: 0; }
+    .panel.active { display: block; }
+    .panel-header { padding: 1rem 1.4rem; }
     .panel.active { display: block; }
     .panel-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -92,17 +96,190 @@
       .sync-indicator .sync-text { display: none; }  /* en mobile dejamos solo el puntito */
     }
 
-    /* TABS */
-    .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-    .tab-btn {
-      font-family: inherit; font-size: .7rem; font-weight: 600; letter-spacing: .1em;
-      text-transform: uppercase; color: var(--gris); background: none;
-      border: 1px solid var(--borde); padding: .5rem 1rem; border-radius: 4px;
-      cursor: pointer; transition: all .2s;
+    /* ════════════════════════════════════════════════════════════════
+       [ZAPATO] Sidebar lateral con agrupaciones (mayo 2026).
+       Reemplaza el tab-bar horizontal flex-wrap por una columna lateral
+       con grupos colapsables. Las tabs mantienen las clases .tab-btn y
+       data-attributes originales — switchTab() sigue intacto.
+       Layouts: mobile (≤700px, sidebar overlay con hamburguesa) /
+       tablet (700-1100px, sidebar 200px) / desktop (≥1100px, sidebar 240px).
+       ──────────────────────────────────────────────────────────────── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 0;
+      min-height: calc(100vh - 70px); /* descuenta el panel-header */
     }
-    .tab-btn.active { color: var(--amarillo); border-color: var(--amarillo); background: rgba(232,184,0,.08); }
+    @media (max-width: 1100px) {
+      .app-shell { grid-template-columns: 200px 1fr; }
+    }
+    @media (max-width: 700px) {
+      .app-shell { grid-template-columns: 1fr; }
+    }
+
+    .sidebar {
+      background: rgba(255,255,255,.02);
+      border-right: 1px solid var(--borde);
+      padding: .8rem .5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: .25rem;
+    }
+    /* Mobile: sidebar como overlay deslizante */
+    @media (max-width: 700px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+        z-index: 9000;
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+        box-shadow: 8px 0 24px rgba(0,0,0,.5);
+        background: #0a0a0c;
+        padding-top: 4rem;
+      }
+      body.sidebar-open .sidebar { transform: translateX(0); }
+    }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 8999;
+    }
+    @media (max-width: 700px) {
+      body.sidebar-open .sidebar-backdrop { display: block; }
+    }
+    .sidebar-hamburger {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border: 1px solid var(--borde);
+      color: var(--amarillo);
+      font-size: 1rem;
+      padding: .35rem .55rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: .5rem;
+      transition: background .15s;
+    }
+    .sidebar-hamburger:hover { background: rgba(232,184,0,.08); }
+
+    /* Sidebar collapsed en desktop/tablet (persistido en localStorage) */
+    @media (min-width: 701px) {
+      body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
+      body.sidebar-collapsed .sidebar {
+        width: 0;
+        min-width: 0;
+        padding: 0;
+        border-right: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity .2s, width .25s, padding .25s;
+      }
+    }
+
+    /* Grupos del sidebar */
+    .sb-group { margin-bottom: .15rem; }
+    .sb-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .4rem .65rem;
+      font-size: .55rem;
+      color: rgba(255,255,255,.4);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 4px;
+      transition: background .15s;
+    }
+    .sb-group-header:hover { background: rgba(255,255,255,.04); }
+    .sb-group-header.locked { cursor: default; }
+    .sb-group-header .sb-chev { font-size: .6rem; transition: transform .2s; }
+    .sb-group.collapsed .sb-chev { transform: rotate(-90deg); }
+    .sb-group.collapsed .sb-tab-list { display: none; }
+    .sb-tab-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      padding: 2px 0 4px;
+    }
+
+    /* Override total de tab-btn para versión sidebar */
+    .sidebar .tab-btn {
+      font-family: inherit;
+      font-size: .76rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      text-transform: none;
+      color: var(--gris-claro);
+      background: transparent;
+      border: 1px solid transparent;
+      padding: .55rem .65rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: left;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      width: 100%;
+    }
+    .sidebar .tab-btn:hover {
+      background: rgba(255,255,255,.04);
+      color: #fff;
+    }
+    .sidebar .tab-btn.active {
+      background: var(--amarillo);
+      color: #000;
+      border-color: var(--amarillo);
+      font-weight: 700;
+    }
+    .sidebar .tab-btn.active:hover { background: var(--amarillo); color: #000; }
+
+    /* Hide tabs según rol — preserva las reglas globales existentes pero acá ocultan limpio */
+    body.role-empleado .sidebar [data-role="jefe"]:not(.tab-btn-fallback) { display: none !important; }
+    /* Ocultar grupos enteros si todas sus tabs son jefe y rol es empleado */
+    body.role-empleado .sb-group[data-jefe-only="true"] { display: none; }
+    /* "Editar" aparece en Top para jefe Y en Productos para empleada. Esto oculta el de Productos cuando es jefe (evita duplicado) */
+    body.role-jefe .sidebar [data-only-empleado="true"] { display: none !important; }
+
+    /* Light mode del sidebar */
+    body.light .sidebar { background: rgba(0,0,0,.02); border-right-color: rgba(0,0,0,.12); }
+    body.light .sb-group-header { color: rgba(0,0,0,.45); }
+    body.light .sb-group-header:hover { background: rgba(0,0,0,.04); }
+    body.light .sidebar .tab-btn { color: #444; }
+    body.light .sidebar .tab-btn:hover { background: rgba(0,0,0,.05); color: #000; }
+    body.light .sidebar .tab-btn.active { background: var(--amarillo); color: #1a1a1d; border-color: var(--amarillo); }
+    body.light .sidebar-hamburger { color: #8a6d00; border-color: rgba(0,0,0,.15); }
+    @media (max-width: 700px) {
+      body.light .sidebar { background: #fdf8e8; }
+    }
+
+    .admin-main {
+      padding: 1.2rem 1.4rem;
+      overflow-x: hidden;
+    }
+    @media (max-width: 1100px) {
+      .admin-main { padding: 1rem 1rem; }
+    }
+    @media (max-width: 700px) {
+      .admin-main { padding: .8rem .8rem; }
+    }
+
+    /* tab-content: visibilidad sigue igual */
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+
+    /* Compat: si alguien re-introduce .tabs (legacy), no rompemos pero ocultamos */
+    .tabs { display: none; }
 
     /* SEARCH */
     .admin-search {
@@ -877,7 +1054,10 @@
   <!-- PANEL -->
   <div class="panel" id="adminPanel">
     <div class="panel-header">
-      <p class="panel-title">ST Admin Panel <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:.5rem;vertical-align:middle;"></span></p>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <button class="sidebar-hamburger" onclick="toggleMobileSidebar()" aria-label="Abrir menú">☰</button>
+        <p class="panel-title" style="margin:0;">ST Admin Panel <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:.5rem;vertical-align:middle;"></span></p>
+      </div>
       <div style="display:flex;align-items:center;gap:.5rem;">
         <span id="syncIndicator" class="sync-indicator" style="display:none;" title="Estado de sincronización entre tablets"></span>
         <button id="themeToggleBtn" onclick="toggleAdminTheme()" title="Alternar tema claro / oscuro"
@@ -889,28 +1069,70 @@
       </div>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this)">💰 Precios & Stock</button>
-      <button class="tab-btn" data-tab="editar" onclick="switchTab('editar',this)">✏️ Editar</button>
-      <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this)">+ Perfume</button>
-      <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this)">Destacados</button>
-      <button class="tab-btn" data-tab="badges" onclick="switchTab('badges',this);loadBadgesAdmin()">🏷️ Beneficios</button>
-      <button class="tab-btn" data-tab="home" onclick="switchTab('home',this);loadHomeAdmin()">🏠 Home</button>
-      <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this)">Horario</button>
-      <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this)">Estadisticas</button>
-      <button class="tab-btn" data-role="jefe" data-tab="opiniones" onclick="switchTab('opiniones',this)">Opiniones</button>
-      <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this)">Clientes</button>
-      <button class="tab-btn" data-tab="combos" onclick="switchTab('combos',this)">&#127873; Combos</button>
-      <button class="tab-btn" data-role="jefe" data-tab="votacion" onclick="switchTab('votacion',this)">&#127942; Votaci&#243;n</button>
-      <button class="tab-btn" data-tab="push" onclick="switchTab('push',this)">🔔 Notificaciones</button>
-      <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera()">&#128276; Espera</button>
-      <button class="tab-btn" data-role="jefe" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor()">🩺 Doctor</button>
-      <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin()">💧 Decants</button>
-      <button class="tab-btn" data-role="jefe" data-tab="puntos" onclick="switchTab('puntos',this);loadPuntosAdmin()">🎯 Puntos</button>
-      <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog()">📋 Log</button>
-      <button class="tab-btn" data-role="jefe" data-tab="analytics" onclick="switchTab('analytics',this);loadAnalytics()">📊 Analytics</button>
-      <button class="tab-btn" data-role="jefe" data-tab="backups" onclick="switchTab('backups',this);loadBackups()">💾 Backup</button>
-    </div>
+    <!-- [ZAPATO] Sidebar lateral + main content -->
+    <div class="app-shell">
+      <!-- Backdrop solo visible en mobile cuando sidebar abierta -->
+      <div class="sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
+
+      <aside class="sidebar" id="adminSidebar">
+        <!-- ⭐ TOP (pinned, no se colapsa) -->
+        <div class="sb-group" data-group="top">
+          <div class="sb-group-header locked"><span>⭐ Top</span></div>
+          <div class="sb-tab-list">
+            <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this);closeMobileSidebar()">💰 Precios & Stock</button>
+            <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this);closeMobileSidebar()">👥 Clientes</button>
+            <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this);closeMobileSidebar()">✏️ Editar</button>
+            <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()">📍 Espera</button>
+            <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()">💧 Decants</button>
+          </div>
+        </div>
+
+        <!-- 📦 PRODUCTOS -->
+        <div class="sb-group" data-group="productos">
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>📦 Productos</span><span class="sb-chev">▾</span></div>
+          <div class="sb-tab-list">
+            <button class="tab-btn" data-only-empleado="true" data-tab="editar" onclick="switchTab('editar',this);closeMobileSidebar()">✏️ Editar</button>
+            <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this);closeMobileSidebar()">➕ Perfume</button>
+            <button class="tab-btn" data-tab="combos" onclick="switchTab('combos',this);closeMobileSidebar()">🍱 Combos</button>
+          </div>
+        </div>
+
+        <!-- 👥 GESTIÓN (jefe-only entera) -->
+        <div class="sb-group" data-group="gestion" data-jefe-only="true">
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>👥 Gestión</span><span class="sb-chev">▾</span></div>
+          <div class="sb-tab-list">
+            <button class="tab-btn" data-role="jefe" data-tab="opiniones" onclick="switchTab('opiniones',this);closeMobileSidebar()">💬 Opiniones</button>
+            <button class="tab-btn" data-role="jefe" data-tab="puntos" onclick="switchTab('puntos',this);loadPuntosAdmin();closeMobileSidebar()">🎯 Puntos</button>
+            <button class="tab-btn" data-role="jefe" data-tab="votacion" onclick="switchTab('votacion',this);closeMobileSidebar()">🏆 Votación</button>
+            <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this);closeMobileSidebar()">⏰ Horario</button>
+          </div>
+        </div>
+
+        <!-- 📣 MARKETING & HOME -->
+        <div class="sb-group" data-group="marketing">
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>📣 Marketing & Home</span><span class="sb-chev">▾</span></div>
+          <div class="sb-tab-list">
+            <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this);closeMobileSidebar()">⭐ Destacados</button>
+            <button class="tab-btn" data-tab="badges" onclick="switchTab('badges',this);loadBadgesAdmin();closeMobileSidebar()">🏷️ Beneficios</button>
+            <button class="tab-btn" data-tab="home" onclick="switchTab('home',this);loadHomeAdmin();closeMobileSidebar()">🏠 Home</button>
+            <button class="tab-btn" data-tab="push" onclick="switchTab('push',this);closeMobileSidebar()">🔔 Notificaciones</button>
+          </div>
+        </div>
+
+        <!-- 🛠️ SISTEMA (collapsed por default; empleada ve solo Estadísticas) -->
+        <div class="sb-group collapsed" data-group="sistema">
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>🛠️ Sistema</span><span class="sb-chev">▾</span></div>
+          <div class="sb-tab-list">
+            <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this);closeMobileSidebar()">📊 Estadísticas</button>
+            <button class="tab-btn" data-role="jefe" data-tab="analytics" onclick="switchTab('analytics',this);loadAnalytics();closeMobileSidebar()">📈 Analytics</button>
+            <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog();closeMobileSidebar()">📋 Log</button>
+            <button class="tab-btn" data-role="jefe" data-tab="backups" onclick="switchTab('backups',this);loadBackups();closeMobileSidebar()">💾 Backup</button>
+            <button class="tab-btn" data-role="jefe" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor();closeMobileSidebar()">🩺 Doctor</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="admin-main">
 
     <!-- TAB: PRECIOS & STOCK (unificada) -->
     <div class="tab-content active" id="tab-precios">
@@ -2131,6 +2353,10 @@
     </div>
   </div>
 
+      </main>
+    </div>
+    <!-- /app-shell -->
+
   <!-- MODAL: AJUSTAR PUNTOS -->
   <div class="modal-overlay" id="modalPuntos" onclick="closeModal('modalPuntos',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -2366,6 +2592,11 @@
       document.getElementById('loginWrap').style.display = 'none';
       document.getElementById('adminPanel').classList.add('active');
       document.getElementById('loginError').textContent = '';
+      // [ZAPATO] aplicar clase de rol al body para que CSS oculte tabs/grupos correctos
+      document.body.classList.remove('role-jefe', 'role-empleado');
+      document.body.classList.add('role-' + role);
+      // [ZAPATO] cargar preferencias del sidebar (collapsed + grupos) del localStorage
+      loadSidebarPrefs();
       applyRolePermissions();
       startInactivityWatcher();
       // Normalizar precios string → número al arrancar
@@ -2600,7 +2831,8 @@
     // Precios & Stock).
     function applyRolePermissions() {
       var badge = document.getElementById('roleBadge');
-      var tabs = document.querySelectorAll('.tabs .tab-btn');
+      // [ZAPATO] Tabs ahora viven en .sidebar (antes estaban en .tabs)
+      var tabs = document.querySelectorAll('.sidebar .tab-btn');
 
       if (currentRole === 'jefe') {
         // Jefe ve todo, badge dorado
@@ -2693,6 +2925,69 @@
     // TABS
     // ============================================================
     var tabLoaded = {};
+
+    // [ZAPATO] Sidebar — persistencia en localStorage del estado del sidebar y de los grupos colapsados.
+    var SB_KEY_COLLAPSED = 'st_admin_sidebar_collapsed';   // 'true' / 'false' (solo aplica desktop/tablet)
+    var SB_KEY_GROUPS    = 'st_admin_sidebar_groups';      // array JSON de data-group colapsados
+
+    function loadSidebarPrefs() {
+      try {
+        // Sidebar entero (solo desktop/tablet)
+        if (localStorage.getItem(SB_KEY_COLLAPSED) === 'true' && window.innerWidth > 700) {
+          document.body.classList.add('sidebar-collapsed');
+        }
+        // Grupos colapsados
+        var raw = localStorage.getItem(SB_KEY_GROUPS);
+        if (raw) {
+          var collapsed = JSON.parse(raw) || [];
+          collapsed.forEach(function(g) {
+            var el = document.querySelector('.sb-group[data-group="' + g + '"]');
+            if (el) el.classList.add('collapsed');
+            else if (g) {} // group ya no existe, ignorar
+          });
+          // Si un grupo NO está en la lista guardada, asegurarse de que esté expandido
+          // (excepto los locked que nunca se colapsan)
+          document.querySelectorAll('.sb-group').forEach(function(el) {
+            var g = el.dataset.group;
+            if (g && collapsed.indexOf(g) === -1 && !el.querySelector('.sb-group-header.locked')) {
+              el.classList.remove('collapsed');
+            }
+          });
+        }
+      } catch(e) { /* localStorage no disponible o JSON inválido */ }
+    }
+
+    function saveSidebarGroupsPrefs() {
+      try {
+        var collapsed = Array.from(document.querySelectorAll('.sb-group.collapsed'))
+          .map(function(g) { return g.dataset.group; })
+          .filter(Boolean);
+        localStorage.setItem(SB_KEY_GROUPS, JSON.stringify(collapsed));
+      } catch(e) {}
+    }
+
+    function toggleSbGroup(header) {
+      if (header.classList.contains('locked')) return;
+      header.parentElement.classList.toggle('collapsed');
+      saveSidebarGroupsPrefs();
+    }
+
+    // Toggle universal del sidebar: en mobile es overlay, en desktop/tablet es collapse
+    function toggleSidebar() {
+      if (window.innerWidth <= 700) {
+        document.body.classList.toggle('sidebar-open');
+      } else {
+        document.body.classList.toggle('sidebar-collapsed');
+        try {
+          localStorage.setItem(SB_KEY_COLLAPSED,
+            document.body.classList.contains('sidebar-collapsed') ? 'true' : 'false');
+        } catch(e) {}
+      }
+    }
+
+    // Compat con el onclick del hamburguesa
+    function toggleMobileSidebar() { toggleSidebar(); }
+    function closeMobileSidebar() { document.body.classList.remove('sidebar-open'); }
 
     function switchTab(tab, btn) {
       // Bloqueo por rol: si un empleado intenta forzar una pestaña jefe-only, abortar
