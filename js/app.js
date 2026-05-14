@@ -4399,20 +4399,28 @@
     })();
 
     // ============================================================
-    // SERVICE WORKER (PWA) — registro + actualización auto
+    // SERVICE WORKER (PWA) — registro + actualización auto con MITIGACIÓN
     // ============================================================
+    // [PWA-AUTO-RELOAD] Cuando se deploya una versión nueva, el SW se actualiza
+    // en background → tomamos control de la tab abierta → recargamos sola para
+    // que el cliente vea la versión nueva SIN tener que tocar F5.
+    //
+    // MITIGACIÓN ANTI-INTERRUPCIÓN: el reload SOLO ocurre si el cliente NO está
+    // interactuando con la página en ese momento. Si está:
+    //   - Con un modal abierto (compare, armador, carrito, login, etc.)
+    //   - Tipiando en un input/textarea
+    //   - Scrolleando (últimos 3 segundos)
+    //   - En la primer visita (no había SW previo → nada que actualizar)
+    // … entonces el reload se POSTERGA y reintenta cada 5 segundos hasta que
+    // el cliente esté "tranquilo". Garantía: el cliente NUNCA pierde lo que
+    // estaba haciendo. La recarga pasa cuando él está leyendo / quieto.
     if ('serviceWorker' in navigator) {
-      // updateViaCache: 'none' → el browser NUNCA cachea el sw.js mismo.
-      // Sin esto, podía pasar hasta 24h hasta que detectara una versión
-      // nueva del SW. Con esto, en cada navegación revalida.
       navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function(reg) {
-        // Detectar updates: si hay SW nuevo, avisarle que se active
         reg.addEventListener('updatefound', function() {
           var newSW = reg.installing;
           if (newSW) {
             newSW.addEventListener('statechange', function() {
               if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-                // Hay versión nueva esperando; le decimos que tome el control
                 newSW.postMessage({ type: 'SKIP_WAITING' });
               }
             });
@@ -4420,10 +4428,56 @@
         });
       }).catch(function(){});
 
-      // Cuando el SW nuevo toma control, recargamos una sola vez
+      // Tracker de scroll reciente — pasivo, sin impacto perf
+      var _lastScrollAt = 0;
+      window.addEventListener('scroll', function() { _lastScrollAt = Date.now(); }, { passive: true });
+
+      // Selector unificado de modales/overlays que se consideran "el cliente está en algo"
+      var BUSY_MODAL_SELECTORS = [
+        '.modal-overlay.active',
+        '.compare-overlay.active',
+        '.decant-builder-overlay.active',
+        '.cart-panel-overlay.active',
+        '.bottom-sheet-overlay.active',
+        '.auth-overlay.active',
+        '.quiz-results[style*="block"]',
+        '.compare-modal',
+      ].join(', ');
+
+      function isUserBusy() {
+        // 1) Modal/overlay activo en pantalla
+        if (document.querySelector(BUSY_MODAL_SELECTORS)) return true;
+        // 2) Cliente tipiando en algún input/textarea
+        var ae = document.activeElement;
+        if (ae) {
+          var tag = ae.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || ae.isContentEditable) return true;
+        }
+        // 3) Scroll reciente (< 3s)
+        if (_lastScrollAt && (Date.now() - _lastScrollAt < 3000)) return true;
+        return false;
+      }
+
       var _reloaded = false;
+      var _initialController = navigator.serviceWorker.controller; // null en first visit
+      function safeReload() {
+        if (_reloaded) return;
+        if (isUserBusy()) {
+          // Postergamos: chequeamos de nuevo en 5s. Loop hasta que esté quieto.
+          setTimeout(safeReload, 5000);
+          return;
+        }
+        _reloaded = true;
+        // Pequeño delay para evitar reload tan brusco si recién dejó de hacer algo
+        setTimeout(function() { window.location.reload(); }, 200);
+      }
+
       navigator.serviceWorker.addEventListener('controllerchange', function() {
-        if (!_reloaded) { _reloaded = true; window.location.reload(); }
+        // FIRST VISIT: no había controller antes → este es el primer install,
+        // NO recargar (el cliente acaba de entrar, la página ya es la última).
+        if (!_initialController) return;
+        // UPDATE: había un SW viejo, ahora hay uno nuevo → reload con mitigación.
+        safeReload();
       });
     }
 
