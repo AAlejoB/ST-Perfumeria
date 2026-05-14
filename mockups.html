@@ -3,116 +3,651 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockups · ST Perfumería</title>
+<title>Mockups · ST Perfumería · Banner Decants v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg:       #0a0a0c;
+    --bg-elev:  #131316;
+    --bg-elev2: #1a1a1d;
+    --borde:    #2a2a2e;
+    --txt:      #f0f0f0;
+    --txt-sub:  #999;
+    --txt-dim:  #666;
+    --amarillo: #E8B800;
+    --violet1:  #2a0a3a;
+    --violet2:  #4a148c;
+    --violet3:  #6a1b9a;
+    --magenta:  #b71c5c;
+    --rosa:     #e91e63;
+  }
+  * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: #0a0a0c;
-    color: #f0f0f0;
-    font-family: system-ui, sans-serif;
-    line-height: 1.6;
-    padding: 40px 24px;
-    max-width: 720px;
-    margin: 0 auto;
+    margin: 0; background: var(--bg); color: var(--txt);
+    font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.55;
   }
-  h1 {
-    color: #E8B800;
-    font-size: 1.4rem;
-    margin: 0 0 8px;
+  .toolbar {
+    position: sticky; top: 0; background: var(--bg-elev);
+    border-bottom: 1px solid var(--borde); padding: 12px 18px; z-index: 100;
   }
-  .sub {
-    color: #888;
-    font-size: .85rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    margin: 0 0 32px;
+  .toolbar-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--amarillo); margin: 0; }
+  .toolbar-sub { font-size: .65rem; color: var(--txt-sub); letter-spacing: .1em; text-transform: uppercase; }
+  .nav-anchors {
+    background: var(--bg-elev2); border-bottom: 1px solid var(--borde);
+    padding: 8px 18px; display: flex; gap: 6px; flex-wrap: wrap;
   }
-  h2 {
-    color: #fff;
-    font-size: 1rem;
-    margin: 28px 0 8px;
-    border-bottom: 1px solid #2a2a2e;
-    padding-bottom: 6px;
+  .nav-anchor {
+    background: transparent; color: var(--txt-sub);
+    border: 1px solid var(--borde); padding: 4px 10px;
+    border-radius: 14px; font-size: .68rem; text-decoration: none;
   }
-  p { font-size: .9rem; color: #ccc; }
-  code {
-    background: #131316;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #E8B800;
-    font-size: .82rem;
+  .nav-anchor:hover { color: var(--amarillo); border-color: var(--amarillo); }
+  .section {
+    padding: 28px 18px; max-width: 1500px; margin: 0 auto;
+    border-bottom: 1px solid var(--borde);
   }
-  .empty-state {
-    background: #131316;
-    border: 1px dashed #2a2a2e;
-    border-radius: 10px;
-    padding: 30px 20px;
-    text-align: center;
-    margin-top: 20px;
+  .section-head { margin-bottom: 18px; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; margin: 0 0 4px;
   }
-  .empty-icon { font-size: 2.5rem; opacity: .5; margin-bottom: 8px; }
-  ul { font-size: .85rem; color: #999; }
-  li { margin-bottom: 4px; }
-  li strong { color: #fff; }
-  .history {
-    background: rgba(232,184,0,.04);
-    border-left: 3px solid #E8B800;
-    border-radius: 4px;
-    padding: 14px 18px;
-    margin-top: 16px;
-    font-size: .82rem;
+  .section-sub { color: var(--txt-sub); font-size: .82rem; margin: 0; }
+  .opt-block { margin-bottom: 32px; }
+  .opt-tag {
+    display: inline-block; font-size: .58rem; font-weight: 800;
+    letter-spacing: .2em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 12px; margin-bottom: 8px;
   }
+  .opt-tag.t1 { background: rgba(33,150,243,.18); color: #64b5f6; }
+  .opt-tag.t2 { background: rgba(76,175,80,.18); color: #66bb6a; }
+  .opt-tag.t3 { background: rgba(255,152,0,.18); color: #ffb74d; }
+  .opt-label { font-size: .8rem; color: var(--txt); margin-bottom: 12px; font-weight: 700; }
+  .opt-label small { color: var(--txt-sub); font-weight: 400; font-size: .7rem; margin-left: 8px; }
+  .banner-base {
+    border-radius: 14px;
+    box-shadow: 0 14px 40px rgba(74,20,140,.4);
+    overflow: hidden; position: relative;
+    display: grid;
+    grid-template-columns: 1.1fr 1.4fr 0.8fr;
+    min-height: 290px;
+    background: linear-gradient(135deg, #2a0a3a 0%, #4a148c 30%, #6a1b9a 60%, #b71c5c 100%);
+  }
+  @media (max-width: 900px) { .banner-base { grid-template-columns: 1fr; } }
+  .b-left {
+    padding: 28px 30px; display: flex; flex-direction: column;
+    justify-content: center; position: relative; z-index: 2;
+  }
+  .b-label {
+    font-size: .58rem; font-weight: 700; letter-spacing: .35em;
+    text-transform: uppercase; color: #ffd900;
+    margin: 0 0 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .b-label::before { content: '◆'; color: #ffd900; }
+  .b-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem; font-weight: 700; color: #fff;
+    line-height: 1; margin: 0; letter-spacing: -.02em;
+    background: linear-gradient(180deg, #fff 0%, #ffd900 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .b-tagline {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 1.3rem; color: #ffd900; margin: 4px 0 10px;
+  }
+  .b-sub {
+    font-size: .82rem; color: rgba(255,255,255,.85);
+    margin: 0 0 18px; max-width: 320px;
+  }
+  .b-cta {
+    background: #fff; color: #4a148c; border: 0;
+    padding: 14px 28px; border-radius: 40px;
+    font-weight: 800; font-size: .8rem; letter-spacing: .12em;
+    box-shadow: 0 6px 22px rgba(255,255,255,.25), 0 0 30px rgba(255,255,255,.15);
+    text-transform: uppercase; width: fit-content; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .b-cta:hover { transform: translateY(-2px); }
+  .b-center {
+    position: relative; display: flex; align-items: flex-end;
+    justify-content: center; padding: 16px 12px 24px; min-height: 280px;
+  }
+  .b-smoke {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 30% 70%, rgba(255,182,193,.25), transparent 50%),
+      radial-gradient(ellipse at 70% 40%, rgba(255,182,193,.18), transparent 55%);
+    filter: blur(8px); z-index: 0;
+    animation: smoke 9s ease-in-out infinite;
+  }
+  @keyframes smoke {
+    0%, 100% { transform: scale(1) translateX(0); opacity: .9; }
+    50%      { transform: scale(1.08) translateX(8px); opacity: 1; }
+  }
+  .b-flower {
+    position: absolute; left: 8%; bottom: 18%;
+    font-size: 4rem; transform: rotate(-15deg);
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.4));
+    z-index: 1; pointer-events: none; opacity: .9;
+  }
+  .b-podium {
+    position: relative; display: flex; flex-direction: column;
+    align-items: center; z-index: 2;
+  }
+  .b-vial {
+    position: relative; display: flex; align-items: flex-end;
+    justify-content: center;
+  }
+  .b-podium-base {
+    margin-top: 0; width: 70px; height: 18px;
+    background: linear-gradient(180deg, #6a1b9a, #4a148c 60%, #2a0a3a);
+    border-radius: 50% / 30% 30% 50% 50%;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,.2), 0 4px 12px rgba(0,0,0,.4);
+    position: relative;
+  }
+  .b-podium-base::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 8px;
+    background: linear-gradient(180deg, #8e24aa, #6a1b9a);
+    border-radius: 50% / 100% 100% 0 0;
+  }
+  .b-podium.size-10 .b-podium-base { width: 78px; height: 22px; margin-top: -22px; }
+  .b-podium.size-20 .b-podium-base { width: 86px; height: 26px; margin-top: -45px; }
+  .b-podium-label {
+    font-size: .6rem; color: rgba(255,255,255,.9);
+    margin-top: 4px; font-weight: 600; letter-spacing: .04em;
+  }
+  .b-bottle-svg { display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
+  .b-ribbon {
+    position: absolute; top: 35%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    background: linear-gradient(135deg, #ffe066, #f5c518 50%, #d4a200);
+    color: #2a0a3a;
+    font-size: .55rem; font-weight: 900; letter-spacing: .15em;
+    padding: 6px 22px; text-transform: uppercase;
+    box-shadow: 0 3px 10px rgba(0,0,0,.4), inset 0 1px 1px rgba(255,255,255,.6);
+    border-top: 1px solid rgba(255,255,255,.6);
+    border-bottom: 1px solid rgba(0,0,0,.2);
+    white-space: nowrap; z-index: 5;
+  }
+  .b-right {
+    padding: 24px 24px 24px 12px;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 18px; position: relative; z-index: 2;
+    border-left: 1px dashed rgba(255,217,0,.18);
+  }
+  @media (max-width: 900px) {
+    .b-right { border-left: 0; border-top: 1px dashed rgba(255,217,0,.18); padding: 18px; }
+  }
+  .b-trust { display: flex; align-items: flex-start; gap: 12px; }
+  .b-trust-ico {
+    width: 36px; height: 36px; border: 1.5px solid #ffd900;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #ffd900; flex-shrink: 0; background: rgba(255,217,0,.05);
+  }
+  .b-trust-title {
+    font-size: .68rem; font-weight: 800; color: #ffd900;
+    letter-spacing: .15em; text-transform: uppercase; margin: 0 0 2px;
+  }
+  .b-trust-desc { font-size: .68rem; color: rgba(255,255,255,.85); margin: 0; line-height: 1.3; }
+
+  /* OPCIÓN 1 — Foto directa placeholder */
+  .opt1 .b-center {
+    background:
+      radial-gradient(ellipse at 30% 80%, rgba(186,104,200,.4), transparent 55%),
+      radial-gradient(ellipse at 70% 30%, rgba(244,143,177,.35), transparent 55%);
+  }
+  .opt1-placeholder {
+    position: absolute; inset: 12px;
+    border: 2px dashed rgba(255,255,255,.3); border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; color: rgba(255,255,255,.7);
+    text-align: center; padding: 16px; z-index: 1;
+  }
+  .opt1-placeholder-title { font-size: 1rem; font-weight: 700; margin: 0 0 4px; color: rgba(255,255,255,.85); }
+  .opt1-placeholder-sub { font-size: .7rem; opacity: .75; margin: 0; }
+
+  /* OPCIÓN 3 — Híbrido */
+  .opt3 .b-center {
+    background:
+      radial-gradient(ellipse at 25% 75%, rgba(244,143,177,.4), transparent 50%),
+      radial-gradient(ellipse at 75% 25%, rgba(186,104,200,.35), transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.08), transparent 70%);
+  }
+  .opt3 .b-flower { font-size: 5rem; opacity: .8; }
+  .opt3 .b-smoke {
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(255,182,193,.45), transparent 50%),
+      radial-gradient(ellipse at 80% 35%, rgba(255,193,210,.3), transparent 50%),
+      radial-gradient(ellipse at 50% 60%, rgba(255,255,255,.15), transparent 60%);
+    filter: blur(14px);
+  }
+
+  /* PROS/CONS */
+  .pros-cons {
+    margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 700px) { .pros-cons { grid-template-columns: 1fr; } }
+  .pros, .cons {
+    background: var(--bg-elev); border: 1px solid var(--borde);
+    border-radius: 6px; padding: 10px 14px; font-size: .72rem;
+  }
+  .pros { border-left: 2px solid #66bb6a; }
+  .cons { border-left: 2px solid #ef5350; }
+  .pros-title, .cons-title {
+    font-size: .55rem; font-weight: 800; letter-spacing: .15em;
+    text-transform: uppercase; margin: 0 0 6px;
+  }
+  .pros-title { color: #66bb6a; }
+  .cons-title { color: #ef5350; }
+  .pros ul, .cons ul { margin: 0; padding-left: 16px; color: var(--txt-sub); }
+  .pros li, .cons li { margin-bottom: 2px; }
+
+  /* MOBILE */
+  .mobile-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 18px; margin-top: 18px;
+  }
+  @media (max-width: 900px) {
+    .mobile-row { grid-template-columns: 1fr; max-width: 380px; margin: 18px auto; }
+  }
+  .mobile-frame {
+    background: #000; border-radius: 28px; padding: 8px;
+    box-shadow: 0 12px 36px rgba(0,0,0,.6); overflow: hidden;
+  }
+  .mobile-screen {
+    background: var(--bg); border-radius: 20px; overflow: hidden;
+    min-height: 580px; position: relative;
+  }
+  .mobile-statusbar {
+    height: 22px; background: #000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; color: #fff; font-size: .55rem; font-weight: 700;
+  }
+  .mobile-banner {
+    background: linear-gradient(135deg, #2a0a3a 0%, #4a148c 30%, #6a1b9a 60%, #b71c5c 100%);
+    color: #fff; position: relative; overflow: hidden;
+  }
+  /* Variante A — Stack vertical */
+  .vA .mobile-banner { padding: 0; }
+  .vA-foto {
+    width: 100%; height: 180px; position: relative;
+    background:
+      radial-gradient(ellipse at 30% 70%, rgba(244,143,177,.35), transparent 55%),
+      radial-gradient(ellipse at 70% 35%, rgba(186,104,200,.3), transparent 50%);
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 8px; padding: 10px 10px 4px;
+  }
+  .vA-foto::before {
+    content: '🪻'; position: absolute; left: 12px; bottom: 14px;
+    font-size: 2rem; opacity: .85; transform: rotate(-15deg);
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.4));
+  }
+  .vA-text { padding: 14px 18px 18px; text-align: center; }
+  .vA-text .b-label { justify-content: center; }
+  .vA-text .b-title { font-size: 2rem; }
+  .vA-text .b-tagline { font-size: 1rem; }
+  .vA-text .b-sub { font-size: .72rem; margin: 0 auto 12px; }
+  .vA-text .b-cta { font-size: .68rem; padding: 11px 22px; margin: 0 auto; }
+  .vA-badges {
+    background: rgba(0,0,0,.25); padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    border-top: 1px dashed rgba(255,217,0,.18);
+  }
+  .vA-badges .b-trust-ico { width: 28px; height: 28px; }
+  .vA-badges .b-trust-title { font-size: .55rem; }
+  .vA-badges .b-trust-desc { font-size: .6rem; }
+
+  /* Variante B — Texto primero */
+  .vB .mobile-banner { padding: 14px 16px 8px; text-align: center; }
+  .vB .b-label { justify-content: center; }
+  .vB .b-title { font-size: 1.9rem; }
+  .vB .b-tagline { font-size: .95rem; }
+  .vB .b-sub { font-size: .7rem; margin: 0 auto 12px; }
+  .vB .b-cta { font-size: .66rem; padding: 11px 22px; margin: 0 auto 14px; }
+  .vB-row {
+    display: flex; align-items: flex-end; justify-content: space-around;
+    padding: 6px 0 4px; background: rgba(0,0,0,.15);
+    border-radius: 10px; margin-bottom: 12px;
+    position: relative; overflow: hidden;
+  }
+  .vB-badges {
+    background: rgba(0,0,0,.25); padding: 10px 12px;
+    display: flex; gap: 12px;
+    border-top: 1px dashed rgba(255,217,0,.18); overflow-x: auto;
+  }
+  .vB-badges .b-trust {
+    flex: 0 0 auto; flex-direction: column;
+    align-items: center; text-align: center; min-width: 90px;
+  }
+  .vB-badges .b-trust-ico { width: 30px; height: 30px; }
+  .vB-badges .b-trust-title { font-size: .5rem; }
+  .vB-badges .b-trust-desc { font-size: .55rem; }
+
+  /* Variante C — Reducción */
+  .vC .mobile-banner { padding: 14px 16px 8px; text-align: center; }
+  .vC .b-label { justify-content: center; }
+  .vC .b-title { font-size: 1.9rem; }
+  .vC .b-tagline { font-size: .95rem; }
+  .vC .b-sub { font-size: .7rem; margin: 0 auto 12px; }
+  .vC-hero {
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 14px; padding: 8px 0 4px; margin-bottom: 10px;
+    position: relative; min-height: 130px;
+  }
+  .vC-hero::before {
+    content: '🪻'; position: absolute; right: 8%; bottom: 14%;
+    font-size: 1.6rem; opacity: .55; z-index: 0; transform: rotate(15deg);
+  }
+  .vC-hero .b-podium.featured { transform: scale(1); z-index: 2; }
+  .vC-hero .b-podium.thumb { transform: scale(.55); transform-origin: bottom; opacity: .65; z-index: 1; }
+  .vC-cta-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+  .vC .b-cta { font-size: .66rem; padding: 11px 22px; }
+  .vC-badges {
+    background: rgba(0,0,0,.25); padding: 12px 14px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    border-top: 1px dashed rgba(255,217,0,.18);
+  }
+  .vC-badges .b-trust {
+    flex-direction: column; align-items: center; text-align: center; gap: 4px;
+  }
+  .vC-badges .b-trust-ico { width: 28px; height: 28px; }
+  .vC-badges .b-trust-title { font-size: .48rem; letter-spacing: .1em; }
+  .vC-badges .b-trust-desc { display: none; }
+
   .footer {
-    margin-top: 50px;
-    padding-top: 20px;
-    border-top: 1px solid #2a2a2e;
-    color: #666;
-    font-size: .72rem;
-    text-align: center;
+    padding: 30px 18px 60px; text-align: center;
+    color: var(--txt-dim); font-size: .7rem;
   }
 </style>
 </head>
 <body>
 
-<h1>🎨 mockups.html — esqueleto</h1>
-<p class="sub">Archivo único de mockups · convención mayo 2026</p>
-
-<div class="empty-state">
-  <div class="empty-icon">📭</div>
-  <p style="color:#ccc;margin:0;"><strong>Sin mockups activos en este momento.</strong></p>
-  <p style="font-size:.78rem;color:#888;margin:6px 0 0;">Cuando Claude necesite hacer un mockup standalone, lo reescribe acá.</p>
+<div class="toolbar">
+  <p class="toolbar-title">🎨 Mockups · Banner Decants v2</p>
+  <p class="toolbar-sub">3 opciones desktop + 3 variantes mobile</p>
 </div>
 
-<h2>📜 Para qué sirve este archivo</h2>
-<p>Convención acordada con Alejo en mayo 2026 (ver <code>docs/HISTORIA.md</code> lección meta #7):</p>
-<ul>
-  <li><strong>Mockups van TODOS acá</strong>, en secciones internas — nunca como archivos sueltos.</li>
-  <li>Cuando hace falta un mockup nuevo, se <strong>reemplaza el contenido</strong> de este archivo.</li>
-  <li>El mockup anterior se pierde, pero <strong>las decisiones se guardan en HISTORIA.md</strong> como referencia.</li>
-  <li>Evita que se acumulen <code>mockup-zapato.html</code>, <code>mockup-catalogo.html</code>, <code>mockup-decants-banner-v2.html</code>, etc.</li>
-</ul>
+<nav class="nav-anchors">
+  <a class="nav-anchor" href="#desktop">💻 Desktop · 3 opciones</a>
+  <a class="nav-anchor" href="#mobile">📱 Mobile · 3 variantes</a>
+</nav>
 
-<h2>🗂️ Histórico de mockups que pasaron por acá</h2>
-<div class="history">
-  <p style="margin:0 0 8px;"><strong>[ZAPATO] + [SIRENITA]</strong> — admin con sidebar lateral + tab "Campañas" multi-promo. Se aplicó al <code>admin.html</code> real en commits <code>96023cb</code> + <code>f4437a7</code>.</p>
-  <p style="margin:0 0 8px;"><strong>[CATALOGO-ISSUES]</strong> — 6 oportunidades visuales del catálogo público. Se aplicó en commit <code>712e30c</code> ([CATALOGO-POLISH]).</p>
-  <p style="margin:0 0 8px;"><strong>[DECANTS-BANNER v1]</strong> — 3 opciones de frascos del banner. Elegida Opción B (SVG real). Aplicado en commit <code>f33386a</code>.</p>
-  <p style="margin:0 0 8px;"><strong>[DECANTS-UX]</strong> — 6 ideas del armador. Implementadas #1+#2+#3+#5 en commit <code>f33386a</code>. Pendientes #4 + #6 (ver <code>docs/HISTORIA.md</code> sección "DECANTS-UX armador iter 2").</p>
-  <p style="margin:0;"><strong>[DECANTS-BANNER v2]</strong> — post foto del GPT. 3 opciones desktop + 3 variantes mobile. Pendiente de decisión del usuario (al cerrar sesión 14-may-2026).</p>
-</div>
+<!-- DESKTOP -->
+<section class="section" id="desktop">
+  <div class="section-head">
+    <h2 class="section-title">💻 Banner Decants — Desktop</h2>
+    <p class="section-sub">3 opciones · todas mantienen los 3 trust badges a la derecha: 100% Originales · Ideales para viajar · Probá antes.</p>
+  </div>
 
-<h2>📋 Próximo uso</h2>
-<p>Cuando se necesite un mockup nuevo, simplemente:</p>
-<ol style="font-size:.85rem; color:#999;">
-  <li>Sobrescribir este archivo con el mockup completo</li>
-  <li>Agregar entrada al histórico de arriba (sección "Histórico de mockups")</li>
-  <li>Cuando el mockup se aplica al sitio real → actualizar HISTORIA.md con el commit hash</li>
-  <li>Volver a vaciar este archivo al esqueleto (este mismo) cuando ya no se necesite el mockup activo</li>
-</ol>
+  <!-- OPCIÓN 1 -->
+  <div class="opt-block opt1">
+    <span class="opt-tag t1">OPCIÓN 1 · FOTO DIRECTA DEL GPT</span>
+    <p class="opt-label">Usar tu imagen del GPT como background <small>· 1-2h optimización · idéntico a lo que viste</small></p>
+    <div class="banner-base">
+      <div class="b-left">
+        <p class="b-label">ST Perfumería</p>
+        <h2 class="b-title">Decants</h2>
+        <p class="b-tagline">tu fragancia, tu medida</p>
+        <p class="b-sub">Las mejores fragancias en formato mini.</p>
+        <button class="b-cta">💧 Armá tu pack →</button>
+      </div>
+      <div class="b-center">
+        <div class="opt1-placeholder">
+          <p class="opt1-placeholder-title">🖼️ Tu foto del GPT va acá</p>
+          <p class="opt1-placeholder-sub">WebP/AVIF optimizada (~150KB)<br>3 frascos + podium + flor + humo</p>
+        </div>
+      </div>
+      <div class="b-right">
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía de autenticidad</p></div></div>
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Ideales para viajar</p><p class="b-trust-desc">Llevá tu fragancia a donde vayas</p></div></div>
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Descubrí tu próxima fragancia favorita</p></div></div>
+      </div>
+    </div>
+  </div>
 
-<div class="footer">
-  ST Perfumería · mockups.html · esqueleto · listo para próxima sesión
-</div>
+  <!-- OPCIÓN 2 — MI VOTO -->
+  <div class="opt-block opt2">
+    <span class="opt-tag t2">OPCIÓN 2 · CSS + SVG · ⭐ MI VOTO</span>
+    <p class="opt-label">Banner armado 100% con código <small>· 2-3h · 0KB extras · escalable</small></p>
+    <div class="banner-base">
+      <div class="b-left">
+        <p class="b-label">ST Perfumería</p>
+        <h2 class="b-title">Decants</h2>
+        <p class="b-tagline">tu fragancia, tu medida</p>
+        <p class="b-sub">Las mejores fragancias en formato mini.</p>
+        <button class="b-cta">💧 Armá tu pack →</button>
+      </div>
+      <div class="b-center">
+        <div class="b-smoke"></div>
+        <div class="b-flower">🪻</div>
+        <div class="b-podium" style="margin-right: 22px;">
+          <div class="b-vial">
+            <svg class="b-bottle-svg" width="44" height="120" viewBox="0 0 44 120">
+              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+              <path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq5b)"/>
+              <ellipse cx="16" cy="60" rx="1.4" ry="22" fill="rgba(255,255,255,.25)"/>
+              <defs><linearGradient id="liq5b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
+            </svg>
+          </div>
+          <div class="b-podium-base"></div>
+          <span class="b-podium-label">5 ml</span>
+        </div>
+        <div class="b-podium size-10" style="margin-right: 22px; margin-bottom: 22px;">
+          <div class="b-vial">
+            <svg class="b-bottle-svg" width="48" height="138" viewBox="0 0 44 120">
+              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+              <path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq10b)"/>
+              <ellipse cx="16" cy="60" rx="1.4" ry="26" fill="rgba(255,255,255,.25)"/>
+              <defs><linearGradient id="liq10b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
+            </svg>
+            <span class="b-ribbon">Próximamente</span>
+          </div>
+          <div class="b-podium-base"></div>
+          <span class="b-podium-label">10 ml</span>
+        </div>
+        <div class="b-podium size-20" style="margin-bottom: 45px;">
+          <div class="b-vial">
+            <svg class="b-bottle-svg" width="52" height="156" viewBox="0 0 44 120">
+              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+              <path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq20b)"/>
+              <ellipse cx="16" cy="62" rx="1.4" ry="30" fill="rgba(255,255,255,.25)"/>
+              <defs><linearGradient id="liq20b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
+            </svg>
+            <span class="b-ribbon">Próximamente</span>
+          </div>
+          <div class="b-podium-base"></div>
+          <span class="b-podium-label">20 ml</span>
+        </div>
+      </div>
+      <div class="b-right">
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía de autenticidad</p></div></div>
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Ideales para viajar</p><p class="b-trust-desc">Llevá tu fragancia a donde vayas</p></div></div>
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Descubrí tu próxima fragancia favorita</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPCIÓN 3 -->
+  <div class="opt-block opt3">
+    <span class="opt-tag t3">OPCIÓN 3 · HÍBRIDO</span>
+    <p class="opt-label">Foto del GPT como fondo (sin frascos) + SVGs encima <small>· 1.5-4h según si tenés PSD</small></p>
+    <div class="banner-base">
+      <div class="b-left">
+        <p class="b-label">ST Perfumería</p>
+        <h2 class="b-title">Decants</h2>
+        <p class="b-tagline">tu fragancia, tu medida</p>
+        <p class="b-sub">Las mejores fragancias en formato mini.</p>
+        <button class="b-cta">💧 Armá tu pack →</button>
+      </div>
+      <div class="b-center">
+        <div class="b-smoke"></div>
+        <div class="b-flower">🪻</div>
+        <div class="b-podium" style="margin-right: 22px;">
+          <div class="b-vial">
+            <svg class="b-bottle-svg" width="44" height="120" viewBox="0 0 44 120">
+              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+              <path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq5c)"/>
+              <ellipse cx="16" cy="60" rx="1.4" ry="22" fill="rgba(255,255,255,.25)"/>
+              <defs><linearGradient id="liq5c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
+            </svg>
+          </div>
+          <div class="b-podium-base"></div>
+          <span class="b-podium-label">5 ml</span>
+        </div>
+        <div class="b-podium size-10" style="margin-right: 22px; margin-bottom: 22px;">
+          <div class="b-vial">
+            <svg class="b-bottle-svg" width="48" height="138" viewBox="0 0 44 120">
+              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+              <path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq10c)"/>
+              <ellipse cx="16" cy="60" rx="1.4" ry="26" fill="rgba(255,255,255,.25)"/>
+              <defs><linearGradient id="liq10c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
+            </svg>
+            <span class="b-ribbon">Próximamente</span>
+          </div>
+          <div class="b-podium-base"></div>
+          <span class="b-podium-label">10 ml</span>
+        </div>
+        <div class="b-podium size-20" style="margin-bottom: 45px;">
+          <div class="b-vial">
+            <svg class="b-bottle-svg" width="52" height="156" viewBox="0 0 44 120">
+              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
+              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
+              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+              <path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq20c)"/>
+              <ellipse cx="16" cy="62" rx="1.4" ry="30" fill="rgba(255,255,255,.25)"/>
+              <defs><linearGradient id="liq20c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
+            </svg>
+            <span class="b-ribbon">Próximamente</span>
+          </div>
+          <div class="b-podium-base"></div>
+          <span class="b-podium-label">20 ml</span>
+        </div>
+      </div>
+      <div class="b-right">
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía de autenticidad</p></div></div>
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Ideales para viajar</p><p class="b-trust-desc">Llevá tu fragancia a donde vayas</p></div></div>
+        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Descubrí tu próxima fragancia favorita</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOBILE -->
+<section class="section" id="mobile">
+  <div class="section-head">
+    <h2 class="section-title">📱 Banner Decants — Mobile (3 variantes)</h2>
+    <p class="section-sub">Asumiendo Opción 2 (CSS+SVG) elegida.</p>
+  </div>
+
+  <div class="mobile-row">
+    <!-- VARIANTE A -->
+    <div>
+      <span class="opt-tag t1">A · STACK VERTICAL</span>
+      <p class="opt-label" style="font-size: .72rem;">Imagen arriba, texto debajo, badges al final</p>
+      <div class="mobile-frame vA">
+        <div class="mobile-screen">
+          <div class="mobile-statusbar"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="mobile-banner">
+            <div class="vA-foto">
+              <div class="b-podium" style="transform: scale(.5); transform-origin: bottom;">
+                <div class="b-vial"><svg width="44" height="120" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg></div>
+                <div class="b-podium-base"></div>
+              </div>
+              <div class="b-podium size-10" style="transform: scale(.55); transform-origin: bottom; margin-bottom: -10px;">
+                <div class="b-vial"><svg width="48" height="138" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.4rem; padding: 3px 10px;">Próx.</span></div>
+                <div class="b-podium-base"></div>
+              </div>
+              <div class="b-podium size-20" style="transform: scale(.6); transform-origin: bottom; margin-bottom: -20px;">
+                <div class="b-vial"><svg width="52" height="156" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.4rem; padding: 3px 10px;">Próx.</span></div>
+                <div class="b-podium-base"></div>
+              </div>
+            </div>
+            <div class="vA-text">
+              <p class="b-label">ST Perfumería</p>
+              <h2 class="b-title">Decants</h2>
+              <p class="b-tagline">tu fragancia, tu medida</p>
+              <p class="b-sub">Las mejores fragancias en formato mini.</p>
+              <button class="b-cta">💧 Armá tu pack →</button>
+            </div>
+            <div class="vA-badges">
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía</p></div></div>
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Para viajar</p><p class="b-trust-desc">A donde vayas</p></div></div>
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Tu próxima favorita</p></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANTE B -->
+    <div>
+      <span class="opt-tag t2">B · TEXTO PRIMERO</span>
+      <p class="opt-label" style="font-size: .72rem;">Title+CTA arriba, frascos en línea, badges abajo</p>
+      <div class="mobile-frame vB">
+        <div class="mobile-screen">
+          <div class="mobile-statusbar"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="mobile-banner">
+            <p class="b-label">ST Perfumería</p>
+            <h2 class="b-title">Decants</h2>
+            <p class="b-tagline">tu fragancia, tu medida</p>
+            <p class="b-sub">Las mejores fragancias en formato mini.</p>
+            <button class="b-cta">💧 Armá tu pack →</button>
+            <div class="vB-row">
+              <div class="b-podium"><div class="b-vial"><svg width="36" height="100" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg></div><div class="b-podium-base" style="width:50px; height:12px;"></div><span class="b-podium-label" style="font-size:.5rem;">5</span></div>
+              <div class="b-podium size-10"><div class="b-vial"><svg width="40" height="116" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.36rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base" style="width:54px; height:14px;"></div><span class="b-podium-label" style="font-size:.5rem;">10</span></div>
+              <div class="b-podium size-20"><div class="b-vial"><svg width="44" height="130" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.36rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base" style="width:58px; height:16px;"></div><span class="b-podium-label" style="font-size:.5rem;">20</span></div>
+            </div>
+            <div class="vB-badges">
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><p class="b-trust-title">Originales</p><p class="b-trust-desc">Garantía</p></div>
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><p class="b-trust-title">Para viajar</p><p class="b-trust-desc">Donde sea</p></div>
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Decidí mejor</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANTE C -->
+    <div>
+      <span class="opt-tag t3">C · REDUCCIÓN · ⭐ MI VOTO</span>
+      <p class="opt-label" style="font-size: .72rem;">5ml protagonista, 10/20 chiquitos al costado</p>
+      <div class="mobile-frame vC">
+        <div class="mobile-screen">
+          <div class="mobile-statusbar"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="mobile-banner">
+            <p class="b-label">ST Perfumería</p>
+            <h2 class="b-title">Decants</h2>
+            <p class="b-tagline">tu fragancia, tu medida</p>
+            <p class="b-sub">Las mejores fragancias en formato mini.</p>
+            <div class="vC-hero">
+              <div class="b-podium thumb"><div class="b-vial"><svg width="48" height="138" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.6)"/></svg><span class="b-ribbon" style="font-size: .3rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base"></div><span class="b-podium-label">10</span></div>
+              <div class="b-podium featured"><div class="b-vial"><svg width="50" height="138" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width="1"/><path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.85)"/><ellipse cx="16" cy="60" rx="1.4" ry="22" fill="rgba(255,255,255,.35)"/></svg></div><div class="b-podium-base" style="width: 76px; height: 20px;"></div><span class="b-podium-label" style="font-weight: 800;">5 ml ✓</span></div>
+              <div class="b-podium thumb"><div class="b-vial"><svg width="52" height="156" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.6)"/></svg><span class="b-ribbon" style="font-size: .3rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base"></div><span class="b-podium-label">20</span></div>
+            </div>
+            <div class="vC-cta-wrap"><button class="b-cta">💧 Armá tu pack →</button></div>
+            <div class="vC-badges">
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><p class="b-trust-title">Originales</p></div>
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><p class="b-trust-title">Viajar</p></div>
+              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><p class="b-trust-title">Probar</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="footer">mockups.html · Banner Decants v2</div>
 
 </body>
 </html>
