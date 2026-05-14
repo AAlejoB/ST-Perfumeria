@@ -350,6 +350,7 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.14 | [HOTSALE] promo = precio cash directo + cuotas sobre tarjeta + % dinámico |
 | v1.1.15 | [WATCHDOG] Realtime con máquina de estados + polling de respaldo + indicador visual |
 | v1.1.16 | [ZAPATO] admin con sidebar lateral + agrupaciones colapsables + persistencia localStorage |
+| v1.1.17 | [BACKDROP] tuning del backdrop blur de cards: cohesión cromática entre fondos blancos y negros |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -428,6 +429,7 @@ Fixes aplicados:
 4. **RLS desde el día 1**. Cada tabla nueva con policies. Aprendí con el bug de `ajuste_horario`.
 5. **Convos chicas con Claude.** Una conversación gigante (esta misma) es invivible para retomar contexto.
 6. **Linear / Notion fuera del chat.** Pendientes que vayas pensando NO van en el chat — se pierden.
+7. **Mockups en UN solo archivo `mockups.html`.** Convención acordada mayo 2026: cuando Claude necesite hacer un mockup standalone, lo agrega como sección/tab interna a `mockups.html`, no como archivo nuevo. Evita que se acumulen `mockup-zapato.html`, `mockup-catalogo-issues.html`, etc. — esos 2 quedan como histórico hasta que ya no sirvan de referencia, después se borran. Si todavía no existe `mockups.html` cuando se necesite hacer el primero "post-convención", crearlo entonces. Cada sección dentro del archivo tiene su propio anchor (#nombre-feature) para linkear.
 
 ---
 
@@ -446,6 +448,7 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[FANTASMA]` — revert parcial de [IMG-DIMS] (v1.1.10). El bloque CSS sobreescribía width/height explícitos de search-sug-img (32x42 → 463x463), set-img-slot, collectible, recent-view, quiz, etc. Las cards del catálogo ya tienen width/height en HTML attrs (app.js:1666) → no necesitaban el CSS hack. Se mantiene el segundo bloque para cart/modales.
 - `[HOTSALE]` — refactor de pricing. `p.price` = precio TARJETA (base para cuotas), `p.promo` = precio EFECTIVO/TRANSFER override (si existe, ES el cash final sin doble descuento; si no, default 10% off). Helpers `getListaPrice / getCashPrice / getCuotaPrice / hasHotSale / getDiscountPct`. Label "🔥 HOT SALE EFECTIVO" hardcoded en constante `HOT_SALE_LABEL`. % off calculado dinámico. Eliminado del front el render de `descuento_pct + descuento_hasta` (DB intacta para futuro). Aplicado a card del catálogo, cart panel, buildWaMessage y modal bsPrice. Sets NO modificados (tienen modelo distinto).
 - `[WATCHDOG]` — máquina de estados para Realtime en `admin.html`. Estados `INIT/CONNECTING/LIVE/DEGRADED/RECONNECTING`. Si el WS se cae arranca polling diferencial cada 10s (`gt('updated_at')`) y reintenta con backoff 2s→60s. Listeners `visibilitychange`/`online`/`offline`/heartbeat. Indicador `#syncIndicator` en el header. Trigger SQL `perfume_overrides_updated_at` aplicado en prod. Anti-echo en `savePrice`/`saveStock` via `lastLocalUpsert`. Plan original en `PLAN_REALTIME_WATCHDOG.md`. Ver bug "Watchdog de Realtime (mayo 2026)" arriba.
+- `[BACKDROP]` — tuning del backdrop blur de `.card-gallery-slide` para cohesión visual del catálogo. Las cards con foto fondo blanco quemaban en dark mode, las de fondo negro chocaban en light. Cambios: `brightness .75→.6` (dark) y `.92→.85` (light) — apaga blancos sin matar colores; `saturate 1.3→1.5` (dark) y `1.2→1.3` (light) — preserva identidad cromática; `scale 1.15→1.2` — más cobertura del blur; vignette de `rgba(0,0,0,.35)→.55` en dark; nuevo overlay con linear-gradient dorado tenue + radial dorado en light. Cero cambios estructurales, solo valores en `.card-gallery-slide::before` y `::after`.
 - `[ZAPATO]` — admin con sidebar lateral en lugar de tab-bar horizontal. 5 grupos colapsables (Top fijo, Productos, Gestión jefe-only, Marketing & Home, Sistema). Tabs originales mantienen clases `.tab-btn`/data-attributes → `switchTab()` intacto. Responsivo: ≥1100px sidebar 240px / 701-1100px sidebar 200px / ≤700px sidebar oculto con hamburguesa overlay. Persistencia en localStorage (`st_admin_sidebar_collapsed` + `st_admin_sidebar_groups`): cada tablet recuerda si dejó el sidebar plegado y qué grupos colapsados. Light mode aplicado al sidebar. `applyRolePermissions` actualizada para apuntar a `.sidebar .tab-btn`. Mockup HTML standalone original en `mockup-zapato.html`.
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
@@ -457,7 +460,7 @@ Y para mejoras futuras planteadas pero no hechas:
 - `[SIRENITA]` — sistema de Campañas (tabla `campaigns` en Supabase) para que las empleadas puedan crear/activar/desactivar campañas (Hot Sale, Black Friday, Aniversario, etc) sin tocar código. Cada campaña define label, emoji, color. Solo 1 activa por vez. Mockup propuesto en `mockup-zapato.html` tab "Campañas". Hoy `HOT_SALE_LABEL` está hardcoded — esto lo haría editable desde admin.
 - `[LCP-V2]` — segunda capa de LCP (comprimir logo, lazy real cards 7+)
 - `[HERO-OPTIMIZE]` — optimización específica del hero
-- `[JS-CHUNK]` — splittear app.js en módulos (invasivo, dejar para una semana sin cambios)
+- `[JS-CHUNK]` — splittear app.js (~7000 líneas, ~300KB) en `core.js` (catálogo, filtros, cart, auth, puntos) + `extras.js` lazy-loaded (decants armador, quiz, juegos ST, custom cursor, compare). Invasivo: alto riesgo de romper closures compartidos. **REQUIERE**: trabajo en branch dedicada (ej `frontend/js-chunk`) + preview deploy de Vercel para testing real antes de merge a main. No hacer "directo en branch del worktree y push" — necesita validación humana en preview URL antes de tocar producción. Dejar para sesión específica de 4-6 hs con cabeza fresca.
 - `[BCRYPT-MIGRATION]` — hashear passwords lazy migration
 - `[SUPABASE-AUTH]` — migrar de custom auth a Supabase Auth nativo
 - `[ORDEN-COMPRA-TAB]` — tab admin con sugerencias de pedido

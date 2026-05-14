@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo · 6 oportunidades visuales</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     Mockup de 6 oportunidades visuales del catálogo público.
+     Lado izquierdo = problema actual. Lado derecho = propuesta.
+     Toggle de tema dark/light en la toolbar para comparar.
+     ============================================================ */
+  :root {
+    --bg:        #0a0a0c;
+    --bg-elev:   #131316;
+    --bg-elev2:  #1a1a1d;
+    --borde:     #2a2a2e;
+    --txt:       #f0f0f0;
+    --txt-sub:   #999;
+    --txt-dim:   #666;
+    --amarillo:  #E8B800;
+    --amarillo2: #c99a00;
+    --naranja:   #ff7043;
+    --rojo:      #e74c3c;
+    --verde:     #27ae60;
+    --azul:      #3498db;
+  }
+  body.light {
+    --bg:        #e3d6b3;
+    --bg-elev:   #ede2c2;
+    --bg-elev2:  #f5ead0;
+    --borde:     #c8b486;
+    --txt:       #1a1a1d;
+    --txt-sub:   #5a5046;
+    --txt-dim:   #8a7e6e;
+    --amarillo:  #8a6d00;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--txt);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    transition: background .25s, color .25s;
+  }
+
+  /* TOOLBAR fija arriba */
+  .toolbar {
+    position: sticky; top: 0;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--borde);
+    padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    z-index: 100;
+    flex-wrap: wrap;
+  }
+  .toolbar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--amarillo);
+    margin: 0;
+  }
+  .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mock-btn {
+    background: var(--bg-elev2);
+    color: var(--txt);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .mock-btn:hover { border-color: var(--amarillo); }
+  .mock-btn.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+
+  /* NAV de anclas */
+  .nav-anchors {
+    background: var(--bg-elev2);
+    border-bottom: 1px solid var(--borde);
+    padding: 8px 16px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+    overflow-x: auto;
+  }
+  .nav-anchor {
+    background: transparent;
+    color: var(--txt-sub);
+    border: 1px solid var(--borde);
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: .68rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+  .nav-anchor:hover { color: var(--amarillo); border-color: var(--amarillo); }
+
+  /* SECTION */
+  .section {
+    padding: 32px 24px;
+    max-width: 1300px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--borde);
+  }
+  @media (max-width: 700px) {
+    .section { padding: 24px 14px; }
+  }
+  .section-head {
+    margin-bottom: 18px;
+  }
+  .section-tag {
+    display: inline-block;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .tag-red    { background: rgba(231,76,60,.18);  color: #ef5350; }
+  .tag-yellow { background: rgba(232,184,0,.18);  color: var(--amarillo); }
+  .tag-green  { background: rgba(39,174,96,.18);  color: #4caf50; }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; font-weight: 700;
+    margin: 0 0 6px;
+    color: var(--txt);
+  }
+  .section-sub {
+    color: var(--txt-sub);
+    font-size: .85rem;
+    margin: 0;
+  }
+
+  .ab-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+  @media (max-width: 850px) {
+    .ab-grid { grid-template-columns: 1fr; }
+  }
+  .ab-col {
+    background: var(--bg-elev);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .ab-col.bad  { border-left: 3px solid #ef5350; }
+  .ab-col.good { border-left: 3px solid #4caf50; }
+  .ab-label {
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+  }
+  .ab-col.bad  .ab-label { color: #ef5350; }
+  .ab-col.good .ab-label { color: #4caf50; }
+  .ab-desc {
+    font-size: .8rem;
+    color: var(--txt-sub);
+    margin: 0 0 14px;
+  }
+
+  /* ──────── DEMOS ──────── */
+
+  /* DEMO PRODUCT CARD (replica del catálogo real) */
+  .demo-card {
+    background: #111;
+    border: 1px solid #2a2a2e;
+    border-radius: 6px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    min-height: 170px;
+    color: #f0f0f0;
+  }
+  body.light .demo-card { background: #ede2c2; border-color: #c8b486; color: #1a1a1d; }
+  .demo-card-info { flex: 1; min-width: 0; }
+  .demo-card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; font-weight: 700;
+    margin: 0 0 2px;
+  }
+  .demo-card-brand {
+    font-size: .58rem;
+    letter-spacing: .12em;
+    color: #999;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+  body.light .demo-card-brand { color: #5a5046; }
+  .demo-card-img {
+    width: 90px; height: 130px;
+    background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(232,184,0,.4);
+    font-size: 2rem;
+  }
+
+  /* — Card BAD: jerarquía 1 (label cuotas microscópico) */
+  .price-bad .price-main { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  body.light .price-bad .price-main { color: #1a1a1d; }
+  .price-bad .price-cuotas {
+    font-size: .55rem;
+    color: #bbb;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    margin-top: 4px;
+  }
+  body.light .price-bad .price-cuotas { color: #5a5046; }
+  .price-bad .price-hotsale {
+    font-size: .82rem;
+    color: #ff7043;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  /* — Card GOOD: jerarquía mejorada */
+  .price-good .price-main { font-size: 1.1rem; font-weight: 700; color: #f0f0f0; }
+  body.light .price-good .price-main { color: #1a1a1d; }
+  .price-good .price-cuotas-line {
+    font-size: .78rem;
+    color: #f0f0f0;
+    margin-top: 6px;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  body.light .price-good .price-cuotas-line { color: #2a2622; }
+  .price-good .price-cuotas-line strong { font-weight: 700; }
+  .price-good .price-cuotas-line .tag {
+    background: rgba(232,184,0,.15);
+    color: var(--amarillo);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .price-good .price-hotsale-line {
+    background: linear-gradient(90deg, rgba(255,112,67,.18), rgba(255,112,67,0));
+    border-left: 3px solid #ff7043;
+    padding: 6px 10px;
+    margin-top: 8px;
+    border-radius: 4px 0 0 4px;
+  }
+  .price-good .price-hotsale-line .small {
+    font-size: .55rem; letter-spacing: .15em; color: #ff7043; font-weight: 700; text-transform: uppercase;
+  }
+  .price-good .price-hotsale-line .big {
+    font-size: .95rem; color: #fff; font-weight: 700;
+  }
+  body.light .price-good .price-hotsale-line .big { color: #1a1a1d; }
+
+  /* DEMO FILTER BAR */
+  .demo-filter-bar {
+    background: rgba(255,255,255,.04);
+    border: 1px solid #2a2a2e;
+    border-radius: 6px;
+    padding: 10px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  body.light .demo-filter-bar { background: rgba(0,0,0,.04); border-color: #c8b486; }
+  .demo-cat-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #ccc;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: .68rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  body.light .demo-cat-btn { color: #2a2622; border-color: #c8b486; }
+  .demo-cat-btn.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+  .demo-cat-btn.bad-heart {
+    background: rgba(231,76,60,.2);
+    border-color: #e74c3c;
+    color: #ef5350;
+    font-size: .9rem;
+    line-height: 1;
+    padding: 5px 10px;
+  }
+  .demo-cat-btn.good-heart {
+    /* mismo estilo que los otros, sin diferencias */
+    color: #ef5350;
+  }
+  /* Chip badge filtro activo */
+  .demo-chip-active {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(232,184,0,.1);
+    border: 1px solid rgba(232,184,0,.4);
+    color: var(--amarillo);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: .65rem;
+    font-weight: 600;
+  }
+  .demo-chip-active small { color: #999; margin-right: 4px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; font-size: .55rem; }
+  .demo-chip-active .x { cursor: pointer; opacity: .6; margin-left: 4px; }
+
+  /* DEMO FOTOS */
+  .demo-foto-wrap {
+    width: 100%;
+    aspect-ratio: 3/4;
+    background: #111;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  body.light .demo-foto-wrap { background: #ede2c2; }
+  .demo-foto-white-bg {
+    width: 80%; height: 80%;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+    font-size: 2.4rem;
+    color: #999;
+    font-family: 'Playfair Display', serif;
+  }
+  .demo-foto-blackish-bg {
+    width: 80%; height: 80%;
+    background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+    font-size: 2.4rem;
+    color: rgba(232,184,0,.7);
+    font-family: 'Playfair Display', serif;
+  }
+  /* Placeholder "Foto próximamente" actual */
+  .demo-placeholder-bad {
+    width: 100%; height: 100%;
+    background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .demo-bottle-bad {
+    width: 60px; height: 110px;
+    background: rgba(232,184,0,.06);
+    border: 1px solid rgba(232,184,0,.12);
+    border-radius: 4px 4px 8px 8px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(232,184,0,.45);
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+  }
+  .demo-bottle-bad::before {
+    content: ''; position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    width: 22px; height: 14px; background: rgba(232,184,0,.06);
+    border: 1px solid rgba(232,184,0,.12); border-radius: 2px;
+  }
+  .demo-ribbon-bad {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    background: rgba(231,76,60,.85);
+    color: #fff;
+    font-size: .55rem;
+    font-weight: 800;
+    letter-spacing: .15em;
+    padding: 4px 16px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  /* Placeholder propuesto */
+  .demo-placeholder-good {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(232,184,0,.05), transparent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px;
+    position: relative;
+  }
+  .demo-placeholder-good::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at center, rgba(232,184,0,.06), transparent 65%);
+    pointer-events: none;
+  }
+  .demo-placeholder-good-icon {
+    font-size: 2.4rem;
+    opacity: .35;
+  }
+  .demo-placeholder-good-text {
+    font-size: .58rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--amarillo);
+    font-weight: 700;
+    opacity: .7;
+  }
+
+  /* DEMO BANNERS */
+  .demo-marquee {
+    background: linear-gradient(90deg, #0a0a0a, #1a0d0d, #0a0a0a);
+    border: 1px solid rgba(255,80,80,.4);
+    color: #ff7043;
+    padding: 10px 16px;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .demo-marquee-content {
+    display: inline-block;
+    animation: marqueeScroll 15s linear infinite;
+  }
+  @keyframes marqueeScroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .demo-static {
+    background: linear-gradient(90deg, rgba(255,80,80,.08), rgba(255,80,80,.18), rgba(255,80,80,.08));
+    border: 1px solid rgba(255,80,80,.3);
+    color: #ff7043;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-size: .78rem;
+    border-radius: 4px;
+  }
+  .demo-static small { display: block; font-size: .55rem; font-weight: 500; opacity: .8; letter-spacing: .12em; margin-top: 4px; }
+
+  .demo-yellow-banner {
+    background: linear-gradient(90deg, var(--amarillo), #ffd633, var(--amarillo));
+    color: #1a1a1a;
+    padding: 14px 20px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+    font-weight: 800;
+  }
+  .demo-yellow-banner-text {
+    font-size: .9rem;
+    letter-spacing: .05em;
+  }
+  .demo-yellow-banner-cta-bad {
+    background: #1a1a1a;
+    color: var(--amarillo);
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: .6rem;
+    font-weight: 700;
+  }
+  .demo-yellow-banner-cta-good {
+    background: #1a1a1a;
+    color: var(--amarillo);
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  }
+
+  /* DEMO LIGHT MODE */
+  .demo-price-with-strike {
+    display: flex; gap: 8px; align-items: baseline;
+  }
+  .demo-price-main { font-size: 1rem; font-weight: 700; color: var(--amarillo); }
+  .demo-price-strike-bad {
+    text-decoration: line-through;
+    color: #999;
+    font-size: .85rem;
+  }
+  .demo-price-strike-good {
+    text-decoration: line-through;
+    color: var(--txt-sub);
+    font-size: .85rem;
+    opacity: .65;
+  }
+  body.light .demo-price-strike-good { color: #5a5046; opacity: .85; }
+  .demo-contrast-tag {
+    font-size: .55rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    font-weight: 700;
+    letter-spacing: .05em;
+  }
+  .demo-contrast-tag.bad-tag { background: rgba(231,76,60,.2); color: #ef5350; }
+  .demo-contrast-tag.good-tag { background: rgba(39,174,96,.2); color: #4caf50; }
+
+  /* DEMO PERFORMANCE */
+  .perf-bar {
+    display: flex; align-items: center; gap: 12px;
+    margin: 10px 0;
+  }
+  .perf-bar-label { width: 130px; font-size: .72rem; color: var(--txt-sub); }
+  .perf-bar-track {
+    flex: 1; height: 16px; background: rgba(255,255,255,.06);
+    border-radius: 3px; position: relative; overflow: hidden;
+  }
+  body.light .perf-bar-track { background: rgba(0,0,0,.08); }
+  .perf-bar-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, #ef5350, #ff7043);
+    border-radius: 3px;
+  }
+  .perf-bar-fill.good { background: linear-gradient(90deg, #4caf50, #66bb6a); }
+  .perf-bar-value { width: 70px; text-align: right; font-size: .72rem; font-weight: 700; }
+  .perf-bar-value.bad { color: #ef5350; }
+  .perf-bar-value.good { color: #4caf50; }
+
+  /* Notas / bullets pequeños */
+  .note {
+    background: rgba(232,184,0,.06);
+    border-left: 3px solid var(--amarillo);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin-top: 14px;
+    font-size: .76rem;
+    color: var(--txt-sub);
+  }
+  .note strong { color: var(--txt); }
+
+  /* Final */
+  .footer {
+    padding: 30px 24px 60px;
+    text-align: center;
+    color: var(--txt-dim);
+    font-size: .7rem;
+  }
+</style>
+</head>
+<body class="dark">
+
+<div class="toolbar">
+  <p class="toolbar-title">🔍 Catálogo · 6 oportunidades visuales</p>
+  <div class="toolbar-actions">
+    <button class="mock-btn active" id="btnDark" onclick="setTheme('dark')">🌙 Dark</button>
+    <button class="mock-btn" id="btnLight" onclick="setTheme('light')">☀️ Light</button>
+  </div>
+</div>
+
+<nav class="nav-anchors">
+  <a class="nav-anchor" href="#cards">1 · Cards</a>
+  <a class="nav-anchor" href="#filter">2 · Filter bar</a>
+  <a class="nav-anchor" href="#fotos">3 · Fotos</a>
+  <a class="nav-anchor" href="#banners">4 · Banners</a>
+  <a class="nav-anchor" href="#light">5 · Light mode</a>
+  <a class="nav-anchor" href="#perf">6 · Performance</a>
+</nav>
+
+<!-- ════════════════ 1. CARDS ════════════════ -->
+<section class="section" id="cards">
+  <div class="section-head">
+    <span class="section-tag tag-yellow">🟡 Medio</span>
+    <h2 class="section-title">1 · Cards — jerarquía visual del precio</h2>
+    <p class="section-sub">El label "3 cuotas sin interés" está a `.55rem` (~6px), invisible al ojo. Con Hot Sale activo, son <strong>3 líneas apiladas</strong> compitiendo por atención. Propuesta: tag visual + bloque destacado para Hot Sale.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Label "3 cuotas sin interés" microscópico. Hot Sale arrancha visualmente.</p>
+      <div class="demo-card">
+        <div class="demo-card-info">
+          <p class="demo-card-name">AMBER OUD DUBAI NIGHT</p>
+          <p class="demo-card-brand">Al Haramain · 100ml</p>
+          <div class="price-bad">
+            <p class="price-main">$149.000</p>
+            <p class="price-cuotas">3 cuotas sin interés</p>
+            <p class="price-hotsale">🔥 HOT SALE EFECTIVO: $126.650 (15% off)</p>
+          </div>
+        </div>
+        <div class="demo-card-img">🌹</div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Cuotas como info legible, no chip muerto. Hot Sale como bloque destacado lateral.</p>
+      <div class="demo-card">
+        <div class="demo-card-info">
+          <p class="demo-card-name">AMBER OUD DUBAI NIGHT</p>
+          <p class="demo-card-brand">Al Haramain · 100ml</p>
+          <div class="price-good">
+            <p class="price-main">$149.000</p>
+            <p class="price-cuotas-line">
+              <span class="tag">3 cuotas</span>
+              <strong>$49.667</strong> sin interés
+            </p>
+            <div class="price-hotsale-line">
+              <span class="small">🔥 Efectivo / transf</span>
+              <span class="big">$126.650</span> <span style="font-size:.68rem;opacity:.85;">(15% off)</span>
+            </div>
+          </div>
+        </div>
+        <div class="demo-card-img">🌹</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">💡 <strong>Bonus:</strong> mostrar el monto de cada cuota ($49.667) ayuda al cliente a decidir más rápido — hoy solo dice "3 cuotas" sin valor.</div>
+</section>
+
+<!-- ════════════════ 2. FILTER BAR ════════════════ -->
+<section class="section" id="filter">
+  <div class="section-head">
+    <span class="section-tag tag-yellow">🟡 Medio</span>
+    <h2 class="section-title">2 · Filter bar — botón ❤ rompe la consistencia + chip filtro flotante</h2>
+    <p class="section-sub">El ❤ tiene color rojo distinto del resto (genera distracción). Los chips de filtro activo ("BÚSQUEDA 'asad bour' ×") aparecen <strong>en una fila aparte</strong> arriba del catálogo, desconectados del filter-bar.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">❤ con borde rojo + fondo rojo. Chip filtro huérfano arriba.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>
+          <span class="demo-chip-active"><small>BÚSQUEDA</small> "asad bour" <span class="x">×</span></span>
+        </div>
+        <div class="demo-filter-bar">
+          <button class="demo-cat-btn active">Todos</button>
+          <button class="demo-cat-btn">Unisex</button>
+          <button class="demo-cat-btn">Hombre</button>
+          <button class="demo-cat-btn">Mujer</button>
+          <button class="demo-cat-btn">🔥 Nuevos</button>
+          <button class="demo-cat-btn bad-heart">♥</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">❤ con el mismo borde sutil que el resto. Chip filtro <strong>dentro</strong> del filter-bar como tag activo.</p>
+      <div class="demo-filter-bar">
+        <button class="demo-cat-btn">Todos</button>
+        <button class="demo-cat-btn">Unisex</button>
+        <button class="demo-cat-btn">Hombre</button>
+        <button class="demo-cat-btn">Mujer</button>
+        <button class="demo-cat-btn">🔥 Nuevos</button>
+        <button class="demo-cat-btn good-heart">♥</button>
+        <span style="width:1px;height:24px;background:var(--borde);margin:0 4px;"></span>
+        <span class="demo-chip-active"><small>BUSCANDO</small> asad bour <span class="x">×</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ 3. FOTOS ════════════════ -->
+<section class="section" id="fotos">
+  <div class="section-head">
+    <span class="section-tag tag-red">🔴 Alto</span>
+    <h2 class="section-title">3 · Fotos — fondos mezclados + placeholder feo</h2>
+    <p class="section-sub">Catálogo tiene perfumes con foto sobre <strong>fondo blanco</strong> (brillan en dark) mezclados con <strong>fondo negro</strong> (chocan en light). El placeholder "Foto próximamente" muestra una botella SVG con cinta cruzada que se ve como bug.</p>
+  </div>
+
+  <h3 style="font-size:.85rem;color:var(--amarillo);margin:14px 0 8px;letter-spacing:.1em;text-transform:uppercase;">3a · Fondos inconsistentes</h3>
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Foto fondo blanco al lado de foto fondo negro.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="demo-foto-wrap"><div class="demo-foto-white-bg">AB</div></div>
+        <div class="demo-foto-wrap"><div class="demo-foto-blackish-bg">YT</div></div>
+      </div>
+    </div>
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Backdrop blur "Apple Music style" para todos (ya parcialmente implementado), + filtro de mezcla para fondos blancos en dark mode.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="demo-foto-wrap" style="background:radial-gradient(circle at center, rgba(232,184,0,.15), transparent 65%), #1a1a1a;">
+          <div class="demo-foto-white-bg" style="background:transparent;color:#fff;mix-blend-mode:luminosity;filter:invert(1) brightness(.95);">AB</div>
+        </div>
+        <div class="demo-foto-wrap" style="background:radial-gradient(circle at center, rgba(232,184,0,.15), transparent 65%), #1a1a1a;">
+          <div class="demo-foto-blackish-bg" style="background:transparent;">YT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:.85rem;color:var(--amarillo);margin:22px 0 8px;letter-spacing:.1em;text-transform:uppercase;">3b · Placeholder "Foto próximamente"</h3>
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Botella genérica con letra grande + cinta roja cruzada. Se ve como error.</p>
+      <div class="demo-foto-wrap">
+        <div class="demo-placeholder-bad">
+          <div class="demo-bottle-bad">A</div>
+          <div class="demo-ribbon-bad">Foto próximamente</div>
+        </div>
+      </div>
+    </div>
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Tipografía elegante con la inicial + label sutil. Sin cinta roja diagonal de "error".</p>
+      <div class="demo-foto-wrap">
+        <div class="demo-placeholder-good">
+          <div class="demo-placeholder-good-icon">🌸</div>
+          <p class="demo-placeholder-good-text" style="font-family:'Playfair Display',serif;font-size:1.3rem;letter-spacing:.05em;text-transform:none;opacity:.55;">Asad Bourbon</p>
+          <p class="demo-placeholder-good-text">Próximamente</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ 4. BANNERS ════════════════ -->
+<section class="section" id="banners">
+  <div class="section-head">
+    <span class="section-tag tag-yellow">🟡 Medio</span>
+    <h2 class="section-title">4 · Banners — marquee infinito + CTA chiquito</h2>
+    <p class="section-sub">El banner "COMENZÓ EL HOT SALE" tiene texto en marquee animado que <strong>nunca para</strong> — molesta si mirás la página mucho rato. El CTA del banner amarillo "VER" es muy chico vs el copy gigante "EXPLORÁ +150 PERFUMES".</p>
+  </div>
+
+  <h3 style="font-size:.85rem;color:var(--amarillo);margin:14px 0 8px;letter-spacing:.1em;text-transform:uppercase;">4a · Banner Hot Sale animado</h3>
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Marquee horizontal sin fin. Consume CPU en mobile barato y marea.</p>
+      <div class="demo-marquee">
+        <div class="demo-marquee-content">
+          🔥 COMENZÓ EL HOT SALE 🔥 COMENZÓ EL HOT SALE 🔥 COMENZÓ EL HOT SALE 🔥 COMENZÓ EL HOT SALE 🔥 COMENZÓ EL HOT SALE 🔥 COMENZÓ EL HOT SALE 🔥 COMENZÓ EL HOT SALE 🔥 COMENZÓ EL HOT SALE
+        </div>
+      </div>
+    </div>
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Estático centrado, con info útil (días restantes). Sin animación infinita.</p>
+      <div class="demo-static">
+        🔥 HOT SALE — 15% off en perfumes destacados
+        <small>Hasta el viernes 15</small>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:.85rem;color:var(--amarillo);margin:22px 0 8px;letter-spacing:.1em;text-transform:uppercase;">4b · Banner "Explorá +150 perfumes" — CTA</h3>
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Texto enorme + CTA pillita ~30×60px. El ojo no encuentra el botón.</p>
+      <div class="demo-yellow-banner">
+        <span class="demo-yellow-banner-text">◆ EXPLORÁ +150 PERFUMES ◆</span>
+        <span class="demo-yellow-banner-cta-bad">VER →</span>
+      </div>
+    </div>
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">CTA grande, pill negra contrastada, magnético al ojo.</p>
+      <div class="demo-yellow-banner">
+        <span class="demo-yellow-banner-text">EXPLORÁ +150 PERFUMES</span>
+        <span class="demo-yellow-banner-cta-good">VER CATÁLOGO →</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ 5. LIGHT MODE ════════════════ -->
+<section class="section" id="light">
+  <div class="section-head">
+    <span class="section-tag tag-red">🔴 Alto (accesibilidad)</span>
+    <h2 class="section-title">5 · Light mode — precio tachado `#999` invisible sobre crema</h2>
+    <p class="section-sub">Tocá <strong>☀️ Light</strong> arriba para ver el bug. El `color: #999` hardcoded sobre fondo crema `#e3d6b3` da ratio de contraste ~1.6:1 (WCAG fail). La tía del jefe que usa light mode <strong>no ve los precios tachados</strong>.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <p class="ab-desc">Precio original tachado con `#999` hardcoded. En light se vuelve fantasma.</p>
+      <div class="demo-card" style="min-height:auto;">
+        <div class="demo-card-info">
+          <p class="demo-card-name">AMBER OUD DUBAI NIGHT</p>
+          <p class="demo-card-brand">Al Haramain</p>
+          <div class="demo-price-with-strike">
+            <span class="demo-price-main">$126.650</span>
+            <span class="demo-price-strike-bad">$149.000</span>
+            <span class="demo-contrast-tag bad-tag">1.6:1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta</p>
+      <p class="ab-desc">Usar `var(--txt-sub)` — se adapta al tema. Light queda en marrón legible.</p>
+      <div class="demo-card" style="min-height:auto;">
+        <div class="demo-card-info">
+          <p class="demo-card-name">AMBER OUD DUBAI NIGHT</p>
+          <p class="demo-card-brand">Al Haramain</p>
+          <div class="demo-price-with-strike">
+            <span class="demo-price-main">$126.650</span>
+            <span class="demo-price-strike-good">$149.000</span>
+            <span class="demo-contrast-tag good-tag">4.8:1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">💡 La sesión pasada parchamos los textos más visibles, pero `.price-original`, `.note-prev`, `.reveal-pricing .price-label` y otros ~5 selectores <strong>siguen con `#999` hardcoded</strong>. Cambio quirúrgico: reemplazar por `var(--txt-sub)`.</div>
+</section>
+
+<!-- ════════════════ 6. PERFORMANCE ════════════════ -->
+<section class="section" id="perf">
+  <div class="section-head">
+    <span class="section-tag tag-yellow">🟡 Medio</span>
+    <h2 class="section-title">6 · Performance — bundle pesado + 204 imgs</h2>
+    <p class="section-sub">Métricas reales del catálogo en producción. La home pide ~300KB de JS y ~204 imágenes en el ciclo de vida completo. El primer paint del primer ingreso es lento.</p>
+  </div>
+
+  <div class="ab-grid">
+    <div class="ab-col bad">
+      <p class="ab-label">❌ Hoy</p>
+      <div class="perf-bar">
+        <div class="perf-bar-label">app.js</div>
+        <div class="perf-bar-track"><div class="perf-bar-fill" style="width:85%;"></div></div>
+        <div class="perf-bar-value bad">~300KB</div>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-label">Imágenes home</div>
+        <div class="perf-bar-track"><div class="perf-bar-fill" style="width:92%;"></div></div>
+        <div class="perf-bar-value bad">204</div>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-label">FCP 4G mobile</div>
+        <div class="perf-bar-track"><div class="perf-bar-fill" style="width:55%;"></div></div>
+        <div class="perf-bar-value bad">~2.5s</div>
+      </div>
+    </div>
+
+    <div class="ab-col good">
+      <p class="ab-label">✅ Propuesta [JS-CHUNK]</p>
+      <div class="perf-bar">
+        <div class="perf-bar-label">core.js (catálogo)</div>
+        <div class="perf-bar-track"><div class="perf-bar-fill good" style="width:30%;"></div></div>
+        <div class="perf-bar-value good">~100KB</div>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-label">extras.js (lazy)</div>
+        <div class="perf-bar-track"><div class="perf-bar-fill good" style="width:60%;"></div></div>
+        <div class="perf-bar-value good">~200KB *</div>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-label">FCP 4G mobile</div>
+        <div class="perf-bar-track"><div class="perf-bar-fill good" style="width:35%;"></div></div>
+        <div class="perf-bar-value good">~1.5s</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">💡 <strong>*</strong> El bundle extras (decants armador, quiz, juegos ST) se carga solo cuando el usuario abre esas secciones. La home pasa de 300KB → 100KB. <br>⚠️ Es invasivo — `[JS-CHUNK]` ya está marcado como "una semana sin cambios grandes" en pendientes. Si lo encaramos: 4-6 hs partido en sesiones.</div>
+</section>
+
+<div class="footer">
+  Mockup standalone · no toca producción · al cerrarlo no se pierde nada
+</div>
+
+<script>
+  function setTheme(theme) {
+    document.body.classList.toggle('light', theme === 'light');
+    document.body.classList.toggle('dark', theme === 'dark');
+    document.getElementById('btnDark').classList.toggle('active', theme === 'dark');
+    document.getElementById('btnLight').classList.toggle('active', theme === 'light');
+  }
+</script>
+
+</body>
+</html>

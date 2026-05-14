@@ -2159,17 +2159,22 @@
       background: inherit;
       background-size: cover;
       background-position: center;
-      filter: blur(28px) saturate(1.3) brightness(.75);
-      transform: scale(1.15);
+      /* [3A] brightness más bajo apaga blancos que queman sin matar colores.
+         saturate más alto preserva la identidad cromática del perfume. */
+      filter: blur(28px) saturate(1.5) brightness(.6);
+      transform: scale(1.2);
       z-index: 0;
       pointer-events: none;
     }
-    /* Capa de oscurecimiento para que la botella destaque sobre el blur */
+    /* [3A] Capa de cohesión: vignette negro periférico + tinte dorado tenue.
+       Las cards con foto fondo blanco no chocan tanto en dark mode. */
     .card-gallery-slide::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,.35) 100%);
+      background:
+        radial-gradient(circle at center, transparent 0%, rgba(0,0,0,.55) 100%),
+        linear-gradient(135deg, rgba(232,184,0,.06), transparent 55%);
       z-index: 1;
       pointer-events: none;
     }
@@ -2180,12 +2185,15 @@
       max-height: 250px;
       object-fit: contain;
     }
-    /* En light mode el oscurecido es menor para no contaminar la paleta crema */
+    /* [3A] Light mode: vignette dorado-marrón para que se mantenga "del mismo set"
+       visualmente, sin chocar con la paleta crema. */
     body:not(.dark-mode) .card-gallery-slide::before {
-      filter: blur(28px) saturate(1.2) brightness(.92);
+      filter: blur(28px) saturate(1.3) brightness(.85);
     }
     body:not(.dark-mode) .card-gallery-slide::after {
-      background: radial-gradient(circle at center, transparent 40%, rgba(255,255,255,.35) 100%);
+      background:
+        radial-gradient(circle at center, transparent 30%, rgba(232,184,0,.12) 100%),
+        linear-gradient(135deg, rgba(232,184,0,.08), transparent 60%);
     }
     /* Nav bar del carrusel: ‹ 1/4 › al bottom-center de la imagen,
        siempre visible. No se pelea con el card-reveal porque queda en
