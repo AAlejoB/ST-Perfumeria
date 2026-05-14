@@ -544,6 +544,7 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[BACKDROP]` — tuning del backdrop blur de `.card-gallery-slide` para cohesión visual del catálogo. Las cards con foto fondo blanco quemaban en dark mode, las de fondo negro chocaban en light. Cambios: `brightness .75→.6` (dark) y `.92→.85` (light) — apaga blancos sin matar colores; `saturate 1.3→1.5` (dark) y `1.2→1.3` (light) — preserva identidad cromática; `scale 1.15→1.2` — más cobertura del blur; vignette de `rgba(0,0,0,.35)→.55` en dark; nuevo overlay con linear-gradient dorado tenue + radial dorado en light. Cero cambios estructurales, solo valores en `.card-gallery-slide::before` y `::after`.
 - `[ZAPATO]` — admin con sidebar lateral en lugar de tab-bar horizontal. 5 grupos colapsables (Top fijo, Productos, Gestión jefe-only, Marketing & Home, Sistema). Tabs originales mantienen clases `.tab-btn`/data-attributes → `switchTab()` intacto. Responsivo: ≥1100px sidebar 240px / 701-1100px sidebar 200px / ≤700px sidebar oculto con hamburguesa overlay. Persistencia en localStorage (`st_admin_sidebar_collapsed` + `st_admin_sidebar_groups`): cada tablet recuerda si dejó el sidebar plegado y qué grupos colapsados. Light mode aplicado al sidebar. `applyRolePermissions` actualizada para apuntar a `.sidebar .tab-btn`. Mockup HTML standalone original en `mockup-zapato.html`.
 - `[JS-CHUNK]` iter 1 — primer split del bundle `app.js` (6609 → 6439 líneas). El armador de decants (renderDecantGrid + open/close + sendDecantPackToWA + popstate handler, ~170 líneas) vive en `js/extras.js` que se carga via `requestIdleCallback` post-TTI (fallback: setTimeout 2s post-load). Stubs en core: `openDecantBuilder()`, `closeDecantBuilder()`, `sendDecantPackToWA()`, `renderDecantGrid()` — disparan `loadExtras()` si el cliente toca antes del idle. **Pendiente iter 2**: mover quiz, juegos ST, custom cursor, compare modal, banner decants WA, share/sharePerfume — todo a `extras.js`. Eso podría sacar otros ~3000 líneas del bundle inicial.
+- `[BANNER-V2]` — rediseño completo del banner Decants en `index.html` (post foto IA del usuario). Layout grid 3 columnas desktop (izquierda texto+CTA / centro frascos / derecha trust badges) sobre gradient violeta-magenta `#2a0a3a → #b71c5c`. **Centro**: 3 frascos atomizadores SVG transparentes (vidrio + líquido ámbar + brillo lateral) sobre podiums morados 3D escalonados (5ml chico → 10ml medio → 20ml grande), humo CSS animado (radial gradient + blur, 9s loop), flor 🪻 decorativa con drop-shadow, cintas amarillas diagonales "PRÓXIMAMENTE" en 10/20, 5ml destacado con drop-shadow dorado + label "5 ml ✓" + check verde. **Izquierda**: title "Decants" con gradient blanco→dorado, tagline "tu fragancia, tu medida" en Cormorant Garamond cursiva dorada, CTA pill blanca grande "💧 Armá tu pack →". **Derecha**: 3 trust badges con iconos SVG circulares dorados (estrella/valija/corazón). **Mobile Variante C**: stack vertical, 5ml protagonista grande centrado con 10/20 thumbnails .55 scale al costado, badges en fila compacta sin descripciones. Mockup que sirvió de referencia: `mockups.html` Opción 2 + Variante C (commit 7002cac).
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
 - `[FCP-CSS]` — CSS no bloqueante + critical inline
@@ -562,3 +563,27 @@ Y para mejoras futuras planteadas pero no hechas:
 - `[BCRYPT-MIGRATION]` — hashear passwords lazy migration
 - `[SUPABASE-AUTH]` — migrar de custom auth a Supabase Auth nativo
 - `[ORDEN-COMPRA-TAB]` — tab admin con sugerencias de pedido
+
+### 💡 Ideas futuras para enriquecer la landing (brainstorm mayo 2026)
+
+Cosas que se charlaron o aparecieron como "estaría bueno tener" durante las sesiones. **NO están priorizadas** — el jefe / Alejo decide cuándo atacar.
+
+| Idea | Por qué | Esfuerzo aprox |
+|---|---|---|
+| `[REVIEWS]` Reviews con estrellas + comentarios de clientes (moderados desde admin) | Social proof real, aumenta conversión | 3-4 hs (tabla `reviews` + UI cliente + tab admin moderación) |
+| `[WISHLIST-SHARE]` Wishlist compartible por link/WhatsApp | "Mandale esta lista a tu pareja" — viralización orgánica | 2-3 hs (slug compartible + landing dinámica `/wish/abc123`) |
+| `[NEWSLETTER]` Email signup con descuento bienvenida | Captar leads para campañas futuras | 1-2 hs (form + Supabase tabla + email service) |
+| `[NOTAS-CATADOR]` Reseña corta del jefe en cada perfume ("A mí me gusta porque...") | Diferenciación + personalidad de la perfumería | 30 min UI + cargar texto perfume por perfume |
+| `[BIRTHDAY-CLUB]` Descuento automático en mes de cumpleaños del cliente | Retención + sensación VIP | 1-2 hs (date check + banner contextual) |
+| `[STOCK-URGENCY-V2]` Banner sticky inferior "Solo quedan N de este perfume" cuando hay <3 | El badge del catálogo ya existe — esto es la versión "alarma fuerte" en card abierta | 1 hs |
+| `[QUIZ-V2]` Quiz "encontrá tu perfume" más refinado (preguntas con visuales + ranking de 3 finalistas) | Ya hay quiz básico — esta versión engancha más | 2-3 hs |
+| `[CALCULADORA-PACK]` "¿Qué perfume me queda?" según ocasión + estación + presupuesto | Asistente compra interactivo | 3-4 hs |
+| `[VIDEO-EMBEDS]` Embebido de TikToks / Reels del local + clientes | UGC y "ver el local" sin venir | 1-2 hs (responsive iframe + admin para agregar) |
+| `[NOTAS-VISUAL]` Mapas interactivos de notas (top/middle/base) en cada perfume | Educa al cliente, hace catálogo más rico | 2-3 hs (SVG triangle + CSS) |
+| `[REFERIDOS]` Programa "invitá un amigo, ambos ganan puntos" | El sistema de puntos ya existe — esto le da viralización | 2-3 hs |
+| `[STORE-INFO]` Modal "Cómo conservar tu perfume" educativo | Confianza + autoridad | 30 min (modal con copy) |
+| `[COMPARE-V2]` Mejorar el compare actual (mostrar diferencias destacadas, gráfico de notas) | Ya existe pero es básico | 2-3 hs |
+| `[ONBOARDING-MODAL]` Modal de bienvenida primer visita con tour rápido | UX premium primera impresión | 1-2 hs |
+| `[BOTON-VOLVER-CAT]` Botón sticky "Volver al catálogo" cuando scrolleás muy abajo | Navegación + UX | 30 min |
+
+**Cómo elegir qué hacer**: priorizar lo que aumenta conversión a venta + lo que el jefe pide específicamente. Las "experiencia premium" (quiz, calculadora, video embeds) son nice pero el revenue real viene de fricción reducida (wishlist share, reviews, stock urgency).
