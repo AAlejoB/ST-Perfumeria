@@ -1518,6 +1518,22 @@
 
     <!-- TAB: DESTACADOS -->
     <div class="tab-content" id="tab-destacados">
+      <!-- [SELECCION-BADGE] Texto del badge amarillo de las cards de Selección ST.
+           Tabla Supabase: seleccion_st_config (single-row, id=1). Default "TOP VENTAS".
+           Útil para cambiarlo en campañas: HOT SALE / NUEVO / OFERTA / 50% OFF / BLACK FRIDAY. -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">🏷️ Texto del banner amarillo (badge)</p>
+        <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;margin-bottom:.8rem;max-width:560px;">El texto que aparece como pequeña etiqueta amarilla en cada card de Selección ST. Cambialo para campañas — ej: <strong>TOP VENTAS</strong>, <strong>HOT SALE</strong>, <strong>NUEVO</strong>, <strong>OFERTA</strong>, <strong>50% OFF</strong>, <strong>BLACK FRIDAY</strong>.</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:200px;">
+            <label class="modal-label" for="seleccionBadgeInput">Texto del badge (máx 20 caracteres)</label>
+            <input type="text" class="modal-input" id="seleccionBadgeInput" maxlength="20" placeholder="TOP VENTAS" style="margin-bottom:0;text-transform:uppercase;letter-spacing:.05em;font-weight:700;"/>
+          </div>
+          <button class="modal-btn" onclick="saveSeleccionBadge()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">💾 Guardar badge</button>
+        </div>
+        <p class="modal-success" id="seleccionBadgeMsg" style="margin-top:.6rem;"></p>
+      </div>
+
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
         <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Selección ST</p>
         <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Los perfumes que aparecen en la sección destacada del inicio. Máximo 7, recomendado 5.</p>
@@ -5485,7 +5501,56 @@
       var { data } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
       cachedDestacados = data ? data.map(function(d) { return d.slug; }) : [];
       renderDestacados();
+      // [SELECCION-BADGE] Cargar también el texto custom del badge al abrir la tab
+      loadSeleccionBadge();
     }
+
+    // ════════════════════════════════════════════════════════════════
+    // [SELECCION-BADGE] Texto del badge amarillo de Selección ST.
+    // Tabla single-row `seleccion_st_config` con campo `badge_text`.
+    // ════════════════════════════════════════════════════════════════
+    async function loadSeleccionBadge() {
+      var input = document.getElementById('seleccionBadgeInput');
+      if (!input) return;
+      try {
+        var { data, error } = await sb.from('seleccion_st_config')
+          .select('badge_text').eq('id', 1).maybeSingle();
+        if (error) throw error;
+        input.value = (data && data.badge_text) ? data.badge_text : 'TOP VENTAS';
+      } catch (e) {
+        input.value = 'TOP VENTAS';
+        console.warn('[seleccion-badge] no se pudo cargar config, usando default:', e);
+      }
+    }
+
+    async function saveSeleccionBadge() {
+      var input = document.getElementById('seleccionBadgeInput');
+      var msg = document.getElementById('seleccionBadgeMsg');
+      if (!input) return;
+      var newText = (input.value || '').trim().substring(0, 20);
+      if (newText.length === 0) {
+        if (msg) { msg.textContent = '⚠️ El texto no puede estar vacío.'; msg.style.color = '#e74c3c'; }
+        return;
+      }
+      try {
+        var { error } = await sb.from('seleccion_st_config').upsert({
+          id: 1,
+          badge_text: newText,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+        if (error) throw error;
+        input.value = newText;
+        if (msg) { msg.textContent = '✅ Badge guardado: "' + newText + '"'; msg.style.color = '#66bb6a'; }
+        if (typeof logAdminAction === 'function') {
+          logAdminAction('seleccion_badge_update', { badge_text: newText });
+        }
+        // Limpiar el mensaje después de 4 segundos
+        setTimeout(function() { if (msg) msg.textContent = ''; }, 4000);
+      } catch (e) {
+        if (msg) { msg.textContent = '❌ Error al guardar: ' + (e.message || e); msg.style.color = '#e74c3c'; }
+      }
+    }
+    window.saveSeleccionBadge = saveSeleccionBadge;
 
     // ============================================================
     // BENEFICIOS (TrustBadges) — CRUD editor

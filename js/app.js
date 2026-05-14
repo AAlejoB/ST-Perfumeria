@@ -1922,6 +1922,23 @@
     }
     deferTask(loadDestacadosFromDB);
 
+    // [SELECCION-BADGE] Texto del badge amarillo de las cards de Selección ST.
+    // Variable global con default "TOP VENTAS" — si Supabase tarda o falla,
+    // el render inicial igual muestra algo válido. Cuando carga la config
+    // desde la tabla seleccion_st_config, re-renderea automáticamente.
+    var SELECCION_BADGE_TEXT = 'TOP VENTAS';
+    async function loadSeleccionStConfig() {
+      try {
+        var { data } = await sb.from('seleccion_st_config')
+          .select('badge_text').eq('id', 1).maybeSingle();
+        if (data && data.badge_text && (data.badge_text + '').trim()) {
+          SELECCION_BADGE_TEXT = (data.badge_text + '').trim().substring(0, 20);
+          renderSeleccionST();
+        }
+      } catch(e) { /* silent · queda el default */ }
+    }
+    deferTask(loadSeleccionStConfig);
+
     // ============================================================
     // ANUNCIO PÚBLICO — banner entre DECANTS y SELECCIÓN ST
     //
@@ -2076,7 +2093,7 @@
             + '<div class="collectible-info">'
               + '<p class="collectible-name">' + p.name + '</p>'
               + quoteHTML
-              + '<span class="collectible-badge">HOT SALE</span>'
+              + '<span class="collectible-badge">' + escapeHTML(SELECCION_BADGE_TEXT) + '</span>'
             + '</div>'
           + '</div>'
         + '</div>';
