@@ -188,9 +188,14 @@
     .price-banner--big .price-banner-text {
       font-size: .95rem;
     }
+    /* [4B] CTA pill grande y contrastada para que el ojo lo encuentre.
+       Antes era pillita ~80px chiquita perdida al lado del copy enorme. */
     .price-banner--big .price-banner-cta {
-      font-size: .72rem;
-      padding: .45rem .75rem;
+      font-size: .78rem;
+      padding: .7rem 1.1rem;
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.35);
+      font-weight: 800;
     }
     @media (min-width: 768px) {
       .price-banner--big {
@@ -203,8 +208,9 @@
         font-size: 1.25rem;
       }
       .price-banner--big .price-banner-cta {
-        font-size: .9rem;
-        padding: .55rem 1rem;
+        font-size: .95rem;
+        padding: .85rem 1.5rem;
+        box-shadow: 0 4px 14px rgba(0,0,0,.4);
       }
     }
 
@@ -279,14 +285,23 @@
       justify-content: flex-start;
       flex-wrap: nowrap;
     }
+    /* [4A] Marquee suavizado: duración 22s→45s para que no maree.
+       Si el contenido tiene 30+ caracteres, queda en 45s — sino se ajusta. */
     .home-top-banner.is-marquee .home-top-banner-text {
       display: inline-block;
       padding-left: 100%;
-      animation: htbMarquee 22s linear infinite;
+      animation: htbMarquee 45s linear infinite;
+      will-change: transform;
     }
     @keyframes htbMarquee {
       0%   { transform: translateX(0); }
       100% { transform: translateX(-200%); }
+    }
+    /* Pausa al hover (desktop) para que el cliente pueda leer */
+    @media (hover: hover) {
+      .home-top-banner.is-marquee:hover .home-top-banner-text {
+        animation-play-state: paused;
+      }
     }
     @media (prefers-reduced-motion: reduce) {
       .home-top-banner.is-marquee .home-top-banner-text {
@@ -778,7 +793,9 @@
     }
     .fav-badge.visible { display: block; }
 
-    .fav-filter-btn { color: #e74c3c !important; border-color: #e74c3c !important; font-size: .9rem !important; }
+    /* [2] ❤ filter: solo el corazón es rojo, el borde matchea con los otros filtros.
+       Al active sí se pinta de rojo (consistente con la identidad "favoritos"). */
+    .fav-filter-btn { color: #e74c3c !important; font-size: .9rem !important; }
     .fav-filter-btn:hover, .fav-filter-btn.active { background: #e74c3c !important; color: #fff !important; border-color: #e74c3c !important; }
 
     /* DRAWER */
@@ -2699,16 +2716,56 @@
       color: #ffcc00;
       margin-bottom: 0;
     }
-    .price-original { font-size: .9rem; color: #999; text-decoration: line-through; }
-    .price-label { font-size: .55rem; color: #bbb; font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
+    /* [5] Light mode fix: usar var(--gris-claro) en lugar de #999/#bbb hardcoded
+       que daba contraste 1.6:1 sobre fondo crema (WCAG fail). */
+    .price-original { font-size: .9rem; color: var(--gris-claro); text-decoration: line-through; opacity: .75; }
+    .price-label { font-size: .55rem; color: var(--gris); font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
     .price-cash { width: 100%; font-size: .85rem; color: #4caf50; font-weight: 600; }
     /* [HOTSALE] Label cash cuando hay promo activa (Hot Sale, descuento custom, etc) */
     .price-cash--hotsale {
       color: #ff7043 !important;
       font-weight: 700;
       letter-spacing: .02em;
+      /* [1] Bloque destacado con border-left para que se diferencie del cash normal */
+      padding: 4px 8px 4px 10px;
+      border-left: 3px solid #ff7043;
+      background: linear-gradient(90deg, rgba(255,112,67,.12), rgba(255,112,67,0));
+      border-radius: 0 4px 4px 0;
+      margin-top: 4px;
+      box-sizing: border-box;
     }
-    body:not(.dark-mode) .price-cash--hotsale { color: #c2410c !important; }
+    body:not(.dark-mode) .price-cash--hotsale {
+      color: #c2410c !important;
+      border-left-color: #c2410c;
+      background: linear-gradient(90deg, rgba(194,65,12,.12), rgba(194,65,12,0));
+    }
+    /* [1] Línea de cuotas con chip + monto destacado */
+    .price-cuotas-line {
+      width: 100%;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: .72rem;
+      color: var(--blanco);
+      margin: 2px 0;
+    }
+    body:not(.dark-mode) .price-cuotas-line { color: #2a2622; }
+    .price-cuotas-line strong { font-weight: 700; }
+    .price-cuotas-chip {
+      background: rgba(232,184,0,.15);
+      color: var(--amarillo);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .55rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    body:not(.dark-mode) .price-cuotas-chip {
+      background: rgba(138,109,0,.18);
+      color: #8a6d00;
+    }
 
     /* REVEAL LATERAL — sobre el área de imagen (30%), precio queda visible */
     .card-reveal {
@@ -2811,7 +2868,8 @@
 
     /* Notes preview in card (mobile) + tags in reveal (mobile) */
     .card-notes-preview { display: flex; flex-direction: column; gap: .2rem; margin-bottom: 6px; }
-    .note-prev { font-size: .6rem; font-weight: 300; color: #999; line-height: 1.35; }
+    /* [5] color: #999 → var(--gris-claro) — adaptable a dark/light */
+    .note-prev { font-size: .6rem; font-weight: 300; color: var(--gris-claro); line-height: 1.35; }
     .note-prev .note-label { font-size: .5rem; }
     .reveal-tags { display: none; gap: 4px; flex-wrap: wrap; margin-bottom: .5rem; }
     .reveal-pricing {
@@ -2822,9 +2880,20 @@
       margin-bottom: .15rem;
     }
     .reveal-pricing .price-promo { font-size: .65rem; font-weight: 800; color: var(--amarillo); }
-    .reveal-pricing .price-label { font-size: .35rem; color: #999; }
-    .reveal-pricing .price-original { font-size: .45rem; color: #666; text-decoration: line-through; }
+    /* [5] reveal lateral usa los mismos colores adaptables */
+    .reveal-pricing .price-label { font-size: .35rem; color: var(--gris); }
+    .reveal-pricing .price-original { font-size: .45rem; color: var(--gris-claro); text-decoration: line-through; opacity: .75; }
     .reveal-pricing .price-cash { width: 100%; font-size: .42rem; color: #4caf50; font-weight: 600; }
+    /* [1] Reveal mini: neutralizar el border-left/background del Hot Sale para que entre */
+    .reveal-pricing .price-cash--hotsale {
+      padding: 0;
+      border-left: 0;
+      background: none;
+      margin-top: 0;
+      font-size: .42rem;
+    }
+    .reveal-pricing .price-cuotas-line { font-size: .42rem; gap: 3px; }
+    .reveal-pricing .price-cuotas-chip { font-size: .32rem; padding: 1px 4px; }
     .reveal-pricing .card-price-original-discount { font-size: .45rem; color: #666; text-decoration: line-through; }
     .reveal-pricing .card-price-discount { color: #e74c3c; }
 
@@ -2873,15 +2942,18 @@
       }
     }
 
-    /* FILTROS ACTIVOS — chips removibles */
+    /* [2] FILTROS ACTIVOS — chips removibles. Estilo "pegado" al filter-bar
+       arriba para que se sienta como continuación, no como bar suelta huérfana. */
     .active-filters-bar {
       display: flex;
       align-items: center;
       gap: .5rem;
-      padding: .5rem 1rem;
+      padding: .35rem .9rem .55rem;
       flex-wrap: wrap;
-      background: rgba(232,184,0,.04);
-      border-bottom: 1px solid rgba(232,184,0,.1);
+      background: linear-gradient(180deg, rgba(232,184,0,.06), rgba(232,184,0,.02));
+      border-top: 1px solid rgba(232,184,0,.12);
+      border-bottom: 1px solid rgba(232,184,0,.08);
+      margin-top: -1px; /* solapa con el filter-bar superior */
     }
     .active-filters-chips {
       display: flex;
@@ -3726,26 +3798,62 @@
       .decant-b-right { flex: 0 0 auto; padding: 1.2rem; gap: 1rem; }
     }
 
-    /* Cinta "Foto próximamente" en cards sin foto */
+    /* [3B] Placeholder "Foto próximamente" — versión elegante (mayo 2026).
+       Reemplaza el SVG-botella + cinta diagonal amarilla que parecía un badge
+       de error. Ahora: inicial display grande + nombre tenue + label sutil
+       sobre fondo con radial dorado. Coherente con el [BACKDROP] del catálogo. */
     .photo-coming {
       position: relative;
+      width: 100%;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 10px;
+      background:
+        radial-gradient(circle at center, rgba(232,184,0,.08), transparent 65%),
+        linear-gradient(135deg, rgba(232,184,0,.04), transparent 55%);
+      border-radius: 4px;
       overflow: hidden;
     }
-    .photo-coming-ribbon {
-      position: absolute;
-      bottom: 12px; left: -30px;
-      background: var(--amarillo);
-      color: #000;
-      font-size: .45rem;
+    .photo-coming-letter {
+      font-family: var(--font-display);
+      font-size: 3.2rem;
       font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      padding: 3px 30px;
-      transform: rotate(-15deg);
-      z-index: 2;
-      box-shadow: 0 1px 4px rgba(0,0,0,.2);
-      white-space: nowrap;
+      color: rgba(232,184,0,.35);
+      line-height: 1;
+      letter-spacing: .02em;
     }
+    .photo-coming-name {
+      font-family: var(--font-display);
+      font-size: .82rem;
+      font-weight: 600;
+      color: rgba(255,255,255,.55);
+      text-align: center;
+      letter-spacing: .04em;
+      line-height: 1.2;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .photo-coming-label {
+      font-size: .52rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      opacity: .65;
+      margin-top: 2px;
+    }
+    /* Light mode: paleta dorada-marrón */
+    body:not(.dark-mode) .photo-coming-letter { color: rgba(138,109,0,.45); }
+    body:not(.dark-mode) .photo-coming-name   { color: rgba(26,26,29,.55); }
+    body:not(.dark-mode) .photo-coming-label  { color: #8a6d00; opacity: .75; }
 
     /* Card entrance animation */
     .product-card.card-animate {

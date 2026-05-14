@@ -1701,7 +1701,10 @@
         var _bgUrl = fotosPool[0].replace(/'/g, "%27").replace(/"/g, '&quot;');
         imageHTML = '<div class="card-gallery-slide card-gallery-slide--single" data-bg="' + _bgUrl + '"><img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
       } else {
-        imageHTML = '<div class="photo-coming"><div class="bottle-placeholder"><div class="bottle-cap"></div><div class="bottle-neck"></div><div class="bottle-body"></div><span class="bottle-letter">' + letter + '</span></div><div class="photo-coming-ribbon">Foto próximamente</div></div>';
+        // [3B] Placeholder elegante: tipografía display + nombre del perfume + label sutil.
+        // Reemplaza el SVG-botella con cinta diagonal amarilla "Foto próximamente" que
+        // parecía un badge de error. Ahora se ve como "carga en curso" en vez de bug.
+        imageHTML = '<div class="photo-coming"><span class="photo-coming-letter">' + letter + '</span><span class="photo-coming-name">' + p.name + '</span><span class="photo-coming-label">Foto próximamente</span></div>';
       }
 
       // [HOTSALE] Las cuotas siempre se calculan sobre precio TARJETA (p.price).
@@ -1710,14 +1713,17 @@
       var cashPrice = getCashPrice(p);
       var cashFormatted = '$' + cashPrice.toLocaleString('es-AR').replace(/,/g, '.');
       var discountPct = getDiscountPct(p);
+      // [1] Mostrar el VALOR de cada cuota (no solo "3 cuotas sin interés" suelto).
+      // Antes el label era microscópico (.55rem) y no se entendía cuánto pagás c/u.
+      var cuotaFormatted = '$' + getCuotaPrice(p).toLocaleString('es-AR').replace(/,/g, '.');
       var pricingHTML;
       if (hasHotSale(p)) {
         pricingHTML = '<span class="price-promo">' + listaFormatted + '</span>'
-          + '<span class="price-label">3 cuotas sin interés</span>'
+          + '<span class="price-cuotas-line"><span class="price-cuotas-chip">3 cuotas</span><strong>' + cuotaFormatted + '</strong> sin interés</span>'
           + '<span class="price-cash price-cash--hotsale">' + HOT_SALE_LABEL + ': ' + cashFormatted + ' (' + discountPct + '% off)</span>';
       } else {
         pricingHTML = '<span class="price-promo">' + listaFormatted + '</span>'
-          + '<span class="price-label">3 cuotas sin interés</span>'
+          + '<span class="price-cuotas-line"><span class="price-cuotas-chip">3 cuotas</span><strong>' + cuotaFormatted + '</strong> sin interés</span>'
           + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
       }
 
@@ -5219,18 +5225,21 @@
         + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
         + tipoBadge;
 
-      // [HOTSALE] Precio en modal de detalle: misma lógica que la card del catálogo.
+      // [HOTSALE][1] Precio en modal detalle: misma lógica que card + valor de cuota visible.
       var bsListaFormatted = '$' + getListaPrice(p).toLocaleString('es-AR').replace(/,/g, '.');
       var bsCashNum = getCashPrice(p);
       var bsCashFormatted = '$' + bsCashNum.toLocaleString('es-AR').replace(/,/g, '.');
+      var bsCuotaFormatted = '$' + getCuotaPrice(p).toLocaleString('es-AR').replace(/,/g, '.');
       var bsPctOff = getDiscountPct(p);
       var priceHTML = '';
       if (hasHotSale(p)) {
-        priceHTML = '<span class="price-promo">' + bsListaFormatted + '</span> <span class="price-label">3 cuotas sin interés</span>'
-          + '<br><span class="price-cash price-cash--hotsale">' + HOT_SALE_LABEL + ': ' + bsCashFormatted + ' (' + bsPctOff + '% off)</span>';
+        priceHTML = '<span class="price-promo">' + bsListaFormatted + '</span>'
+          + '<span class="price-cuotas-line"><span class="price-cuotas-chip">3 cuotas</span><strong>' + bsCuotaFormatted + '</strong> sin interés</span>'
+          + '<span class="price-cash price-cash--hotsale">' + HOT_SALE_LABEL + ': ' + bsCashFormatted + ' (' + bsPctOff + '% off)</span>';
       } else {
-        priceHTML = '<span class="price-promo">' + bsListaFormatted + '</span> <span class="price-label">3 cuotas sin interés</span>'
-          + '<br><span class="price-cash">' + bsCashFormatted + ' descuento efectivo/transf.</span>';
+        priceHTML = '<span class="price-promo">' + bsListaFormatted + '</span>'
+          + '<span class="price-cuotas-line"><span class="price-cuotas-chip">3 cuotas</span><strong>' + bsCuotaFormatted + '</strong> sin interés</span>'
+          + '<span class="price-cash">' + bsCashFormatted + ' descuento efectivo/transf.</span>';
       }
       document.getElementById('bsPrice').innerHTML = priceHTML;
 
