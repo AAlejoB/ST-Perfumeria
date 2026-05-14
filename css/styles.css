@@ -3545,6 +3545,232 @@
       letter-spacing: .05em;
     }
     .similar-price { font-size: .85rem; font-weight: 700; color: var(--amarillo); flex-shrink: 0; }
+
+    /* ════════════════════════════════════════════════════════════════
+       [SIMILARES-C+D+A] Versión rica del item — ring de % match +
+       botón "⚖ Comparar" + razón humana (chips) + badges premium.
+       Aplica la clase `.sim-rich` (junto a `.similar-item`).
+       Grid: 4 zonas — foto (col 1) · info (col 2) · ring (col 3) · botón (col 4)
+       + razón y badges en filas 2 y 3 que ocupan todo el ancho.
+       ──────────────────────────────────────────────────────────────── */
+    .similar-item.sim-rich {
+      display: grid;
+      grid-template-columns: 56px 1fr auto auto;
+      grid-template-rows: auto auto auto;
+      gap: 8px 11px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 8px;
+      background: rgba(255,255,255,.02);
+      align-items: center;
+      transition: border-color .15s, background .15s;
+    }
+    .similar-item.sim-rich:last-child { border-bottom: 1px solid rgba(255,255,255,.06); margin-bottom: 6px; }
+    .similar-item.sim-rich:hover {
+      border-color: rgba(232,184,0,.4);
+      background: rgba(232,184,0,.04);
+    }
+    .similar-item.sim-rich.is-best {
+      border-color: rgba(255,215,0,.5);
+      box-shadow: 0 0 0 1px rgba(255,215,0,.15), 0 4px 18px rgba(255,215,0,.08);
+    }
+    .similar-item.sim-rich .similar-img {
+      width: 56px; height: 66px; grid-row: 1; grid-column: 1;
+    }
+    .similar-item.sim-rich .similar-info {
+      grid-row: 1; grid-column: 2; min-width: 0;
+    }
+    .similar-item.sim-rich .similar-name {
+      font-size: .85rem; font-weight: 700; margin: 0;
+    }
+    .similar-item.sim-rich .similar-brand {
+      font-size: .62rem; text-transform: uppercase; letter-spacing: .04em;
+      color: var(--gris-claro); margin: 2px 0 0;
+    }
+    .similar-rec {
+      font-size: .58rem; color: var(--gris); font-style: italic; margin: 3px 0 0;
+    }
+
+    /* ─── Ring de % match ───────────────────────────────────────── */
+    .sim-ring-wrap {
+      position: relative;
+      width: 48px; height: 48px;
+      grid-row: 1; grid-column: 3;
+      flex-shrink: 0;
+    }
+    .sim-ring-svg { transform: rotate(-90deg); display: block; }
+    .sim-ring-bg-arc { fill: none; stroke: rgba(232,184,0,.15); stroke-width: 4; }
+    .sim-ring-fg-arc {
+      fill: none; stroke: var(--amarillo); stroke-width: 4; stroke-linecap: round;
+      transition: stroke-dashoffset .7s cubic-bezier(.25,.46,.45,.94);
+    }
+    .sim-ring-fg-arc.score-high { stroke: #ffd700; }
+    .sim-ring-fg-arc.score-mid  { stroke: var(--amarillo); }
+    .sim-ring-fg-arc.score-low  { stroke: #cd7f32; }
+    .sim-ring-text {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .65rem; font-weight: 800; color: var(--amarillo);
+      letter-spacing: -.02em; line-height: 1;
+    }
+    .sim-ring-text.score-high { color: #ffd700; }
+    .sim-ring-text.score-low  { color: #cd7f32; }
+
+    /* ─── Botón "⚖ Comparar" ────────────────────────────────────── */
+    .sim-btn-comparar {
+      grid-row: 1; grid-column: 4;
+      background: rgba(232,184,0,.1);
+      color: var(--amarillo);
+      border: 1px solid rgba(232,184,0,.4);
+      padding: 7px 12px;
+      border-radius: 16px;
+      font-size: .6rem;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: background .15s, color .15s, transform .12s;
+      font-family: inherit; white-space: nowrap;
+    }
+    .sim-btn-comparar:hover {
+      background: var(--amarillo); color: #1a1a1d; border-color: var(--amarillo);
+    }
+    .sim-btn-comparar:active { transform: scale(.96); }
+    .sim-btn-comparar-ico { font-size: .8rem; }
+
+    /* ─── Razón humana (chips) ──────────────────────────────────── */
+    .sim-razon-humana {
+      grid-row: 2; grid-column: 1 / -1;
+      border-top: 1px dashed rgba(232,184,0,.18);
+      padding-top: 7px;
+      display: flex; align-items: flex-start; gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sim-razon-label {
+      font-size: .52rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--amarillo);
+      flex-shrink: 0; padding-top: 2px;
+    }
+    .sim-razon-text {
+      flex: 1; display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .sim-razon-chip {
+      display: inline-block;
+      background: rgba(232,184,0,.12);
+      color: var(--amarillo);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: .58rem;
+      font-weight: 600;
+      border: 1px solid rgba(232,184,0,.22);
+      line-height: 1.4;
+    }
+    .sim-razon-chip.sim-razon-chip-more {
+      background: transparent; opacity: .65;
+    }
+
+    /* ─── Badges premium (max 2) ────────────────────────────────── */
+    .sim-badges {
+      grid-row: 3; grid-column: 1 / -1;
+      padding-top: 7px;
+      border-top: 1px dashed rgba(255,255,255,.06);
+      display: flex; gap: 5px; flex-wrap: wrap;
+    }
+    .sim-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: .54rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      line-height: 1.4;
+    }
+    .sim-badge-ico { font-size: .68rem; line-height: 1; }
+    .sim-badge.b-best {
+      background: linear-gradient(135deg, rgba(255,215,0,.28), rgba(232,184,0,.16));
+      color: #ffd700;
+      border: 1px solid rgba(255,215,0,.45);
+    }
+    .sim-badge.b-casa {
+      background: linear-gradient(135deg, rgba(160,112,208,.28), rgba(106,27,154,.16));
+      color: #b88ce0;
+      border: 1px solid rgba(160,112,208,.45);
+    }
+    .sim-badge.b-perfil {
+      background: linear-gradient(135deg, rgba(33,150,243,.24), rgba(33,150,243,.1));
+      color: #6ab2f0;
+      border: 1px solid rgba(33,150,243,.42);
+    }
+    .sim-badge.b-elegido {
+      background: linear-gradient(135deg, rgba(244,143,177,.28), rgba(183,28,92,.16));
+      color: #f48fb1;
+      border: 1px solid rgba(244,143,177,.45);
+    }
+
+    /* ─── Mobile responsive — reflow para pantallas chicas ──────── */
+    @media (max-width: 540px) {
+      .similar-item.sim-rich {
+        grid-template-columns: 50px 1fr auto;
+        gap: 7px 9px;
+        padding: 10px;
+      }
+      .similar-item.sim-rich .similar-img { width: 50px; height: 60px; }
+      .sim-ring-wrap {
+        grid-row: 1; grid-column: 3;
+        width: 42px; height: 42px;
+      }
+      .sim-ring-svg { width: 42px; height: 42px; }
+      .sim-ring-text { font-size: .58rem; }
+      /* Botón Comparar baja a su propia fila ANTES de la razón */
+      .sim-btn-comparar {
+        grid-row: 2; grid-column: 1 / -1;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: .62rem;
+      }
+      .sim-razon-humana { grid-row: 3; }
+      .sim-badges { grid-row: 4; }
+      .similar-item.sim-rich .similar-name { font-size: .8rem; }
+    }
+
+    /* ─── Light mode ────────────────────────────────────────────── */
+    body:not(.dark-mode) .similar-item.sim-rich {
+      background: rgba(255,255,255,.5);
+      border-color: rgba(120,90,0,.18);
+    }
+    body:not(.dark-mode) .similar-item.sim-rich:hover {
+      border-color: rgba(120,90,0,.5);
+      background: rgba(232,184,0,.06);
+    }
+    body:not(.dark-mode) .similar-item.sim-rich.is-best {
+      border-color: rgba(184,140,0,.5);
+      box-shadow: 0 0 0 1px rgba(184,140,0,.15), 0 4px 18px rgba(184,140,0,.1);
+    }
+    body:not(.dark-mode) .similar-item.sim-rich .similar-name { color: #1a1a1d; }
+    body:not(.dark-mode) .similar-item.sim-rich .similar-brand { color: #5a5046; }
+    body:not(.dark-mode) .similar-rec { color: #6a6058; }
+    body:not(.dark-mode) .sim-ring-bg-arc { stroke: rgba(120,90,0,.18); }
+    body:not(.dark-mode) .sim-ring-fg-arc.score-mid { stroke: #8a6d00; }
+    body:not(.dark-mode) .sim-ring-text { color: #8a6d00; }
+    body:not(.dark-mode) .sim-ring-text.score-low { color: #8a4a18; }
+    body:not(.dark-mode) .sim-btn-comparar {
+      background: rgba(184,140,0,.1);
+      color: #8a6d00;
+      border-color: rgba(184,140,0,.4);
+    }
+    body:not(.dark-mode) .sim-btn-comparar:hover {
+      background: #8a6d00; color: #fff;
+    }
+    body:not(.dark-mode) .sim-razon-label { color: #8a6d00; }
+    body:not(.dark-mode) .sim-razon-chip {
+      background: rgba(184,140,0,.12);
+      color: #8a6d00;
+      border-color: rgba(184,140,0,.32);
+    }
+    /* Badges en light mantienen sus gradients que se ven bien sobre crema */
+
     .set-highlight { font-size: 1rem !important; color: var(--amarillo) !important; margin-bottom: .3rem; }
 
     .set-highlight::before { content: '' !important; }

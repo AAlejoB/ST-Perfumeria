@@ -2266,6 +2266,92 @@
       return all;
     }
 
+    // ────────────────────────────────────────────────────────────────
+    // [SIMILARES-C+D+A] Helpers para el modal "Ver similares" iter 2026.
+    // Reglas de UI:
+    //   - 🏆 Mejor match: solo el #1 absoluto de la lista
+    //   - 💎 Misma casa: marca_real coincide con el anchor
+    //   - 🎯 Mismo perfil: perfil coincide Y pct ≥ 75 ("condición fuerte")
+    //   - 🔥 El más elegido: está en TOP_VENTAS_SLUGS[0..2]
+    //   - Max 2 badges por item · prioridad: best > elegido > casa > perfil
+    // ────────────────────────────────────────────────────────────────
+
+    // getCommonNotesList: notas que comparten 2 perfumes, capitalizadas, sin dupes.
+    function getCommonNotesList(p1, p2) {
+      var n1 = getNotas(p1);
+      var n2 = getNotas(p2);
+      var seen = {};
+      var common = [];
+      n1.forEach(function(n) {
+        if (n2.indexOf(n) !== -1 && !seen[n]) {
+          seen[n] = true;
+          common.push(n.charAt(0).toUpperCase() + n.slice(1));
+        }
+      });
+      return common;
+    }
+
+    // getMatchPct: % de notas del anchor que están en el similar. Mismo cálculo
+    // que findSimilares usa internamente, pero aislado para reuso.
+    function getMatchPct(anchorPerfume, similarPerfume) {
+      var n1 = getNotas(anchorPerfume);
+      if (n1.length === 0) return 0;
+      var n2 = getNotas(similarPerfume);
+      var shared = 0;
+      n1.forEach(function(n) { if (n2.indexOf(n) !== -1) shared++; });
+      return Math.round((shared / n1.length) * 100);
+    }
+
+    // getSimilarityBadges: devuelve hasta 2 badges para mostrar en el item.
+    // Solo agrega badges cuando la condición es FUERTE (regla del jefe):
+    // sino el cliente ve un mar de badges y pierde el "wow".
+    function getSimilarityBadges(anchorPerfume, similarPerfume, pct, isBest, topElegidosSlugs) {
+      var badges = [];
+      // 🏆 Mejor match — solo el #1 absoluto
+      if (isBest) {
+        badges.push({ ico: '🏆', label: 'Mejor match', cls: 'b-best' });
+      }
+      // 🔥 El más elegido — top 3 ventas del mes (TOP_VENTAS_SLUGS)
+      if (topElegidosSlugs && topElegidosSlugs.indexOf(similarPerfume.slug) !== -1) {
+        badges.push({ ico: '🔥', label: 'El más elegido', cls: 'b-elegido' });
+      }
+      // 💎 Misma casa — marca_real coincide
+      if (similarPerfume.marca_real && anchorPerfume.marca_real &&
+          similarPerfume.marca_real === anchorPerfume.marca_real) {
+        badges.push({ ico: '💎', label: 'Misma casa', cls: 'b-casa' });
+      }
+      // 🎯 Mismo perfil — SOLO si además pct >= 75 (condición fuerte)
+      if (similarPerfume.perfil && anchorPerfume.perfil &&
+          similarPerfume.perfil === anchorPerfume.perfil && pct >= 75) {
+        badges.push({ ico: '🎯', label: 'Mismo perfil', cls: 'b-perfil' });
+      }
+      // Max 2 badges — el orden de inserción ya es la prioridad correcta.
+      return badges.slice(0, 2);
+    }
+
+    // compareSimilar: handler del botón "⚖ Comparar" en cada similar.
+    // Agrega ANCHOR + SIMILAR a compareList (rotando si está lleno) y cierra
+    // el modal de Similares. Después el cliente toca el botón grande de la
+    // compare-bar flotante y abre el modal Compare V2 (con Diferencias + Elegir este).
+    function compareSimilar(anchorSlug, similarSlug, event) {
+      if (event) { event.preventDefault(); event.stopPropagation(); }
+      function addToCompare(slug) {
+        if (compareList.indexOf(slug) !== -1) return;
+        if (compareList.length >= COMPARE_MAX) compareList.shift();
+        compareList.push(slug);
+      }
+      addToCompare(anchorSlug);
+      addToCompare(similarSlug);
+      // Activar visualmente los compare-btn de las cards correspondientes
+      [anchorSlug, similarSlug].forEach(function(s) {
+        var btn = document.querySelector('[data-slug="' + s + '"] .compare-btn');
+        if (btn) btn.classList.add('active');
+      });
+      if (typeof updateCompareBar === 'function') updateCompareBar();
+      closeSimilares();
+    }
+    window.compareSimilar = compareSimilar;
+
     // findSimilares: busca los perfumes más parecidos a uno dado
     // Recibe el "slug" (identificador único) del perfume
     function findSimilares(slug) {
@@ -2308,24 +2394,116 @@
       return scores.slice(0, 5);
     }
 
-    // Helper: renderiza una card de perfume similar (reutilizado en ambas secciones).
-    // `subtitle` va abajo del nombre/marca — para el algoritmo muestra "X notas · Y% match",
-    // para el manual muestra "Recomendado por ST".
-    function buildSimilarItemHTML(p, subtitle) {
+    // ────────────────────────────────────────────────────────────────
+    // [SIMILARES-C+D+A] buildSimilarItemHTML — versión iter 2026.
+    // Render rico de cada similar con: ring de % match + botón comparar
+    // + razón humana (chips de notas comunes) + badges premium.
+    // opts:
+    //   - anchorPerfume   (perfume al que se le piden similares)
+    //   - pct             (% de match, 0 si no aplica — caso "manual sin match calculado")
+    //   - isBest          (boolean: es el #1 absoluto del modal)
+    //   - subtitle        (texto opcional "Recomendado por el equipo" para los manuales)
+    //   - topElegidosSlugs (array de top 3 ventas para badge 🔥)
+    //   - showRing        (boolean: mostrar ring + razón humana, default true si hay anchor)
+    // ────────────────────────────────────────────────────────────────
+    function buildSimilarItemHTML(p, opts) {
+      opts = opts || {};
+      var anchor = opts.anchorPerfume;
+      var pct = (opts.pct != null ? opts.pct : (anchor ? getMatchPct(anchor, p) : 0));
+      var isBest = !!opts.isBest;
+      var subtitle = opts.subtitle || '';
+      var topElegidosSlugs = opts.topElegidosSlugs || [];
+      var showRing = (opts.showRing !== false) && pct > 0;
+
       var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
       var letter = p.name.charAt(0);
       var imgHTML = p.foto
         ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">'
         : '<div style="color:var(--amarillo);font-size:1rem;opacity:.4;">' + letter + '</div>';
-      var price = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
-      return '<div class="similar-item" onclick="closeSimilares();scrollToPerfume(\'' + p.slug + '\')">'
-        + '<div class="similar-img">' + imgHTML + '</div>'
-        + '<div class="similar-info">'
+
+      // Ring SVG (circunferencia r=20 → 2*π*20 = 125.66)
+      var ringHTML = '';
+      if (showRing) {
+        var CIRC = 125.66;
+        var offset = CIRC * (1 - pct / 100);
+        var scoreClass = pct >= 85 ? 'score-high' : (pct < 70 ? 'score-low' : 'score-mid');
+        ringHTML =
+          '<div class="sim-ring-wrap">'
+            + '<svg class="sim-ring-svg" width="48" height="48" viewBox="0 0 50 50" aria-hidden="true">'
+              + '<circle class="sim-ring-bg-arc" cx="25" cy="25" r="20"></circle>'
+              + '<circle class="sim-ring-fg-arc ' + scoreClass + '" cx="25" cy="25" r="20"'
+              + ' stroke-dasharray="' + CIRC + '"'
+              + ' stroke-dashoffset="' + offset.toFixed(1) + '"></circle>'
+            + '</svg>'
+            + '<span class="sim-ring-text ' + scoreClass + '">' + pct + '%</span>'
+          + '</div>';
+      }
+
+      // Razón humana — chips de notas comunes (max 6, +N más si excede)
+      var razonHTML = '';
+      if (anchor && pct > 0) {
+        var common = getCommonNotesList(anchor, p);
+        if (common.length > 0) {
+          var visible = common.slice(0, 6);
+          var moreCount = common.length - visible.length;
+          var chips = visible.map(function(n) {
+            return '<span class="sim-razon-chip">' + n + '</span>';
+          }).join('');
+          if (moreCount > 0) {
+            chips += '<span class="sim-razon-chip sim-razon-chip-more">+' + moreCount + ' más</span>';
+          }
+          razonHTML =
+            '<div class="sim-razon-humana">'
+              + '<span class="sim-razon-label">Coincidencia</span>'
+              + '<span class="sim-razon-text">' + chips + '</span>'
+            + '</div>';
+        }
+      }
+
+      // Botón "⚖ Comparar" — solo si tenemos un anchor (sino no tiene sentido)
+      var compareBtnHTML = '';
+      if (anchor) {
+        compareBtnHTML =
+          '<button type="button" class="sim-btn-comparar" onclick="compareSimilar(\'' + anchor.slug + '\', \'' + p.slug + '\', event)" aria-label="Comparar con ' + p.name + '">'
+            + '<span class="sim-btn-comparar-ico" aria-hidden="true">⚖</span>'
+            + '<span class="sim-btn-comparar-text">Comparar</span>'
+          + '</button>';
+      }
+
+      // Badges premium (max 2 con la regla "condición fuerte")
+      var badgesHTML = '';
+      if (anchor) {
+        var badges = getSimilarityBadges(anchor, p, pct, isBest, topElegidosSlugs);
+        if (badges.length > 0) {
+          badgesHTML =
+            '<div class="sim-badges">'
+              + badges.map(function(b) {
+                  return '<span class="sim-badge ' + b.cls + '">'
+                    + '<span class="sim-badge-ico" aria-hidden="true">' + b.ico + '</span>'
+                    + b.label
+                  + '</span>';
+                }).join('')
+            + '</div>';
+        }
+      }
+
+      // Subtitle "Recomendado por el equipo" o info pasada
+      var subtitleHTML = subtitle ? '<p class="similar-rec">' + subtitle + '</p>' : '';
+      var bestClass = isBest ? ' is-best' : '';
+      // Onclick para navegar al perfume (en zona img + info, NO en ring/botón/badges)
+      var navOnclick = 'closeSimilares();scrollToPerfume(\'' + p.slug + '\')';
+
+      return '<div class="similar-item sim-rich' + bestClass + '" data-slug="' + p.slug + '">'
+        + '<div class="similar-img" onclick="' + navOnclick + '">' + imgHTML + '</div>'
+        + '<div class="similar-info" onclick="' + navOnclick + '">'
           + '<p class="similar-name">' + p.name + '</p>'
           + '<p class="similar-brand">' + (p.marca_real || p.marca) + '</p>'
-          + '<p class="similar-match">' + subtitle + '</p>'
+          + subtitleHTML
         + '</div>'
-        + '<span class="similar-price">' + price + '</span>'
+        + ringHTML
+        + compareBtnHTML
+        + razonHTML
+        + badgesHTML
       + '</div>';
     }
 
@@ -2389,10 +2567,27 @@
       }
 
       // Sección 2: recomendados manuales (si hay).
+      // [SIMILARES-C+D+A] Top 3 ventas para badge "🔥 El más elegido".
+      // Si TOP_VENTAS_SLUGS está cargado desde Supabase usamos los primeros 3,
+      // sino default seguro vacío (sin badge "más elegido").
+      var topElegidos = (typeof TOP_VENTAS_SLUGS !== 'undefined' && Array.isArray(TOP_VENTAS_SLUGS))
+        ? TOP_VENTAS_SLUGS.slice(0, 3) : [];
+
+      // [SIMILARES-C+D+A] El "mejor match" (badge 🏆) es:
+      //   - El primer manual si hay (el equipo lo destacó manualmente)
+      //   - Sino, el primer algorítmico (mayor pct)
+      var bestSlug = hasManual ? recomendadosManuales[0].slug
+                   : hasAuto ? algoritmicos[0].perfume.slug : null;
+
       if (hasManual) {
         html += '<p class="similares-section-title" style="font-size:.6rem;font-weight:700;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin:.3rem 0 .5rem 0;">⭐ Recomendados por ST</p>';
         recomendadosManuales.forEach(function(p) {
-          html += buildSimilarItemHTML(p, 'Recomendado por el equipo');
+          html += buildSimilarItemHTML(p, {
+            anchorPerfume: perfume,
+            isBest: (p.slug === bestSlug),
+            subtitle: 'Recomendado por el equipo',
+            topElegidosSlugs: topElegidos,
+          });
         });
       }
 
@@ -2401,7 +2596,12 @@
         html += '<p class="similares-section-title" style="font-size:.6rem;font-weight:700;color:var(--gris);letter-spacing:.1em;text-transform:uppercase;margin:' + (hasManual || hasNota ? '1rem' : '.3rem') + ' 0 .5rem 0;">🔬 Similitud por notas</p>';
         algoritmicos.forEach(function(s) {
           var pct = Math.round((s.shared / s.total) * 100);
-          html += buildSimilarItemHTML(s.perfume, s.shared + ' notas en com\u00fan \u00b7 ' + pct + '% match');
+          html += buildSimilarItemHTML(s.perfume, {
+            anchorPerfume: perfume,
+            pct: pct,
+            isBest: (s.perfume.slug === bestSlug),
+            topElegidosSlugs: topElegidos,
+          });
         });
       }
 
