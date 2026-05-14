@@ -1379,9 +1379,16 @@
     }
 
     /* Ordenar */
-    .sort-wrapper { position: relative; }
+    /* [SORTMENU-Z] sort-wrapper crea stacking context propio (z-index + isolation)
+       para que el dropdown del Ordenar quede SIEMPRE por encima de las cards del
+       catálogo. Las cards tras un filtro reciben animation con transform → crean
+       stacking context propio → tapaban el dropdown porque la card tiene z-index
+       auto y el menu z-index 50, pero por DOM order las cards (posteriores) ganaban.
+       Con stacking context aislado en sort-wrapper + z-index alto, el menu siempre
+       queda visible. */
+    .sort-wrapper { position: relative; z-index: 100; isolation: isolate; }
     .sort-menu {
-      display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 50;
+      display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 100;
       background: var(--negro); border: 1px solid var(--borde-sutil);
       border-radius: 4px; overflow: hidden; min-width: 200px;
       box-shadow: 0 8px 24px rgba(0,0,0,.5);
@@ -1432,6 +1439,13 @@
       gap: 1rem;                             /* espacio entre cards */
       min-height: 400px;                     /* altura mínima para no colapsar */
       transition: all .3s ease;              /* transición suave al cambiar */
+      /* [CARD-STRETCH-FIX] Sin esto, cuando hay 1-2 cards visibles por filtro
+         (favs, búsqueda) y el min-height del [CLS-RESERVE] sigue activo, las
+         rows del grid se estiran al min-height → la card crece vertical con
+         espacio vacío en el medio. align-content:start + max-content rows
+         mantienen cada card en su altura natural. */
+      align-content: start;
+      grid-auto-rows: max-content;
     }
 
     /* Tablet (768px+): 2 columnas, más gap para que respiren */
@@ -1611,6 +1625,83 @@
       .collectible-card { flex: 0 0 190px; }
       .seleccion-st { padding: 3rem 2rem 1.5rem; }
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       [SELECCION-ST-1A] Podio visual #1 / #2 / #3 — oro / plata / bronce.
+       Convierte el grid en un ranking real. Las top 3 cards reciben
+       badge circular en la esquina top-left con número + color metálico.
+       Cards 4+ no reciben badge (siguen como cards normales del top 6).
+       ──────────────────────────────────────────────────────────────── */
+    .collectible-card.has-rank { box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+    .collectible-card.rank-1 {
+      border-color: #ffd700;
+      box-shadow: 0 0 0 1px rgba(255,215,0,.25), 0 6px 22px rgba(255,215,0,.18);
+    }
+    .collectible-card.rank-2 {
+      border-color: #c0c0c0;
+      box-shadow: 0 0 0 1px rgba(192,192,192,.2), 0 6px 22px rgba(192,192,192,.12);
+    }
+    .collectible-card.rank-3 {
+      border-color: #cd7f32;
+      box-shadow: 0 0 0 1px rgba(205,127,50,.22), 0 6px 22px rgba(205,127,50,.14);
+    }
+    .rank-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 3;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 7px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+      color: #1a1a1d;
+      box-shadow: 0 3px 10px rgba(0,0,0,.45);
+      border: 1px solid rgba(0,0,0,.2);
+    }
+    .rank-badge.rank-1 {
+      background: linear-gradient(135deg, #fff3a3, #ffd700 50%, #c9a000);
+      text-shadow: 0 1px 0 rgba(255,255,255,.45);
+    }
+    .rank-badge.rank-2 {
+      background: linear-gradient(135deg, #f5f5f5, #c0c0c0 50%, #909090);
+      text-shadow: 0 1px 0 rgba(255,255,255,.45);
+    }
+    .rank-badge.rank-3 {
+      background: linear-gradient(135deg, #f0c79c, #cd7f32 50%, #8a4a18);
+      color: #fff;
+      text-shadow: 0 1px 0 rgba(0,0,0,.25);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       [SELECCION-ST-1B] Quote del jefe — opcional, solo si nota_jefe
+       está cargado en perfume_overrides. Tipografía serif italic para
+       que se sienta "voz humana" del jefe, no marketing.
+       ──────────────────────────────────────────────────────────────── */
+    .collectible-quote {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-size: .68rem;
+      line-height: 1.35;
+      color: #d8c98a;
+      margin: .3rem 0 .35rem;
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+    @media (min-width: 768px) {
+      .collectible-quote { font-size: .74rem; }
+    }
+    body:not(.dark-mode) .collectible-quote { color: #6a5a30; }
 
     .collectible-card-inner {
       padding: .6rem;
@@ -2689,6 +2780,106 @@
       font-size: .6rem; padding: .2rem .5rem; border-radius: 12px;
       background: rgba(232,184,0,.15); color: var(--amarillo); font-weight: 600;
       border: 1px solid rgba(232,184,0,.25);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       [COMPARE-2A] Diferencias destacadas — notas únicas por perfume.
+       Bloque equivalente a .compare-common pero con paleta naranja/rosa
+       (sirve para diferenciar visualmente: amarillo = comunes, rosa-
+       naranja = diferencias). En mobile cada fila stack vertical, en
+       desktop el nombre del perfume queda a la izquierda y los chips
+       en línea a la derecha. Sin libs, solo grid/flex.
+       ──────────────────────────────────────────────────────────────── */
+    .compare-unique {
+      margin-top: .8rem; padding: 1rem;
+      background: rgba(244,143,177,.06);
+      border: 1px solid rgba(244,143,177,.18);
+      border-radius: 10px;
+    }
+    .compare-unique-title {
+      font-size: .6rem; font-weight: 700; color: #f48fb1;
+      letter-spacing: .15em; text-transform: uppercase;
+      margin: 0 0 .6rem; text-align: center;
+    }
+    .compare-unique-content {
+      display: flex; flex-direction: column; gap: .55rem;
+    }
+    .compare-unique-row {
+      display: grid; grid-template-columns: 1fr;
+      gap: .25rem .8rem;
+      padding: .35rem 0;
+      border-bottom: 1px dashed rgba(244,143,177,.14);
+    }
+    .compare-unique-row:last-child { border-bottom: 0; }
+    .compare-unique-name {
+      font-size: .68rem; font-weight: 700; color: #fff;
+      margin: 0; letter-spacing: .02em;
+    }
+    .compare-unique-chips {
+      display: flex; flex-wrap: wrap; gap: .3rem;
+    }
+    .compare-unique-chip {
+      font-size: .6rem; padding: .2rem .5rem; border-radius: 12px;
+      background: rgba(244,143,177,.12); color: #f48fb1; font-weight: 600;
+      border: 1px solid rgba(244,143,177,.3);
+    }
+    .compare-unique-empty {
+      font-size: .58rem; color: var(--gris); font-style: italic;
+    }
+    @media (min-width: 540px) {
+      /* Desktop / tablet: name a la izquierda + chips a la derecha en línea */
+      .compare-unique-row {
+        grid-template-columns: minmax(110px, 28%) 1fr;
+        align-items: center;
+      }
+    }
+    /* Light mode */
+    body:not(.dark-mode) .compare-unique {
+      background: rgba(183,28,92,.06);
+      border-color: rgba(183,28,92,.2);
+    }
+    body:not(.dark-mode) .compare-unique-title { color: #b71c5c; }
+    body:not(.dark-mode) .compare-unique-name { color: #1a1a1d; }
+    body:not(.dark-mode) .compare-unique-chip {
+      background: rgba(183,28,92,.12); color: #b71c5c;
+      border-color: rgba(183,28,92,.3);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       [COMPARE-2B] Botón "Elegir este" — CTA al final de cada compare-col.
+       Pill dorado full-width. Cierra el ciclo: el cliente ya comparó,
+       este botón es la decisión final → agrega al carrito + cierra modal.
+       ──────────────────────────────────────────────────────────────── */
+    .compare-col-cta {
+      display: flex; align-items: center; justify-content: center;
+      gap: .35rem;
+      width: 100%; margin-top: .9rem;
+      padding: .65rem 1rem;
+      background: linear-gradient(135deg, var(--amarillo), #ffd000);
+      color: #1a1a1d;
+      border: 0; border-radius: 24px;
+      font-family: inherit; font-size: .72rem; font-weight: 800;
+      letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(232,184,0,.25);
+      transition: transform .12s, box-shadow .2s, filter .15s;
+    }
+    .compare-col-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(232,184,0,.4);
+      filter: brightness(1.05);
+    }
+    .compare-col-cta:active { transform: scale(.97); }
+    .compare-col-cta-ico { font-size: .9rem; line-height: 1; }
+    .compare-col-cta-text { line-height: 1; }
+    /* Light mode: gradient dorado oscuro coherente con tema */
+    body:not(.dark-mode) .compare-col-cta {
+      background: linear-gradient(135deg, #8a6d00, #b08c00);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(138,109,0,.3);
+    }
+    body:not(.dark-mode) .compare-col-cta:hover {
+      box-shadow: 0 6px 18px rgba(138,109,0,.45);
     }
     /* Responsive compare grid:
        - Mobile (default): 1 columna por perfume, todo apilado. Header con
@@ -7600,13 +7791,229 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--amarillo);
-      margin: .8rem 0 .3rem;
+      margin: .9rem 0 .4rem;
       padding-bottom: .3rem;
       border-bottom: 1px solid rgba(232,184,0,.25);
+      text-align: center;
     }
     body:not(.dark-mode) .decant-grid-section-title {
       color: #8a6d00;
       border-bottom-color: rgba(120,90,0,.3);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       [DECANTS-UX-2 #4] Tab switcher — Catálogo / Mis decants
+       Pills clásicas (Variante A del mockup). Pill activa con fondo
+       dorado; inactivas con texto gris. Badge con count.
+       ──────────────────────────────────────────────────────────────── */
+    .decant-tabs {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,.04);
+      padding: 3px;
+      border-radius: 10px;
+      margin: 0 0 .55rem;
+    }
+    .decant-tab {
+      flex: 1;
+      padding: .5rem .65rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .72rem;
+      font-weight: 700;
+      text-align: center;
+      color: #999;
+      cursor: pointer;
+      transition: background .15s, color .15s, transform .12s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      background: transparent;
+      border: 0;
+      letter-spacing: .02em;
+    }
+    .decant-tab:not(:disabled):hover { color: #fff; }
+    .decant-tab:not(:disabled):active { transform: scale(.97); }
+    .decant-tab:disabled { opacity: .35; cursor: not-allowed; }
+    .decant-tab.is-active {
+      background: var(--amarillo);
+      color: #1a1a1d;
+      box-shadow: 0 2px 8px rgba(232,184,0,.3);
+    }
+    .decant-tab.is-active:not(:disabled):hover { color: #1a1a1d; }
+    .decant-tab-badge {
+      display: inline-block;
+      background: rgba(0,0,0,.18);
+      color: inherit;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: .6rem;
+      font-weight: 800;
+      min-width: 18px;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .decant-tab.is-active .decant-tab-badge { background: rgba(0,0,0,.28); }
+
+    body:not(.dark-mode) .decant-tabs {
+      background: rgba(120,90,0,.08);
+      border: 1px solid rgba(120,90,0,.18);
+    }
+    body:not(.dark-mode) .decant-tab { color: #6a5a30; }
+    body:not(.dark-mode) .decant-tab:not(:disabled):hover { color: #1a1a1d; }
+    body:not(.dark-mode) .decant-tab.is-active {
+      background: #8a6d00;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(138,109,0,.35);
+    }
+    body:not(.dark-mode) .decant-tab.is-active:not(:disabled):hover { color: #fff; }
+    body:not(.dark-mode) .decant-tab-badge { background: rgba(0,0,0,.1); }
+    body:not(.dark-mode) .decant-tab.is-active .decant-tab-badge { background: rgba(255,255,255,.2); }
+
+    /* Mensaje vacío para tab "Mis decants" cuando no hay items */
+    .decant-mis-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #888;
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+    .decant-mis-empty-ico {
+      font-size: 2rem;
+      opacity: .55;
+      margin-bottom: .5rem;
+    }
+    .decant-mis-empty-cta {
+      display: inline-block;
+      margin-top: .8rem;
+      padding: .5rem 1.1rem;
+      background: rgba(232,184,0,.15);
+      border: 1px solid rgba(232,184,0,.4);
+      border-radius: 20px;
+      color: var(--amarillo);
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .decant-mis-empty-cta:hover { background: rgba(232,184,0,.25); }
+    body:not(.dark-mode) .decant-mis-empty { color: #6a5a30; }
+    body:not(.dark-mode) .decant-mis-empty-cta {
+      background: rgba(138,109,0,.12);
+      border-color: rgba(138,109,0,.4);
+      color: #8a6d00;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       [DECANTS-UX-2 #6] Combo sticky — "Combinás bien con: X"
+       Pill flotante sobre el footer (Variante B del mockup).
+       Aparece cuando hay ≥1 decant en el pack Y la tab activa es
+       Catálogo. updateDecantHeader() la muestra/oculta.
+       ──────────────────────────────────────────────────────────────── */
+    .decant-combo-sticky {
+      flex-shrink: 0;
+      padding: 8px 12px 4px;
+      animation: comboFadeIn .25s ease-out;
+    }
+    @keyframes comboFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .decant-combo-sticky { animation: none; }
+    }
+    .decant-combo-sticky-inner {
+      background: linear-gradient(135deg, rgba(232,184,0,.2), rgba(232,184,0,.08));
+      border: 1px solid rgba(232,184,0,.45);
+      border-radius: 24px;
+      padding: .4rem .5rem .4rem .55rem;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .decant-combo-icon {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--amarillo);
+      color: #1a1a1d;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem;
+      flex-shrink: 0;
+    }
+    .decant-combo-text {
+      flex: 1;
+      min-width: 0;
+      line-height: 1.2;
+    }
+    .decant-combo-label {
+      font-size: .54rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--amarillo);
+      margin: 0;
+    }
+    .decant-combo-name {
+      font-size: .76rem;
+      color: #fff;
+      margin: 1px 0 0;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .decant-combo-reason {
+      font-size: .58rem;
+      color: #b0b0b8;
+      font-weight: 400;
+      font-style: italic;
+    }
+    .decant-combo-btn {
+      background: var(--amarillo);
+      color: #1a1a1d;
+      border: 0;
+      padding: .5rem .9rem;
+      border-radius: 18px;
+      font-size: .68rem;
+      font-weight: 800;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-family: inherit;
+      transition: transform .12s, box-shadow .15s;
+      white-space: nowrap;
+      letter-spacing: .02em;
+    }
+    .decant-combo-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,184,0,.4); }
+    .decant-combo-btn:active { transform: scale(.96); }
+
+    body:not(.dark-mode) .decant-combo-sticky-inner {
+      background: linear-gradient(135deg, rgba(138,109,0,.18), rgba(138,109,0,.06));
+      border-color: rgba(138,109,0,.45);
+      box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    }
+    body:not(.dark-mode) .decant-combo-icon {
+      background: #8a6d00;
+      color: #fff;
+    }
+    body:not(.dark-mode) .decant-combo-label { color: #8a6d00; }
+    body:not(.dark-mode) .decant-combo-name { color: #1a1a1d; }
+    body:not(.dark-mode) .decant-combo-reason { color: #6a5a30; }
+    body:not(.dark-mode) .decant-combo-btn {
+      background: #8a6d00;
+      color: #fff;
+    }
+    body:not(.dark-mode) .decant-combo-btn:hover {
+      box-shadow: 0 4px 12px rgba(138,109,0,.4);
+    }
+
+    /* Mobile: padding más justo, label más chico para no romper la fila */
+    @media (max-width: 480px) {
+      .decant-combo-sticky { padding: 6px 8px 2px; }
+      .decant-combo-sticky-inner { padding: .35rem .4rem .35rem .5rem; gap: 6px; }
+      .decant-combo-icon { width: 24px; height: 24px; font-size: .72rem; }
+      .decant-combo-label { font-size: .5rem; letter-spacing: .1em; }
+      .decant-combo-name { font-size: .72rem; }
+      .decant-combo-btn { padding: .42rem .75rem; font-size: .64rem; }
     }
 
     /* ════════════════════════════════════════════════════════════════

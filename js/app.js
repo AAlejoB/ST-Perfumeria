@@ -2047,19 +2047,35 @@
       var grid = document.getElementById('seleccionGrid');
       if (!grid) return;
       var html = '';
-      TOP_VENTAS_SLUGS.forEach(function(slug) {
+      // [SELECCION-ST-1A] Las primeras 3 cards reciben badge de podio (#1/#2/#3
+      // con oro/plata/bronce). Convierte la sección en un PODIO real, no un grid
+      // genérico. Hace que el cliente sepa cuál es el más vendido a primera vista.
+      // [SELECCION-ST-1B] Si el override tiene nota_jefe definido, mostramos un
+      // quote del jefe ("a mí me gusta porque..."). Hoy no hay datos cargados —
+      // la columna se activa con SQL ALTER + UI admin en sesión futura. Mientras
+      // tanto el render es no-op si p.nota_jefe es vacío.
+      TOP_VENTAS_SLUGS.forEach(function(slug, idx) {
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         if (!p) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-        // Lazy + decoding async para que los destacados no frenen el first paint
         var imgHTML = p.foto
           ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async" width="300" height="300">'
           : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + p.name.charAt(0) + '</div>';
-        html += '<div class="collectible-card" onclick="scrollToPerfume(\'' + slug + '\')">'
+        var rankNum = idx + 1;
+        var rankClass = rankNum <= 3 ? ' has-rank rank-' + rankNum : '';
+        var rankBadge = rankNum <= 3
+          ? '<span class="rank-badge rank-' + rankNum + '" aria-label="Puesto ' + rankNum + ' del ranking">#' + rankNum + '</span>'
+          : '';
+        var quoteHTML = (p.nota_jefe && (p.nota_jefe + '').trim())
+          ? '<p class="collectible-quote">&laquo;' + escapeHTML((p.nota_jefe + '').trim()) + '&raquo;</p>'
+          : '';
+        html += '<div class="collectible-card' + rankClass + '" onclick="scrollToPerfume(\'' + slug + '\')">'
+          + rankBadge
           + '<div class="collectible-card-inner">'
             + '<div class="collectible-img-wrap">' + imgHTML + '</div>'
             + '<div class="collectible-info">'
               + '<p class="collectible-name">' + p.name + '</p>'
+              + quoteHTML
               + '<span class="collectible-badge">HOT SALE</span>'
             + '</div>'
           + '</div>'
@@ -4175,6 +4191,10 @@
       if (o.nota_ultimo !== undefined && o.nota_ultimo !== null) p.nota_ultimo = o.nota_ultimo;
       if (o.nota_sin_stock !== undefined && o.nota_sin_stock !== null) p.nota_sin_stock = o.nota_sin_stock;
       if (o.nota_proximamente !== undefined && o.nota_proximamente !== null) p.nota_proximamente = o.nota_proximamente;
+      // [SELECCION-ST-1B] Quote del jefe — solo aparece en Selección ST (los 6
+      // perfumes destacados del podio). Activación pendiente de SQL ALTER TABLE
+      // perfume_overrides ADD COLUMN nota_jefe TEXT + UI admin para editarlo.
+      if (o.nota_jefe !== undefined && o.nota_jefe !== null) p.nota_jefe = o.nota_jefe;
     }
 
     // Cargar overrides desde Supabase y aplicar sobre perfumes.js
@@ -5523,18 +5543,26 @@
             + '</div>'
           + '</div>'
           + '<div class="compare-rows">'
+            // [COMPARE-2B] El bot\u00f3n Elegir este se agrega DESPU\u00c9S del cierre del compare-rows (m\u00e1s abajo).
             + '<div class="compare-row"><p class="compare-row-label">Categor\u00eda</p><p class="compare-row-value">' + pCat + '</p></div>'
             + '<div class="compare-row"><p class="compare-row-label">Perfil</p><p class="compare-row-value">' + (p.perfil || '\u2014') + '</p></div>'
             + '<div class="compare-row"><p class="compare-row-label">Salida</p><p class="compare-row-value">' + (p.notas_salida || '\u2014') + '</p></div>'
             + '<div class="compare-row"><p class="compare-row-label">Coraz\u00f3n</p><p class="compare-row-value">' + (p.notas_corazon || '\u2014') + '</p></div>'
             + '<div class="compare-row"><p class="compare-row-label">Base</p><p class="compare-row-value">' + (p.notas_base || '\u2014') + '</p></div>'
           + '</div>'
+          // [COMPARE-2B] Boton "Elegir este" \u2014 cierra el ciclo comparacion -> decision.
+          + '<button type="button" class="compare-col-cta" onclick="elegirCompare(\'' + p.slug + '\', this, event)" aria-label="Elegir este perfume">'
+            + '<span class="compare-col-cta-ico" aria-hidden="true">\ud83d\udc95</span>'
+            + '<span class="compare-col-cta-text">Elegir este</span>'
+          + '</button>'
         + '</div>';
       });
       grid.innerHTML = html;
 
       // Notas en común
       findCommonNotes();
+      // [COMPARE-2A] Diferencias destacadas (notas únicas por perfume)
+      renderUniqueNotes();
 
       document.getElementById('compareOverlay').classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -5583,6 +5611,80 @@
       document.getElementById('compareOverlay').classList.remove('active');
       document.body.style.overflow = '';
     }
+
+    // ────────────────────────────────────────────────────────────────
+    // [COMPARE-2A] renderUniqueNotes — Diferencias destacadas.
+    // Por cada perfume del compareList, calcula las notas que SOLO ese
+    // perfume tiene (no las comparten los demás del compare).
+    // El cliente compara para VER diferencias, no solo similitudes.
+    // ────────────────────────────────────────────────────────────────
+    function renderUniqueNotes() {
+      var uniqueEl = document.getElementById('compareUnique');
+      var contentEl = document.getElementById('compareUniqueContent');
+      if (!uniqueEl || !contentEl) return;
+      if (compareList.length < 2) { uniqueEl.style.display = 'none'; return; }
+
+      // Helper: notas de un perfume como Set (lowercase, sin duplicados)
+      function notesSet(p) {
+        var raw = [p.notas_salida || '', p.notas_corazon || '', p.notas_base || ''].join(',');
+        var set = {};
+        raw.split(',').forEach(function(n) {
+          var t = n.trim().toLowerCase();
+          if (t && t !== '—') set[t] = true;
+        });
+        return set;
+      }
+
+      // Construir mapa: slug -> Set de notas
+      var perfumeNotes = compareList.map(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        return p ? { slug: slug, name: p.name, set: notesSet(p) } : null;
+      }).filter(Boolean);
+
+      // Para cada perfume, calcular notas únicas (las que no están en los OTROS)
+      var rows = perfumeNotes.map(function(item, idx) {
+        var others = perfumeNotes.filter(function(_, i) { return i !== idx; });
+        var unique = Object.keys(item.set).filter(function(note) {
+          return !others.some(function(o) { return o.set[note]; });
+        });
+        return { name: item.name, unique: unique };
+      });
+
+      // Si NINGÚN perfume tiene notas únicas (improbable, pero posible si son
+      // exactamente iguales en notas), no mostrar la sección — sería vacío.
+      var anyUnique = rows.some(function(r) { return r.unique.length > 0; });
+      if (!anyUnique) { uniqueEl.style.display = 'none'; return; }
+
+      // Render: por perfume, una fila con su name + chips de notas únicas
+      contentEl.innerHTML = rows.map(function(r) {
+        var chips = r.unique.length === 0
+          ? '<span class="compare-unique-empty">— sin notas exclusivas</span>'
+          : r.unique.map(function(n) {
+              var cap = n.charAt(0).toUpperCase() + n.slice(1);
+              return '<span class="compare-unique-chip">' + cap + '</span>';
+            }).join('');
+        return '<div class="compare-unique-row">'
+          + '<p class="compare-unique-name">' + escapeHTML(r.name) + '</p>'
+          + '<div class="compare-unique-chips">' + chips + '</div>'
+        + '</div>';
+      }).join('');
+      uniqueEl.style.display = 'block';
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // [COMPARE-2B] elegirCompare — Cierra el ciclo de comparación.
+    // El cliente comparó 2-3 perfumes y eligió 1: lo agregamos al carrito
+    // (no abrimos WA directo — el carrito tiene buildWaMessage unificado
+    // que el cliente puede agregar a más si quiere) y cerramos el modal.
+    // ────────────────────────────────────────────────────────────────
+    function elegirCompare(slug, btn, event) {
+      if (event) { event.preventDefault(); event.stopPropagation(); }
+      if (typeof addToCart === 'function') {
+        addToCart(slug, btn, event);
+      }
+      closeCompareModal();
+    }
+    window.elegirCompare = elegirCompare;
 
     // ============================================================
     // DARK MODE
@@ -6476,6 +6578,28 @@
       if (window.__extrasLoaded && window.renderDecantGrid !== renderDecantGrid) {
         window.renderDecantGrid();
       }
+    }
+    // [DECANTS-UX-2] Stubs para tab switcher + combo "Combinás bien con".
+    // Si el cliente abre el modal vía /armar-pack-decants y toca un tab
+    // antes de que extras termine de cargar, estos stubs disparan loadExtras
+    // y reintentan con la función real (que ya estará en window).
+    function switchDecantTab(tab) {
+      loadExtras().then(function() {
+        if (window.switchDecantTab !== switchDecantTab) {
+          window.switchDecantTab(tab);
+        }
+      }).catch(function(e) {
+        console.error('[extras] no se pudo cargar para switchDecantTab:', e);
+      });
+    }
+    function addDecantCombo() {
+      loadExtras().then(function() {
+        if (window.addDecantCombo !== addDecantCombo) {
+          window.addDecantCombo();
+        }
+      }).catch(function(e) {
+        console.error('[extras] no se pudo cargar para addDecantCombo:', e);
+      });
     }
 
     // Cargar config al inicio (no bloquea, con defaults)

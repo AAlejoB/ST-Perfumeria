@@ -11,6 +11,11 @@
 //
 // IMPORTANTE: las funciones de este archivo SOBREESCRIBEN los stubs
 // que app.js dejó como window.openDecantBuilder, etc.
+//
+// [DECANTS-UX-2] Sesión may-2026 agregó:
+//   - Tab switcher Catálogo / Mis decants (#4)
+//   - Combo sugerido sticky "Combinás bien con: X" (#6) con algoritmo
+//     de scoring basado en marca_real + perfil + notas + cat.
 // ============================================================
 
 (function () {
@@ -19,14 +24,204 @@
   // Marca que extras está cargado (lo consulta loadExtras() para no recargarlo)
   window.__extrasLoaded = true;
 
+  // [DECANTS-UX-2 #4] Tab activa del armador. 'catalogo' = ver todo;
+  // 'mis' = ver solo los que el cliente agregó.
+  var decantActiveTab = 'catalogo';
+
+  // ─────────────────────────────────────────────────────────────
+  // [DECANTS-UX-2 #4] Cambiar de tab (Catálogo / Mis decants).
+  // Si el pack está vacío, "Mis decants" queda disabled — el handler
+  // del onclick no debería dispararse, pero por seguridad lo validamos.
+  // ─────────────────────────────────────────────────────────────
+  function switchDecantTab(tab) {
+    if (tab !== 'catalogo' && tab !== 'mis') return;
+    if (tab === 'mis' && decantsPack.length === 0) return;  // safety net
+    if (decantActiveTab === tab) return;
+    decantActiveTab = tab;
+    renderDecantGrid();
+    // Scroll arriba para que el cliente vea el cambio inmediato.
+    var gridEl = document.getElementById('decantGrid');
+    if (gridEl) gridEl.scrollTop = 0;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // [DECANTS-UX-2 #6] Algoritmo "Combinás bien con: X".
+  // Toma el ÚLTIMO decant del pack como anchor (el más reciente
+  // representa mejor el "estado de ánimo" del cliente) y scorea
+  // candidatos del catálogo.
+  //
+  //   Scoring:
+  //     +3 si misma marca_real (estilo de la casa)
+  //     +2 si mismo perfil (Intenso, Versátil, etc.)
+  //     +1 por cada nota olfativa común (máx +5)
+  //     +1 si misma categoría (Unisex/Hombre/Mujer)
+  //
+  // Umbral mínimo: score ≥ 2 para evitar matches débiles.
+  // Devuelve { perfume, reason } o null si no hay match.
+  // ─────────────────────────────────────────────────────────────
+  function findCombinaBienCon() {
+    // Necesitamos al menos 1 decant en el pack (que no sea custom).
+    if (!Array.isArray(decantsPack) || decantsPack.length === 0) return null;
+
+    // Buscar el último slug VÁLIDO no-custom del pack como anchor.
+    var anchor = null;
+    for (var i = decantsPack.length - 1; i >= 0; i--) {
+      var s = decantsPack[i];
+      if (!s || typeof s !== 'string') continue;
+      if (s.indexOf('custom-') === 0) continue;
+      anchor = PERFUMES.find(function(p) { return p.slug === s; });
+      if (anchor) break;
+    }
+    if (!anchor) return null;
+
+    // Conjunto de slugs ya en el pack (para excluir candidatos repetidos).
+    var inPack = {};
+    decantsPack.forEach(function(s) { if (s) inPack[s] = true; });
+
+    // Helper: parsear notas (strings comma-separated) a array normalizado.
+    function parseNotas(p) {
+      var raw = [p.notas_salida, p.notas_corazon, p.notas_base].filter(Boolean).join(',');
+      return raw.split(',').map(function(n) { return n.trim().toLowerCase(); }).filter(Boolean);
+    }
+    var anchorNotas = parseNotas(anchor);
+
+    var best = null;
+    var bestScore = 0;
+    var bestCommon = [];
+
+    PERFUMES.forEach(function(p) {
+      if (!p || !p.slug) return;
+      if (p.slug === anchor.slug) return;
+      if (inPack[p.slug]) return;
+      if (p.esSet || p._oculto) return;
+
+      var score = 0;
+      if (p.marca_real && anchor.marca_real && p.marca_real === anchor.marca_real) score += 3;
+      if (p.perfil && anchor.perfil && p.perfil === anchor.perfil) score += 2;
+      if (p.cat && anchor.cat && p.cat === anchor.cat) score += 1;
+
+      var pNotas = parseNotas(p);
+      var common = [];
+      pNotas.forEach(function(n) {
+        if (anchorNotas.indexOf(n) !== -1 && common.indexOf(n) === -1) common.push(n);
+      });
+      score += Math.min(common.length, 5);
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = p;
+        bestCommon = common;
+      }
+    });
+
+    if (!best || bestScore < 2) return null;
+
+    // Generar razón humana corta para mostrar al cliente.
+    var reason;
+    if (best.marca_real && best.marca_real === anchor.marca_real) {
+      reason = 'Misma casa · ' + best.marca_real;
+    } else if (bestCommon.length >= 2) {
+      reason = 'Notas: ' + bestCommon.slice(0, 2).join(', ');
+    } else if (bestCommon.length === 1) {
+      reason = 'Nota en común: ' + bestCommon[0];
+    } else if (best.perfil && best.perfil === anchor.perfil) {
+      reason = 'Perfil ' + best.perfil.toLowerCase();
+    } else {
+      reason = 'Te puede gustar';
+    }
+
+    return { perfume: best, reason: reason };
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // [DECANTS-UX-2] Actualizar header del armador: badges de los
+  // tabs (counts) + combo sticky (mostrar/ocultar/contenido).
+  // Llamada al final de renderDecantGrid() para mantener sync.
+  // ─────────────────────────────────────────────────────────────
+  function updateDecantHeader() {
+    var packCount = decantsPack.length;
+    // Total de items "del catálogo regular" — el número del badge debería
+    // reflejar lo que el cliente ve si toca "Catálogo". Customs especiales
+    // los contamos también porque aparecen en esa tab.
+    var totalCatalog = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; }).length
+                     + (Array.isArray(DECANTS_CUSTOM_LIST) ? DECANTS_CUSTOM_LIST.length : 0);
+
+    // ─── Tabs ─────────────────────────────────────────────────
+    var catBadge = document.getElementById('decantTabCatBadge');
+    var misBadge = document.getElementById('decantTabMisBadge');
+    if (catBadge) catBadge.textContent = totalCatalog;
+    if (misBadge) misBadge.textContent = packCount;
+
+    var tabs = document.querySelectorAll('.decant-tab');
+    tabs.forEach(function(t) {
+      var name = t.getAttribute('data-tab');
+      var active = (name === decantActiveTab);
+      t.classList.toggle('is-active', active);
+      t.setAttribute('aria-selected', active ? 'true' : 'false');
+      // Disable "Mis decants" si pack vacío para evitar tab vacía.
+      if (name === 'mis') t.disabled = (packCount === 0);
+    });
+
+    // ─── Combo sticky ─────────────────────────────────────────
+    // Solo mostrar si:
+    //  - Hay al menos 1 decant en el pack (anchor para el algoritmo)
+    //  - El cliente está en tab "Catálogo" (en "Mis decants" no tiene
+    //    sentido sugerir agregar más)
+    //  - Hay margen para sumar (< max_decants)
+    var sticky = document.getElementById('decantComboSticky');
+    if (!sticky) return;
+    var maxReached = (typeof DECANTS_CONFIG !== 'undefined' && DECANTS_CONFIG && packCount >= DECANTS_CONFIG.max_decants);
+    var shouldShow = (packCount >= 1) && (decantActiveTab === 'catalogo') && !maxReached;
+    if (!shouldShow) {
+      sticky.hidden = true;
+      sticky.removeAttribute('data-combo-slug');
+      return;
+    }
+    var combo = findCombinaBienCon();
+    if (!combo) {
+      sticky.hidden = true;
+      sticky.removeAttribute('data-combo-slug');
+      return;
+    }
+    var nameEl = document.getElementById('decantComboName');
+    if (nameEl) {
+      var marca = combo.perfume.marca_real || combo.perfume.marca || '';
+      nameEl.innerHTML = escapeHTML(combo.perfume.name)
+        + (marca ? ' <span class="decant-combo-reason">· ' + escapeHTML(combo.reason) + '</span>' : '');
+    }
+    sticky.setAttribute('data-combo-slug', combo.perfume.slug);
+    sticky.hidden = false;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // [DECANTS-UX-2 #6] Handler del botón "+ Sumar" del combo sticky.
+  // Lee el slug guardado en data-combo-slug y llama addDecant().
+  // ─────────────────────────────────────────────────────────────
+  function addDecantCombo() {
+    var sticky = document.getElementById('decantComboSticky');
+    if (!sticky) return;
+    var slug = sticky.getAttribute('data-combo-slug');
+    if (!slug) return;
+    addDecant(slug);
+    // addDecant() ya re-renderea el grid → updateDecantHeader() recalcula
+    // el siguiente sugerido o oculta el sticky si no hay más matches.
+  }
+
   // ─────────────────────────────────────────────────────────────
   // RENDER del grid de cards del armador de decants.
-  // Particiona en 3 secciones: agregados al pack / especiales /
-  // resto del catálogo A→Z. Maneja perfumes regulares + customs.
+  // [DECANTS-UX-2 #4] Ahora filtra según decantActiveTab:
+  //   - 'catalogo': vista completa (Agregados / Especiales / A→Z)
+  //   - 'mis':      solo los que están en el pack (qty > 0)
   // ─────────────────────────────────────────────────────────────
   function renderDecantGrid() {
     var gridEl = document.getElementById('decantGrid');
     if (!gridEl) return;
+    // [DECANTS-UX-2 #4] Auto-switch a Catálogo si estamos en "Mis decants"
+    // y el pack quedó vacío (ej. el cliente eliminó su último decant).
+    // Evita el flash de "Mis decants vacío" — pasamos directo al catálogo.
+    if (decantActiveTab === 'mis' && decantsPack.length === 0) {
+      decantActiveTab = 'catalogo';
+    }
     var qInput = document.getElementById('decantSearch');
     var q = qInput ? qInput.value.trim().toLowerCase() : '';
     var qNorm = stripAccents(q);
@@ -61,8 +256,43 @@
     var counts = {};
     decantsPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
 
+    // Particionar por estado: seleccionados (qty > 0) vs disponibles.
+    var seleccionadosRegulares = list.filter(function(p) { return (counts[p.slug]||0) > 0; });
+    var disponiblesRegulares   = list.filter(function(p) { return (counts[p.slug]||0) === 0; });
+    var seleccionadosCustom    = customFiltered.filter(function(c) { return (counts['custom-' + c.id]||0) > 0; });
+    var disponiblesCustom      = customFiltered.filter(function(c) { return (counts['custom-' + c.id]||0) === 0; });
+
+    var seleccionadosCount = seleccionadosRegulares.length + seleccionadosCustom.length;
+    var disponiblesCount   = disponiblesRegulares.length + disponiblesCustom.length;
+
+    // [DECANTS-UX-2 fix scroll] El empty hero (#decantEmptyHero) vive ADENTRO
+    // del grid (movido en HTML para que scrollee junto con las cards).
+    // Antes de re-escribir innerHTML lo "rescatamos" para no perder su
+    // estado interno (los quickpicks que app.js renderizó vía Supabase).
+    var heroEl = document.getElementById('decantEmptyHero');
+    function rebuildGrid(html) {
+      gridEl.innerHTML = html;
+      if (heroEl) gridEl.insertBefore(heroEl, gridEl.firstChild);
+    }
+
+    // [DECANTS-UX-2 #4] Early return para tab "Mis decants" vacía.
+    if (decantActiveTab === 'mis' && seleccionadosCount === 0) {
+      rebuildGrid(
+        '<div class="decant-mis-empty">'
+          + '<div class="decant-mis-empty-ico">📭</div>'
+          + 'Todavía no agregaste ningún decant.<br>'
+          + 'Cambiá a <strong>Catálogo</strong> y armá tu pack ✨'
+          + '<br><button type="button" class="decant-mis-empty-cta" onclick="switchDecantTab(\'catalogo\')">→ Ir al Catálogo</button>'
+        + '</div>'
+      );
+      updateDecantHeader();
+      return;
+    }
+
+    // Empty state común (sin resultados de búsqueda en Catálogo).
     if (list.length === 0 && customFiltered.length === 0) {
-      gridEl.innerHTML = '<p class="decant-grid-empty">Sin resultados para "' + q + '"</p>';
+      rebuildGrid('<p class="decant-grid-empty">Sin resultados para "' + escapeHTML(q) + '"</p>');
+      updateDecantHeader();
       return;
     }
 
@@ -109,7 +339,7 @@
         + '<div class="decant-card-img">' + imgHTML + '</div>'
         + '<div class="decant-card-info">'
           + '<p class="decant-card-name">' + escapeHTML(c.nombre) + '</p>'
-          + '<p class="decant-card-brand">' + escapeHTML(c.marca || 'Especial') + '</p>'
+          + '<p class="decant-card-brand">' + escapeHTML(c.marca || 'De diseñador') + '</p>'
           + priceTag
         + '</div>'
         + '<div class="decant-card-ctrl">'
@@ -120,46 +350,52 @@
       + '</div>';
     }
 
-    // Particionar: AGREGADOS arriba (qty > 0), resto abajo. Mantengo
-    // sort alfabético dentro de cada grupo. Esto resuelve "los agregados
-    // quedan al fondo" — ahora siempre los ves arriba para sumar/restar.
-    var seleccionadosRegulares = list.filter(function(p) { return (counts[p.slug]||0) > 0; });
-    var disponiblesRegulares   = list.filter(function(p) { return (counts[p.slug]||0) === 0; });
-    var seleccionadosCustom    = customFiltered.filter(function(c) { return (counts['custom-' + c.id]||0) > 0; });
-    var disponiblesCustom      = customFiltered.filter(function(c) { return (counts['custom-' + c.id]||0) === 0; });
-
-    var seleccionadosCount = seleccionadosRegulares.length + seleccionadosCustom.length;
-    var disponiblesCount   = disponiblesRegulares.length + disponiblesCustom.length;
-
     var html = '';
-    // Sección 1 — AGREGADOS al pack (qty > 0)
-    if (seleccionadosCount > 0) {
-      html += '<p class="decant-grid-section-title">★ Agregados a tu pack (' + seleccionadosCount + ')</p>';
+
+    if (decantActiveTab === 'mis') {
+      // [DECANTS-UX-2 #4] Vista "Mis decants": SOLO los seleccionados.
+      // No mostramos sección title (es obvio que son los del pack).
       html += seleccionadosRegulares.map(cardHTML).join('');
       html += seleccionadosCustom.map(customCardHTML).join('');
-    }
-    // Sección 2 — ESPECIALES (custom decants disponibles, "rompen" el
-    // orden alfabético para que se vean primero — son los más rentables
-    // y el jefe los quiere bien visibles)
-    if (disponiblesCustom.length > 0) {
-      html += '<p class="decant-grid-section-title">⭐ Especiales (' + disponiblesCustom.length + ')</p>';
-      html += disponiblesCustom.map(customCardHTML).join('');
-    }
-    // Sección 3 — RESTO del catálogo (regulares A → Z)
-    if (disponiblesRegulares.length > 0) {
-      if (seleccionadosCount > 0 || disponiblesCustom.length > 0) {
-        html += '<p class="decant-grid-section-title">Catálogo · A → Z (' + disponiblesRegulares.length + ')</p>';
+    } else {
+      // Vista "Catálogo" (comportamiento original).
+      // Sección 1 — AGREGADOS al pack (qty > 0)
+      if (seleccionadosCount > 0) {
+        html += '<p class="decant-grid-section-title">★ Agregados a tu pack (' + seleccionadosCount + ')</p>';
+        html += seleccionadosRegulares.map(cardHTML).join('');
+        html += seleccionadosCustom.map(customCardHTML).join('');
       }
-      html += disponiblesRegulares.map(cardHTML).join('');
+      // Sección 2 — ESPECIALES (custom decants disponibles, "rompen" el
+      // orden alfabético para que se vean primero — son los más rentables
+      // y el jefe los quiere bien visibles)
+      if (disponiblesCustom.length > 0) {
+        html += '<p class="decant-grid-section-title">💎 Decants de diseñador (' + disponiblesCustom.length + ')</p>';
+        html += disponiblesCustom.map(customCardHTML).join('');
+      }
+      // Sección 3 — RESTO del catálogo (regulares A → Z)
+      if (disponiblesRegulares.length > 0) {
+        if (seleccionadosCount > 0 || disponiblesCustom.length > 0) {
+          html += '<p class="decant-grid-section-title">Catálogo · A → Z (' + disponiblesRegulares.length + ')</p>';
+        }
+        html += disponiblesRegulares.map(cardHTML).join('');
+      }
     }
 
-    gridEl.innerHTML = html;
+    rebuildGrid(html);
+
+    // [DECANTS-UX-2] Refrescar tab badges + combo sticky en cada render.
+    // Esto se ejecuta también cuando addDecant/removeDecant llaman a
+    // renderDecantGrid() — así el header queda sync con el pack.
+    updateDecantHeader();
   }
 
   // ─────────────────────────────────────────────────────────────
   // Abrir el modal del armador.
   // ─────────────────────────────────────────────────────────────
   function openDecantBuilder() {
+    // [DECANTS-UX-2] Resetear tab activa al abrir — siempre arrancamos
+    // en "Catálogo" para mostrar todo el inventario.
+    decantActiveTab = 'catalogo';
     updateDecantUI();
     renderDecantGrid();
     var overlay = document.getElementById('decantBuilderOverlay');
@@ -258,7 +494,7 @@
 
     var resumen;
     if (fixedTotal > 0 && ladderCount > 0) {
-      resumen = '💰 ' + ladderCount + ' x $' + unit.toLocaleString('es-AR') + ' + especiales = *$' + Math.round(total).toLocaleString('es-AR') + '*';
+      resumen = '💰 ' + ladderCount + ' x $' + unit.toLocaleString('es-AR') + ' + de diseñador = *$' + Math.round(total).toLocaleString('es-AR') + '*';
     } else if (fixedTotal > 0 && ladderCount === 0) {
       resumen = '💰 Total: *$' + Math.round(total).toLocaleString('es-AR') + '*';
     } else {
@@ -277,11 +513,8 @@
   window.openDecantBuilder = openDecantBuilder;
   window.closeDecantBuilder = closeDecantBuilder;
   window.sendDecantPackToWA = sendDecantPackToWA;
+  // [DECANTS-UX-2] Nuevas funciones expuestas para los onclick del HTML.
+  window.switchDecantTab = switchDecantTab;
+  window.addDecantCombo = addDecantCombo;
 
-  // Si hay alguna llamada pendiente al stub (ej el usuario tapeó "Armá tu pack"
-  // antes de que extras terminara de cargar), el stub disparó loadExtras y
-  // queda esperando. La función real ya está disponible — no hace falta
-  // re-tappear el botón, pero el stub no tiene mecanismo de "callback".
-  // Por simplicidad, si openDecantBuilder fue llamado MIENTRAS cargaba extras,
-  // el stub ya delegó vía load.then(real()).
 })();

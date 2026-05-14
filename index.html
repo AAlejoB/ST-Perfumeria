@@ -419,7 +419,10 @@
     .nav-logo img { height: 42px; width: auto; }
     .nav-hamburger { background: none; border: none; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
     .nav-hamburger span { display: block; width: 26px; height: 2px; background: #f0ede8; }
-    .catalog-grid { min-height: 900px; display: grid; grid-template-columns: 1fr; gap: 1rem; padding: 0 1rem; }
+    /* [CARD-STRETCH-FIX] align-content:start + auto-rows:max-content evitan que cuando
+       hay 1-2 cards visibles (por filtro) la row del grid se estire al min-height del
+       skeleton reserve, dejando una card gigante vertical con espacio vacío. */
+    .catalog-grid { min-height: 900px; display: grid; grid-template-columns: 1fr; gap: 1rem; padding: 0 1rem; align-content: start; grid-auto-rows: max-content; }
     @media (min-width: 768px) { nav { padding: 16px 24px; min-height: 64px; } .nav-logo img { height: 52px; } .catalog-grid { grid-template-columns: repeat(2, 1fr); min-height: 760px; } }
   </style>
 </head>
@@ -580,16 +583,21 @@
   </div>
 
   <!-- ========== Banner Juegos ST (CTA al quiz "Encontrá tu perfume") ========== -->
+  <!-- [JUEGOS-3C] Copy rejugado: más directo al beneficio, sin pregunta abstracta.
+       Antes decía "¿3 opciones distintas con solo 4 preguntas? · Probar".
+       Ahora habla en imperativo + concreto + gratis explícito + arrow → leads
+       to action. Esperamos +CTR del banner según UX best-practice (verbos
+       activos > preguntas). -->
   <div class="quiz-cta-wrap">
     <button type="button" class="quiz-cta-banner" onclick="document.getElementById('quizSection').scrollIntoView({behavior:'smooth',block:'start'})" aria-label="Ir a Juegos ST">
       <div class="quiz-cta-content">
         <span class="quiz-cta-icon" aria-hidden="true">🎯</span>
         <span class="quiz-cta-text">
-          ¿3 opciones distintas con solo 4 preguntas?
-          <strong>Jugá gratis y elegí</strong>
+          ¿No sabés cuál perfume comprar?
+          <strong>4 preguntas, 3 recomendaciones, gratis →</strong>
         </span>
       </div>
-      <span class="quiz-cta-cta">Probar</span>
+      <span class="quiz-cta-cta">Jugar</span>
     </button>
   </div>
 
@@ -1057,6 +1065,10 @@
     </div>
   </section>
 
+  <!-- [JUEGOS-3A] Sección reubicada · ANTES iba después del FAQ (ahí se "escondía"),
+       ahora va arriba (entre seo-hub y Nosotros) para que el cliente que scrollea
+       el catálogo la encuentre antes de pasar a "Sobre ST". El CTA banner arriba
+       de la home sigue funcionando con scrollIntoView('#quizSection'). -->
   <!-- ========== JUEGOS ST — Quiz + Desafío (side-by-side desktop, stack mobile) ========== -->
   <section class="quiz-section" id="quizSection">
     <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
@@ -1347,6 +1359,11 @@
         <button class="decant-builder-close" onclick="closeDecantBuilder()" aria-label="Cerrar">×</button>
         <p class="decant-builder-title">🧪 Armá tu pack de decants</p>
         <p class="decant-builder-subtitle">Decants de <span id="decantMlLabel">5</span> ml · Máx <span id="decantMaxLabel">10</span></p>
+        <!-- [DECANTS-UX-2 #4] Tab switcher Catálogo / Mis decants -->
+        <div class="decant-tabs" id="decantTabs" role="tablist">
+          <button type="button" class="decant-tab is-active" data-tab="catalogo" onclick="switchDecantTab('catalogo')" role="tab" aria-selected="true">Catálogo <span class="decant-tab-badge" id="decantTabCatBadge">0</span></button>
+          <button type="button" class="decant-tab" data-tab="mis" onclick="switchDecantTab('mis')" role="tab" aria-selected="false" disabled>Mis decants <span class="decant-tab-badge" id="decantTabMisBadge">0</span></button>
+        </div>
         <div class="decant-builder-counter">
           <div class="decant-counter-left">
             <span class="decant-counter-qty"><span id="decantQty">0</span>/<span id="decantMax">10</span> decants</span>
@@ -1368,16 +1385,31 @@
         </div>
         <p class="decant-builder-ladder" id="decantLadder"></p>
       </div>
-      <!-- [#2 EMPTY STATE] Hero motivador con quick-pick — solo cuando pack vacío -->
-      <div class="decant-empty-hero" id="decantEmptyHero" hidden>
-        <div class="decant-empty-icon">💧</div>
-        <p class="decant-empty-title">¿No sabés por dónde empezar?</p>
-        <p class="decant-empty-sub">Acá están los más elegidos por nuestros clientes ⭐</p>
-        <div class="decant-quickpick-grid" id="decantQuickpickGrid"></div>
-        <p class="decant-empty-sub" style="margin-top:8px;">— o explorá todo el catálogo ↓ —</p>
-      </div>
       <input type="text" class="decant-builder-search" id="decantSearch" placeholder="🔎 Buscar perfume..." oninput="renderDecantGrid()" autocomplete="off"/>
-      <div class="decant-builder-grid" id="decantGrid"></div>
+      <div class="decant-builder-grid" id="decantGrid">
+        <!-- [#2 EMPTY STATE] Hero motivador con quick-pick — solo cuando pack vacío.
+             [DECANTS-UX-2 fix scroll] Movido ADENTRO del grid scrollable para que
+             cuando el header crece (con tabs nuevos) y el viewport mobile es chico,
+             el cliente igual pueda scrollear hasta las cards del catálogo. -->
+        <div class="decant-empty-hero" id="decantEmptyHero" hidden>
+          <div class="decant-empty-icon">💧</div>
+          <p class="decant-empty-title">¿No sabés por dónde empezar?</p>
+          <p class="decant-empty-sub">Acá están los más elegidos por nuestros clientes ⭐</p>
+          <div class="decant-quickpick-grid" id="decantQuickpickGrid"></div>
+          <p class="decant-empty-sub" style="margin-top:8px;">— o explorá todo el catálogo ↓ —</p>
+        </div>
+      </div>
+      <!-- [DECANTS-UX-2 #6] Combo sugerido sticky arriba del footer -->
+      <div class="decant-combo-sticky" id="decantComboSticky" hidden>
+        <div class="decant-combo-sticky-inner">
+          <div class="decant-combo-icon" aria-hidden="true">💡</div>
+          <div class="decant-combo-text">
+            <p class="decant-combo-label">Combinás bien con</p>
+            <p class="decant-combo-name" id="decantComboName">—</p>
+          </div>
+          <button type="button" class="decant-combo-btn" id="decantComboBtn" onclick="addDecantCombo()">+ Sumar</button>
+        </div>
+      </div>
       <div class="decant-builder-footer" id="decantBuilderFooter">
         <!-- [#3 BOTTOM-SHEET] Resumen visible cuando hay items en el pack -->
         <div class="decant-builder-footer-summary">
@@ -1437,6 +1469,11 @@
       <div class="compare-common" id="compareCommon" style="display:none;">
         <p class="compare-common-title">&#10024; Notas en com&#250;n</p>
         <div class="compare-common-notes" id="compareCommonNotes"></div>
+      </div>
+      <!-- [COMPARE-2A] Bloque "Diferencias destacadas" — notas únicas por perfume -->
+      <div class="compare-unique" id="compareUnique" style="display:none;">
+        <p class="compare-unique-title">&#128293; Diferencias destacadas</p>
+        <div class="compare-unique-content" id="compareUniqueContent"></div>
       </div>
     </div>
   </div>
@@ -1647,5 +1684,20 @@
 
   <!-- DVD BOUNCER — perfume rebotando tipo screensaver (solo desktop) -->
   <!-- <script src="js/dvd-bouncer.js" defer></script> -->
+
+  <!-- [JUEGOS-3A] Mover #quizSection antes de #nosotros · sync inline antes de
+       </body> = ejecuta tras parseo completo y ANTES del primer paint en
+       la mayoría de los browsers (evita flash de la sección saltando). El
+       HTML estático queda en su lugar para no romper SEO histórico; en una
+       sesión futura se puede mover físicamente y borrar este script. -->
+  <script>
+    (function moveQuizSection() {
+      var quiz = document.getElementById('quizSection');
+      var target = document.getElementById('nosotros');
+      if (quiz && target && quiz !== target.previousElementSibling) {
+        try { target.parentNode.insertBefore(quiz, target); } catch (e) { /* silent */ }
+      }
+    })();
+  </script>
 </body>
 </html>

@@ -3,29 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockups · ST Perfumería · Banner Decants v2</title>
+<title>Mockups · ST Perfumería · DECANTS-UX iter 2</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:       #0a0a0c;
     --bg-elev:  #131316;
     --bg-elev2: #1a1a1d;
+    --bg-modal: #0f0f12;
     --borde:    #2a2a2e;
+    --borde-light: #3a3a3e;
     --txt:      #f0f0f0;
     --txt-sub:  #999;
     --txt-dim:  #666;
     --amarillo: #E8B800;
+    --amarillo-soft: rgba(232,184,0,.12);
     --violet1:  #2a0a3a;
     --violet2:  #4a148c;
     --violet3:  #6a1b9a;
     --magenta:  #b71c5c;
     --rosa:     #e91e63;
+    --verde:    #66bb6a;
+    --rojo:     #ef5350;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--txt);
     font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.55;
   }
+
+  /* ─── Toolbar / Nav ─────────────────────────────────────── */
   .toolbar {
     position: sticky; top: 0; background: var(--bg-elev);
     border-bottom: 1px solid var(--borde); padding: 12px 18px; z-index: 100;
@@ -35,619 +42,1162 @@
   .nav-anchors {
     background: var(--bg-elev2); border-bottom: 1px solid var(--borde);
     padding: 8px 18px; display: flex; gap: 6px; flex-wrap: wrap;
+    position: sticky; top: 56px; z-index: 99;
   }
   .nav-anchor {
     background: transparent; color: var(--txt-sub);
     border: 1px solid var(--borde); padding: 4px 10px;
     border-radius: 14px; font-size: .68rem; text-decoration: none;
+    transition: all .15s;
   }
   .nav-anchor:hover { color: var(--amarillo); border-color: var(--amarillo); }
+
+  /* ─── Layout sections ───────────────────────────────────── */
   .section {
     padding: 28px 18px; max-width: 1500px; margin: 0 auto;
     border-bottom: 1px solid var(--borde);
   }
-  .section-head { margin-bottom: 18px; }
+  .section-head { margin-bottom: 20px; }
   .section-title {
     font-family: 'Playfair Display', serif;
     font-size: 1.4rem; font-weight: 700; margin: 0 0 4px;
   }
   .section-sub { color: var(--txt-sub); font-size: .82rem; margin: 0; }
-  .opt-block { margin-bottom: 32px; }
-  .opt-tag {
+  .section-explainer {
+    background: var(--bg-elev); border: 1px solid var(--borde);
+    border-left: 3px solid var(--amarillo); padding: 12px 14px;
+    border-radius: 6px; font-size: .75rem; color: var(--txt-sub);
+    margin: 14px 0 22px;
+  }
+  .section-explainer strong { color: var(--amarillo); font-weight: 700; }
+
+  /* ─── Variant card (envoltorio de cada variante) ────────── */
+  .variants-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px; margin-top: 16px;
+  }
+  @media (max-width: 1100px) { .variants-grid { grid-template-columns: 1fr; max-width: 480px; margin: 16px auto 0; } }
+  .variant {
+    background: var(--bg-elev); border: 1px solid var(--borde);
+    border-radius: 10px; overflow: hidden;
+  }
+  .variant-tag {
     display: inline-block; font-size: .58rem; font-weight: 800;
     letter-spacing: .2em; text-transform: uppercase;
-    padding: 3px 10px; border-radius: 12px; margin-bottom: 8px;
+    padding: 3px 10px; border-radius: 12px; margin: 12px 14px 0;
   }
-  .opt-tag.t1 { background: rgba(33,150,243,.18); color: #64b5f6; }
-  .opt-tag.t2 { background: rgba(76,175,80,.18); color: #66bb6a; }
-  .opt-tag.t3 { background: rgba(255,152,0,.18); color: #ffb74d; }
-  .opt-label { font-size: .8rem; color: var(--txt); margin-bottom: 12px; font-weight: 700; }
-  .opt-label small { color: var(--txt-sub); font-weight: 400; font-size: .7rem; margin-left: 8px; }
-  .banner-base {
-    border-radius: 14px;
-    box-shadow: 0 14px 40px rgba(74,20,140,.4);
-    overflow: hidden; position: relative;
-    display: grid;
-    grid-template-columns: 1.1fr 1.4fr 0.8fr;
-    min-height: 290px;
-    background: linear-gradient(135deg, #2a0a3a 0%, #4a148c 30%, #6a1b9a 60%, #b71c5c 100%);
+  .variant-tag.t1 { background: rgba(33,150,243,.18); color: #64b5f6; }
+  .variant-tag.t2 { background: rgba(76,175,80,.18); color: #66bb6a; }
+  .variant-tag.t3 { background: rgba(255,152,0,.18); color: #ffb74d; }
+  .variant-label {
+    font-size: .82rem; color: var(--txt); margin: 6px 14px 4px; font-weight: 700;
   }
-  @media (max-width: 900px) { .banner-base { grid-template-columns: 1fr; } }
-  .b-left {
-    padding: 28px 30px; display: flex; flex-direction: column;
-    justify-content: center; position: relative; z-index: 2;
+  .variant-label small {
+    color: var(--txt-sub); font-weight: 400; font-size: .68rem;
+    display: block; margin-top: 2px;
   }
-  .b-label {
-    font-size: .58rem; font-weight: 700; letter-spacing: .35em;
-    text-transform: uppercase; color: #ffd900;
-    margin: 0 0 8px; display: flex; align-items: center; gap: 6px;
+  .variant-canvas {
+    background: var(--bg-modal); margin: 12px 14px;
+    border-radius: 8px; padding: 14px;
+    border: 1px solid var(--borde-light);
   }
-  .b-label::before { content: '◆'; color: #ffd900; }
-  .b-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 3rem; font-weight: 700; color: #fff;
-    line-height: 1; margin: 0; letter-spacing: -.02em;
-    background: linear-gradient(180deg, #fff 0%, #ffd900 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .variant-pros-cons {
+    padding: 0 14px 14px; display: grid;
+    grid-template-columns: 1fr 1fr; gap: 8px;
   }
-  .b-tagline {
-    font-family: 'Cormorant Garamond', serif; font-style: italic;
-    font-size: 1.3rem; color: #ffd900; margin: 4px 0 10px;
+  .pros, .cons {
+    background: rgba(0,0,0,.25); border-radius: 6px; padding: 8px 10px;
+    font-size: .68rem;
   }
-  .b-sub {
-    font-size: .82rem; color: rgba(255,255,255,.85);
-    margin: 0 0 18px; max-width: 320px;
+  .pros { border-left: 2px solid var(--verde); }
+  .cons { border-left: 2px solid var(--rojo); }
+  .pros-title, .cons-title {
+    font-size: .54rem; font-weight: 800; letter-spacing: .15em;
+    text-transform: uppercase; margin: 0 0 4px;
   }
-  .b-cta {
-    background: #fff; color: #4a148c; border: 0;
-    padding: 14px 28px; border-radius: 40px;
-    font-weight: 800; font-size: .8rem; letter-spacing: .12em;
-    box-shadow: 0 6px 22px rgba(255,255,255,.25), 0 0 30px rgba(255,255,255,.15);
-    text-transform: uppercase; width: fit-content; cursor: pointer;
-    font-family: inherit; display: inline-flex; align-items: center; gap: 8px;
+  .pros-title { color: var(--verde); }
+  .cons-title { color: var(--rojo); }
+  .pros ul, .cons ul { margin: 0; padding-left: 14px; color: var(--txt-sub); }
+  .pros li, .cons li { margin-bottom: 1px; line-height: 1.35; }
+
+  /* ─── Reproducción visual del modal del armador ──────────── */
+  /* Imitamos lo justo: header, search, fragmento de grid, footer */
+  .builder-fake {
+    background: var(--bg-modal); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
   }
-  .b-cta:hover { transform: translateY(-2px); }
-  .b-center {
-    position: relative; display: flex; align-items: flex-end;
-    justify-content: center; padding: 16px 12px 24px; min-height: 280px;
-  }
-  .b-smoke {
-    position: absolute; inset: 0; pointer-events: none;
-    background:
-      radial-gradient(ellipse at 30% 70%, rgba(255,182,193,.25), transparent 50%),
-      radial-gradient(ellipse at 70% 40%, rgba(255,182,193,.18), transparent 55%);
-    filter: blur(8px); z-index: 0;
-    animation: smoke 9s ease-in-out infinite;
-  }
-  @keyframes smoke {
-    0%, 100% { transform: scale(1) translateX(0); opacity: .9; }
-    50%      { transform: scale(1.08) translateX(8px); opacity: 1; }
-  }
-  .b-flower {
-    position: absolute; left: 8%; bottom: 18%;
-    font-size: 4rem; transform: rotate(-15deg);
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,.4));
-    z-index: 1; pointer-events: none; opacity: .9;
-  }
-  .b-podium {
-    position: relative; display: flex; flex-direction: column;
-    align-items: center; z-index: 2;
-  }
-  .b-vial {
-    position: relative; display: flex; align-items: flex-end;
-    justify-content: center;
-  }
-  .b-podium-base {
-    margin-top: 0; width: 70px; height: 18px;
-    background: linear-gradient(180deg, #6a1b9a, #4a148c 60%, #2a0a3a);
-    border-radius: 50% / 30% 30% 50% 50%;
-    box-shadow: inset 0 1px 2px rgba(255,255,255,.2), 0 4px 12px rgba(0,0,0,.4);
+  .builder-head {
+    background: linear-gradient(180deg, #18181c 0%, #131316 100%);
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--borde);
     position: relative;
   }
-  .b-podium-base::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 8px;
-    background: linear-gradient(180deg, #8e24aa, #6a1b9a);
-    border-radius: 50% / 100% 100% 0 0;
+  .builder-close-fake {
+    position: absolute; top: 10px; right: 12px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(255,255,255,.08); color: #fff;
+    border: 0; cursor: pointer; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
   }
-  .b-podium.size-10 .b-podium-base { width: 78px; height: 22px; margin-top: -22px; }
-  .b-podium.size-20 .b-podium-base { width: 86px; height: 26px; margin-top: -45px; }
-  .b-podium-label {
-    font-size: .6rem; color: rgba(255,255,255,.9);
-    margin-top: 4px; font-weight: 600; letter-spacing: .04em;
+  .builder-title-fake {
+    font-size: .9rem; font-weight: 700; margin: 0 0 2px;
+    font-family: 'Inter', sans-serif;
   }
-  .b-bottle-svg { display: block; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
-  .b-ribbon {
-    position: absolute; top: 35%; left: 50%;
-    transform: translate(-50%, -50%) rotate(-25deg);
-    background: linear-gradient(135deg, #ffe066, #f5c518 50%, #d4a200);
-    color: #2a0a3a;
-    font-size: .55rem; font-weight: 900; letter-spacing: .15em;
-    padding: 6px 22px; text-transform: uppercase;
-    box-shadow: 0 3px 10px rgba(0,0,0,.4), inset 0 1px 1px rgba(255,255,255,.6);
-    border-top: 1px solid rgba(255,255,255,.6);
-    border-bottom: 1px solid rgba(0,0,0,.2);
-    white-space: nowrap; z-index: 5;
+  .builder-sub-fake {
+    font-size: .65rem; color: var(--txt-sub); margin: 0 0 8px;
   }
-  .b-right {
-    padding: 24px 24px 24px 12px;
-    display: flex; flex-direction: column; justify-content: center;
-    gap: 18px; position: relative; z-index: 2;
-    border-left: 1px dashed rgba(255,217,0,.18);
+  .builder-counter-fake {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(232,184,0,.06); border: 1px solid rgba(232,184,0,.2);
+    border-radius: 6px; padding: 6px 10px; margin-bottom: 4px;
   }
-  @media (max-width: 900px) {
-    .b-right { border-left: 0; border-top: 1px dashed rgba(255,217,0,.18); padding: 18px; }
+  .builder-counter-qty { font-size: .72rem; font-weight: 700; color: var(--amarillo); }
+  .builder-counter-total { font-size: .85rem; font-weight: 800; color: var(--amarillo); }
+  .builder-search-fake {
+    width: calc(100% - 32px); margin: 10px 16px 8px;
+    background: rgba(255,255,255,.04); border: 1px solid var(--borde);
+    border-radius: 6px; padding: 7px 10px; color: var(--txt-sub);
+    font-size: .72rem;
   }
-  .b-trust { display: flex; align-items: flex-start; gap: 12px; }
-  .b-trust-ico {
-    width: 36px; height: 36px; border: 1.5px solid #ffd900;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    color: #ffd900; flex-shrink: 0; background: rgba(255,217,0,.05);
+  .builder-section-title-fake {
+    font-size: .58rem; font-weight: 800; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--amarillo);
+    margin: 10px 16px 6px;
   }
-  .b-trust-title {
-    font-size: .68rem; font-weight: 800; color: #ffd900;
-    letter-spacing: .15em; text-transform: uppercase; margin: 0 0 2px;
+  .builder-grid-fake {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 6px; padding: 0 12px;
   }
-  .b-trust-desc { font-size: .68rem; color: rgba(255,255,255,.85); margin: 0; line-height: 1.3; }
+  .card-fake {
+    background: rgba(255,255,255,.03); border: 1px solid var(--borde);
+    border-radius: 6px; padding: 6px; display: flex; gap: 6px; align-items: center;
+    min-height: 50px;
+  }
+  .card-fake.has-qty { border-color: var(--amarillo); background: var(--amarillo-soft); }
+  .card-fake-img {
+    width: 30px; height: 36px; background: linear-gradient(135deg, #2a2a2e, #1a1a1d);
+    border-radius: 3px; display: flex; align-items: center; justify-content: center;
+    color: #555; font-size: .65rem; flex-shrink: 0;
+  }
+  .card-fake-img.img-amber { background: linear-gradient(135deg, #5a3a10, #2a1a05); color: #c8a04a; }
+  .card-fake-img.img-blue { background: linear-gradient(135deg, #1a2840, #0a1428); color: #6a90c0; }
+  .card-fake-img.img-rose { background: linear-gradient(135deg, #501a30, #2a0a18); color: #c06080; }
+  .card-fake-img.img-green { background: linear-gradient(135deg, #1a4020, #0a2010); color: #6ab070; }
+  .card-fake-img.special { background: var(--amarillo-soft); color: var(--amarillo); font-size: .85rem; }
+  .card-fake-info { flex: 1; min-width: 0; }
+  .card-fake-name {
+    font-size: .68rem; font-weight: 700; color: var(--txt);
+    margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-fake-brand {
+    font-size: .58rem; color: var(--txt-sub); margin: 0;
+  }
+  .card-fake-ctrl {
+    display: flex; align-items: center; gap: 3px; flex-shrink: 0;
+  }
+  .ctrl-btn-fake {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(255,255,255,.08); border: 1px solid var(--borde);
+    color: var(--txt); font-size: .8rem; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ctrl-btn-fake.plus { background: rgba(232,184,0,.2); color: var(--amarillo); border-color: var(--amarillo); }
+  .ctrl-qty-fake {
+    font-size: .68rem; font-weight: 700; min-width: 14px; text-align: center;
+  }
+  .builder-footer-fake {
+    background: linear-gradient(0deg, #131316 0%, #18181c 100%);
+    border-top: 1px solid var(--borde);
+    padding: 10px 14px; margin-top: 10px;
+  }
+  .footer-summary-fake {
+    display: flex; justify-content: space-between;
+    background: rgba(232,184,0,.06); border: 1px solid rgba(232,184,0,.18);
+    border-radius: 6px; padding: 6px 10px; margin-bottom: 6px;
+  }
+  .footer-actions-fake { display: flex; gap: 6px; }
+  .btn-vaciar {
+    flex: 0 0 auto; padding: 7px 12px; font-size: .68rem;
+    background: rgba(255,255,255,.06); border: 1px solid var(--borde);
+    color: var(--txt-sub); border-radius: 6px;
+  }
+  .btn-wa {
+    flex: 1; padding: 7px 12px; font-size: .72rem; font-weight: 800;
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    border: 0; color: #fff; border-radius: 6px;
+  }
 
-  /* OPCIÓN 1 — Foto directa placeholder */
-  .opt1 .b-center {
-    background:
-      radial-gradient(ellipse at 30% 80%, rgba(186,104,200,.4), transparent 55%),
-      radial-gradient(ellipse at 70% 30%, rgba(244,143,177,.35), transparent 55%);
-  }
-  .opt1-placeholder {
-    position: absolute; inset: 12px;
-    border: 2px dashed rgba(255,255,255,.3); border-radius: 10px;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; color: rgba(255,255,255,.7);
-    text-align: center; padding: 16px; z-index: 1;
-  }
-  .opt1-placeholder-title { font-size: 1rem; font-weight: 700; margin: 0 0 4px; color: rgba(255,255,255,.85); }
-  .opt1-placeholder-sub { font-size: .7rem; opacity: .75; margin: 0; }
+  /* ──────────────────────────────────────────────────────── */
+  /* VARIANTES TAB SWITCHER (#4)                              */
+  /* ──────────────────────────────────────────────────────── */
 
-  /* OPCIÓN 3 — Híbrido */
-  .opt3 .b-center {
-    background:
-      radial-gradient(ellipse at 25% 75%, rgba(244,143,177,.4), transparent 50%),
-      radial-gradient(ellipse at 75% 25%, rgba(186,104,200,.35), transparent 50%),
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,.08), transparent 70%);
+  /* Variante A — Pills clásicas */
+  .tabs-A {
+    display: flex; gap: 4px; background: rgba(255,255,255,.04);
+    padding: 3px; border-radius: 10px; margin-bottom: 8px;
   }
-  .opt3 .b-flower { font-size: 5rem; opacity: .8; }
-  .opt3 .b-smoke {
-    background:
-      radial-gradient(ellipse at 20% 80%, rgba(255,182,193,.45), transparent 50%),
-      radial-gradient(ellipse at 80% 35%, rgba(255,193,210,.3), transparent 50%),
-      radial-gradient(ellipse at 50% 60%, rgba(255,255,255,.15), transparent 60%);
-    filter: blur(14px);
+  .tabs-A .tab {
+    flex: 1; padding: 7px 10px; border-radius: 8px;
+    font-size: .7rem; font-weight: 700; text-align: center;
+    color: var(--txt-sub); cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    background: transparent; border: 0;
+  }
+  .tabs-A .tab.active {
+    background: var(--amarillo); color: #1a1a1d;
+    box-shadow: 0 2px 8px rgba(232,184,0,.3);
+  }
+  .tabs-A .badge {
+    display: inline-block; background: rgba(0,0,0,.2);
+    color: inherit; padding: 1px 6px; border-radius: 10px;
+    font-size: .58rem; font-weight: 800; margin-left: 2px;
+  }
+  .tabs-A .tab.active .badge { background: rgba(0,0,0,.25); }
+
+  /* Variante B — Underline minimalista */
+  .tabs-B {
+    display: flex; gap: 0; border-bottom: 1px solid var(--borde);
+    margin-bottom: 8px;
+  }
+  .tabs-B .tab {
+    flex: 1; padding: 9px 6px 8px; background: transparent;
+    border: 0; cursor: pointer; color: var(--txt-sub);
+    font-size: .72rem; font-weight: 600; text-align: center;
+    position: relative; transition: color .15s;
+  }
+  .tabs-B .tab.active { color: var(--amarillo); font-weight: 800; }
+  .tabs-B .tab.active::after {
+    content: ''; position: absolute; left: 18%; right: 18%;
+    bottom: -1px; height: 2px; background: var(--amarillo);
+    border-radius: 2px;
+  }
+  .tabs-B .badge {
+    display: inline-block; background: rgba(232,184,0,.18);
+    color: var(--amarillo); padding: 1px 6px; border-radius: 10px;
+    font-size: .58rem; font-weight: 800; margin-left: 4px;
   }
 
-  /* PROS/CONS */
-  .pros-cons {
-    margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  /* Variante C — Toggle deslizante */
+  .tabs-C {
+    position: relative; display: flex; gap: 0;
+    background: rgba(255,255,255,.04); padding: 3px;
+    border: 1px solid var(--borde); border-radius: 22px;
+    margin-bottom: 8px;
   }
-  @media (max-width: 700px) { .pros-cons { grid-template-columns: 1fr; } }
-  .pros, .cons {
-    background: var(--bg-elev); border: 1px solid var(--borde);
-    border-radius: 6px; padding: 10px 14px; font-size: .72rem;
+  .tabs-C::before {
+    content: ''; position: absolute; top: 3px; bottom: 3px;
+    left: 3px; width: calc(50% - 3px);
+    background: linear-gradient(135deg, var(--amarillo), #ffd000);
+    border-radius: 18px; transition: transform .25s cubic-bezier(.5,.5,.3,1.4);
+    box-shadow: 0 2px 8px rgba(232,184,0,.35);
   }
-  .pros { border-left: 2px solid #66bb6a; }
-  .cons { border-left: 2px solid #ef5350; }
-  .pros-title, .cons-title {
-    font-size: .55rem; font-weight: 800; letter-spacing: .15em;
-    text-transform: uppercase; margin: 0 0 6px;
+  .tabs-C.is-misdecants::before { transform: translateX(100%); }
+  .tabs-C .tab {
+    flex: 1; padding: 7px 10px; background: transparent;
+    border: 0; cursor: pointer; font-size: .7rem; font-weight: 700;
+    color: var(--txt-sub); text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    position: relative; z-index: 2; transition: color .2s;
   }
-  .pros-title { color: #66bb6a; }
-  .cons-title { color: #ef5350; }
-  .pros ul, .cons ul { margin: 0; padding-left: 16px; color: var(--txt-sub); }
-  .pros li, .cons li { margin-bottom: 2px; }
+  .tabs-C .tab.active { color: #1a1a1d; }
+  .tabs-C .badge {
+    display: inline-block; background: rgba(0,0,0,.18);
+    color: inherit; padding: 1px 6px; border-radius: 10px;
+    font-size: .58rem; font-weight: 800; margin-left: 2px;
+  }
 
-  /* MOBILE */
-  .mobile-row {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 18px; margin-top: 18px;
-  }
-  @media (max-width: 900px) {
-    .mobile-row { grid-template-columns: 1fr; max-width: 380px; margin: 18px auto; }
-  }
-  .mobile-frame {
-    background: #000; border-radius: 28px; padding: 8px;
-    box-shadow: 0 12px 36px rgba(0,0,0,.6); overflow: hidden;
-  }
-  .mobile-screen {
-    background: var(--bg); border-radius: 20px; overflow: hidden;
-    min-height: 580px; position: relative;
-  }
-  .mobile-statusbar {
-    height: 22px; background: #000;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 16px; color: #fff; font-size: .55rem; font-weight: 700;
-  }
-  .mobile-banner {
-    background: linear-gradient(135deg, #2a0a3a 0%, #4a148c 30%, #6a1b9a 60%, #b71c5c 100%);
-    color: #fff; position: relative; overflow: hidden;
-  }
-  /* Variante A — Stack vertical */
-  .vA .mobile-banner { padding: 0; }
-  .vA-foto {
-    width: 100%; height: 180px; position: relative;
-    background:
-      radial-gradient(ellipse at 30% 70%, rgba(244,143,177,.35), transparent 55%),
-      radial-gradient(ellipse at 70% 35%, rgba(186,104,200,.3), transparent 50%);
-    display: flex; align-items: flex-end; justify-content: center;
-    gap: 8px; padding: 10px 10px 4px;
-  }
-  .vA-foto::before {
-    content: '🪻'; position: absolute; left: 12px; bottom: 14px;
-    font-size: 2rem; opacity: .85; transform: rotate(-15deg);
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,.4));
-  }
-  .vA-text { padding: 14px 18px 18px; text-align: center; }
-  .vA-text .b-label { justify-content: center; }
-  .vA-text .b-title { font-size: 2rem; }
-  .vA-text .b-tagline { font-size: 1rem; }
-  .vA-text .b-sub { font-size: .72rem; margin: 0 auto 12px; }
-  .vA-text .b-cta { font-size: .68rem; padding: 11px 22px; margin: 0 auto; }
-  .vA-badges {
-    background: rgba(0,0,0,.25); padding: 12px 14px;
-    display: flex; flex-direction: column; gap: 10px;
-    border-top: 1px dashed rgba(255,217,0,.18);
-  }
-  .vA-badges .b-trust-ico { width: 28px; height: 28px; }
-  .vA-badges .b-trust-title { font-size: .55rem; }
-  .vA-badges .b-trust-desc { font-size: .6rem; }
+  /* ──────────────────────────────────────────────────────── */
+  /* VARIANTES "COMBINÁS BIEN CON" (#6)                       */
+  /* ──────────────────────────────────────────────────────── */
 
-  /* Variante B — Texto primero */
-  .vB .mobile-banner { padding: 14px 16px 8px; text-align: center; }
-  .vB .b-label { justify-content: center; }
-  .vB .b-title { font-size: 1.9rem; }
-  .vB .b-tagline { font-size: .95rem; }
-  .vB .b-sub { font-size: .7rem; margin: 0 auto 12px; }
-  .vB .b-cta { font-size: .66rem; padding: 11px 22px; margin: 0 auto 14px; }
-  .vB-row {
-    display: flex; align-items: flex-end; justify-content: space-around;
-    padding: 6px 0 4px; background: rgba(0,0,0,.15);
-    border-radius: 10px; margin-bottom: 12px;
-    position: relative; overflow: hidden;
+  /* Variante A — Card horizontal compacta dentro del grid */
+  .combo-A {
+    background: linear-gradient(135deg, rgba(232,184,0,.1), rgba(232,184,0,.04));
+    border: 1px solid rgba(232,184,0,.3);
+    border-radius: 8px; padding: 8px;
+    display: grid; grid-template-columns: 40px 1fr auto; gap: 8px;
+    align-items: center; margin: 0 12px 10px;
   }
-  .vB-badges {
-    background: rgba(0,0,0,.25); padding: 10px 12px;
-    display: flex; gap: 12px;
-    border-top: 1px dashed rgba(255,217,0,.18); overflow-x: auto;
+  .combo-A-img {
+    width: 40px; height: 48px; border-radius: 4px;
+    background: linear-gradient(135deg, #5a3a10, #2a1a05);
+    display: flex; align-items: center; justify-content: center;
+    color: #c8a04a; font-size: .9rem;
   }
-  .vB-badges .b-trust {
-    flex: 0 0 auto; flex-direction: column;
-    align-items: center; text-align: center; min-width: 90px;
+  .combo-A-info {
+    min-width: 0;
   }
-  .vB-badges .b-trust-ico { width: 30px; height: 30px; }
-  .vB-badges .b-trust-title { font-size: .5rem; }
-  .vB-badges .b-trust-desc { font-size: .55rem; }
+  .combo-A-label {
+    font-size: .54rem; font-weight: 800; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--amarillo); margin: 0;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .combo-A-name {
+    font-size: .78rem; font-weight: 700; color: var(--txt); margin: 1px 0 0;
+  }
+  .combo-A-brand {
+    font-size: .6rem; color: var(--txt-sub); margin: 0;
+  }
+  .combo-A-btn {
+    background: var(--amarillo); color: #1a1a1d; border: 0;
+    padding: 6px 10px; border-radius: 6px;
+    font-size: .65rem; font-weight: 800;
+    cursor: pointer; white-space: nowrap;
+  }
 
-  /* Variante C — Reducción */
-  .vC .mobile-banner { padding: 14px 16px 8px; text-align: center; }
-  .vC .b-label { justify-content: center; }
-  .vC .b-title { font-size: 1.9rem; }
-  .vC .b-tagline { font-size: .95rem; }
-  .vC .b-sub { font-size: .7rem; margin: 0 auto 12px; }
-  .vC-hero {
-    display: flex; align-items: flex-end; justify-content: center;
-    gap: 14px; padding: 8px 0 4px; margin-bottom: 10px;
-    position: relative; min-height: 130px;
+  /* Variante B — Sticky banner arriba del footer */
+  .combo-B-wrap {
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.6) 40%);
+    padding: 10px 12px 6px;
+    margin: 0 -1px -1px;
   }
-  .vC-hero::before {
-    content: '🪻'; position: absolute; right: 8%; bottom: 14%;
-    font-size: 1.6rem; opacity: .55; z-index: 0; transform: rotate(15deg);
+  .combo-B {
+    background: linear-gradient(135deg, rgba(232,184,0,.18), rgba(232,184,0,.08));
+    border: 1px solid rgba(232,184,0,.4);
+    border-radius: 24px; padding: 6px 8px 6px 12px;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
+    backdrop-filter: blur(8px);
   }
-  .vC-hero .b-podium.featured { transform: scale(1); z-index: 2; }
-  .vC-hero .b-podium.thumb { transform: scale(.55); transform-origin: bottom; opacity: .65; z-index: 1; }
-  .vC-cta-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
-  .vC .b-cta { font-size: .66rem; padding: 11px 22px; }
-  .vC-badges {
-    background: rgba(0,0,0,.25); padding: 12px 14px;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-    border-top: 1px dashed rgba(255,217,0,.18);
+  .combo-B-icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--amarillo); color: #1a1a1d;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; flex-shrink: 0;
   }
-  .vC-badges .b-trust {
-    flex-direction: column; align-items: center; text-align: center; gap: 4px;
+  .combo-B-text {
+    flex: 1; min-width: 0; line-height: 1.2;
   }
-  .vC-badges .b-trust-ico { width: 28px; height: 28px; }
-  .vC-badges .b-trust-title { font-size: .48rem; letter-spacing: .1em; }
-  .vC-badges .b-trust-desc { display: none; }
+  .combo-B-label {
+    font-size: .55rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--amarillo); margin: 0;
+  }
+  .combo-B-name {
+    font-size: .72rem; color: var(--txt); margin: 1px 0 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .combo-B-btn {
+    background: var(--amarillo); color: #1a1a1d; border: 0;
+    padding: 6px 12px; border-radius: 18px;
+    font-size: .65rem; font-weight: 800;
+    cursor: pointer; flex-shrink: 0;
+  }
+
+  /* Variante C — Slot integrado como card destacada en el grid */
+  .combo-C {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(232,184,0,.12), rgba(232,184,0,.04));
+    border: 1.5px solid var(--amarillo);
+    border-radius: 8px; padding: 8px;
+    display: grid; grid-template-columns: 40px 1fr auto; gap: 8px;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 0 0 4px rgba(232,184,0,.08);
+  }
+  .combo-C::before {
+    content: '💡 TE PUEDE GUSTAR';
+    position: absolute; top: -8px; left: 12px;
+    font-size: .5rem; font-weight: 800; letter-spacing: .15em;
+    background: var(--amarillo); color: #1a1a1d;
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .combo-C-img {
+    width: 40px; height: 48px; border-radius: 4px;
+    background: linear-gradient(135deg, #5a3a10, #2a1a05);
+    display: flex; align-items: center; justify-content: center;
+    color: #c8a04a; font-size: .9rem;
+  }
+  .combo-C-info { min-width: 0; }
+  .combo-C-name {
+    font-size: .78rem; font-weight: 700; color: var(--txt); margin: 0;
+  }
+  .combo-C-brand {
+    font-size: .6rem; color: var(--txt-sub); margin: 0;
+  }
+  .combo-C-reason {
+    font-size: .56rem; color: var(--amarillo); margin: 2px 0 0;
+    font-style: italic;
+  }
+  .combo-C-btn {
+    background: var(--amarillo); color: #1a1a1d; border: 0;
+    padding: 6px 10px; border-radius: 6px;
+    font-size: .65rem; font-weight: 800;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  /* ─── Historial colapsable (banner v2) ──────────────────── */
+  .historical-toggle {
+    background: var(--bg-elev); border: 1px dashed var(--borde-light);
+    padding: 14px 18px; border-radius: 8px;
+    cursor: pointer; display: flex; justify-content: space-between;
+    align-items: center; user-select: none;
+    margin-top: 18px;
+  }
+  .historical-toggle:hover { border-color: var(--amarillo); }
+  .historical-toggle-title {
+    font-size: .85rem; font-weight: 700; color: var(--txt-sub); margin: 0;
+  }
+  .historical-toggle-hint {
+    font-size: .65rem; color: var(--txt-dim);
+  }
+  details[open] .historical-toggle-hint::after { content: ' — click para colapsar'; }
+  details:not([open]) .historical-toggle-hint::after { content: ' — click para expandir'; }
+  .historical-content {
+    background: var(--bg-elev); border-radius: 0 0 8px 8px;
+    padding: 14px; margin-top: -1px;
+    border: 1px solid var(--borde); border-top: 0;
+  }
+
+  /* ─── My vote callout ───────────────────────────────────── */
+  .myvote {
+    background: linear-gradient(135deg, rgba(232,184,0,.12), rgba(232,184,0,.04));
+    border: 1px solid var(--amarillo); border-radius: 8px;
+    padding: 12px 14px; margin: 18px 0 8px;
+    font-size: .78rem;
+  }
+  .myvote-title {
+    font-size: .58rem; font-weight: 800; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--amarillo); margin: 0 0 6px;
+  }
 
   .footer {
     padding: 30px 18px 60px; text-align: center;
     color: var(--txt-dim); font-size: .7rem;
+  }
+
+  /* ─── Mobile fallback (todo en 1 col) ───────────────────── */
+  @media (max-width: 700px) {
+    .variant-pros-cons { grid-template-columns: 1fr; }
+    .section { padding: 22px 14px; }
+    .section-title { font-size: 1.2rem; }
   }
 </style>
 </head>
 <body>
 
 <div class="toolbar">
-  <p class="toolbar-title">🎨 Mockups · Banner Decants v2</p>
-  <p class="toolbar-sub">3 opciones desktop + 3 variantes mobile</p>
+  <p class="toolbar-title">🎨 Mockups · DECANTS-UX iter 2</p>
+  <p class="toolbar-sub">Tab switcher (#4) · Combinás bien con (#6) · 3 variantes c/u</p>
 </div>
 
 <nav class="nav-anchors">
-  <a class="nav-anchor" href="#desktop">💻 Desktop · 3 opciones</a>
-  <a class="nav-anchor" href="#mobile">📱 Mobile · 3 variantes</a>
+  <a class="nav-anchor" href="#tabs">📑 Tab switcher · 3 variantes</a>
+  <a class="nav-anchor" href="#combo">💡 Combinás bien · 3 variantes</a>
+  <a class="nav-anchor" href="#historico">🗂️ Histórico (banner v2)</a>
 </nav>
 
-<!-- DESKTOP -->
-<section class="section" id="desktop">
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TAB SWITCHER                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section" id="tabs">
   <div class="section-head">
-    <h2 class="section-title">💻 Banner Decants — Desktop</h2>
-    <p class="section-sub">3 opciones · todas mantienen los 3 trust badges a la derecha: 100% Originales · Ideales para viajar · Probá antes.</p>
+    <h2 class="section-title">📑 Tab switcher · "Catálogo / Mis decants"</h2>
+    <p class="section-sub">Idea #4 del armador iter 2 · agrega 2 pestañas en el header del modal</p>
   </div>
 
-  <!-- OPCIÓN 1 -->
-  <div class="opt-block opt1">
-    <span class="opt-tag t1">OPCIÓN 1 · FOTO DIRECTA DEL GPT</span>
-    <p class="opt-label">Usar tu imagen del GPT como background <small>· 1-2h optimización · idéntico a lo que viste</small></p>
-    <div class="banner-base">
-      <div class="b-left">
-        <p class="b-label">ST Perfumería</p>
-        <h2 class="b-title">Decants</h2>
-        <p class="b-tagline">tu fragancia, tu medida</p>
-        <p class="b-sub">Las mejores fragancias en formato mini.</p>
-        <button class="b-cta">💧 Armá tu pack →</button>
-      </div>
-      <div class="b-center">
-        <div class="opt1-placeholder">
-          <p class="opt1-placeholder-title">🖼️ Tu foto del GPT va acá</p>
-          <p class="opt1-placeholder-sub">WebP/AVIF optimizada (~150KB)<br>3 frascos + podium + flor + humo</p>
-        </div>
-      </div>
-      <div class="b-right">
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía de autenticidad</p></div></div>
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Ideales para viajar</p><p class="b-trust-desc">Llevá tu fragancia a donde vayas</p></div></div>
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Descubrí tu próxima fragancia favorita</p></div></div>
-      </div>
-    </div>
+  <div class="section-explainer">
+    <strong>¿Qué problema resuelve?</strong> Hoy, cuando armás un pack de 6 decants, para revisar lo que ya tenés tenés que scrollear el grid completo. Con un tab "Mis decants (3)" ves SOLO los que agregaste — útil para chequear pre-WhatsApp.
+    <br><br>
+    <strong>Dónde va el switcher:</strong> en el header del modal, debajo del título/subtítulo, arriba del counter y la search.
   </div>
 
-  <!-- OPCIÓN 2 — MI VOTO -->
-  <div class="opt-block opt2">
-    <span class="opt-tag t2">OPCIÓN 2 · CSS + SVG · ⭐ MI VOTO</span>
-    <p class="opt-label">Banner armado 100% con código <small>· 2-3h · 0KB extras · escalable</small></p>
-    <div class="banner-base">
-      <div class="b-left">
-        <p class="b-label">ST Perfumería</p>
-        <h2 class="b-title">Decants</h2>
-        <p class="b-tagline">tu fragancia, tu medida</p>
-        <p class="b-sub">Las mejores fragancias en formato mini.</p>
-        <button class="b-cta">💧 Armá tu pack →</button>
+  <div class="variants-grid">
+
+    <!-- VARIANTE A — PILLS CLÁSICAS -->
+    <div class="variant">
+      <span class="variant-tag t1">A · PILLS CLÁSICAS</span>
+      <p class="variant-label">Estilo iOS segmented control
+        <small>Pill activa con fondo dorado, badge contador</small>
+      </p>
+      <div class="variant-canvas">
+        <div class="builder-fake">
+          <div class="builder-head">
+            <button class="builder-close-fake">×</button>
+            <p class="builder-title-fake">🧪 Armá tu pack de decants</p>
+            <p class="builder-sub-fake">Decants de 5 ml · Máx 10</p>
+            <div class="tabs-A">
+              <button class="tab active">Catálogo <span class="badge">150</span></button>
+              <button class="tab">Mis decants <span class="badge">3</span></button>
+            </div>
+            <div class="builder-counter-fake">
+              <span class="builder-counter-qty">3/10 decants</span>
+              <span class="builder-counter-total">$18.000</span>
+            </div>
+          </div>
+          <input class="builder-search-fake" type="text" placeholder="🔎 Buscar perfume...">
+          <p class="builder-section-title-fake">★ Agregados (3)</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-amber">A</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Aventus</p>
+                <p class="card-fake-brand">Creed</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">1</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-blue">S</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Sauvage</p>
+                <p class="card-fake-brand">Dior</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">2</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <p class="builder-section-title-fake">Catálogo · A → Z</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake">
+              <div class="card-fake-img img-rose">Y</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Yara</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake">
+              <div class="card-fake-img img-green">K</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Khamrah</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="builder-footer-fake">
+            <div class="footer-summary-fake">
+              <span style="font-size: .68rem; color: var(--txt-sub);"><strong style="color: var(--amarillo);">3</strong> decants</span>
+              <span style="font-size: .78rem; color: var(--amarillo); font-weight: 800;">$18.000</span>
+            </div>
+            <div class="footer-actions-fake">
+              <button class="btn-vaciar">Vaciar</button>
+              <button class="btn-wa">📲 Consultar</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="b-center">
-        <div class="b-smoke"></div>
-        <div class="b-flower">🪻</div>
-        <div class="b-podium" style="margin-right: 22px;">
-          <div class="b-vial">
-            <svg class="b-bottle-svg" width="44" height="120" viewBox="0 0 44 120">
-              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
-              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
-              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
-              <path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq5b)"/>
-              <ellipse cx="16" cy="60" rx="1.4" ry="22" fill="rgba(255,255,255,.25)"/>
-              <defs><linearGradient id="liq5b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
-            </svg>
-          </div>
-          <div class="b-podium-base"></div>
-          <span class="b-podium-label">5 ml</span>
+      <div class="variant-pros-cons">
+        <div class="pros">
+          <p class="pros-title">PROS</p>
+          <ul>
+            <li>Familiar (estilo app móvil)</li>
+            <li>Touch-target grande (fácil tablet)</li>
+            <li>Contador visible</li>
+          </ul>
         </div>
-        <div class="b-podium size-10" style="margin-right: 22px; margin-bottom: 22px;">
-          <div class="b-vial">
-            <svg class="b-bottle-svg" width="48" height="138" viewBox="0 0 44 120">
-              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
-              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
-              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
-              <path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq10b)"/>
-              <ellipse cx="16" cy="60" rx="1.4" ry="26" fill="rgba(255,255,255,.25)"/>
-              <defs><linearGradient id="liq10b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
-            </svg>
-            <span class="b-ribbon">Próximamente</span>
-          </div>
-          <div class="b-podium-base"></div>
-          <span class="b-podium-label">10 ml</span>
+        <div class="cons">
+          <p class="cons-title">CONS</p>
+          <ul>
+            <li>Ocupa más altura</li>
+            <li>Pill dorado puede competir con CTAs</li>
+          </ul>
         </div>
-        <div class="b-podium size-20" style="margin-bottom: 45px;">
-          <div class="b-vial">
-            <svg class="b-bottle-svg" width="52" height="156" viewBox="0 0 44 120">
-              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
-              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
-              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
-              <path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq20b)"/>
-              <ellipse cx="16" cy="62" rx="1.4" ry="30" fill="rgba(255,255,255,.25)"/>
-              <defs><linearGradient id="liq20b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
-            </svg>
-            <span class="b-ribbon">Próximamente</span>
-          </div>
-          <div class="b-podium-base"></div>
-          <span class="b-podium-label">20 ml</span>
-        </div>
-      </div>
-      <div class="b-right">
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía de autenticidad</p></div></div>
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Ideales para viajar</p><p class="b-trust-desc">Llevá tu fragancia a donde vayas</p></div></div>
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Descubrí tu próxima fragancia favorita</p></div></div>
       </div>
     </div>
+
+    <!-- VARIANTE B — UNDERLINE -->
+    <div class="variant">
+      <span class="variant-tag t2">B · UNDERLINE MINIMALISTA</span>
+      <p class="variant-label">Estilo Material / Web app limpia
+        <small>Solo texto, línea dorada bajo la activa</small>
+      </p>
+      <div class="variant-canvas">
+        <div class="builder-fake">
+          <div class="builder-head">
+            <button class="builder-close-fake">×</button>
+            <p class="builder-title-fake">🧪 Armá tu pack de decants</p>
+            <p class="builder-sub-fake">Decants de 5 ml · Máx 10</p>
+            <div class="tabs-B">
+              <button class="tab active">Catálogo <span class="badge">150</span></button>
+              <button class="tab">Mis decants <span class="badge">3</span></button>
+            </div>
+            <div class="builder-counter-fake">
+              <span class="builder-counter-qty">3/10 decants</span>
+              <span class="builder-counter-total">$18.000</span>
+            </div>
+          </div>
+          <input class="builder-search-fake" type="text" placeholder="🔎 Buscar perfume...">
+          <p class="builder-section-title-fake">★ Agregados (3)</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-amber">A</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Aventus</p>
+                <p class="card-fake-brand">Creed</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">1</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-blue">S</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Sauvage</p>
+                <p class="card-fake-brand">Dior</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">2</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <p class="builder-section-title-fake">Catálogo · A → Z</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake">
+              <div class="card-fake-img img-rose">Y</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Yara</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake">
+              <div class="card-fake-img img-green">K</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Khamrah</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="builder-footer-fake">
+            <div class="footer-summary-fake">
+              <span style="font-size: .68rem; color: var(--txt-sub);"><strong style="color: var(--amarillo);">3</strong> decants</span>
+              <span style="font-size: .78rem; color: var(--amarillo); font-weight: 800;">$18.000</span>
+            </div>
+            <div class="footer-actions-fake">
+              <button class="btn-vaciar">Vaciar</button>
+              <button class="btn-wa">📲 Consultar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="variant-pros-cons">
+        <div class="pros">
+          <p class="pros-title">PROS</p>
+          <ul>
+            <li>Ocupa menos altura</li>
+            <li>Look "web app" elegante</li>
+            <li>Bajo contraste = no compite con CTAs</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <p class="cons-title">CONS</p>
+          <ul>
+            <li>Touch-target chico</li>
+            <li>Menos obvio que es interactivo</li>
+            <li>Puede confundirse con título</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANTE C — TOGGLE DESLIZANTE -->
+    <div class="variant">
+      <span class="variant-tag t3">C · TOGGLE DESLIZANTE</span>
+      <p class="variant-label">Estilo iOS toggle con animación
+        <small>Pill dorada se desliza al cambiar tab</small>
+      </p>
+      <div class="variant-canvas">
+        <div class="builder-fake">
+          <div class="builder-head">
+            <button class="builder-close-fake">×</button>
+            <p class="builder-title-fake">🧪 Armá tu pack de decants</p>
+            <p class="builder-sub-fake">Decants de 5 ml · Máx 10</p>
+            <div class="tabs-C" id="tabsC">
+              <button class="tab active">Catálogo <span class="badge">150</span></button>
+              <button class="tab">Mis decants <span class="badge">3</span></button>
+            </div>
+            <div class="builder-counter-fake">
+              <span class="builder-counter-qty">3/10 decants</span>
+              <span class="builder-counter-total">$18.000</span>
+            </div>
+          </div>
+          <input class="builder-search-fake" type="text" placeholder="🔎 Buscar perfume...">
+          <p class="builder-section-title-fake">★ Agregados (3)</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-amber">A</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Aventus</p>
+                <p class="card-fake-brand">Creed</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">1</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-blue">S</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Sauvage</p>
+                <p class="card-fake-brand">Dior</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">2</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <p class="builder-section-title-fake">Catálogo · A → Z</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake">
+              <div class="card-fake-img img-rose">Y</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Yara</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake">
+              <div class="card-fake-img img-green">K</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Khamrah</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="builder-footer-fake">
+            <div class="footer-summary-fake">
+              <span style="font-size: .68rem; color: var(--txt-sub);"><strong style="color: var(--amarillo);">3</strong> decants</span>
+              <span style="font-size: .78rem; color: var(--amarillo); font-weight: 800;">$18.000</span>
+            </div>
+            <div class="footer-actions-fake">
+              <button class="btn-vaciar">Vaciar</button>
+              <button class="btn-wa">📲 Consultar</button>
+            </div>
+          </div>
+        </div>
+        <p style="font-size: .65rem; color: var(--txt-sub); margin-top: 8px; text-align: center;">
+          👇 Click acá para ver la animación
+        </p>
+        <button onclick="document.getElementById('tabsC').classList.toggle('is-misdecants'); this.previousElementSibling.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active'));" style="display:block; margin: 4px auto 0; padding: 4px 10px; background: transparent; border: 1px solid var(--borde-light); color: var(--txt-sub); border-radius: 12px; font-size: .65rem; cursor:pointer;">Probar animación →</button>
+      </div>
+      <div class="variant-pros-cons">
+        <div class="pros">
+          <p class="pros-title">PROS</p>
+          <ul>
+            <li>Premium / "moderno"</li>
+            <li>Animación da feedback claro</li>
+            <li>Touch-target grande</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <p class="cons-title">CONS</p>
+          <ul>
+            <li>Más complejo de implementar</li>
+            <li>Look "juguete" puede no encajar</li>
+            <li>Animación con reduced-motion off</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- OPCIÓN 3 -->
-  <div class="opt-block opt3">
-    <span class="opt-tag t3">OPCIÓN 3 · HÍBRIDO</span>
-    <p class="opt-label">Foto del GPT como fondo (sin frascos) + SVGs encima <small>· 1.5-4h según si tenés PSD</small></p>
-    <div class="banner-base">
-      <div class="b-left">
-        <p class="b-label">ST Perfumería</p>
-        <h2 class="b-title">Decants</h2>
-        <p class="b-tagline">tu fragancia, tu medida</p>
-        <p class="b-sub">Las mejores fragancias en formato mini.</p>
-        <button class="b-cta">💧 Armá tu pack →</button>
-      </div>
-      <div class="b-center">
-        <div class="b-smoke"></div>
-        <div class="b-flower">🪻</div>
-        <div class="b-podium" style="margin-right: 22px;">
-          <div class="b-vial">
-            <svg class="b-bottle-svg" width="44" height="120" viewBox="0 0 44 120">
-              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
-              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
-              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
-              <path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq5c)"/>
-              <ellipse cx="16" cy="60" rx="1.4" ry="22" fill="rgba(255,255,255,.25)"/>
-              <defs><linearGradient id="liq5c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
-            </svg>
-          </div>
-          <div class="b-podium-base"></div>
-          <span class="b-podium-label">5 ml</span>
-        </div>
-        <div class="b-podium size-10" style="margin-right: 22px; margin-bottom: 22px;">
-          <div class="b-vial">
-            <svg class="b-bottle-svg" width="48" height="138" viewBox="0 0 44 120">
-              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
-              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
-              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
-              <path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq10c)"/>
-              <ellipse cx="16" cy="60" rx="1.4" ry="26" fill="rgba(255,255,255,.25)"/>
-              <defs><linearGradient id="liq10c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
-            </svg>
-            <span class="b-ribbon">Próximamente</span>
-          </div>
-          <div class="b-podium-base"></div>
-          <span class="b-podium-label">10 ml</span>
-        </div>
-        <div class="b-podium size-20" style="margin-bottom: 45px;">
-          <div class="b-vial">
-            <svg class="b-bottle-svg" width="52" height="156" viewBox="0 0 44 120">
-              <rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/>
-              <rect x="18" y="0" width="8" height="6" rx="1" fill="#0a0a0a"/>
-              <rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
-              <path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="url(#liq20c)"/>
-              <ellipse cx="16" cy="62" rx="1.4" ry="30" fill="rgba(255,255,255,.25)"/>
-              <defs><linearGradient id="liq20c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb74d" stop-opacity=".4"/><stop offset="1" stop-color="#e65100" stop-opacity=".75"/></linearGradient></defs>
-            </svg>
-            <span class="b-ribbon">Próximamente</span>
-          </div>
-          <div class="b-podium-base"></div>
-          <span class="b-podium-label">20 ml</span>
-        </div>
-      </div>
-      <div class="b-right">
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía de autenticidad</p></div></div>
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Ideales para viajar</p><p class="b-trust-desc">Llevá tu fragancia a donde vayas</p></div></div>
-        <div class="b-trust"><div class="b-trust-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Descubrí tu próxima fragancia favorita</p></div></div>
-      </div>
-    </div>
+  <div class="myvote">
+    <p class="myvote-title">🗳️ Mi voto</p>
+    <strong>Variante A (pills)</strong> — es la más clara para una empleada/cliente que abre el armador por primera vez. El touch-target grande y el badge "3" visible son perfectos para tablet del local. B se ve más prolija pero tiene riesgo de no parecer interactiva. C es divertida pero capaz "overkill" para una decisión binaria.
   </div>
 </section>
 
-<!-- MOBILE -->
-<section class="section" id="mobile">
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- COMBINÁS BIEN CON                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section" id="combo">
   <div class="section-head">
-    <h2 class="section-title">📱 Banner Decants — Mobile (3 variantes)</h2>
-    <p class="section-sub">Asumiendo Opción 2 (CSS+SVG) elegida.</p>
+    <h2 class="section-title">💡 "Combinás bien con: X"</h2>
+    <p class="section-sub">Idea #6 del armador iter 2 · sugerencia inteligente cuando tenés 1+ decants</p>
   </div>
 
-  <div class="mobile-row">
-    <!-- VARIANTE A -->
-    <div>
-      <span class="opt-tag t1">A · STACK VERTICAL</span>
-      <p class="opt-label" style="font-size: .72rem;">Imagen arriba, texto debajo, badges al final</p>
-      <div class="mobile-frame vA">
-        <div class="mobile-screen">
-          <div class="mobile-statusbar"><span>9:41</span><span>📶 🔋</span></div>
-          <div class="mobile-banner">
-            <div class="vA-foto">
-              <div class="b-podium" style="transform: scale(.5); transform-origin: bottom;">
-                <div class="b-vial"><svg width="44" height="120" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg></div>
-                <div class="b-podium-base"></div>
-              </div>
-              <div class="b-podium size-10" style="transform: scale(.55); transform-origin: bottom; margin-bottom: -10px;">
-                <div class="b-vial"><svg width="48" height="138" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.4rem; padding: 3px 10px;">Próx.</span></div>
-                <div class="b-podium-base"></div>
-              </div>
-              <div class="b-podium size-20" style="transform: scale(.6); transform-origin: bottom; margin-bottom: -20px;">
-                <div class="b-vial"><svg width="52" height="156" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.4rem; padding: 3px 10px;">Próx.</span></div>
-                <div class="b-podium-base"></div>
-              </div>
-            </div>
-            <div class="vA-text">
-              <p class="b-label">ST Perfumería</p>
-              <h2 class="b-title">Decants</h2>
-              <p class="b-tagline">tu fragancia, tu medida</p>
-              <p class="b-sub">Las mejores fragancias en formato mini.</p>
-              <button class="b-cta">💧 Armá tu pack →</button>
-            </div>
-            <div class="vA-badges">
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><div><p class="b-trust-title">100% Originales</p><p class="b-trust-desc">Garantía</p></div></div>
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><div><p class="b-trust-title">Para viajar</p><p class="b-trust-desc">A donde vayas</p></div></div>
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Tu próxima favorita</p></div></div>
+  <div class="section-explainer">
+    <strong>¿Qué problema resuelve?</strong> Empuja al cliente a sumar 1 decant más con una recomendación contextual (basada en notas/perfil/marca del primer decant que metió). Upsell sutil → más volumen por pack.
+    <br><br>
+    <strong>Cuándo aparece:</strong> solo si <code>decantsPack.length ≥ 1</code>. Se actualiza al cambiar la composición. Si ya agregaste el sugerido, propone otro.
+    <br><br>
+    <strong>Algoritmo (futuro):</strong> reusar el matching del quiz (notas + tipo). Por ahora podemos hardcodear pares manualmente o simple "misma marca / mismo gama".
+  </div>
+
+  <div class="variants-grid">
+
+    <!-- VARIANTE A — CARD INLINE EN EL GRID -->
+    <div class="variant">
+      <span class="variant-tag t1">A · CARD INLINE</span>
+      <p class="variant-label">Card horizontal entre "Agregados" y "Catálogo"
+        <small>Inline en el flujo del grid, no rompe scroll</small>
+      </p>
+      <div class="variant-canvas">
+        <div class="builder-fake">
+          <div class="builder-head">
+            <button class="builder-close-fake">×</button>
+            <p class="builder-title-fake">🧪 Armá tu pack de decants</p>
+            <p class="builder-sub-fake">Decants de 5 ml · Máx 10</p>
+            <div class="builder-counter-fake">
+              <span class="builder-counter-qty">2/10 decants</span>
+              <span class="builder-counter-total">$12.000</span>
             </div>
           </div>
+          <input class="builder-search-fake" type="text" placeholder="🔎 Buscar perfume...">
+          <p class="builder-section-title-fake">★ Agregados (2)</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-amber">A</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Aventus</p>
+                <p class="card-fake-brand">Creed</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">2</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <!-- ⬇️ EL COMBO -->
+          <div class="combo-A">
+            <div class="combo-A-img">K</div>
+            <div class="combo-A-info">
+              <p class="combo-A-label">💡 Combinás bien con</p>
+              <p class="combo-A-name">Khamrah</p>
+              <p class="combo-A-brand">Lattafa · Notas dulces similares</p>
+            </div>
+            <button class="combo-A-btn">+ Sumar</button>
+          </div>
+          <!-- ⬆️ FIN COMBO -->
+          <p class="builder-section-title-fake">Catálogo · A → Z</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake">
+              <div class="card-fake-img img-rose">Y</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Yara</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake">
+              <div class="card-fake-img img-blue">S</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Sauvage</p>
+                <p class="card-fake-brand">Dior</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="builder-footer-fake">
+            <div class="footer-summary-fake">
+              <span style="font-size: .68rem; color: var(--txt-sub);"><strong style="color: var(--amarillo);">2</strong> decants</span>
+              <span style="font-size: .78rem; color: var(--amarillo); font-weight: 800;">$12.000</span>
+            </div>
+            <div class="footer-actions-fake">
+              <button class="btn-vaciar">Vaciar</button>
+              <button class="btn-wa">📲 Consultar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="variant-pros-cons">
+        <div class="pros">
+          <p class="pros-title">PROS</p>
+          <ul>
+            <li>Inline en el flujo natural</li>
+            <li>Razón visible ("notas similares")</li>
+            <li>Touch-target grande de "+ Sumar"</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <p class="cons-title">CONS</p>
+          <ul>
+            <li>Puede pasar desapercibida con scroll</li>
+            <li>Solo se ve si scrolleás al lugar</li>
+          </ul>
         </div>
       </div>
     </div>
 
-    <!-- VARIANTE B -->
-    <div>
-      <span class="opt-tag t2">B · TEXTO PRIMERO</span>
-      <p class="opt-label" style="font-size: .72rem;">Title+CTA arriba, frascos en línea, badges abajo</p>
-      <div class="mobile-frame vB">
-        <div class="mobile-screen">
-          <div class="mobile-statusbar"><span>9:41</span><span>📶 🔋</span></div>
-          <div class="mobile-banner">
-            <p class="b-label">ST Perfumería</p>
-            <h2 class="b-title">Decants</h2>
-            <p class="b-tagline">tu fragancia, tu medida</p>
-            <p class="b-sub">Las mejores fragancias en formato mini.</p>
-            <button class="b-cta">💧 Armá tu pack →</button>
-            <div class="vB-row">
-              <div class="b-podium"><div class="b-vial"><svg width="36" height="100" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg></div><div class="b-podium-base" style="width:50px; height:12px;"></div><span class="b-podium-label" style="font-size:.5rem;">5</span></div>
-              <div class="b-podium size-10"><div class="b-vial"><svg width="40" height="116" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.36rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base" style="width:54px; height:14px;"></div><span class="b-podium-label" style="font-size:.5rem;">10</span></div>
-              <div class="b-podium size-20"><div class="b-vial"><svg width="44" height="130" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.7)"/></svg><span class="b-ribbon" style="font-size:.36rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base" style="width:58px; height:16px;"></div><span class="b-podium-label" style="font-size:.5rem;">20</span></div>
-            </div>
-            <div class="vB-badges">
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><p class="b-trust-title">Originales</p><p class="b-trust-desc">Garantía</p></div>
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><p class="b-trust-title">Para viajar</p><p class="b-trust-desc">Donde sea</p></div>
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><p class="b-trust-title">Probá antes</p><p class="b-trust-desc">Decidí mejor</p></div>
+    <!-- VARIANTE B — STICKY BANNER ARRIBA DEL FOOTER -->
+    <div class="variant">
+      <span class="variant-tag t2">B · STICKY ABAJO</span>
+      <p class="variant-label">Pill flotante arriba del footer
+        <small>Siempre visible mientras scrolleás</small>
+      </p>
+      <div class="variant-canvas">
+        <div class="builder-fake" style="position: relative;">
+          <div class="builder-head">
+            <button class="builder-close-fake">×</button>
+            <p class="builder-title-fake">🧪 Armá tu pack de decants</p>
+            <p class="builder-sub-fake">Decants de 5 ml · Máx 10</p>
+            <div class="builder-counter-fake">
+              <span class="builder-counter-qty">2/10 decants</span>
+              <span class="builder-counter-total">$12.000</span>
             </div>
           </div>
+          <input class="builder-search-fake" type="text" placeholder="🔎 Buscar perfume...">
+          <p class="builder-section-title-fake">★ Agregados (2)</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-amber">A</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Aventus</p>
+                <p class="card-fake-brand">Creed</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">2</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <p class="builder-section-title-fake">Catálogo · A → Z</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake">
+              <div class="card-fake-img img-rose">Y</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Yara</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake">
+              <div class="card-fake-img img-blue">S</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Sauvage</p>
+                <p class="card-fake-brand">Dior</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <!-- ⬇️ EL COMBO STICKY -->
+          <div class="combo-B-wrap">
+            <div class="combo-B">
+              <div class="combo-B-icon">💡</div>
+              <div class="combo-B-text">
+                <p class="combo-B-label">Combinás bien con</p>
+                <p class="combo-B-name">Khamrah · Lattafa</p>
+              </div>
+              <button class="combo-B-btn">+ Sumar</button>
+            </div>
+          </div>
+          <!-- ⬆️ FIN COMBO -->
+          <div class="builder-footer-fake">
+            <div class="footer-summary-fake">
+              <span style="font-size: .68rem; color: var(--txt-sub);"><strong style="color: var(--amarillo);">2</strong> decants</span>
+              <span style="font-size: .78rem; color: var(--amarillo); font-weight: 800;">$12.000</span>
+            </div>
+            <div class="footer-actions-fake">
+              <button class="btn-vaciar">Vaciar</button>
+              <button class="btn-wa">📲 Consultar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="variant-pros-cons">
+        <div class="pros">
+          <p class="pros-title">PROS</p>
+          <ul>
+            <li>SIEMPRE visible (alta conversión)</li>
+            <li>Pegado al CTA Consultar</li>
+            <li>No interrumpe el scroll del grid</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <p class="cons-title">CONS</p>
+          <ul>
+            <li>Puede tapar 2-3 cards del grid</li>
+            <li>Más "pushy" / agresivo</li>
+            <li>Menos espacio para razón ("notas...")</li>
+          </ul>
         </div>
       </div>
     </div>
 
-    <!-- VARIANTE C -->
-    <div>
-      <span class="opt-tag t3">C · REDUCCIÓN · ⭐ MI VOTO</span>
-      <p class="opt-label" style="font-size: .72rem;">5ml protagonista, 10/20 chiquitos al costado</p>
-      <div class="mobile-frame vC">
-        <div class="mobile-screen">
-          <div class="mobile-statusbar"><span>9:41</span><span>📶 🔋</span></div>
-          <div class="mobile-banner">
-            <p class="b-label">ST Perfumería</p>
-            <h2 class="b-title">Decants</h2>
-            <p class="b-tagline">tu fragancia, tu medida</p>
-            <p class="b-sub">Las mejores fragancias en formato mini.</p>
-            <div class="vC-hero">
-              <div class="b-podium thumb"><div class="b-vial"><svg width="48" height="138" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 50 L 32 50 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.6)"/></svg><span class="b-ribbon" style="font-size: .3rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base"></div><span class="b-podium-label">10</span></div>
-              <div class="b-podium featured"><div class="b-vial"><svg width="50" height="138" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width="1"/><path d="M 12 60 L 32 60 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.85)"/><ellipse cx="16" cy="60" rx="1.4" ry="22" fill="rgba(255,255,255,.35)"/></svg></div><div class="b-podium-base" style="width: 76px; height: 20px;"></div><span class="b-podium-label" style="font-weight: 800;">5 ml ✓</span></div>
-              <div class="b-podium thumb"><div class="b-vial"><svg width="52" height="156" viewBox="0 0 44 120"><rect x="14" y="4" width="16" height="18" rx="2" fill="#1a1a1a"/><rect x="18" y="0" width="8" height="6" fill="#0a0a0a"/><rect x="12" y="22" width="20" height="76" rx="2" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/><path d="M 12 42 L 32 42 L 32 96 Q 32 98 30 98 L 14 98 Q 12 98 12 96 Z" fill="rgba(230,81,0,.6)"/></svg><span class="b-ribbon" style="font-size: .3rem; padding: 2px 8px;">Próx.</span></div><div class="b-podium-base"></div><span class="b-podium-label">20</span></div>
+    <!-- VARIANTE C — SLOT DESTACADO EN EL GRID -->
+    <div class="variant">
+      <span class="variant-tag t3">C · CARD DESTACADA</span>
+      <p class="variant-label">Card extra-grande con badge "TE PUEDE GUSTAR"
+        <small>Ocupa 2 columnas del grid, llama la atención</small>
+      </p>
+      <div class="variant-canvas">
+        <div class="builder-fake">
+          <div class="builder-head">
+            <button class="builder-close-fake">×</button>
+            <p class="builder-title-fake">🧪 Armá tu pack de decants</p>
+            <p class="builder-sub-fake">Decants de 5 ml · Máx 10</p>
+            <div class="builder-counter-fake">
+              <span class="builder-counter-qty">2/10 decants</span>
+              <span class="builder-counter-total">$12.000</span>
             </div>
-            <div class="vC-cta-wrap"><button class="b-cta">💧 Armá tu pack →</button></div>
-            <div class="vC-badges">
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 9 L22 9 L17 14 L19 22 L12 18 L5 22 L7 14 L2 9 L9 9 Z"/></svg></div><p class="b-trust-title">Originales</p></div>
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 V4 a1 1 0 0 1 1-1 h6 a1 1 0 0 1 1 1 v3"/></svg></div><p class="b-trust-title">Viajar</p></div>
-              <div class="b-trust"><div class="b-trust-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6 a5.5 5.5 0 0 0-7.8 0 L12 5.7 l-1-1.1 a5.5 5.5 0 0 0-7.8 7.8 l1 1 L12 21 l7.8-7.6 1-1 a5.5 5.5 0 0 0 0-7.8 z"/></svg></div><p class="b-trust-title">Probar</p></div>
+          </div>
+          <input class="builder-search-fake" type="text" placeholder="🔎 Buscar perfume...">
+          <p class="builder-section-title-fake">★ Agregados (2)</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake has-qty">
+              <div class="card-fake-img img-amber">A</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Aventus</p>
+                <p class="card-fake-brand">Creed</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake">−</button>
+                <span class="ctrl-qty-fake">2</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <!-- ⬇️ EL COMBO DESTACADO -->
+            <div class="combo-C">
+              <div class="combo-C-img">K</div>
+              <div class="combo-C-info">
+                <p class="combo-C-name">Khamrah</p>
+                <p class="combo-C-brand">Lattafa</p>
+                <p class="combo-C-reason">Va con tu Aventus · notas dulces</p>
+              </div>
+              <button class="combo-C-btn">+ Sumar</button>
+            </div>
+            <!-- ⬆️ FIN COMBO -->
+          </div>
+          <p class="builder-section-title-fake">Catálogo · A → Z</p>
+          <div class="builder-grid-fake">
+            <div class="card-fake">
+              <div class="card-fake-img img-rose">Y</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Yara</p>
+                <p class="card-fake-brand">Lattafa</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+            <div class="card-fake">
+              <div class="card-fake-img img-blue">S</div>
+              <div class="card-fake-info">
+                <p class="card-fake-name">Sauvage</p>
+                <p class="card-fake-brand">Dior</p>
+              </div>
+              <div class="card-fake-ctrl">
+                <button class="ctrl-btn-fake" disabled>−</button>
+                <span class="ctrl-qty-fake">0</span>
+                <button class="ctrl-btn-fake plus">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="builder-footer-fake">
+            <div class="footer-summary-fake">
+              <span style="font-size: .68rem; color: var(--txt-sub);"><strong style="color: var(--amarillo);">2</strong> decants</span>
+              <span style="font-size: .78rem; color: var(--amarillo); font-weight: 800;">$12.000</span>
+            </div>
+            <div class="footer-actions-fake">
+              <button class="btn-vaciar">Vaciar</button>
+              <button class="btn-wa">📲 Consultar</button>
             </div>
           </div>
         </div>
       </div>
+      <div class="variant-pros-cons">
+        <div class="pros">
+          <p class="pros-title">PROS</p>
+          <ul>
+            <li>Súper visible (border dorado + glow)</li>
+            <li>Razón clara visible</li>
+            <li>Mismo "lenguaje" que cards del grid</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <p class="cons-title">CONS</p>
+          <ul>
+            <li>Rompe la grilla 2-col</li>
+            <li>Solo visible si scrolleás ahí</li>
+            <li>Más invasiva visualmente</li>
+          </ul>
+        </div>
+      </div>
     </div>
+
+  </div>
+
+  <div class="myvote">
+    <p class="myvote-title">🗳️ Mi voto</p>
+    <strong>Variante B (sticky)</strong> — por upsell. Si la idea es "empujar a sumar 1 más", el sticky garantiza que el cliente la vea SIEMPRE sin depender de que scrollee. La A es más prolija pero pierde conversión por estar enterrada en el grid. La C es la más vistosa pero rompe el layout y se ve "marketing-y".
+    <br><br>
+    <em style="color: var(--txt-sub); font-size: .72rem;">Si te preocupa que B sea muy "pushy", se puede mostrar solo cuando hay 1-3 decants (cuando hay 4+ se asume que el cliente sabe lo que quiere) y tener un "✕ no, gracias" para dismissear hasta la próxima sesión.</em>
   </div>
 </section>
 
-<div class="footer">mockups.html · Banner Decants v2</div>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- HISTÓRICO                                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section" id="historico">
+  <details>
+    <summary class="historical-toggle">
+      <p class="historical-toggle-title">🗂️ Histórico · Banner Decants v2 (Opción 2 + Variante C — YA DEPLOYED en commit 16fef35)</p>
+      <span class="historical-toggle-hint"></span>
+    </summary>
+    <div class="historical-content">
+      <p style="color: var(--txt-sub); font-size: .8rem; margin: 0 0 8px;">
+        ✅ Esta sección ya está aplicada en producción · live en <a href="https://stperfumeria.com" style="color: var(--amarillo);" target="_blank">stperfumeria.com</a>.
+        <br>
+        Se conserva acá como referencia visual hasta la próxima sesión donde se vuelva a tocar el banner.
+        <br><br>
+        El banner desktop usa CSS+SVG con 3 frascos sobre podiums + humo + flor 🪻 + 3 trust badges a la derecha. Mobile usa Variante C (reducción): 5ml protagonista con 10/20 chiquitos al costado.
+      </p>
+    </div>
+  </details>
+</section>
+
+<div class="footer">mockups.html · DECANTS-UX iter 2 · sesión 14-may-2026</div>
 
 </body>
 </html>
