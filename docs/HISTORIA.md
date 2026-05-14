@@ -357,6 +357,17 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.20 | [JS-CHUNK] iter 1 — armador de decants en `js/extras.js` lazy-loaded |
 | v1.1.21 | [DECANTS-UX] banner SVG + 4 mejoras armador (progress bar, empty state, bottom-sheet, anim al +) |
 | v1.1.22 | [BANNER-V2] Decants banner rediseño completo · Opción 2 desktop (CSS+SVG con podiums + humo + flor) + Variante C mobile (5ml protagonista) + 3 trust badges |
+| v1.1.23 | [DECANTS-UX-2] tabs Catálogo/Mis decants (#4) + combo sugerido sticky "Combinás bien con: X" (#6) en armador |
+| v1.1.24 | [DISEÑADOR] rename Especiales → Decants de diseñador (extras.js: título sección + mensaje WA al vendedor + fallback "De diseñador") |
+| v1.1.25 | [DISEÑADOR] admin.html: copy del párrafo explicativo actualizado a "Para decants de diseñador (Jean Paul Gaultier, Creed, Dior, etc.)" |
+| v1.1.26 | [DISEÑADOR] admin.html: título de la sección "Perfumes personalizados" → "💎 Decants de diseñador" |
+| v1.1.27 | [CARD-STRETCH-FIX] card del catálogo no se estiraba a 900px con 1 favorito filtrado · align-content:start + grid-auto-rows:max-content |
+| v1.1.28 | [SORTMENU-Z] dropdown "Ordenar" tapado tras toggle filtro favoritos · sort-wrapper con z-index:100 + isolation:isolate |
+| v1.1.29 | [COMPARE-V2] sección "🔥 Diferencias destacadas" (2A) + botón "💕 Elegir este" (2B) en modal Compare |
+| v1.1.30 | [SELECCION-PODIO] 1A badges oro/plata/bronce top 3 + 1B quote del jefe stub frontend (lee nota_jefe del override) |
+| v1.1.31 | [JUEGOS-3A] move #quizSection antes de Nosotros via JS-move sync + [JUEGOS-3C] CTA banner copy reescrito |
+| v1.1.32 | [PWA-AUTO-RELOAD] auto-reload mágico post-SW-update con mitigación (no recarga si modal abierto/input focused/scroll < 3s) |
+| v1.1.33 | [SIMILARES-CDA] modal Ver similares "full premium" · ring de % match + razón humana + botón ⚖ Comparar + badges premium (max 2 con regla "condición fuerte") |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -485,6 +496,53 @@ Sesión maratónica nocturna (~6 horas, desde la tarde hasta madrugada del 14). 
 
 ---
 
+## 🎉 Sesión mayo 15 2026 — SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD
+
+Sesión cierra de la madrugada anterior (14-may) → tarde-noche 15-may. 3 commits live deployados a `main` (`3c9246a`, `d1724ae`, `d4deab5`). SW v1.1.22 → v1.1.33 (11 bumps).
+
+### Bugs resueltos
+
+- **[CARD-STRETCH-FIX]** — Card del catálogo se estiraba a 900px de alto cuando filtrabas favoritos y quedaba 1 sola visible. El [CLS-RESERVE] reservaba min-height al grid para evitar layout shift, y la única row visible heredaba esa altura. El botón ❤ fav-toggle activo (bg rojo) aparecía gigante porque la card está stretched. Fix: `align-content: start` + `grid-auto-rows: max-content` en `.catalog-grid` (inline + canónico).
+- **[SORTMENU-Z]** — Dropdown "Ordenar" quedaba tapado por las cards del catálogo después de toggle del filtro favoritos. Las cards reciben animation `filter-entering` con transform → crean stacking context propio. El sort-menu tenía z-index:50 dentro de un filter-bar position:static (z-index 90 ignorado). Las cards posteriores en DOM ganaban visualmente. Fix: `.sort-wrapper` con position:relative + z-index:100 + isolation:isolate (stacking context aislado). `.sort-menu` z-index 50→100.
+
+### Features deployadas (orden cronológico)
+
+| Keyword | Qué hace | Commit |
+|---|---|---|
+| `[DECANTS-UX-2]` | Iter 2 del armador: tabs Catálogo/Mis decants con badge (#4) + combo sugerido sticky "💡 Combinás bien con: X" (#6) arriba del footer. Algoritmo de scoring: marca_real +3, perfil +2, notas comunes +1 c/u (máx +5), cat +1, umbral mínimo score >=2. Empty hero movido ADENTRO del grid scrollable para que en mobile todo scrollee junto. | `3c9246a` |
+| `[DISEÑADOR]` | Rename "⭐ Especiales" → "💎 Decants de diseñador" en extras.js (sección título + mensaje WA al vendedor + fallback marca) y en admin.html (título tab "Decants Custom" + copy explicativo claro: "Para decants de diseñador (Jean Paul Gaultier, Creed, Dior, etc.) que NO están cargados al stock regular"). | `3c9246a` |
+| `[COMPARE-V2]` | Modal Compare con: **2A** "🔥 Diferencias destacadas" — notas únicas por perfume calculadas contra el set de los otros del compare. Paleta rosa/magenta para distinguir de "comunes" amarillas. **2B** botón "💕 Elegir este" pill dorada al final de cada compare-col que agrega al carrito + cierra modal (cierra el ciclo comparar→decidir→carrito→WA). Mobile responsive verificado: cards apiladas 1col + bloque diferencias 1col por perfume. | `3c9246a` |
+| `[SELECCION-PODIO]` | Sección "Selección ST" rejugada: **1A** badge de podio #1/#2/#3 con linear-gradient metálico oro/plata/bronce + border de card matcheando. Cards 4+ siguen sin badge. **1B** quote del jefe en italic Cormorant Garamond debajo del nombre. `applyOverrideToPerfume` lee `nota_jefe` del override (columna SQL ya creada por el jefe). Aparece solo si el quote está cargado. | `3c9246a` |
+| `[JUEGOS-3A]` | Move #quizSection desde post-FAQ a antes de #nosotros. JS-move sync inline justo antes de `</body>` = ejecuta tras parseo y ANTES del primer paint → cero FOUC visible. HTML estático queda en su lugar (pendiente move físico para próxima sesión). | `3c9246a` |
+| `[JUEGOS-3C]` | CTA banner copy reescrito de pregunta abstracta a imperativo directo: "¿No sabés cuál perfume comprar? · 4 preguntas, 3 recomendaciones, gratis →" + "Jugar" (antes "Probar"). | `3c9246a` |
+| `[PWA-AUTO-RELOAD]` | Auto-reload mágico post-SW-update con mitigación. Cuando se deploya versión nueva, SW toma control inmediato (skipWaiting + clients.claim ya estaban en sw.js) y ahora el frontend RECARGA SOLO la página. **Mitigación anti-interrupción**: el reload SOLO ocurre si el cliente NO está interactuando (modal abierto, input/textarea focused, scroll < 3s, first visit sin SW previo). Garantía: el cliente nunca pierde scroll position, datos de formulario, ni armado de pack. La recarga pasa solo cuando él está "leyendo / quieto". Cliente actual con SW viejo necesita F5 una vez para tomar v1.1.32; a partir de ahí TODOS los updates futuros son auto-reload. | `d1724ae` |
+| `[SIMILARES-CDA]` | Modal "Ver similares" full premium · combo C+D+A según mockup aprobado: **ring** de % match (oro #ffd700 si pct≥85, dorado si mid, bronce si <70) animado con stroke-dashoffset · **botón "⚖ Comparar"** que mete anchor + similar al compare-bar flotante + cierra el modal de similares · **razón humana** chips de notas compartidas (max 6 + "+N más") · **badges premium con regla "condición fuerte + máx 2 por item"**: 🏆 Mejor match (solo el #1) · 💎 Misma casa (marca_real igual) · 🎯 Mismo perfil (perfil igual + pct≥75 — regla fuerte) · 🔥 El más elegido (en TOP_VENTAS_SLUGS[0..2]). Helpers nuevos: `getCommonNotesList`, `getMatchPct`, `getSimilarityBadges`, `compareSimilar`. | `d4deab5` |
+
+### Mockups creados (en `mockups.html` con histórico colapsado)
+
+- **`#mockup-a`** SIMILARES-VISUAL (ring + razón humana)
+- **`#mockup-b`** SIMILARES-V2 (algoritmo viejo vs nuevo side-by-side con explicación del scoring)
+- **`#mockup-c`** SIMILARES-COMPARE (botón ⚖ Comparar + compare-bar fake)
+- **`#mockup-d`** SIMILARES-BADGES (4 badges con gradient distinto)
+- **`#mockup-ca`** combo C+A (ring + razón + comparar)
+- **`#mockup-cda`** combo C+D+A "full premium" ⭐ (el elegido por el usuario)
+
+Histórico colapsado al final mantiene referencia a iters previos (BANNER-V2, DECANTS-UX-2 etc).
+
+### Pendientes flageados (no críticos)
+
+1. **UI admin para "Quote del jefe"** — SQL ya corrido por el jefe (`ALTER TABLE perfume_overrides ADD COLUMN nota_jefe TEXT`). Frontend ya lee `p.nota_jefe` en `applyOverrideToPerfume`. **Solo falta** un `<textarea>` en admin.html (modal Editar perfume o similar) donde el jefe escriba el texto del quote. Aparecerá en Selección ST top 6 en italic Cormorant Garamond. Esfuerzo ~20 min, deploy fuera de horario operativo.
+2. **Move físico HTML del `#quizSection`** — Hoy funciona vía JS-move sync pre-paint (sin FOUC). Falta cortar las ~120 líneas del bloque después del FAQ y pegarlas antes de `<section class="section-nosotros">`, después borrar el script JS-move. Esfuerzo ~10 min. Sirve para coherencia HTML/SEO/mantenibilidad.
+
+### Decisiones de diseño
+
+- **Regla "condición fuerte" para badges de similares**: badges solo cuando la regla SE CUMPLE FUERTE (Mismo perfil pide pct≥75, no solo perfil igual). Máx 2 badges por item para no saturar. Esta regla la planteó el usuario explícitamente en la elección del mockup C+D+A.
+- **Algoritmo Similares mantiene findSimilares() actual** (solo notas, threshold 45%). En la sesión se evaluó [SIMILARES-V2] (algoritmo enriquecido) pero el usuario decidió postergarlo — la mejora visual de C+D+A ya tiene mayor impacto percibido que el cambio de algoritmo "invisible".
+- **JS-move vs HTML-move físico** del quizSection: se eligió JS-move por ser cero-riesgo en sesión nocturna. HTML-move queda como mejora futura.
+- **PWA-AUTO-RELOAD con mitigación**: el usuario pidió explícitamente "que la página se actualice sola sin que el cliente tenga que hacer F5". Se implementó pero con safeguards para no interrumpir interacciones en curso (modal abierto, input focused, scroll reciente).
+
+---
+
 ## 🎓 Lecciones meta
 
 1. **No empezar por la UI.** Diseñar la DB primero. Lo aprendí con la tabla de puntos que se replanificó 3 veces.
@@ -497,8 +555,8 @@ Sesión maratónica nocturna (~6 horas, desde la tarde hasta madrugada del 14). 
 
 ---
 
-**Última actualización:** Mayo 14, 2026 (madrugada) — fin de sesión maratónica con 11 commits live + mockups.html + 1 incidente Supabase + cierre por context al 86%.
-**Próxima revisión cuando:** se haga la migración a bcrypt, se agregue la tab Orden de Compra, se mida Lighthouse mobile real post-fixes, o cualquier cambio de arquitectura.
+**Última actualización:** Mayo 15, 2026 (noche) — sesión SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD. 3 commits live · SW v1.1.22 → v1.1.33.
+**Próxima revisión cuando:** se cargue UI admin para `nota_jefe`, se haga move físico HTML del #quizSection, se haga migración a bcrypt, se agregue la tab Orden de Compra, o cualquier cambio de arquitectura.
 
 ---
 
@@ -510,8 +568,8 @@ Cuando Alejo abra un chat nuevo de Claude Code en este repo:
 2. **Leer este archivo `docs/HISTORIA.md`** (TODO el histórico)
 3. **Si hay tarea específica:** preguntar qué quiere atacar
 4. **Si no hay tarea:** ofrecer la lista de pendientes:
-   - `[DECANTS-BANNER-V2]` — decidir entre 3 opciones del banner post foto IA
-   - `[DECANTS-UX]` armador iter 2 — tab switcher #4 + "Combinás bien con" #6
+   - 🔥 **UI admin para `nota_jefe`** — SQL ya corrido + frontend ya lee · falta el `<textarea>` en admin.html para que el jefe cargue el quote. ~20 min · fuera de horario operativo (10-21 ARG).
+   - 🔥 **Move físico HTML del `#quizSection`** — hoy via JS-move sync · falta cortar las ~120 líneas del HTML y pegarlas antes de #nosotros + borrar el script. ~10 min · cualquier momento.
    - `[SIRENITA]` — sistema de Campañas multi-promo (tabla DB nueva)
    - `[JS-CHUNK]` iter 2 — mover quiz, juegos, custom cursor a `extras.js`
    - `[BCRYPT-MIGRATION]` — hashear passwords lazy migration
@@ -545,6 +603,16 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[ZAPATO]` — admin con sidebar lateral en lugar de tab-bar horizontal. 5 grupos colapsables (Top fijo, Productos, Gestión jefe-only, Marketing & Home, Sistema). Tabs originales mantienen clases `.tab-btn`/data-attributes → `switchTab()` intacto. Responsivo: ≥1100px sidebar 240px / 701-1100px sidebar 200px / ≤700px sidebar oculto con hamburguesa overlay. Persistencia en localStorage (`st_admin_sidebar_collapsed` + `st_admin_sidebar_groups`): cada tablet recuerda si dejó el sidebar plegado y qué grupos colapsados. Light mode aplicado al sidebar. `applyRolePermissions` actualizada para apuntar a `.sidebar .tab-btn`. Mockup HTML standalone original en `mockup-zapato.html`.
 - `[JS-CHUNK]` iter 1 — primer split del bundle `app.js` (6609 → 6439 líneas). El armador de decants (renderDecantGrid + open/close + sendDecantPackToWA + popstate handler, ~170 líneas) vive en `js/extras.js` que se carga via `requestIdleCallback` post-TTI (fallback: setTimeout 2s post-load). Stubs en core: `openDecantBuilder()`, `closeDecantBuilder()`, `sendDecantPackToWA()`, `renderDecantGrid()` — disparan `loadExtras()` si el cliente toca antes del idle. **Pendiente iter 2**: mover quiz, juegos ST, custom cursor, compare modal, banner decants WA, share/sharePerfume — todo a `extras.js`. Eso podría sacar otros ~3000 líneas del bundle inicial.
 - `[BANNER-V2]` — rediseño completo del banner Decants en `index.html` (post foto IA del usuario). Layout grid 3 columnas desktop (izquierda texto+CTA / centro frascos / derecha trust badges) sobre gradient violeta-magenta `#2a0a3a → #b71c5c`. **Centro**: 3 frascos atomizadores SVG transparentes (vidrio + líquido ámbar + brillo lateral) sobre podiums morados 3D escalonados (5ml chico → 10ml medio → 20ml grande), humo CSS animado (radial gradient + blur, 9s loop), flor 🪻 decorativa con drop-shadow, cintas amarillas diagonales "PRÓXIMAMENTE" en 10/20, 5ml destacado con drop-shadow dorado + label "5 ml ✓" + check verde. **Izquierda**: title "Decants" con gradient blanco→dorado, tagline "tu fragancia, tu medida" en Cormorant Garamond cursiva dorada, CTA pill blanca grande "💧 Armá tu pack →". **Derecha**: 3 trust badges con iconos SVG circulares dorados (estrella/valija/corazón). **Mobile Variante C**: stack vertical, 5ml protagonista grande centrado con 10/20 thumbnails .55 scale al costado, badges en fila compacta sin descripciones. Mockup que sirvió de referencia: `mockups.html` Opción 2 + Variante C (commit 7002cac).
+- `[CARD-STRETCH-FIX]` — bug: card del catálogo se estiraba a 900px alto con 1 favorito filtrado. Causa: `[CLS-RESERVE]` reservaba min-height al grid; con 1 sola row visible, esa row heredaba la altura completa. El botón ❤ liked (bg rojo) se veía gigante porque la card está stretched. Fix en `.catalog-grid`: `align-content: start` + `grid-auto-rows: max-content` (inline en index.html + canónico en styles.css). Cards mantienen altura natural, el grid mantiene min-height del skeleton reserve.
+- `[SORTMENU-Z]` — bug: dropdown "Ordenar" tapado por las cards después de toggle de filtro favoritos. Causa: cards reciben animation `filter-entering` con transform → crean stacking context propio. `.sort-menu` z-index 50 dentro de `.filter-bar` position:static (z-index ignorado). Cards posteriores en DOM ganaban. Fix: `.sort-wrapper` con `position:relative + z-index:100 + isolation:isolate` (stacking context aislado). Garantía: el menú siempre queda arriba.
+- `[DECANTS-UX-2]` — iter 2 del armador (post DECANTS-UX iter 1). **Tab switcher Catálogo/Mis decants** (Variante A pills): 2 tabs con badge de count, mobile-first. Auto-switch a Catálogo si "Mis decants" queda vacío. **Combo sugerido sticky** "💡 Combinás bien con: X" (Variante B): pill flotante arriba del footer cuando hay ≥1 decant en el pack, mobile responsive. Algoritmo `findCombinaBienCon()`: scoring marca_real +3, perfil +2, notas comunes +1 c/u (máx +5), cat +1, umbral mínimo score >=2. Empty hero movido ADENTRO del grid scrollable (fix crítico mobile: header con tabs + empty + search + footer excedían 95vh en celulares chicos, el grid quedaba sin altura para scrollear).
+- `[DISEÑADOR]` — rename "⭐ Especiales" → "💎 Decants de diseñador" coherente en toda la app. extras.js: título sección armador + mensaje WA al vendedor ("+ de diseñador") + fallback marca ("De diseñador" cuando vacía). admin.html: título de tab y copy explicativo ("Para decants de diseñador (Jean Paul Gaultier, Creed, Dior, etc.) que NO están cargados al stock regular pero querés ofrecerlos en el armador. Aparecen 💎 primero en el grid del armador"). Cambio puramente nomenclatura · sin tocar lógica de la tabla `decants_custom`.
+- `[COMPARE-V2]` — modal Compare iter 2 (en sesión 15-may-2026). **2A "🔥 Diferencias destacadas"**: bloque debajo de "✨ Notas en común" con notas únicas por perfume — las que SOLO ese tiene contra el set de los otros. Paleta rosa/magenta (`#f48fb1`) para distinguir visualmente de "comunes" amarillas. Algoritmo en `renderUniqueNotes()`. **2B "💕 Elegir este"**: pill dorada full-width al final de cada `compare-col`. Click → `elegirCompare(slug)` → addToCart + closeCompareModal. Cierra el ciclo comparar→decidir→carrito→WA. Mobile responsive (375px): cards apiladas 1col, bloque diferencias 1col por perfume con grid `minmax(110px, 28%) 1fr`.
+- `[SELECCION-PODIO]` — sección "Selección ST" rejugada. **1A podio**: las primeras 3 cards reciben `.rank-badge.rank-1/2/3` con linear-gradient metálico oro (#ffd700) / plata (#c0c0c0) / bronce (#cd7f32) + border de card matcheando. Posición absolute top-left 8px. Cards 4+ siguen sin badge. **1B quote del jefe**: `.collectible-quote` en italic Cormorant Garamond debajo del nombre · max 3 líneas con `-webkit-line-clamp`. `applyOverrideToPerfume` lee `p.nota_jefe` del override. Aparece SOLO si el quote está cargado en `perfume_overrides.nota_jefe` (columna SQL creada por el jefe el 15-may; UI admin pendiente).
+- `[JUEGOS-3A]` — move físico (lógico) de `#quizSection` antes de `#nosotros` para que no se vea "escondido" después del FAQ. Implementado via **JS-move sync inline** justo antes de `</body>`: ejecuta tras parseo completo y ANTES del primer paint en la mayoría de los browsers → cero FOUC visible. El HTML estático queda en su lugar (después del FAQ) para preservar SEO histórico; en sesión futura se puede mover físicamente y borrar el script. Pendiente flageado.
+- `[JUEGOS-3C]` — CTA banner "Encontrá tu perfume" copy reescrito de pregunta abstracta a imperativo directo: "¿No sabés cuál perfume comprar? · 4 preguntas, 3 recomendaciones, gratis →" + "Jugar" (antes "¿3 opciones distintas con solo 4 preguntas? · Jugá gratis y elegí" + "Probar"). Mejor CTR esperado siguiendo UX best-practice (verbos activos > preguntas abstractas).
+- `[PWA-AUTO-RELOAD]` — auto-reload mágico post-SW-update. Cuando se deploya versión nueva, el SW v1.1.32+ toma control inmediato (skipWaiting + clients.claim ya estaban) y ahora el frontend RECARGA SOLO la página para que el cliente vea la versión nueva sin tocar F5. **Mitigación anti-interrupción**: el reload SOLO ocurre si el cliente NO está interactuando (modal abierto, input/textarea/select focused, scroll últimos 3s, first visit sin SW previo). Se postergan los reloads con `setTimeout(safeReload, 5000)` hasta que esté "quieto". El tracker de scroll es `passive` sin impacto perf. Implementado en `app.js` reemplazando el listener `controllerchange` simple. Garantía: cliente nunca pierde scroll position, datos de formulario, modal en curso ni armado de pack. NOTA: cliente con SW previo a v1.1.32 sigue necesitando F5 una vez para tomar v1.1.32; de ahí en adelante todos los updates futuros son auto-reload.
+- `[SIMILARES-CDA]` — modal "Ver similares" full premium (combo C+D+A según mockup aprobado el 15-may). **Ring** SVG circular de % match (`.sim-ring-fg-arc` con `stroke-dashoffset` animado .7s ease) con 3 score classes: high (≥85%, oro #ffd700), mid (70-85%, dorado), low (<70%, bronce #cd7f32). **Botón "⚖ Comparar"** (`.sim-btn-comparar`) que llama `compareSimilar(anchorSlug, similarSlug)` → agrega ambos a `compareList` + activa visualmente los `.compare-btn` de las cards + cierra modal de similares. **Razón humana** (`.sim-razon-humana`): chips de notas compartidas (max 6 visibles + "+N más" si excede) calculados con `getCommonNotesList(anchor, similar)`. **Badges premium** (`.sim-badges`) con regla "**condición fuerte + máx 2 badges por item**": 🏆 Mejor match (solo el #1 absoluto), 💎 Misma casa (marca_real coincide), 🎯 Mismo perfil (perfil coincide AND pct≥75 — la regla fuerte que evita saturar con badges débiles), 🔥 El más elegido (slug en `TOP_VENTAS_SLUGS[0..2]`). Prioridad de inserción al pick 2: best > elegido > casa > perfil. Mobile @ <540px: 3 cols + reflow del botón comparar a row 2 full-width. Light mode override completo. Helpers nuevos: `getCommonNotesList`, `getMatchPct`, `getSimilarityBadges`, `compareSimilar`. `buildSimilarItemHTML` reescrito completamente con firma `(p, opts)` donde opts incluye anchorPerfume + pct + isBest + subtitle + topElegidosSlugs. `showSimilares` calcula `bestSlug` (primer manual si hay, sino primer algorítmico) y pasa opts a cada item.
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
 - `[FCP-CSS]` — CSS no bloqueante + critical inline

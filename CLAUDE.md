@@ -147,10 +147,12 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 
 ```js
 // sw.js línea 16
-var CACHE_VERSION = 'v1.0.79';   // ← incrementá este
+var CACHE_VERSION = 'v1.1.33';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.0.79**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.33**.
+
+> **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 
 Estrategias por tipo de recurso (definidas en `sw.js`):
 - HTML → network-first con fallback a cache + offline
@@ -272,4 +274,4 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Mayo 14, 2026 — sesión 10 commits live + 2 mockups + [JS-CHUNK] iter 1 + incidente Supabase documentado.
+**Última actualización:** Mayo 15, 2026 — sesión SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD. 3 commits live (`3c9246a` + `d1724ae` + `d4deab5`). SW v1.1.22 → v1.1.33. 10 keywords nuevos. 2 pendientes flageados (UI admin `nota_jefe` + move físico HTML #quizSection).
