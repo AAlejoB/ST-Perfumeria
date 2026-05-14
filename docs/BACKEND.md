@@ -192,6 +192,67 @@ La función `showSaleToast` y `saleToastStack` también fueron eliminadas.
 
 ---
 
+## ⚠️ Resilencia frente a Supabase degradado
+
+Supabase (como todo servicio cloud) tiene degradaciones temporales: las queries
+pueden tardar más de lo esperado o no responder durante minutos. SLA Pro = 99.9%
+uptime = hasta **~8 horas/año** de degradación aceptable. No es la DB la que se
+"cae" — los datos quedan intactos —, suele ser la capa Cloudflare/PostgREST del
+front o problemas de ruta regional.
+
+### Defensas instaladas en el frontend
+
+| Capa | Qué hace | Dónde está |
+|---|---|---|
+| **Timeout 3s en queries** | Si Supabase tarda más, no se cuelga, sigue con fallback | `app.js` (helpers `loadPerfumesNuevos`, `loadOverrides`, etc — buscar `timeout: 3000`) |
+| **Cache local stale-while-revalidate** | Guarda la última respuesta exitosa por 30 min; si Supabase falla, sirve la cacheada | mismos helpers; clave `st_cache_<query>` en localStorage |
+| **Seed hardcoded** | 150 perfumes en `js/perfumes.js` como último recurso si todo lo demás falla | `js/perfumes.js` |
+
+### Cómo se ve en el sitio cuando Supabase está caído
+
+| Cosa | Estado degradado |
+|---|---|
+| Catálogo | Muestra los 150 perfumes del seed (sin los agregados por admin) |
+| Hot Sale en cards | Sin mostrar (porque viene de `perfume_overrides`) |
+| Destacados | Vacíos / hardcoded |
+| Horario operativo | Cae al default (10-20 hs) |
+| Trust badges | Solo los del HTML estático (1 visible típicamente) |
+| **Carrito → WhatsApp** | **Funciona OK** — wa.me no depende de Supabase |
+| **Catálogo navegable** | **Sí** — el cliente puede igual ver/agregar/consultar |
+
+### Incidente de referencia: 14-may-2026 (madrugada)
+
+Verificado con curl desde la zona de Alejo: queries a `*.supabase.co/rest/v1/`
+con status 522 (Cloudflare→origin timeout) tras 92s. Otro intento timeouteó a
+los 5s sin respuesta. Status page de Supabase decía "All Systems Operational"
+(suelen tardar en updates de incidentes regionales).
+
+El sitio siguió funcional (con los 150 hardcoded). No se perdieron ventas — el
+checkout vía WhatsApp NO depende de Supabase en tiempo real.
+
+### Qué hacer si vuelve a pasar
+
+1. **Esperar 15-60 min** — la mayoría de blips se autoresuelven
+2. **Verificar status:** https://status.supabase.com + https://status.supabase.com/api/v2/status.json (API)
+3. **Test directo con curl:**
+   ```bash
+   curl -s --max-time 10 \
+     -H "apikey: ANON_KEY" \
+     "https://rtgjzzkjrwbkdhkslxix.supabase.co/rest/v1/perfumes_nuevos?select=slug&limit=1" \
+     -w "\nstatus: %{http_code}, time: %{time_total}s\n"
+   ```
+   Si status ≠ 200 o time > 5s → degradado.
+4. **Soporte Pro:** Dashboard Supabase → Support → submit ticket (Alejo es Pro, tiene soporte directo)
+5. **Si persiste >2h:** considerar subir el timeout en `app.js` (3000 → 8000ms)
+
+### Lo que NO está documentado todavía y deberíamos
+
+- [ ] Monitoring alert (Telegram?) cuando una query falla N veces seguidas
+- [ ] Healthcheck periódico del frontend a Supabase (no implementado)
+- [ ] Página de status interna `/status` para que el jefe la abra en mobile
+
+---
+
 ## 🔔 Push Notifications (Web Push)
 
 ### Arquitectura

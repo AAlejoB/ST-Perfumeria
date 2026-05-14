@@ -32,8 +32,8 @@ Este archivo (`CLAUDE.md`) tiene el resumen general. Para dive deep, andá a la 
 
 | Pieza | Herramienta | Notas |
 |---|---|---|
-| Frontend | HTML + JS vanilla + CSS modular | Sin frameworks, sin build steps |
-| Backend | Supabase (Postgres + Realtime + Storage) | Free tier |
+| Frontend | HTML + JS vanilla + CSS modular | Sin frameworks, sin build steps. `app.js` (core) + `extras.js` (lazy via `requestIdleCallback`) desde [JS-CHUNK] mayo 2026 |
+| Backend | Supabase (Postgres + Realtime + Storage) | **Pro tier** (USD 25/mes desde mayo 2026). Tiene defensas anti-degradación: timeout 3s + cache local 30min + seed hardcoded — ver `docs/BACKEND.md` § "Resilencia frente a Supabase degradado" |
 | Hosting | Vercel | Free tier |
 | Dominio | stperfumeria.com (también legacy `st-perfumeria.vercel.app`) |
 | PWA | Service Worker custom (`sw.js`) | Versionado manual |
@@ -266,4 +266,4 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Mayo 2026 (actualizar cuando cambien decisiones de arquitectura).
+**Última actualización:** Mayo 14, 2026 — sesión 10 commits live + 2 mockups + [JS-CHUNK] iter 1 + incidente Supabase documentado.
