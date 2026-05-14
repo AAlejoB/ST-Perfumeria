@@ -5,6 +5,7 @@ compress-images.js
 !perfumes.js
 !sw.js
 !js/app.js
+!js/extras.js
 !js/dvd-bouncer.js
 !api/*.js
 !api/**/*.js
