@@ -6463,16 +6463,23 @@
     });
 
     function sendDecantPackToWA() {
-      var qty = decantsPack.length;
+      // [PACK-CHIVATO] Defensa: filtrar slugs inválidos (null, undefined, empty strings)
+      // que podrían colarse desde localStorage corrupto y romper el mensaje.
+      // qty SIEMPRE se calcula desde el array FILTRADO, garantizando que header y
+      // resumen del WhatsApp queden consistentes (no más "6 decants" con cuerpo de 4).
+      var validPack = decantsPack.filter(function(s) {
+        return s != null && typeof s === 'string' && s.trim().length > 0;
+      });
+      var qty = validPack.length;
       if (qty < 1) return;
       var counts = {};
-      decantsPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
+      validPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
 
       // Separar customs con precio fijo de los regulares
       var fixedTotal = 0;
       var ladderCount = 0;
-      decantsPack.forEach(function(s) {
-        if (typeof s === 'string' && s.indexOf('custom-') === 0) {
+      validPack.forEach(function(s) {
+        if (s.indexOf('custom-') === 0) {
           var cid = parseInt(s.replace('custom-', ''), 10);
           var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
           if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
@@ -6502,18 +6509,20 @@
         return '• ' + name + (n > 1 ? ' (x' + n + ')' : '') + priceNote;
       });
 
+      // Resumen con emoji 💰. Tres ramas según si hay precios fijos mezclados.
       var resumen;
       if (fixedTotal > 0 && ladderCount > 0) {
-        resumen = ladderCount + ' x $' + unit.toLocaleString('es-AR') + ' + especiales = $' + Math.round(total).toLocaleString('es-AR');
+        resumen = '💰 ' + ladderCount + ' x $' + unit.toLocaleString('es-AR') + ' + especiales = *$' + Math.round(total).toLocaleString('es-AR') + '*';
       } else if (fixedTotal > 0 && ladderCount === 0) {
-        resumen = 'Total: $' + Math.round(total).toLocaleString('es-AR');
+        resumen = '💰 Total: *$' + Math.round(total).toLocaleString('es-AR') + '*';
       } else {
-        resumen = qty + ' x $' + unit.toLocaleString('es-AR') + ' = $' + Math.round(total).toLocaleString('es-AR');
+        resumen = '💰 ' + qty + ' x $' + unit.toLocaleString('es-AR') + ' = *$' + Math.round(total).toLocaleString('es-AR') + '*';
       }
-      var msg = 'Hola! Quiero armar un pack de ' + qty + ' decants de ' + DECANTS_CONFIG.ml + 'ml:\n\n'
+      // Mensaje con emojis "los justos y necesarios": 👋 saludo, 🧪 título, 💰 precio, 🙏 cierre.
+      var msg = 'Hola! 👋 Quiero armar un pack de ' + qty + ' decants de ' + DECANTS_CONFIG.ml + 'ml 🧪\n\n'
         + lines.join('\n') + '\n\n'
-        + resumen + '\n'
-        + '¿Confirmás stock?';
+        + resumen + '\n\n'
+        + '¿Confirmás stock? 🙏';
       var url = 'https://wa.me/5492975416017?text=' + encodeURIComponent(msg);
       window.open(url, '_blank');
     }
