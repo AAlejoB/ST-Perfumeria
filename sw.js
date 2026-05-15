@@ -13,12 +13,16 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [JUEGOS-3A-FINAL] move físico del bloque #quizSection en index.html · ahora
-// vive entre seo-hub y nosotros directamente en el HTML estático. Se borró
-// el script JS-move que vivía antes de </body>. Beneficio: si Google JS-render
-// falla, los crawlers ven el orden correcto. Mantenibilidad: leer el HTML y
-// ubicar Juegos ST visualmente es directo, sin tener que entender el move.
-var CACHE_VERSION = 'v1.1.42';
+// [LIGHTHOUSE-15JUN] Quick wins post-reporte PageSpeed (desktop 37 / mobile 61):
+//   - [CLS-HERO-V2] min-height del hero subido a 460/500px (era 320/380) +
+//     [CLS-QUIZ-CTA] reservar 96/116px en el banner del quiz. Cubre el shift
+//     de 0.886+0.051 que reportaba Lighthouse desktop.
+//   - [CLS-FONTS-OPTIONAL] Google Fonts pasa de display=swap → display=optional.
+//     Si no llegan en ~100ms, fallback permanente en esa sesión (cero CLS).
+//     Visitas repetidas las tienen cacheadas → se aplican normales.
+//   - [A11Y-OCCASION-LABEL] aria-label en #occasionToggle.
+//   - [A11Y-CONTRAST] .filter-count usa var(--gris-claro) en dark mode (contraste 9.6:1).
+var CACHE_VERSION = 'v1.1.43';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

@@ -1404,7 +1404,10 @@
     .sort-menu button.active-sort { color: var(--amarillo); }
 
     .filter-count {
-      font-size: .72rem; color: var(--gris); letter-spacing: .08em;
+      /* [A11Y-CONTRAST] subido de var(--gris #777) a var(--gris-claro #bbb)
+         para pasar WCAG AA sobre fondo oscuro (de ~4.5:1 → ~9.6:1).
+         Light mode tiene su propio override que ya pasa contraste. */
+      font-size: .72rem; color: var(--gris-claro); letter-spacing: .08em;
       white-space: nowrap;
     }
 
@@ -9137,9 +9140,18 @@
       max-width: 100%;
     }
 
-    /* Hero: reservar altura mínima para evitar shift al cargar fonts */
-    .hero { min-height: 320px; }
-    @media (min-width: 768px) { .hero { min-height: 380px; } }
+    /* [CLS-HERO-V2] Hero: reservar altura mínima generosa para evitar shift
+       cuando llegan Bodoni Moda / Playfair (line-height + char-width cambian).
+       Lighthouse desktop reportaba CLS 1.123 con min-height 380 — el contenido
+       con fuentes finales excedía esa altura. Buffer agregado +120px desktop. */
+    .hero { min-height: 380px; }
+    @media (min-width: 768px) { .hero { min-height: 460px; } }
+    @media (min-width: 1024px) { .hero { min-height: 500px; } }
+
+    /* [CLS-QUIZ-CTA] Quiz CTA banner: reservar altura mínima para evitar shift
+       de 0.051 que reporta Lighthouse al swapear fuentes en el título del banner. */
+    .quiz-cta-banner { min-height: 96px; }
+    @media (min-width: 768px) { .quiz-cta-banner { min-height: 116px; } }
 
     /* ════════════════════════════════════════════════════════════════
        [FANTASMA] Revert parcial de [IMG-DIMS] (v1.1.10).
