@@ -17,7 +17,7 @@
 // híbrido (panel derecho vacío al entrar a la tab Decants). Sin cambios reales
 // — solo este bump dispara el flujo [PWA-AUTO-RELOAD] cacheado en el cliente
 // (v1.1.32+) para que recargue solo y tome la versión actualizada.
-var CACHE_VERSION = 'v1.1.38';
+var CACHE_VERSION = 'v1.1.39';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

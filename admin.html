@@ -19,55 +19,68 @@
     }
 
     /* ════════════════════════════════════════════════════════════════
-       [SW-UPDATE-BANNER] Pill amarilla sticky-top que aparece cuando el
-       SW detecta versión nueva. La chica decide CUÁNDO actualizar.
-       Layout: ícono + texto + botón "Actualizar" + cerrar (×).
-       Animación: slide-down desde arriba al aparecer (0.4s ease-out).
+       [SW-UPDATE-BANNER] Variante C "Amarillo BIG" — sticky-top con
+       ícono grande en círculo negro + bloque de texto con título y
+       subtítulo + botón "Actualizar" gigante. Diseño aprobado en
+       mockups.html (sesión 15-may-2026 noche · después del incidente
+       del panel admin vacío en tablet).
+       Más alto (~75px vs 46px de la pill anterior) pero más llamativo
+       para que las chicas no lo ignoren cuando hay update disponible.
        ──────────────────────────────────────────────────────────────── */
     #swUpdateBanner {
       position: sticky; top: 0; z-index: 9999;
-      background: linear-gradient(90deg, #f5d442, #e8b800);
+      background: linear-gradient(135deg, #ffd000, #e8b800 50%, #c89800);
       color: #1a1a1d;
-      padding: 9px 14px;
+      padding: 14px 18px;
       display: flex; align-items: center; justify-content: center;
-      gap: 12px;
-      font-size: .8rem; font-weight: 600;
-      letter-spacing: .01em;
-      box-shadow: 0 3px 12px rgba(0,0,0,.35);
-      animation: swSlideDown .4s cubic-bezier(.25,.46,.45,.94);
-      border-bottom: 1px solid rgba(0,0,0,.15);
+      gap: 16px;
+      font-size: .95rem; font-weight: 700;
+      box-shadow: 0 6px 24px rgba(232,184,0,.45), inset 0 -1px 0 rgba(0,0,0,.15);
+      animation: swSlideDown .45s cubic-bezier(.25,.46,.45,.94);
     }
     #swUpdateBanner[hidden] { display: none; }
-    .sw-update-ico {
-      font-size: 1rem; line-height: 1;
-      animation: swSpin 2.5s linear infinite;
-      display: inline-block;
+    .sw-update-ico-big {
+      width: 44px; height: 44px;
+      background: rgba(0,0,0,.85); color: #ffd000;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      animation: swSpin 1.5s linear infinite;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px rgba(0,0,0,.35);
     }
-    .sw-update-text { line-height: 1.25; }
-    .sw-update-text strong { font-weight: 800; }
+    .sw-update-text-block { line-height: 1.15; }
+    .sw-update-text-title {
+      font-size: 1rem; font-weight: 800; margin: 0;
+    }
+    .sw-update-text-sub {
+      font-size: .7rem; opacity: .78; font-weight: 500;
+      margin: 2px 0 0;
+    }
     .sw-update-btn {
       background: #1a1a1d; color: #fff;
-      border: 0; padding: 6px 16px;
-      border-radius: 16px;
+      border: 0; padding: 10px 22px;
+      border-radius: 24px;
       font-family: inherit;
-      font-size: .7rem; font-weight: 800;
-      letter-spacing: .06em; text-transform: uppercase;
+      font-size: .85rem; font-weight: 900;
+      letter-spacing: .08em; text-transform: uppercase;
       cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,.35);
       transition: background .15s, transform .12s;
     }
     .sw-update-btn:hover { background: #000; transform: translateY(-1px); }
     .sw-update-btn:active { transform: scale(.96); }
     .sw-update-close {
-      background: transparent; border: 0;
-      color: rgba(26,26,29,.55);
-      font-size: 1.2rem; line-height: 1;
+      background: rgba(0,0,0,.12); border: 0;
+      color: #1a1a1d;
+      font-size: 1.1rem; line-height: 1;
       cursor: pointer;
-      padding: 2px 8px;
+      width: 28px; height: 28px;
       border-radius: 50%;
-      transition: background .15s, color .15s;
-      margin-left: -4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
     }
-    .sw-update-close:hover { background: rgba(0,0,0,.12); color: #1a1a1d; }
+    .sw-update-close:hover { background: rgba(0,0,0,.2); }
     @keyframes swSlideDown {
       from { transform: translateY(-100%); opacity: 0; }
       to   { transform: translateY(0); opacity: 1; }
@@ -78,17 +91,22 @@
     }
     @media (prefers-reduced-motion: reduce) {
       #swUpdateBanner { animation: none; }
-      .sw-update-ico { animation: none; }
+      .sw-update-ico-big { animation: none; }
     }
-    /* Mobile: layout más compacto */
+    /* Tablet vertical (Galaxy Tab A9): mantener compacto pero legible */
+    @media (max-width: 900px) {
+      #swUpdateBanner { padding: 12px 14px; gap: 12px; }
+      .sw-update-text-title { font-size: .92rem; }
+      .sw-update-text-sub { font-size: .66rem; }
+    }
+    /* Mobile: botón a fila propia full-width abajo */
     @media (max-width: 540px) {
-      #swUpdateBanner {
-        padding: 8px 10px;
-        gap: 8px;
-        font-size: .72rem;
-      }
-      .sw-update-text { flex: 1; }
-      .sw-update-btn { padding: 6px 12px; font-size: .64rem; }
+      #swUpdateBanner { padding: 10px 12px; gap: 10px; flex-wrap: wrap; }
+      .sw-update-ico-big { width: 36px; height: 36px; font-size: 1.1rem; }
+      .sw-update-text-title { font-size: .85rem; }
+      .sw-update-text-sub { font-size: .62rem; }
+      .sw-update-btn { flex: 1 0 100%; padding: 9px 16px; font-size: .76rem; margin-top: 4px; order: 99; }
+      .sw-update-close { order: 1; margin-left: auto; }
     }
 
     /* LOGIN */
@@ -1239,14 +1257,18 @@
 </head>
 <body>
 
-  <!-- [SW-UPDATE-BANNER] Aviso "Nueva versión disponible" — pill amarilla sticky.
-       Aparece cuando el SW detecta una versión nueva en el server. La chica decide
-       CUÁNDO actualizar (no auto-reload, distinto al [PWA-AUTO-RELOAD] del front
-       público) porque podría estar en medio de una venta o editando stock. -->
+  <!-- [SW-UPDATE-BANNER] Variante C "Amarillo BIG" — sticky-top con ícono
+       grande en círculo negro + bloque de texto con título y subtítulo +
+       botón "Actualizar" gigante. Reemplaza la pill chiquita de v1.1.35
+       que las chicas no notaban. La chica decide CUÁNDO actualizar (NO
+       auto-reload, distinto al [PWA-AUTO-RELOAD] del front público). -->
   <div id="swUpdateBanner" hidden>
-    <span class="sw-update-ico" aria-hidden="true">🔄</span>
-    <span class="sw-update-text">Hay una <strong>versión nueva</strong> del panel disponible</span>
-    <button type="button" class="sw-update-btn" onclick="location.reload()" aria-label="Actualizar el panel">Actualizar →</button>
+    <div class="sw-update-ico-big" aria-hidden="true">🔄</div>
+    <div class="sw-update-text-block">
+      <p class="sw-update-text-title">Nueva versión del panel disponible</p>
+      <p class="sw-update-text-sub">Tocá actualizar para tomar los últimos cambios y mejoras</p>
+    </div>
+    <button type="button" class="sw-update-btn" onclick="location.reload()" aria-label="Actualizar el panel">Actualizar</button>
     <button type="button" class="sw-update-close" onclick="document.getElementById('swUpdateBanner').hidden=true" aria-label="Cerrar aviso">×</button>
   </div>
 
@@ -1302,7 +1324,7 @@
             <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this);closeMobileSidebar()">👥 Clientes</button>
             <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this);closeMobileSidebar()">✏️ Editar</button>
             <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()">📍 Espera</button>
-            <button class="tab-btn" data-role="jefe" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()">💧 Decants</button>
+            <button class="tab-btn" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()">💧 Decants</button>
           </div>
         </div>
 
