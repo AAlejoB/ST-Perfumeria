@@ -13,13 +13,12 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [BUG-DEC-ADMIN] fix HTML estructural — había un </div> extra después de
-// tab-combos que cerraba implícitamente el <main>, dejando 9 tabs huérfanas
-// (votación, push, espera, doctor, decants, auditlog, analytics, backups,
-// puntos) como siblings del .app-shell. Eso hacía que esas tabs se rendereen
-// debajo del sidebar+main con un espacio fantasma enorme arriba. Bump dispara
-// [PWA-AUTO-RELOAD] con mitigación para que las tablets tomen el fix solas.
-var CACHE_VERSION = 'v1.1.40';
+// [SELECCION-ST-1B] UI admin para nota_jefe — textarea en el modal Editar
+// Perfume (después de Notas de stock). El jefe puede cargar quotes
+// personales por perfume; el frontend público ya leía p.nota_jefe pero hasta
+// ahora no había forma de cargarlo sin tocar SQL. Aparece SOLO en cards de
+// Selección ST top 6 (clase .collectible-quote, cursiva Cormorant Garamond).
+var CACHE_VERSION = 'v1.1.41';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

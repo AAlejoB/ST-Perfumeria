@@ -1593,6 +1593,18 @@
               <p style="font-size:.55rem;color:var(--gris);margin-top:.3rem;">Dejá los que no uses vacíos. Si borrás un perfume del catálogo, se oculta automáticamente de esta lista en el index.</p>
             </div>
 
+            <!-- QUOTE DEL JEFE — aparece SOLO en Selección ST top 6 (clase .collectible-quote) -->
+            <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
+              <label class="modal-label" style="color:var(--amarillo);">💬 Quote del jefe — Solo en Selección ST</label>
+              <p style="font-size:.6rem;color:var(--gris);margin-top:-.3rem;margin-bottom:.7rem;line-height:1.4;">
+                Mensaje corto en cursiva que aparece bajo el nombre <strong style="color:#ccc;">solo si este perfume está en la "Selección ST" (top 6) de la home</strong>. Pensalo como una mini-reseña personal ("Mi favorito para verano", "Si te gustó X, lo amás", etc.). Si queda vacío, no se muestra nada.
+              </p>
+              <textarea class="modal-input" id="editNotaJefe" rows="2" maxlength="180"
+                placeholder="Ej: Una vainilla cálida que dura todo el día. Mi favorito personal."
+                style="margin-bottom:.2rem;resize:vertical;font-family:var(--font-body);"></textarea>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:.2rem;">Máximo 180 caracteres. Se renderiza en cursiva Cormorant Garamond bajo el nombre del perfume.</p>
+            </div>
+
             <!-- NOTAS DE STOCK — aparecen en el modal al tocar la badge correspondiente -->
             <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
               <label class="modal-label" style="color:var(--amarillo);">📦 Notas de stock — Mensajes al cliente</label>
@@ -4912,6 +4924,7 @@
       // piden el último frasco y el equipo tiene que elegir a quién venderle.
       document.getElementById('editNotaSinStock').value      = p.nota_sin_stock     || '';
       document.getElementById('editNotaProximamente').value  = p.nota_proximamente  || '';
+      document.getElementById('editNotaJefe').value          = p.nota_jefe          || '';
 
       // Etiqueta
       document.getElementById('editEtiqueta').value = p.etiqueta || '';
@@ -5121,7 +5134,9 @@
         // Notas de stock (pueden ser string vacío para borrarlas)
         // "Último" no se expone: ver comentario en loadEditPerfume.
         nota_sin_stock:     document.getElementById('editNotaSinStock').value.trim(),
-        nota_proximamente:  document.getElementById('editNotaProximamente').value.trim()
+        nota_proximamente:  document.getElementById('editNotaProximamente').value.trim(),
+        // [SELECCION-ST-1B] Quote del jefe — solo visible en cards de Selección ST top 6.
+        nota_jefe:          document.getElementById('editNotaJefe').value.trim()
       };
 
       var msgEl = document.getElementById('editMsg');
@@ -5146,7 +5161,8 @@
         notas_base: 'Notas base', descuento_pct: 'Descuento %', etiqueta: 'Etiqueta',
         fotos_extra: 'Fotos extra', alias: 'Apodos',
         similares_nota: 'Nota similares', similares_manuales: 'Similares manuales',
-        nota_sin_stock: 'Nota "Sin stock"', nota_proximamente: 'Nota "Próximamente"'
+        nota_sin_stock: 'Nota "Sin stock"', nota_proximamente: 'Nota "Próximamente"',
+        nota_jefe: 'Quote del jefe'
       };
       var logs = [];
       Object.keys(fieldsToLog).forEach(function(key) {
