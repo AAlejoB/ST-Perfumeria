@@ -8375,6 +8375,30 @@
     }
     body:not(.dark-mode) .decant-card-price { color: #8a6d00 !important; }
 
+    /* [DC-PRECIO-GUARD] Card de decant custom SIN precio cargado todavía
+       por el admin. Se ve atenuada + badge "Precio pendiente" en lugar
+       del precio. Evita que el cliente vea $9500 (escalera regular) sobre
+       un perfume de diseñador que vale 3x más. Apenas el admin carga el
+       precio_unit, la card vuelve al estado normal. */
+    .decant-card-custom.is-precio-pendiente {
+      opacity: .68;
+      filter: saturate(.6);
+    }
+    .decant-card-custom.is-precio-pendiente:hover {
+      opacity: .82;
+    }
+    .decant-card-price-pending {
+      color: #ff9f43 !important;
+      font-weight: 600;
+      font-size: .62rem !important;
+      font-style: italic;
+    }
+    body:not(.dark-mode) .decant-card-price-pending { color: #c25a00 !important; }
+    .decant-card-custom.is-precio-pendiente .decant-ctrl-plus:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
     /* ════════════════════════════════════════════════════════════════
        LIGHT THEME · Controles +/- y footer del decant builder
        Bug: .decant-builder * { color: inherit } forzaba carbón a todo,

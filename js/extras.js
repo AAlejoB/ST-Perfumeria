@@ -325,17 +325,27 @@
     function customCardHTML(c) {
       var slug = 'custom-' + c.id;
       var qty = counts[slug] || 0;
-      // Si tiene precio fijo, mostrarlo inline para que el cliente lo vea
+      // [DC-PRECIO-GUARD] Defensa contra "decant de diseñador sin precio
+      // cargado mostrándose con la escalera regular ($9500)". Si el admin
+      // todavía no cargó precio_unit, NO permitimos agregar al pack: la
+      // card se muestra con badge "Precio pendiente" + botón "+" deshabilitado.
+      // Apenas el admin carga el precio, el cliente puede sumarlo.
+      var hasPrecio = (c.precio_unit != null && isFinite(parseFloat(c.precio_unit)) && parseFloat(c.precio_unit) > 0);
       var priceTag = '';
-      if (c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
+      if (hasPrecio) {
         priceTag = '<p class="decant-card-price">$' + Math.round(parseFloat(c.precio_unit)).toLocaleString('es-AR') + ' c/u</p>';
+      } else {
+        priceTag = '<p class="decant-card-price decant-card-price-pending">⏳ Precio pendiente</p>';
       }
       // Imagen: si tiene foto_url usa la imagen, sino el placeholder ⭐
       var hasFoto = !!(c.foto_url && (c.foto_url + '').trim());
       var imgHTML = hasFoto
         ? '<img src="' + escapeHTML(c.foto_url) + '" alt="' + escapeHTML(c.nombre) + '" loading="lazy" decoding="async">'
         : '<div class="decant-card-img-ph" style="background:rgba(232,184,0,.12);color:var(--amarillo);">★</div>';
-      return '<div class="decant-card decant-card-custom' + (qty > 0 ? ' has-qty' : '') + '">'
+      // Botón "+" deshabilitado si todavía no hay precio cargado
+      var plusDisabled = hasPrecio ? '' : ' disabled title="El admin todavía está cargando el precio de este perfume"';
+      var pendingClass = hasPrecio ? '' : ' is-precio-pendiente';
+      return '<div class="decant-card decant-card-custom' + pendingClass + (qty > 0 ? ' has-qty' : '') + '">'
         + '<div class="decant-card-img">' + imgHTML + '</div>'
         + '<div class="decant-card-info">'
           + '<p class="decant-card-name">' + escapeHTML(c.nombre) + '</p>'
@@ -345,7 +355,7 @@
         + '<div class="decant-card-ctrl">'
           + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(\'' + slug + '\')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
           + '<span class="decant-ctrl-qty">' + qty + '</span>'
-          + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + slug + '\')" aria-label="Agregar">+</button>'
+          + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + slug + '\')"' + plusDisabled + ' aria-label="Agregar">+</button>'
         + '</div>'
       + '</div>';
     }

@@ -522,6 +522,73 @@
     .perfume-picker-option mark { background: var(--amarillo); color: #000; border-radius: 2px; padding: 0 1px; }
     .perfume-picker-empty { padding: .6rem .7rem; font-size: .7rem; color: #666; text-align: center; }
 
+    /* ════════════════════════════════════════════════════════════════
+       [DC-RESPONSIVE-FIX] Filas de "Decants de diseñador" — responsive.
+       FIX URGENTE: la grid fija de 7 cols (60+1.3fr+1fr+110+70+80+110) se
+       cortaba en tablet Galaxy Tab A9 vertical (800px ancho) → el campo
+       💰 PRECIO quedaba afuera de la pantalla, las chicas no lo veían,
+       cargaban precio vacío → cliente veía $9500 en el armador.
+       Ahora: desktop ≥1100px = grid 7 cols como antes. Tablet/mobile =
+       grid auto-fit con labels arriba de cada input para que TODO sea
+       visible y entendible.
+       ──────────────────────────────────────────────────────────────── */
+    .dc-row {
+      display: grid;
+      grid-template-columns: 60px 1.2fr 0.9fr 130px 70px 80px 130px;
+      gap: .5rem;
+      align-items: end;
+    }
+    .dc-cell { min-width: 0; }
+    .dc-cell-actions {
+      display: flex; gap: .3rem; align-items: center; justify-content: center;
+    }
+    .dc-label {
+      display: block;
+      font-size: .55rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--gris-claro);
+      margin-bottom: 3px;
+      opacity: .85;
+    }
+    .dc-label-strong {
+      color: var(--amarillo);
+      opacity: 1;
+    }
+    /* Desktop: labels ocultas (UI compacta como antes) excepto para Precio
+       que SIEMPRE se ve (acento visual para que las chicas no lo olviden). */
+    @media (min-width: 1100px) {
+      .dc-label:not(.dc-label-strong) { display: none; }
+    }
+    /* Tablet vertical / mobile: stack vertical con labels visibles. */
+    @media (max-width: 1099px) {
+      .dc-row {
+        grid-template-columns: 60px 1fr 1fr;
+        gap: .6rem .5rem;
+        align-items: start;
+      }
+      .dc-cell-foto { grid-row: 1 / span 2; grid-column: 1; align-self: center; }
+      .dc-cell-nombre { grid-row: 1; grid-column: 2 / span 2; }
+      .dc-cell-marca { grid-row: 2; grid-column: 2 / span 2; }
+      .dc-cell-precio { grid-row: 3; grid-column: 1 / span 2; }
+      .dc-cell-orden { grid-row: 3; grid-column: 3; }
+      .dc-cell-activo { grid-row: 4; grid-column: 1 / span 2; }
+      .dc-cell-actions { grid-row: 4; grid-column: 3; justify-content: flex-end; }
+    }
+    @media (max-width: 540px) {
+      .dc-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      .dc-cell-foto { grid-row: 1; grid-column: 1 / span 2; justify-self: center; }
+      .dc-cell-nombre { grid-row: 2; grid-column: 1 / span 2; }
+      .dc-cell-marca { grid-row: 3; grid-column: 1 / span 2; }
+      .dc-cell-precio { grid-row: 4; grid-column: 1 / span 2; }
+      .dc-cell-orden { grid-row: 5; grid-column: 1; }
+      .dc-cell-activo { grid-row: 5; grid-column: 2; justify-self: end; align-self: center; }
+      .dc-cell-actions { grid-row: 6; grid-column: 1 / span 2; justify-content: center; }
+    }
+
     /* CLIENTES PANEL */
     .clients-search-bar {
       display: flex; gap: .5rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap;
@@ -7859,16 +7926,16 @@
           + '</div>';
 
         return ''
-          + '<div data-custom-id="' + p.id + '" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;align-items:center;">'
-          +   fotoCell
-          +   '<input type="text" class="modal-input dc-nombre" value="' + (p.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre" style="margin-bottom:0;font-size:.78rem;"/>'
-          +   '<input type="text" class="modal-input dc-marca" value="' + (p.marca || '').replace(/"/g, '&quot;') + '" placeholder="Marca (opcional)" style="margin-bottom:0;font-size:.78rem;"/>'
-          +   '<input type="number" class="modal-input dc-precio" value="' + precioVal + '" min="0" step="100" placeholder="Ej: 29000" style="margin-bottom:0;font-size:.78rem;text-align:right;" title="Precio fijo por unidad. SIN puntos ni comas (ej: 29000 no 29.000). Si está vacío usa la escalera global del armador (1-2/3-4/5+)."/>'
-          +   '<input type="number" class="modal-input dc-orden" value="' + (p.orden || 0) + '" min="0" style="margin-bottom:0;font-size:.78rem;text-align:center;" title="ORDEN: posición en el grid del armador (menor número = aparece más arriba)"/>'
-          +   '<label style="display:flex;align-items:center;justify-content:center;gap:.3rem;font-size:.7rem;color:var(--gris-claro);cursor:pointer;"><input type="checkbox" class="dc-activo" ' + (p.activo ? 'checked' : '') + ' style="width:14px;height:14px;accent-color:var(--amarillo);"/> Activo</label>'
-          +   '<div style="display:flex;gap:.3rem;justify-content:center;align-items:center;">'
-          +     '<button class="modal-btn" onclick="saveDecantCustom(' + p.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.65rem;padding:.3rem .6rem;" title="Guardar cambios">💾</button>'
-          +     '<button class="modal-btn" onclick="deleteDecantCustom(' + p.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.3rem .6rem;" title="Eliminar este perfume">🗑️</button>'
+          + '<div data-custom-id="' + p.id + '" class="dc-row" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;">'
+          +   '<div class="dc-cell dc-cell-foto">' + fotoCell + '</div>'
+          +   '<div class="dc-cell dc-cell-nombre"><label class="dc-label">Nombre</label><input type="text" class="modal-input dc-nombre" value="' + (p.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre" style="margin-bottom:0;font-size:.78rem;"/></div>'
+          +   '<div class="dc-cell dc-cell-marca"><label class="dc-label">Marca</label><input type="text" class="modal-input dc-marca" value="' + (p.marca || '').replace(/"/g, '&quot;') + '" placeholder="Marca (opcional)" style="margin-bottom:0;font-size:.78rem;"/></div>'
+          +   '<div class="dc-cell dc-cell-precio"><label class="dc-label dc-label-strong">💰 Precio</label><input type="number" class="modal-input dc-precio" value="' + precioVal + '" min="0" step="100" placeholder="Ej: 29000" style="margin-bottom:0;font-size:.85rem;text-align:right;font-weight:700;" title="Precio fijo por unidad. SIN puntos ni comas (ej: 29000 no 29.000). Si lo dejás vacío, el cliente verá ~$9500 (precio de decants regulares) que NO conviene para perfumes de diseñador."/></div>'
+          +   '<div class="dc-cell dc-cell-orden"><label class="dc-label">Orden</label><input type="number" class="modal-input dc-orden" value="' + (p.orden || 0) + '" min="0" style="margin-bottom:0;font-size:.78rem;text-align:center;" title="ORDEN: posición en el grid del armador (menor número = aparece más arriba)"/></div>'
+          +   '<div class="dc-cell dc-cell-activo"><label style="display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--gris-claro);cursor:pointer;padding:.4rem 0;"><input type="checkbox" class="dc-activo" ' + (p.activo ? 'checked' : '') + ' style="width:16px;height:16px;accent-color:var(--amarillo);"/> Activo</label></div>'
+          +   '<div class="dc-cell dc-cell-actions">'
+          +     '<button class="modal-btn" onclick="saveDecantCustom(' + p.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.7rem;padding:.45rem .8rem;" title="Guardar cambios">💾 Guardar</button>'
+          +     '<button class="modal-btn" onclick="deleteDecantCustom(' + p.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.45rem .6rem;" title="Eliminar este perfume">🗑️</button>'
           +   '</div>'
           + '</div>';
       }).join('');
