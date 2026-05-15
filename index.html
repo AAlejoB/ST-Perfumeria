@@ -939,6 +939,126 @@
     </div>
   </section>
 
+
+  <!-- [JUEGOS-3A] Sección reubicada · ANTES iba después del FAQ (ahí se "escondía"),
+       ahora va arriba (entre seo-hub y Nosotros) para que el cliente que scrollea
+       el catálogo la encuentre antes de pasar a "Sobre ST". El CTA banner arriba
+       de la home sigue funcionando con scrollIntoView('#quizSection'). -->
+  <!-- ========== JUEGOS ST — Quiz + Desafío (side-by-side desktop, stack mobile) ========== -->
+  <section class="quiz-section" id="quizSection">
+    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
+    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
+    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
+    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
+    <div class="cultura-misel-row">
+    <div class="quiz-box" id="quizBox">
+      <div style="margin-bottom:.6rem;"><span class="set-badge" style="font-size:.6rem;">&#127942; JUGÁ GRATIS</span></div>
+      <div class="quiz-icon">&#128142;</div>
+      <p class="quiz-title">Encontr&#225; tu perfume</p>
+      <p class="quiz-subtitle">Respond&#233; 4 preguntas y te recomendamos 3 fragancias ideales para vos</p>
+
+      <div class="quiz-progress" id="quizProgress">
+        <span class="quiz-dot filled"></span>
+        <span class="quiz-dot"></span>
+        <span class="quiz-dot"></span>
+        <span class="quiz-dot"></span>
+      </div>
+
+      <div class="quiz-step active" data-step="1">
+        <p class="quiz-question">&#191;Para qui&#233;n es el perfume?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(1,'Hombre')">Hombre</button>
+          <button class="quiz-opt" onclick="quizAnswer(1,'Mujer')">Mujer</button>
+          <button class="quiz-opt" onclick="quizAnswer(1,'Unisex')">Unisex</button>
+          <button class="quiz-opt" onclick="quizAnswer(1,'any')">Todos</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" data-step="2">
+        <p class="quiz-question">&#191;Para qu&#233; ocasi&#243;n lo usar&#237;as?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(2,'diario')">D&#237;a a d&#237;a</button>
+          <button class="quiz-opt" onclick="quizAnswer(2,'noche')">Noche / Salida</button>
+          <button class="quiz-opt" onclick="quizAnswer(2,'oficina')">Oficina</button>
+          <button class="quiz-opt" onclick="quizAnswer(2,'cita')">Cita</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" data-step="3">
+        <p class="quiz-question">&#191;Qu&#233; tipo de aroma prefer&#237;s?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(3,'dulce')">&#127852; Dulce</button>
+          <button class="quiz-opt" onclick="quizAnswer(3,'fresco')">&#127754; Fresco</button>
+          <button class="quiz-opt" onclick="quizAnswer(3,'amaderado')">&#127795; Amaderado</button>
+          <button class="quiz-opt" onclick="quizAnswer(3,'especiado')">&#128293; Especiado</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" data-step="4">
+        <p class="quiz-question">&#191;Qu&#233; intensidad busc&#225;s?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="quizAnswer(4,'suave')">Suave</button>
+          <button class="quiz-opt" onclick="quizAnswer(4,'moderado')">Moderado</button>
+          <button class="quiz-opt" onclick="quizAnswer(4,'potente')">Potente</button>
+          <button class="quiz-opt" onclick="quizAnswer(4,'any')">Sorprendeme</button>
+        </div>
+      </div>
+
+      <div class="quiz-results" id="quizResults"></div>
+    </div>
+
+    <!-- Desafío ST -->
+    <div class="misel-section" style="border:1px solid rgba(232,184,0,.2);border-radius:10px;padding:1.5rem;background:linear-gradient(135deg, rgba(232,184,0,.03) 0%, transparent 60%);">
+      <div style="margin-bottom:.5rem;"><span class="set-badge" style="font-size:.6rem;">&#127183; DESAF&Iacute;O INTERACTIVO</span></div>
+      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
+      <p style="font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
+
+      <div class="misel-content" id="miselContent" style="display:none;">
+        <div class="misel-picker">
+          <div class="misel-slots" id="miselSlots">
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
+            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
+          </div>
+          <div class="misel-search-wrap">
+            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
+            <div class="misel-dropdown" id="miselDropdown"></div>
+          </div>
+          <p class="misel-msg" id="miselMsg"></p>
+        </div>
+
+        <!-- Carta misteriosa -->
+        <div class="desafio-reveal" id="desafioReveal" style="display:none;">
+          <div class="desafio-card-flip" id="desafioCard" onclick="flipDesafioCard()">
+            <div class="desafio-card-inner" id="desafioCardInner">
+              <div class="desafio-card-front">
+                <span class="desafio-question">?</span>
+                <p class="desafio-tap">Toc&#225; para descubrir</p>
+              </div>
+              <div class="desafio-card-back" id="desafioCardBack">
+              </div>
+            </div>
+          </div>
+          <div class="desafio-actions" id="desafioActions" style="display:none;">
+            <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
+            <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
+            <button class="desafio-btn-share" onclick="shareDesafio()">&#128172; Compartir resultado</button>
+            <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
+          </div>
+          <p class="misel-global-stat" id="miselGlobalStat"></p>
+        </div>
+      </div>
+
+      <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
+        <span>&#128274; Inici&aacute; sesi&oacute;n para jugar</span>
+      </div>
+    </div>
+
+    </div><!-- /cultura-misel-row -->
+  </section>
+
   <section class="section-nosotros" id="nosotros">
 
     <!-- Encabezado -->
@@ -1063,125 +1183,6 @@
       </button>
       <div class="faq-answer"><p>Estamos en el centro de Comodoro Rivadavia, Chubut. Podés ver nuestros horarios en el footer de la página o consultarnos por WhatsApp para coordinar tu visita.</p></div>
     </div>
-  </section>
-
-  <!-- [JUEGOS-3A] Sección reubicada · ANTES iba después del FAQ (ahí se "escondía"),
-       ahora va arriba (entre seo-hub y Nosotros) para que el cliente que scrollea
-       el catálogo la encuentre antes de pasar a "Sobre ST". El CTA banner arriba
-       de la home sigue funcionando con scrollIntoView('#quizSection'). -->
-  <!-- ========== JUEGOS ST — Quiz + Desafío (side-by-side desktop, stack mobile) ========== -->
-  <section class="quiz-section" id="quizSection">
-    <span class="sec-mist sec-mist-1" aria-hidden="true"></span>
-    <span class="sec-mist sec-mist-2" aria-hidden="true"></span>
-    <span class="sec-corner sec-corner-tl" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-tr" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-bl" aria-hidden="true">&#9670;</span>
-    <span class="sec-corner sec-corner-br" aria-hidden="true">&#9670;</span>
-    <div class="cultura-misel-row">
-    <div class="quiz-box" id="quizBox">
-      <div style="margin-bottom:.6rem;"><span class="set-badge" style="font-size:.6rem;">&#127942; JUGÁ GRATIS</span></div>
-      <div class="quiz-icon">&#128142;</div>
-      <p class="quiz-title">Encontr&#225; tu perfume</p>
-      <p class="quiz-subtitle">Respond&#233; 4 preguntas y te recomendamos 3 fragancias ideales para vos</p>
-
-      <div class="quiz-progress" id="quizProgress">
-        <span class="quiz-dot filled"></span>
-        <span class="quiz-dot"></span>
-        <span class="quiz-dot"></span>
-        <span class="quiz-dot"></span>
-      </div>
-
-      <div class="quiz-step active" data-step="1">
-        <p class="quiz-question">&#191;Para qui&#233;n es el perfume?</p>
-        <div class="quiz-options">
-          <button class="quiz-opt" onclick="quizAnswer(1,'Hombre')">Hombre</button>
-          <button class="quiz-opt" onclick="quizAnswer(1,'Mujer')">Mujer</button>
-          <button class="quiz-opt" onclick="quizAnswer(1,'Unisex')">Unisex</button>
-          <button class="quiz-opt" onclick="quizAnswer(1,'any')">Todos</button>
-        </div>
-      </div>
-
-      <div class="quiz-step" data-step="2">
-        <p class="quiz-question">&#191;Para qu&#233; ocasi&#243;n lo usar&#237;as?</p>
-        <div class="quiz-options">
-          <button class="quiz-opt" onclick="quizAnswer(2,'diario')">D&#237;a a d&#237;a</button>
-          <button class="quiz-opt" onclick="quizAnswer(2,'noche')">Noche / Salida</button>
-          <button class="quiz-opt" onclick="quizAnswer(2,'oficina')">Oficina</button>
-          <button class="quiz-opt" onclick="quizAnswer(2,'cita')">Cita</button>
-        </div>
-      </div>
-
-      <div class="quiz-step" data-step="3">
-        <p class="quiz-question">&#191;Qu&#233; tipo de aroma prefer&#237;s?</p>
-        <div class="quiz-options">
-          <button class="quiz-opt" onclick="quizAnswer(3,'dulce')">&#127852; Dulce</button>
-          <button class="quiz-opt" onclick="quizAnswer(3,'fresco')">&#127754; Fresco</button>
-          <button class="quiz-opt" onclick="quizAnswer(3,'amaderado')">&#127795; Amaderado</button>
-          <button class="quiz-opt" onclick="quizAnswer(3,'especiado')">&#128293; Especiado</button>
-        </div>
-      </div>
-
-      <div class="quiz-step" data-step="4">
-        <p class="quiz-question">&#191;Qu&#233; intensidad busc&#225;s?</p>
-        <div class="quiz-options">
-          <button class="quiz-opt" onclick="quizAnswer(4,'suave')">Suave</button>
-          <button class="quiz-opt" onclick="quizAnswer(4,'moderado')">Moderado</button>
-          <button class="quiz-opt" onclick="quizAnswer(4,'potente')">Potente</button>
-          <button class="quiz-opt" onclick="quizAnswer(4,'any')">Sorprendeme</button>
-        </div>
-      </div>
-
-      <div class="quiz-results" id="quizResults"></div>
-    </div>
-
-    <!-- Desafío ST -->
-    <div class="misel-section" style="border:1px solid rgba(232,184,0,.2);border-radius:10px;padding:1.5rem;background:linear-gradient(135deg, rgba(232,184,0,.03) 0%, transparent 60%);">
-      <div style="margin-bottom:.5rem;"><span class="set-badge" style="font-size:.6rem;">&#127183; DESAF&Iacute;O INTERACTIVO</span></div>
-      <h3 class="nosotros-block-title" style="margin-bottom:.3rem;">&#127183; Desaf&#237;o ST</h3>
-      <p style="font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;font-style:italic;">Eleg&#237; 3 perfumes y te recomendamos uno nuevo para vos.</p>
-
-      <div class="misel-content" id="miselContent" style="display:none;">
-        <div class="misel-picker">
-          <div class="misel-slots" id="miselSlots">
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">1</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">2</span></div>
-            <div class="misel-slot" onclick="focusMiselSearch()"><span class="misel-slot-num">3</span></div>
-          </div>
-          <div class="misel-search-wrap">
-            <input type="text" class="misel-search" id="miselSearch" placeholder="Buscar perfume..." oninput="filterMiselDropdown(this.value)" onfocus="filterMiselDropdown(this.value)"/>
-            <div class="misel-dropdown" id="miselDropdown"></div>
-          </div>
-          <p class="misel-msg" id="miselMsg"></p>
-        </div>
-
-        <!-- Carta misteriosa -->
-        <div class="desafio-reveal" id="desafioReveal" style="display:none;">
-          <div class="desafio-card-flip" id="desafioCard" onclick="flipDesafioCard()">
-            <div class="desafio-card-inner" id="desafioCardInner">
-              <div class="desafio-card-front">
-                <span class="desafio-question">?</span>
-                <p class="desafio-tap">Toc&#225; para descubrir</p>
-              </div>
-              <div class="desafio-card-back" id="desafioCardBack">
-              </div>
-            </div>
-          </div>
-          <div class="desafio-actions" id="desafioActions" style="display:none;">
-            <button class="desafio-btn-local" id="btnVerLocal" onclick="">&#128205; Ver en el cat&#225;logo</button>
-            <a class="desafio-btn-decant" id="btnDecant" href="#" target="_blank">&#128140; Consult&#225; un decant 5ml</a>
-            <button class="desafio-btn-share" onclick="shareDesafio()">&#128172; Compartir resultado</button>
-            <button class="desafio-btn-retry" onclick="resetDesafio()">&#128260; Intentar de nuevo</button>
-          </div>
-          <p class="misel-global-stat" id="miselGlobalStat"></p>
-        </div>
-      </div>
-
-      <div class="misel-lock" id="miselLock" style="display:block;" onclick="openAuth()">
-        <span>&#128274; Inici&aacute; sesi&oacute;n para jugar</span>
-      </div>
-    </div>
-
-    </div><!-- /cultura-misel-row -->
   </section>
 
   <!-- ========== VISTO RECIENTEMENTE — JS renderiza si hay 2+ vistos ========== -->
@@ -1685,19 +1686,5 @@
   <!-- DVD BOUNCER — perfume rebotando tipo screensaver (solo desktop) -->
   <!-- <script src="js/dvd-bouncer.js" defer></script> -->
 
-  <!-- [JUEGOS-3A] Mover #quizSection antes de #nosotros · sync inline antes de
-       </body> = ejecuta tras parseo completo y ANTES del primer paint en
-       la mayoría de los browsers (evita flash de la sección saltando). El
-       HTML estático queda en su lugar para no romper SEO histórico; en una
-       sesión futura se puede mover físicamente y borrar este script. -->
-  <script>
-    (function moveQuizSection() {
-      var quiz = document.getElementById('quizSection');
-      var target = document.getElementById('nosotros');
-      if (quiz && target && quiz !== target.previousElementSibling) {
-        try { target.parentNode.insertBefore(quiz, target); } catch (e) { /* silent */ }
-      }
-    })();
-  </script>
 </body>
 </html>

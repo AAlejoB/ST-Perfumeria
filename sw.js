@@ -13,12 +13,12 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [SELECCION-ST-1B] UI admin para nota_jefe — textarea en el modal Editar
-// Perfume (después de Notas de stock). El jefe puede cargar quotes
-// personales por perfume; el frontend público ya leía p.nota_jefe pero hasta
-// ahora no había forma de cargarlo sin tocar SQL. Aparece SOLO en cards de
-// Selección ST top 6 (clase .collectible-quote, cursiva Cormorant Garamond).
-var CACHE_VERSION = 'v1.1.41';
+// [JUEGOS-3A-FINAL] move físico del bloque #quizSection en index.html · ahora
+// vive entre seo-hub y nosotros directamente en el HTML estático. Se borró
+// el script JS-move que vivía antes de </body>. Beneficio: si Google JS-render
+// falla, los crawlers ven el orden correcto. Mantenibilidad: leer el HTML y
+// ubicar Juegos ST visualmente es directo, sin tener que entender el move.
+var CACHE_VERSION = 'v1.1.42';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
