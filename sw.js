@@ -13,16 +13,12 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [LIGHTHOUSE-15JUN] Quick wins post-reporte PageSpeed (desktop 37 / mobile 61):
-//   - [CLS-HERO-V2] min-height del hero subido a 460/500px (era 320/380) +
-//     [CLS-QUIZ-CTA] reservar 96/116px en el banner del quiz. Cubre el shift
-//     de 0.886+0.051 que reportaba Lighthouse desktop.
-//   - [CLS-FONTS-OPTIONAL] Google Fonts pasa de display=swap → display=optional.
-//     Si no llegan en ~100ms, fallback permanente en esa sesión (cero CLS).
-//     Visitas repetidas las tienen cacheadas → se aplican normales.
-//   - [A11Y-OCCASION-LABEL] aria-label en #occasionToggle.
-//   - [A11Y-CONTRAST] .filter-count usa var(--gris-claro) en dark mode (contraste 9.6:1).
-var CACHE_VERSION = 'v1.1.43';
+// [LIGHTHOUSE-15JUN-REVERT] Vuelta a display=swap en Google Fonts. La medición
+// post-v1.1.43 mostró regresión severa en mobile (Performance 61→40, CLS 0.132→
+// 0.957, FCP 2.4s→4.1s) — el "block period" de display=optional provocaba que
+// Lighthouse midiera texto invisible vs visible como shift gigante del hero.
+// Se mantienen los otros fixes (min-height hero/quiz-cta, aria-label, contraste).
+var CACHE_VERSION = 'v1.1.44';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

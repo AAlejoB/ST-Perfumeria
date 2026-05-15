@@ -388,12 +388,17 @@
   <title>Comprar Perfumes Importados en Comodoro Rivadavia | ST Perfumería — Originales en Cuotas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <!-- [CLS-FONTS-OPTIONAL] display=optional · si las fuentes no llegan en ~100ms,
-       el navegador usa fallback permanente en esa sesión y NO swappea más tarde →
-       cero CLS por fuentes (eliminaba 0.233 de CLS desktop). Las próximas visitas
-       las tienen cacheadas y se aplican normalmente. Tradeoff aceptable. -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bodoni+Moda:wght@400;500;600;700;800;900&display=optional" onload="this.onload=null;this.rel='stylesheet'"/>
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bodoni+Moda:wght@400;500;600;700;800;900&display=optional" rel="stylesheet"/></noscript>
+  <!-- [LIGHTHOUSE-15JUN-REVERT] Vuelta a display=swap. La iteración previa probó
+       display=optional buscando eliminar el 0.233 de CLS por swap de fuentes, pero
+       el "block period" de ~100ms con texto invisible provocó:
+       - CLS mobile 0.132 → 0.957 (Lighthouse mide texto invisible vs visible
+         como shift gigante del <section class="hero">: 0.845 solo de eso).
+       - FCP mobile 2.4s → 4.1s (texto bloqueado en lugar de aparecer con fallback).
+       Con display=swap el texto se muestra inmediatamente con fallback y luego swap.
+       El CLS por swap se mitiga con el min-height generoso del .hero (en styles.css
+       y critical CSS inline, 380/460/500 mobile/tablet/desktop). -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bodoni+Moda:wght@400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bodoni+Moda:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/></noscript>
   <link rel="preconnect" href="https://rtgjzzkjrwbkdhkslxix.supabase.co" crossorigin/>
   <!-- DNS prefetch para CDNs no críticos (Supabase Storage, jsdelivr) -->
   <link rel="dns-prefetch" href="//rtgjzzkjrwbkdhkslxix.supabase.co"/>
