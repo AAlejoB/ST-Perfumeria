@@ -523,24 +523,21 @@
     .perfume-picker-empty { padding: .6rem .7rem; font-size: .7rem; color: #666; text-align: center; }
 
     /* ════════════════════════════════════════════════════════════════
-       [DC-RESPONSIVE-FIX] Filas de "Decants de diseñador" — responsive.
-       FIX URGENTE: la grid fija de 7 cols (60+1.3fr+1fr+110+70+80+110) se
-       cortaba en tablet Galaxy Tab A9 vertical (800px ancho) → el campo
-       💰 PRECIO quedaba afuera de la pantalla, las chicas no lo veían,
-       cargaban precio vacío → cliente veía $9500 en el armador.
-       Ahora: desktop ≥1100px = grid 7 cols como antes. Tablet/mobile =
-       grid auto-fit con labels arriba de cada input para que TODO sea
-       visible y entendible.
+       [DC-RESPONSIVE-FIX] + [DC-PRECIO-PROMINENT] Filas de "Decants
+       de diseñador" — responsive con PRIORIDAD VISUAL para PRECIO y
+       GUARDAR. Aunque el layout se "rompa dimensionalmente", esos 2
+       elementos NUNCA quedan ocultos ni chiquitos — son la diferencia
+       entre vender bien o vender mal.
        ──────────────────────────────────────────────────────────────── */
     .dc-row {
       display: grid;
-      grid-template-columns: 60px 1.2fr 0.9fr 130px 70px 80px 130px;
+      grid-template-columns: 60px 1.2fr 0.9fr 170px 70px 80px 130px;
       gap: .5rem;
       align-items: end;
     }
     .dc-cell { min-width: 0; }
     .dc-cell-actions {
-      display: flex; gap: .3rem; align-items: center; justify-content: center;
+      display: flex; gap: .35rem; align-items: center; justify-content: center;
     }
     .dc-label {
       display: block;
@@ -555,30 +552,101 @@
     .dc-label-strong {
       color: var(--amarillo);
       opacity: 1;
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: .12em;
     }
-    /* Desktop: labels ocultas (UI compacta como antes) excepto para Precio
-       que SIEMPRE se ve (acento visual para que las chicas no lo olviden). */
+
+    /* PRIORIDAD VISUAL · El campo PRECIO siempre destacado */
+    .dc-cell-precio {
+      background: rgba(232,184,0,.08);
+      border: 1.5px solid rgba(232,184,0,.45);
+      border-radius: 8px;
+      padding: .45rem .55rem .5rem;
+      box-shadow: 0 2px 8px rgba(232,184,0,.08);
+    }
+    .dc-cell-precio .dc-label { display: block !important; }  /* Siempre visible incluso desktop */
+    .dc-cell-precio .dc-precio {
+      font-size: 1rem !important;
+      font-weight: 800 !important;
+      color: var(--amarillo) !important;
+      background: rgba(0,0,0,.3) !important;
+      border-color: rgba(232,184,0,.5) !important;
+    }
+    .dc-cell-precio .dc-precio:focus {
+      border-color: var(--amarillo) !important;
+      box-shadow: 0 0 0 3px rgba(232,184,0,.2);
+    }
+    /* Warning visual si el precio está vacío — borde rojo + mini aviso */
+    .dc-cell-precio .dc-precio:placeholder-shown {
+      border-color: #e74c3c !important;
+      animation: dc-precio-warn 2s ease-in-out infinite;
+    }
+    @keyframes dc-precio-warn {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+      50%      { box-shadow: 0 0 0 4px rgba(231,76,60,.25); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dc-cell-precio .dc-precio:placeholder-shown { animation: none; }
+    }
+
+    /* PRIORIDAD VISUAL · Botón GUARDAR siempre grande y dorado */
+    .dc-cell-actions .modal-btn[onclick*="saveDecantCustom"] {
+      font-size: .8rem !important;
+      font-weight: 800 !important;
+      padding: .55rem .9rem !important;
+      min-height: 38px;
+      letter-spacing: .04em;
+      box-shadow: 0 3px 10px rgba(232,184,0,.3);
+      flex: 1;
+    }
+    .dc-cell-actions .modal-btn[onclick*="deleteDecantCustom"] {
+      min-height: 38px;
+      flex-shrink: 0;
+    }
+
+    /* Desktop: labels chicas no-strong ocultas (UI compacta). */
     @media (min-width: 1100px) {
       .dc-label:not(.dc-label-strong) { display: none; }
     }
-    /* Tablet vertical / mobile: stack vertical con labels visibles. */
+    /* Tablet vertical / mobile: stack con labels visibles. PRECIO y
+       GUARDAR siempre full-width en su propia fila. */
     @media (max-width: 1099px) {
       .dc-row {
         grid-template-columns: 60px 1fr 1fr;
-        gap: .6rem .5rem;
+        gap: .7rem .5rem;
         align-items: start;
       }
       .dc-cell-foto { grid-row: 1 / span 2; grid-column: 1; align-self: center; }
       .dc-cell-nombre { grid-row: 1; grid-column: 2 / span 2; }
       .dc-cell-marca { grid-row: 2; grid-column: 2 / span 2; }
-      .dc-cell-precio { grid-row: 3; grid-column: 1 / span 2; }
-      .dc-cell-orden { grid-row: 3; grid-column: 3; }
-      .dc-cell-activo { grid-row: 4; grid-column: 1 / span 2; }
-      .dc-cell-actions { grid-row: 4; grid-column: 3; justify-content: flex-end; }
+      /* PRECIO: full width, fila propia, BIEN VISIBLE */
+      .dc-cell-precio {
+        grid-row: 3; grid-column: 1 / span 3;
+        padding: .6rem .7rem;
+      }
+      .dc-cell-precio .dc-precio {
+        font-size: 1.2rem !important;
+        text-align: left !important;
+        padding: .55rem .75rem;
+      }
+      .dc-cell-orden { grid-row: 4; grid-column: 1 / span 2; }
+      .dc-cell-activo { grid-row: 4; grid-column: 3; align-self: center; justify-self: end; }
+      /* GUARDAR: full width, fila propia */
+      .dc-cell-actions {
+        grid-row: 5; grid-column: 1 / span 3;
+        justify-content: stretch;
+      }
+      .dc-cell-actions .modal-btn[onclick*="saveDecantCustom"] {
+        font-size: .85rem !important;
+        padding: .7rem 1rem !important;
+        min-height: 44px;
+      }
     }
     @media (max-width: 540px) {
       .dc-row {
         grid-template-columns: 1fr 1fr;
+        padding: .8rem;
       }
       .dc-cell-foto { grid-row: 1; grid-column: 1 / span 2; justify-self: center; }
       .dc-cell-nombre { grid-row: 2; grid-column: 1 / span 2; }
@@ -586,7 +654,7 @@
       .dc-cell-precio { grid-row: 4; grid-column: 1 / span 2; }
       .dc-cell-orden { grid-row: 5; grid-column: 1; }
       .dc-cell-activo { grid-row: 5; grid-column: 2; justify-self: end; align-self: center; }
-      .dc-cell-actions { grid-row: 6; grid-column: 1 / span 2; justify-content: center; }
+      .dc-cell-actions { grid-row: 6; grid-column: 1 / span 2; }
     }
 
     /* CLIENTES PANEL */
