@@ -13,12 +13,14 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [LIGHTHOUSE-15JUN-REVERT] Vuelta a display=swap en Google Fonts. La medición
-// post-v1.1.43 mostró regresión severa en mobile (Performance 61→40, CLS 0.132→
-// 0.957, FCP 2.4s→4.1s) — el "block period" de display=optional provocaba que
-// Lighthouse midiera texto invisible vs visible como shift gigante del hero.
-// Se mantienen los otros fixes (min-height hero/quiz-cta, aria-label, contraste).
-var CACHE_VERSION = 'v1.1.44';
+// [LIGHTHOUSE-15JUN-FULL-REVERT] Revert completo de los min-heights de v1.1.43.
+// El revert previo (v1.1.44) volvió Google Fonts a display=swap pero MANTUVO los
+// min-heights del hero (380/460/500) y del quiz-cta-banner (96/116) que metí en
+// v1.1.43. La medición mostró que el CLS quedó IGUAL post-v1.1.44 (0.957 → 0.958)
+// → display=optional NO era el culpable, eran los min-heights.
+// Esta versión revierte el hero a 320/380 (baseline pre-fix) y ELIMINA el min-height
+// del quiz-cta-banner. Se mantienen los fixes de a11y (aria-label, contraste).
+var CACHE_VERSION = 'v1.1.45';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

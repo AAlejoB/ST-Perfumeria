@@ -9140,18 +9140,14 @@
       max-width: 100%;
     }
 
-    /* [CLS-HERO-V2] Hero: reservar altura mínima generosa para evitar shift
-       cuando llegan Bodoni Moda / Playfair (line-height + char-width cambian).
-       Lighthouse desktop reportaba CLS 1.123 con min-height 380 — el contenido
-       con fuentes finales excedía esa altura. Buffer agregado +120px desktop. */
-    .hero { min-height: 380px; }
-    @media (min-width: 768px) { .hero { min-height: 460px; } }
-    @media (min-width: 1024px) { .hero { min-height: 500px; } }
-
-    /* [CLS-QUIZ-CTA] Quiz CTA banner: reservar altura mínima para evitar shift
-       de 0.051 que reporta Lighthouse al swapear fuentes en el título del banner. */
-    .quiz-cta-banner { min-height: 96px; }
-    @media (min-width: 768px) { .quiz-cta-banner { min-height: 116px; } }
+    /* Hero: reservar altura mínima para evitar shift al cargar fonts.
+       [LIGHTHOUSE-15JUN-FULL-REVERT] La iteración v1.1.43 subió esto a 380/460/500
+       buscando absorber el shift por swap de fuentes. Resultó contraproducente:
+       Lighthouse mobile reportó CLS 0.957 (vs 0.132 pre-fix) — el min-height más
+       alto creaba un layout-recalc raro que se atribuía al <section class="hero">.
+       Vuelta al baseline 320/380 que daba CLS 0.132 + Performance 61. */
+    .hero { min-height: 320px; }
+    @media (min-width: 768px) { .hero { min-height: 380px; } }
 
     /* ════════════════════════════════════════════════════════════════
        [FANTASMA] Revert parcial de [IMG-DIMS] (v1.1.10).
