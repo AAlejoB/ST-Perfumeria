@@ -148,10 +148,10 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 
 ```js
 // sw.js línea 16
-var CACHE_VERSION = 'v1.1.39';   // ← incrementá este
+var CACHE_VERSION = 'v1.1.42';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.39**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.42**.
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 >
@@ -281,4 +281,4 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Mayo 15, 2026 (madrugada del 16) — maratón completo: features premium + QA exhaustivo + incidente urgente tablet admin + rediseño banner update. **13 commits live**. SW v1.1.22 → **v1.1.39** (17 bumps). 17 keywords nuevos. **4 pendientes flageados**: `[BUG-DEC-ADMIN]` (panel admin queda muy abajo) · UI admin `nota_jefe` · Move físico `#quizSection` · cargar precios LE BEAU LE PARFUM + LE BEAU EDT. Doc nueva: `docs/QA-PRE-JULIO.md` con 170 items de validación.
+**Última actualización:** Mayo 15, 2026 (viernes noche · local cerrado) — cierre de los 3 pendientes flageados del 15-may. **18 commits live** acumulados desde inicio del 15-may (13 maratón + 5 sesión cierre). SW v1.1.22 → **v1.1.42** (20 bumps). Keywords nuevos en sesión cierre: `[BUG-DEC-ADMIN]` (HTML structural fix · `</div>` extra cerraba `<main>` implícitamente · 9 tabs huérfanas), `[SELECCION-ST-1B]` (UI admin para `nota_jefe`), `[JUEGOS-3A-FINAL]` (move físico del `#quizSection`). **1 pendiente abierto**: cargar precios LE BEAU LE PARFUM + LE BEAU EDT. Doc clave: `docs/QA-PRE-JULIO.md` con 170 items de validación.

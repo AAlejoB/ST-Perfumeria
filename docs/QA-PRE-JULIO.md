@@ -373,7 +373,7 @@ Viewport: probar tanto **375×812 (mobile)** como **800×1280 (tablet)** como
 - [ ] DevTools → Application → Manifest · verifica name, short_name,
       icon, theme_color
 - [ ] Application → Service Workers · verifica `sw.js` esté "activated
-      and running" · versión = `v1.1.37` (o la última deployada)
+      and running" · versión = `v1.1.42` (o la última deployada)
 - [ ] Chrome → más opciones → "Instalar ST Perfumería" → instala como
       PWA · abre desde escritorio sin browser
 - [ ] PWA-AUTO-RELOAD: con la PWA abierta, pushear una versión nueva
