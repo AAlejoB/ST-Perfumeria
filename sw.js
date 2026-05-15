@@ -13,11 +13,13 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [EMERGENCY-BUMP] forzar update remoto · tablet del admin se colgó por cache
-// híbrido (panel derecho vacío al entrar a la tab Decants). Sin cambios reales
-// — solo este bump dispara el flujo [PWA-AUTO-RELOAD] cacheado en el cliente
-// (v1.1.32+) para que recargue solo y tome la versión actualizada.
-var CACHE_VERSION = 'v1.1.39';
+// [BUG-DEC-ADMIN] fix HTML estructural — había un </div> extra después de
+// tab-combos que cerraba implícitamente el <main>, dejando 9 tabs huérfanas
+// (votación, push, espera, doctor, decants, auditlog, analytics, backups,
+// puntos) como siblings del .app-shell. Eso hacía que esas tabs se rendereen
+// debajo del sidebar+main con un espacio fantasma enorme arriba. Bump dispara
+// [PWA-AUTO-RELOAD] con mitigación para que las tablets tomen el fix solas.
+var CACHE_VERSION = 'v1.1.40';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

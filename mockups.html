@@ -3,44 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockups · ST Perfumería · SIMILARES iter</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
+<title>Mockups · ST Perfumería · [BUG-DEC-ADMIN] Fix del panel admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:       #0a0a0c;
     --bg-elev:  #131316;
     --bg-elev2: #1a1a1d;
-    --bg-modal: #0f0f12;
     --borde:    #2a2a2e;
-    --borde-light: #3a3a3e;
     --txt:      #f0f0f0;
     --txt-sub:  #999;
     --txt-dim:  #666;
     --amarillo: #E8B800;
-    --amarillo-soft: rgba(232,184,0,.12);
-    --violet1:  #2a0a3a;
-    --violet2:  #4a148c;
-    --magenta:  #b71c5c;
-    --rosa:     #f48fb1;
-    --verde:    #66bb6a;
-    --rojo:     #ef5350;
-    --bronce:   #cd7f32;
-    --plata:    #c0c0c0;
-    --oro:      #ffd700;
+    --gris-claro: #c8c8c8;
+    --gris:     #888;
+    --ok:       #66bb6a;
+    --warn:     #ffb74d;
+    --err:      #ef5350;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--txt);
     font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.55;
   }
+  code {
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    background: rgba(255,255,255,.06); padding: 1px 5px;
+    border-radius: 3px; font-size: .85em; color: var(--amarillo);
+  }
 
-  /* ─── Toolbar / Nav ─────────────────────────────────────── */
+  /* TOOLBAR */
   .toolbar {
     position: sticky; top: 0; background: var(--bg-elev);
     border-bottom: 1px solid var(--borde); padding: 12px 18px; z-index: 100;
   }
   .toolbar-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--amarillo); margin: 0; }
-  .toolbar-sub { font-size: .65rem; color: var(--txt-sub); letter-spacing: .1em; text-transform: uppercase; }
+  .toolbar-sub { font-size: .65rem; color: var(--txt-sub); letter-spacing: .1em; text-transform: uppercase; margin: 4px 0 0; }
+
+  /* NAV ANCHORS */
   .nav-anchors {
     background: var(--bg-elev2); border-bottom: 1px solid var(--borde);
     padding: 8px 18px; display: flex; gap: 6px; flex-wrap: wrap;
@@ -50,1339 +50,676 @@
     background: transparent; color: var(--txt-sub);
     border: 1px solid var(--borde); padding: 4px 10px;
     border-radius: 14px; font-size: .68rem; text-decoration: none;
-    transition: all .15s;
   }
   .nav-anchor:hover { color: var(--amarillo); border-color: var(--amarillo); }
-  .nav-anchor.t-star { color: var(--oro); border-color: var(--oro); }
 
-  /* ─── Layout sections ───────────────────────────────────── */
+  /* SECCIONES */
   .section {
-    padding: 28px 18px; max-width: 1500px; margin: 0 auto;
+    padding: 28px 18px; max-width: 1400px; margin: 0 auto;
     border-bottom: 1px solid var(--borde);
   }
-  .section-head { margin-bottom: 18px; }
+  .section-head { margin-bottom: 14px; }
   .section-title {
     font-family: 'Playfair Display', serif;
     font-size: 1.4rem; font-weight: 700; margin: 0 0 4px;
   }
   .section-sub { color: var(--txt-sub); font-size: .82rem; margin: 0; }
-  .section-explainer {
-    background: var(--bg-elev); border: 1px solid var(--borde);
-    border-left: 3px solid var(--amarillo); padding: 12px 14px;
-    border-radius: 6px; font-size: .75rem; color: var(--txt-sub);
-    margin: 14px 0 22px;
+  .section-note {
+    background: var(--bg-elev); border-left: 2px solid var(--amarillo);
+    padding: 10px 14px; border-radius: 0 6px 6px 0;
+    font-size: .78rem; color: var(--gris-claro); margin: 10px 0;
   }
-  .section-explainer strong { color: var(--amarillo); font-weight: 700; }
-
-  /* ─── Variant card ──────────────────────────────────────── */
-  .variant {
-    background: var(--bg-elev); border: 1px solid var(--borde);
-    border-radius: 10px; overflow: hidden; max-width: 740px; margin: 0 auto;
-  }
-  .variant-tag {
+  .opt-badge {
     display: inline-block; font-size: .58rem; font-weight: 800;
     letter-spacing: .2em; text-transform: uppercase;
-    padding: 3px 10px; border-radius: 12px; margin: 14px 16px 0;
+    padding: 3px 10px; border-radius: 12px;
+    background: rgba(33,150,243,.18); color: #64b5f6;
+    margin-right: 8px; vertical-align: middle;
   }
-  .variant-tag.t1 { background: rgba(33,150,243,.18); color: #64b5f6; }
-  .variant-tag.t2 { background: rgba(76,175,80,.18); color: #66bb6a; }
-  .variant-tag.t3 { background: rgba(255,152,0,.18); color: #ffb74d; }
-  .variant-tag.t4 { background: rgba(244,143,177,.18); color: var(--rosa); }
-  .variant-tag.t5 { background: rgba(255,215,0,.2); color: var(--oro); }
-  .variant-tag.t-star { background: linear-gradient(135deg, rgba(255,215,0,.25), rgba(232,184,0,.18)); color: var(--oro); }
-  .variant-label {
-    font-size: .82rem; color: var(--txt); margin: 8px 16px 4px; font-weight: 700;
-  }
-  .variant-label small {
-    color: var(--txt-sub); font-weight: 400; font-size: .68rem;
-    display: block; margin-top: 2px;
-  }
-  .variant-canvas {
-    background: var(--bg-modal); margin: 14px 16px;
-    border-radius: 8px; padding: 14px;
-    border: 1px solid var(--borde-light);
-  }
-  .variant-pros-cons {
-    padding: 0 16px 16px; display: grid;
-    grid-template-columns: 1fr 1fr; gap: 10px;
-  }
-  .pros, .cons {
-    background: rgba(0,0,0,.25); border-radius: 6px; padding: 10px 12px;
-    font-size: .7rem;
-  }
-  .pros { border-left: 2px solid var(--verde); }
-  .cons { border-left: 2px solid var(--rojo); }
-  .pros-title, .cons-title {
-    font-size: .54rem; font-weight: 800; letter-spacing: .15em;
-    text-transform: uppercase; margin: 0 0 5px;
-  }
-  .pros-title { color: var(--verde); }
-  .cons-title { color: var(--rojo); }
-  .pros ul, .cons ul { margin: 0; padding-left: 14px; color: var(--txt-sub); }
-  .pros li, .cons li { margin-bottom: 2px; line-height: 1.35; }
+  .opt-badge.b1 { background: rgba(33,150,243,.18); color: #64b5f6; }
+  .opt-badge.b2 { background: rgba(76,175,80,.18); color: #66bb6a; }
+  .opt-badge.b3 { background: rgba(255,152,0,.18); color: #ffb74d; }
+  .opt-badge.bug { background: rgba(239,83,80,.18); color: #ef9690; }
 
-  .mobile-note {
-    margin: 0 16px 16px;
-    background: rgba(33,150,243,.07);
-    border: 1px dashed rgba(33,150,243,.3);
-    border-radius: 6px; padding: 8px 11px;
-    font-size: .66rem; color: var(--txt-sub);
-  }
-  .mobile-note strong { color: #64b5f6; font-weight: 700; }
-  .mobile-note .ico { font-size: .9rem; margin-right: 4px; }
-
-  /* ═══ MODAL "VER SIMILARES" FAKE ═══════════════════════ */
-  .modal-fake {
-    background: var(--bg-modal);
-    border-radius: 12px;
+  /* VIEWPORT SIMULADO */
+  .viewport {
+    width: 100%; max-width: 1100px;
+    margin: 14px 0 18px;
+    border: 2px dashed rgba(255,217,0,.35);
+    border-radius: 8px;
+    background: var(--bg);
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,.5);
-    border: 1px solid var(--borde);
-  }
-  .modal-fake-head {
-    padding: 14px 16px;
-    background: linear-gradient(180deg, #18181c 0%, #131316 100%);
-    border-bottom: 1px solid var(--borde);
     position: relative;
   }
-  .modal-fake-title {
-    font-family: 'Playfair Display', serif;
-    font-size: .92rem; font-weight: 700;
-    margin: 0; color: var(--txt);
+  .vp-label {
+    position: absolute; top: -10px; left: 16px;
+    background: var(--bg); color: var(--amarillo);
+    font-size: .55rem; letter-spacing: .15em; text-transform: uppercase;
+    font-weight: 800; padding: 0 8px; z-index: 20;
   }
-  .modal-fake-close {
-    position: absolute; top: 10px; right: 12px;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: rgba(255,255,255,.08); color: #fff;
-    border: 0; display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
+  .vp-header {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .65rem 1rem;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--borde);
+    font-size: .8rem; font-weight: 600;
+    position: relative; z-index: 2;
   }
-  .modal-fake-body {
-    padding: 14px 16px;
-    max-height: 520px; overflow-y: auto;
+  .vp-hamb {
+    display: inline-flex; width: 30px; height: 30px;
+    align-items: center; justify-content: center;
+    border: 1px solid var(--borde); border-radius: 4px;
+    color: var(--amarillo); cursor: pointer;
+    font-size: 1rem; line-height: 1;
   }
+  .vp-hamb:hover { background: rgba(232,184,0,.08); }
+  .vp-title-mock { color: var(--amarillo); font-family: 'Playfair Display', serif; font-weight: 700; flex: 1; }
+  .vp-role { font-size: .55rem; padding: 2px 8px; background: var(--amarillo); color: #000; border-radius: 3px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; }
 
-  /* Sección "💬 Nota del equipo" */
-  .nota-equipo {
-    background: var(--amarillo-soft);
-    border-left: 3px solid var(--amarillo);
-    padding: 9px 11px;
-    border-radius: 4px;
-    margin-bottom: 12px;
-  }
-  .nota-equipo-label {
-    font-size: .55rem; font-weight: 800;
-    color: var(--amarillo); letter-spacing: .1em;
-    text-transform: uppercase; margin: 0 0 4px;
-  }
-  .nota-equipo-text {
-    font-size: .72rem; color: #e8e8e8;
-    margin: 0; line-height: 1.45;
-  }
-
-  .modal-section-title {
-    font-size: .58rem; font-weight: 800;
-    letter-spacing: .1em; text-transform: uppercase;
-    color: var(--amarillo);
-    margin: 8px 0 8px;
-  }
-  .modal-section-title.t-gris { color: var(--txt-sub); }
-
-  /* ═══ ITEM SIMILAR — BASE ═════════════════════════════ */
-  .sim-item {
+  /* SHELL BASE — clases compartidas por las 4 demos */
+  .ds-shell { position: relative; min-height: 480px; }
+  .ds-sidebar {
     background: rgba(255,255,255,.02);
-    border: 1px solid var(--borde);
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 8px;
-    display: grid;
-    grid-template-columns: 56px 1fr auto;
-    gap: 11px;
-    align-items: center;
-    transition: border-color .15s, background .15s;
+    padding: .8rem .5rem;
+    display: flex; flex-direction: column; gap: .25rem;
+    overflow-y: auto;
   }
-  .sim-item:hover { border-color: var(--amarillo); background: rgba(232,184,0,.04); }
-  .sim-item.is-best { border-color: var(--oro); box-shadow: 0 0 0 1px rgba(255,215,0,.15); }
-  .sim-item-img {
-    width: 56px; height: 66px;
-    background: linear-gradient(135deg, #2a2a2e, #1a1a1d);
-    border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    color: rgba(232,184,0,.5);
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem; font-weight: 700;
-  }
-  .sim-item-img.img-amber { background: linear-gradient(135deg, #5a3a10, #2a1a05); color: #c8a04a; }
-  .sim-item-img.img-rose { background: linear-gradient(135deg, #501a30, #2a0a18); color: #c06080; }
-  .sim-item-img.img-blue { background: linear-gradient(135deg, #1a2840, #0a1428); color: #6a90c0; }
-  .sim-item-img.img-violet { background: linear-gradient(135deg, #3a1a50, #1a0a30); color: #a070d0; }
-  .sim-item-img.img-green { background: linear-gradient(135deg, #1a4020, #0a2010); color: #6ab070; }
-
-  .sim-item-info { min-width: 0; }
-  .sim-item-name {
-    font-size: .82rem; font-weight: 700; color: var(--txt);
-    margin: 0 0 2px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .sim-item-brand {
-    font-size: .62rem; color: var(--txt-sub);
-    margin: 0;
-    text-transform: uppercase; letter-spacing: .04em;
-  }
-  .sim-item-meta {
-    font-size: .62rem; color: var(--amarillo);
-    font-weight: 600; margin: 4px 0 0;
-  }
-  .sim-item-rec {
-    font-size: .58rem; color: var(--txt-sub);
-    font-style: italic; margin: 2px 0 0;
-  }
-
-  /* ═══ VARIANTE A — RING + RAZÓN HUMANA ════════════════ */
-  .sim-item.v-a {
-    grid-template-columns: 56px 1fr auto;
-  }
-  .ring-wrap {
-    position: relative; width: 50px; height: 50px;
-    flex-shrink: 0;
-  }
-  .ring-svg { transform: rotate(-90deg); }
-  .ring-bg-arc { fill: none; stroke: rgba(232,184,0,.15); stroke-width: 4; }
-  .ring-fg-arc { fill: none; stroke: var(--amarillo); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
-  .ring-fg-arc.score-high { stroke: var(--oro); }
-  .ring-fg-arc.score-mid { stroke: var(--amarillo); }
-  .ring-fg-arc.score-low { stroke: var(--bronce); }
-  .ring-text {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: .68rem; font-weight: 800; color: var(--amarillo);
-    letter-spacing: -.02em;
-  }
-  .ring-text.score-high { color: var(--oro); }
-  .ring-text.score-low { color: var(--bronce); }
-
-  .razon-humana {
-    grid-column: 1 / -1;
-    border-top: 1px dashed rgba(232,184,0,.18);
-    padding-top: 7px; margin-top: 4px;
-    display: flex; align-items: center; gap: 7px;
-    font-size: .65rem;
-  }
-  .razon-label {
-    color: var(--amarillo);
-    font-weight: 700; letter-spacing: .04em;
-    text-transform: uppercase; font-size: .52rem;
-  }
-  .razon-text {
-    color: #d8d8d8;
-    flex: 1;
-  }
-  .razon-chip {
-    display: inline-block;
-    background: rgba(232,184,0,.12);
-    color: var(--amarillo);
-    padding: 1px 7px;
-    border-radius: 10px;
-    font-size: .58rem;
-    font-weight: 600;
-    margin: 0 2px;
-  }
-
-  /* ═══ VARIANTE B — ALGORITMO V2 (side-by-side) ════════ */
-  .vb-side-by-side {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .vb-col {
-    background: rgba(255,255,255,.02);
-    border: 1px solid var(--borde);
-    border-radius: 8px;
-    padding: 10px;
-  }
-  .vb-col.viejo { border-left: 3px solid var(--rojo); }
-  .vb-col.nuevo { border-left: 3px solid var(--verde); }
-  .vb-col-label {
-    font-size: .55rem; font-weight: 800;
-    letter-spacing: .1em; text-transform: uppercase;
-    margin: 0 0 8px;
-  }
-  .vb-col.viejo .vb-col-label { color: var(--rojo); }
-  .vb-col.nuevo .vb-col-label { color: var(--verde); }
-  .vb-col .sim-item {
-    grid-template-columns: 40px 1fr auto;
-    gap: 8px;
-    padding: 7px;
-    margin-bottom: 6px;
-  }
-  .vb-col .sim-item-img { width: 40px; height: 48px; font-size: .9rem; }
-  .vb-col .sim-item-name { font-size: .68rem; }
-  .vb-col .sim-item-brand { font-size: .54rem; }
-  .vb-col .sim-item-meta { font-size: .54rem; }
-  .vb-col .ring-wrap { width: 38px; height: 38px; }
-  .vb-col .ring-text { font-size: .55rem; }
-  .vb-explanation {
-    grid-column: 1 / -1;
-    background: rgba(76,175,80,.06);
-    border: 1px solid rgba(76,175,80,.2);
-    border-radius: 6px;
-    padding: 9px 11px;
-    margin-top: 8px;
-    font-size: .65rem;
-    color: #b8d4b8;
-    line-height: 1.5;
-  }
-  .vb-explanation strong { color: var(--verde); }
-
-  /* ═══ VARIANTE C — BOTÓN COMPARAR ═════════════════════ */
-  .btn-comparar {
-    background: rgba(232,184,0,.12);
-    color: var(--amarillo);
-    border: 1px solid rgba(232,184,0,.4);
-    padding: 6px 11px;
-    border-radius: 14px;
-    font-size: .58rem;
-    font-weight: 700;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    transition: all .15s;
-    flex-shrink: 0;
-    font-family: inherit;
-    white-space: nowrap;
-  }
-  .btn-comparar:hover {
-    background: var(--amarillo);
-    color: #1a1a1d;
-  }
-  .btn-comparar-ico { font-size: .7rem; }
-
-  .compare-bar-fake {
-    background: rgba(255,255,255,.04);
-    border: 1px solid var(--borde-light);
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-top: 14px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .compare-bar-fake-items {
-    display: flex; gap: 5px; flex: 1; flex-wrap: wrap;
-  }
-  .compare-bar-fake-chip {
-    background: rgba(232,184,0,.1);
-    border: 1px solid rgba(232,184,0,.3);
-    padding: 3px 9px;
-    border-radius: 12px;
-    font-size: .58rem;
-    color: var(--amarillo);
-  }
-  .compare-bar-fake-go {
-    background: var(--amarillo);
-    color: #1a1a1d;
-    border: 0;
-    padding: 6px 13px;
-    border-radius: 4px;
-    font-size: .6rem;
-    font-weight: 800;
-    letter-spacing: .08em;
-  }
-  .compare-bar-explain {
-    background: rgba(76,175,80,.06);
-    border-left: 2px solid var(--verde);
-    padding: 8px 11px;
-    border-radius: 4px;
-    font-size: .62rem;
-    color: #b8d4b8;
-    margin-top: 10px;
-    line-height: 1.45;
-  }
-  .compare-bar-explain strong { color: var(--verde); }
-
-  /* ═══ VARIANTE D — BADGES PREMIUM ═════════════════════ */
-  .sim-badges {
-    grid-column: 1 / -1;
-    padding-top: 8px;
-    margin-top: 4px;
-    border-top: 1px dashed rgba(255,255,255,.08);
-    display: flex; gap: 5px; flex-wrap: wrap;
-  }
-  .sim-badge {
-    display: inline-flex; align-items: center; gap: 3px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: .55rem;
-    font-weight: 700;
-    letter-spacing: .04em;
-  }
-  .sim-badge.b-best {
-    background: linear-gradient(135deg, rgba(255,215,0,.25), rgba(232,184,0,.15));
-    color: var(--oro);
-    border: 1px solid rgba(255,215,0,.4);
-  }
-  .sim-badge.b-casa {
-    background: linear-gradient(135deg, rgba(160,112,208,.25), rgba(106,27,154,.15));
-    color: #b88ce0;
-    border: 1px solid rgba(160,112,208,.4);
-  }
-  .sim-badge.b-perfil {
-    background: linear-gradient(135deg, rgba(33,150,243,.22), rgba(33,150,243,.1));
-    color: #6ab2f0;
-    border: 1px solid rgba(33,150,243,.4);
-  }
-  .sim-badge.b-elegido {
-    background: linear-gradient(135deg, rgba(244,143,177,.25), rgba(183,28,92,.15));
-    color: #f48fb1;
-    border: 1px solid rgba(244,143,177,.4);
-  }
-  .sim-badge-ico { font-size: .65rem; line-height: 1; }
-
-  /* ═══ COMBOS (C+A, C+D+A) — item con MÚLTIPLES filas ═══ */
-  .sim-item.combo {
-    grid-template-columns: 56px 1fr auto auto;
-    gap: 10px;
-  }
-  .sim-item.combo .btn-comparar { align-self: center; }
-  .sim-item.combo .ring-wrap { align-self: center; }
-  .sim-item.combo .razon-humana,
-  .sim-item.combo .sim-badges {
-    grid-column: 1 / -1;
-  }
-
-  /* ─── Historical toggle ─────────────────────────────── */
-  .historical-wrapper {
-    background: var(--bg-elev); border: 1px dashed var(--borde-light);
-    border-radius: 8px; padding: 0; margin: 30px auto 0;
-    max-width: 740px;
-  }
-  .historical-summary {
-    cursor: pointer; padding: 14px 18px;
-    display: flex; justify-content: space-between; align-items: center;
+  .ds-sb-group { margin-bottom: .15rem; }
+  .ds-sb-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .4rem .65rem;
+    font-size: .55rem; color: rgba(255,255,255,.4);
+    letter-spacing: .15em; text-transform: uppercase; font-weight: 700;
     user-select: none;
   }
-  .historical-summary:hover { background: rgba(255,255,255,.02); }
-  .historical-summary h3 { font-size: .85rem; font-weight: 700; color: var(--txt-sub); margin: 0; }
-  .historical-summary .hint { font-size: .62rem; color: var(--txt-dim); }
-  details[open] .hint::after { content: ' · plegar ↑'; }
-  details:not([open]) .hint::after { content: ' · desplegar ↓'; }
-  .historical-content {
-    padding: 14px 18px; border-top: 1px solid var(--borde);
-    color: var(--txt-sub); font-size: .75rem;
+  .ds-sb-chev { font-size: .6rem; }
+  .ds-tab-list { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 4px; }
+  .ds-tab {
+    font-family: inherit; font-size: .74rem; font-weight: 600;
+    color: var(--gris-claro); background: transparent;
+    border: 1px solid transparent;
+    padding: .5rem .65rem; border-radius: 6px;
+    cursor: pointer; text-align: left;
+    width: 100%; display: block;
   }
-  .historical-content ul { margin: 8px 0 0; padding-left: 18px; }
-  .historical-content li { margin-bottom: 4px; }
-  .historical-content a { color: var(--amarillo); text-decoration: none; }
-  .historical-content a:hover { text-decoration: underline; }
+  .ds-tab:hover { background: rgba(255,255,255,.04); color: #fff; }
+  .ds-tab.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); font-weight: 700; }
 
-  /* ─── My vote / Verdict callout ────────────────────── */
-  .myvote {
-    background: linear-gradient(135deg, rgba(232,184,0,.12), rgba(232,184,0,.04));
-    border: 1px solid var(--amarillo); border-radius: 8px;
-    padding: 14px 16px; margin: 24px auto 0; max-width: 740px;
-    font-size: .78rem;
+  .ds-main {
+    padding: 1.2rem 1.4rem;
   }
-  .myvote-title {
+  .ds-main-title {
+    font-size: .92rem; font-weight: 700; color: var(--amarillo);
+    letter-spacing: .04em; margin: 0 0 4px;
+    font-family: 'Playfair Display', serif;
+  }
+  .ds-main-sub {
+    font-size: .72rem; color: var(--txt-sub); margin: 0 0 14px;
+  }
+  .ds-card {
+    background: var(--bg-elev); border: 1px solid var(--borde);
+    border-radius: 6px; padding: .9rem 1rem; margin-bottom: 10px;
+  }
+  .ds-card-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: .75rem; }
+  .ds-card-label { color: var(--gris-claro); }
+  .ds-card-value { color: var(--amarillo); font-weight: 700; }
+  .ds-table-wrap { margin-top: 12px; }
+  .ds-table { width: 100%; border-collapse: collapse; font-size: .72rem; }
+  .ds-table th {
+    text-align: left; padding: .5rem .7rem; font-size: .58rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--amarillo);
+    border-bottom: 1px solid var(--amarillo);
+  }
+  .ds-table td {
+    padding: .5rem .7rem; border-bottom: 1px solid var(--borde);
+    color: var(--gris-claro);
+  }
+  .ds-badge-ok { background: var(--ok); color: #fff; padding: 2px 7px; border-radius: 3px; font-size: .55rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+  .ds-badge-low { background: #f1c40f; color: #000; padding: 2px 7px; border-radius: 3px; font-size: .55rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /* ESTADO ACTUAL (buggy) — emula el wrap                            */
+  /* ═══════════════════════════════════════════════════════════════ */
+  .vp-current .ds-shell { position: relative; }
+  .vp-current .ds-sidebar {
+    float: left; width: 240px;
+    border-right: 1px solid var(--borde);
+    min-height: 440px;
+  }
+  .vp-current .ds-main {
+    clear: left;                       /* ← fuerza al main a caer DEBAJO */
+    margin-top: 1px;
+    padding-top: 1.2rem;
+    border-top: 1px dashed rgba(239,83,80,.4);
+    background: linear-gradient(180deg, rgba(239,83,80,.05) 0%, transparent 30%);
+  }
+  .vp-current .bug-arrow {
+    position: absolute; left: 264px; top: 40px;
+    color: var(--err); font-size: .7rem; font-weight: 700;
+    background: rgba(239,83,80,.1); border: 1px dashed var(--err);
+    padding: 4px 10px; border-radius: 4px; max-width: 220px;
+    line-height: 1.4;
+  }
+  .vp-current .bug-arrow::before {
+    content: '⬇'; display: block; font-size: 1.4rem; text-align: center; margin-bottom: 2px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /* OPCIÓN A · OVERLAY FIXED                                         */
+  /* Sidebar position absolute, oculto por default, "tapa" el main    */
+  /* ═══════════════════════════════════════════════════════════════ */
+  .vp-A .ds-shell { position: relative; }
+  .vp-A .ds-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 9;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .vp-A.open .ds-backdrop { opacity: 1; pointer-events: auto; }
+  .vp-A .ds-sidebar {
+    position: absolute; top: 0; left: 0;
+    width: 240px; height: 100%;
+    z-index: 10;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: 8px 0 24px rgba(0,0,0,.5);
+    background: #0a0a0c;
+    border-right: 1px solid var(--borde);
+  }
+  .vp-A.open .ds-sidebar { transform: translateX(0); }
+  .vp-A .ds-main { padding: 1.2rem 1.4rem; }
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /* OPCIÓN B · DRAWER SIEMPRE                                        */
+  /* Mismo comportamiento que A, pero conceptualmente igual en TODO   */
+  /* viewport (sin breakpoint que lo "pegue" abierto).                */
+  /* ═══════════════════════════════════════════════════════════════ */
+  .vp-B .ds-shell { position: relative; }
+  .vp-B .ds-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.55); z-index: 9;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .vp-B.open .ds-backdrop { opacity: 1; pointer-events: auto; }
+  .vp-B .ds-sidebar {
+    position: absolute; top: 0; left: 0;
+    width: 240px; height: 100%; z-index: 10;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: 8px 0 24px rgba(0,0,0,.5);
+    background: #0a0a0c;
+    border-right: 1px solid var(--borde);
+  }
+  .vp-B.open .ds-sidebar { transform: translateX(0); }
+  .vp-B .ds-main { padding: 1.2rem 1.4rem; }
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /* OPCIÓN C · GRID FIX CONSERVADOR                                  */
+  /* min-width: 0 al main + overflow-x: auto en tabla. Layout actual. */
+  /* ═══════════════════════════════════════════════════════════════ */
+  .vp-C .ds-shell {
+    display: grid; grid-template-columns: 240px 1fr; gap: 0;
+    min-height: 480px;
+  }
+  .vp-C .ds-sidebar {
+    border-right: 1px solid var(--borde);
+  }
+  .vp-C .ds-main {
+    min-width: 0;          /* ← EL FIX clave (sin esto el grid wrappea) */
+    overflow-x: hidden;
+  }
+  .vp-C .ds-table-wrap {
+    overflow-x: auto;      /* tabla scrollea horizontal si su contenido es ancho */
+  }
+  .vp-C .fix-marker {
+    background: rgba(102,187,106,.1); border: 1px dashed var(--ok);
+    padding: 6px 10px; border-radius: 4px; font-size: .65rem;
+    color: #a5d6a7; margin-bottom: 12px;
+    display: inline-block;
+  }
+
+  /* TOGGLE BUTTON */
+  .demo-controls {
+    display: flex; gap: 8px; align-items: center;
+    margin: 12px 0 4px;
+  }
+  .demo-toggle {
+    background: var(--amarillo); color: #000;
+    border: 0; padding: .5rem .95rem; border-radius: 4px;
+    font-family: inherit; font-size: .68rem; font-weight: 700;
+    letter-spacing: .08em; cursor: pointer; text-transform: uppercase;
+  }
+  .demo-toggle:hover { background: #ffd633; }
+  .demo-hint {
+    font-size: .65rem; color: var(--txt-dim); font-style: italic;
+  }
+
+  /* PROS/CONS */
+  .pros-cons {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin: 14px 0 0;
+  }
+  @media (max-width: 700px) { .pros-cons { grid-template-columns: 1fr; } }
+  .pros, .cons {
+    background: var(--bg-elev); border: 1px solid var(--borde);
+    border-radius: 6px; padding: 12px 16px; font-size: .78rem;
+  }
+  .pros { border-left: 3px solid var(--ok); }
+  .cons { border-left: 3px solid var(--err); }
+  .pros-title, .cons-title {
     font-size: .58rem; font-weight: 800; letter-spacing: .15em;
-    text-transform: uppercase; color: var(--amarillo); margin: 0 0 6px;
+    text-transform: uppercase; margin: 0 0 8px;
   }
-  .myvote-title.t-star { color: var(--oro); }
+  .pros-title { color: var(--ok); }
+  .cons-title { color: var(--err); }
+  .pros ul, .cons ul { margin: 0; padding-left: 16px; color: var(--gris-claro); }
+  .pros li, .cons li { margin-bottom: 4px; }
 
-  /* ─── Mobile fallback ─────────────────────────────── */
-  @media (max-width: 700px) {
-    .variant-pros-cons { grid-template-columns: 1fr; }
-    .vb-side-by-side { grid-template-columns: 1fr; }
-    .section { padding: 22px 14px; }
-    .section-title { font-size: 1.2rem; }
-    .sim-item.combo {
-      grid-template-columns: 50px 1fr;
-    }
-    .sim-item.combo .ring-wrap,
-    .sim-item.combo .btn-comparar { grid-column: 2; justify-self: start; margin-top: 4px; }
+  /* TABLA RESUMEN */
+  .compare-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--bg-elev); border-radius: 6px;
+    overflow: hidden; font-size: .76rem;
+    margin-top: 14px;
   }
+  .compare-table th, .compare-table td {
+    padding: .65rem .9rem; text-align: left;
+    border-bottom: 1px solid var(--borde);
+  }
+  .compare-table th {
+    background: var(--bg-elev2);
+    font-size: .6rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--amarillo); font-weight: 800;
+  }
+  .compare-table td:first-child { font-weight: 600; color: var(--gris-claro); }
+  .compare-table tr:last-child td { border-bottom: 0; }
+  .recommend {
+    background: rgba(232,184,0,.07); border: 1px solid rgba(232,184,0,.35);
+    border-left: 3px solid var(--amarillo);
+    padding: 14px 18px; border-radius: 4px; margin-top: 18px;
+  }
+  .recommend-title {
+    font-size: .62rem; letter-spacing: .15em; text-transform: uppercase;
+    font-weight: 800; color: var(--amarillo); margin: 0 0 6px;
+  }
+  .recommend p { margin: 0; font-size: .82rem; color: var(--gris-claro); }
+  .recommend strong { color: var(--amarillo); }
 
-  .footer {
-    padding: 30px 18px 60px; text-align: center;
-    color: var(--txt-dim); font-size: .7rem;
-  }
 </style>
 </head>
 <body>
 
-<div class="toolbar">
-  <p class="toolbar-title">🎨 Mockups · SIMILARES iter</p>
-  <p class="toolbar-sub">6 opciones para rediseñar "Ver similares" · A / B / C / D / C+A / C+D+A</p>
-</div>
+<header class="toolbar">
+  <p class="toolbar-title">Mockups · ST Perfumería · [BUG-DEC-ADMIN]</p>
+  <p class="toolbar-sub">Fix del panel admin que se renderea bajo el sidebar — 3 opciones</p>
+</header>
 
 <nav class="nav-anchors">
-  <a class="nav-anchor" href="#mockup-a">🔬 A · Visual + razón</a>
-  <a class="nav-anchor" href="#mockup-b">🧠 B · Algoritmo V2</a>
-  <a class="nav-anchor" href="#mockup-c">⚖ C · Comparar</a>
-  <a class="nav-anchor" href="#mockup-d">🏆 D · Badges</a>
-  <a class="nav-anchor" href="#mockup-ca">✨ C+A</a>
-  <a class="nav-anchor t-star" href="#mockup-cda">⭐ C+D+A · Full premium</a>
-  <a class="nav-anchor" href="#historico">🗂️ Histórico</a>
+  <a class="nav-anchor" href="#contexto">🧭 Contexto</a>
+  <a class="nav-anchor" href="#bug">🐛 Estado actual</a>
+  <a class="nav-anchor" href="#optA">A · Overlay fixed</a>
+  <a class="nav-anchor" href="#optB">B · Drawer siempre</a>
+  <a class="nav-anchor" href="#optC">C · Grid fix</a>
+  <a class="nav-anchor" href="#tabla">📊 Comparación</a>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- A · SIMILARES-VISUAL                                    -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="section" id="mockup-a">
+<!-- ─────────── CONTEXTO ─────────── -->
+<section class="section" id="contexto">
   <div class="section-head">
-    <h2 class="section-title">🔬 A · `[SIMILARES-VISUAL]`</h2>
-    <p class="section-sub">Ring circular con % de match + razón humana ("Comparten vainilla, oud, ámbar")</p>
+    <h2 class="section-title">🧭 Contexto del bug</h2>
+    <p class="section-sub">Qué pasa hoy y por qué.</p>
   </div>
-
-  <div class="section-explainer">
-    <strong>¿Qué cambia vs hoy?</strong> El % de match deja de ser texto plano ("71% match") y se vuelve <strong>ring dorado animado</strong>. Y en lugar del críptico "5 notas en común" mostramos las notas REALES que comparten (con chips). El cliente entiende rápido por qué es similar sin pensar.
+  <div class="section-note">
+    El admin con <code>[ZAPATO]</code> usa <code>.app-shell { display: grid; grid-template-columns: 240px 1fr }</code> (admin.html:107-118). En ciertos viewports el <code>&lt;main class="admin-main"&gt;</code> aparece <strong>debajo</strong> del sidebar — no al lado — dejando un espacio negro grande arriba del panel.
   </div>
-
-  <div class="variant">
-    <span class="variant-tag t1">A · SOLO VISUAL</span>
-    <p class="variant-label">Ring + razón humana
-      <small>Sin tocar el algoritmo · sin tocar el flow · solo UI más rica</small>
-    </p>
-    <div class="variant-canvas">
-      <div class="modal-fake">
-        <div class="modal-fake-head">
-          <p class="modal-fake-title">⬥ Similares a Khamrah</p>
-          <button class="modal-fake-close">×</button>
-        </div>
-        <div class="modal-fake-body">
-          <div class="nota-equipo">
-            <p class="nota-equipo-label">💬 Nota del equipo ST</p>
-            <p class="nota-equipo-text">Un Khamrah es ideal para quien busca un perfume dulce con cuerpo. Si te gusta, mirá estos:</p>
-          </div>
-
-          <p class="modal-section-title">⭐ Recomendados por ST</p>
-
-          <!-- ITEM 1 — Asad (92% match) -->
-          <div class="sim-item v-a is-best">
-            <div class="sim-item-img img-amber">A</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Asad</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-rec">Recomendado por el equipo</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-high" cx="25" cy="25" r="20"
-                  stroke-dasharray="125.6" stroke-dashoffset="10"/>
-              </svg>
-              <span class="ring-text score-high">92%</span>
-            </div>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">vainilla</span>
-                <span class="razon-chip">ámbar</span>
-                <span class="razon-chip">canela</span>
-                <span class="razon-chip">almizcle</span>
-              </span>
-            </div>
-          </div>
-
-          <p class="modal-section-title t-gris">🔬 Similitud por notas</p>
-
-          <!-- ITEM 2 — 9PM (78%) -->
-          <div class="sim-item v-a">
-            <div class="sim-item-img img-rose">9</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">9PM</p>
-              <p class="sim-item-brand">Afnan</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-mid" cx="25" cy="25" r="20"
-                  stroke-dasharray="125.6" stroke-dashoffset="28"/>
-              </svg>
-              <span class="ring-text">78%</span>
-            </div>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">vainilla</span>
-                <span class="razon-chip">almizcle</span>
-                <span class="razon-chip">ámbar</span>
-              </span>
-            </div>
-          </div>
-
-          <!-- ITEM 3 — Bade'e Al Oud (65%) -->
-          <div class="sim-item v-a">
-            <div class="sim-item-img img-violet">B</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Bade'e Al Oud</p>
-              <p class="sim-item-brand">Lattafa</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-low" cx="25" cy="25" r="20"
-                  stroke-dasharray="125.6" stroke-dashoffset="44"/>
-              </svg>
-              <span class="ring-text score-low">65%</span>
-            </div>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">oud</span>
-                <span class="razon-chip">ámbar</span>
-                <span class="razon-chip">vainilla</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-note">
-      <span class="ico">📱</span> <strong>Mobile</strong>: el ring se mantiene 50px (no se achica) — sigue siendo legible. La razón humana sigue debajo. Los chips wrappean a 2 líneas si hace falta.
-    </div>
-
-    <div class="variant-pros-cons">
-      <div class="pros">
-        <p class="pros-title">PROS</p>
-        <ul>
-          <li>Visual premium · "app moderna"</li>
-          <li>Razón clara = cliente entiende por qué</li>
-          <li>Cero cambio backend</li>
-          <li>Educativo + transparente</li>
-        </ul>
-      </div>
-      <div class="cons">
-        <p class="cons-title">CONS</p>
-        <ul>
-          <li>Ring grande ocupa espacio</li>
-          <li>Solo notas (no perfil/marca)</li>
-          <li>Mismo algoritmo "tonto"</li>
-        </ul>
-      </div>
-    </div>
+  <div class="section-note">
+    <strong>Hipótesis técnica:</strong> grid item sin <code>min-width: 0</code> + contenido wide (tablas del Decants, mini-dashboard de Precios & Stock) → el track <code>1fr</code> no puede shrinkear bajo su contenido → el grid se rompe y el main wrappea a la fila siguiente.
+  </div>
+  <div class="section-note">
+    <strong>Dispositivo crítico:</strong> Samsung Galaxy Tab A9 que usan las empleadas en el local (10-21 ARG). Viewport CSS 1340×800 horizontal o 800×1340 vertical (DPR ~1.5).
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- B · ALGORITMO V2 (side-by-side)                         -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="section" id="mockup-b">
+<!-- ─────────── ESTADO ACTUAL BUGGY ─────────── -->
+<section class="section" id="bug">
   <div class="section-head">
-    <h2 class="section-title">🧠 B · `[SIMILARES-V2]`</h2>
-    <p class="section-sub">Algoritmo enriquecido: notas + marca_real + perfil + categoría ponderados</p>
+    <span class="opt-badge bug">BUG ACTUAL</span>
+    <h2 class="section-title" style="display:inline;">🐛 Estado actual (buggy)</h2>
+    <p class="section-sub">Sidebar a la izquierda con su altura completa, panel cae debajo con espacio fantasma arriba.</p>
   </div>
-
-  <div class="section-explainer">
-    <strong>¿Qué cambia vs hoy?</strong> Hoy el algoritmo SOLO mira notas — puede tirar un match raro como "Khamrah (dulce mujer) ↔ Sauvage (fresco hombre)" porque comparten "almizcle". Con scoring ponderado (marca igual +30 · perfil igual +20 · cat igual +10 · nota común +5 c/u), los matches se sienten <strong>más humanos</strong> y útiles. Reutilizamos el algoritmo del `findCombinaBienCon()` del armador.
+  <div class="viewport vp-current">
+    <span class="vp-label">Simulación · viewport ~1100px (Tab A9 horizontal)</span>
+    <div class="vp-header">
+      <span class="vp-hamb">☰</span>
+      <span class="vp-title-mock">ST Admin Panel · 💧 Decants</span>
+      <span class="vp-role">JEFE</span>
+    </div>
+    <div class="ds-shell">
+      <aside class="ds-sidebar">
+        <div class="ds-sb-group">
+          <div class="ds-sb-header"><span>⭐ Top</span></div>
+          <div class="ds-tab-list">
+            <button class="ds-tab">💰 Precios & Stock</button>
+            <button class="ds-tab">👥 Clientes</button>
+            <button class="ds-tab">✏️ Editar</button>
+            <button class="ds-tab">📍 Espera</button>
+            <button class="ds-tab active">💧 Decants</button>
+          </div>
+        </div>
+        <div class="ds-sb-group">
+          <div class="ds-sb-header"><span>📣 Marketing & Home</span><span class="ds-sb-chev">▾</span></div>
+          <div class="ds-tab-list">
+            <button class="ds-tab">⭐ Destacados</button>
+            <button class="ds-tab">🏷️ Beneficios</button>
+            <button class="ds-tab">🏠 Home</button>
+          </div>
+        </div>
+      </aside>
+      <div class="bug-arrow">Espacio fantasma<br>(el bug)</div>
+      <main class="ds-main">
+        <h3 class="ds-main-title">💧 Configuración Pack de Decants</h3>
+        <p class="ds-main-sub">Precios y configuración del armador</p>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio decant 5ml</span><span class="ds-card-value">$8.500</span></div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio pack 6 decants</span><span class="ds-card-value">$45.000</span></div>
+        </div>
+      </main>
+    </div>
   </div>
-
-  <div class="variant">
-    <span class="variant-tag t2">B · ALGORITMO V2</span>
-    <p class="variant-label">Lista vieja vs lista nueva (mismo perfume anchor: Khamrah)
-      <small>Vas a ver que cambian los recomendados y los % se vuelven más "honestos"</small>
-    </p>
-    <div class="variant-canvas">
-
-      <div class="vb-side-by-side">
-
-        <!-- COLUMNA VIEJA -->
-        <div class="vb-col viejo">
-          <p class="vb-col-label">❌ Algoritmo viejo · solo notas</p>
-
-          <div class="sim-item v-a">
-            <div class="sim-item-img img-amber">A</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Asad</p>
-              <p class="sim-item-brand">Lattafa</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="38" height="38" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-high" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="10"/>
-              </svg>
-              <span class="ring-text score-high">92%</span>
-            </div>
-          </div>
-
-          <div class="sim-item v-a">
-            <div class="sim-item-img img-blue">S</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Sauvage</p>
-              <p class="sim-item-brand">Dior · Hombre fresco</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="38" height="38" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-low" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="40"/>
-              </svg>
-              <span class="ring-text score-low">68%</span>
-            </div>
-          </div>
-
-          <div class="sim-item v-a">
-            <div class="sim-item-img img-rose">9</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">9PM</p>
-              <p class="sim-item-brand">Afnan</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="38" height="38" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-mid" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="28"/>
-              </svg>
-              <span class="ring-text">78%</span>
-            </div>
-          </div>
-
-          <p style="font-size:.6rem;color:var(--rojo);margin:8px 0 0;font-style:italic;">
-            👆 Sauvage no debería estar — es fresco hombre, Khamrah es dulce unisex.
-          </p>
-        </div>
-
-        <!-- COLUMNA NUEVA -->
-        <div class="vb-col nuevo">
-          <p class="vb-col-label">✅ Algoritmo V2 · ponderado</p>
-
-          <div class="sim-item v-a is-best">
-            <div class="sim-item-img img-amber">A</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Asad</p>
-              <p class="sim-item-brand">Lattafa · Dulce</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="38" height="38" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-high" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="6"/>
-              </svg>
-              <span class="ring-text score-high">95%</span>
-            </div>
-          </div>
-
-          <div class="sim-item v-a">
-            <div class="sim-item-img img-rose">9</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">9PM</p>
-              <p class="sim-item-brand">Afnan · Dulce</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="38" height="38" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-mid" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="22"/>
-              </svg>
-              <span class="ring-text">82%</span>
-            </div>
-          </div>
-
-          <div class="sim-item v-a">
-            <div class="sim-item-img img-green">Y</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Yara</p>
-              <p class="sim-item-brand">Lattafa · Dulce</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="38" height="38" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-mid" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="34"/>
-              </svg>
-              <span class="ring-text">73%</span>
-            </div>
-          </div>
-
-          <p style="font-size:.6rem;color:var(--verde);margin:8px 0 0;font-style:italic;">
-            👆 Sauvage queda afuera. Yara entra (misma casa + perfil dulce).
-          </p>
-        </div>
-
-        <div class="vb-explanation">
-          <strong>Cómo lee el algoritmo V2:</strong> da <strong>+30 puntos</strong> si la marca real es igual (Lattafa↔Lattafa), <strong>+20</strong> si el perfil es el mismo (Dulce↔Dulce), <strong>+10</strong> si la categoría coincide (Unisex↔Unisex), y <strong>+5 puntos por cada nota olfativa en común</strong> (hasta 25 máx). El total se normaliza a % de match. Los matches raros tipo "fresco hombre como similar a dulce mujer" desaparecen.
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-note">
-      <span class="ico">📱</span> <strong>Mobile</strong>: las 2 columnas se apilan vertical · primero "viejo", abajo "nuevo". El cliente puede comparar scrolleando.
-    </div>
-
-    <div class="variant-pros-cons">
-      <div class="pros">
-        <p class="pros-title">PROS</p>
-        <ul>
-          <li>Matches más confiables y "humanos"</li>
-          <li>Algoritmo reusable del armador decants</li>
-          <li>Menos basura tipo "fresco↔dulce"</li>
-        </ul>
-      </div>
-      <div class="cons">
-        <p class="cons-title">CONS</p>
-        <ul>
-          <li>Cliente NO ve la mejora — invisible</li>
-          <li>Mejora marginal vs algoritmo actual</li>
-          <li>Requiere testing con varios anchors</li>
-        </ul>
-      </div>
-    </div>
+  <div class="section-note" style="border-left-color: var(--err); color: #ef9690;">
+    👆 <strong>Lo que se ve:</strong> el sidebar ocupa la columna izquierda con su altura completa, y abajo del sidebar arranca el panel con un margen extra arriba — exactamente lo reportado en las screenshots.
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- C · COMPARAR                                            -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="section" id="mockup-c">
+<!-- ─────────── OPCIÓN A · OVERLAY FIXED ─────────── -->
+<section class="section" id="optA">
   <div class="section-head">
-    <h2 class="section-title">⚖ C · `[SIMILARES-COMPARE]`</h2>
-    <p class="section-sub">Botón "⚖ Comparar" en cada similar · cierra el ciclo descubrir→decidir</p>
+    <span class="opt-badge b1">OPCIÓN A</span>
+    <h2 class="section-title" style="display:inline;">Sidebar overlay fixed (drawer que tapa)</h2>
+    <p class="section-sub">Sidebar <code>position: fixed</code>, oculto por default. Se abre con la hamburguesa "tapando" el panel. El main siempre ocupa el 100% del ancho del viewport. Es la idea original que tiraste: "que el sidebar pase por arriba del panel".</p>
   </div>
-
-  <div class="section-explainer">
-    <strong>¿Qué cambia vs hoy?</strong> Hoy el cliente ve los similares y tapea uno → se va al perfume similar y se olvida del original. Con el botón nuevo, puede sumar <strong>cualquier similar Y el original</strong> a la compare-bar flotante de abajo con un tap. Después abre el modal Compare (que ya hicimos en la sesión anterior con "Diferencias destacadas" + "💕 Elegir este") y decide con todos los datos al frente.
+  <div class="demo-controls">
+    <button class="demo-toggle" data-target="A">☰ Abrir/cerrar sidebar</button>
+    <span class="demo-hint">Tocá el botón para ver cómo entra/sale el sidebar sobre el panel.</span>
   </div>
-
-  <div class="variant">
-    <span class="variant-tag t3">C · SUMAR A COMPARE</span>
-    <p class="variant-label">Botón "⚖ Comparar" en cada similar
-      <small>Sin tocar algoritmo · 30 min de laburo · ROI altísimo</small>
-    </p>
-    <div class="variant-canvas">
-      <div class="modal-fake">
-        <div class="modal-fake-head">
-          <p class="modal-fake-title">⬥ Similares a Khamrah</p>
-          <button class="modal-fake-close">×</button>
-        </div>
-        <div class="modal-fake-body">
-          <p class="modal-section-title">⭐ Recomendados por ST</p>
-
-          <div class="sim-item">
-            <div class="sim-item-img img-amber">A</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Asad</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-rec">Recomendado por el equipo</p>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-          </div>
-
-          <p class="modal-section-title t-gris">🔬 Similitud por notas</p>
-
-          <div class="sim-item">
-            <div class="sim-item-img img-rose">9</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">9PM</p>
-              <p class="sim-item-brand">Afnan</p>
-              <p class="sim-item-meta">78% match · 4 notas en común</p>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-          </div>
-
-          <div class="sim-item">
-            <div class="sim-item-img img-violet">B</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Bade'e Al Oud</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-meta">65% match · 3 notas en común</p>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <p style="text-align:center;font-size:1.4rem;color:var(--amarillo);margin:14px 0 8px;">↓</p>
-
-      <!-- Compare bar fake -->
-      <div class="compare-bar-fake">
-        <div class="compare-bar-fake-items">
-          <span class="compare-bar-fake-chip">Khamrah ×</span>
-          <span class="compare-bar-fake-chip">Asad ×</span>
-        </div>
-        <button class="compare-bar-fake-go">COMPARAR →</button>
-      </div>
-
-      <div class="compare-bar-explain">
-        <strong>Qué pasa</strong>: el cliente tapea "⚖ Comparar" en Asad → se agrega Khamrah (el original) Y Asad a la compare-bar flotante de abajo. Si tapea "⚖ Comparar" en 9PM, se suma 9PM al combo. Al tener 2+ ítems, se habilita el botón grande "COMPARAR" → abre el modal Compare (con Diferencias + "💕 Elegir este" que hicimos antes).
-      </div>
+  <div class="viewport vp-A" id="vpA">
+    <span class="vp-label">Opción A · Sidebar como overlay</span>
+    <div class="vp-header">
+      <span class="vp-hamb" onclick="toggleVP('A')">☰</span>
+      <span class="vp-title-mock">ST Admin Panel · 💧 Decants</span>
+      <span class="vp-role">JEFE</span>
     </div>
-
-    <div class="mobile-note">
-      <span class="ico">📱</span> <strong>Mobile</strong>: el botón "⚖ Comparar" baja debajo del nombre del similar (no a la derecha) para que el item no se rompa en pantallas angostas. El compare-bar flotante ya es responsive (existente).
+    <div class="ds-shell">
+      <div class="ds-backdrop" onclick="toggleVP('A')"></div>
+      <aside class="ds-sidebar">
+        <div class="ds-sb-group">
+          <div class="ds-sb-header"><span>⭐ Top</span></div>
+          <div class="ds-tab-list">
+            <button class="ds-tab">💰 Precios & Stock</button>
+            <button class="ds-tab">👥 Clientes</button>
+            <button class="ds-tab">✏️ Editar</button>
+            <button class="ds-tab">📍 Espera</button>
+            <button class="ds-tab active">💧 Decants</button>
+          </div>
+        </div>
+        <div class="ds-sb-group">
+          <div class="ds-sb-header"><span>📣 Marketing & Home</span><span class="ds-sb-chev">▾</span></div>
+          <div class="ds-tab-list">
+            <button class="ds-tab">⭐ Destacados</button>
+            <button class="ds-tab">🏷️ Beneficios</button>
+            <button class="ds-tab">🏠 Home</button>
+          </div>
+        </div>
+      </aside>
+      <main class="ds-main">
+        <h3 class="ds-main-title">💧 Configuración Pack de Decants</h3>
+        <p class="ds-main-sub">Precios y configuración del armador · el panel ocupa el 100% del ancho</p>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio decant 5ml</span><span class="ds-card-value">$8.500</span></div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio pack 6 decants</span><span class="ds-card-value">$45.000</span></div>
+        </div>
+        <div class="ds-table-wrap">
+          <table class="ds-table">
+            <thead><tr><th>Perfume estrella</th><th>Marca</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Lattafa Asad</td><td>Lattafa</td><td><span class="ds-badge-ok">Activo</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+              <tr><td>Khamrah</td><td>Lattafa</td><td><span class="ds-badge-ok">Activo</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+              <tr><td>Club de Nuit Intense</td><td>Armaf</td><td><span class="ds-badge-low">Solo decant</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-
-    <div class="variant-pros-cons">
-      <div class="pros">
-        <p class="pros-title">PROS</p>
-        <ul>
-          <li>Cierra el ciclo descubrir→decidir→elegir</li>
-          <li>Conecta features existentes (Compare V2)</li>
-          <li>Cero código nuevo de algoritmo</li>
-          <li>30 min · ROI altísimo</li>
-        </ul>
-      </div>
-      <div class="cons">
-        <p class="cons-title">CONS</p>
-        <ul>
-          <li>Si el cliente nunca usó Compare, no entiende qué pasa</li>
-          <li>Puede esperar que tape al perfume similar (cambiar de pestaña)</li>
-        </ul>
-      </div>
+  </div>
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Pros</p>
+      <ul>
+        <li>Panel siempre 100% ancho — fix garantizado del bug</li>
+        <li>Más espacio para tablas y dashboards (clave en Tab A9)</li>
+        <li>Patrón conocido — igual que el mobile actual</li>
+        <li>Cero riesgo de "espacio fantasma" en cualquier viewport</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <p class="cons-title">❌ Contras</p>
+      <ul>
+        <li>Cambiar de tab = 2 taps (abrir hamburguesa + tocar tab)</li>
+        <li>El jefe pierde el sidebar siempre-visible en desktop</li>
+        <li>Requiere bumpear el behavior para TODOS los viewports (hoy solo es overlay ≤700px)</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- D · BADGES PREMIUM                                      -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="section" id="mockup-d">
+<!-- ─────────── OPCIÓN B · DRAWER SIEMPRE ─────────── -->
+<section class="section" id="optB">
   <div class="section-head">
-    <h2 class="section-title">🏆 D · `[SIMILARES-BADGES]`</h2>
-    <p class="section-sub">4 badges premium con gradient · cada item se siente "etiquetado"</p>
+    <span class="opt-badge b2">OPCIÓN B</span>
+    <h2 class="section-title" style="display:inline;">Drawer hamburguesa siempre (default oculto en TODO viewport)</h2>
+    <p class="section-sub">Variante "agresiva" de A. Igual mecánica (sidebar oculto + hamburguesa), pero <strong>sin excepción</strong> — desktop, tablet, mobile, todo viewport. Un solo patrón en todos lados. El jefe también arranca con sidebar cerrado.</p>
   </div>
-
-  <div class="section-explainer">
-    <strong>¿Qué cambia vs hoy?</strong> En lugar del texto plano "5 notas en común · 71% match", los items reciben <strong>badges visuales con colores</strong>. Hace que el cliente entienda de un vistazo POR QUÉ es similar (misma casa, mismo perfil, el más vendido, mejor match). Es gamification — convierte la lista en un ranking con etiquetas.
+  <div class="demo-controls">
+    <button class="demo-toggle" data-target="B">☰ Abrir/cerrar sidebar</button>
+    <span class="demo-hint">Por default cerrado. Igual visualmente a A cuando está abierto.</span>
   </div>
-
-  <div class="variant">
-    <span class="variant-tag t4">D · BADGES PREMIUM</span>
-    <p class="variant-label">4 colores · 1-2 badges por item según corresponda
-      <small>Solo cosmético · sin tocar algoritmo · resaltar lo que ya sabemos</small>
-    </p>
-    <div class="variant-canvas">
-      <div class="modal-fake">
-        <div class="modal-fake-head">
-          <p class="modal-fake-title">⬥ Similares a Khamrah</p>
-          <button class="modal-fake-close">×</button>
-        </div>
-        <div class="modal-fake-body">
-          <p class="modal-section-title">⭐ Recomendados por ST</p>
-
-          <!-- ITEM 1 — Asad: Mejor match + Misma casa + Mismo perfil -->
-          <div class="sim-item is-best">
-            <div class="sim-item-img img-amber">A</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Asad</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-rec">Recomendado por el equipo</p>
-            </div>
-            <div></div>
-            <div class="sim-badges">
-              <span class="sim-badge b-best"><span class="sim-badge-ico">🏆</span>Mejor match</span>
-              <span class="sim-badge b-casa"><span class="sim-badge-ico">💎</span>Misma casa</span>
-              <span class="sim-badge b-perfil"><span class="sim-badge-ico">🎯</span>Mismo perfil</span>
-            </div>
-          </div>
-
-          <p class="modal-section-title t-gris">🔬 Similitud por notas</p>
-
-          <!-- ITEM 2 — 9PM: Mismo perfil + El más elegido -->
-          <div class="sim-item">
-            <div class="sim-item-img img-rose">9</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">9PM</p>
-              <p class="sim-item-brand">Afnan</p>
-              <p class="sim-item-meta">78% match · 4 notas en común</p>
-            </div>
-            <div></div>
-            <div class="sim-badges">
-              <span class="sim-badge b-perfil"><span class="sim-badge-ico">🎯</span>Mismo perfil</span>
-              <span class="sim-badge b-elegido"><span class="sim-badge-ico">🔥</span>El más elegido</span>
-            </div>
-          </div>
-
-          <!-- ITEM 3 — Bade'e Al Oud: Misma casa -->
-          <div class="sim-item">
-            <div class="sim-item-img img-violet">B</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Bade'e Al Oud</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-meta">65% match · 3 notas en común</p>
-            </div>
-            <div></div>
-            <div class="sim-badges">
-              <span class="sim-badge b-casa"><span class="sim-badge-ico">💎</span>Misma casa</span>
-            </div>
-          </div>
-
-          <!-- ITEM 4 — Yara: Misma casa + Mismo perfil -->
-          <div class="sim-item">
-            <div class="sim-item-img img-green">Y</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Yara</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-meta">73% match · 3 notas en común</p>
-            </div>
-            <div></div>
-            <div class="sim-badges">
-              <span class="sim-badge b-casa"><span class="sim-badge-ico">💎</span>Misma casa</span>
-              <span class="sim-badge b-perfil"><span class="sim-badge-ico">🎯</span>Mismo perfil</span>
-            </div>
+  <div class="viewport vp-B" id="vpB">
+    <span class="vp-label">Opción B · Drawer siempre cerrado por default</span>
+    <div class="vp-header">
+      <span class="vp-hamb" onclick="toggleVP('B')">☰</span>
+      <span class="vp-title-mock">ST Admin Panel · 💧 Decants</span>
+      <span class="vp-role">JEFE</span>
+    </div>
+    <div class="ds-shell">
+      <div class="ds-backdrop" onclick="toggleVP('B')"></div>
+      <aside class="ds-sidebar">
+        <div class="ds-sb-group">
+          <div class="ds-sb-header"><span>⭐ Top</span></div>
+          <div class="ds-tab-list">
+            <button class="ds-tab">💰 Precios & Stock</button>
+            <button class="ds-tab">👥 Clientes</button>
+            <button class="ds-tab">✏️ Editar</button>
+            <button class="ds-tab">📍 Espera</button>
+            <button class="ds-tab active">💧 Decants</button>
           </div>
         </div>
-      </div>
+      </aside>
+      <main class="ds-main">
+        <h3 class="ds-main-title">💧 Configuración Pack de Decants</h3>
+        <p class="ds-main-sub">Sidebar siempre oculto · todo es panel · 1 solo patrón en todo viewport</p>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio decant 5ml</span><span class="ds-card-value">$8.500</span></div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio pack 6 decants</span><span class="ds-card-value">$45.000</span></div>
+        </div>
+        <div class="ds-table-wrap">
+          <table class="ds-table">
+            <thead><tr><th>Perfume estrella</th><th>Marca</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Lattafa Asad</td><td>Lattafa</td><td><span class="ds-badge-ok">Activo</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+              <tr><td>Khamrah</td><td>Lattafa</td><td><span class="ds-badge-ok">Activo</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+              <tr><td>Club de Nuit Intense</td><td>Armaf</td><td><span class="ds-badge-low">Solo decant</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-
-    <div class="mobile-note">
-      <span class="ico">📱</span> <strong>Mobile</strong>: los badges wrappean a 2 líneas si no entran. Cada uno mantiene su gradient distintivo. El padding interno se reduce sutilmente.
+  </div>
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Pros</p>
+      <ul>
+        <li>Consistencia total — un solo patrón en todos los viewports</li>
+        <li>Cero ambigüedad de breakpoints (no hay "qué pasa en 1100px")</li>
+        <li>El panel siempre tiene 100% — máximo espacio para tablas</li>
+        <li>Implementación más simple (sin media queries para alternar)</li>
+      </ul>
     </div>
-
-    <div class="variant-pros-cons">
-      <div class="pros">
-        <p class="pros-title">PROS</p>
-        <ul>
-          <li>Look "premium app de moda"</li>
-          <li>Razón del match visible al instante</li>
-          <li>Gamification leve</li>
-        </ul>
-      </div>
-      <div class="cons">
-        <p class="cons-title">CONS</p>
-        <ul>
-          <li>Sin acción (solo cosmético)</li>
-          <li>Si hay muchos badges, satura visual</li>
-          <li>Requiere lógica para decidir qué badge en cada uno</li>
-        </ul>
-      </div>
+    <div class="cons">
+      <p class="cons-title">❌ Contras</p>
+      <ul>
+        <li>Cambia el flujo del jefe (que prefiere sidebar visible en desktop)</li>
+        <li>Más taps para tabs frecuentes — fricción para empleadas que cambian mucho</li>
+        <li>Se pierde el "lujo" del sidebar siempre-presente del <code>[ZAPATO]</code></li>
+        <li>Cualquiera que ya esté acostumbrado al admin actual tiene que re-aprender</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- C+A · COMBO                                             -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="section" id="mockup-ca">
+<!-- ─────────── OPCIÓN C · GRID FIX CONSERVADOR ─────────── -->
+<section class="section" id="optC">
   <div class="section-head">
-    <h2 class="section-title">✨ C+A · Combo "visual + comparar"</h2>
-    <p class="section-sub">Ring % + razón humana + botón "⚖ Comparar" · sin badges</p>
+    <span class="opt-badge b3">OPCIÓN C</span>
+    <h2 class="section-title" style="display:inline;">Grid fix conservador (min-width: 0 + overflow en tabla)</h2>
+    <p class="section-sub">Mínima invasión. Mantiene el layout actual del <code>[ZAPATO]</code> (sidebar siempre visible al lado del panel en desktop/tablet, drawer en mobile como hoy). Solo agrega <code>min-width: 0</code> al <code>.admin-main</code> + <code>overflow-x: auto</code> en wrapper de tablas. ~5 líneas de CSS.</p>
   </div>
-
-  <div class="section-explainer">
-    <strong>¿Qué cambia vs hoy?</strong> Suma <strong>el visual rico de A</strong> (ring + razón) con <strong>la integración de C</strong> (botón comparar). El item se vuelve completo: el cliente VE el match, ENTIENDE por qué, y PUEDE actuar comparando. <em>Mi voto anterior antes de que sumaras D.</em>
-  </div>
-
-  <div class="variant">
-    <span class="variant-tag t1">C+A · VISUAL + COMPARAR</span>
-    <p class="variant-label">Ring + razón + botón comparar
-      <small>Lo más balanceado · ~2h total · sin badges</small>
-    </p>
-    <div class="variant-canvas">
-      <div class="modal-fake">
-        <div class="modal-fake-head">
-          <p class="modal-fake-title">⬥ Similares a Khamrah</p>
-          <button class="modal-fake-close">×</button>
-        </div>
-        <div class="modal-fake-body">
-          <p class="modal-section-title">⭐ Recomendados por ST</p>
-
-          <!-- ITEM 1 — Asad -->
-          <div class="sim-item combo is-best">
-            <div class="sim-item-img img-amber">A</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Asad</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-rec">Recomendado por el equipo</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-high" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="10"/>
-              </svg>
-              <span class="ring-text score-high">92%</span>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">vainilla</span>
-                <span class="razon-chip">ámbar</span>
-                <span class="razon-chip">canela</span>
-                <span class="razon-chip">almizcle</span>
-              </span>
-            </div>
-          </div>
-
-          <p class="modal-section-title t-gris">🔬 Similitud por notas</p>
-
-          <!-- ITEM 2 — 9PM -->
-          <div class="sim-item combo">
-            <div class="sim-item-img img-rose">9</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">9PM</p>
-              <p class="sim-item-brand">Afnan</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-mid" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="28"/>
-              </svg>
-              <span class="ring-text">78%</span>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">vainilla</span>
-                <span class="razon-chip">almizcle</span>
-                <span class="razon-chip">ámbar</span>
-              </span>
-            </div>
-          </div>
-
-          <!-- ITEM 3 — Bade'e Al Oud -->
-          <div class="sim-item combo">
-            <div class="sim-item-img img-violet">B</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Bade'e Al Oud</p>
-              <p class="sim-item-brand">Lattafa</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-low" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="44"/>
-              </svg>
-              <span class="ring-text score-low">65%</span>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">oud</span>
-                <span class="razon-chip">ámbar</span>
-                <span class="razon-chip">vainilla</span>
-              </span>
-            </div>
+  <div class="viewport vp-C">
+    <span class="vp-label">Opción C · Mismo layout actual, sin wrap</span>
+    <div class="vp-header">
+      <span class="vp-hamb">☰</span>
+      <span class="vp-title-mock">ST Admin Panel · 💧 Decants</span>
+      <span class="vp-role">JEFE</span>
+    </div>
+    <div class="ds-shell">
+      <aside class="ds-sidebar">
+        <div class="ds-sb-group">
+          <div class="ds-sb-header"><span>⭐ Top</span></div>
+          <div class="ds-tab-list">
+            <button class="ds-tab">💰 Precios & Stock</button>
+            <button class="ds-tab">👥 Clientes</button>
+            <button class="ds-tab">✏️ Editar</button>
+            <button class="ds-tab">📍 Espera</button>
+            <button class="ds-tab active">💧 Decants</button>
           </div>
         </div>
-      </div>
+        <div class="ds-sb-group">
+          <div class="ds-sb-header"><span>📣 Marketing & Home</span><span class="ds-sb-chev">▾</span></div>
+          <div class="ds-tab-list">
+            <button class="ds-tab">⭐ Destacados</button>
+            <button class="ds-tab">🏷️ Beneficios</button>
+            <button class="ds-tab">🏠 Home</button>
+          </div>
+        </div>
+      </aside>
+      <main class="ds-main">
+        <span class="fix-marker">✓ <code>min-width: 0</code> aplicado · el main ya no fuerza wrap</span>
+        <h3 class="ds-main-title">💧 Configuración Pack de Decants</h3>
+        <p class="ds-main-sub">Sidebar y panel lado a lado · layout actual preservado</p>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio decant 5ml</span><span class="ds-card-value">$8.500</span></div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-card-row"><span class="ds-card-label">Precio pack 6 decants</span><span class="ds-card-value">$45.000</span></div>
+        </div>
+        <div class="ds-table-wrap">
+          <table class="ds-table">
+            <thead><tr><th>Perfume estrella</th><th>Marca</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Lattafa Asad</td><td>Lattafa</td><td><span class="ds-badge-ok">Activo</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+              <tr><td>Khamrah</td><td>Lattafa</td><td><span class="ds-badge-ok">Activo</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+              <tr><td>Club de Nuit Intense</td><td>Armaf</td><td><span class="ds-badge-low">Solo decant</span></td><td><a style="color:var(--amarillo);font-size:.65rem;">Editar</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-
-    <div class="mobile-note">
-      <span class="ico">📱</span> <strong>Mobile</strong>: el ring queda arriba a la derecha, el botón "Comparar" baja a una fila propia debajo del nombre. La razón humana queda al final como ahora. Card se vuelve un poco más alta pero sigue siendo escaneable.
+  </div>
+  <div class="section-note" style="border-left-color: var(--ok); color: #a5d6a7;">
+    <strong>El cambio real:</strong> 2-3 reglas CSS en admin.html (alrededor línea 266):
+    <pre style="background:rgba(0,0,0,.3);padding:8px 12px;border-radius:4px;margin:8px 0 0;font-size:.7rem;color:var(--gris-claro);overflow-x:auto;"><code>.admin-main {
+  padding: 1.2rem 1.4rem;
+  overflow-x: hidden;
+  <span style="color:var(--ok);">min-width: 0;       /* ← fix: permite que el grid item shrinkée */</span>
+}
+.admin-table-wrap, .stock-stats {
+  <span style="color:var(--ok);">overflow-x: auto;   /* ← fix: tablas wide no fuerzan el track */</span>
+}</code></pre>
+  </div>
+  <div class="pros-cons">
+    <div class="pros">
+      <p class="pros-title">✅ Pros</p>
+      <ul>
+        <li>Fix preciso de la causa raíz — sin cambiar paradigma de UX</li>
+        <li>Mantiene el <code>[ZAPATO]</code> intacto — cero re-aprendizaje para jefe y empleadas</li>
+        <li>Cambio mínimo de CSS (~5 líneas) — riesgo bajísimo de regresión</li>
+        <li>Sidebar permanente sigue visible en tablet/desktop como hoy</li>
+        <li>Si después hay problema de espacio en Tab A9 vertical, se puede sumar A o B sin tener que rollbackear</li>
+      </ul>
     </div>
-
-    <div class="variant-pros-cons">
-      <div class="pros">
-        <p class="pros-title">PROS</p>
-        <ul>
-          <li>Visual rico (ring + chips)</li>
-          <li>Decisión accionable (Comparar)</li>
-          <li>Card limpia, no satura</li>
-          <li>Esfuerzo razonable: ~2h</li>
-        </ul>
-      </div>
-      <div class="cons">
-        <p class="cons-title">CONS</p>
-        <ul>
-          <li>Sin badges = pierde el factor "wow"</li>
-          <li>Cards más altas que hoy</li>
-        </ul>
-      </div>
+    <div class="cons">
+      <p class="cons-title">❌ Contras</p>
+      <ul>
+        <li>Si la tabla es muy ancha, el usuario tiene que scrollear horizontal dentro del wrapper</li>
+        <li>No "libera" más espacio para el panel (sigue siendo ~75% del viewport)</li>
+        <li>El bug es por contenido específico — si mañana metés contenido aún más ancho puede aparecer otro tipo de overflow</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- C+D+A · COMBO FULL PREMIUM                              -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="section" id="mockup-cda" style="background:linear-gradient(180deg, rgba(255,215,0,.03), transparent);">
+<!-- ─────────── TABLA COMPARACIÓN ─────────── -->
+<section class="section" id="tabla">
   <div class="section-head">
-    <h2 class="section-title">⭐ C+D+A · "Full premium" <span style="font-size:.7rem;color:var(--oro);">— tu elección</span></h2>
-    <p class="section-sub">Ring % + razón humana + badges + botón "⚖ Comparar" · todo junto</p>
+    <h2 class="section-title">📊 Comparación rápida</h2>
+    <p class="section-sub">Cuál te conviene según tu prioridad.</p>
   </div>
-
-  <div class="section-explainer" style="border-left-color:var(--oro);">
-    <strong style="color:var(--oro);">¿Qué cambia vs hoy?</strong> Es la suma de las 3 mejoras visuales (A) + decisión (C) + gamification (D). El item tiene <strong>ring de match + razón humana + badges premium + botón comparar</strong>. Es la versión más impactante visualmente. <em>Riesgo: si hay 5 similares con 3 badges cada uno, puede saturar visualmente. Por eso limitamos a max 2 badges por item.</em>
-  </div>
-
-  <div class="variant" style="border-color:rgba(255,215,0,.3);">
-    <span class="variant-tag t-star">⭐ C+D+A · FULL PREMIUM</span>
-    <p class="variant-label">Ring + razón + badges + Comparar
-      <small>Lo más impactante · ~3.5h total · "look app de moda"</small>
-    </p>
-    <div class="variant-canvas" style="border-color:rgba(255,215,0,.2);">
-      <div class="modal-fake" style="border-color:rgba(255,215,0,.15);">
-        <div class="modal-fake-head">
-          <p class="modal-fake-title">⬥ Similares a Khamrah</p>
-          <button class="modal-fake-close">×</button>
-        </div>
-        <div class="modal-fake-body">
-          <div class="nota-equipo">
-            <p class="nota-equipo-label">💬 Nota del equipo ST</p>
-            <p class="nota-equipo-text">Un Khamrah es ideal para quien busca un perfume dulce con cuerpo. Si te gusta, mirá estos:</p>
-          </div>
-
-          <p class="modal-section-title">⭐ Recomendados por ST</p>
-
-          <!-- ITEM 1 — Asad: el "wow" item -->
-          <div class="sim-item combo is-best">
-            <div class="sim-item-img img-amber">A</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Asad</p>
-              <p class="sim-item-brand">Lattafa</p>
-              <p class="sim-item-rec">Recomendado por el equipo</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-high" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="10"/>
-              </svg>
-              <span class="ring-text score-high">92%</span>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">vainilla</span>
-                <span class="razon-chip">ámbar</span>
-                <span class="razon-chip">canela</span>
-                <span class="razon-chip">almizcle</span>
-              </span>
-            </div>
-            <div class="sim-badges">
-              <span class="sim-badge b-best"><span class="sim-badge-ico">🏆</span>Mejor match</span>
-              <span class="sim-badge b-casa"><span class="sim-badge-ico">💎</span>Misma casa</span>
-            </div>
-          </div>
-
-          <p class="modal-section-title t-gris">🔬 Similitud por notas</p>
-
-          <!-- ITEM 2 — 9PM -->
-          <div class="sim-item combo">
-            <div class="sim-item-img img-rose">9</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">9PM</p>
-              <p class="sim-item-brand">Afnan</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-mid" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="28"/>
-              </svg>
-              <span class="ring-text">78%</span>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">vainilla</span>
-                <span class="razon-chip">almizcle</span>
-                <span class="razon-chip">ámbar</span>
-              </span>
-            </div>
-            <div class="sim-badges">
-              <span class="sim-badge b-perfil"><span class="sim-badge-ico">🎯</span>Mismo perfil</span>
-              <span class="sim-badge b-elegido"><span class="sim-badge-ico">🔥</span>El más elegido</span>
-            </div>
-          </div>
-
-          <!-- ITEM 3 — Yara -->
-          <div class="sim-item combo">
-            <div class="sim-item-img img-green">Y</div>
-            <div class="sim-item-info">
-              <p class="sim-item-name">Yara</p>
-              <p class="sim-item-brand">Lattafa</p>
-            </div>
-            <div class="ring-wrap">
-              <svg class="ring-svg" width="50" height="50" viewBox="0 0 50 50">
-                <circle class="ring-bg-arc" cx="25" cy="25" r="20"/>
-                <circle class="ring-fg-arc score-mid" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="34"/>
-              </svg>
-              <span class="ring-text">73%</span>
-            </div>
-            <button class="btn-comparar">
-              <span class="btn-comparar-ico">⚖</span> Comparar
-            </button>
-            <div class="razon-humana">
-              <span class="razon-label">Coincidencia</span>
-              <span class="razon-text">
-                <span class="razon-chip">vainilla</span>
-                <span class="razon-chip">almizcle</span>
-              </span>
-            </div>
-            <div class="sim-badges">
-              <span class="sim-badge b-casa"><span class="sim-badge-ico">💎</span>Misma casa</span>
-              <span class="sim-badge b-perfil"><span class="sim-badge-ico">🎯</span>Mismo perfil</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-note">
-      <span class="ico">📱</span> <strong>Mobile</strong>: cada similar queda con 4 "filas" visuales (header con foto+info → ring+comparar al costado → razón humana abajo → badges al final). Card más alta (~140px). Aceptable porque el cliente solo ve 2-3 similares scrolleando, no es lista larga.
-    </div>
-
-    <div class="variant-pros-cons">
-      <div class="pros">
-        <p class="pros-title">PROS</p>
-        <ul>
-          <li>Look "ecommerce premium" completo</li>
-          <li>Cliente entiende TODO de un vistazo</li>
-          <li>Decisión accionable + visual + gamification</li>
-          <li>Diferenciador real vs cualquier competidor</li>
-        </ul>
-      </div>
-      <div class="cons">
-        <p class="cons-title">CONS</p>
-        <ul>
-          <li>Card alta · scrolleo necesario</li>
-          <li>Máx 2 badges por item (sino satura)</li>
-          <li>Esfuerzo: ~3.5h (mayor de los 6)</li>
-          <li>Riesgo "overdesign" si abusamos</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="myvote">
-    <p class="myvote-title t-star">⭐ Tu elección</p>
-    <strong>C+D+A</strong> es el combo más impactante. Si lo implementamos con la regla "máx 2 badges por item" + ring + razón humana + comparar, queda <strong>premium sin saturar</strong>. Es la versión más cercana a "ecommerce de perfumería profesional".
-    <br><br>
-    <em style="color: var(--txt-sub); font-size: .72rem;">Mi sugerencia para evitar overdesign: aplicar badges <strong>solo cuando la condición es fuerte</strong> (Misma casa = sí, Mismo perfil = sí solo si también es mejor match general, El más elegido = solo top 3 del mes, etc). Sino el cliente ve un mar de badges en cada similar y pierde el "wow".</em>
+  <table class="compare-table">
+    <thead>
+      <tr><th>Criterio</th><th>A · Overlay</th><th>B · Drawer siempre</th><th>C · Grid fix</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Espacio para el panel</td><td>100%</td><td>100%</td><td>~75%</td></tr>
+      <tr><td>Clicks para cambiar de tab</td><td>2 (abrir + tocar)</td><td>2 (abrir + tocar)</td><td>1 (tap directo)</td></tr>
+      <tr><td>Cambio respecto a hoy</td><td>Medio (cambia desktop)</td><td>Grande (todo cambia)</td><td>Mínimo (CSS quirúrgico)</td></tr>
+      <tr><td>Esfuerzo de implementación</td><td>~20 líneas CSS + JS</td><td>~25 líneas CSS + JS</td><td>~5 líneas CSS</td></tr>
+      <tr><td>Riesgo de regresión</td><td>Bajo</td><td>Medio (afecta flujo jefe)</td><td>Muy bajo</td></tr>
+      <tr><td>Tiempo estimado</td><td>~45 min</td><td>~45 min</td><td>~15 min</td></tr>
+      <tr><td>Re-aprendizaje del jefe</td><td>Algo (desktop cambia)</td><td>Sí (no más sidebar fijo)</td><td>Cero</td></tr>
+      <tr><td>Re-aprendizaje empleadas</td><td>Cero (igual a hoy mobile)</td><td>Algo (sidebar va y viene)</td><td>Cero</td></tr>
+    </tbody>
+  </table>
+  <div class="recommend">
+    <p class="recommend-title">🎯 Mi voto</p>
+    <p><strong>C (Grid fix conservador)</strong> — es el fix más limpio, mínimo riesgo, mantiene el patrón <code>[ZAPATO]</code> que las chicas ya conocen. Si después en Tab A9 vertical sentís que el panel está apretado, escalamos a <strong>A</strong> en una segunda iteración. <strong>B</strong> queda como reserva si querés simplificar UX globalmente, pero hoy es over-engineering para el bug puntual.</p>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- HISTÓRICO                                                -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="section" id="historico">
-  <div class="historical-wrapper">
-    <details>
-      <summary class="historical-summary">
-        <h3>🗂️ Histórico · Mockups previos (ya aplicados en producción)</h3>
-        <span class="hint">YA DEPLOYADO</span>
-      </summary>
-      <div class="historical-content">
-        <p>Estas iters ya fueron aprobadas por vos y aplicadas en producción. Las dejo como referencia histórica:</p>
-        <ul>
-          <li><strong>[BANNER-V2]</strong> Decants v2 · Opción 2 desktop (CSS+SVG con frascos + podiums + humo + flor 🪻) + Variante C mobile (5ml protagonista) · commit <code>16fef35</code></li>
-          <li><strong>[DECANTS-UX-2]</strong> iter 2 del armador · Tab switcher Catálogo/Mis decants (Variante A pills) + Combo sugerido sticky (Variante B) · commit <code>3c9246a</code></li>
-          <li><strong>[COMPARE-V2]</strong> Diferencias destacadas (2A) + botón "💕 Elegir este" (2B) · commit <code>3c9246a</code></li>
-          <li><strong>[SELECCION-PODIO]</strong> 1A podio #1/#2/#3 + 1B quote del jefe (stub frontend, columna SQL ya creada por el jefe) · commit <code>3c9246a</code></li>
-          <li><strong>[JUEGOS-3A + 3C]</strong> move #quizSection con JS-move + CTA copy reescrito · commit <code>3c9246a</code></li>
-          <li><strong>[PWA-AUTO-RELOAD]</strong> auto-reload mágico post-SW-update con mitigación · commit <code>d1724ae</code></li>
-        </ul>
-        <p style="margin-top: 12px;">Cuando ya no sirvan de referencia (próxima sesión que no las nombre), se borran.</p>
-      </div>
-    </details>
-  </div>
-</section>
-
-<div class="footer">mockups.html · SIMILARES iter · sesión 14-may-2026</div>
+<script>
+  function toggleVP(id) {
+    const vp = document.getElementById('vp' + id);
+    if (vp) vp.classList.toggle('open');
+  }
+  document.querySelectorAll('.demo-toggle').forEach(btn => {
+    btn.addEventListener('click', () => toggleVP(btn.dataset.target));
+  });
+</script>
 
 </body>
 </html>
