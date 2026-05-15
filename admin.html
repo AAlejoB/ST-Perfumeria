@@ -2118,496 +2118,496 @@
     </div>
 
     <!-- TAB: VOTACIÓN -->
-  <div class="tab-content" id="tab-votacion">
-    <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Configur&#225; los candidatos para la votaci&#243;n del perfume del mes. Se cierra autom&#225;ticamente el 1ro del mes siguiente.</p>
-    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
-      <div style="flex:1;min-width:200px;">
-        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">MES ACTUAL</p>
-        <p id="votacionMesActual" style="font-size:.85rem;color:#fff;"></p>
-      </div>
-      <div style="flex:1;min-width:200px;">
-        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">ESTADO</p>
-        <p id="votacionEstado" style="font-size:.85rem;"></p>
-      </div>
-    </div>
-    <div id="votacionGanadorPrev" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
-      <p style="font-size:.7rem;color:var(--amarillo);font-weight:600;letter-spacing:.1em;margin-bottom:.5rem;">&#127942; GANADOR MES ANTERIOR</p>
-      <p id="ganadorPrevText" style="font-size:.8rem;color:#fff;"></p>
-    </div>
-    <p style="font-size:.75rem;font-weight:600;color:#fff;margin-bottom:.5rem;letter-spacing:.08em;">CANDIDATOS MASCULINOS (4)</p>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
-      <input type="text" class="modal-input" id="votoM1" placeholder="Perfume 1" style="flex:1;min-width:150px;"/>
-      <input type="text" class="modal-input" id="votoM2" placeholder="Perfume 2" style="flex:1;min-width:150px;"/>
-      <input type="text" class="modal-input" id="votoM3" placeholder="Perfume 3" style="flex:1;min-width:150px;"/>
-      <input type="text" class="modal-input" id="votoM4" placeholder="Perfume 4" style="flex:1;min-width:150px;"/>
-    </div>
-    <p style="font-size:.75rem;font-weight:600;color:#fff;margin-bottom:.5rem;letter-spacing:.08em;">CANDIDATOS FEMENINOS (4)</p>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
-      <input type="text" class="modal-input" id="votoF1" placeholder="Perfume 1" style="flex:1;min-width:150px;"/>
-      <input type="text" class="modal-input" id="votoF2" placeholder="Perfume 2" style="flex:1;min-width:150px;"/>
-      <input type="text" class="modal-input" id="votoF3" placeholder="Perfume 3" style="flex:1;min-width:150px;"/>
-      <input type="text" class="modal-input" id="votoF4" placeholder="Perfume 4" style="flex:1;min-width:150px;"/>
-    </div>
-    <button class="action-btn btn-price" onclick="saveVotacionConfig()" style="font-size:.72rem;padding:.6rem 1.5rem;">GUARDAR CANDIDATOS</button>
-    <p class="modal-success" id="votacionMsg" style="margin-top:.5rem;"></p>
-  </div>
-
-  <!-- TAB: PUSH NOTIFICATIONS -->
-  <div class="tab-content" id="tab-push">
-    <div style="background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.3rem;">📊 Suscriptores</p>
-      <p style="font-size:2rem;font-weight:700;" id="pushSubCount">—</p>
-      <p style="font-size:.7rem;color:var(--gris);">usuarios aceptaron recibir notificaciones</p>
-    </div>
-
-    <!-- MENSAJES PREDETERMINADOS (hasta 3) -->
-    <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">📋 Mensajes predeterminados</p>
-    <p style="font-size:.65rem;color:var(--gris);margin-bottom:.6rem;">Guardá hasta 3 mensajes para reutilizar rápido. Clic en "Usar" para cargar el mensaje.</p>
-    <div class="push-presets" id="pushPresets"></div>
-    <button class="push-preset-save" id="pushPresetSaveBtn" onclick="savePushPreset()">＋ Guardar mensaje actual como predeterminado</button>
-    <div style="height:1.2rem;margin-bottom:.8rem;"><p id="pushPresetMsg" style="font-size:.65rem;text-align:center;"></p></div>
-
-    <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.8rem;letter-spacing:.08em;text-transform:uppercase;">Enviar notificación</p>
-
-    <label class="modal-label">Título</label>
-    <input type="text" class="modal-input" id="pushTitle" placeholder="Ej: ¡Nuevos perfumes!" maxlength="60"/>
-
-    <label class="modal-label">Mensaje</label>
-    <textarea class="modal-input" id="pushBody" placeholder="Ej: Llegaron 5 fragancias nuevas. Pasá a conocerlas..." rows="3" maxlength="200" style="resize:vertical;font-family:inherit;"></textarea>
-
-    <label class="modal-label">URL destino (opcional)</label>
-    <input type="text" class="modal-input" id="pushUrl" placeholder="/ (por defecto va al inicio)" value="/"/>
-
-    <div style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:8px;padding:1rem;margin:1rem 0;">
-      <p style="font-size:.72rem;font-weight:600;margin-bottom:.5rem;">Vista previa</p>
-      <div style="display:flex;align-items:flex-start;gap:.8rem;background:#222;border-radius:8px;padding:.8rem;">
-        <div style="width:36px;height:36px;background:var(--amarillo);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">🔔</div>
-        <div style="min-width:0;">
-          <p style="font-size:.75rem;font-weight:600;color:#fff;" id="pushPreviewTitle">ST Perfumería</p>
-          <p style="font-size:.7rem;color:var(--gris);overflow:hidden;text-overflow:ellipsis;" id="pushPreviewBody">Tu mensaje aparece acá...</p>
+    <div class="tab-content" id="tab-votacion">
+      <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Configur&#225; los candidatos para la votaci&#243;n del perfume del mes. Se cierra autom&#225;ticamente el 1ro del mes siguiente.</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <div style="flex:1;min-width:200px;">
+          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">MES ACTUAL</p>
+          <p id="votacionMesActual" style="font-size:.85rem;color:#fff;"></p>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">ESTADO</p>
+          <p id="votacionEstado" style="font-size:.85rem;"></p>
         </div>
       </div>
-    </div>
-
-    <div class="admin-btn-row" style="display:flex;gap:.5rem;">
-      <button class="action-btn btn-price" onclick="sendPushNotification()" id="pushSendBtn" style="font-size:.72rem;padding:.6rem 1.5rem;flex:1;">🚀 ENVIAR PUSH</button>
-      <button class="action-btn btn-stock" onclick="copyForWhatsApp()" id="pushWaBtn" style="font-size:.72rem;padding:.6rem 1rem;white-space:nowrap;">📋 Copiar p/ WhatsApp</button>
-    </div>
-    <p class="modal-success" id="pushMsg" style="margin-top:.5rem;"></p>
-
-    <div style="margin-top:1.5rem;border-top:1px solid var(--borde);padding-top:1rem;">
-      <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">Historial de envíos</p>
-      <div id="pushHistory" style="font-size:.72rem;color:var(--gris);">Sin envíos registrados</div>
-    </div>
-  </div>
-
-  <!-- TAB: LISTA DE ESPERA -->
-  <div class="tab-content" id="tab-espera">
-    <div style="display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;">
-      <div style="flex:1;min-width:140px;background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;text-align:center;">
-        <p style="font-size:.7rem;color:var(--amarillo);font-weight:600;margin-bottom:.3rem;">ESPERANDO</p>
-        <p style="font-size:1.8rem;font-weight:700;" id="esperaTotal">0</p>
-        <p style="font-size:.6rem;color:var(--gris);">personas en lista</p>
+      <div id="votacionGanadorPrev" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+        <p style="font-size:.7rem;color:var(--amarillo);font-weight:600;letter-spacing:.1em;margin-bottom:.5rem;">&#127942; GANADOR MES ANTERIOR</p>
+        <p id="ganadorPrevText" style="font-size:.8rem;color:#fff;"></p>
       </div>
-      <div style="flex:1;min-width:140px;background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:8px;padding:1rem;text-align:center;">
-        <p style="font-size:.7rem;color:var(--gris-claro);font-weight:600;margin-bottom:.3rem;">PERFUMES</p>
-        <p style="font-size:1.8rem;font-weight:700;" id="esperaPerfumes">0</p>
-        <p style="font-size:.6rem;color:var(--gris);">con gente esperando</p>
+      <p style="font-size:.75rem;font-weight:600;color:#fff;margin-bottom:.5rem;letter-spacing:.08em;">CANDIDATOS MASCULINOS (4)</p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+        <input type="text" class="modal-input" id="votoM1" placeholder="Perfume 1" style="flex:1;min-width:150px;"/>
+        <input type="text" class="modal-input" id="votoM2" placeholder="Perfume 2" style="flex:1;min-width:150px;"/>
+        <input type="text" class="modal-input" id="votoM3" placeholder="Perfume 3" style="flex:1;min-width:150px;"/>
+        <input type="text" class="modal-input" id="votoM4" placeholder="Perfume 4" style="flex:1;min-width:150px;"/>
       </div>
-    </div>
-    <p style="font-size:.7rem;color:var(--gris);margin-bottom:1rem;line-height:1.5;">Cuando cambi&#225;s el stock de un perfume de &quot;sin stock&quot; a &quot;en stock&quot;, se avisa autom&#225;ticamente por WhatsApp a los que est&#225;n esperando. Los ya notificados quedan en el <em>Historial</em>.</p>
-    <div style="display:flex;gap:.4rem;margin-bottom:1rem;">
-      <button class="action-btn" id="esperaTabPending" onclick="setEsperaView('pending')" style="flex:1;font-size:.7rem;padding:.5rem;background:var(--amarillo);color:#000;">Pendientes (<span id="esperaPendingCount">0</span>)</button>
-      <button class="action-btn" id="esperaTabHistory" onclick="setEsperaView('history')" style="flex:1;font-size:.7rem;padding:.5rem;">Historial (<span id="esperaHistoryCount">0</span>)</button>
-    </div>
-    <div id="esperaList" style="display:flex;flex-direction:column;gap:1rem;"></div>
-    <p id="esperaEmpty" style="display:none;text-align:center;color:var(--gris);font-size:.8rem;padding:2rem 0;">Nadie en lista de espera &#128522;</p>
-  </div>
-
-  <!-- TAB: DOCTOR DE CATÁLOGO -->
-  <div class="tab-content" id="tab-doctor">
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <p style="font-size:2rem;margin-bottom:.3rem;">🩺</p>
-      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Doctor de Catálogo</p>
-      <p style="font-size:.7rem;color:var(--gris);">Chequeo automático de todos tus perfumes</p>
-    </div>
-
-    <!-- Barra de salud general -->
-    <div id="doctorHealthBar" style="margin-bottom:1.5rem;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
-        <span style="font-size:.7rem;font-weight:600;color:var(--gris-claro);letter-spacing:.08em;text-transform:uppercase;">Salud del catálogo</span>
-        <span id="doctorHealthPct" style="font-size:1.1rem;font-weight:700;color:var(--amarillo);">--</span>
+      <p style="font-size:.75rem;font-weight:600;color:#fff;margin-bottom:.5rem;letter-spacing:.08em;">CANDIDATOS FEMENINOS (4)</p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+        <input type="text" class="modal-input" id="votoF1" placeholder="Perfume 1" style="flex:1;min-width:150px;"/>
+        <input type="text" class="modal-input" id="votoF2" placeholder="Perfume 2" style="flex:1;min-width:150px;"/>
+        <input type="text" class="modal-input" id="votoF3" placeholder="Perfume 3" style="flex:1;min-width:150px;"/>
+        <input type="text" class="modal-input" id="votoF4" placeholder="Perfume 4" style="flex:1;min-width:150px;"/>
       </div>
-      <div style="background:rgba(255,255,255,.08);border-radius:8px;height:10px;overflow:hidden;">
-        <div id="doctorHealthFill" style="height:100%;border-radius:8px;background:var(--amarillo);width:0%;transition:width .8s ease;"></div>
+      <button class="action-btn btn-price" onclick="saveVotacionConfig()" style="font-size:.72rem;padding:.6rem 1.5rem;">GUARDAR CANDIDATOS</button>
+      <p class="modal-success" id="votacionMsg" style="margin-top:.5rem;"></p>
+    </div>
+
+    <!-- TAB: PUSH NOTIFICATIONS -->
+    <div class="tab-content" id="tab-push">
+      <div style="background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.3rem;">📊 Suscriptores</p>
+        <p style="font-size:2rem;font-weight:700;" id="pushSubCount">—</p>
+        <p style="font-size:.7rem;color:var(--gris);">usuarios aceptaron recibir notificaciones</p>
       </div>
-    </div>
 
-    <!-- Resumen rápido -->
-    <div id="doctorSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1.5rem;"></div>
+      <!-- MENSAJES PREDETERMINADOS (hasta 3) -->
+      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">📋 Mensajes predeterminados</p>
+      <p style="font-size:.65rem;color:var(--gris);margin-bottom:.6rem;">Guardá hasta 3 mensajes para reutilizar rápido. Clic en "Usar" para cargar el mensaje.</p>
+      <div class="push-presets" id="pushPresets"></div>
+      <button class="push-preset-save" id="pushPresetSaveBtn" onclick="savePushPreset()">＋ Guardar mensaje actual como predeterminado</button>
+      <div style="height:1.2rem;margin-bottom:.8rem;"><p id="pushPresetMsg" style="font-size:.65rem;text-align:center;"></p></div>
 
-    <!-- Filtros -->
-    <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
-      <button class="action-btn" onclick="filterDoctor('all')" id="docFilterAll" style="font-size:.65rem;padding:.35rem .7rem;background:var(--amarillo);color:#000;">Todos</button>
-      <button class="action-btn" onclick="filterDoctor('critical')" id="docFilterCrit" style="font-size:.65rem;padding:.35rem .7rem;">🔴 Críticos</button>
-      <button class="action-btn" onclick="filterDoctor('warning')" id="docFilterWarn" style="font-size:.65rem;padding:.35rem .7rem;">🟡 Avisos</button>
-      <button class="action-btn" onclick="filterDoctor('ok')" id="docFilterOk" style="font-size:.65rem;padding:.35rem .7rem;">🟢 Sanos</button>
-    </div>
+      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.8rem;letter-spacing:.08em;text-transform:uppercase;">Enviar notificación</p>
 
-    <!-- Lista de resultados -->
-    <div id="doctorResults" style="display:flex;flex-direction:column;gap:.6rem;"></div>
-  </div>
+      <label class="modal-label">Título</label>
+      <input type="text" class="modal-input" id="pushTitle" placeholder="Ej: ¡Nuevos perfumes!" maxlength="60"/>
 
-  <!-- TAB: DECANTS CONFIG -->
-  <div class="tab-content" id="tab-decants">
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <p style="font-size:2rem;margin-bottom:.3rem;">💧</p>
-      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Configuración Pack de Decants</p>
-      <p style="font-size:.7rem;color:var(--gris);">Precios, tamaño, tope y mensaje de conservación</p>
-    </div>
+      <label class="modal-label">Mensaje</label>
+      <textarea class="modal-input" id="pushBody" placeholder="Ej: Llegaron 5 fragancias nuevas. Pasá a conocerlas..." rows="3" maxlength="200" style="resize:vertical;font-family:inherit;"></textarea>
 
-    <!-- Activar / desactivar -->
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
-        <input type="checkbox" id="decActivo" style="width:18px;height:18px;cursor:pointer;"/>
-        <span style="font-size:.85rem;font-weight:600;color:#fff;">Pack de decants activo</span>
-      </label>
-      <p style="font-size:.68rem;color:var(--gris);margin-top:.4rem;margin-left:1.6rem;">Si está apagado, se oculta el CTA del home y el botón flotante.</p>
-    </div>
+      <label class="modal-label">URL destino (opcional)</label>
+      <input type="text" class="modal-input" id="pushUrl" placeholder="/ (por defecto va al inicio)" value="/"/>
 
-    <!-- Precios y tamaño -->
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Precios escalonados</p>
-      <p style="font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Tipear sin puntos ni comas (ej: 9500, no 9.500).</p>
-
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem;">
-        <div>
-          <label class="modal-label">1-2 decants ($/u)</label>
-          <input type="number" class="modal-input" id="decPrecio1" placeholder="Ej: 9500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
-        </div>
-        <div>
-          <label class="modal-label">3-4 decants ($/u)</label>
-          <input type="number" class="modal-input" id="decPrecio3" placeholder="Ej: 8500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
-        </div>
-        <div>
-          <label class="modal-label">5+ decants ($/u)</label>
-          <input type="number" class="modal-input" id="decPrecio5" placeholder="Ej: 7500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:8px;padding:1rem;margin:1rem 0;">
+        <p style="font-size:.72rem;font-weight:600;margin-bottom:.5rem;">Vista previa</p>
+        <div style="display:flex;align-items:flex-start;gap:.8rem;background:#222;border-radius:8px;padding:.8rem;">
+          <div style="width:36px;height:36px;background:var(--amarillo);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">🔔</div>
+          <div style="min-width:0;">
+            <p style="font-size:.75rem;font-weight:600;color:#fff;" id="pushPreviewTitle">ST Perfumería</p>
+            <p style="font-size:.7rem;color:var(--gris);overflow:hidden;text-overflow:ellipsis;" id="pushPreviewBody">Tu mensaje aparece acá...</p>
+          </div>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
-        <div>
-          <label class="modal-label">Tamaño (ml)</label>
-          <input type="number" class="modal-input" id="decMl" placeholder="5" style="margin-bottom:0;"/>
+      <div class="admin-btn-row" style="display:flex;gap:.5rem;">
+        <button class="action-btn btn-price" onclick="sendPushNotification()" id="pushSendBtn" style="font-size:.72rem;padding:.6rem 1.5rem;flex:1;">🚀 ENVIAR PUSH</button>
+        <button class="action-btn btn-stock" onclick="copyForWhatsApp()" id="pushWaBtn" style="font-size:.72rem;padding:.6rem 1rem;white-space:nowrap;">📋 Copiar p/ WhatsApp</button>
+      </div>
+      <p class="modal-success" id="pushMsg" style="margin-top:.5rem;"></p>
+
+      <div style="margin-top:1.5rem;border-top:1px solid var(--borde);padding-top:1rem;">
+        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">Historial de envíos</p>
+        <div id="pushHistory" style="font-size:.72rem;color:var(--gris);">Sin envíos registrados</div>
+      </div>
+    </div>
+
+    <!-- TAB: LISTA DE ESPERA -->
+    <div class="tab-content" id="tab-espera">
+      <div style="display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;text-align:center;">
+          <p style="font-size:.7rem;color:var(--amarillo);font-weight:600;margin-bottom:.3rem;">ESPERANDO</p>
+          <p style="font-size:1.8rem;font-weight:700;" id="esperaTotal">0</p>
+          <p style="font-size:.6rem;color:var(--gris);">personas en lista</p>
         </div>
-        <div>
-          <label class="modal-label">Máximo de decants por pack</label>
-          <input type="number" class="modal-input" id="decMax" placeholder="100" style="margin-bottom:0;"/>
+        <div style="flex:1;min-width:140px;background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:8px;padding:1rem;text-align:center;">
+          <p style="font-size:.7rem;color:var(--gris-claro);font-weight:600;margin-bottom:.3rem;">PERFUMES</p>
+          <p style="font-size:1.8rem;font-weight:700;" id="esperaPerfumes">0</p>
+          <p style="font-size:.6rem;color:var(--gris);">con gente esperando</p>
         </div>
       </div>
+      <p style="font-size:.7rem;color:var(--gris);margin-bottom:1rem;line-height:1.5;">Cuando cambi&#225;s el stock de un perfume de &quot;sin stock&quot; a &quot;en stock&quot;, se avisa autom&#225;ticamente por WhatsApp a los que est&#225;n esperando. Los ya notificados quedan en el <em>Historial</em>.</p>
+      <div style="display:flex;gap:.4rem;margin-bottom:1rem;">
+        <button class="action-btn" id="esperaTabPending" onclick="setEsperaView('pending')" style="flex:1;font-size:.7rem;padding:.5rem;background:var(--amarillo);color:#000;">Pendientes (<span id="esperaPendingCount">0</span>)</button>
+        <button class="action-btn" id="esperaTabHistory" onclick="setEsperaView('history')" style="flex:1;font-size:.7rem;padding:.5rem;">Historial (<span id="esperaHistoryCount">0</span>)</button>
+      </div>
+      <div id="esperaList" style="display:flex;flex-direction:column;gap:1rem;"></div>
+      <p id="esperaEmpty" style="display:none;text-align:center;color:var(--gris);font-size:.8rem;padding:2rem 0;">Nadie en lista de espera &#128522;</p>
     </div>
 
-    <!-- Mensaje de conservación -->
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-      <label class="modal-label">Aviso de conservación (se muestra al cliente antes de enviar por WhatsApp)</label>
-      <textarea class="modal-input" id="decAviso" rows="3" placeholder="Ej: Guardá tu decant en lugar fresco y seco..." style="margin-bottom:0;resize:vertical;min-height:70px;"></textarea>
-    </div>
+    <!-- TAB: DOCTOR DE CATÁLOGO -->
+    <div class="tab-content" id="tab-doctor">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <p style="font-size:2rem;margin-bottom:.3rem;">🩺</p>
+        <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Doctor de Catálogo</p>
+        <p style="font-size:.7rem;color:var(--gris);">Chequeo automático de todos tus perfumes</p>
+      </div>
 
-    <!-- Acción -->
-    <div style="display:flex;gap:.5rem;align-items:center;">
-      <button class="modal-btn modal-btn-price" onclick="saveDecantsAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;">Guardar configuración</button>
-      <button class="action-btn" onclick="loadDecantsAdmin()" style="padding:.5rem 1rem;">↺ Recargar</button>
-    </div>
-    <p class="modal-success" id="decMsg"></p>
-
-    <!-- ─── Perfumes personalizados (NO están en stock) ─── -->
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-top:1.5rem;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem;">
-        <div>
-          <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">💎 Decants de diseñador</p>
-          <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Para <strong>decants de diseñador</strong> (Jean Paul Gaultier, Creed, Dior, etc.) que <strong>NO están cargados al stock regular</strong> pero querés ofrecerlos en el armador. Aparecen 💎 <strong>primero</strong> en el grid del armador.</p>
+      <!-- Barra de salud general -->
+      <div id="doctorHealthBar" style="margin-bottom:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+          <span style="font-size:.7rem;font-weight:600;color:var(--gris-claro);letter-spacing:.08em;text-transform:uppercase;">Salud del catálogo</span>
+          <span id="doctorHealthPct" style="font-size:1.1rem;font-weight:700;color:var(--amarillo);">--</span>
         </div>
-        <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
+        <div style="background:rgba(255,255,255,.08);border-radius:8px;height:10px;overflow:hidden;">
+          <div id="doctorHealthFill" style="height:100%;border-radius:8px;background:var(--amarillo);width:0%;transition:width .8s ease;"></div>
+        </div>
       </div>
-      <!-- Mini-header de columnas — anchos FIJOS en las últimas 2 columnas
-           (checkbox + acciones) para que matcheen exactamente con las rows.
-           Antes "auto auto" hacía que cada row tuviera anchos distintos. -->
-      <div style="display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
-        <span style="text-align:center;" title="Foto del perfume (opcional)">Foto</span>
-        <span>Nombre</span>
-        <span>Marca</span>
-        <span style="text-align:right;" title="Precio fijo por unidad. Tipear sin puntos ni comas (ej: 29000 no 29.000). Si está vacío usa la escalera global (1-2/3-4/5+).">$ Precio <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#888;">(sin puntos)</span></span>
-        <span style="text-align:center;" title="Posición en el grid del armador (menor = más arriba)">Orden</span>
-        <span style="text-align:center;">Activo</span>
-        <span style="text-align:center;">Acciones</span>
-      </div>
-      <div id="decantsCustomList" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem;">
-        <p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando…</p>
-      </div>
-      <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
-    </div>
-  </div>
 
-  <!-- TAB: AUDIT LOG (solo jefe) -->
-  <div class="tab-content" id="tab-auditlog">
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <p style="font-size:2rem;margin-bottom:.3rem;">📋</p>
-      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Registro de acciones</p>
-      <p style="font-size:.7rem;color:var(--gris);">Últimos 200 eventos · Retención 60 días · Inmutable</p>
+      <!-- Resumen rápido -->
+      <div id="doctorSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1.5rem;"></div>
+
+      <!-- Filtros -->
+      <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <button class="action-btn" onclick="filterDoctor('all')" id="docFilterAll" style="font-size:.65rem;padding:.35rem .7rem;background:var(--amarillo);color:#000;">Todos</button>
+        <button class="action-btn" onclick="filterDoctor('critical')" id="docFilterCrit" style="font-size:.65rem;padding:.35rem .7rem;">🔴 Críticos</button>
+        <button class="action-btn" onclick="filterDoctor('warning')" id="docFilterWarn" style="font-size:.65rem;padding:.35rem .7rem;">🟡 Avisos</button>
+        <button class="action-btn" onclick="filterDoctor('ok')" id="docFilterOk" style="font-size:.65rem;padding:.35rem .7rem;">🟢 Sanos</button>
+      </div>
+
+      <!-- Lista de resultados -->
+      <div id="doctorResults" style="display:flex;flex-direction:column;gap:.6rem;"></div>
     </div>
 
-    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-      <button class="action-btn" onclick="loadAuditLog()" style="padding:.5rem 1rem;">↺ Refrescar</button>
-      <span id="auditLogMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+    <!-- TAB: DECANTS CONFIG -->
+    <div class="tab-content" id="tab-decants">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <p style="font-size:2rem;margin-bottom:.3rem;">💧</p>
+        <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Configuración Pack de Decants</p>
+        <p style="font-size:.7rem;color:var(--gris);">Precios, tamaño, tope y mensaje de conservación</p>
+      </div>
+
+      <!-- Activar / desactivar -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+        <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
+          <input type="checkbox" id="decActivo" style="width:18px;height:18px;cursor:pointer;"/>
+          <span style="font-size:.85rem;font-weight:600;color:#fff;">Pack de decants activo</span>
+        </label>
+        <p style="font-size:.68rem;color:var(--gris);margin-top:.4rem;margin-left:1.6rem;">Si está apagado, se oculta el CTA del home y el botón flotante.</p>
+      </div>
+
+      <!-- Precios y tamaño -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Precios escalonados</p>
+        <p style="font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Tipear sin puntos ni comas (ej: 9500, no 9.500).</p>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem;">
+          <div>
+            <label class="modal-label">1-2 decants ($/u)</label>
+            <input type="number" class="modal-input" id="decPrecio1" placeholder="Ej: 9500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
+          </div>
+          <div>
+            <label class="modal-label">3-4 decants ($/u)</label>
+            <input type="number" class="modal-input" id="decPrecio3" placeholder="Ej: 8500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
+          </div>
+          <div>
+            <label class="modal-label">5+ decants ($/u)</label>
+            <input type="number" class="modal-input" id="decPrecio5" placeholder="Ej: 7500" title="Sin puntos ni comas" style="margin-bottom:0;"/>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+          <div>
+            <label class="modal-label">Tamaño (ml)</label>
+            <input type="number" class="modal-input" id="decMl" placeholder="5" style="margin-bottom:0;"/>
+          </div>
+          <div>
+            <label class="modal-label">Máximo de decants por pack</label>
+            <input type="number" class="modal-input" id="decMax" placeholder="100" style="margin-bottom:0;"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje de conservación -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
+        <label class="modal-label">Aviso de conservación (se muestra al cliente antes de enviar por WhatsApp)</label>
+        <textarea class="modal-input" id="decAviso" rows="3" placeholder="Ej: Guardá tu decant en lugar fresco y seco..." style="margin-bottom:0;resize:vertical;min-height:70px;"></textarea>
+      </div>
+
+      <!-- Acción -->
+      <div style="display:flex;gap:.5rem;align-items:center;">
+        <button class="modal-btn modal-btn-price" onclick="saveDecantsAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;">Guardar configuración</button>
+        <button class="action-btn" onclick="loadDecantsAdmin()" style="padding:.5rem 1rem;">↺ Recargar</button>
+      </div>
+      <p class="modal-success" id="decMsg"></p>
+
+      <!-- ─── Perfumes personalizados (NO están en stock) ─── -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-top:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem;">
+          <div>
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">💎 Decants de diseñador</p>
+            <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Para <strong>decants de diseñador</strong> (Jean Paul Gaultier, Creed, Dior, etc.) que <strong>NO están cargados al stock regular</strong> pero querés ofrecerlos en el armador. Aparecen 💎 <strong>primero</strong> en el grid del armador.</p>
+          </div>
+          <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
+        </div>
+        <!-- Mini-header de columnas — anchos FIJOS en las últimas 2 columnas
+             (checkbox + acciones) para que matcheen exactamente con las rows.
+             Antes "auto auto" hacía que cada row tuviera anchos distintos. -->
+        <div style="display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
+          <span style="text-align:center;" title="Foto del perfume (opcional)">Foto</span>
+          <span>Nombre</span>
+          <span>Marca</span>
+          <span style="text-align:right;" title="Precio fijo por unidad. Tipear sin puntos ni comas (ej: 29000 no 29.000). Si está vacío usa la escalera global (1-2/3-4/5+).">$ Precio <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#888;">(sin puntos)</span></span>
+          <span style="text-align:center;" title="Posición en el grid del armador (menor = más arriba)">Orden</span>
+          <span style="text-align:center;">Activo</span>
+          <span style="text-align:center;">Acciones</span>
+        </div>
+        <div id="decantsCustomList" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem;">
+          <p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando…</p>
+        </div>
+        <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
+      </div>
     </div>
 
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-      <table class="admin-table" style="margin:0;">
-        <thead><tr>
-          <th style="width:120px;">Cuándo</th>
-          <th style="width:90px;">Quién</th>
-          <th style="width:160px;">Acción</th>
-          <th style="width:140px;">Perfume</th>
-          <th>Detalle</th>
-        </tr></thead>
-        <tbody id="tbodyAuditLog">
-          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    <!-- TAB: AUDIT LOG (solo jefe) -->
+    <div class="tab-content" id="tab-auditlog">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <p style="font-size:2rem;margin-bottom:.3rem;">📋</p>
+        <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Registro de acciones</p>
+        <p style="font-size:.7rem;color:var(--gris);">Últimos 200 eventos · Retención 60 días · Inmutable</p>
+      </div>
 
-  <!-- TAB: ANALYTICS -->
-  <div class="tab-content" id="tab-analytics">
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <p style="font-size:2rem;margin-bottom:.3rem;">📊</p>
-      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Analytics</p>
-      <p style="font-size:.7rem;color:var(--gris);">Retención 60 días · Datos anónimos (session_id)</p>
-    </div>
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+        <button class="action-btn" onclick="loadAuditLog()" style="padding:.5rem 1rem;">↺ Refrescar</button>
+        <span id="auditLogMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+      </div>
 
-    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-      <button class="action-btn" onclick="loadAnalytics()" style="padding:.5rem 1rem;">↺ Refrescar</button>
-      <select id="analyticsRange" onchange="loadAnalytics()" style="padding:.5rem;background:#111;color:#fff;border:1px solid var(--borde);border-radius:6px;font-size:.75rem;">
-        <option value="7" selected>Últimos 7 días</option>
-        <option value="14">Últimos 14 días</option>
-        <option value="30">Últimos 30 días</option>
-        <option value="60">Últimos 60 días</option>
-      </select>
-      <span id="analyticsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
-    </div>
-
-    <!-- Cards de totales -->
-    <div id="analyticsTotals" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.5rem;">
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
-        <div style="font-size:1.4rem;font-weight:700;color:var(--amarillo);" id="totViews">—</div>
-        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Vistas</div>
-      </div>
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
-        <div style="font-size:1.4rem;font-weight:700;color:#3da5ff;" id="totDecants">—</div>
-        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Decants agregados</div>
-      </div>
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
-        <div style="font-size:1.4rem;font-weight:700;color:#25d366;" id="totWA">—</div>
-        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Clicks WhatsApp</div>
-      </div>
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
-        <div style="font-size:1.4rem;font-weight:700;color:#e74c3c;" id="totEmpty">—</div>
-        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Búsquedas vacías</div>
-      </div>
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
-        <div style="font-size:1.4rem;font-weight:700;color:#fff;" id="totSessions">—</div>
-        <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Sesiones únicas</div>
-      </div>
-    </div>
-
-    <!-- Grid de bloques -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem;">
-      <!-- Top viewed -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
-          <strong style="font-size:.8rem;color:#fff;">🔥 Más vistos</strong>
-        </div>
-        <table class="admin-table" style="margin:0;font-size:.75rem;">
-          <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Vistas</th></tr></thead>
-          <tbody id="tbodyTopViewed"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
-        </table>
-      </div>
-
-      <!-- Top decants -->
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
-          <strong style="font-size:.8rem;color:#fff;">💧 Más agregados al pack</strong>
-        </div>
-        <table class="admin-table" style="margin:0;font-size:.75rem;">
-          <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Veces</th></tr></thead>
-          <tbody id="tbodyTopDecants"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
-        </table>
-      </div>
-
-      <!-- Top WA -->
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
-          <strong style="font-size:.8rem;color:#fff;">💬 Más consultados por WA</strong>
-        </div>
-        <table class="admin-table" style="margin:0;font-size:.75rem;">
-          <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Clicks</th></tr></thead>
-          <tbody id="tbodyTopWA"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
-        </table>
-      </div>
-
-      <!-- Search empty -->
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
-          <strong style="font-size:.8rem;color:#fff;">🔍 Búsquedas sin resultados</strong>
-          <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(lo que falta en catálogo)</span>
-        </div>
-        <table class="admin-table" style="margin:0;font-size:.75rem;">
-          <thead><tr><th>#</th><th>Consulta</th><th style="text-align:right;">Veces</th></tr></thead>
-          <tbody id="tbodySearchEmpty"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+        <table class="admin-table" style="margin:0;">
+          <thead><tr>
+            <th style="width:120px;">Cuándo</th>
+            <th style="width:90px;">Quién</th>
+            <th style="width:160px;">Acción</th>
+            <th style="width:140px;">Perfume</th>
+            <th>Detalle</th>
+          </tr></thead>
+          <tbody id="tbodyAuditLog">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Heatmap por hora -->
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1rem;">
-      <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
-        <strong style="font-size:.8rem;color:#fff;">🕐 Actividad por hora</strong>
-        <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(todos los eventos)</span>
+    <!-- TAB: ANALYTICS -->
+    <div class="tab-content" id="tab-analytics">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <p style="font-size:2rem;margin-bottom:.3rem;">📊</p>
+        <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Analytics</p>
+        <p style="font-size:.7rem;color:var(--gris);">Retención 60 días · Datos anónimos (session_id)</p>
       </div>
-      <div id="hourHeatmap" style="padding:.8rem;overflow-x:auto;">
-        <div style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">—</div>
-      </div>
-    </div>
 
-    <!-- Device + Referrer -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+        <button class="action-btn" onclick="loadAnalytics()" style="padding:.5rem 1rem;">↺ Refrescar</button>
+        <select id="analyticsRange" onchange="loadAnalytics()" style="padding:.5rem;background:#111;color:#fff;border:1px solid var(--borde);border-radius:6px;font-size:.75rem;">
+          <option value="7" selected>Últimos 7 días</option>
+          <option value="14">Últimos 14 días</option>
+          <option value="30">Últimos 30 días</option>
+          <option value="60">Últimos 60 días</option>
+        </select>
+        <span id="analyticsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+      </div>
+
+      <!-- Cards de totales -->
+      <div id="analyticsTotals" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.5rem;">
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:700;color:var(--amarillo);" id="totViews">—</div>
+          <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Vistas</div>
+        </div>
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:700;color:#3da5ff;" id="totDecants">—</div>
+          <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Decants agregados</div>
+        </div>
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:700;color:#25d366;" id="totWA">—</div>
+          <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Clicks WhatsApp</div>
+        </div>
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:700;color:#e74c3c;" id="totEmpty">—</div>
+          <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Búsquedas vacías</div>
+        </div>
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:700;color:#fff;" id="totSessions">—</div>
+          <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Sesiones únicas</div>
+        </div>
+      </div>
+
+      <!-- Grid de bloques -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem;">
+        <!-- Top viewed -->
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+            <strong style="font-size:.8rem;color:#fff;">🔥 Más vistos</strong>
+          </div>
+          <table class="admin-table" style="margin:0;font-size:.75rem;">
+            <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Vistas</th></tr></thead>
+            <tbody id="tbodyTopViewed"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Top decants -->
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+            <strong style="font-size:.8rem;color:#fff;">💧 Más agregados al pack</strong>
+          </div>
+          <table class="admin-table" style="margin:0;font-size:.75rem;">
+            <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Veces</th></tr></thead>
+            <tbody id="tbodyTopDecants"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Top WA -->
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+            <strong style="font-size:.8rem;color:#fff;">💬 Más consultados por WA</strong>
+          </div>
+          <table class="admin-table" style="margin:0;font-size:.75rem;">
+            <thead><tr><th>#</th><th>Perfume</th><th style="text-align:right;">Clicks</th></tr></thead>
+            <tbody id="tbodyTopWA"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Search empty -->
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+            <strong style="font-size:.8rem;color:#fff;">🔍 Búsquedas sin resultados</strong>
+            <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(lo que falta en catálogo)</span>
+          </div>
+          <table class="admin-table" style="margin:0;font-size:.75rem;">
+            <thead><tr><th>#</th><th>Consulta</th><th style="text-align:right;">Veces</th></tr></thead>
+            <tbody id="tbodySearchEmpty"><tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Heatmap por hora -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1rem;">
         <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
-          <strong style="font-size:.8rem;color:#fff;">📱 Dispositivo</strong>
+          <strong style="font-size:.8rem;color:#fff;">🕐 Actividad por hora</strong>
+          <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(todos los eventos)</span>
         </div>
-        <div id="deviceBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
+        <div id="hourHeatmap" style="padding:.8rem;overflow-x:auto;">
+          <div style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">—</div>
+        </div>
       </div>
+
+      <!-- Device + Referrer -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+            <strong style="font-size:.8rem;color:#fff;">📱 Dispositivo</strong>
+          </div>
+          <div id="deviceBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
+        </div>
+        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+            <strong style="font-size:.8rem;color:#fff;">🌐 De dónde vienen</strong>
+          </div>
+          <div id="referrerBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: BACKUPS -->
+    <div class="tab-content" id="tab-backups">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <p style="font-size:2rem;margin-bottom:.3rem;">💾</p>
+        <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Backups</p>
+        <p style="font-size:.7rem;color:var(--gris);">Auto cada 24h · Retención 15 días · Máximo 200 snapshots</p>
+      </div>
+
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+        <button class="action-btn" onclick="createManualBackup()" id="btnCreateBackup" style="padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Crear backup ahora</button>
+        <button class="action-btn" onclick="loadBackups()" style="padding:.5rem 1rem;">↺ Refrescar</button>
+        <span id="backupsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+      </div>
+
+      <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:.9rem;margin-bottom:1rem;font-size:.72rem;color:#ccc;line-height:1.55;">
+        <strong style="color:#E8B800;">ℹ️ Qué incluye cada backup:</strong><br>
+        Config: precios/stock (<code style="color:#fff;">perfume_overrides</code>), perfumes nuevos, combos, destacados, cierres, horario, votación, decants.<br>
+        Datos: clientes, opiniones, lista de espera, votos.<br>
+        <strong style="color:#E8B800;">No incluye:</strong> logs, analytics, clicks, push subscriptions (son regenerables).
+      </div>
+
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
-          <strong style="font-size:.8rem;color:#fff;">🌐 De dónde vienen</strong>
-        </div>
-        <div id="referrerBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
+        <table class="admin-table" style="margin:0;">
+          <thead><tr>
+            <th style="width:140px;">Fecha</th>
+            <th style="width:90px;">Origen</th>
+            <th style="width:100px;">Tamaño</th>
+            <th>Filas</th>
+            <th style="width:90px;">Acción</th>
+          </tr></thead>
+          <tbody id="tbodyBackups">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
 
-  <!-- TAB: BACKUPS -->
-  <div class="tab-content" id="tab-backups">
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <p style="font-size:2rem;margin-bottom:.3rem;">💾</p>
-      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Backups</p>
-      <p style="font-size:.7rem;color:var(--gris);">Auto cada 24h · Retención 15 días · Máximo 200 snapshots</p>
-    </div>
-
-    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-      <button class="action-btn" onclick="createManualBackup()" id="btnCreateBackup" style="padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Crear backup ahora</button>
-      <button class="action-btn" onclick="loadBackups()" style="padding:.5rem 1rem;">↺ Refrescar</button>
-      <span id="backupsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
-    </div>
-
-    <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:.9rem;margin-bottom:1rem;font-size:.72rem;color:#ccc;line-height:1.55;">
-      <strong style="color:#E8B800;">ℹ️ Qué incluye cada backup:</strong><br>
-      Config: precios/stock (<code style="color:#fff;">perfume_overrides</code>), perfumes nuevos, combos, destacados, cierres, horario, votación, decants.<br>
-      Datos: clientes, opiniones, lista de espera, votos.<br>
-      <strong style="color:#E8B800;">No incluye:</strong> logs, analytics, clicks, push subscriptions (son regenerables).
-    </div>
-
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-      <table class="admin-table" style="margin:0;">
-        <thead><tr>
-          <th style="width:140px;">Fecha</th>
-          <th style="width:90px;">Origen</th>
-          <th style="width:100px;">Tamaño</th>
-          <th>Filas</th>
-          <th style="width:90px;">Acción</th>
-        </tr></thead>
-        <tbody id="tbodyBackups">
-          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB: PUNTOS -->
-  <div class="tab-content" id="tab-puntos">
-    <div style="text-align:center;margin-bottom:1.5rem;">
-      <p style="font-size:2rem;margin-bottom:.3rem;">🎯</p>
-      <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Sistema de Puntos</p>
-      <p style="font-size:.7rem;color:var(--gris);">Config global · Ranking de clientes · Historial de movimientos</p>
-    </div>
-
-    <!-- Config -->
-    <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:1rem;margin-bottom:1.2rem;">
-      <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.8rem;">⚙️ Configuración global</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;">
-        <div>
-          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por perfume</label>
-          <input type="number" step="0.01" id="cfgPuntosPerfume" class="modal-input" style="margin:0;"/>
-        </div>
-        <div>
-          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por decant</label>
-          <input type="number" step="0.01" id="cfgPuntosDecant" class="modal-input" style="margin:0;"/>
-        </div>
-        <div>
-          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por set/combo</label>
-          <input type="number" step="0.01" id="cfgPuntosCombo" class="modal-input" style="margin:0;"/>
-        </div>
-        <div>
-          <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Threshold (múltiplo)</label>
-          <input type="number" step="1" id="cfgThreshold" class="modal-input" style="margin:0;"/>
-        </div>
+    <!-- TAB: PUNTOS -->
+    <div class="tab-content" id="tab-puntos">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <p style="font-size:2rem;margin-bottom:.3rem;">🎯</p>
+        <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Sistema de Puntos</p>
+        <p style="font-size:.7rem;color:var(--gris);">Config global · Ranking de clientes · Historial de movimientos</p>
       </div>
-      <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje promo (cuando cliente está a 1 del threshold)</label>
-      <input type="text" id="cfgMensajePromo" class="modal-input" style="margin:0;"/>
-      <button class="action-btn" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Guardar config</button>
-      <span id="cfgPuntosMsg" style="font-size:.7rem;color:#9bd28b;margin-left:.6rem;"></span>
-    </div>
 
-    <!-- Ranking -->
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1.2rem;">
-      <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
-        <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">🏆 Ranking de clientes</p>
-        <input type="text" id="puntosFilterCliente" placeholder="Buscar nombre/teléfono…" oninput="renderPuntosRanking()" style="background:#0a0a0c;border:1px solid var(--borde);color:#fff;padding:.35rem .6rem;border-radius:6px;font-size:.72rem;width:200px;"/>
+      <!-- Config -->
+      <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:1rem;margin-bottom:1.2rem;">
+        <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.8rem;">⚙️ Configuración global</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;">
+          <div>
+            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por perfume</label>
+            <input type="number" step="0.01" id="cfgPuntosPerfume" class="modal-input" style="margin:0;"/>
+          </div>
+          <div>
+            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por decant</label>
+            <input type="number" step="0.01" id="cfgPuntosDecant" class="modal-input" style="margin:0;"/>
+          </div>
+          <div>
+            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por set/combo</label>
+            <input type="number" step="0.01" id="cfgPuntosCombo" class="modal-input" style="margin:0;"/>
+          </div>
+          <div>
+            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Threshold (múltiplo)</label>
+            <input type="number" step="1" id="cfgThreshold" class="modal-input" style="margin:0;"/>
+          </div>
+        </div>
+        <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje promo (cuando cliente está a 1 del threshold)</label>
+        <input type="text" id="cfgMensajePromo" class="modal-input" style="margin:0;"/>
+        <button class="action-btn" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Guardar config</button>
+        <span id="cfgPuntosMsg" style="font-size:.7rem;color:#9bd28b;margin-left:.6rem;"></span>
       </div>
-      <table class="admin-table" style="margin:0;">
-        <thead><tr>
-          <th>#</th>
-          <th>Cliente</th>
-          <th>Teléfono</th>
-          <th style="text-align:right;">Puntos</th>
-          <th style="width:140px;">Acciones</th>
-        </tr></thead>
-        <tbody id="tbodyPuntosRanking">
-          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
-        </tbody>
-      </table>
-    </div>
 
-    <!-- Historial -->
-    <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-      <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;">
-        <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">📋 Historial de movimientos</p>
-        <button class="action-btn" onclick="loadPuntosHistory()" style="padding:.3rem .7rem;font-size:.7rem;">↺</button>
+      <!-- Ranking -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1.2rem;">
+        <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+          <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">🏆 Ranking de clientes</p>
+          <input type="text" id="puntosFilterCliente" placeholder="Buscar nombre/teléfono…" oninput="renderPuntosRanking()" style="background:#0a0a0c;border:1px solid var(--borde);color:#fff;padding:.35rem .6rem;border-radius:6px;font-size:.72rem;width:200px;"/>
+        </div>
+        <table class="admin-table" style="margin:0;">
+          <thead><tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th>Teléfono</th>
+            <th style="text-align:right;">Puntos</th>
+            <th style="width:140px;">Acciones</th>
+          </tr></thead>
+          <tbody id="tbodyPuntosRanking">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+          </tbody>
+        </table>
       </div>
-      <table class="admin-table" style="margin:0;">
-        <thead><tr>
-          <th style="width:130px;">Fecha</th>
-          <th>Cliente</th>
-          <th style="text-align:right;width:80px;">Δ</th>
-          <th>Motivo</th>
-          <th>Actor</th>
-        </tr></thead>
-        <tbody id="tbodyPuntosLog">
-          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
-        </tbody>
-      </table>
+
+      <!-- Historial -->
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
+        <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;">
+          <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">📋 Historial de movimientos</p>
+          <button class="action-btn" onclick="loadPuntosHistory()" style="padding:.3rem .7rem;font-size:.7rem;">↺</button>
+        </div>
+        <table class="admin-table" style="margin:0;">
+          <thead><tr>
+            <th style="width:130px;">Fecha</th>
+            <th>Cliente</th>
+            <th style="text-align:right;width:80px;">Δ</th>
+            <th>Motivo</th>
+            <th>Actor</th>
+          </tr></thead>
+          <tbody id="tbodyPuntosLog">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
       </main>
     </div>
