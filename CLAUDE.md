@@ -14,6 +14,7 @@ Si necesitás profundizar en un área específica:
 | Auth, Realtime, SW, push, cron, Vercel functions, audit log | [`docs/BACKEND.md`](docs/BACKEND.md) |
 | Tablas, schemas, RLS, migraciones, índices | [`docs/DATABASE.md`](docs/DATABASE.md) |
 | Decisiones tomadas, bugs históricos, evolución | [`docs/HISTORIA.md`](docs/HISTORIA.md) |
+| Validar todo el sitio antes de releases (170 items) | [`docs/QA-PRE-JULIO.md`](docs/QA-PRE-JULIO.md) |
 
 Este archivo (`CLAUDE.md`) tiene el resumen general. Para dive deep, andá a la doc específica.
 
@@ -147,14 +148,16 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 
 ```js
 // sw.js línea 16
-var CACHE_VERSION = 'v1.1.35';   // ← incrementá este
+var CACHE_VERSION = 'v1.1.39';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.35**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.39**.
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 >
-> **Desde v1.1.35 (sesión 15-may-2026)** existe `[SW-UPDATE-BANNER]` en admin: cuando se detecta una versión nueva, aparece una pill amarilla sticky-top "Hay una versión nueva del panel disponible · Actualizar →". A diferencia del público, en admin **NO hace auto-reload** — la chica decide cuándo (podrían estar en medio de una venta).
+> **Desde v1.1.35 (sesión 15-may-2026)** existe `[SW-UPDATE-BANNER]` en admin · rediseñado en v1.1.39 a versión "Amarillo BIG" (`[SW-BANNER-V2]`): cuando se detecta una versión nueva, aparece un banner sticky-top con ícono 🔄 grande en círculo negro + título "Nueva versión del panel disponible" + subtítulo + botón "ACTUALIZAR" gigante. A diferencia del público, en admin **NO hace auto-reload** — la chica decide cuándo (podrían estar en medio de una venta).
+>
+> **Técnica `[EMERGENCY-BUMP]` (15-may-2026)**: si una tablet del admin se "queda colgada" con cache híbrido, bumpear el SW sin cambios reales fuerza el flujo `[PWA-AUTO-RELOAD]` en clientes con SW v1.1.32+ y la tablet recarga sola en ~2 min sin que las chicas tengan que tocar nada. Patrón replicable.
 
 Estrategias por tipo de recurso (definidas en `sw.js`):
 - HTML → network-first con fallback a cache + offline
@@ -230,6 +233,8 @@ Cosas que aprendimos a la mala y NO hay que volver a tocar:
 
 Definido en la lógica de admin.html (`currentRole`).
 
+> **Desde 15-may-2026** (commit `eaae7cf`) la tab "💧 Decants" es visible para empleadas también (antes era solo jefe). Si querés esconder solo la sección de "config global de precios escalera" a empleadas pero dejarles cargar decants de diseñador, podés agregar `data-role="jefe"` a las cards específicas en lugar de a toda la tab.
+
 ---
 
 ## 📌 Pendientes conocidos (con prioridad)
@@ -276,4 +281,4 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Mayo 15, 2026 — sesión SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD + SELECCION-BADGE + SW-UPDATE-BANNER. **6 commits live** (`3c9246a` + `d1724ae` + `d4deab5` + `be49c34` + `5f6b9f3` + `31f76a7`). SW v1.1.22 → **v1.1.35**. 12 keywords nuevos. 2 pendientes flageados (UI admin `nota_jefe` + move físico HTML #quizSection).
+**Última actualización:** Mayo 15, 2026 (madrugada del 16) — maratón completo: features premium + QA exhaustivo + incidente urgente tablet admin + rediseño banner update. **13 commits live**. SW v1.1.22 → **v1.1.39** (17 bumps). 17 keywords nuevos. **4 pendientes flageados**: `[BUG-DEC-ADMIN]` (panel admin queda muy abajo) · UI admin `nota_jefe` · Move físico `#quizSection` · cargar precios LE BEAU LE PARFUM + LE BEAU EDT. Doc nueva: `docs/QA-PRE-JULIO.md` con 170 items de validación.

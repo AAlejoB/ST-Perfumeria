@@ -370,6 +370,10 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.33 | [SIMILARES-CDA] modal Ver similares "full premium" · ring de % match + razón humana + botón ⚖ Comparar + badges premium (max 2 con regla "condición fuerte") |
 | v1.1.34 | [SELECCION-BADGE] texto del badge amarillo de Selección ST editable desde admin (tab Destacados) · tabla Supabase `seleccion_st_config` con default "TOP VENTAS" |
 | v1.1.35 | [SW-UPDATE-BANNER] aviso "Hay una versión nueva del panel disponible" en admin · pill amarilla sticky-top · chica decide CUÁNDO actualizar (no auto-reload, contrario al PWA-AUTO-RELOAD del público) |
+| v1.1.36 | [DC-RESPONSIVE-FIX] + [DC-PRECIO-GUARD] urgente · grid de "decants de diseñador" responsive en admin (Galaxy Tab A9 cortaba el campo PRECIO) + custom decants sin precio_unit aparecen atenuados con "⏳ Precio pendiente" + "+" disabled (evita venta a $9500 escalera por error) |
+| v1.1.37 | [DC-PRECIO-PROMINENT] prioridad visual del campo PRECIO + botón GUARDAR · caja amarilla destacada, border rojo con pulse si vacío, botón gigante full-width en tablet/mobile |
+| v1.1.38 | [EMERGENCY-BUMP] forzar update remoto · tablet del admin se colgó con panel derecho vacío al entrar a tab Decants (resultó ser cache híbrido SW viejo + HTML nuevo) · bump SW sin cambios reales para disparar el [PWA-AUTO-RELOAD] de los clientes |
+| v1.1.39 | [SW-BANNER-V2] rediseño del SW-UPDATE-BANNER · variante C "Amarillo BIG" (ícono 🔄 grande en círculo negro + título 1rem + subtítulo + botón gigante "ACTUALIZAR" + sombra dorada fuerte · ~75px vs 46px de la pill anterior) + tab "💧 Decants" del admin ahora visible para empleadas (sin `data-role="jefe"`) |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -498,9 +502,30 @@ Sesión maratónica nocturna (~6 horas, desde la tarde hasta madrugada del 14). 
 
 ---
 
-## 🎉 Sesión mayo 15 2026 — SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD + BADGE EDITABLE + UPDATE-BANNER ADMIN
+## 🎉 Sesión mayo 15 2026 — Maratón completo (públicos + admin + QA + incidente)
 
-Sesión cierra de la madrugada anterior (14-may) → tarde-noche 15-may. **6 commits live** deployados a `main` (`3c9246a`, `d1724ae`, `d4deab5`, `be49c34`, `5f6b9f3`, `31f76a7`). SW v1.1.22 → v1.1.35 (13 bumps).
+Sesión cierra de la madrugada anterior (14-may) → tarde-noche del 15-may.
+**13 commits live** deployados a `main`. SW v1.1.22 → v1.1.39 (17 bumps).
+La sesión cubrió desde features premium hasta un incidente urgente con la tablet
+del admin colgada, QA exhaustivo automatizado, y rediseño del banner de update.
+
+### Commits cronológicos
+
+| Commit | Keyword principal | Sección |
+|---|---|---|
+| `3c9246a` | Pack UX premium (8 keywords) | Features sección A |
+| `d1724ae` | `[PWA-AUTO-RELOAD]` | Auto-reload mágico |
+| `d4deab5` | `[SIMILARES-CDA]` | Modal Ver similares full premium |
+| `be49c34` | docs | Update HISTORIA + CLAUDE |
+| `5f6b9f3` | `[SELECCION-BADGE]` | Badge "TOP VENTAS" editable |
+| `31f76a7` | `[SW-UPDATE-BANNER]` v1 | Aviso "versión nueva" admin (pill chica) |
+| `0338d9c` | docs | Update HISTORIA + CLAUDE |
+| `363ce8a` | `[DC-RESPONSIVE-FIX]` + `[DC-PRECIO-GUARD]` | Fix urgente · precio decants diseñador |
+| `24db79b` | `[DC-PRECIO-PROMINENT]` | Prioridad visual precio + guardar |
+| `03f4947` | docs QA-PRE-JULIO | Checklist 170 items para QA |
+| `ccd1cc1` | `[EMERGENCY-BUMP]` | Force update tablet colgada |
+| `eaae7cf` | `[SW-BANNER-V2]` + tab Decants empleadas | Rediseño banner + permiso ampliado |
+| pendiente | docs | Este update |
 
 ### Bugs resueltos
 
@@ -533,10 +558,54 @@ Sesión cierra de la madrugada anterior (14-may) → tarde-noche 15-may. **6 com
 
 Histórico colapsado al final mantiene referencia a iters previos (BANNER-V2, DECANTS-UX-2 etc).
 
-### Pendientes flageados (no críticos)
+### Pendientes flageados
 
-1. **UI admin para "Quote del jefe"** — SQL ya corrido por el jefe (`ALTER TABLE perfume_overrides ADD COLUMN nota_jefe TEXT`). Frontend ya lee `p.nota_jefe` en `applyOverrideToPerfume`. **Solo falta** un `<textarea>` en admin.html (modal Editar perfume o similar) donde el jefe escriba el texto del quote. Aparecerá en Selección ST top 6 en italic Cormorant Garamond. Esfuerzo ~20 min, deploy fuera de horario operativo.
-2. **Move físico HTML del `#quizSection`** — Hoy funciona vía JS-move sync pre-paint (sin FOUC). Falta cortar las ~120 líneas del bloque después del FAQ y pegarlas antes de `<section class="section-nosotros">`, después borrar el script JS-move. Esfuerzo ~10 min. Sirve para coherencia HTML/SEO/mantenibilidad.
+1. 🔥 **`[BUG-DEC-ADMIN]`** — panel admin (tab Decants) se renderea MUY abajo del menú lateral. Screenshots del 15-may noche muestran espacio negro enorme arriba del "Configuración Pack de Decants". Hipótesis: el sidebar `[ZAPATO]` empuja contenido en lugar de superponerse. Alejo sugirió "que el sidebar pase por arriba del panel" (convertirlo a overlay fixed). Esfuerzo ~1-2hs · validar en tablet real antes del fix. Documentado en memoria `pendientes_post_15_may_2026.md`.
+2. **UI admin para "Quote del jefe"** — SQL ya corrido (`ALTER TABLE perfume_overrides ADD COLUMN nota_jefe TEXT`). Frontend ya lee `p.nota_jefe` en `applyOverrideToPerfume`. **Solo falta** un `<textarea>` en admin.html (modal Editar perfume o similar) donde el jefe escriba el texto del quote. Aparecerá en Selección ST top 6 en italic Cormorant Garamond. Esfuerzo ~20 min, deploy fuera de horario operativo.
+3. **Move físico HTML del `#quizSection`** — Hoy funciona vía JS-move sync pre-paint (sin FOUC). Falta cortar las ~120 líneas del bloque después del FAQ y pegarlas antes de `<section class="section-nosotros">`, después borrar el script JS-move. Esfuerzo ~10 min. Sirve para coherencia HTML/SEO/mantenibilidad.
+4. **Cargar precios de 2 decants de diseñador faltantes** — LE BEAU LE PARFUM (id 12) y LE BEAU EDT (id 13). Las 2 están con `precio_unit = NULL` en `decants_custom`. Están bloqueadas correctamente por `[DC-PRECIO-GUARD]` (cliente NO puede comprar a $9500 escalera), pero el jefe / chicas deben ir al admin tab Decants → sección Decants de diseñador → cargar precio. ~3 min cada una.
+
+### Incidente nocturno · tablet del admin colgada
+
+**Cuándo**: 15-may noche · post-deploy de `[DC-PRECIO-PROMINENT]` (v1.1.37).
+
+**Síntoma**: Alejo reporta que las chicas ven el panel derecho del admin **completamente vacío** al entrar a la tab Decants. La sidebar carga OK pero el contenido no renderiza.
+
+**Diagnóstico** (con preview tool · 30 min de investigación):
+- Verifiqué que el HTML del `#tab-decants` SÍ existe en el DOM (7 children, contenido correcto).
+- Reproducí el escenario post-login en preview 800×1280 (Galaxy Tab A9 vertical) y NO encontré bug · todo renderiza correcto (tabDecants 2715×785, 7 secciones visibles).
+- **Conclusión: el código está OK. Es cache híbrido** en la tablet de las chicas (SW viejo cacheado + HTML nuevo servido).
+
+**Solución aplicada**:
+- `[EMERGENCY-BUMP]` (commit `ccd1cc1`) · bump de SW v1.1.37 → v1.1.38 sin cambios reales · disparó el flujo `[PWA-AUTO-RELOAD]` cacheado en clientes con SW v1.1.32+ · la tablet recargó sola en ~2 min.
+- Después se descubrió que el problema real era visual: el panel SÍ renderea pero **MUY ABAJO** del menú lateral (queda como espacio negro arriba). Eso es el bug `[BUG-DEC-ADMIN]` documentado para próxima sesión.
+
+**Lección**: cuando el cliente reporta "panel vacío", verificar PRIMERO con preview tool si el código está OK · si está OK, asumir cache híbrido y forzar update con SW bump · si después de bump sigue mal, es bug visual real.
+
+### QA Pre-Julio · sesión automatizada completa
+
+Después del incidente, Alejo pidió un QA del sitio (público + admin) antes de su viaje a Buenos Aires en julio. Creamos:
+
+1. **`docs/QA-PRE-JULIO.md`** · checklist de **~170 items** organizados en 20 secciones (A-T): admin completo + público completo + perf + PWA + SEO. Items críticos marcados con "CRITICO" · items que requieren tablet real con 🪨.
+
+2. **QA Opción C automatizado** (sin pass admin · solo público) · ~45 min · 14 secciones recorridas con preview tool:
+   - ✅ `[CARD-STRETCH-FIX]` confirmado · card 382px (no 900) con 1 favorito
+   - ✅ `[SORTMENU-Z]` z-index 100 funciona
+   - ✅ `[SIMILARES-CDA]` ring + razón + badges + Comparar funcionan
+   - ✅ `[COMPARE-V2]` 3 cards · diferencias · botón "Elegir este"
+   - ✅ Armador decants completo (tabs + combo sticky + precio pendiente)
+   - ✅ Carrito + buildWaMessage (URL armada correctamente · interceptor bloqueó 1 wa.me)
+   - ✅ Selección ST con podio + TOP VENTAS
+   - ✅ Juegos ST posición correcta (antes Nosotros y FAQ)
+   - ✅ Performance · DOMContentLoaded 147ms · loadComplete 541ms
+   - ✅ PWA · SW activated · manifest · theme-color
+   - ✅ SEO · title · description · OG · canonical
+
+3. **Bug crítico encontrado**: `[FAQ-LIGHT-LEGIBILIDAD]` · texto de FAQ en light mode es `rgb(224,224,224)` sobre fondo crema · contraste ~1.2:1 (WCAG fail catastrófico). Pendiente fix (Alejo dijo "frenar todo" antes de aplicarlo · queda para próxima sesión).
+
+4. **Bug visual menor encontrado**: combo sticky "Combinás bien con" en armador NO aparece cuando hay SOLO decants de diseñador (customs) en el pack · algoritmo `findCombinaBienCon` salta customs. Mejora futura · no crítico.
+
+5. **Seguridad confirmada**: 0 modificaciones a Supabase · 0 push notifications enviadas · 0 WhatsApp mandados (1 wa.me bloqueado por interceptor) · 0 ruido en realtime de las chicas.
 
 ### Decisiones de diseño
 
@@ -559,7 +628,7 @@ Histórico colapsado al final mantiene referencia a iters previos (BANNER-V2, DE
 
 ---
 
-**Última actualización:** Mayo 15, 2026 (noche-tarde) — sesión SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD + SELECCION-BADGE + SW-UPDATE-BANNER. **6 commits live** · SW v1.1.22 → v1.1.35.
+**Última actualización:** Mayo 15, 2026 (noche-tarde) — maratón completo: SIMILARES + COMPARE + SELECCIÓN + JUEGOS + PWA-AUTO-RELOAD + SELECCION-BADGE + SW-UPDATE-BANNER (v1 y v2) + DC-RESPONSIVE-FIX + DC-PRECIO-GUARD + DC-PRECIO-PROMINENT + QA-PRE-JULIO + incidente tablet admin colgada + tab Decants para empleadas + BUG-DEC-ADMIN flageado. **13 commits live** · SW v1.1.22 → **v1.1.39** (17 bumps).
 **Próxima revisión cuando:** se cargue UI admin para `nota_jefe`, se haga move físico HTML del #quizSection, se haga migración a bcrypt, se agregue la tab Orden de Compra, o cualquier cambio de arquitectura.
 
 ---
@@ -572,6 +641,7 @@ Cuando Alejo abra un chat nuevo de Claude Code en este repo:
 2. **Leer este archivo `docs/HISTORIA.md`** (TODO el histórico)
 3. **Si hay tarea específica:** preguntar qué quiere atacar
 4. **Si no hay tarea:** ofrecer la lista de pendientes:
+   - 🔥 **`[BUG-DEC-ADMIN]`** — panel admin (tab Decants) se renderea MUY abajo del menú lateral · screenshots muestran espacio negro enorme arriba del "Configuración Pack de Decants" · hipótesis: sidebar `[ZAPATO]` empuja contenido en lugar de superponerse · Alejo sugirió "que el sidebar pase por arriba del panel" (convertirlo a overlay fixed con z-index alto) · ~1-2hs · validar con tablet real antes de fix.
    - 🔥 **UI admin para `nota_jefe`** — SQL ya corrido + frontend ya lee · falta el `<textarea>` en admin.html para que el jefe cargue el quote. ~20 min · fuera de horario operativo (10-21 ARG).
    - 🔥 **Move físico HTML del `#quizSection`** — hoy via JS-move sync · falta cortar las ~120 líneas del HTML y pegarlas antes de #nosotros + borrar el script. ~10 min · cualquier momento.
    - `[SIRENITA]` — sistema de Campañas multi-promo (tabla DB nueva)
@@ -617,6 +687,14 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[JUEGOS-3C]` — CTA banner "Encontrá tu perfume" copy reescrito de pregunta abstracta a imperativo directo: "¿No sabés cuál perfume comprar? · 4 preguntas, 3 recomendaciones, gratis →" + "Jugar" (antes "¿3 opciones distintas con solo 4 preguntas? · Jugá gratis y elegí" + "Probar"). Mejor CTR esperado siguiendo UX best-practice (verbos activos > preguntas abstractas).
 - `[PWA-AUTO-RELOAD]` — auto-reload mágico post-SW-update. Cuando se deploya versión nueva, el SW v1.1.32+ toma control inmediato (skipWaiting + clients.claim ya estaban) y ahora el frontend RECARGA SOLO la página para que el cliente vea la versión nueva sin tocar F5. **Mitigación anti-interrupción**: el reload SOLO ocurre si el cliente NO está interactuando (modal abierto, input/textarea/select focused, scroll últimos 3s, first visit sin SW previo). Se postergan los reloads con `setTimeout(safeReload, 5000)` hasta que esté "quieto". El tracker de scroll es `passive` sin impacto perf. Implementado en `app.js` reemplazando el listener `controllerchange` simple. Garantía: cliente nunca pierde scroll position, datos de formulario, modal en curso ni armado de pack. NOTA: cliente con SW previo a v1.1.32 sigue necesitando F5 una vez para tomar v1.1.32; de ahí en adelante todos los updates futuros son auto-reload.
 - `[SIMILARES-CDA]` — modal "Ver similares" full premium (combo C+D+A según mockup aprobado el 15-may). **Ring** SVG circular de % match (`.sim-ring-fg-arc` con `stroke-dashoffset` animado .7s ease) con 3 score classes: high (≥85%, oro #ffd700), mid (70-85%, dorado), low (<70%, bronce #cd7f32). **Botón "⚖ Comparar"** (`.sim-btn-comparar`) que llama `compareSimilar(anchorSlug, similarSlug)` → agrega ambos a `compareList` + activa visualmente los `.compare-btn` de las cards + cierra modal de similares. **Razón humana** (`.sim-razon-humana`): chips de notas compartidas (max 6 visibles + "+N más" si excede) calculados con `getCommonNotesList(anchor, similar)`. **Badges premium** (`.sim-badges`) con regla "**condición fuerte + máx 2 badges por item**": 🏆 Mejor match (solo el #1 absoluto), 💎 Misma casa (marca_real coincide), 🎯 Mismo perfil (perfil coincide AND pct≥75 — la regla fuerte que evita saturar con badges débiles), 🔥 El más elegido (slug en `TOP_VENTAS_SLUGS[0..2]`). Prioridad de inserción al pick 2: best > elegido > casa > perfil. Mobile @ <540px: 3 cols + reflow del botón comparar a row 2 full-width. Light mode override completo. Helpers nuevos: `getCommonNotesList`, `getMatchPct`, `getSimilarityBadges`, `compareSimilar`. `buildSimilarItemHTML` reescrito completamente con firma `(p, opts)` donde opts incluye anchorPerfume + pct + isBest + subtitle + topElegidosSlugs. `showSimilares` calcula `bestSlug` (primer manual si hay, sino primer algorítmico) y pasa opts a cada item.
+- `[DC-RESPONSIVE-FIX]` — fix urgente del 15-may: la grid de "decants de diseñador" en el admin (`renderDecantsCustomList`) era fija de 7 cols (60+1.3fr+1fr+110+70+80+110 = ~800px) y se cortaba en Galaxy Tab A9 vertical (800px) → el campo PRECIO quedaba afuera de la pantalla → las chicas no lo veían → cargaban precio NULL → el armador caía a la escalera regular ($9500). Fix: convertir la grid a responsive con 3 breakpoints (≥1100 desktop · 701-1099 tablet stack · ≤540 mobile stack). Labels arriba de cada input en tablet/mobile · label "💰 Precio" SIEMPRE visible en amarillo. Sin tocar JS.
+- `[DC-PRECIO-GUARD]` — defensa preventiva del 15-may: si un decant custom NO tiene `precio_unit` válido (>0), en `customCardHTML` se muestra atenuado (opacity .68 + filter saturate .6) con texto "⏳ Precio pendiente" naranja en lugar del precio · botón "+" deshabilitado con tooltip "El admin todavía está cargando el precio" · cliente NO PUEDE agregarlo al pack. Apenas el admin carga el precio, la card vuelve al estado normal (next reload con `[PWA-AUTO-RELOAD]`). Garantía cero venta a $9500 escalera por decant de diseñador con precio NULL.
+- `[DC-PRECIO-PROMINENT]` — prioridad visual del campo PRECIO + botón GUARDAR en la fila de decants custom. Caja amarilla destacada con border 1.5px dorado + box-shadow + bg amarillo soft. Input precio con font 1rem desktop (1.2rem mobile), peso 800, color dorado, bg negro contrastante. Warning animado (border rojo + pulse 2s) si el input está vacío. Botón GUARDAR full-width en tablet/mobile con min-height 44px (target táctil cómodo). Label "💰 PRECIO" siempre visible incluso desktop.
+- `[FAQ-LIGHT-LEGIBILIDAD]` — bug detectado en QA del 15-may noche. Pendiente fix. Texto de `.faq-question` en light mode tiene color `rgb(224,224,224)` (casi blanco) sobre fondo `rgb(245,239,222)` (crema clarito) · contraste ~1.2:1 → WCAG fail catastrófico · las preguntas del FAQ son ilegibles en light mode. Verificado en preview con `getComputedStyle`. La regla `body:not(.dark-mode) .faq-question` existe en línea 7158 (color #1a1a1d) pero hay otra regla más específica que está ganando. Fix esperado: agregar `!important` a la regla light + investigar qué regla más específica gana. Esfuerzo ~10 min.
+- `[EMERGENCY-BUMP]` — técnica del 15-may noche para forzar update remoto de la tablet del admin cuando se quedó "colgada" con cache híbrido. Consiste en bumpear el SW (v1.1.37→v1.1.38) sin cambios reales · eso dispara el `updatefound` listener en los clientes con SW v1.1.32+ · `[PWA-AUTO-RELOAD]` recarga la página automáticamente · cliente ve la versión nueva sin tocar nada. Útil cuando el feedback del usuario es "se quedó colgado" y se sospecha cache. Documentado como patrón replicable.
+- `[SW-BANNER-V2]` — rediseño del `[SW-UPDATE-BANNER]` original (pill chica 46px) a versión "Amarillo BIG" (variante C de los mockups). Layout nuevo: ícono 🔄 grande (44×44) dentro de círculo negro · título "Nueva versión del panel disponible" (1rem · 800w) · subtítulo "Tocá actualizar para tomar los últimos cambios y mejoras" (.7rem · 78% opacity) · botón "ACTUALIZAR" gigante pill negra (padding 10×22 · 900w · 24px radius) · botón × redondo. Gradient 135deg `#ffd000 → #e8b800 → #c89800` + box-shadow dorado 24px. ~75px alto vs 46px anterior. Responsive: desktop horizontal · tablet (≤900) más compacto · mobile (≤540) botón pasa a fila propia full-width. Razón del cambio: la pill anterior era discreta y la chica del local no le prestó atención cuando la tablet se colgó · la nueva versión es imposible de ignorar manteniendo paleta amarilla coherente.
+- `[QA-PRE-JULIO]` — checklist exhaustivo de ~170 items para validar todo el flujo antes del viaje de Alejo a Buenos Aires en julio. Cubre: admin (login, navegación, precios, decants, destacados, horario, puntos, push) + público (nav, catálogo, filtros, card detalle, similares, compare, armador, carrito, selección ST, juegos, login, light mode) + perf (LCP/FCP/CLS) + PWA + SEO. Items críticos marcados con palabra "CRITICO" · items que requieren tablet real con 🪨 (~10 items: touch, performance, fuentes). Setup instructivo al inicio (F12 emulado 800×1280 para Tab A9). Template al final para reportar bugs en formato parseable. Vive en `docs/QA-PRE-JULIO.md`. Reutilizable cada vez que se quiera validar el sitio.
+- `[BUG-DEC-ADMIN]` — bug pendiente (no fixeado todavía). En el admin, al entrar a la tab "💧 Decants" desde algunos viewports, el contenido del panel ("Configuración Pack de Decants") aparece con un ESPACIO NEGRO ENORME arriba · está rendereándose MUY DEBAJO del menú lateral, como si el sidebar `[ZAPATO]` tuviera height fija que empuja el main hacia abajo. Hipótesis: el sidebar es position:relative o static y ocupa altura completa del viewport en ciertos breakpoints · el `.admin-main` no tiene margin-left adecuado · o overflow mal configurado. Sugerencia del usuario: convertir el sidebar a overlay (position: fixed + z-index alto) que TAPE el contenido principal en lugar de empujarlo. Esfuerzo ~1-2hs · validar con tablet real antes del fix. Documentado en `memory/pendientes_post_15_may_2026.md`.
 - `[SELECCION-BADGE]` — texto del badge amarillo de las cards de Selección ST editable desde admin. Antes hardcoded "HOT SALE" → ahora dinámico cargado desde Supabase tabla `seleccion_st_config` (single-row, id=1, badge_text TEXT, updated_at TIMESTAMPTZ) con default "TOP VENTAS" + RLS pública. **Admin** (`admin.html` tab Destacados, arriba del buscador de perfumes): nuevo bloque `🏷️ Texto del banner amarillo (badge)` con input `maxlength=20` auto-uppercase + botón "💾 Guardar badge" + mensaje inline éxito/error 4s. Handler `saveSeleccionBadge()` hace upsert con `onConflict:'id'` + `logAdminAction('seleccion_badge_update')`. `loadSeleccionBadge()` se invoca dentro de `loadDestacados()` para cargar el valor actual cuando la chica abre la tab. **Frontend** (`app.js`): variable global `SELECCION_BADGE_TEXT` con default 'TOP VENTAS' (para primer paint sin Supabase). `loadSeleccionStConfig()` vía deferTask → si Supabase devuelve badge_text válido, actualiza la variable + re-renderea `renderSeleccionST()`. `renderSeleccionST()` ahora usa `escapeHTML(SELECCION_BADGE_TEXT)` en lugar del 'HOT SALE' hardcoded. Útil para campañas: HOT SALE, NUEVO, OFERTA, 50% OFF, BLACK FRIDAY, ANIVERSARIO ST, DÍA DEL PADRE, etc.
 - `[SW-UPDATE-BANNER]` — aviso "Hay una versión nueva del panel disponible" en `admin.html`. A diferencia del `[PWA-AUTO-RELOAD]` del front público (que recarga sola con mitigación), en admin la chica decide CUÁNDO actualizar — podrían estar en medio de una venta, editando precios o ajustando stock; una recarga forzada perdería lo que están haciendo. **HTML**: pill amarilla sticky-top con ícono 🔄 (gira lento, 2.5s linear infinite) + texto "Hay una **versión nueva** del panel disponible" + botón "Actualizar →" (pill negra contrastante, click → `location.reload()`) + botón cerrar × (esconde el banner, la chica decide actualizar más tarde). hidden por default. **CSS**: `position: sticky; top: 0; z-index: 9999` (arriba de todo, sobre nav admin y sidebar). Gradient `#f5d442 → #e8b800`. Slide-down animation .4s al aparecer (respeta `prefers-reduced-motion`). Mobile @<540px: padding más justo, fuentes chicas. **JS**: `serviceWorker.register('/sw.js', { updateViaCache: 'none' })` propio del admin (antes no tenía). Si `reg.waiting` existe al cargar Y hay `controller` → muestra banner (caso: la chica abre admin después de que index.html bajara la nueva). Listener `updatefound` cuando `newSW.state === 'installed'` Y hay controller → showUpdateBanner() + `postMessage SKIP_WAITING`. El cliente sin SW previo (first visit) NO ve banner — no hay nada que actualizar.
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
