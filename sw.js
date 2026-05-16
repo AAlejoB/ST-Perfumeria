@@ -28,12 +28,16 @@
 //
 // Esperado combinado: TBT -140ms + CLS hero -0.2-0.4 = score +8-15 puntos.
 //
-// [HERO-MIN-HEIGHT-DOWN] Al sacar el <p class="hero-sub"> el contenido del
-// hero quedó en ~160px pero el min-height anterior (320 mobile / 380 desktop)
-// dejaba ~150px de espacio fantasma negro debajo del título. Bajamos a 220/260
-// para eliminar el hueco visual. SOLO BAJAR · subirlo dispara el bug del
-// layout-recalc raro que vimos en v1.1.43.
-var CACHE_VERSION = 'v1.1.52';
+// [HERO-COMPACT] Mejora visual final del hero post HERO-SUB-MOVE.
+// El bajón previo del min-height (320→220) no fue suficiente · seguía
+// quedando espacio negro debajo del badge #storeStatus. Esta iteración:
+//   - ELIMINA el min-height del hero (el contenido manda altura natural).
+//   - Baja padding-bottom: 2.5rem→1.25rem mobile, 3rem→1.5rem tablet,
+//     4rem→1.75rem desktop. Padding-top también un poco más compacto.
+// Resultado: hero pasa de ~320px a ~140-180px según viewport · apenas
+// deja respirar al storeStatus como el usuario pidió.
+// NUNCA volver a poner min-height alto · dispara el bug v1.1.43.
+var CACHE_VERSION = 'v1.1.53';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

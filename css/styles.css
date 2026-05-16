@@ -900,7 +900,10 @@
        HERO — BASE (mobile)
     ================================================ */
     .hero {
-      padding: 3rem 1.5rem 2.5rem;
+      /* [HERO-COMPACT] padding-bottom reducido de 2.5rem a 1.25rem porque
+         sin el .hero-sub el contenido queda más compacto y antes sobraba
+         espacio negro debajo del badge storeStatus. */
+      padding: 2.5rem 1.5rem 1.25rem;
       text-align: center;
       position: relative; overflow: hidden;
       border-bottom: 1px solid var(--borde);
@@ -931,12 +934,12 @@
     }
 
     @media (min-width: 768px) {
-      .hero { padding: 4rem 2rem 3rem; text-align: center; }
+      .hero { padding: 3rem 2rem 1.5rem; text-align: center; }  /* [HERO-COMPACT] */
       .hero-tagline { font-size: .68rem; letter-spacing: .35em; margin-bottom: 1rem; }
       .hero-sub { max-width: 420px; margin: 0 auto; }
     }
     @media (min-width: 1024px) {
-      .hero { padding: 5rem 2rem 4rem; }
+      .hero { padding: 3.5rem 2rem 1.75rem; }  /* [HERO-COMPACT] */
     }
 
     /* ================================================
@@ -9159,17 +9162,14 @@
       max-width: 100%;
     }
 
-    /* Hero: reservar altura mínima para evitar shift al cargar fonts.
-       [LIGHTHOUSE-15JUN-FULL-REVERT] La iteración v1.1.43 subió esto a 380/460/500
-       buscando absorber el shift por swap de fuentes. Resultó contraproducente.
-       [HERO-SUB-MOVE] Después de mover el <p class="hero-sub"> a #nosotros el
-       contenido del hero quedó solo con tagline + title (cabe en ~160px). El
-       min-height anterior (320/380) dejaba ~150px de espacio fantasma negro.
-       BAJAMOS a 220/260 — suficiente buffer para que el hero respire + las
-       decoraciones (.hero::before radial gradient, blobs) se vean. NUNCA SUBIR
-       de vuelta · subirlo dispara el layout-recalc raro que vimos. */
-    .hero { min-height: 220px; }
-    @media (min-width: 768px) { .hero { min-height: 260px; } }
+    /* [HERO-COMPACT] min-height ELIMINADO · el hero ahora toma altura natural
+       del contenido (tagline + title + storeStatus ~120-180px según viewport).
+       Padding-bottom también bajó. Razón: sin el .hero-sub la altura natural
+       es chica y reservar min-height generaba "espacio negro fantasma" debajo
+       del storeStatus que el usuario reportó como feo. Como tagline + title
+       son SIEMPRE 1 línea cada uno con cualquier fuente (textos cortos en
+       <90 chars), el shift por swap de fuentes es despreciable. NUNCA volver
+       a poner min-height alto · dispara el layout-recalc raro de v1.1.43. */
 
     /* ════════════════════════════════════════════════════════════════
        [FANTASMA] Revert parcial de [IMG-DIMS] (v1.1.10).
