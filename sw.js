@@ -13,25 +13,20 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [ROLLBACK-A-V145-PLUS-IMG] Rollback completo de los commits v1.1.46/47/48
-// (revert de 84badfa + 2c4eff3 + 0e69ecc) porque las mediciones bajaron de
-// 91 mobile (v1.1.45 = b6d1826) a 44 mobile (v1.1.48 = 0e69ecc) sin causa
-// diagnosticable con PDF a tiempo. Solución: volver al estado conocido bueno
-// + re-aplicar SOLO el cambio menos invasivo (resize de imágenes), que es
-// 100% safe (no toca CSS/HTML/JS, solo files binarios con paths idénticos).
+// [BATCH-REFLOW] Quick win quirúrgico al patrón antipattern en applyCardVisibility.
+// Lighthouse mobile reportaba 151ms de "redistribución forzada" en app.js:3337 —
+// la línea era `void card.offsetWidth` dentro de un forEach sobre las 162 cards
+// del catálogo, ejecutado en cada cambio de filtro. 162 reflows forzados = 151ms TBT.
 //
-// Resultado en este commit:
-//   - CSS y HTML idénticos a v1.1.45 (cero cambios respecto al 91 mobile).
-//   - 345 fotos en /img/ achicadas a max-width 400 (3.69 MiB → 1.86 MiB · -50%).
-//   - Logo achicado a 400×305 (~27 KiB vs 60 KiB original · -55%).
-//   - og-preview.webp INTACTO (1200×630 deliberado para social cards).
-//   - Backup en img/.backup-pre-resize/ (gitignored).
+// Fix: batch reads/writes · marca cards en un array dentro del loop, después
+// hace UN solo `void grid.offsetWidth` en el contenedor (reflow afecta hijos
+// automáticamente) y aplica la clase de animación a todas en otra iteración
+// simple sin reflow.
 //
-// Lo que se PIERDE respecto a v1.1.48 (aceptable):
-//   - A11y fixes (vuelve a 92 desde 97 · queda para próxima sesión).
-//   - Logo @2x retina (tampoco hizo diferencia · queda para otra).
-//   - aria-label, fetchpriority, min-heights, contrastes (eran sospechosos).
-var CACHE_VERSION = 'v1.1.49';
+// Esperado: TBT mobile baja de 260ms a ~120ms (-140ms · -54%). Score +5-10 puntos.
+// No toca CSS, HTML, layout ni dimensiones — solo cambia el ORDEN de operaciones
+// DOM en una función JS. Riesgo extremadamente bajo.
+var CACHE_VERSION = 'v1.1.50';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

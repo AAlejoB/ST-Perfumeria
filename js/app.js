@@ -3264,6 +3264,7 @@
       var cards = document.querySelectorAll('.product-card');
       var matchIndex = 0;   // contador de cards que matchean
       var totalMatch = 0;   // total de cards que pasan todos los filtros
+      var _cardsToReAnimate = []; // [BATCH-REFLOW] cards a re-animar (batch al final)
       cards.forEach(function(card) {
         // FILTRO 1: Categoría (todos / hombre / mujer / unisex / favs)
         var catMatch;
@@ -3327,15 +3328,17 @@
         if (catMatch && newMatch && searchMatch && noteMatch && occasionMatch && priceMatch) {
           totalMatch++;
           if (matchIndex < cardsShown) {
-            // Si estaba oculta y pasa a visible, animar entrada
+            // [BATCH-REFLOW] Si estaba oculta y pasa a visible, marcar para re-animar.
+            // El antiguo patrón hacía `void card.offsetWidth` adentro de este forEach
+            // por CADA card que entraba — 162 reflows forzados = 151ms TBT (reporte
+            // Lighthouse). Ahora batchamos: todas las lecturas/escrituras de display
+            // primero, después UN solo reflow en el contenedor, después la clase.
             var wasHidden = card.style.display === 'none';
             card.style.display = 'flex';
             card.style.contentVisibility = 'visible';
             if (wasHidden) {
               card.classList.remove('filter-entering');
-              // forzar reflow para que la animación re-arranque
-              void card.offsetWidth;
-              card.classList.add('filter-entering');
+              _cardsToReAnimate.push(card);
             }
           } else {
             card.style.display = 'none';
@@ -3347,6 +3350,13 @@
           card.style.contentVisibility = 'auto';
         }
       });
+      // [BATCH-REFLOW] UN solo reflow forzado en el contenedor (afecta a todos
+      // los hijos automáticamente) + re-aplicar clase de animación en batch.
+      if (_cardsToReAnimate.length > 0) {
+        var _grid = document.getElementById('catalogGrid');
+        if (_grid) { void _grid.offsetWidth; }
+        _cardsToReAnimate.forEach(function(c) { c.classList.add('filter-entering'); });
+      }
       var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
       document.getElementById('filterCount').textContent = label;
       // Re-observar cards recién visibles (load more / cambio de filtro)
