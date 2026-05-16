@@ -7173,13 +7173,45 @@
     body:not(.dark-mode) p, body:not(.dark-mode) li { color: #2a2a2d; }
     body:not(.dark-mode) .home-slider-viewport { background: #e8e4d8; border-color: rgba(0,0,0,.08); }
     body:not(.dark-mode) .home-top-banner { background: #1a1a1d; color: #fff; }
+    /* [LIGHT-SECTIONS-FORCE] Forzar background transparent (heredan body
+       cream) en TODAS las secciones del light mode con !important. Sin esto,
+       cualquier regla específica con bg dark gana en cascade y deja la sección
+       oscura sobre body cream (los "cuadrados que ignoran el fondo" del jefe). */
     body:not(.dark-mode) .sets-section,
     body:not(.dark-mode) .section-seo-hub,
     body:not(.dark-mode) .section-nosotros,
     body:not(.dark-mode) .section-faq,
     body:not(.dark-mode) .quiz-section,
     body:not(.dark-mode) .tu-sector,
-    body:not(.dark-mode) .decant-banner { background: transparent; color: #1a1a1d; }
+    body:not(.dark-mode) .seleccion-st,
+    body:not(.dark-mode) .section-cats,
+    body:not(.dark-mode) .map-section,
+    body:not(.dark-mode) .recent-views,
+    body:not(.dark-mode) .decant-banner { background: transparent !important; color: #1a1a1d; }
+    /* [LIGHT-TITLES-FORCE] Headings grandes de sección NUNCA quedan ilegibles
+       sobre cream. Override con !important para vencer cualquier color claro
+       heredado del dark mode default. */
+    body:not(.dark-mode) .sets-section h1,
+    body:not(.dark-mode) .sets-section h2,
+    body:not(.dark-mode) .section-seo-hub h1,
+    body:not(.dark-mode) .section-seo-hub h2,
+    body:not(.dark-mode) .section-nosotros h1,
+    body:not(.dark-mode) .section-nosotros h2,
+    body:not(.dark-mode) .section-faq h1,
+    body:not(.dark-mode) .section-faq h2,
+    body:not(.dark-mode) .quiz-section h1,
+    body:not(.dark-mode) .quiz-section h2,
+    body:not(.dark-mode) .tu-sector h1,
+    body:not(.dark-mode) .tu-sector h2,
+    body:not(.dark-mode) .tu-sector .tu-sector-title,
+    body:not(.dark-mode) .seleccion-st h1,
+    body:not(.dark-mode) .seleccion-st h2,
+    body:not(.dark-mode) .section-cats h1,
+    body:not(.dark-mode) .section-cats h2,
+    body:not(.dark-mode) .map-section h1,
+    body:not(.dark-mode) .map-section h2,
+    body:not(.dark-mode) .recent-views h1,
+    body:not(.dark-mode) .recent-views h2 { color: #1a1a1d !important; }
     body:not(.dark-mode) .quiz-box,
     body:not(.dark-mode) .misel-section,
     body:not(.dark-mode) .nosotros-cultura,
