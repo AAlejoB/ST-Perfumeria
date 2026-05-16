@@ -5705,6 +5705,47 @@
       }
     }
 
+    /* [LIGHT-CTA-POP] Botones "VER CATÁLOGO" + "JUGAR" en light + desktop:
+       gradiente dorado vibrante + pulse suave + sombra ámbar fuerte para
+       que llamen la atención sobre el fondo cream. Respeta reduced-motion. */
+    @media (min-width: 768px) {
+      body:not(.dark-mode) .price-banner-cta {
+        background: linear-gradient(135deg, #ffd700, #E8B800) !important;
+        color: #1a1a1d !important;
+        font-weight: 900 !important;
+        letter-spacing: .12em !important;
+        box-shadow: 0 0 0 2px rgba(232,184,0,.45), 0 6px 18px rgba(232,184,0,.4) !important;
+        animation: ctaLightPulse 2.4s ease-in-out infinite;
+        transition: transform .15s ease, box-shadow .15s ease;
+      }
+      body:not(.dark-mode) .price-banner-cta:hover {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 3px rgba(232,184,0,.6), 0 10px 28px rgba(232,184,0,.5) !important;
+      }
+      body:not(.dark-mode) .quiz-cta-banner .quiz-cta-cta {
+        background: linear-gradient(135deg, #ffd700, #E8B800) !important;
+        color: #1a1a1d !important;
+        font-weight: 900 !important;
+        box-shadow: 0 0 0 3px rgba(232,184,0,.4), 0 6px 22px rgba(232,184,0,.5) !important;
+        animation: ctaLightPulse 2.4s ease-in-out infinite;
+        transition: transform .15s ease, box-shadow .15s ease;
+      }
+      body:not(.dark-mode) .quiz-cta-banner:hover .quiz-cta-cta {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 4px rgba(232,184,0,.55), 0 10px 32px rgba(232,184,0,.6) !important;
+      }
+    }
+    @keyframes ctaLightPulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.04); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body:not(.dark-mode) .price-banner-cta,
+      body:not(.dark-mode) .quiz-cta-banner .quiz-cta-cta {
+        animation: none !important;
+      }
+    }
+
     /* ================================================
        MI SELECCIÓN ST — Mazo de cartas
     ================================================ */
