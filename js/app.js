@@ -6237,13 +6237,19 @@
       var body = document.body;
       body.classList.toggle('dark-mode');
       var isDark = body.classList.contains('dark-mode');
-      var emoji = isDark ? '☀️' : '🌙';
+      // [LIGHT-TOGGLE-V2] emoji + label sincronizados.
+      // Dark activo → ofrecemos "LIGHT" (cambia AL light si tocás)
+      // Light activo → ofrecemos "DARK" (cambia AL dark si tocás)
+      var emoji = isDark ? '🌙' : '☀️';
+      var label = isDark ? 'LIGHT' : 'DARK';
       var icon = document.querySelector('.dark-toggle-icon');
       var floatIcon = document.getElementById('darkFloatIcon');
       if (icon) icon.textContent = emoji;
       if (floatIcon) floatIcon.textContent = emoji;
       var navIcon = document.getElementById('navThemeIcon');
       if (navIcon) navIcon.textContent = emoji;
+      var navLabel = document.getElementById('navThemeLabel');
+      if (navLabel) navLabel.textContent = label;
       localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
     }
 
@@ -6253,11 +6259,18 @@
       // Si nunca eligió (null) o eligió oscuro ('1') → dark mode
       if (saved !== '0') {
         document.body.classList.add('dark-mode');
-        var emoji = '☀️';
+        // En dark: ofrecemos "LIGHT" (con icono 🌙)
         var icon = document.querySelector('.dark-toggle-icon');
         var floatIcon = document.getElementById('darkFloatIcon');
-        if (icon) icon.textContent = emoji;
-        if (floatIcon) floatIcon.textContent = emoji;
+        if (icon) icon.textContent = '🌙';
+        if (floatIcon) floatIcon.textContent = '🌙';
+        // navThemeIcon y navThemeLabel ya están seteados por el HTML default
+      } else {
+        // En light: ofrecemos "DARK" (con icono ☀️)
+        var navIcon = document.getElementById('navThemeIcon');
+        if (navIcon) navIcon.textContent = '☀️';
+        var navLabel = document.getElementById('navThemeLabel');
+        if (navLabel) navLabel.textContent = 'DARK';
       }
     })();
 
