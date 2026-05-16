@@ -148,10 +148,10 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 
 ```js
 // sw.js línea 16
-var CACHE_VERSION = 'v1.1.53';   // ← incrementá este
+var CACHE_VERSION = 'v1.1.64';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.53**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.64**.
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 >
@@ -281,4 +281,4 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Mayo 16, 2026 (madrugada · post maratón Lighthouse) — sesión de 8+ horas para subir el score mobile (PageSpeed Insights). Empezó en 53.6% mobile y terminó en **100% mobile + 100% A11y + 100% Best Practices + 100% SEO** medido en preview Vercel. **~30 commits acumulados** desde 15-may (18 anteriores + ~12 de la maratón Lighthouse). SW v1.1.42 → **v1.1.53** (11 bumps). Lecciones críticas en `docs/HISTORIA.md` sección "Maratón Lighthouse" — incluyen 7 reglas de oro que NUNCA HAY QUE OLVIDAR (ej. NUNCA subir min-height del .hero · NUNCA font-display:optional · NUNCA medir en main si estás validando un fix en branch · SIEMPRE 3-5 mediciones para tomar mediana). Keywords nuevos clave: `[BATCH-REFLOW]` (-140ms TBT), `[HERO-SUB-MOVE]` (texto del hero a sección Nosotros), `[HERO-COMPACT]` (eliminar min-height del hero), `[CATALOG-IMG-RESIZE]` (344 fotos -50%). **Pendientes para próxima sesión chica:** cache Supabase Storage (1h → 1 año, en dashboard) · A11y 92 → 100 (5 contrastes) · cargar precios LE BEAU.
+**Última actualización:** Mayo 16, 2026 (noche · post Light Mode Rework) — sesión continuación post Maratón Lighthouse. **Light Mode Rework completo** (Opción B coherente cream) + ajustes de CTAs + compactación de #quizSection. ~12 commits adicionales (incluye 4 mergeados via PR #2 + 7 mergeados por merge --no-ff post-PR). SW v1.1.53 → **v1.1.64** (11 bumps). Bug raíz documentado: `body.is-guest` en critical CSS inline ganaba en cascade contra `body:not(.dark-mode)` de styles.css porque el `<style>` inline estaba DESPUÉS del `<link>` a styles.css. Ver `docs/HISTORIA.md` sección "Light Mode Rework" para detalle + recomendaciones para el Alejo/Claude futuro. **Pendientes abiertos:** cache Supabase Storage (1h → 1 año en dashboard) · A11y 92 → 100 (5 contrastes) · logo @2x retina · imágenes Supabase con `?width=400` · JS-CHUNK iter 2 · BCRYPT-MIGRATION · SUPABASE-AUTH · medir Performance Lighthouse de nuevo (posiblemente bajó del 100% por los cambios de light · validar en próx sesión con cabeza fresca).

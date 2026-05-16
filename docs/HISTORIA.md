@@ -402,6 +402,15 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.51 | [HERO-SUB-MOVE] move físico del `<p class="hero-sub">` (texto largo "Perfumes árabes importados...Pasás y la gente gira") desde el hero a la sección `#nosotros` como `.nosotros-intro` · keywords SEO mantenidos · hero queda solo con tagline + title (textos cortos en 1 línea = cero shift por swap de fuentes) |
 | v1.1.52 | [HERO-MIN-HEIGHT-DOWN] bajar min-height del hero 320/380 → 220/260 (sin el `<p>` largo el contenido cabe en ~160px · 220 dejaba ~60px de hueco pero menos visible) |
 | v1.1.53 | ✅ [HERO-COMPACT] ELIMINAR min-height del hero (contenido natural manda · ~140px) + bajar padding-bottom (2.5rem→1.25rem mobile · 3rem→1.5rem tablet · 4rem→1.75rem desktop) · hero queda compacto sin hueco fantasma · MEDICIÓN EN PREVIEW: **100% Performance Mobile + 100% A11y + 100% Best Practices** 🎯 |
+| v1.1.54-56 | [LIGHT-MODE-CREAM-REVERT] + [LIGHT-MODE-CONTAINER-FIX] + [LIGHT-COHERENT-CREAM + LIGHT-TOGGLE-V2] · 3 iteraciones del light mode (primeras 2 falladas por malinterpretación del pedido · 3era Opción B del mockup aprobada) · pill amarilla "LIGHT/DARK" V2 reemplaza el botón circular |
+| v1.1.57 | [LIGHT-CONTACTO-TEXT] override del em "Consultános" con style inline · color amarillo → dorado-marrón en light |
+| v1.1.58 | [LIGHT-CAT-CARDS-CREAM] fix de cat-cards ilegibles (override viejo con #f0ede8 hardcoded para cards dark · ahora #1a1a1d sobre cream) + titles Selección ST y Sets a dorado-marrón |
+| v1.1.59 | [LIGHT-SECTIONS-FORCE] !important en bg transparent de 11 secciones + override h2 a #1a1a1d para evitar titles ilegibles |
+| v1.1.60 | ✅ [LIGHT-BUG-RAIZ] · descubierto con `preview_eval` sobre URL Vercel preview: `body.is-guest { background: #121214 }` en critical CSS inline (index.html:424) ganaba en cascade contra `body:not(.dark-mode)` porque el `<style>` inline está DESPUÉS del `<link>` a styles.css · fix: 2 reglas específicas con `.dark-mode` y `:not(.dark-mode)` + body default `class="is-guest dark-mode"` (evita flash) + JS init que QUITA dark-mode si user eligió light |
+| v1.1.61 | [LIGHT-DESKTOP-TWEAKS] push banner "¿Querés recibir novedades?" letras blancas + FAQ max-width 800 → none (full-width en desktop · light only) |
+| v1.1.62 | [LIGHT-DESKTOP-TWEAKS-2] price-banner-cta amarillo → gris #bbb + FAQ full-width en LIGHT y DARK (sacó scope a light) |
+| v1.1.63 | [LIGHT-CTA-POP] botones "VER CATÁLOGO" + "JUGAR" con gradient dorado vibrante + pulse animation + sombra ámbar (light + desktop) · respeta prefers-reduced-motion |
+| v1.1.64 | [QUIZ-SECTION-COMPACT] reducir padding/gap/margin del #quizSection en desktop (era espacioso) · -80-100px de alto |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -718,10 +727,122 @@ Sesión maratónica de optimización post reporte de PageSpeed Insights del usua
 
 - **Cache-Control en bucket `perfume-fotos` de Supabase Storage** · hoy responde con `max-age=3600` (1h) y `no-cache` · debería ser `public, max-age=604800, immutable` (1 semana). Requiere UI del dashboard. Ahorra -66 KiB en visitas repetidas.
 - **A11y 92 → 100** · 5 contrastes que faltan (`.tag-acorde`, `.occasion-label`, `.cat-count`, `.wa-status--closed`, `.badge-sin-stock`). Todos son cambios de color, cero riesgo.
-- **Cargar precios LE BEAU LE PARFUM (id 12) + LE BEAU EDT (id 13)** · ambos con `precio_unit = NULL` en `decants_custom`. Bloqueados por `[DC-PRECIO-GUARD]` pero pendiente cargar el precio real desde admin.
 - **Logo @2x retina** · re-generar `img/logo-st@2x.webp` (384×292, 27 KiB) sin tocar manifest ni HTML estructural.
 - **Imágenes Supabase Storage con `?width=400` transforms** · Image Transformations ya está habilitado · ahorra -150 KiB extra en fotos servidas desde el bucket.
 - **JS-CHUNK iter 2** · mover quiz + juegos ST + custom cursor + compare modal + share/sharePerfume a `extras.js` lazy-load.
+
+---
+
+### Sesión 16-may noche · **Light Mode Rework** (Opción B Cream)
+
+Refactor completo del light mode pedido por Alejo después del Maratón
+Lighthouse del mismo día. Estado previo: light existía pero con "excepciones
+del jefe" documentadas que dejaban cards/banners oscuros sobre body cream
+(trust-badges, cat-cards, banner EXPLORÁ, puntos banner). Alejo revocó la
+excepción y pidió coherencia visual completa.
+
+**~12 commits** · branch `feat/light-mode-cream-revert-excepciones` mergeada
+en 2 partes: PR #2 (commit `54f02e1`, 5 commits iniciales) + merge --no-ff
+(commit `84eb66c`, 7 commits posteriores). SW v1.1.53 → v1.1.64 (11 bumps).
+
+#### Bug raíz · cómo se descubrió
+
+Después de varios overrides fallidos, Alejo reportó con screenshots que las
+secciones SEGUÍAN oscuras. Diagnóstico final con `preview_eval` inspeccionando
+DOM real en la URL preview Vercel del usuario:
+
+```
+body_classes: "is-guest"  (sin .dark-mode · light mode activo)
+body_bg:      "rgb(18, 18, 20)"  (#121214 DARK · MAL)
+sections bg:  transparent ✓ (heredan body · pero body sigue dark)
+```
+
+**Causa:** en `index.html:424` el critical CSS inline tenía:
+```css
+body.is-guest { background: #121214; }
+```
+
+Esa regla pinta dark el body para users no logueados IGNORANDO el modo.
+Ganaba en cascade contra `body:not(.dark-mode) { background: #e3d6b3 }` de
+styles.css porque:
+- Same specificity (0,1,1 ambos)
+- El `<style>` inline está DESPUÉS del `<link>` a styles.css (línea 422 vs
+  416) · last wins en CSS cascade.
+
+**Fix (commit `29d25f3` · v1.1.60):**
+1. Inline cambió a 2 reglas más específicas:
+   ```css
+   body.is-guest.dark-mode { background: #121214; color: #f0ede8; }
+   body.is-guest:not(.dark-mode) { background: #e3d6b3; color: #1a1a1d; }
+   ```
+2. HTML `<body>` arranca con `class="is-guest dark-mode"` (evita flash
+   cream→dark al cargar).
+3. JS init quita `dark-mode` del body si user eligió light (saved === '0').
+
+#### Keywords cerrados en la sesión
+
+| Keyword | Qué hace |
+|---|---|
+| `[LIGHT-COHERENT-CREAM]` | Opción B del mockup · TODO cream con dorado-marrón #8a6d00 |
+| `[LIGHT-TOGGLE-V2]` | Botón nav: circle amarillo → pill amarilla con texto "LIGHT/DARK" |
+| `[LIGHT-CONTACTO-TEXT]` | Override del em "Consultános" con style inline color amarillo |
+| `[LIGHT-CAT-CARDS-CREAM]` | Fix de override viejo `#f0ede8` (texto claro) en cat-cards que ahora son cream |
+| `[LIGHT-SECTIONS-FORCE]` | `!important` en bg transparent de 11 secciones + h2 a dark |
+| `[LIGHT-BUG-RAIZ]` | El bug del `body.is-guest` inline (causa raíz · 4hs de debug) |
+| `[LIGHT-DESKTOP-TWEAKS]` | Push banner "novedades" letras blancas + FAQ max-width: none |
+| `[LIGHT-DESKTOP-TWEAKS-2]` | price-banner-cta gris #bbb + FAQ full-width en LIGHT y DARK |
+| `[LIGHT-CTA-POP]` | Botones "VER CATÁLOGO" + "JUGAR" gradient dorado vibrante + pulse |
+| `[QUIZ-SECTION-COMPACT]` | Padding/gap reducido en #quizSection desktop (era espacioso) |
+
+#### 💬 Mensaje al Alejo / Claude del futuro
+
+**Sobre Performance:** esta sesión tocó MUCHO el sitio (CSS + HTML + JS). El
+día anterior llegamos al 100% Performance Mobile en preview, pero NO se
+re-midió post Light Mode Rework. Es **muy probable que haya bajado** del
+100% por el peso CSS extra + las animaciones (pulse en CTAs). Verificar
+en sesión próxima con cabeza fresca · no hoy. Si bajó, considerar:
+- Mover los overrides masivos de light a un archivo aparte cargado lazy
+- Bajar la complejidad del pulse animation (`will-change: transform`)
+- Auditar el critical CSS inline (tiene cosas que ya no aplican)
+
+**Sobre Light Mode futuro · qué NO volver a hacer:**
+1. **NO invertir colores "al boleo"** · el jefe lo dijo textual: "no es que se
+   invierten todos los colores así al boleo, aparte no entiendo por qué algunos
+   cuadrados se pintan como ignorando el fondo". Las cards decorativas pueden
+   estar bien siendo "islas" intencionales · o NO · depende del diseño final.
+   SIEMPRE proponer mockups primero.
+2. **NO asumir que el bg del body es transparent · puede estar pisado por
+   critical CSS inline.** Cuando una sección sigue dark a pesar de overrides
+   sin éxito · inspeccionar TODOS los `<style>` inline del `<head>`, no solo
+   `styles.css`.
+3. **El cascade del CSS sí importa con specificity igual.** Inline `<style>`
+   después de `<link>` gana. Si querés que styles.css sea la fuente de verdad,
+   o lo movés ANTES del inline, o usás `!important`, o aumentás specificity.
+
+**Sobre el flow de mockups:**
+- El usuario ELIGIÓ Opción B (coherente cream) en el mockup pero después
+  pidió cambios contradictorios (los CTAs "no destacaban" → +pulse · el
+  banner "EXPLORÁ" pasó a cream pero se notaba menos). Tener en cuenta que
+  un mockup es UN STILL PUNTO en el tiempo · el diseño final puede iterar.
+- Cuando hay 3 opciones en mockup, hacer una versión visualmente comparable
+  side-by-side · NO solo descripción texto.
+
+**Cosas que se SABEN pero pueden olvidarse:**
+- En light mode, los textos amarillos (`#E8B800` `--amarillo`) sobre cream
+  se ven DILUIDOS. Usar siempre `#8a6d00` dorado-marrón para acentos.
+- El subtítulo "Los más elegidos por nuestros clientes" tenía `var(--gris-claro)`
+  inline · en light eso se redefine a `#2a2622` (oscuro · OK sobre cream).
+- El banner "EXPLORÁ" tiene un eyecatcher amarillo en dark · en light
+  pierde el "grito" porque cream es más sutil. Si el jefe quiere CTA fuerte
+  en light, hay que destacarlo aparte (como hicimos con [LIGHT-CTA-POP]).
+
+#### Pendiente flageado en esta sesión
+
+- **`#quizSection` espaciosidad iter 2** (si el ajuste actual de
+  [QUIZ-SECTION-COMPACT] no fue suficiente) · queda para sesión próxima.
+- **Re-medir Performance Lighthouse después de toda esta tanda de Light Mode.**
+  Posible regresión por peso CSS. Si baja, ver bullet "Sobre Performance"
+  arriba.
 
 ---
 
@@ -747,8 +868,8 @@ Sesión maratónica de optimización post reporte de PageSpeed Insights del usua
 
 ---
 
-**Última actualización:** Mayo 16, 2026 (madrugada · post Maratón Lighthouse 8+ hs) — **TODOS LOS SCORES EN 100%** (Performance Mobile + A11y + Best Practices + SEO) medidos en preview Vercel. SW v1.1.42 → **v1.1.53** (11 bumps). Commits que sobrevivieron al cierre: `[CATALOG-IMG-RESIZE]` (-1.87 MiB en 344 fotos), `[BATCH-REFLOW]` (-140ms TBT), `[HERO-SUB-MOVE]` (texto del hero → Nosotros), `[HERO-COMPACT]` (eliminar min-height del hero). 7 reglas de oro nuevas grabadas en sección "Maratón Lighthouse".
-**Próxima revisión cuando:** se haga Cache-Control en Supabase Storage (dashboard, 5 min), A11y 92 → 100 (5 contrastes), cargar precios LE BEAU LE PARFUM + LE BEAU EDT, JS-CHUNK iter 2, migración bcrypt, tab Orden de Compra, o cualquier cambio de arquitectura.
+**Última actualización:** Mayo 16, 2026 (noche · post Light Mode Rework) — sesión continuación post Maratón Lighthouse. Refactor del light mode pedido por el jefe (revocó la "excepción del jefe que siempre oscuras" para trust-badges/cat-cards/banners) · Opción B Cream coherente del mockup. ~12 commits. SW v1.1.53 → **v1.1.64** (11 bumps más). Bug raíz del `body.is-guest` documentado en sección "Light Mode Rework" arriba con recomendaciones para el Alejo/Claude futuro. **PERF NO RE-MEDIDO** post Light Mode Rework · podría haber bajado del 100% del día anterior por peso CSS + animaciones · validar en próxima sesión con cabeza fresca (Alejo lo flagueó él mismo).
+**Próxima revisión cuando:** re-medir Performance Lighthouse post Light Mode, Cache-Control en Supabase Storage, A11y 92 → 100, logo @2x retina, imágenes Supabase con `?width=400`, JS-CHUNK iter 2, BCRYPT-MIGRATION, SUPABASE-AUTH, o cualquier cambio de arquitectura.
 
 ---
 
