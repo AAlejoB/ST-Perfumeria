@@ -7950,10 +7950,16 @@
     body:not(.dark-mode) .cart-item-name { color: #1a1a1d !important; }
     body:not(.dark-mode) .cart-item-meta { color: #5e564a !important; }
 
-    /* ── Categorías (cards quedan oscuras por excepción, refuerzo legibilidad) ── */
-    body:not(.dark-mode) .cat-card .cat-num { color: var(--amarillo) !important; }
-    body:not(.dark-mode) .cat-card .cat-name,
-    body:not(.dark-mode) .cat-card .cat-count { color: #f0ede8 !important; }
+    /* ── [LIGHT-CAT-CARDS-CREAM] Categorías ahora son CREAM (Opción B) ·
+       refactor del bloque que estaba para cards oscuras (color #f0ede8).
+       Ahora text/name dark sobre cream + num/count dorado-marrón. ── */
+    body:not(.dark-mode) .cat-card .cat-num { color: #8a6d00 !important; }
+    body:not(.dark-mode) .cat-card .cat-name { color: #1a1a1d !important; }
+    body:not(.dark-mode) .cat-card .cat-count { color: #8a6d00 !important; }
+    /* ── [LIGHT-TITLES-DORADO] Titles de secciones a dorado-marrón para
+       mejor contraste sobre cream (eran amarillo #E8B800 que se diluía) ── */
+    body:not(.dark-mode) .seleccion-st-title,
+    body:not(.dark-mode) .sets-title { color: #8a6d00 !important; }
 
     /* ── Sets/Packs ── */
     body:not(.dark-mode) .set-card { background: #f5efde !important; color: #1a1a1d !important; }
