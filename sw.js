@@ -13,19 +13,19 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [LIGHTHOUSE-DESKTOP-PUSH] Después de la sesión de reverts (v1.1.43→45), mobile
-// quedó en 91 pero desktop en 70 con CLS 1.118 todavía catastrófico. Esta tanda
-// ataca solo el CLS desktop SIN tocar el hero (que ya sabemos que rompe mobile):
-//   - [FONTS-FETCHPRIORITY] fetchpriority="high" en preload de Google Fonts ·
-//     prioriza llegar antes con Bodoni Moda y reduce ventana de swap.
-//   - [CLS-LOGO] aspect-ratio en .nav-logo img + .welcome-logo · reserva espacio
-//     antes de que el webp cargue (evita shift al aparecer logo).
-//   - [CLS-QUIZ-DESKTOP] min-height del .quiz-cta-banner SOLO en @media ≥1024px ·
-//     mobile y tablet NO se tocan (sabemos que rompen).
-//   - [A11Y-CONTRAST] 5 fixes: .tag-acorde, .occasion-label dark, .cat-count,
-//     .wa-status--closed (#e74c3c → #ff8a7a), .badge-sin-stock (bg #e74c3c → #c0392b).
-// Esperado · Desktop 70 → ~85-90 · A11y 97 → 100 · Mobile 91 (intacto).
-var CACHE_VERSION = 'v1.1.46';
+// [LOGO-OPTIMIZED] Logo redimensionado a 192×146 (aspect natural) + @2x retina.
+// Antes: 600×457 · 59.7 KiB · Ahora: 192×146 · 8.9 KiB (-85%). El logo se mostraba
+// siempre en máx 80×80 (welcome) o 52×52 (nav), tener 600×457 era waste puro.
+// Cambios:
+//   - img/logo-st.webp regenerado · 8.9 KiB (backup en img/logo-st.webp.backup).
+//   - img/logo-st@2x.webp nuevo · 384×292 · 26.7 KiB · referenciado en manifest.
+//   - manifest.json: corregido sizes "512x512" → "384x292" (apunta a @2x) +
+//     "192x192" → "192x146" (era declaración falsa, archivo nunca fue square).
+//   - .nav-logo img CSS: removido aspect-ratio:1/1 (logo no es square, era bug).
+//   - .welcome-logo CSS: removido aspect-ratio:1/1 (redundante con width/height).
+//   - <img class="nav-logo"> HTML: width="52" height="52" → "55" height="42"
+//     (refleja aspect-ratio real, evita CLS al cargar webp).
+var CACHE_VERSION = 'v1.1.47';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

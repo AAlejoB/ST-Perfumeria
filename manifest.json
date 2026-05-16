@@ -33,15 +33,15 @@
       "purpose": "maskable"
     },
     {
-      "src": "img/logo-st.webp",
+      "src": "img/logo-st@2x.webp",
       "type": "image/webp",
-      "sizes": "512x512",
+      "sizes": "384x292",
       "purpose": "any"
     },
     {
       "src": "img/logo-st.webp",
       "type": "image/webp",
-      "sizes": "192x192",
+      "sizes": "192x146",
       "purpose": "any"
     }
   ],

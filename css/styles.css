@@ -568,8 +568,10 @@
       margin: 0 auto;  /* centrado en el nav ahora que no hay search */
     }
     .nav-logo img {
+      /* [LOGO-OPTIMIZED] El logo real es 192×146 (aspect 1.31:1, no square).
+         Sacamos aspect-ratio: 1/1 (incorrecto) — el width="55" height="42" del
+         HTML ya reserva el espacio correcto, eliminando el CLS sin distorsionar. */
       height: 42px; width: auto; object-fit: contain;
-      aspect-ratio: 1 / 1;        /* [CLS-LOGO] reserva espacio antes de que cargue el webp */
       transition: transform .25s ease;
     }
     .nav-logo:hover img { transform: scale(1.06); }
@@ -4564,8 +4566,10 @@
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .welcome-logo {
+      /* [LOGO-OPTIMIZED] aspect-ratio: 1/1 removido — width/height fijos 70px
+         + object-fit: cover + border-radius: 50% ya garantizan render circular
+         estable. El aspect-ratio extra era redundante y podía interferir. */
       width: 70px; height: 70px; border-radius: 50%;
-      aspect-ratio: 1 / 1;        /* [CLS-LOGO] reserva espacio antes de que cargue el webp */
       object-fit: cover; margin: 0 auto .8rem;
       border: 2px solid rgba(232,184,0,.3);
     }
