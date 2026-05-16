@@ -9161,12 +9161,15 @@
 
     /* Hero: reservar altura mínima para evitar shift al cargar fonts.
        [LIGHTHOUSE-15JUN-FULL-REVERT] La iteración v1.1.43 subió esto a 380/460/500
-       buscando absorber el shift por swap de fuentes. Resultó contraproducente:
-       Lighthouse mobile reportó CLS 0.957 (vs 0.132 pre-fix) — el min-height más
-       alto creaba un layout-recalc raro que se atribuía al <section class="hero">.
-       Vuelta al baseline 320/380 que daba CLS 0.132 + Performance 61. */
-    .hero { min-height: 320px; }
-    @media (min-width: 768px) { .hero { min-height: 380px; } }
+       buscando absorber el shift por swap de fuentes. Resultó contraproducente.
+       [HERO-SUB-MOVE] Después de mover el <p class="hero-sub"> a #nosotros el
+       contenido del hero quedó solo con tagline + title (cabe en ~160px). El
+       min-height anterior (320/380) dejaba ~150px de espacio fantasma negro.
+       BAJAMOS a 220/260 — suficiente buffer para que el hero respire + las
+       decoraciones (.hero::before radial gradient, blobs) se vean. NUNCA SUBIR
+       de vuelta · subirlo dispara el layout-recalc raro que vimos. */
+    .hero { min-height: 220px; }
+    @media (min-width: 768px) { .hero { min-height: 260px; } }
 
     /* ════════════════════════════════════════════════════════════════
        [FANTASMA] Revert parcial de [IMG-DIMS] (v1.1.10).
