@@ -5688,17 +5688,17 @@
     body.dark-mode .faq-question:hover { color: var(--amarillo); }
     body.dark-mode .faq-answer p { color: #aaa; }
 
-    /* [LIGHT-DESKTOP-TWEAKS] Mayo 16 2026 · 2 ajustes pedidos por el jefe:
-       1. Push banner "¿Querés recibir novedades?" letras blancas (el bg del
-          banner es siempre dark · texto blanco contrasta bien independiente
-          del modo · alcance global, no hace falta scoped a light).
-       2. Section FAQ ocupar todo el ancho de la página en desktop (quitar
-          el max-width 800px que limitaba las preguntas a un rectángulo
-          central). Aplicado SOLO en light + desktop como pidió. */
+    /* [LIGHT-DESKTOP-TWEAKS] Mayo 16 2026 · ajustes puntuales del jefe:
+       - Push banner "¿Querés recibir novedades?" letras blancas.
+       - .price-banner-cta (pill "VER CATÁLOGO" del banner EXPLORÁ) letras
+         gris #bbb (en lugar del amarillo claro #f5d442 original).
+       - Section FAQ ocupa todo el ancho en DESKTOP (light + dark · sin scope).
+       Todos con bg que NO cambia entre modos · alcance global razonable. */
     .push-banner-title { color: #fff !important; }
     .push-banner-text { color: #fff !important; }
+    .price-banner-cta { color: #bbb !important; }
     @media (min-width: 768px) {
-      body:not(.dark-mode) .section-faq {
+      .section-faq {
         max-width: none !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
