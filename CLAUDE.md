@@ -148,10 +148,10 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 
 ```js
 // sw.js línea 16
-var CACHE_VERSION = 'v1.1.42';   // ← incrementá este
+var CACHE_VERSION = 'v1.1.53';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.42**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.53**.
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 >
@@ -281,4 +281,4 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Mayo 15, 2026 (viernes noche · local cerrado) — cierre de los 3 pendientes flageados del 15-may. **18 commits live** acumulados desde inicio del 15-may (13 maratón + 5 sesión cierre). SW v1.1.22 → **v1.1.42** (20 bumps). Keywords nuevos en sesión cierre: `[BUG-DEC-ADMIN]` (HTML structural fix · `</div>` extra cerraba `<main>` implícitamente · 9 tabs huérfanas), `[SELECCION-ST-1B]` (UI admin para `nota_jefe`), `[JUEGOS-3A-FINAL]` (move físico del `#quizSection`). **1 pendiente abierto**: cargar precios LE BEAU LE PARFUM + LE BEAU EDT. Doc clave: `docs/QA-PRE-JULIO.md` con 170 items de validación.
+**Última actualización:** Mayo 16, 2026 (madrugada · post maratón Lighthouse) — sesión de 8+ horas para subir el score mobile (PageSpeed Insights). Empezó en 53.6% mobile y terminó en **100% mobile + 100% A11y + 100% Best Practices + 100% SEO** medido en preview Vercel. **~30 commits acumulados** desde 15-may (18 anteriores + ~12 de la maratón Lighthouse). SW v1.1.42 → **v1.1.53** (11 bumps). Lecciones críticas en `docs/HISTORIA.md` sección "Maratón Lighthouse" — incluyen 7 reglas de oro que NUNCA HAY QUE OLVIDAR (ej. NUNCA subir min-height del .hero · NUNCA font-display:optional · NUNCA medir en main si estás validando un fix en branch · SIEMPRE 3-5 mediciones para tomar mediana). Keywords nuevos clave: `[BATCH-REFLOW]` (-140ms TBT), `[HERO-SUB-MOVE]` (texto del hero a sección Nosotros), `[HERO-COMPACT]` (eliminar min-height del hero), `[CATALOG-IMG-RESIZE]` (344 fotos -50%). **Pendientes para próxima sesión chica:** cache Supabase Storage (1h → 1 año, en dashboard) · A11y 92 → 100 (5 contrastes) · cargar precios LE BEAU.

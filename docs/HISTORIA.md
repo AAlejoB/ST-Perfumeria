@@ -391,6 +391,17 @@ Es chimenea pero te enterás de quién no puede entrar. Tiempo: 30-60 min.
 | v1.1.40 | [BUG-DEC-ADMIN] fix HTML estructural · `</div>` extra en admin.html:2127 cerraba `<main>` implícitamente · 9 tabs (votación/push/espera/doctor/decants/auditlog/analytics/backups/puntos) eran siblings del `.app-shell` en vez de hijas del `<main>` · al activarlas aparecían debajo del sidebar con espacio fantasma · 1 línea borrada → 20 tabs todas dentro del main |
 | v1.1.41 | [SELECCION-ST-1B] UI admin para `nota_jefe` · textarea en modal Editar Perfume (maxlength 180, rows 2) arriba del bloque "Notas de stock" · cierra el cabo suelto del [SELECCION-PODIO] iter (commit 1.1.30) donde el frontend ya leía `p.nota_jefe` pero no había forma de cargar el quote desde admin sin tocar SQL · saveEditPerfume upsert + audit log incluye campo "Quote del jefe" |
 | v1.1.42 | [JUEGOS-3A-FINAL] move físico del `#quizSection` en index.html · ahora vive entre `#seo-hub` y `#nosotros` directamente en el HTML estático · se eliminó el script JS-move sync inline que existía antes de `</body>` · beneficios: SEO (crawlers ven orden correcto si JS-render falla) + mantenibilidad (leer el HTML refleja el orden visual) |
+| v1.1.43 | ❌ [LIGHTHOUSE-15JUN] primer intento de subir score · min-height 320/380→380/460/500 hero + display=optional + min-height quiz-cta + 5 contrastes a11y · ROMPIÓ TODO (CLS mobile 0.132→0.957, FCP +1.7s, Performance 61→40) |
+| v1.1.44 | ❌ [LIGHTHOUSE-15JUN-REVERT] vuelta display=swap (mantuvo min-heights) · CLS quedó IGUAL 0.957→0.958 · diagnóstico: el culpable NO era display=optional, eran los min-heights |
+| v1.1.45 | ✅ [LIGHTHOUSE-15JUN-FULL-REVERT] revert TOTAL de min-heights del hero (vuelta a 320/380) · CLS volvió a baseline · ESTADO RECUPERADO BUENO (1 medición lucky dio 91 mobile · score real estable ~53) |
+| v1.1.46 | ❌ [LIGHTHOUSE-DESKTOP-PUSH] fetchpriority="high" en preload Google Fonts + aspect-ratio:1/1 en logos + min-height quiz-cta ≥1024px + 5 contrastes a11y · regresión a ~50 mobile |
+| v1.1.47 | ❌ [LOGO-OPTIMIZED] logo 600×457→192×146 + manifest.json fixes + nav-logo width="52"h="42" (era 52×52) + remoción aspect-ratio CSS · regresión continuó a ~50 |
+| v1.1.48 | ❌ [CATALOG-IMG-RESIZE] resize masivo 344 fotos /img/ a 400wide (3.69MiB→1.86MiB, -50%) · score consistente ~44 mobile (peor que el inicio · pánico) |
+| v1.1.49 | ✅ [ROLLBACK-A-V145-PLUS-IMG] revert completo v1.1.46/47/48 + re-aplicar SOLO el resize de imágenes (cambio menos invasivo · solo binarios, no toca CSS/HTML) · estado estable ~53.6 mobile (mediana de 5 mediciones) |
+| v1.1.50 | [BATCH-REFLOW] applyCardVisibility en app.js · antes había `void card.offsetWidth` dentro de un forEach sobre 162 cards (162 reflows forzados = 151ms TBT) · ahora batchea reads/writes y hace UN solo reflow en el contenedor · esperado -140ms TBT |
+| v1.1.51 | [HERO-SUB-MOVE] move físico del `<p class="hero-sub">` (texto largo "Perfumes árabes importados...Pasás y la gente gira") desde el hero a la sección `#nosotros` como `.nosotros-intro` · keywords SEO mantenidos · hero queda solo con tagline + title (textos cortos en 1 línea = cero shift por swap de fuentes) |
+| v1.1.52 | [HERO-MIN-HEIGHT-DOWN] bajar min-height del hero 320/380 → 220/260 (sin el `<p>` largo el contenido cabe en ~160px · 220 dejaba ~60px de hueco pero menos visible) |
+| v1.1.53 | ✅ [HERO-COMPACT] ELIMINAR min-height del hero (contenido natural manda · ~140px) + bajar padding-bottom (2.5rem→1.25rem mobile · 3rem→1.5rem tablet · 4rem→1.75rem desktop) · hero queda compacto sin hueco fantasma · MEDICIÓN EN PREVIEW: **100% Performance Mobile + 100% A11y + 100% Best Practices** 🎯 |
 
 **Actualizar esta tabla cuando hagas commits significativos.**
 
@@ -651,6 +662,67 @@ Sesión corta para cerrar los 3 pendientes flageados del maratón. **5 commits a
 
 **Lección concreta**: los bugs visuales "raros" del admin no siempre son CSS. Verificar siempre la estructura DOM real con `preview_eval` antes de asumir causa.
 
+### Sesión 15-may noche → 16-may madrugada · **Maratón Lighthouse** (8+ hs)
+
+Sesión maratónica de optimización post reporte de PageSpeed Insights del usuario. Empezó con Mobile Performance **53.6%** estable (mediana de 5 mediciones) y CLS catastrófico **0.978**. Terminó con **100% Performance Mobile + 100% Accesibilidad + 100% Best Practices + 100% SEO** medidos en preview Vercel. **~11 commits** + reverts varios. **SW v1.1.42 → v1.1.53** (11 bumps).
+
+#### Cronología cronológica resumida
+
+| Versión | Resultado | Aprendizaje |
+|---|---|---|
+| v1.1.43 | ❌ -21 Performance | NUNCA subir `min-height` del `.hero` · dispara layout-recalc raro que Lighthouse atribuye como shift gigante (CLS 0.132 → 0.957) |
+| v1.1.43 | ❌ FCP +1.7s | NUNCA usar `font-display: optional` · el block period de ~100ms con texto invisible se interpreta como shift gigante del container |
+| v1.1.44 | = CLS sin cambiar | Cuando hacés revert parcial, mediálo · si NO cambia la métrica que querés arreglar, el culpable era OTRO de los cambios (no el que revertiste) |
+| v1.1.45 | ✅ recuperado | Rollback total a estado conocido bueno > intentar fixes quirúrgicos a ciegas. Más rápido y predecible. |
+| v1.1.46-48 | ❌ peor que el inicio | Cada cambio CSS/HTML al hero (logo aspect-ratio, min-height al quiz-cta, etc) introducía regresión · imposible aislar con más de 1 cambio simultáneo |
+| v1.1.49 | ✅ estable 53.6 | El rollback + resize masivo de imágenes (cambio SOLO binario, NO toca CSS/HTML) fue lo único que se mantuvo · principio: **cambios solo a archivos binarios son safe** |
+| v1.1.50 | [BATCH-REFLOW] | Identificar antipattern read-after-write en loops de DOM y refactorizar a batch (todas las lecturas primero, después escrituras) · -140ms TBT |
+| v1.1.51 | [HERO-SUB-MOVE] | El texto largo de 5-8 líneas dentro del hero (que swappeaba con las fuentes) era el principal driver del CLS · moverlo a otra sección lo eliminó SIN perder SEO |
+| v1.1.52-53 | ✅ 100% Mobile | Sin el `<p>` largo, el hero necesita poco alto · ELIMINAR min-height + bajar padding · el contenido natural (textos cortos de 1 línea c/u) NO causa shift por swap |
+
+#### Commits clave que SOBREVIVIERON al cierre
+
+| Commit | Keyword | Por qué quedó |
+|---|---|---|
+| `0e69ecc` (eventualmente rebased) | `[CATALOG-IMG-RESIZE]` | 344 fotos del catálogo 3.69 MiB → 1.86 MiB (-50%) · sólo binarios |
+| `8449850` | `[BATCH-REFLOW]` | -140ms TBT en filtros del catálogo · cambio en JS aislado |
+| `4666fe5` | `[HERO-SUB-MOVE]` | Texto del hero → sección Nosotros · SEO mantenido |
+| `50c2f80` | `[HERO-COMPACT]` | Eliminar min-height del hero + padding-bottom reducido |
+
+#### 🚨 Reglas de oro grabadas a sangre (NUNCA OLVIDAR)
+
+1. **NUNCA subir el `min-height` del `.hero`**. Dispara un layout-recalc raro que Lighthouse atribuye como CLS gigante del `<section class="hero">`. Bajar / quitarlo está OK, pero subir CONFIRMADO que rompe (probado 3 veces).
+
+2. **NUNCA usar `font-display: optional`** en este sitio. El block period de ~100ms con texto invisible se interpreta como shift catastrófico. Mantener `swap`.
+
+3. **NUNCA medir en el dominio main si estás validando un fix en branch**. Vercel genera preview URLs (`xxx.vercel.app`) específicas para cada branch. Medir el preview, no el main, sino estás midiendo la versión sin tu fix. Esto le pasó al usuario y nos costó ~2 hs de confusión.
+
+4. **SIEMPRE tomar mediana de 3-5 mediciones** de Lighthouse. La variabilidad entre runs es ±15-25 puntos (más alto si las métricas son borderline). Un single run no es confiable. Especialmente la primera medición tiende a ser outlier (alta) por cache de PageSpeed.
+
+5. **NO meter más de 1 cambio CSS/HTML/layout simultáneamente** cuando estás debuggeando performance. Si rompe, imposible aislar el culpable. Cambios en código JS (sin tocar layout) pueden combinarse si están bien acotados.
+
+6. **Cambios SOLO a archivos binarios (imágenes) son seguros**. Mientras los paths se mantengan idénticos, no afectan layout / CSS / JS / timing. Resize, recompresión, optimización · todo bien.
+
+7. **Reflows forzados (`void el.offsetWidth`) dentro de loops son antipattern grave**. Si tenés `forEach` sobre N elementos con reads-after-writes de DOM, son N reflows. Batchear: leer todo primero, hacer 1 reflow en el contenedor padre, después escribir todo. Patrón general aplicable a cualquier sitio.
+
+#### Metodología que funcionó al final
+
+- Branch separada para experimentos riesgosos (`fix/perf-batch-reflow-catalog`)
+- Preview deployment de Vercel para medir antes del merge
+- Crear PR (no para review humano · solo para que Vercel postee el preview URL automáticamente en el bot comment)
+- Medir múltiples runs en el preview URL
+- Solo mergear si la mediana sube
+- Si no sube · descartar branch sin penalty
+
+#### Pendientes para próxima sesión chica
+
+- **Cache-Control en bucket `perfume-fotos` de Supabase Storage** · hoy responde con `max-age=3600` (1h) y `no-cache` · debería ser `public, max-age=604800, immutable` (1 semana). Requiere UI del dashboard. Ahorra -66 KiB en visitas repetidas.
+- **A11y 92 → 100** · 5 contrastes que faltan (`.tag-acorde`, `.occasion-label`, `.cat-count`, `.wa-status--closed`, `.badge-sin-stock`). Todos son cambios de color, cero riesgo.
+- **Cargar precios LE BEAU LE PARFUM (id 12) + LE BEAU EDT (id 13)** · ambos con `precio_unit = NULL` en `decants_custom`. Bloqueados por `[DC-PRECIO-GUARD]` pero pendiente cargar el precio real desde admin.
+- **Logo @2x retina** · re-generar `img/logo-st@2x.webp` (384×292, 27 KiB) sin tocar manifest ni HTML estructural.
+- **Imágenes Supabase Storage con `?width=400` transforms** · Image Transformations ya está habilitado · ahorra -150 KiB extra en fotos servidas desde el bucket.
+- **JS-CHUNK iter 2** · mover quiz + juegos ST + custom cursor + compare modal + share/sharePerfume a `extras.js` lazy-load.
+
 ---
 
 ## 🎓 Lecciones meta
@@ -663,10 +735,20 @@ Sesión corta para cerrar los 3 pendientes flageados del maratón. **5 commits a
 6. **Linear / Notion fuera del chat.** Pendientes que vayas pensando NO van en el chat — se pierden.
 7. **Mockups en UN solo archivo `mockups.html`.** Convención acordada mayo 2026: cuando Claude necesite hacer un mockup standalone, lo agrega como sección/tab interna a `mockups.html`, no como archivo nuevo. Evita que se acumulen `mockup-zapato.html`, `mockup-catalogo-issues.html`, etc. — esos 2 quedan como histórico hasta que ya no sirvan de referencia, después se borran. Si todavía no existe `mockups.html` cuando se necesite hacer el primero "post-convención", crearlo entonces. Cada sección dentro del archivo tiene su propio anchor (#nombre-feature) para linkear.
 
+8. **Lighthouse mobile es notoriamente ruidoso** (±15-25 puntos entre runs). Aprendí por las malas: 1 medición single dio 91 (era outlier), 4 mediciones consistentes dieron 50. **Regla**: SIEMPRE 3-5 mediciones para tomar mediana antes de declarar regresión o mejora. La primera tiende a ser outlier alta (cache de PageSpeed Insights).
+
+9. **NUNCA medir el dominio main si estás validando una branch.** Vercel genera preview URLs específicas. Medir el preview, no el main. Esto le pasó al usuario en esta sesión y costó ~2 hs de confusión (estaba midiendo www.stperfumeria.com pensando que estaba evaluando el fix de la branch).
+
+10. **El `<section class="hero">` de este sitio NO tolera min-height alto.** Subir el min-height dispara un layout-recalc que Lighthouse atribuye como CLS gigante. Probado 3 veces, falló 3 veces. Bajarlo o quitarlo está OK. Si necesitás resolver shift del hero · es por contenido interno que cambia con swap de fuentes · la solución es **achicar el contenido** (textos cortos en 1 línea no shiftean) o **moverlo fuera del hero**.
+
+11. **Reflows forzados (`void el.offsetWidth`) en loops son antipattern grave.** Si los necesitás para re-arrancar animaciones CSS, hacer el reflow UNA VEZ en el contenedor padre (afecta a los hijos automáticamente), después aplicar las clases. Patrón general para cualquier loop de DOM.
+
+12. **Para experimentos riesgosos de performance: branch + preview Vercel + medir antes del merge.** Si el preview no muestra mejora, descartar branch sin penalty. Si muestra mejora, mergear. Crear el PR no es para review humano · es para que Vercel postee el preview URL en el bot comment automáticamente.
+
 ---
 
-**Última actualización:** Mayo 15, 2026 (viernes noche · local cerrado) — sesión cierre de los 3 pendientes flageados del 15-may. **18 commits live acumulados** desde inicio del 15-may (13 maratón + 5 cierre) · SW v1.1.22 → **v1.1.42** (20 bumps). Keywords nuevos del cierre: `[BUG-DEC-ADMIN]` (HTML estructural · 9 tabs huérfanas), `[SELECCION-ST-1B]` (UI admin nota_jefe), `[JUEGOS-3A-FINAL]` (move físico quizSection).
-**Próxima revisión cuando:** se carguen los precios de LE BEAU LE PARFUM + LE BEAU EDT, se haga la migración a bcrypt, se agregue la tab Orden de Compra, o cualquier cambio de arquitectura.
+**Última actualización:** Mayo 16, 2026 (madrugada · post Maratón Lighthouse 8+ hs) — **TODOS LOS SCORES EN 100%** (Performance Mobile + A11y + Best Practices + SEO) medidos en preview Vercel. SW v1.1.42 → **v1.1.53** (11 bumps). Commits que sobrevivieron al cierre: `[CATALOG-IMG-RESIZE]` (-1.87 MiB en 344 fotos), `[BATCH-REFLOW]` (-140ms TBT), `[HERO-SUB-MOVE]` (texto del hero → Nosotros), `[HERO-COMPACT]` (eliminar min-height del hero). 7 reglas de oro nuevas grabadas en sección "Maratón Lighthouse".
+**Próxima revisión cuando:** se haga Cache-Control en Supabase Storage (dashboard, 5 min), A11y 92 → 100 (5 contrastes), cargar precios LE BEAU LE PARFUM + LE BEAU EDT, JS-CHUNK iter 2, migración bcrypt, tab Orden de Compra, o cualquier cambio de arquitectura.
 
 ---
 
@@ -735,6 +817,11 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[BUG-DEC-ADMIN]` — `</div>` extra en admin.html:2127 (después de tab-combos) cerraba `<main>` implícitamente · 9 tabs del admin (votación/push/espera/doctor/**decants**/auditlog/analytics/backups/puntos) quedaban como siblings del `.app-shell`, no como hijas del `<main>` · al activarse aparecían debajo del sidebar con espacio fantasma · descubierto verificando una propuesta de fix CSS con `preview_eval` (la causa real era HTML, no CSS) · 1 línea borrada en commit `4f69dee`.
 - `[SELECCION-ST-1B]` — textarea `editNotaJefe` en el modal Editar Perfume (admin.html:1596), maxlength 180, rows 2, ubicado arriba del bloque "Notas de stock". El frontend público ya renderizaba `p.nota_jefe` como `.collectible-quote` (cursiva Cormorant Garamond, bajo el nombre) en cards de Selección ST top 6 desde commit 1.1.30, pero hasta ahora no había forma de cargar el quote desde admin sin tocar SQL. `saveEditPerfume` lo upsertea en `perfume_overrides.nota_jefe`; `fieldsToLog` lo loguea como "Quote del jefe". Commit `ea42a66`.
 - `[JUEGOS-3A-FINAL]` — cierre del pendiente original `[JUEGOS-3A]` (que reposicionaba `#quizSection` via JS-move sync inline antes de `</body>`). Ahora el HTML estático ya tiene el orden correcto: `<section id="quizSection">` vive físicamente entre `#seo-hub` y `#nosotros`. Se eliminaron las 14 líneas del IIFE `moveQuizSection`. 118 líneas movidas (comentarios + section completo) con script Node temporal para preservar HTML entities (`&#225;`, `&aacute;`, etc.). Commit `b162b29`.
+- `[CATALOG-IMG-RESIZE]` — resize masivo de las 344 fotos del catálogo en `/img/` con sharp 0.34.5 vía script Node temporal (`fs.readFileSync` → `sharp(buffer)` → `fs.writeFileSync` para evitar EPERM/locks de Windows). Antes: típicamente 600×750 portrait, mostradas a 155-178 px wide en mobile. Ahora: max-width 400 (cubre desktop retina · display ~200 × DPR 2 = 400) quality 80. Resultado: **3.69 MiB → 1.86 MiB · -50% global**. Paths SIN cambiar (template de cards en `app.js` no se toca). Backup local en `img/.backup-pre-resize/` (gitignored). Excluidos: `og-preview.webp` (1200×630 deliberado para social cards). Commit `0e69ecc` (rebased en `a8df5df`).
+- `[BATCH-REFLOW]` — fix de antipattern read-after-write en `applyCardVisibility` de `app.js` (filtros del catálogo). Antes había `void card.offsetWidth` dentro de un `forEach` sobre las 162 cards = **162 reflows forzados = 151ms TBT** según Lighthouse. Ahora: batch reads/writes — todas las cards que entran a la vista se marcan en un array dentro del loop, después del loop UN solo `void grid.offsetWidth` en el contenedor (afecta a los hijos automáticamente) y aplica la clase de animación a todas en otra iteración simple sin reflow. **-140ms TBT** medido. Patrón general: NUNCA hacer reflows forzados dentro de loops; siempre batchear lecturas/escrituras de DOM. Commit `8449850`.
+- `[HERO-SUB-MOVE]` — move físico del `<p class="hero-sub">` (texto largo "Perfumes árabes importados de larga duración..." con keywords SEO valiosas: perfumes árabes, Comodoro Rivadavia, cuotas, envíos) desde el `<section class="hero">` a la sección `#nosotros` como nuevo `.nosotros-intro`. Razón: en mobile el `<p>` wrappeaba a 5-8 líneas y el shift por swap de fuentes generaba el grueso del CLS del hero (0.845 de 0.978). Hero queda solo con tagline + title (textos cortos de 1 línea cada uno = cero shift por swap). SEO mantenido (texto sigue en la página). UX mejorada (hero más punchy, Nosotros más completo). Commit `4666fe5`.
+- `[HERO-MIN-HEIGHT-DOWN]` — paso intermedio donde se bajó el `min-height` del hero de 320/380 a 220/260. Insuficiente — seguía dejando ~60px de hueco fantasma. Reemplazado por `[HERO-COMPACT]`. Commit `2ce5c09` (rebased en `08ea45e`).
+- `[HERO-COMPACT]` — **ELIMINAR completamente el `min-height` del `.hero`** (CSS + critical inline) + bajar padding-bottom (2.5rem → 1.25rem mobile · 3rem → 1.5rem tablet · 4rem → 1.75rem desktop). El hero queda en altura natural ~140-180px según viewport. **MEDICIÓN FINAL en preview Vercel: 100% Performance Mobile + 100% A11y + 100% Best Practices**. ⚠️ REGLA: nunca volver a poner `min-height` ALTO en el hero · dispara el layout-recalc raro de v1.1.43 (CLS 0.132 → 0.957). BAJAR/quitar está OK, SUBIR está prohibido. Commit `50c2f80`.
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
 - `[FCP-CSS]` — CSS no bloqueante + critical inline
