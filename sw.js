@@ -13,25 +13,21 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [ROLLBACK-A-V145-PLUS-IMG] Rollback completo de los commits v1.1.46/47/48
-// (revert de 84badfa + 2c4eff3 + 0e69ecc) porque las mediciones bajaron de
-// 91 mobile (v1.1.45 = b6d1826) a 44 mobile (v1.1.48 = 0e69ecc) sin causa
-// diagnosticable con PDF a tiempo. Solución: volver al estado conocido bueno
-// + re-aplicar SOLO el cambio menos invasivo (resize de imágenes), que es
-// 100% safe (no toca CSS/HTML/JS, solo files binarios con paths idénticos).
+// Branch: fix/perf-batch-reflow-catalog · 2 cambios quirúrgicos combinados.
 //
-// Resultado en este commit:
-//   - CSS y HTML idénticos a v1.1.45 (cero cambios respecto al 91 mobile).
-//   - 345 fotos en /img/ achicadas a max-width 400 (3.69 MiB → 1.86 MiB · -50%).
-//   - Logo achicado a 400×305 (~27 KiB vs 60 KiB original · -55%).
-//   - og-preview.webp INTACTO (1200×630 deliberado para social cards).
-//   - Backup en img/.backup-pre-resize/ (gitignored).
+// [BATCH-REFLOW] applyCardVisibility en app.js. Antes: 162 reflows forzados
+// (void card.offsetWidth dentro de forEach sobre cards) = 151ms TBT. Ahora:
+// batch reads/writes + 1 solo reflow en el contenedor. Esperado -140ms TBT.
 //
-// Lo que se PIERDE respecto a v1.1.48 (aceptable):
-//   - A11y fixes (vuelve a 92 desde 97 · queda para próxima sesión).
-//   - Logo @2x retina (tampoco hizo diferencia · queda para otra).
-//   - aria-label, fetchpriority, min-heights, contrastes (eran sospechosos).
-var CACHE_VERSION = 'v1.1.49';
+// [HERO-SUB-MOVE] El <p class="hero-sub"> (texto largo "Perfumes árabes
+// importados de larga duración..." con keywords SEO) se movió del hero a
+// la sección #nosotros como párrafo intro. Razón: en mobile wrappeaba a
+// 5-8 líneas y el shift por swap de fuentes contribuía al CLS 0.845 del
+// hero. Hero queda solo con tagline + title (3 líneas máx). Keywords
+// SEO mantenidos (siguen en la página, solo en otra sección).
+//
+// Esperado combinado: TBT -140ms + CLS hero -0.2-0.4 = score +8-15 puntos.
+var CACHE_VERSION = 'v1.1.51';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
