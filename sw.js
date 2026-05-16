@@ -13,19 +13,25 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [CATALOG-IMG-RESIZE] Resize masivo de las 344 fotos del catálogo en /img/.
-// Antes: típicamente 600×750 (portrait) · mostradas a 155-178px wide en mobile.
-// Ahora: 400 wide max, quality 80, mantiene aspect-ratio. Cubre desktop retina
-// (display ~200 × DPR 2 = 400) sin perder calidad visible. KHANJAR (LCP image)
-// también pasó de 23 KiB → 10 KiB.
-//   - Procesados: 344 archivos · 3.63 MiB → 1.83 MiB (-1.85 MiB · -50% total).
-//   - Excluidos: logo-st.webp + @2x (ya optimizados), og-preview.webp (social
-//     card 1200×630 deliberado), .backup (rollback file).
-//   - Paths SIN cambiar · template de cards en app.js NO se tocó.
-//   - Backup completo en img/.backup-pre-resize/ (gitignored, rollback ready).
-//   - Esperado: LCP mobile baja ~500-1000ms · "Improve image delivery" del
-//     reporte Lighthouse debería desaparecer o reducirse drásticamente.
-var CACHE_VERSION = 'v1.1.48';
+// [ROLLBACK-A-V145-PLUS-IMG] Rollback completo de los commits v1.1.46/47/48
+// (revert de 84badfa + 2c4eff3 + 0e69ecc) porque las mediciones bajaron de
+// 91 mobile (v1.1.45 = b6d1826) a 44 mobile (v1.1.48 = 0e69ecc) sin causa
+// diagnosticable con PDF a tiempo. Solución: volver al estado conocido bueno
+// + re-aplicar SOLO el cambio menos invasivo (resize de imágenes), que es
+// 100% safe (no toca CSS/HTML/JS, solo files binarios con paths idénticos).
+//
+// Resultado en este commit:
+//   - CSS y HTML idénticos a v1.1.45 (cero cambios respecto al 91 mobile).
+//   - 345 fotos en /img/ achicadas a max-width 400 (3.69 MiB → 1.86 MiB · -50%).
+//   - Logo achicado a 400×305 (~27 KiB vs 60 KiB original · -55%).
+//   - og-preview.webp INTACTO (1200×630 deliberado para social cards).
+//   - Backup en img/.backup-pre-resize/ (gitignored).
+//
+// Lo que se PIERDE respecto a v1.1.48 (aceptable):
+//   - A11y fixes (vuelve a 92 desde 97 · queda para próxima sesión).
+//   - Logo @2x retina (tampoco hizo diferencia · queda para otra).
+//   - aria-label, fetchpriority, min-heights, contrastes (eran sospechosos).
+var CACHE_VERSION = 'v1.1.49';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
