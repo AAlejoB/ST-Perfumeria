@@ -28,20 +28,21 @@
 //
 // Esperado combinado: TBT -140ms + CLS hero -0.2-0.4 = score +8-15 puntos.
 //
-// [LIGHT-MODE-CREAM-REVERT] El jefe (Alejo) revocó la excepción documentada
-// previamente "siempre quedan oscuras: trust-badges + cat-cards + price-banner
-// big + puntos banner". Ahora light mode usa la paleta cálida crema de manera
-// coherente en TODO el sitio (sin islas oscuras). Cambios:
-//   - .trust-badge: bg dark #121214 → cream #ede2c2 + texts ajustados
-//   - .cat-card: bg dark → cream + cat-count amarillo → dorado-marrón
-//   - .price-banner-wrap--big: gradient amarillo → gradient crema sutil
-//   - .puntos-context-banner: gradient dark → gradient crema
-//   - .seleccion-st-grid, .section-header, #contacto, .price-banner-wrap,
-//     .quiz-cta-wrap: background transparent (heredan body crema)
-//   - .seleccion-st-card: bg cream + border dorado-marrón
-// El .quiz-cta-banner (violeta-magenta) mantiene su gradiente intencional ·
-// es un eyecatcher decorativo intencional. Solo ajusta box-shadow.
-var CACHE_VERSION = 'v1.1.54';
+// [LIGHT-MODE-CONTAINER-FIX] Mayo 16 2026: corrección de mi malinterpretación
+// previa (v1.1.54 commit 4cab322 que cambió las cards/banners a cream rompiendo
+// la legibilidad). El jefe aclaró: quería que el FONDO de las SECCIONES
+// CONTENEDORAS herede el cream del body, pero las CARDS DECORATIVAS internas
+// (trust-badges, cat-cards, banner "EXPLORÁ", puntos banner) DEBEN MANTENER
+// su estética oscura/dorada original — son islas decorativas intencionales
+// sobre el fondo cream.
+// Esta versión:
+//   - REVIERTE los cambios a .trust-badge, .cat-card, .price-banner-wrap--big,
+//     .puntos-context-banner a su versión dark original.
+//   - MANTIENE los overrides correctos de containers (`.seleccion-st-grid`,
+//     `.section-header`, `#contacto`, `.price-banner-wrap`, `.quiz-cta-wrap`)
+//     a background transparent en light (heredan body cream).
+//   - QUITA el override redundante de .seleccion-st-card (hereda del body).
+var CACHE_VERSION = 'v1.1.55';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
