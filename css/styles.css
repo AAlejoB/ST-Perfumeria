@@ -5688,6 +5688,93 @@
     body.dark-mode .faq-question:hover { color: var(--amarillo); }
     body.dark-mode .faq-answer p { color: #aaa; }
 
+    /* [LIGHT-DESKTOP-TWEAKS] Mayo 16 2026 · ajustes puntuales del jefe:
+       - Push banner "¿Querés recibir novedades?" letras blancas.
+       - .price-banner-cta (pill "VER CATÁLOGO" del banner EXPLORÁ) letras
+         gris #bbb (en lugar del amarillo claro #f5d442 original).
+       - Section FAQ ocupa todo el ancho en DESKTOP (light + dark · sin scope).
+       Todos con bg que NO cambia entre modos · alcance global razonable. */
+    .push-banner-title { color: #fff !important; }
+    .push-banner-text { color: #fff !important; }
+    .price-banner-cta { color: #bbb !important; }
+    @media (min-width: 768px) {
+      .section-faq {
+        max-width: none !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+      }
+    }
+
+    /* [LIGHT-CTA-POP] Botones "VER CATÁLOGO" + "JUGAR" en light + desktop:
+       gradiente dorado vibrante + pulse suave + sombra ámbar fuerte para
+       que llamen la atención sobre el fondo cream. Respeta reduced-motion. */
+    @media (min-width: 768px) {
+      body:not(.dark-mode) .price-banner-cta {
+        background: linear-gradient(135deg, #ffd700, #E8B800) !important;
+        color: #1a1a1d !important;
+        font-weight: 900 !important;
+        letter-spacing: .12em !important;
+        box-shadow: 0 0 0 2px rgba(232,184,0,.45), 0 6px 18px rgba(232,184,0,.4) !important;
+        animation: ctaLightPulse 2.4s ease-in-out infinite;
+        transition: transform .15s ease, box-shadow .15s ease;
+      }
+      body:not(.dark-mode) .price-banner-cta:hover {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 3px rgba(232,184,0,.6), 0 10px 28px rgba(232,184,0,.5) !important;
+      }
+      body:not(.dark-mode) .quiz-cta-banner .quiz-cta-cta {
+        background: linear-gradient(135deg, #ffd700, #E8B800) !important;
+        color: #1a1a1d !important;
+        font-weight: 900 !important;
+        box-shadow: 0 0 0 3px rgba(232,184,0,.4), 0 6px 22px rgba(232,184,0,.5) !important;
+        animation: ctaLightPulse 2.4s ease-in-out infinite;
+        transition: transform .15s ease, box-shadow .15s ease;
+      }
+      body:not(.dark-mode) .quiz-cta-banner:hover .quiz-cta-cta {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 4px rgba(232,184,0,.55), 0 10px 32px rgba(232,184,0,.6) !important;
+      }
+    }
+    @keyframes ctaLightPulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.04); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body:not(.dark-mode) .price-banner-cta,
+      body:not(.dark-mode) .quiz-cta-banner .quiz-cta-cta {
+        animation: none !important;
+      }
+    }
+
+    /* [QUIZ-SECTION-COMPACT] El usuario reportó que la quiz-section ("JUEGOS
+       ST" · Quiz + Mi Selección + Cultura) se siente demasiado espaciosa en
+       desktop. Reducción coordinada del padding vertical, gaps y paddings
+       internos de las cards · ambos modos en desktop. */
+    @media (min-width: 768px) {
+      .quiz-section {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        margin-top: .8rem !important;
+        margin-bottom: .8rem !important;
+      }
+      .cultura-misel-row {
+        gap: 1rem !important;
+      }
+      .quiz-box {
+        padding: 1.25rem 1.25rem !important;
+      }
+      .nosotros-cultura {
+        padding: 1.25rem 1.25rem !important;
+      }
+      /* .misel-section tiene padding inline (HTML style) · override con
+         specificity por bloque + !important */
+      .cultura-misel-row > .misel-section {
+        padding: 1.25rem 1.25rem !important;
+      }
+      /* quiz-subtitle margin abajo: bajar */
+      .quiz-subtitle { margin-bottom: 1rem !important; }
+    }
+
     /* ================================================
        MI SELECCIÓN ST — Mazo de cartas
     ================================================ */
@@ -7173,13 +7260,45 @@
     body:not(.dark-mode) p, body:not(.dark-mode) li { color: #2a2a2d; }
     body:not(.dark-mode) .home-slider-viewport { background: #e8e4d8; border-color: rgba(0,0,0,.08); }
     body:not(.dark-mode) .home-top-banner { background: #1a1a1d; color: #fff; }
+    /* [LIGHT-SECTIONS-FORCE] Forzar background transparent (heredan body
+       cream) en TODAS las secciones del light mode con !important. Sin esto,
+       cualquier regla específica con bg dark gana en cascade y deja la sección
+       oscura sobre body cream (los "cuadrados que ignoran el fondo" del jefe). */
     body:not(.dark-mode) .sets-section,
     body:not(.dark-mode) .section-seo-hub,
     body:not(.dark-mode) .section-nosotros,
     body:not(.dark-mode) .section-faq,
     body:not(.dark-mode) .quiz-section,
     body:not(.dark-mode) .tu-sector,
-    body:not(.dark-mode) .decant-banner { background: transparent; color: #1a1a1d; }
+    body:not(.dark-mode) .seleccion-st,
+    body:not(.dark-mode) .section-cats,
+    body:not(.dark-mode) .map-section,
+    body:not(.dark-mode) .recent-views,
+    body:not(.dark-mode) .decant-banner { background: transparent !important; color: #1a1a1d; }
+    /* [LIGHT-TITLES-FORCE] Headings grandes de sección NUNCA quedan ilegibles
+       sobre cream. Override con !important para vencer cualquier color claro
+       heredado del dark mode default. */
+    body:not(.dark-mode) .sets-section h1,
+    body:not(.dark-mode) .sets-section h2,
+    body:not(.dark-mode) .section-seo-hub h1,
+    body:not(.dark-mode) .section-seo-hub h2,
+    body:not(.dark-mode) .section-nosotros h1,
+    body:not(.dark-mode) .section-nosotros h2,
+    body:not(.dark-mode) .section-faq h1,
+    body:not(.dark-mode) .section-faq h2,
+    body:not(.dark-mode) .quiz-section h1,
+    body:not(.dark-mode) .quiz-section h2,
+    body:not(.dark-mode) .tu-sector h1,
+    body:not(.dark-mode) .tu-sector h2,
+    body:not(.dark-mode) .tu-sector .tu-sector-title,
+    body:not(.dark-mode) .seleccion-st h1,
+    body:not(.dark-mode) .seleccion-st h2,
+    body:not(.dark-mode) .section-cats h1,
+    body:not(.dark-mode) .section-cats h2,
+    body:not(.dark-mode) .map-section h1,
+    body:not(.dark-mode) .map-section h2,
+    body:not(.dark-mode) .recent-views h1,
+    body:not(.dark-mode) .recent-views h2 { color: #1a1a1d !important; }
     body:not(.dark-mode) .quiz-box,
     body:not(.dark-mode) .misel-section,
     body:not(.dark-mode) .nosotros-cultura,
@@ -7950,10 +8069,16 @@
     body:not(.dark-mode) .cart-item-name { color: #1a1a1d !important; }
     body:not(.dark-mode) .cart-item-meta { color: #5e564a !important; }
 
-    /* ── Categorías (cards quedan oscuras por excepción, refuerzo legibilidad) ── */
-    body:not(.dark-mode) .cat-card .cat-num { color: var(--amarillo) !important; }
-    body:not(.dark-mode) .cat-card .cat-name,
-    body:not(.dark-mode) .cat-card .cat-count { color: #f0ede8 !important; }
+    /* ── [LIGHT-CAT-CARDS-CREAM] Categorías ahora son CREAM (Opción B) ·
+       refactor del bloque que estaba para cards oscuras (color #f0ede8).
+       Ahora text/name dark sobre cream + num/count dorado-marrón. ── */
+    body:not(.dark-mode) .cat-card .cat-num { color: #8a6d00 !important; }
+    body:not(.dark-mode) .cat-card .cat-name { color: #1a1a1d !important; }
+    body:not(.dark-mode) .cat-card .cat-count { color: #8a6d00 !important; }
+    /* ── [LIGHT-TITLES-DORADO] Titles de secciones a dorado-marrón para
+       mejor contraste sobre cream (eran amarillo #E8B800 que se diluía) ── */
+    body:not(.dark-mode) .seleccion-st-title,
+    body:not(.dark-mode) .sets-title { color: #8a6d00 !important; }
 
     /* ── Sets/Packs ── */
     body:not(.dark-mode) .set-card { background: #f5efde !important; color: #1a1a1d !important; }
