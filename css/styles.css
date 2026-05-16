@@ -7284,6 +7284,15 @@
       color: #1a1a1d;
     }
     body:not(.dark-mode) .section-header { border-top-color: rgba(120,90,0,.18) !important; }
+    /* [LIGHT-CONTACTO-TEXT] section#contacto tiene h2 + em con style inline
+       (color:#E8B800 hardcoded en el em "Consultános"). Override con !important
+       para que pase a dorado-marrón en light. El radial-gradient absoluto
+       interno también se ajusta para que no se vea negro sobre cream. */
+    body:not(.dark-mode) #contacto h2 { color: #1a1a1d !important; }
+    body:not(.dark-mode) #contacto h2 em { color: #8a6d00 !important; }
+    body:not(.dark-mode) #contacto > div[style*="radial-gradient"] {
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(232,184,0,.08) 0%, transparent 70%) !important;
+    }
     /* [LIGHT-COHERENT-CREAM] Quiz CTA banner pasa de violeta-magenta a cream.
        Pierde su impacto promocional original pero gana coherencia visual
        (decisión del jefe en el mockup B). El text "Jugar →" del botón
