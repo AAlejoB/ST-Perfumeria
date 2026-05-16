@@ -13,14 +13,19 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [LIGHTHOUSE-15JUN-FULL-REVERT] Revert completo de los min-heights de v1.1.43.
-// El revert previo (v1.1.44) volvió Google Fonts a display=swap pero MANTUVO los
-// min-heights del hero (380/460/500) y del quiz-cta-banner (96/116) que metí en
-// v1.1.43. La medición mostró que el CLS quedó IGUAL post-v1.1.44 (0.957 → 0.958)
-// → display=optional NO era el culpable, eran los min-heights.
-// Esta versión revierte el hero a 320/380 (baseline pre-fix) y ELIMINA el min-height
-// del quiz-cta-banner. Se mantienen los fixes de a11y (aria-label, contraste).
-var CACHE_VERSION = 'v1.1.45';
+// [LIGHTHOUSE-DESKTOP-PUSH] Después de la sesión de reverts (v1.1.43→45), mobile
+// quedó en 91 pero desktop en 70 con CLS 1.118 todavía catastrófico. Esta tanda
+// ataca solo el CLS desktop SIN tocar el hero (que ya sabemos que rompe mobile):
+//   - [FONTS-FETCHPRIORITY] fetchpriority="high" en preload de Google Fonts ·
+//     prioriza llegar antes con Bodoni Moda y reduce ventana de swap.
+//   - [CLS-LOGO] aspect-ratio en .nav-logo img + .welcome-logo · reserva espacio
+//     antes de que el webp cargue (evita shift al aparecer logo).
+//   - [CLS-QUIZ-DESKTOP] min-height del .quiz-cta-banner SOLO en @media ≥1024px ·
+//     mobile y tablet NO se tocan (sabemos que rompen).
+//   - [A11Y-CONTRAST] 5 fixes: .tag-acorde, .occasion-label dark, .cat-count,
+//     .wa-status--closed (#e74c3c → #ff8a7a), .badge-sin-stock (bg #e74c3c → #c0392b).
+// Esperado · Desktop 70 → ~85-90 · A11y 97 → 100 · Mobile 91 (intacto).
+var CACHE_VERSION = 'v1.1.46';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
