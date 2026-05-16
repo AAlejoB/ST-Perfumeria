@@ -5916,6 +5916,25 @@
       letter-spacing: .05em;
     }
 
+    /* [HERO-SUB-MOVE] Párrafo intro movido desde el hero. Estilos paralelos al
+       .hero-sub original pero adaptados al contexto de la sección Nosotros. */
+    .nosotros-intro {
+      margin-top: 1rem;
+      font-size: clamp(.72rem, 1.3vw, .9rem);
+      font-weight: 300;
+      color: var(--gris-claro);
+      line-height: 1.7;
+      max-width: 560px;
+    }
+    .nosotros-intro em {
+      font-style: italic;
+      color: var(--amarillo);
+      font-weight: 400;
+    }
+    @media (min-width: 768px) {
+      .nosotros-intro { font-size: .9rem; max-width: 600px; }
+    }
+
     /* Grillas de bloques: 1 col mobile, 2 col desktop */
     .nosotros-grid-top,
     .nosotros-grid-bottom {

@@ -13,20 +13,21 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [BATCH-REFLOW] Quick win quirúrgico al patrón antipattern en applyCardVisibility.
-// Lighthouse mobile reportaba 151ms de "redistribución forzada" en app.js:3337 —
-// la línea era `void card.offsetWidth` dentro de un forEach sobre las 162 cards
-// del catálogo, ejecutado en cada cambio de filtro. 162 reflows forzados = 151ms TBT.
+// Branch: fix/perf-batch-reflow-catalog · 2 cambios quirúrgicos combinados.
 //
-// Fix: batch reads/writes · marca cards en un array dentro del loop, después
-// hace UN solo `void grid.offsetWidth` en el contenedor (reflow afecta hijos
-// automáticamente) y aplica la clase de animación a todas en otra iteración
-// simple sin reflow.
+// [BATCH-REFLOW] applyCardVisibility en app.js. Antes: 162 reflows forzados
+// (void card.offsetWidth dentro de forEach sobre cards) = 151ms TBT. Ahora:
+// batch reads/writes + 1 solo reflow en el contenedor. Esperado -140ms TBT.
 //
-// Esperado: TBT mobile baja de 260ms a ~120ms (-140ms · -54%). Score +5-10 puntos.
-// No toca CSS, HTML, layout ni dimensiones — solo cambia el ORDEN de operaciones
-// DOM en una función JS. Riesgo extremadamente bajo.
-var CACHE_VERSION = 'v1.1.50';
+// [HERO-SUB-MOVE] El <p class="hero-sub"> (texto largo "Perfumes árabes
+// importados de larga duración..." con keywords SEO) se movió del hero a
+// la sección #nosotros como párrafo intro. Razón: en mobile wrappeaba a
+// 5-8 líneas y el shift por swap de fuentes contribuía al CLS 0.845 del
+// hero. Hero queda solo con tagline + title (3 líneas máx). Keywords
+// SEO mantenidos (siguen en la página, solo en otra sección).
+//
+// Esperado combinado: TBT -140ms + CLS hero -0.2-0.4 = score +8-15 puntos.
+var CACHE_VERSION = 'v1.1.51';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
