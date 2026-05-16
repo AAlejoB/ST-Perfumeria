@@ -6253,24 +6253,30 @@
       localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
     }
 
-    // Restaurar preferencia guardada (dark mode por defecto)
+    // Restaurar preferencia guardada (dark mode por defecto).
+    // El HTML body arranca con class="is-guest dark-mode" (evita flash de
+    // cream→dark al cargar). Si el user eligió light (saved==='0'), removemos
+    // dark-mode y ajustamos íconos/label del toggle.
     (function() {
       var saved = localStorage.getItem('st_dark_mode');
-      // Si nunca eligió (null) o eligió oscuro ('1') → dark mode
       if (saved !== '0') {
-        document.body.classList.add('dark-mode');
-        // En dark: ofrecemos "LIGHT" (con icono 🌙)
+        // Dark mode (default · ya está en HTML body)
         var icon = document.querySelector('.dark-toggle-icon');
         var floatIcon = document.getElementById('darkFloatIcon');
         if (icon) icon.textContent = '🌙';
         if (floatIcon) floatIcon.textContent = '🌙';
-        // navThemeIcon y navThemeLabel ya están seteados por el HTML default
+        // navThemeIcon/navThemeLabel ya están en HTML default (🌙 LIGHT)
       } else {
-        // En light: ofrecemos "DARK" (con icono ☀️)
+        // Light mode · QUITAR dark-mode del body (que vino por default)
+        document.body.classList.remove('dark-mode');
         var navIcon = document.getElementById('navThemeIcon');
         if (navIcon) navIcon.textContent = '☀️';
         var navLabel = document.getElementById('navThemeLabel');
         if (navLabel) navLabel.textContent = 'DARK';
+        var drawerIcon = document.querySelector('.dark-toggle-icon');
+        if (drawerIcon) drawerIcon.textContent = '☀️';
+        var floatIcon = document.getElementById('darkFloatIcon');
+        if (floatIcon) floatIcon.textContent = '☀️';
       }
     })();
 
