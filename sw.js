@@ -13,19 +13,19 @@
  * Versionado: cambiar CACHE_VERSION para forzar purga de caches viejos.
  */
 
-// [LOGO-OPTIMIZED] Logo redimensionado a 192×146 (aspect natural) + @2x retina.
-// Antes: 600×457 · 59.7 KiB · Ahora: 192×146 · 8.9 KiB (-85%). El logo se mostraba
-// siempre en máx 80×80 (welcome) o 52×52 (nav), tener 600×457 era waste puro.
-// Cambios:
-//   - img/logo-st.webp regenerado · 8.9 KiB (backup en img/logo-st.webp.backup).
-//   - img/logo-st@2x.webp nuevo · 384×292 · 26.7 KiB · referenciado en manifest.
-//   - manifest.json: corregido sizes "512x512" → "384x292" (apunta a @2x) +
-//     "192x192" → "192x146" (era declaración falsa, archivo nunca fue square).
-//   - .nav-logo img CSS: removido aspect-ratio:1/1 (logo no es square, era bug).
-//   - .welcome-logo CSS: removido aspect-ratio:1/1 (redundante con width/height).
-//   - <img class="nav-logo"> HTML: width="52" height="52" → "55" height="42"
-//     (refleja aspect-ratio real, evita CLS al cargar webp).
-var CACHE_VERSION = 'v1.1.47';
+// [CATALOG-IMG-RESIZE] Resize masivo de las 344 fotos del catálogo en /img/.
+// Antes: típicamente 600×750 (portrait) · mostradas a 155-178px wide en mobile.
+// Ahora: 400 wide max, quality 80, mantiene aspect-ratio. Cubre desktop retina
+// (display ~200 × DPR 2 = 400) sin perder calidad visible. KHANJAR (LCP image)
+// también pasó de 23 KiB → 10 KiB.
+//   - Procesados: 344 archivos · 3.63 MiB → 1.83 MiB (-1.85 MiB · -50% total).
+//   - Excluidos: logo-st.webp + @2x (ya optimizados), og-preview.webp (social
+//     card 1200×630 deliberado), .backup (rollback file).
+//   - Paths SIN cambiar · template de cards en app.js NO se tocó.
+//   - Backup completo en img/.backup-pre-resize/ (gitignored, rollback ready).
+//   - Esperado: LCP mobile baja ~500-1000ms · "Improve image delivery" del
+//     reporte Lighthouse debería desaparecer o reducirse drásticamente.
+var CACHE_VERSION = 'v1.1.48';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
