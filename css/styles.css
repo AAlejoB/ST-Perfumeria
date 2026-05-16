@@ -5746,6 +5746,35 @@
       }
     }
 
+    /* [QUIZ-SECTION-COMPACT] El usuario reportó que la quiz-section ("JUEGOS
+       ST" · Quiz + Mi Selección + Cultura) se siente demasiado espaciosa en
+       desktop. Reducción coordinada del padding vertical, gaps y paddings
+       internos de las cards · ambos modos en desktop. */
+    @media (min-width: 768px) {
+      .quiz-section {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        margin-top: .8rem !important;
+        margin-bottom: .8rem !important;
+      }
+      .cultura-misel-row {
+        gap: 1rem !important;
+      }
+      .quiz-box {
+        padding: 1.25rem 1.25rem !important;
+      }
+      .nosotros-cultura {
+        padding: 1.25rem 1.25rem !important;
+      }
+      /* .misel-section tiene padding inline (HTML style) · override con
+         specificity por bloque + !important */
+      .cultura-misel-row > .misel-section {
+        padding: 1.25rem 1.25rem !important;
+      }
+      /* quiz-subtitle margin abajo: bajar */
+      .quiz-subtitle { margin-bottom: 1rem !important; }
+    }
+
     /* ================================================
        MI SELECCIÓN ST — Mazo de cartas
     ================================================ */
