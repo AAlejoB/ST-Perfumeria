@@ -28,16 +28,27 @@
 //
 // Esperado combinado: TBT -140ms + CLS hero -0.2-0.4 = score +8-15 puntos.
 //
-// [HERO-COMPACT] Mejora visual final del hero post HERO-SUB-MOVE.
-// El bajón previo del min-height (320→220) no fue suficiente · seguía
-// quedando espacio negro debajo del badge #storeStatus. Esta iteración:
-//   - ELIMINA el min-height del hero (el contenido manda altura natural).
-//   - Baja padding-bottom: 2.5rem→1.25rem mobile, 3rem→1.5rem tablet,
-//     4rem→1.75rem desktop. Padding-top también un poco más compacto.
-// Resultado: hero pasa de ~320px a ~140-180px según viewport · apenas
-// deja respirar al storeStatus como el usuario pidió.
-// NUNCA volver a poner min-height alto · dispara el bug v1.1.43.
-var CACHE_VERSION = 'v1.1.53';
+// [LIGHT-COHERENT-CREAM + LIGHT-TOGGLE-V2] Mayo 16 2026 · jefe eligió Opción B
+// del mockup (mockups.html commit fcc66cf) · TODO el light mode usa la paleta
+// cream con acentos dorado-marrón #8a6d00 · sin islas oscuras chocando.
+//
+// Cambios CSS:
+//   - .trust-badge: bg cream #ede2c2 + title dorado-marrón + sub gris medium.
+//   - .cat-card: bg cream + count dorado-marrón.
+//   - .price-banner-wrap--big: gradient cream sutil con border dorado.
+//   - .puntos-context-banner: gradient cream con border dorado.
+//   - .quiz-cta-banner: gradient cream (PIERDE su violeta-magenta · jefe OK).
+//   - .seleccion-st-card: cream con border dorado · quote gris medium.
+//   - Containers .seleccion-st-grid, .section-header, #contacto,
+//     .price-banner-wrap, .quiz-cta-wrap: transparent (heredan body).
+//
+// Cambios botón light toggle (V2 del mockup):
+//   - HTML index.html: .nav-theme-btn → .nav-theme-pill con texto "LIGHT"/"DARK".
+//   - CSS: pill amarilla degradada con shadow + hover lift. En light mode
+//     invierte a pill dark con texto dorado.
+//   - JS toggleDarkMode: actualiza emoji + label simultáneo. Init sets
+//     navThemeLabel a "LIGHT" si dark / "DARK" si light.
+var CACHE_VERSION = 'v1.1.57';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;

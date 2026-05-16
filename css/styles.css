@@ -708,20 +708,46 @@
       .nav-catalog-btn { display: none; }
     }
 
-    /* Botón theme toggle desktop — al lado de CATÁLOGO */
-    .nav-theme-btn {
-      color: var(--amarillo) !important;
-      border: 1px solid var(--amarillo);
-      border-radius: 50%;
-      padding: 0;
-      font-size: 18px !important;
-      line-height: 1;
+    /* [LIGHT-TOGGLE-V2] Botón theme toggle desktop · pill amarilla con texto.
+       El jefe pidió destacarlo más en desktop · ahora es imposible pasarlo
+       por alto. Mobile sigue con .dark-float flotante abajo a la izq. */
+    .nav-theme-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #f5d442, #E8B800);
+      color: #1a1a1d !important;
+      border: 0;
+      padding: 7px 14px 7px 12px;
+      border-radius: 20px;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(232,184,0,.4), 0 2px 10px rgba(232,184,0,.18);
+      transition: transform .15s ease, box-shadow .15s ease;
+      white-space: nowrap;
     }
-    .nav-theme-btn:hover { background: var(--amarillo); transform: translateY(-1px) scale(1.06); }
-    .nav-theme-ico { font-size: 18px; line-height: 1; }
+    .nav-theme-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(232,184,0,.55), 0 4px 14px rgba(232,184,0,.28);
+    }
+    .nav-theme-pill .nav-theme-ico { font-size: 1rem; line-height: 1; }
+    .nav-theme-pill .nav-theme-label { letter-spacing: .1em; }
+    /* Light mode: el botón cambia su label a "DARK" via JS · invertimos paleta */
+    body:not(.dark-mode) .nav-theme-pill {
+      background: linear-gradient(135deg, #1a1a1d, #2a2a2d);
+      color: #E8B800 !important;
+      box-shadow: 0 0 0 1px rgba(232,184,0,.5), 0 2px 10px rgba(0,0,0,.15);
+    }
+    body:not(.dark-mode) .nav-theme-pill:hover {
+      box-shadow: 0 0 0 1px rgba(232,184,0,.7), 0 4px 14px rgba(0,0,0,.25);
+    }
     @media (max-width: 767px) {
       /* En mobile ya existe el .dark-float flotante abajo a la izq */
-      .nav-theme-btn { display: none; }
+      .nav-theme-pill { display: none; }
     }
 
     .nav-register-btn {
@@ -7199,41 +7225,98 @@
     body:not(.dark-mode) footer,
     body:not(.dark-mode) .site-footer { background: #1a1a1d; color: #f0ede8; }
 
-    /* ─── Excepciones: mantienen estética oscura/dorada (siempre) ─── */
-    body:not(.dark-mode) .trust-badges,
-    body:not(.dark-mode) .trust-badges-grid,
-    body:not(.dark-mode) .trust-badge,
-    body:not(.dark-mode) .trust-badge-icon,
-    body:not(.dark-mode) .trust-badge-title,
-    body:not(.dark-mode) .trust-badge-sub {
-      /* heredan los estilos originales — forzamos fondo oscuro */
-    }
+    /* ─── [LIGHT-COHERENT-CREAM] Mayo 16 2026 · Opción B del mockup elegida.
+       TODO el light mode usa la paleta cream + acentos dorado-marrón #8a6d00.
+       Cards y banners decorativos pasan también a cream — cero islas oscuras.
+       El banner del quiz violeta-magenta también se vuelve cream (pierde su
+       impacto promocional intencionalmente · el jefe lo aceptó). ─── */
     body:not(.dark-mode) .trust-badge {
-      background: #121214 !important;
-      border-color: rgba(232,184,0,.18) !important;
-      color: #f0ede8 !important;
+      background: #ede2c2 !important;
+      border-color: rgba(120,90,0,.35) !important;
+      color: #1a1a1d !important;
+      box-shadow: 0 2px 8px rgba(120,90,0,.08);
     }
-    body:not(.dark-mode) .trust-badge-title { color: var(--amarillo) !important; }
-    body:not(.dark-mode) .trust-badge-sub { color: #bbb !important; }
+    body:not(.dark-mode) .trust-badge-title { color: #8a6d00 !important; }
+    body:not(.dark-mode) .trust-badge-sub { color: #5e564a !important; }
+    body:not(.dark-mode) .trust-badge-icon { color: #8a6d00 !important; }
 
     body:not(.dark-mode) .section-cats .cat-card,
     body:not(.dark-mode) .cat-grid .cat-card {
-      background: #121214 !important;
-      color: #f0ede8 !important;
-      border-color: rgba(232,184,0,.18) !important;
+      background: #ede2c2 !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.35) !important;
+      box-shadow: 0 2px 8px rgba(120,90,0,.08);
     }
     body:not(.dark-mode) .cat-card * { color: inherit !important; }
+    body:not(.dark-mode) .cat-card .cat-count { color: #8a6d00 !important; }
 
+    /* Banner "EXPLORÁ NUESTRO CATÁLOGO": cream sutil con border dorado */
     body:not(.dark-mode) .price-banner-wrap--big .price-banner,
     body:not(.dark-mode) .price-banner--big {
-      /* mantiene su gradiente amarillo original */
+      background: linear-gradient(135deg, #f5efde, #ede5d2) !important;
+      color: #1a1a1d !important;
+      border: 1px solid rgba(120,90,0,.3) !important;
     }
+    body:not(.dark-mode) .price-banner-wrap--big .price-banner * { color: inherit !important; }
+    body:not(.dark-mode) .price-banner-wrap--big .price-banner strong,
+    body:not(.dark-mode) .price-banner-wrap--big .price-banner em { color: #8a6d00 !important; }
+
     body:not(.dark-mode) .puntos-context-banner {
-      background: linear-gradient(135deg, #1a1a1d, #232325) !important;
-      color: #f0ede8 !important;
-      border-color: rgba(232,184,0,.4) !important;
+      background: linear-gradient(135deg, #f5efde, #ede5d2) !important;
+      color: #1a1a1d !important;
+      border-color: rgba(120,90,0,.4) !important;
     }
     body:not(.dark-mode) .puntos-context-banner * { color: inherit !important; }
+    body:not(.dark-mode) .puntos-context-banner strong { color: #8a6d00 !important; }
+
+    /* [LIGHT-MODE-CONTAINER-FIX] Mayo 16 2026: el jefe pidió que el FONDO de
+       estas secciones contenedoras herede el cream del body (algunas tenían
+       bg dark hardcodeado o no heredaban bien). Las cards/carteles decorativos
+       INTERNOS (trust-badges, cat-cards, banner "EXPLORÁ", puntos banner)
+       MANTIENEN su estética oscura/amarilla — son islas intencionales sobre
+       el fondo cremoso. NO TOCAR las cards aunque parezca inconsistente. */
+    body:not(.dark-mode) .seleccion-st-grid,
+    body:not(.dark-mode) .section-header,
+    body:not(.dark-mode) #contacto,
+    body:not(.dark-mode) .price-banner-wrap,
+    body:not(.dark-mode) .quiz-cta-wrap {
+      background: transparent !important;
+      color: #1a1a1d;
+    }
+    body:not(.dark-mode) .section-header { border-top-color: rgba(120,90,0,.18) !important; }
+    /* [LIGHT-CONTACTO-TEXT] section#contacto tiene h2 + em con style inline
+       (color:#E8B800 hardcoded en el em "Consultános"). Override con !important
+       para que pase a dorado-marrón en light. El radial-gradient absoluto
+       interno también se ajusta para que no se vea negro sobre cream. */
+    body:not(.dark-mode) #contacto h2 { color: #1a1a1d !important; }
+    body:not(.dark-mode) #contacto h2 em { color: #8a6d00 !important; }
+    body:not(.dark-mode) #contacto > div[style*="radial-gradient"] {
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(232,184,0,.08) 0%, transparent 70%) !important;
+    }
+    /* [LIGHT-COHERENT-CREAM] Quiz CTA banner pasa de violeta-magenta a cream.
+       Pierde su impacto promocional original pero gana coherencia visual
+       (decisión del jefe en el mockup B). El text "Jugar →" del botón
+       interno se vuelve dorado-marrón. */
+    body:not(.dark-mode) .quiz-cta-banner {
+      background: linear-gradient(135deg, #f5efde, #ede5d2) !important;
+      color: #1a1a1d !important;
+      border: 1px solid rgba(120,90,0,.3) !important;
+      box-shadow: 0 4px 14px rgba(120,90,0,.1) !important;
+    }
+    body:not(.dark-mode) .quiz-cta-banner * { color: inherit; }
+    body:not(.dark-mode) .quiz-cta-banner .quiz-cta-eyebrow,
+    body:not(.dark-mode) .quiz-cta-banner .quiz-cta-cta { color: #8a6d00 !important; }
+    body:not(.dark-mode) .quiz-cta-banner .quiz-cta-title { color: #1a1a1d !important; }
+    body:not(.dark-mode) .quiz-cta-banner .quiz-cta-sub { color: #5e564a !important; }
+
+    /* Cards de Selección ST (#1 #2 #3 podio): cream con border dorado-marrón */
+    body:not(.dark-mode) .seleccion-st-card {
+      background: #ede2c2 !important;
+      border-color: rgba(120,90,0,.28) !important;
+      color: #1a1a1d;
+    }
+    body:not(.dark-mode) .seleccion-st-card * { color: inherit; }
+    body:not(.dark-mode) .seleccion-st-card .collectible-quote { color: #5e564a !important; }
 
     /* ════════════════════════════════════════════════════════════════
        LIGHT THEME · FIXES PUNTUALES (BUGS 1, 3-9)
