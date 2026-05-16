@@ -28,16 +28,20 @@
 //
 // Esperado combinado: TBT -140ms + CLS hero -0.2-0.4 = score +8-15 puntos.
 //
-// [HERO-COMPACT] Mejora visual final del hero post HERO-SUB-MOVE.
-// El bajón previo del min-height (320→220) no fue suficiente · seguía
-// quedando espacio negro debajo del badge #storeStatus. Esta iteración:
-//   - ELIMINA el min-height del hero (el contenido manda altura natural).
-//   - Baja padding-bottom: 2.5rem→1.25rem mobile, 3rem→1.5rem tablet,
-//     4rem→1.75rem desktop. Padding-top también un poco más compacto.
-// Resultado: hero pasa de ~320px a ~140-180px según viewport · apenas
-// deja respirar al storeStatus como el usuario pidió.
-// NUNCA volver a poner min-height alto · dispara el bug v1.1.43.
-var CACHE_VERSION = 'v1.1.53';
+// [LIGHT-MODE-CREAM-REVERT] El jefe (Alejo) revocó la excepción documentada
+// previamente "siempre quedan oscuras: trust-badges + cat-cards + price-banner
+// big + puntos banner". Ahora light mode usa la paleta cálida crema de manera
+// coherente en TODO el sitio (sin islas oscuras). Cambios:
+//   - .trust-badge: bg dark #121214 → cream #ede2c2 + texts ajustados
+//   - .cat-card: bg dark → cream + cat-count amarillo → dorado-marrón
+//   - .price-banner-wrap--big: gradient amarillo → gradient crema sutil
+//   - .puntos-context-banner: gradient dark → gradient crema
+//   - .seleccion-st-grid, .section-header, #contacto, .price-banner-wrap,
+//     .quiz-cta-wrap: background transparent (heredan body crema)
+//   - .seleccion-st-card: bg cream + border dorado-marrón
+// El .quiz-cta-banner (violeta-magenta) mantiene su gradiente intencional ·
+// es un eyecatcher decorativo intencional. Solo ajusta box-shadow.
+var CACHE_VERSION = 'v1.1.54';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
