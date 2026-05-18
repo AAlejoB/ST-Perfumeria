@@ -437,7 +437,17 @@
        hay 1-2 cards visibles (por filtro) la row del grid se estire al min-height del
        skeleton reserve, dejando una card gigante vertical con espacio vacío. */
     .catalog-grid { min-height: 900px; display: grid; grid-template-columns: 1fr; gap: 1rem; padding: 0 1rem; align-content: start; grid-auto-rows: max-content; }
-    @media (min-width: 768px) { nav { padding: 16px 24px; min-height: 64px; } .nav-logo img { height: 52px; } .catalog-grid { grid-template-columns: repeat(2, 1fr); min-height: 760px; } }
+    /* [CLS-BANNERS-RESERVE v2] Reservar altura de los 3 elementos above-the-fold
+       que crecen al cargar (Supabase render, styles.css lazy, font swap).
+       Sin esto el contenido empuja todo abajo en cascada → CLS catastrófico.
+       Valores medidos en preview real (preview_inspect mobile 375 y desktop 1280):
+       - trust-badges: 0 → 240px mobile / 135px desktop (Supabase render de 4 badges)
+       - quiz-cta-banner: real height 235px mobile / 110px desktop
+       - price-banner--big: real height 129px mobile / 98px desktop */
+    .trust-badges { min-height: 250px; }
+    .quiz-cta-banner { min-height: 240px; }
+    .price-banner-wrap--big .price-banner--big { min-height: 135px; }
+    @media (min-width: 768px) { nav { padding: 16px 24px; min-height: 64px; } .nav-logo img { height: 52px; } .catalog-grid { grid-template-columns: repeat(2, 1fr); min-height: 760px; } .trust-badges { min-height: 145px; } .quiz-cta-banner { min-height: 115px; } .price-banner-wrap--big .price-banner--big { min-height: 105px; } }
   </style>
 </head>
 <body class="is-guest dark-mode">
