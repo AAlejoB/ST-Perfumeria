@@ -846,6 +846,138 @@ en sesión próxima con cabeza fresca · no hoy. Si bajó, considerar:
 
 ---
 
+### Sesión 18-may-2026 · **CLS Reserve Banners** (mobile fixed · desktop pendiente)
+
+Sesión de validación post Light Mode Rework. Confirmada regresión CLS
+catastrófica · diagnosticada raíz · fix quirúrgico mobile mergeado a main.
+
+**Antes (producción · 5 runs PSI mediana):**
+
+| Métrica  | Mobile | Desktop |
+|---|---|---|
+| Score    | **49** | 71 |
+| **CLS**  | **1.044** 🔥 | 0.905 🔥 |
+| TBT      | 70ms ✓ | 80ms ✓ |
+| FCP / LCP | 3.3 / 4.6 s | 0.5 / 1.1 s |
+
+**Después (producción post-merge `a761035` · 5 runs limpios PSI+LH):**
+
+| Métrica  | Mobile | Desktop |
+|---|---|---|
+| Score    | **84** (+35) | sin cambio significativo |
+| **CLS**  | **0.025** (-97%) ✓ | **~0.9** (no resuelto) |
+| LCP      | 2.45s | sin cambio |
+
+#### Causa raíz (3 elementos above-the-fold sin altura reservada)
+
+Cuando `styles.css` carga lazy (preload+onload) y Supabase devuelve datos,
+3 elementos crecen y empujan todo abajo en cascada:
+
+1. **`<section class="trust-badges">`** · arrancaba con `height: 0` (vacío)
+   y crecía a **240px mobile / 135px desktop** al renderear 4 cards desde
+   Supabase. El culpable principal · empujaba el quiz-cta-banner ~280px.
+2. **`button.quiz-cta-banner`** · crecía de `<button>` plano sin styles
+   (~40-60px) a flex column con padding/gradient (**235px** mobile real /
+   110px desktop). Shift score consistente 0.2035 en todos los runs.
+3. **`.price-banner--big`** · similar · crecía a **129px** mobile /
+   98px desktop.
+
+#### Fix · 1 sola edición al critical CSS inline
+
+Agregar `min-height` reservado en el `<style>` inline de `index.html`
+(commit `a761035`, líneas 446-450):
+
+```css
+.trust-badges                                  { min-height: 250px; }
+.quiz-cta-banner                               { min-height: 240px; }
+.price-banner-wrap--big .price-banner--big     { min-height: 135px; }
+@media (min-width: 768px) {
+  .trust-badges                                { min-height: 145px; }
+  .quiz-cta-banner                             { min-height: 115px; }
+  .price-banner-wrap--big .price-banner--big   { min-height: 105px; }
+}
+```
+
+Mismo patrón que `.catalog-grid` desde `[CLS-RESERVE]` del Maratón
+Lighthouse (commit `50c2f80`).
+
+#### Iteraciones · v1 falló · v2 funcionó
+
+| Iter | Valores | CLS local | ¿Por qué? |
+|---|---|---|---|
+| v1 (commit `d4794e9`, después squashed) | quiz 210 / price 95 mobile | 0.227 (igual) | Solo reservaba 2 banners · faltaba trust-badges (el principal) · y los valores estaban subestimados (real 235 vs reserva 210) |
+| v2 (commit `c03ba02`, después squashed) | trust 250 / quiz 240 / price 135 | **0.025** ✓ | Identificado culprit real (trust-badges 0→240px) + bumpeé valores al real medido con `preview_inspect` |
+
+#### 🚨 Pendiente desktop · culprit distinto
+
+Desktop CLS post fix v2 sigue ~0.9 (no mejoró). Lighthouse local desktop
+mostró top shifts:
+- `svg.search-icon` (filter del catálogo · `div#catalogo > div.filter-zone > div.search-wrapper > svg.search-icon`) · score **0.858** · IDENTIFICADO COMO PRINCIPAL CULPRIT DESKTOP
+- `section#destacados` (Selección ST) · score 0.24
+
+El catálogo entra above-the-fold en desktop (viewport más alto) y el SVG
+del search icon shiftea cuando styles.css aplica. **Próxima sesión**
+debe atacar:
+1. Verificar que `svg.search-icon` tenga `width`/`height` attrs o reservar
+   en CSS · es shift clásico de SVG sin dimensions
+2. Reservar `min-height` del `.seleccion-st-grid` similar a este fix
+
+#### ⚠️ PSI dashboard sigue og:url y JSON-LD URLs
+
+Descubierto durante esta sesión: PSI cuando le pegamos un preview URL
+(con canonical o `og:url` apuntando a `www.stperfumeria.com`), a veces
+sigue ese link y mide producción en lugar del preview. 3 de 5 mobile
+runs y 5 de 5 desktop runs mid producción aún después de comentar el
+canonical · porque quedaban 32 referencias absolutas a producción en
+`og:url`, `og:see_also`, JSON-LD `@id`/`url`.
+
+**Workaround para próxima sesión**: si necesitás medir un preview con
+PSI dashboard, comentar TAMBIÉN `og:url` + `og:see_also` (o usar
+Lighthouse CLI local apuntando al preview URL — Lighthouse CLI NO sigue
+canonical ni og:url).
+
+**Alternativa más sostenible**: mergear el fix a main y medir en `main`
+directo · ahí PSI no tiene canonical externo a seguir porque `main` ES
+el canonical. Eso fue lo que hicimos en esta sesión.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[CLS-BANNERS-RESERVE]` | Reserva min-height para los 3 elementos above-fold mobile (trust-badges + quiz-cta-banner + price-banner--big) en critical CSS inline · -97% CLS Mobile · score +35 |
+
+#### 💬 Mensaje al Alejo / Claude del futuro
+
+**Sobre `preview_inspect`:** invaluable herramienta para medir alturas
+reales antes de reservar min-height. La sesión perdió 1 hora con valores
+guesseados (v1) hasta que medí con `preview_inspect` mobile 375 + desktop
+1280 (v2) que funcionó al primer intento. Patrón replicable: cuando
+necesitás reservar altura para CLS, levantar preview local con server
+(Python http.server es más confiable que `npx serve` en Windows) y
+medir con `preview_inspect` antes de adivinar valores.
+
+**Sobre PSI dashboard vs Lighthouse CLI local:**
+- Lighthouse CLI local: NO sigue canonical/og:url · mide la URL exacta que
+  le das · TBT inflado por load de la máquina (mi run dio TBT 5000ms) pero
+  CLS confiable (mismos ±0.05 que PSI lab).
+- PSI dashboard: SI sigue canonical/og:url heurísticamente · TBT real ·
+  pero puede medir otra URL sin avisar.
+- **Conclusión**: para CLS validation, Lighthouse CLI local es más confiable.
+  Para score absoluto / TBT, PSI dashboard es la verdad.
+
+**Sobre el flow de revert-temp-canonical:** comentar el canonical en un
+commit temporal funciona PARCIALMENTE · PSI a veces sigue otros tags
+(og:url, JSON-LD). Si necesitás validación 100% del preview, hay que
+comentar también og:url + og:see_also. O directamente medir `main`
+después del merge (lo que terminamos haciendo).
+
+**Sobre el merge approach:** el squash a 1 commit ÚNICO en main funciona
+limpio · el commit del fix incluye TODA la historia del debugging (v1, v2,
+mediciones, lecciones) en el body. Mejor que dejar 4 commits intermedios
+contaminando history.
+
+---
+
 ## 🎓 Lecciones meta
 
 1. **No empezar por la UI.** Diseñar la DB primero. Lo aprendí con la tabla de puntos que se replanificó 3 veces.
@@ -868,8 +1000,8 @@ en sesión próxima con cabeza fresca · no hoy. Si bajó, considerar:
 
 ---
 
-**Última actualización:** Mayo 16, 2026 (noche · post Light Mode Rework) — sesión continuación post Maratón Lighthouse. Refactor del light mode pedido por el jefe (revocó la "excepción del jefe que siempre oscuras" para trust-badges/cat-cards/banners) · Opción B Cream coherente del mockup. ~12 commits. SW v1.1.53 → **v1.1.64** (11 bumps más). Bug raíz del `body.is-guest` documentado en sección "Light Mode Rework" arriba con recomendaciones para el Alejo/Claude futuro. **PERF NO RE-MEDIDO** post Light Mode Rework · podría haber bajado del 100% del día anterior por peso CSS + animaciones · validar en próxima sesión con cabeza fresca (Alejo lo flagueó él mismo).
-**Próxima revisión cuando:** re-medir Performance Lighthouse post Light Mode, Cache-Control en Supabase Storage, A11y 92 → 100, logo @2x retina, imágenes Supabase con `?width=400`, JS-CHUNK iter 2, BCRYPT-MIGRATION, SUPABASE-AUTH, o cualquier cambio de arquitectura.
+**Última actualización:** Mayo 18, 2026 — sesión CLS Reserve Banners (validación post Light Mode Rework). Re-medido Performance con PSI: CLS Mobile 1.044 / Desktop 0.905 (regresión catastrófica vs Maratón 0.0xx). Diagnosticado culprit: 3 elementos above-the-fold sin altura reservada (trust-badges 0→240px, quiz-cta-banner 0→235px, price-banner--big 0→129px) que crecen con styles.css lazy + Supabase render y empujan todo en cascada. Fix `[CLS-BANNERS-RESERVE]` en commit `a761035` (squash de 4 commits intermedios) · merge directo a main + restore SSO + canonical intacto. **Mobile resuelto: CLS 0.025 (-97%) · score 49→84 (+35).** **Desktop NO resuelto** (CLS sigue ~0.9 · culprit distinto: `svg.search-icon` score 0.858 · queda para iter 3 próxima sesión). SW v1.1.64 → **v1.1.66**.
+**Próxima revisión cuando:** **fix CLS Desktop iter 3** (search-icon SVG + Selección ST grid), Cache-Control en Supabase Storage, A11y 92 → 100, logo @2x retina, imágenes Supabase con `?width=400`, JS-CHUNK iter 2, BCRYPT-MIGRATION, SUPABASE-AUTH, o cualquier cambio de arquitectura.
 
 ---
 
@@ -945,6 +1077,7 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[HERO-COMPACT]` — **ELIMINAR completamente el `min-height` del `.hero`** (CSS + critical inline) + bajar padding-bottom (2.5rem → 1.25rem mobile · 3rem → 1.5rem tablet · 4rem → 1.75rem desktop). El hero queda en altura natural ~140-180px según viewport. **MEDICIÓN FINAL en preview Vercel: 100% Performance Mobile + 100% A11y + 100% Best Practices**. ⚠️ REGLA: nunca volver a poner `min-height` ALTO en el hero · dispara el layout-recalc raro de v1.1.43 (CLS 0.132 → 0.957). BAJAR/quitar está OK, SUBIR está prohibido. Commit `50c2f80`.
 - `[LCP-PRELOAD]` — preload + fetchpriority de imagen LCP
 - `[CLS-RESERVE]` — min-height reservado en skeleton/grid
+- `[CLS-BANNERS-RESERVE]` — min-height reservado en `<style>` inline para 3 elementos above-the-fold mobile que crecen sin estilos: `.trust-badges` (vacío → 240px cuando Supabase rendea 4 cards), `.quiz-cta-banner` (40-60px → 235px cuando styles.css aplica padding+flex+gradient), `.price-banner-wrap--big .price-banner--big` (40-60px → 129px similar). Más equivalentes desktop con valores menores (145/115/105). Valores medidos con `preview_inspect` mobile 375 + desktop 1280 + buffer 5-10px. Resultado: CLS Mobile 1.044 → 0.025 (-97%) · score 49 → 84 (+35) · LCP 4.6s → 2.45s. Validado con 5 runs limpios (3 Lighthouse local + 2 PSI clean). Desktop NO resuelto (top shift desktop es `svg.search-icon` score 0.858 · culprit distinto · queda para iter 3). Commit `a761035` (squash de 4 commits intermedios: v1 → temp canonical → v2 → revert canonical).
 - `[FCP-CSS]` — CSS no bloqueante + critical inline
 - `[IMG-DIMS]` — aspect-ratio defensivo en imgs
 - `[SDK-DEFER]` — Supabase SDK con defer (ya estaba)
