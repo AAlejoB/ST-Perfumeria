@@ -2958,25 +2958,50 @@
       // compara contra el hash que tiene en su tabla auth.users.
       var role = null;
       var loginError = null;
-      try {
+
+      // Un intento de login (jefe, luego empleado). Devuelve el rol,
+      // o null si la contrasena es incorrecta. Lanza error SOLO si
+      // hay timeout o problema de red (no si la pass esta mal).
+      async function _doAuthOnce() {
         var r1 = await _loginWithTimeout(
           sb.auth.signInWithPassword({ email: JEFE_EMAIL, password: pass }),
-          8000,
+          10000,
           'login jefe'
         );
-        if (r1 && r1.data && r1.data.user) {
-          role = 'jefe';
-        } else {
-          var r2 = await _loginWithTimeout(
-            sb.auth.signInWithPassword({ email: EMPLEADO_EMAIL, password: pass }),
-            8000,
-            'login empleado'
-          );
-          if (r2 && r2.data && r2.data.user) role = 'empleado';
+        if (r1 && r1.data && r1.data.user) return 'jefe';
+        var r2 = await _loginWithTimeout(
+          sb.auth.signInWithPassword({ email: EMPLEADO_EMAIL, password: pass }),
+          10000,
+          'login empleado'
+        );
+        if (r2 && r2.data && r2.data.user) return 'empleado';
+        return null;
+      }
+
+      // Hasta 2 intentos: si el primero se cae por timeout/red (no por
+      // pass incorrecta), reintenta UNA vez en silencio antes del cartelito.
+      var hadRetry = false;
+      for (var intento = 1; intento <= 2; intento++) {
+        try {
+          role = await _doAuthOnce();
+          loginError = null;
+          break;
+        } catch (e) {
+          console.error('[login] error auth (intento ' + intento + '):', e);
+          loginError = e && e.message ? e.message : 'error desconocido';
+          if (intento < 2) {
+            hadRetry = true;
+            if (errEl) errEl.textContent = 'Reintentando\u2026';
+            await new Promise(function(res){ setTimeout(res, 1200); });
+          }
         }
-      } catch (e) {
-        console.error('[login] error auth:', e);
-        loginError = e && e.message ? e.message : 'error desconocido';
+      }
+
+      // [LOGIN-RETRY-TELEMETRY] Si el primer intento tuvo timeout pero el
+      // segundo entr\u00f3 OK, avisar a Telegram. Sirve de telemetr\u00eda real:
+      // si hay muchos reintentos exitosos por semana, vale activar Plan B.
+      if (role && hadRetry) {
+        notifyTelegram('\u26a0\ufe0f Login admin OK pero requiri\u00f3 reintento (Supabase lento)\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
       }
 
       if (passInput) passInput.disabled = false;
