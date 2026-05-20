@@ -447,16 +447,19 @@
     .trust-badges { min-height: 250px; }
     .quiz-cta-banner { min-height: 240px; }
     .price-banner-wrap--big .price-banner--big { min-height: 135px; }
-    /* [CLS-DESKTOP-ITER3] Fix iter 3 atacando culprits desktop · 18-may post-mortem:
-       1) svg.search-icon score 0.858 · default size 300x150px sin width attr +
-          position absolute cuando carga styles.css · shift gigante en filter-bar.
-          Fix: dims + position en critical CSS para primer paint estable.
-       2) .seleccion-st-grid score 0.24 · grid horizontal vacío que crece a ~270/290px
-          cuando Supabase rendea las collectible-cards (rank top 6 con foto). */
+    /* [CLS-DESKTOP-ITER4] Fix iter 4 desktop · 20-may. Iter 3 redujo CLS local
+       desktop pero seguía ~0.85 porque mi min-height del .seleccion-st-grid
+       (interior) era de 290px pero la <section> entera mide 491px (header +
+       padding + grid 342). El shift score 0.81 era de section#destacados
+       creciendo de ~80 (solo header) a 491. Fix: reservar SECTION completa.
+       1) svg.search-icon · dims + position en critical CSS para primer paint estable
+       2) section.seleccion-st · min-height total (header + grid + padding) basado
+          en medición real Lighthouse (491px desktop · estimado 580 mobile) */
     .search-wrapper { position: relative; }
     .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; }
     .seleccion-st-grid { min-height: 270px; }
-    @media (min-width: 768px) { nav { padding: 16px 24px; min-height: 64px; } .nav-logo img { height: 52px; } .catalog-grid { grid-template-columns: repeat(2, 1fr); min-height: 760px; } .trust-badges { min-height: 145px; } .quiz-cta-banner { min-height: 115px; } .price-banner-wrap--big .price-banner--big { min-height: 105px; } .seleccion-st-grid { min-height: 290px; } }
+    section.seleccion-st { min-height: 580px; }
+    @media (min-width: 768px) { nav { padding: 16px 24px; min-height: 64px; } .nav-logo img { height: 52px; } .catalog-grid { grid-template-columns: repeat(2, 1fr); min-height: 760px; } .trust-badges { min-height: 145px; } .quiz-cta-banner { min-height: 115px; } .price-banner-wrap--big .price-banner--big { min-height: 105px; } .seleccion-st-grid { min-height: 290px; } section.seleccion-st { min-height: 520px; } }
   </style>
 </head>
 <body class="is-guest dark-mode">
