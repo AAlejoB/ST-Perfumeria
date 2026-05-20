@@ -1000,8 +1000,64 @@ contaminando history.
 
 ---
 
-**Última actualización:** Mayo 18, 2026 — sesión CLS Reserve Banners (validación post Light Mode Rework). Re-medido Performance con PSI: CLS Mobile 1.044 / Desktop 0.905 (regresión catastrófica vs Maratón 0.0xx). Diagnosticado culprit: 3 elementos above-the-fold sin altura reservada (trust-badges 0→240px, quiz-cta-banner 0→235px, price-banner--big 0→129px) que crecen con styles.css lazy + Supabase render y empujan todo en cascada. Fix `[CLS-BANNERS-RESERVE]` en commit `a761035` (squash de 4 commits intermedios) · merge directo a main + restore SSO + canonical intacto. **Mobile resuelto: CLS 0.025 (-97%) · score 49→84 (+35).** **Desktop NO resuelto** (CLS sigue ~0.9 · culprit distinto: `svg.search-icon` score 0.858 · queda para iter 3 próxima sesión). SW v1.1.64 → **v1.1.66**.
-**Próxima revisión cuando:** **fix CLS Desktop iter 3** (search-icon SVG + Selección ST grid), Cache-Control en Supabase Storage, A11y 92 → 100, logo @2x retina, imágenes Supabase con `?width=400`, JS-CHUNK iter 2, BCRYPT-MIGRATION, SUPABASE-AUTH, o cualquier cambio de arquitectura.
+### Sesión 20-may-2026 · **LOGIN-RETRY-SP** (Plan A · reintento silencioso por latencia Supabase)
+
+Sesión corta de fix focal, **diseñada con otra instancia de Claude (ClaudeChat)** que armó el plan y la modificación de `admin.html`. Yo (Claude Code) ejecuté el deploy con una mejora de telemetría adicional. Archivos de referencia preservados en `RECOMENDACIONES_CLAUDECHAT/` (incluye `Plan_B_Migracion_SaoPaulo_ST_Perfumeria.md` para contingencia futura).
+
+#### Causa raíz · NO es un bug
+
+Empleados en tablets/celulares del local veían el cartelito **"Supabase no respondió. Probá de nuevo en unos segundos."** **casi siempre al ingresar al panel admin** (al poner password). Reintentando, entraban.
+
+Diagnóstico (ClaudeChat): la base de Supabase está en **`us-west-2` (Oregon)**, lejos de Argentina (~250ms latencia base). Con el WiFi del local titubeando, el timeout de **8s** del `_loginWithTimeout` se pasaba intermitentemente. No es bug · es latencia.
+
+#### Plan A · este commit (`267e7e2`)
+
+Fix quirúrgico en `admin.html` líneas 2958-3006 · 1 sola zona del archivo (~40 líneas de diff). Sin tocar DB, sin tocar usuarios, sin tocar catálogo público, totalmente reversible con `git revert`.
+
+**Cambios:**
+1. Refactor de la lógica de login a `async function _doAuthOnce()` que prueba jefe → empleado y retorna `'jefe'`/`'empleado'`/`null`. Arroja `Error` SOLO en timeout/red, NO con pass incorrecta.
+2. **Loop de hasta 2 intentos.** Si el 1ro lanza por timeout, espera **1.2s** y reintenta una vez en silencio. El empleado ve un breve "Reintentando…" en el `errEl`.
+3. **Timeout 8s → 10s** (margen más generoso).
+4. Mantiene la regla anti-lockout · **timeout NO cuenta como intento fallido**. Pass incorrecta sigue contando como antes.
+5. Pass incorrecta NO dispara reintento (las credenciales no cambian entre intentos consecutivos).
+
+**Mejora agregada `[LOGIN-RETRY-TELEMETRY]` por Claude Code:** flag `hadRetry` + `notifyTelegram` cuando el reintento es exitoso. Telemetría real para decidir si Plan B se justifica:
+- Si llegan muchos Telegram "⚠️ Login admin OK pero requirió reintento" por semana → Plan B (migración a São Paulo) se justifica.
+- Si llegan 1-2 por mes → Plan A es suficiente.
+
+#### Plan B · contingencia documentada · NO ejecutar sin OK
+
+Playbook completo en `RECOMENDACIONES_CLAUDECHAT/Plan_B_Migracion_SaoPaulo_ST_Perfumeria.md`. Resumen:
+- Crear nuevo proyecto Supabase en `sa-east-1` (São Paulo · mucho más cerca de Argentina, ~30-50ms vs 250ms actuales).
+- Migrar schema, data, funciones (`send_telegram`...), bucket `perfume-fotos`.
+- **Punto delicado:** migrar usuarios con sus **contraseñas encriptadas intactas** (que nadie tenga que resetear).
+- Cambiar URL + clave anon en env vars de Vercel.
+- Corte estimado <15 min en horario muerto.
+- NO dar de baja el proyecto viejo hasta confirmar que el nuevo anda 100%.
+
+#### Qué validar después de unos días en producción
+
+1. Contar cuántos Telegram "Login admin OK pero requirió reintento" llegaron por semana.
+2. Si las chicas siguen reportando el cartelito rojo · entonces Plan A no alcanzó · activar Plan B.
+3. Si NO hay reportes ni Telegrams de reintentos · Plan A resolvió el problema.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[LOGIN-RETRY-SP]` | Loop de hasta 2 intentos de login admin · reintenta solo en timeout/red, NO en pass incorrecta · UX "Reintentando…" · timeout 10s · NO cuenta timeout como fail · commit `267e7e2` |
+| `[LOGIN-RETRY-TELEMETRY]` | notifyTelegram cuando un reintento es exitoso · permite medir frecuencia del problema en producción · mejora agregada al Plan A original |
+
+#### 💬 Nota meta · trabajando con otra instancia de Claude
+
+Esta sesión funcionó como **handoff Claude ↔ Claude vía Alejo + archivos en `RECOMENDACIONES_CLAUDECHAT/`**. ClaudeChat hizo diagnóstico + diseño + escritura del prompt + edición del `admin.html`. Claude Code (yo) hizo: ejecución del deploy + mejora telemetría + documentación.
+
+Pattern replicable cuando hay un problema que necesita **análisis profundo y diseño cuidadoso** (mejor cabeza fresca / contexto separado): ClaudeChat propone, Alejo valida, Claude Code ejecuta. Los archivos `Prompt_para_ClaudeCode_*.md` que prepara ClaudeChat son **especialmente útiles** porque incluyen explícitamente "qué SÍ hacer", "qué NO hacer todavía", y "cómo verificar". Sin ellos, Claude Code podría arriesgarse a hacer más de lo necesario.
+
+---
+
+**Última actualización:** Mayo 20, 2026 — sesión LOGIN-RETRY-SP (Plan A · reintento silencioso por latencia Supabase). Diseñado con ClaudeChat (instancia separada), ejecutado por Claude Code con mejora telemetría agregada. Fix `[LOGIN-RETRY-SP]` en commit `267e7e2` · solo `admin.html` (40 líneas en 1 sola función) + SW bump. Refactor de login a `_doAuthOnce()` + loop 2 intentos + timeout 8→10s + "Reintentando…" UX + `notifyTelegram` cuando reintento es exitoso (telemetría para decidir Plan B). NO modificó DB, usuarios, catálogo público. **Reversible** con `git revert`. Plan B (migración Supabase us-west-2 → sa-east-1 São Paulo) **documentado pero NO ejecutado** · esperar señal de telemetría antes de activarlo · ver `RECOMENDACIONES_CLAUDECHAT/Plan_B_*.md`. SW v1.1.66 → **v1.1.67**. Sesión 18-may-2026 (CLS Reserve Banners mobile) sigue siendo el último cambio de UI · desktop CLS sigue pendiente.
+**Próxima revisión cuando:** validar telemetría Plan A en 1-2 semanas (¿Plan B necesario?), **fix CLS Desktop iter 3** (search-icon SVG + Selección ST grid), Cache-Control en Supabase Storage, A11y 92 → 100, logo @2x retina, imágenes Supabase con `?width=400`, JS-CHUNK iter 2, BCRYPT-MIGRATION, SUPABASE-AUTH, o cualquier cambio de arquitectura.
 
 ---
 
@@ -1081,6 +1137,8 @@ Si volvés a hablar con Claude (esta misma o en otra compu), referite a estos fe
 - `[FCP-CSS]` — CSS no bloqueante + critical inline
 - `[IMG-DIMS]` — aspect-ratio defensivo en imgs
 - `[SDK-DEFER]` — Supabase SDK con defer (ya estaba)
+- `[LOGIN-RETRY-SP]` — login del panel admin con loop de hasta 2 intentos · reintento silencioso solo si timeout/red (NO si pass incorrecta) · 1.2s entre intentos · timeout 8s → 10s · UX "Reintentando…" · NO cuenta timeout como fail (preserva regla anti-lockout original). Causa raíz: latencia intermitente Supabase Oregon + WiFi local. Plan A diseñado con ClaudeChat (instancia separada) · ejecutado por Claude Code con mejora `[LOGIN-RETRY-TELEMETRY]` agregada. Commit `267e7e2`. Plan B (migración Supabase a `sa-east-1` São Paulo) documentado pero NO ejecutado · esperar señal de telemetría · ver `RECOMENDACIONES_CLAUDECHAT/Plan_B_*.md`.
+- `[LOGIN-RETRY-TELEMETRY]` — notifyTelegram cuando un reintento es exitoso · permite contar frecuencia del problema en producción · si llegan muchos por semana → activar Plan B · mejora agregada al Plan A (commit `267e7e2`).
 
 Y para mejoras futuras planteadas pero no hechas:
 - `[SIRENITA]` — sistema de Campañas (tabla `campaigns` en Supabase) para que las empleadas puedan crear/activar/desactivar campañas (Hot Sale, Black Friday, Aniversario, etc) sin tocar código. Cada campaña define label, emoji, color. Solo 1 activa por vez. Mockup propuesto en `mockup-zapato.html` tab "Campañas". Hoy `HOT_SALE_LABEL` está hardcoded — esto lo haría editable desde admin.
