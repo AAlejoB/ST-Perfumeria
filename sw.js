@@ -48,7 +48,7 @@
 //     invierte a pill dark con texto dorado.
 //   - JS toggleDarkMode: actualiza emoji + label simultáneo. Init sets
 //     navThemeLabel a "LIGHT" si dark / "DARK" si light.
-var CACHE_VERSION = 'v1.1.68';
+var CACHE_VERSION = 'v1.1.69';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
