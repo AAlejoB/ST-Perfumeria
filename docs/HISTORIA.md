@@ -1063,6 +1063,39 @@ Pattern replicable cuando hay un problema que necesita **análisis profundo y di
 
 ## 🚀 Cómo arrancar la próxima sesión (handoff para Claude que vuelve)
 
+### ⭐ SESIÓN PRIORITARIA AGENDADA · Plan B Supabase São Paulo
+
+**Cuándo:** Alejo planea ejecutar esta noche del 20-may-2026 (o cuando esté off del horario de perfumería · NO en horario operativo 10-21 ARG).
+
+**Qué hacer cuando Alejo arranque la sesión:**
+
+1. **Leer `CLAUDE.md` + este archivo + `RECOMENDACIONES_CLAUDECHAT/Plan_B_Migracion_SaoPaulo_ST_Perfumeria.md`** (playbook completo)
+2. **NO arrancar la migración** hasta que Alejo confirme que:
+   - Ya creó el proyecto nuevo en Supabase (`sa-east-1` São Paulo)
+   - Tiene a mano la **service role key** del proyecto nuevo (NO la anon · la service tiene permisos para crear schemas/data/users)
+   - Ya avisó a las chicas que el panel va a estar caído ~15 min
+3. **Orden de ejecución sugerido (del playbook):**
+   - Migrar schema con `pg_dump --schema-only` del viejo + `psql` al nuevo
+   - Migrar data con `pg_dump --data-only`
+   - Re-deployar Edge Functions (`send_telegram` y demás)
+   - Copiar bucket `perfume-fotos` con todas las imágenes (~150 perfumes)
+   - **PUNTO MÁS DELICADO:** migrar `auth.users` con `encrypted_password` intactos · sino las chicas tienen que resetear contraseñas (ver playbook sección 5)
+   - Cambiar `SUPABASE_URL` + `SUPABASE_ANON_KEY` en env vars de Vercel
+   - Redeploy de Vercel + verificación (login chicas + guardado de datos + realtime)
+   - **NO dar de baja el viejo** hasta confirmar 100% (incluyendo realtime del stock)
+4. **Verificación crítica post-migración:**
+   - Login funciona con passwords existentes (sin reset)
+   - Catálogo público lee perfumes (RLS pública OK)
+   - Realtime stock actualiza entre tablets (multi-device en vivo)
+   - Push notifications funcionan
+   - Auto-backup cron funciona (próximo a las 00:00 ARG)
+
+**Contexto reciente para entender el porqué:** Plan A `[LOGIN-RETRY-SP]` se desplegó hoy (commit `267e7e2`). Alejo decidió NO esperar 1-2 semanas de telemetría · prefiere atacar la causa raíz (latencia us-west-2 Oregon → 250ms · sa-east-1 São Paulo → 30-50ms). Plan A queda igual desplegado · sirve de fallback si el Plan B tiene algún hiccup.
+
+---
+
+### Si NO es la sesión del Plan B (sesión genérica)
+
 Cuando Alejo abra un chat nuevo de Claude Code en este repo:
 
 1. **Leer `CLAUDE.md`** (convenciones generales, estructura, NO ROMPER, stack)
