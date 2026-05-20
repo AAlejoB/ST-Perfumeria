@@ -1054,10 +1054,45 @@ Esta sesión funcionó como **handoff Claude ↔ Claude vía Alejo + archivos en
 
 Pattern replicable cuando hay un problema que necesita **análisis profundo y diseño cuidadoso** (mejor cabeza fresca / contexto separado): ClaudeChat propone, Alejo valida, Claude Code ejecuta. Los archivos `Prompt_para_ClaudeCode_*.md` que prepara ClaudeChat son **especialmente útiles** porque incluyen explícitamente "qué SÍ hacer", "qué NO hacer todavía", y "cómo verificar". Sin ellos, Claude Code podría arriesgarse a hacer más de lo necesario.
 
+#### Quick wins post LOGIN-RETRY-SP · 3 fixes adicionales en la misma sesión
+
+Después del deploy del Plan A, Alejo pidió atacar 3 pendientes en orden mientras esperaba el horario muerto para el Plan B Supabase São Paulo:
+
+**1. `[CACHE-CONTROL-1W]`** · commit `f4edd3d` · SW v1.1.67 → v1.1.68
+- Causa: bucket Supabase Storage `perfume-fotos` servía archivos con `Cache-Control max-age=3600 no-cache` (1h) porque ningún `upload()` del admin seteaba `cacheControl` explícito · Lighthouse marcaba -66 KiB en visitas repetidas
+- Fix: 3 llamadas a `sb.storage.from('perfume-fotos').upload()` en admin.html (líneas 5420, 6174, 8157) ahora pasan `cacheControl: '604800'` (1 semana)
+- **Sinergia con Plan B**: el script de migración a São Paulo va a re-uploadear todos los archivos del bucket viejo al nuevo CON cacheControl 1 semana también · resultado: TODO el bucket nuevo nace con cache largo sin trabajo extra.
+
+**2. `[A11Y-CONTRAST-5]`** · commit `d7df0a2` · SW v1.1.68 → v1.1.69
+- Causa: 5 contrastes WCAG insuficientes que mantenían A11y en 92 (HISTORIA.md sección antigua línea 729)
+- Fix: 5 selectores en `css/styles.css`:
+  - `body.dark-mode .tag-acorde` · `#777` → `#b0b0b0`
+  - `body.dark-mode .occasion-label` · `#666` → `#b0b0b0`
+  - Nuevo override: `body.dark-mode .cat-count` · `#b0b0b0` (light ya tenía override dorado-marrón)
+  - `.wa-status--closed` split en 2: light `#c0392b` / dark override `#ff7466`
+  - `.badge-sin-stock` background `#e74c3c` → `#c0392b` (white text sobre #c0392b = 5.74:1 vs 3.96:1 anterior)
+- Validación pendiente · Alejo mide PSI a11y · debería subir a 100.
+
+**3. `[CLS-DESKTOP-ITER3]` + `[CLS-DESKTOP-ITER4]`** · commits `93d0caf` + `8a652fd` · SW v1.1.69 → v1.1.71
+- Causa: tras el fix mobile del 18-may, desktop seguía con CLS ~0.9 · top culprit Lighthouse: `svg.search-icon` (score 0.858) + `section#destacados` (0.24)
+- Iter 3: agregar `width="16" height="16"` al SVG search-icon + reservar `.search-wrapper` position relative + `.search-icon` position absolute + dims en critical CSS inline · ATACÓ exitosamente el SVG (ya no aparece como top shift) · pero la sel ST sigue
+- Iter 4: agregar `section.seleccion-st { min-height: 580px mobile / 520px desktop }` al critical CSS · reservar la SECTION completa no solo el grid interior
+- **Resultado parcial**: CLS desktop **0.91 → 0.86 (-5%)** · el shift sigue siendo `section#destacados` score 0.81 · pero ahora el rect dice h=520 (mi reserve aplicó) lo que sugiere que el culprit real es OTRO elemento above-fold que se mueve y arrastra todo
+- **NO resuelto** · queda iter 5 con análisis profundo (probables culprits: `section.hero` font swap de Playfair Display · `section.section-cats` sin min-height · `home-top-banner` que aparece dinámicamente)
+- Lección: `preview_inspect` puede dar **medidas erróneas** cuando los styles no terminaron de aplicar (vi `nav height 349px` que es imposible en producción real · el browser headless midió HTML semi-pintado)
+
+**Keywords cerrados de esta sesión:**
+| Keyword | Qué hace |
+|---|---|
+| `[CACHE-CONTROL-1W]` | Uploads del admin con cacheControl 1 semana · ahorra 66 KiB en visitas repetidas · sinergia con Plan B |
+| `[A11Y-CONTRAST-5]` | 5 contrastes WCAG arreglados para llegar a A11y 100 · solo cambios de color, cero impacto layout |
+| `[CLS-DESKTOP-ITER3]` | Reserva search-icon SVG + dims + position en critical CSS · atacó exitosamente el shift del search-icon (0.858 → 0) |
+| `[CLS-DESKTOP-ITER4]` | Reserva section.seleccion-st 580/520 mobile/desktop · mejoró parcialmente pero shift sigue por culprit no identificado |
+
 ---
 
-**Última actualización:** Mayo 20, 2026 — sesión LOGIN-RETRY-SP (Plan A · reintento silencioso por latencia Supabase). Diseñado con ClaudeChat (instancia separada), ejecutado por Claude Code con mejora telemetría agregada. Fix `[LOGIN-RETRY-SP]` en commit `267e7e2` · solo `admin.html` (40 líneas en 1 sola función) + SW bump. Refactor de login a `_doAuthOnce()` + loop 2 intentos + timeout 8→10s + "Reintentando…" UX + `notifyTelegram` cuando reintento es exitoso (telemetría para decidir Plan B). NO modificó DB, usuarios, catálogo público. **Reversible** con `git revert`. Plan B (migración Supabase us-west-2 → sa-east-1 São Paulo) **documentado pero NO ejecutado** · esperar señal de telemetría antes de activarlo · ver `RECOMENDACIONES_CLAUDECHAT/Plan_B_*.md`. SW v1.1.66 → **v1.1.67**. Sesión 18-may-2026 (CLS Reserve Banners mobile) sigue siendo el último cambio de UI · desktop CLS sigue pendiente.
-**Próxima revisión cuando:** validar telemetría Plan A en 1-2 semanas (¿Plan B necesario?), **fix CLS Desktop iter 3** (search-icon SVG + Selección ST grid), Cache-Control en Supabase Storage, A11y 92 → 100, logo @2x retina, imágenes Supabase con `?width=400`, JS-CHUNK iter 2, BCRYPT-MIGRATION, SUPABASE-AUTH, o cualquier cambio de arquitectura.
+**Última actualización:** Mayo 20, 2026 — sesión 5 commits productivos: `[LOGIN-RETRY-SP]` Plan A login con reintento silencioso (con ClaudeChat) + `[CACHE-CONTROL-1W]` uploads con cache 1 semana + `[A11Y-CONTRAST-5]` 5 contrastes WCAG arreglados + `[CLS-DESKTOP-ITER3]` search-icon SVG + `[CLS-DESKTOP-ITER4]` section.seleccion-st parcial. SW v1.1.66 → **v1.1.71** (5 bumps). Plan B Supabase São Paulo **agendado para esta noche** post-horario perfumería · ver sección "⭐ SESIÓN PRIORITARIA AGENDADA" abajo en handoff. **CLS Desktop sigue ~0.86 sin resolver** (iter 5 pendiente · análisis profundo del culprit real arriba de #destacados). Mobile CLS 0.025 sigue intacto desde 18-may.
+**Próxima revisión cuando:** ⭐ **PRIMERA prioridad: Plan B Supabase migración** (esta noche o cuando esté off de perfumería) · **CLS Desktop iter 5** (identificar culprit arriba de destacados con DevTools Performance trace, NO con preview_inspect) · validar telemetría Plan A (sigue válido independiente del Plan B) · `[SW-BANNER-SMART]` defer banner si chica está activa · logo @2x retina · imágenes Supabase con `?width=400` · JS-CHUNK iter 2 · BCRYPT-MIGRATION · SUPABASE-AUTH.
 
 ---
 
