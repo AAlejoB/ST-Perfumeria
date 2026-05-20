@@ -5417,7 +5417,7 @@
           ? nombre.toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\s+/g, ' ') + '.webp'
           : 'perfume-' + Date.now() + '.webp';
 
-        var { data, error } = await sb.storage.from('perfume-fotos').upload(fileName, compressed, { contentType: 'image/webp', upsert: true });
+        var { data, error } = await sb.storage.from('perfume-fotos').upload(fileName, compressed, { contentType: 'image/webp', upsert: true, cacheControl: '604800' });
         if (error) throw error;
 
         var { data: urlData } = sb.storage.from('perfume-fotos').getPublicUrl(fileName);
@@ -6173,7 +6173,8 @@
       var contentType = file.type || (isVideo ? 'video/mp4' : 'image/jpeg');
       var up = await sb.storage.from('perfume-fotos').upload(fileName, file, {
         contentType: contentType,
-        upsert: false
+        upsert: false,
+        cacheControl: '604800'
       });
       if (up.error) throw up.error;
       var pub = sb.storage.from('perfume-fotos').getPublicUrl(fileName);
@@ -8156,7 +8157,8 @@
         var fileName = 'decant-custom-' + id + '-' + Date.now() + '.webp';
         var up = await sb.storage.from('perfume-fotos').upload(fileName, compressed, {
           contentType: 'image/webp',
-          upsert: true
+          upsert: true,
+          cacheControl: '604800'
         });
         if (up.error) throw up.error;
         var pub = sb.storage.from('perfume-fotos').getPublicUrl(fileName);
