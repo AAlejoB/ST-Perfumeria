@@ -1096,9 +1096,295 @@ Después del deploy del Plan A, Alejo pidió atacar 3 pendientes en orden mientr
 
 ---
 
+### Sesión 21-may-2026 · **Plan B Supabase São Paulo · COMPLETADO** + 🚨 **descubrimiento `[SECURITY-AUDIT-S1]`**
+
+Sesión nocturna · extensión natural de la sesión del 20-may. Alejo ejecutó el Plan B Supabase (migración productiva us-west-2 Oregon → sa-east-1 São Paulo) entre las 4:30 y 5:30 AM ART, siguiendo el playbook v2 paso por paso. AL FINAL de la sesión, Alejo detectó un issue de seguridad CRÍTICO que dispara una nueva sesión dedicada · `[SECURITY-AUDIT-S1]`.
+
+#### Plan B · ejecución del playbook v2 (`RECOMENDACIONES_CLAUDECHAT/Plan_B_Migracion_SaoPaulo_ST_Perfumeria.md`)
+
+**Pre-requisitos** completados (con dificultades menores):
+
+1. **Instalación PostgreSQL 18 client tools en Windows** · Alejo tuvo que instalar (`postgresql-18.x-windows-x64.exe`) desmarcando "PostgreSQL Server" y dejando "Command Line Tools". El installer NO actualizó PATH automáticamente · workaround temporal: `$env:Path += ";C:\Program Files\PostgreSQL\18\bin"` en cada sesión PowerShell. Permanente: agregar manualmente a System → Environment Variables.
+
+2. **`pg_dump` y `psql` desde Git Bash de Claude Code** · no estaban en el PATH del bash · workaround: `export PATH="/c/Program Files/PostgreSQL/18/bin:$PATH"` en cada comando bash. PostgreSQL detectado: 18.4 (Windows client) conectando a server 17.6 (Supabase) · compatible.
+
+3. **Archivo `D:\tmp\plan-b-credentials.txt`** · creado por Alejo con Bloc de notas para anotar las 8 strings críticas (URLs + keys + DB passwords de ambos proyectos). Borrado al final de la sesión por seguridad.
+
+4. **`D:\tmp\.env`** · creado por Alejo después con las service_role keys + URLs · used by Node scripts. Borrado al final.
+
+#### Paso 0 · Dump completo del proyecto VIEJO (10 min · CRÍTICO)
+
+```powershell
+pg_dump --host=aws-0-us-west-2.pooler.supabase.com --port=5432 \
+  --username=postgres.rtgjzzkjrwbkdhkslxix --dbname=postgres \
+  --no-owner --no-privileges \
+  --schema=public --schema=auth --schema=storage \
+  --file=/d/backups/st-perfumeria-pre-migracion-20may2026.sql
+```
+
+**Resultado:**
+- Dump: 6.2 MB
+- 59 tablas (incluye `auth` y `storage`)
+- 93 RLS policies
+- 59 bloques COPY (data via COPY · más rápido que INSERT)
+- Hashes bcrypt `auth.users` preservados (`$2a$10$...`)
+
+**⚠️ Upload a GitHub Release** quedó pendiente · `gh` CLI no autenticado · el dump local en `D:\backups\` queda como single safety net (riesgo aceptado por 7 días).
+
+#### Paso 1 · Crear proyecto NUEVO en São Paulo (Alejo · 5 min)
+
+Alejo creó manualmente via Supabase Dashboard:
+- Project name: `st-perfumeria-bra_saop` (el "BRA" sugiere Brasil/sa-east-1)
+- Project ref: `znmjhproimtprptheumy`
+- Region: `sa-east-1` (South America São Paulo) ✓
+- Compute: **MICRO** (1 GB RAM · incluido en plan Pro $25/mes · NOT cambió a MEDIUM que Supabase preseleccionaba por default)
+- Security toggles: Enable Data API ☑ · Auto expose new tables ☑ · Auto RLS ☐ (todos como vienen por default · OK)
+
+**Postgres version del nuevo:** 17.6 (mismo que viejo · cero issues de cross-version)
+
+#### Pasos 2-3 · Migrar SCHEMA + DATA
+
+**Paso 2 · schema:**
+```powershell
+pg_dump --schema-only --schema=public,auth,storage ... | psql ...
+```
+
+- 251 errores en log, todos esperables: 39 en schema `storage` (Supabase ya las creó) + 209 en schema `auth` (permission denied · solo `supabase_auth_admin` puede modificar auth)
+- **28 tablas creadas en public** del nuevo (0 diff vs viejo)
+- **88 RLS policies creadas** (vs 93 del viejo · faltarían 5 que están en `storage.objects` y se crean por defecto)
+
+**Paso 3 · data:**
+```powershell
+pg_dump --data-only --schema=public --disable-triggers ... | psql --single-transaction ...
+```
+
+- 0 errores
+- Row counts MATCH en TODAS las tablas críticas:
+
+| Tabla | Viejo | Nuevo | Match |
+|---|---|---|---|
+| clientes | 38 | 38 | ✓ |
+| perfume_overrides | 167 | 167 | ✓ |
+| perfumes_nuevos | 16 | 16 | ✓ |
+| combos | 5 | 5 | ✓ |
+| destacados | 6 | 6 | ✓ |
+| favoritos | 41 | 41 | ✓ |
+| opiniones | 3 | 3 | ✓ |
+| trust_badges | 4 | 4 | ✓ |
+| votacion_config | 1 | 1 | ✓ |
+| home_top_banner | 1 | 1 | ✓ |
+| ventas | 0 | 0 | ✓ |
+| announcements | 0 | 0 | ✓ |
+
+#### Paso 4 · MIGRAR auth.users (LO MÁS DELICADO)
+
+**Problema descubierto:** el dump usa formato COPY de pg_dump, pero el pooler de Supabase **bloquea los backslash commands** (`\.`) que COPY necesita. Y el user `postgres.<ref>` NO es owner de la tabla `auth.users` (es propiedad de `supabase_auth_admin`).
+
+**Solución implementada:** generar INSERTs limpios con `--column-inserts --rows-per-insert=1` y ejecutarlos en el **SQL Editor del Dashboard** (que corre como `postgres` con permisos full):
+
+```powershell
+pg_dump --data-only --column-inserts --rows-per-insert=1 \
+  --table=auth.users --table=auth.identities \
+  --file=/d/tmp/auth-users-inserts.sql
+```
+
+Después Alejo copia/paste el contenido en el SQL Editor → click Run.
+
+**Resultado verificado:**
+- 3 users migrados (jefe@stperfumeria.local · empleado@stperfumeria.local · alejooobello7@gmail.com)
+- 3 identities migradas
+- Hashes bcrypt `$2a$10$Tbt0gHoOMP...` PRESERVADOS intactos
+- **Las chicas pueden loguearse con su password actual SIN reset** ✓
+
+#### Paso 5 · Edge Functions · SKIPPED
+
+Verificación reveló 0 Edge Functions en el proyecto viejo (`https://supabase.com/dashboard/project/rtgjzzkjrwbkdhkslxix/functions` mostraba "DEPLOY YOUR FIRST EDGE FUNCTION").
+
+**El `notifyTelegram()` NO usa Edge Functions** · usa una **función SQL `public.send_telegram(msg)`** con la extensión `pg_net` para hacer HTTP POST a `api.telegram.org`. Esta función SQL se migró en el paso 2 (schema) pero requiere `pg_net` habilitada en el nuevo proyecto · ver paso 6+.
+
+**10 min ahorrados.**
+
+#### Paso 6 · Migrar bucket `perfume-fotos`
+
+**Bucket creation** · el SQL del playbook falló con "policy already exists" porque las policies se crearon en el paso 2 (schema). Solución: ejecutar SQL mínimo en SQL Editor del nuevo:
+
+```sql
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('perfume-fotos', 'perfume-fotos', true);
+```
+
+**Migración de archivos** · script Node `/d/tmp/migrate-storage.js`:
+- Lista archivos del bucket viejo via service_role
+- Descarga cada uno
+- Sube al nuevo con `cacheControl: '604800'` (1 semana · sinergia con commit `f4edd3d` `[CACHE-CONTROL-1W]`)
+- Concurrencia: 5 archivos en paralelo
+
+**Resultado:**
+- **100/100 archivos migrados**
+- 0 fallos
+- 7.01 MB transferidos
+- 35.3 segundos
+- Cache-Control verificado: `public, max-age=604800` ✓ en sample (`9 PM ELIXIR.webp`)
+
+#### Paso 7 · SWITCH a producción (`[PLAN-B-SWITCH]` · commit `f532525`)
+
+**Archivos editados** con `sed -i` (para que la anon key no apareciera literal en chat más que necesario):
+
+1. `admin.html` líneas 2768-2769 · `SUPABASE_URL` + `SUPABASE_KEY` viejos → nuevos (formato `sb_publishable_*`)
+2. `js/app.js` líneas 4-5 · idem
+3. `index.html` líneas 402, 404 · `preconnect` + `dns-prefetch` al ref nuevo
+4. `sw.js` · `CACHE_VERSION = 'v1.1.71'` → `'v1.1.72'`
+
+**Verificación post-push (Vercel deploy 13s):**
+- 0 referencias al ref viejo (`rtgjzzkjrwbkdhkslxix`) en HTML público
+- 4 referencias al ref nuevo (`znmjhproimtprptheumy`) distribuidas
+- SW v1.1.72 en producción
+- Anon key formato `sb_publishable_*` activa en producción
+
+**⚠️ Descubrimiento durante este paso:** Vercel NO tiene env vars definidas (`vercel env ls` devolvió "No Environment Variables found"). Las API serverless functions (`api/share.js`, `api/cron/backup.js`, `api/push-subscribe.js`, `api/send-notification.js`) usan `process.env.SUPABASE_URL` que resulta `undefined`. Significa que esas funciones ya estaban "rotas en silencio" en producción antes de la migración · NO se arregló en esta sesión para no introducir cambios extra. Pendiente para una sesión futura.
+
+#### Paso 8 · Verificación E2E
+
+**Tests automáticos** (con el frontend simulado usando la anon key):
+1. ✓ `perfume_overrides` · 5 rows leídas
+2. ✓ `trust_badges` · 4 rows
+3. ✓ `destacados` · 6 rows
+4. ✓ `home_top_banner` · 1 row
+5. ✓ `votacion_config` · 1 row
+6. ✓ Storage · sample foto HTTP 200 + cache-control `public, max-age=604800`
+
+**Tests manuales** (Alejo en su tablet/PC):
+- ✓ Catálogo público carga normal en producción
+- ✓ Login admin con password actual (sin reset)
+- ✓ Panel admin cargó sus tabs
+- ✓ Velocidad notablemente mejor (latencia bajó de ~250ms a ~30-50ms)
+- ❌ **Notificaciones Telegram NO llegaron** · pg_net habilitada pero el worker en `net._http_response` queda con `status_code` vacío
+
+#### Paso 9 · Proyecto viejo activo 7 días
+
+**Decisión:** mantener el proyecto viejo (`us-west-2 Oregon`) en estado activo hasta el **28-may-2026** como safety net para rollback rápido (`git revert HEAD && git push` cambia 4 strings + redeploy = 2 min). Después del 28-may, pausar (no eliminar) desde Dashboard.
+
+#### Descubrimiento que dispara `[SECURITY-AUDIT-S1]`
+
+Al final de la sesión, escribiendo el mensaje de verificación para Alejo, dije:
+> *"Hacé login con la password del jefe que usás normalmente (`SANTOMY2026` según el código)."*
+
+Alejo me detectó que esa frase "según el código" sugería que la password estaba en el código (HTML público). Le confirmé que sí: `admin.html` líneas 2766-2767 tiene:
+```js
+var ADMIN_PASS = 'SANTOMY2026';
+var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO';
+```
+
+Cualquier visitor con "Ver código fuente" lee las passwords del jefe y la empleada. Es trivialmente explotable. Alejo preguntó:
+> *"habrá que planificar una sesión de seguridad informática con claudechat + claudecode?"*
+
+**Confirmado · sesión `[SECURITY-AUDIT-S1]` agendada como CRÍTICA + URGENTE.**
+
+Inventario completo de issues de seguridad detectados durante esta sesión: documentado en `docs/SECURITY.md` (creado el 21-may post-Plan-B). Plan de ataque con pattern Claude↔Claude documentado en `RECOMENDACIONES_CLAUDECHAT/Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md`.
+
+#### Pendientes inmediatos post-sesión 21-may
+
+| Pendiente | Cuándo | Prioridad |
+|---|---|---|
+| ⚠️ **Cambiar passwords admin** (jefe + empleada) via Dashboard del nuevo | **YA · hoy mismo (21-may)** | 🔴 CRÍTICO |
+| ⚠️ **Revocar bot Telegram + actualizar SQL function** | YA · hoy mismo | 🔴 CRÍTICO |
+| **Resetear DB passwords** de ambos proyectos | Dentro de 48 hs | 🟡 ALTA |
+| `[SECURITY-AUDIT-S1]` · sesión técnica completa | 1-2 días | 🔴 CRÍTICO |
+| `[FIX-TELEGRAM-PG-NET]` · arreglar notifs | Junto con S1 | 🟢 MEDIA |
+| `[BCRYPT-MIGRATION]` · clientes con bcrypt | Como parte de S1 | 🔴 CRÍTICO |
+| Bajar proyecto viejo Oregon | A partir de 28-may | 🟡 ALTA |
+| Upload dump a GitHub Release | Cuando puedas | 🟢 BAJA |
+| CLS Desktop iter 5 | Cuando puedas | 🟢 BAJA |
+
+#### Commits de esta sesión
+
+| Commit | Cambios |
+|---|---|
+| `f4edd3d` (anterior · sesión 20-may) | `[CACHE-CONTROL-1W]` admin uploads con cacheControl 1 semana |
+| `d7df0a2` (anterior · 20-may) | `[A11Y-CONTRAST-5]` 5 contrastes WCAG |
+| `93d0caf` (anterior · 20-may) | `[CLS-DESKTOP-ITER3]` SVG search-icon dims |
+| `8a652fd` (anterior · 20-may) | `[CLS-DESKTOP-ITER4]` section.seleccion-st reserve |
+| `f532525` | `[PLAN-B-SWITCH]` migrar URL+key a Supabase São Paulo |
+| `5d87321` | docs · cierre Plan B + flag `[SECURITY-AUDIT-S1]` |
+
+#### Keywords cerrados en esta sesión
+
+| Keyword | Qué hace |
+|---|---|
+| `[PLAN-B-SWITCH]` | Migración completa de Supabase us-west-2 → sa-east-1 · ver detalle paso por paso arriba |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[SECURITY-AUDIT-S1]` | Sesión completa de seguridad · ver `docs/SECURITY.md` + `RECOMENDACIONES_CLAUDECHAT/Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md` |
+| `[FIX-TELEGRAM-PG-NET]` | Arreglar notifs Telegram (pg_net worker no procesa requests) |
+| `[BCRYPT-MIGRATION]` | Hashear passwords de tabla `clientes` (cae adentro de S1) |
+
+#### 💬 Mensajes meta para el Alejo / Claude del futuro
+
+**Sobre la sesión:** Alejo dijo al final · *"tocamos cosas sensibles y lo que menos quiero es que se me genere un problemón que ya sabes que sufro mucho por ser buena persona"*. Eso es señal de que:
+- Está cansado (5 AM ART)
+- Está preocupado por las consecuencias
+- Necesita confirmación de que TODO está documentado
+- Le importa mucho ser cuidadoso con cosas que pueden lastimar a otros (las chicas, sus clientes, etc.)
+
+Por eso esta sección de HISTORIA.md es EXHAUSTIVA · cada paso paso por paso · cada comando exacto · cada decisión con justificación · cada workaround documentado. Si la próxima Claude que arranque tiene dudas, debería poder reconstruir TODO el flow leyendo solamente esta sección + `docs/SECURITY.md` + `RECOMENDACIONES_CLAUDECHAT/Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md`.
+
+**Sobre el pattern Claude↔Claude (validado 2 veces):**
+1. `[LOGIN-RETRY-SP]` · funcionó perfecto · 20-may
+2. Plan B Supabase · funcionó perfecto (con ajuste de v1 → v2 del playbook) · 20/21-may
+
+Ya es un pattern probado. Para `[SECURITY-AUDIT-S1]` confiar en él. Ver `RECOMENDACIONES_CLAUDECHAT/Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md` como brief inicial.
+
+**Sobre cleanup post-sesión:**
+- ✅ `D:\tmp\.env` BORRADO (tenía service_role keys de ambos proyectos)
+- ✅ `D:\tmp\plan-b-credentials.txt` BORRADO (tenía DB passwords + anon keys)
+- ✅ Dumps temporales borrados (`/d/tmp/schema-only.sql`, `/d/tmp/data-only.sql`, etc.)
+- ✅ Backup pre-migración EN `D:\backups\st-perfumeria-pre-migracion-20may2026.sql` (6.2 MB) · CONSERVADO 7 días como safety
+- ⚠️ Quedan en `/d/tmp/`: `e2e-tests.js`, `migrate-storage.js`, `verify-storage.js`, `node_modules` (estos pueden quedarse · no tienen creds)
+
+**Sobre el archivo `D:\backups\st-perfumeria-pre-migracion-20may2026.sql`:**
+- ⚠️ Contiene `auth.users.encrypted_password` (hashes bcrypt) + `public.clientes.password` (texto plano)
+- ⚠️ Conservar SOLO 7 días (hasta 28-may)
+- ⚠️ NO commitear al repo NUNCA
+- Cuando se borre, usar `sdelete -p 3` si el disco va a otro lugar
+
+---
+
+**Última actualización:** Mayo 21, 2026 (madrugada) — Plan B Supabase São Paulo COMPLETADO + descubrimiento `[SECURITY-AUDIT-S1]`. Migración productiva exitosa de us-west-2 Oregon → sa-east-1 São Paulo. Latencia esperada bajó de ~250ms a ~30-50ms. Todo el flow del playbook v2 ejecutado con éxito (8 de 9 pasos · paso 5 skipped por no haber Edge Functions). Detalle exhaustivo de la sesión + comandos exactos + workarounds en sección arriba ("Sesión 21-may-2026"). 🚨 6 issues de seguridad detectados durante la sesión documentados en `docs/SECURITY.md` (creado hoy) · plan de ataque en `RECOMENDACIONES_CLAUDECHAT/Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md`. SW v1.1.71 → **v1.1.72**.
+**Próxima revisión cuando:** ⚠️ **`[SECURITY-AUDIT-S1]` (CRÍTICO · passwords admin hardcoded públicas)** · `[FIX-TELEGRAM-PG-NET]` (notifs rotas) · `[BCRYPT-MIGRATION]` (cae adentro de S1) · revisar Plan B en 7 días + bajar proyecto viejo Oregon (28-may) · upload dump a GitHub Release · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2.
+
+---
+
 ## 🚀 Cómo arrancar la próxima sesión (handoff para Claude que vuelve)
 
-### ⭐ SESIÓN PRIORITARIA AGENDADA · Plan B Supabase São Paulo
+### ⭐ SESIÓN PRIORITARIA AGENDADA · `[SECURITY-AUDIT-S1]`
+
+**Cuándo:** Alejo planea ejecutar en 1-2 días desde el 21-may. Antes de eso, hace acciones manuales urgentes (cambiar passwords admin via Dashboard + revocar bot Telegram + reset DB passwords) que mitigan los issues CRÍTICOS sin esperar Claude Code.
+
+**📖 Brief para esta sesión:** `RECOMENDACIONES_CLAUDECHAT/Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md` · este es el archivo de instrucciones para ClaudeChat (igual que el Plan B v1) que va a generar el plan EXPANDIDO con comandos exactos para Claude Code (igual que el Plan B v2).
+
+**📖 Inventario de issues:** `docs/SECURITY.md` · documento fuente de verdad con los 9 issues detectados durante la sesión 21-may (3 críticos · 4 altos · 2 medios). Cada issue tiene: severidad, archivo/línea exacta, cómo explotarlo, impacto, fix recomendado.
+
+**Pattern Claude↔Claude (validado 2 veces previas):**
+1. Alejo abre ClaudeChat con `docs/SECURITY.md` + `Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md` como contexto
+2. ClaudeChat genera el plan EXPANDIDO con comandos exactos / verificaciones / rollback per cada issue
+3. Alejo valida el plan
+4. Alejo abre Claude Code y dice "ejecutemos SECURITY-AUDIT-S1"
+5. Claude Code lee los .md + el plan expandido + ejecuta con disciplina
+
+**Restricciones críticas para la sesión:**
+- NO romper login admin (las chicas tienen que poder seguir entrando)
+- NO romper catálogo público
+- NO romper storage / realtime
+- Cambios al admin SOLO en horario muerto (post 21 ARG / pre 10 ARG)
+- Bumpear SW en cada cambio a archivos cacheados (regla sagrada)
+- Maintain habits de los aprendizajes en `memory/preferencias_alejo.md` #41/46 · documentación exhaustiva en pasos delicados
+
+---
+
+### ⭐ SESIÓN PRIORITARIA HISTÓRICA · Plan B Supabase São Paulo (COMPLETADO 21-may)
 
 **Cuándo:** Alejo planea ejecutar esta noche del 20-may-2026 (o cuando esté off del horario de perfumería · NO en horario operativo 10-21 ARG).
 

@@ -10,6 +10,31 @@
 
 ---
 
+## 📍 Proyecto activo (post Plan B · 21-may-2026)
+
+| Item | Valor |
+|---|---|
+| **Project ref activo** | `znmjhproimtprptheumy` |
+| **URL** | `https://znmjhproimtprptheumy.supabase.co` |
+| **Región** | `sa-east-1` (South America São Paulo) |
+| **Plan** | Pro ($25/mes) |
+| **Compute** | MICRO (1 GB RAM · default del Pro · suficiente para el tráfico actual) |
+| **Postgres version** | 17.6 |
+| **Anon key format** | `sb_publishable_*` (nuevo formato post-2024) |
+| **Connection method** | Session Pooler IPv4: `aws-1-sa-east-1.pooler.supabase.com:5432` con user `postgres.znmjhproimtprptheumy` |
+| **Direct connection** | IPv6-only (no funciona desde IPv4 argentino · solo usable con add-on IPv4 add-on $4/mes) |
+| **Project ref legacy** | `rtgjzzkjrwbkdhkslxix` (us-west-2 Oregon) · activo hasta 28-may como rollback safety net |
+
+### Backup pre-migración disponible
+
+- **Ubicación local:** `D:\backups\st-perfumeria-pre-migracion-20may2026.sql` (6.2 MB)
+- **Contenido:** dump completo del proyecto viejo · 59 tablas · 93 RLS policies · todos los datos incluyendo `auth.users.encrypted_password` (bcrypt) y `public.clientes.password` (PLANO · sensible)
+- **Conservar:** hasta 28-may (después se borra al pausar el proyecto viejo)
+- **NO commitear al repo NUNCA**
+- **Restore:** `psql --host=... --file=st-perfumeria-pre-migracion-20may2026.sql`
+
+---
+
 ## 🗂️ Inventario de tablas
 
 | Tabla | Función | Notas |

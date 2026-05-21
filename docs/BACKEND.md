@@ -15,15 +15,17 @@
 
 | Pieza | Herramienta | Notas |
 |---|---|---|
-| BaaS | Supabase (Postgres + Realtime + Storage) | Free tier |
-| Auth admin | Supabase Auth (email + password) | 2 cuentas: jefe y empleado |
-| Auth cliente | Custom (telefono + password plano en `clientes`) | ⚠️ Pendiente migrar a bcrypt |
+| BaaS | Supabase (Postgres + Realtime + Storage) | **Pro tier $25/mes** · proyecto activo: `znmjhproimtprptheumy` en `sa-east-1` São Paulo (migrado desde us-west-2 Oregon el 21-may-2026 · `[PLAN-B-SWITCH]` commit `f532525`) · proyecto legacy `rtgjzzkjrwbkdhkslxix` se mantiene pausable a partir del 28-may como rollback safety net |
+| Auth admin | Supabase Auth (email + password) | 3 cuentas en `auth.users`: `jefe@stperfumeria.local`, `empleado@stperfumeria.local`, `alejooobello7@gmail.com` (cuenta personal de Alejo). Hashes bcrypt `$2a$10$...` preservados a través de la migración Plan B. ⚠️ **Issue de seguridad activo:** las passwords del jefe y empleada están HARDCODED en `admin.html` L2766-2767 como constantes JS (`ADMIN_PASS`/`ADMIN_PASS_EMPLEADO`) que cualquiera puede leer con "Ver código fuente" · fix pendiente en `[SECURITY-AUDIT-S1]` |
+| Auth cliente | Custom (telefono + password plano en `clientes`) | ⚠️ Pendiente migrar a bcrypt · `[BCRYPT-MIGRATION]` · cae adentro de `[SECURITY-AUDIT-S1]` |
+| Anon key | Formato nuevo `sb_publishable_*` (post-2024) | El proyecto nuevo usa el formato nuevo · supabase-js v2 acepta ambos formatos (compat backward). En el frontend está hardcodeada en `admin.html` L2769 y `js/app.js` L5 |
 | Realtime | Supabase channels | `admin-stock-sync` |
-| Serverless | Vercel functions (Edge runtime para OG) | `/api/cron/`, `/api/og/` |
+| Serverless | Vercel functions (Edge runtime para OG) | `/api/cron/`, `/api/og/`. ⚠️ Las que usan `process.env.SUPABASE_URL` están "rotas en silencio" porque **Vercel NO tiene env vars definidas** (verificado el 21-may con `vercel env ls`). Pendiente: agregar env vars o eliminar API functions no usadas |
 | Push notifications | Web Push API + VAPID | Edge function `send-push` |
-| Hosting | Vercel | Free, deploy auto en push |
-| Cron | Vercel Cron Jobs (1 daily en Hobby) | Backup diario |
-| Service Worker | Custom `sw.js` | Versionado manual |
+| Hosting | Vercel | Plan Free, deploy auto en push a `main` |
+| Cron | Vercel Cron Jobs (1 daily en Hobby) | Backup diario (estado real desconocido por env vars · pendiente verificar) |
+| Service Worker | Custom `sw.js` | Versionado manual · actual `v1.1.72` (post Plan B) |
+| Connection method DB | Session Pooler IPv4 | Direct connection es IPv6-only desde fines 2024 · usar `aws-1-sa-east-1.pooler.supabase.com:5432` con user `postgres.<ref>` |
 
 ---
 
@@ -238,9 +240,10 @@ checkout vía WhatsApp NO depende de Supabase en tiempo real.
    ```bash
    curl -s --max-time 10 \
      -H "apikey: ANON_KEY" \
-     "https://rtgjzzkjrwbkdhkslxix.supabase.co/rest/v1/perfumes_nuevos?select=slug&limit=1" \
+     "https://znmjhproimtprptheumy.supabase.co/rest/v1/perfumes_nuevos?select=slug&limit=1" \
      -w "\nstatus: %{http_code}, time: %{time_total}s\n"
    ```
+   (URL post Plan B · 21-may-2026 · ya NO es `rtgjzzkjrwbkdhkslxix` del proyecto viejo de Oregon)
    Si status ≠ 200 o time > 5s → degradado.
 4. **Soporte Pro:** Dashboard Supabase → Support → submit ticket (Alejo es Pro, tiene soporte directo)
 5. **Si persiste >2h:** considerar subir el timeout en `app.js` (3000 → 8000ms)
@@ -452,10 +455,16 @@ Lección: **NUNCA `toISOString()` para fechas locales** — usar el TZ explícit
 
 ## 🔔 Notificaciones a Telegram (al admin)
 
-`notifyTelegram(msg)` manda POST a `api.telegram.org/bot.../sendMessage` con el token.
+`notifyTelegram(msg)` llama a la **función SQL `public.send_telegram(msg text)`** del proyecto Supabase via RPC (`sb.rpc('send_telegram', { msg: msg })`).
 
-Eventos que disparan:
+Esa función SQL usa la **extensión `pg_net`** para hacer HTTP POST a `api.telegram.org/bot<TOKEN>/sendMessage`. El token y chat_id están **hardcoded en el cuerpo de la función SQL** (issue de seguridad pendiente · ver `docs/SECURITY.md` § S3).
+
+**⚠️ Post Plan B (21-may-2026) las notifs NO llegan** · pg_net habilitada manualmente en el proyecto nuevo (sa-east-1 São Paulo) pero el worker no procesa los requests · `net._http_response` queda con `status_code` vacío. Pendiente diagnosticar / arreglar · keyword `[FIX-TELEGRAM-PG-NET]`. Mientras tanto, las notifs están **silenciosamente rotas en producción** · es info de telemetría, no es crítico para el negocio.
+
+Eventos que disparan (cuando funciona):
 - Login exitoso (con rol)
+- Login OK con reintento (`[LOGIN-RETRY-TELEMETRY]` desde mayo 20)
+- Login timeout (Supabase lento)
 - Auto-logout por inactividad
 - Lockout por intentos fallidos
 - Backup creado
