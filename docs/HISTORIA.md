@@ -1102,30 +1102,35 @@ Después del deploy del Plan A, Alejo pidió atacar 3 pendientes en orden mientr
 
 **Cuándo:** Alejo planea ejecutar esta noche del 20-may-2026 (o cuando esté off del horario de perfumería · NO en horario operativo 10-21 ARG).
 
-**Qué hacer cuando Alejo arranque la sesión:**
+**📖 Playbook completo y EXHAUSTIVO:** `RECOMENDACIONES_CLAUDECHAT/Plan_B_Migracion_SaoPaulo_ST_Perfumeria.md` (versión 2 · expandida por Claude Code el 20-may-2026 con TODOS los comandos exactos, verificaciones post-cada-paso, plan de rollback explícito, y notas de seguridad sobre service_role keys).
 
-1. **Leer `CLAUDE.md` + este archivo + `RECOMENDACIONES_CLAUDECHAT/Plan_B_Migracion_SaoPaulo_ST_Perfumeria.md`** (playbook completo)
-2. **NO arrancar la migración** hasta que Alejo confirme que:
-   - Ya creó el proyecto nuevo en Supabase (`sa-east-1` São Paulo)
-   - Tiene a mano la **service role key** del proyecto nuevo (NO la anon · la service tiene permisos para crear schemas/data/users)
-   - Ya avisó a las chicas que el panel va a estar caído ~15 min
-3. **Orden de ejecución sugerido (del playbook):**
-   - Migrar schema con `pg_dump --schema-only` del viejo + `psql` al nuevo
-   - Migrar data con `pg_dump --data-only`
-   - Re-deployar Edge Functions (`send_telegram` y demás)
-   - Copiar bucket `perfume-fotos` con todas las imágenes (~150 perfumes)
-   - **PUNTO MÁS DELICADO:** migrar `auth.users` con `encrypted_password` intactos · sino las chicas tienen que resetear contraseñas (ver playbook sección 5)
-   - Cambiar `SUPABASE_URL` + `SUPABASE_ANON_KEY` en env vars de Vercel
-   - Redeploy de Vercel + verificación (login chicas + guardado de datos + realtime)
-   - **NO dar de baja el viejo** hasta confirmar 100% (incluyendo realtime del stock)
-4. **Verificación crítica post-migración:**
-   - Login funciona con passwords existentes (sin reset)
-   - Catálogo público lee perfumes (RLS pública OK)
-   - Realtime stock actualiza entre tablets (multi-device en vivo)
-   - Push notifications funcionan
-   - Auto-backup cron funciona (próximo a las 00:00 ARG)
+**Cómo arrancar la sesión cuando Alejo abra Claude Code:**
 
-**Contexto reciente para entender el porqué:** Plan A `[LOGIN-RETRY-SP]` se desplegó hoy (commit `267e7e2`). Alejo decidió NO esperar 1-2 semanas de telemetría · prefiere atacar la causa raíz (latencia us-west-2 Oregon → 250ms · sa-east-1 São Paulo → 30-50ms). Plan A queda igual desplegado · sirve de fallback si el Plan B tiene algún hiccup.
+1. **PRIMERO** leer el playbook expandido completo. Es largo (intencionalmente) porque la migración toca auth + data + storage + functions productivos. Cada sección tiene comando exacto + cómo verificar que salió bien.
+2. **NO arrancar** la migración hasta que Alejo confirme que tiene preparado lo del bloque "Pre-requisitos · ANTES de arrancar" del playbook (Supabase CLI verificado, pg_dump/psql disponibles, dos terminales abiertas, archivo temporal de credenciales).
+
+**Estructura del playbook v2 (9 pasos · 60-90 min total):**
+
+- **Paso 0 (CRÍTICO · nuevo en v2):** Dump completo pre-migración a `D:\backups\` + GitHub Release. Sin este paso, NO hay rollback si algo sale catastróficamente mal.
+- **Paso 1:** Alejo crea proyecto nuevo en SP desde Dashboard (5 min)
+- **Paso 2:** Migrar schema con `pg_dump --schema-only` filtrado + verificar RLS policies presentes
+- **Paso 3:** Migrar data con `--data-only --disable-triggers --single-transaction` + verificación row counts por tabla
+- **Paso 4 (ALTO RIESGO):** Migrar `auth.users` con `encrypted_password` hashes intactos + **test funcional de login** ANTES de continuar (si falla → NO seguir)
+- **Paso 5:** Re-deploy Edge Functions con paso opcional de versionarlas en el repo PRIMERO (que hoy viven solo en dashboard)
+- **Paso 6:** Script Node de migración del bucket `perfume-fotos` aplicando `cacheControl: '604800'` (sinergia con el commit `f4edd3d` de hoy)
+- **Paso 7:** Cambiar env vars Vercel + redeploy + verificación (este es el "punto de no retorno perceptible")
+- **Paso 8:** Verificación E2E manual desde tablet de Alejo (6 sub-checks)
+- **Paso 9:** Mantener proyecto viejo activo 1 semana como safety net antes de pausar
+
+**Rollback documentado** para 3 escenarios distintos (antes del paso 7, después del paso 7, catastrófico).
+
+**Cleanup explícito** al final · borrar `D:\tmp\plan-b-credentials.txt` (CRÍTICO · contiene service_role keys).
+
+**Contexto reciente:** Plan A `[LOGIN-RETRY-SP]` se desplegó hoy (commit `267e7e2`). Alejo decidió NO esperar 1-2 semanas de telemetría · prefiere atacar la causa raíz (latencia us-west-2 Oregon → 250ms · sa-east-1 São Paulo → 30-50ms). Plan A queda igual desplegado · sirve de fallback si el Plan B tiene algún hiccup.
+
+**Sinergia con commits del 20-may:**
+- `[CACHE-CONTROL-1W]` (commit `f4edd3d`): el paso 6 del playbook aplica este cacheControl a TODOS los archivos del bucket al migrarlos (no solo nuevos uploads). Resultado: bucket nuevo nace completamente con cache 1 semana.
+- `[LOGIN-RETRY-SP]` (commit `267e7e2`): post-migración, los timeouts deberían reducirse drásticamente (~250ms → ~50ms latencia). El reintento queda como defensa de profundidad por si hay algún jitter de red.
 
 ---
 
