@@ -1,8 +1,8 @@
     // ============================================================
     // SUPABASE INIT
     // ============================================================
-    var SUPABASE_URL = 'https://rtgjzzkjrwbkdhkslxix.supabase.co';
-    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z2p6emtqcndia2Roa3NseGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzU3NzEsImV4cCI6MjA4OTYxMTc3MX0.SoVxC3eF51wi27pavlqIAjE-omqcnPylxJIQjY8vimo';
+    var SUPABASE_URL = 'https://znmjhproimtprptheumy.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_Bb4Jo74f4Wh7vhzAKz8ODg_4Upk6cvb';
     var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     var currentUser = null;
 
