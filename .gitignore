@@ -14,7 +14,11 @@ compress-images.js
 notas.json
 notas_pendientes.xlsx
 ~$*
-.claude/
+# Ignorar todo dentro de .claude/ EXCEPTO la carpeta commands/ (slash commands custom).
+# Razón: settings.local.json, worktrees/, etc son personales · pero commands/ los queremos
+# en TODAS las máquinas (son productividad compartida del proyecto).
+.claude/*
+!.claude/commands/
 package.json
 package-lock.json
 .vercel
