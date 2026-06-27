@@ -1352,8 +1352,43 @@ Ya es un pattern probado. Para `[SECURITY-AUDIT-S1]` confiar en él. Ver `RECOME
 
 ---
 
-**Última actualización:** Mayo 21, 2026 (madrugada) — Plan B Supabase São Paulo COMPLETADO + descubrimiento `[SECURITY-AUDIT-S1]`. Migración productiva exitosa de us-west-2 Oregon → sa-east-1 São Paulo. Latencia esperada bajó de ~250ms a ~30-50ms. Todo el flow del playbook v2 ejecutado con éxito (8 de 9 pasos · paso 5 skipped por no haber Edge Functions). Detalle exhaustivo de la sesión + comandos exactos + workarounds en sección arriba ("Sesión 21-may-2026"). 🚨 6 issues de seguridad detectados durante la sesión documentados en `docs/SECURITY.md` (creado hoy) · plan de ataque en `RECOMENDACIONES_CLAUDECHAT/Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md`. SW v1.1.71 → **v1.1.72**.
-**Próxima revisión cuando:** ⚠️ **`[SECURITY-AUDIT-S1]` (CRÍTICO · passwords admin hardcoded públicas)** · `[FIX-TELEGRAM-PG-NET]` (notifs rotas) · `[BCRYPT-MIGRATION]` (cae adentro de S1) · revisar Plan B en 7 días + bajar proyecto viejo Oregon (28-may) · upload dump a GitHub Release · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2.
+### Sesión 27-jun-2026 (sábado madrugada) · **Resumen diario de Telegram** + badge violeta + QA post Plan B
+
+Sesión multi-tema. Lo principal: se construyó el **resumen diario de Telegram** (`[TG-RESUMEN-DIARIO]`), idea de Alejo para reemplazar el bombardeo de notificaciones instantáneas por un único mensaje al cierre.
+
+#### `[TG-RESUMEN-DIARIO]` · resumen diario al cierre (commit `1ded56a` + server-side)
+
+**Disparador:** Alejo notó que recibía demasiados Telegrams. Verificado en `admin_actions`: el **20-jun fueron 114 notificaciones en un día** solo por cambios de stock (cada `stock_update` disparaba un Telegram en tiempo real). Días normales: 16-70.
+
+**Hallazgo clave:** Telegram NUNCA estuvo roto post Plan B. El `[FIX-TELEGRAM-PG-NET]` quedó OBSOLETO. Lo que pasaba el 21-may: (a) el worker de pg_net tardó en arrancar tras crear el proyecto nuevo (ya procesa todo, status 200 confirmado), (b) las queries a `net._http_response` vía psql/pooler se colgaban (problema del pooler) pero vía MCP de Supabase responden bien. Verificado mandando un test real (message_id 3079, status 200).
+
+**Implementación (toda server-side, salvo el silenciado):**
+- Función SQL `public.daily_summary(p_dia date)` que arma el mensaje unificado en castellano: stock (neto +/− por perfume, MAYÚSCULA), precios, clientes nuevos (link `wa.me`), puntos (de `clientes.puntos_log` jsonb). Secciones condicionales. Testeada contra 26-jun, 20-jun, 18-jun (datos reales).
+- `pg_cron` instalado + job `resumen-diario-telegram` `0 2 * * *` (**23:00 ART** · Alejo pidió 23 en vez de 22 para dar margen post-cierre).
+- 6 `notifyTelegram` instantáneas silenciadas en admin.html (marcador `[TG-RESUMEN-DIARIO]`): stock, precio, cliente nuevo, 3× puntos. Las de seguridad (login, lockout) y acciones admin esporádicas (combos, perfumes, cierres, push) quedan en tiempo real.
+- Detalle técnico completo en `docs/BACKEND.md` § "Notificaciones a Telegram".
+- SW v1.1.73 → **v1.1.74**.
+
+#### Otros cambios de la sesión
+
+- `[BADGE-LAST-VIOLETA]` (commit `42b5dce`) · en el panel admin, el badge "1 Último" pasó de rojo a **violeta `#7d3c98`** para distinguirlo de "Sin stock" (que sigue rojo). Solo admin · el catálogo público no se tocó. SW v1.1.72 → v1.1.73. **OJO:** durante este cambio se detectó que el checkout `D:\workspace\ST_Perfumeria` (main repo) está **desincronizado/atrasado** respecto a producción · todos los commits de la sesión van por el **worktree** `peaceful-jemison-808743` con `git push origin <branch>:main`. Conviene un `git pull` en el main repo.
+- **QA post Plan B** (solo lectura): todo verificado OK · las chicas operaron normal (jefe logueó 16:42, empleada 20:47 el 26-jun), row counts crecieron normal (clientes 38→40), storage con cacheControl 1 semana, RLS OK. ⚠️ Lección: durante el QA, un test de RLS hizo un INSERT real en `clientes` (rompió la promesa de "solo lectura") · se borró al toque · para verificar policies usar `pg_policies` (lectura), NO un INSERT de prueba.
+- `[SLASH-COMMANDS]` (commits `208afd0` + `6c49346`) · documentados 8 slash commands en `docs/SLASH_COMMANDS.md` + implementados los 3 prioritarios en `.claude/commands/` (`handoff`, `quick-fix-ui`, `security-scan`). `.gitignore` ajustado a `.claude/*` + `!.claude/commands/`.
+- **CodeGraph MCP instalado** (global) · indexación pendiente de confirmar (`codegraph init -i`).
+
+#### Pendiente inmediato
+
+- **`[FORGOT-PASS-A]`** · es lo próximo que pidió Alejo. El SQL de la tabla `password_reset_requests` quedó escrito en `sql/forgot-pass-a-create-table.sql` (en el main repo, sin ejecutar). Ahora con el MCP de Supabase la tabla se puede crear directo (sin copy/paste). Toca admin.html (tab "Pedidos pass") → ventana segura.
+- Decisión menor pendiente: ¿el resumen diario manda "Sin movimientos 😴" los días sin actividad, o silencio total? Quedó con el 😴 (ajustable en 1 línea).
+
+#### Herramienta nueva validada
+
+El **MCP de Supabase** (`mcp__...__execute_sql`, `list_extensions`, etc.) resultó clave esta sesión: ejecuta SQL directo y confiable (no se cuelga como psql/pooler), y permite crear funciones/extensiones/cron sin que Alejo copie/pegue en el dashboard. **Bonus:** `psql`/`pg_dump` desaparecieron del sistema (carpeta `C:\Program Files\PostgreSQL\18\` quedó vacía entre el 21-may y el 27-jun) · el MCP los reemplaza para casi todo.
+
+---
+
+**Última actualización:** Junio 27, 2026 (sábado madrugada) — Resumen diario de Telegram `[TG-RESUMEN-DIARIO]` implementado y ANDANDO (función `daily_summary` + `pg_cron` job a las 23:00 ART + 6 notifs instantáneas silenciadas · commit `1ded56a` · SW → **v1.1.74**). Reemplaza el bombardeo de 16-114 Telegrams/día por 1 resumen al cierre. Telegram confirmado FUNCIONANDO (el `[FIX-TELEGRAM-PG-NET]` era falsa alarma · obsoleto). También: badge violeta admin `[BADGE-LAST-VIOLETA]` (`42b5dce`), 3 slash commands implementados, QA post Plan B OK. **El MCP de Supabase es ahora la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema). Detalle completo en sección "Sesión 27-jun-2026" arriba + `docs/BACKEND.md`.
+**Próxima revisión cuando:** **`[FORGOT-PASS-A]`** (próximo · SQL en `sql/forgot-pass-a-create-table.sql`) · ⚠️ **`[SECURITY-AUDIT-S1]` (CRÍTICO · passwords admin hardcoded públicas)** · `[BCRYPT-MIGRATION]` (cae adentro de S1) · bajar proyecto viejo Oregon (sigue ACTIVE_HEALTHY · pagando de más desde el 28-may) · `git pull` en main repo desincronizado · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2.
 
 ---
 

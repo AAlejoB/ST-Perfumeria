@@ -455,20 +455,31 @@ Lección: **NUNCA `toISOString()` para fechas locales** — usar el TZ explícit
 
 ## 🔔 Notificaciones a Telegram (al admin)
 
-`notifyTelegram(msg)` llama a la **función SQL `public.send_telegram(msg text)`** del proyecto Supabase via RPC (`sb.rpc('send_telegram', { msg: msg })`).
+`notifyTelegram(msg)` (frontend, en admin.html y app.js) llama a la **función SQL `public.send_telegram(msg text)`** del proyecto Supabase via RPC (`sb.rpc('send_telegram', { msg: msg })`).
 
-Esa función SQL usa la **extensión `pg_net`** para hacer HTTP POST a `api.telegram.org/bot<TOKEN>/sendMessage`. El token y chat_id están **hardcoded en el cuerpo de la función SQL** (issue de seguridad pendiente · ver `docs/SECURITY.md` § S3).
+Esa función SQL usa la **extensión `pg_net`** para hacer HTTP POST a `api.telegram.org/bot<TOKEN>/sendMessage`. El token y chat_id están **hardcoded en el cuerpo de la función SQL** (issue de seguridad pendiente · ver `docs/SECURITY.md` § S3). Bot: `@st_perfumeria_alertas_bot` ("ST Alertas") · chat destino: el de Alejo.
 
-**⚠️ Post Plan B (21-may-2026) las notifs NO llegan** · pg_net habilitada manualmente en el proyecto nuevo (sa-east-1 São Paulo) pero el worker no procesa los requests · `net._http_response` queda con `status_code` vacío. Pendiente diagnosticar / arreglar · keyword `[FIX-TELEGRAM-PG-NET]`. Mientras tanto, las notifs están **silenciosamente rotas en producción** · es info de telemetría, no es crítico para el negocio.
+**✅ Estado real (verificado 27-jun-2026):** Telegram FUNCIONA. El "problema" reportado el 21-may post Plan B (`net._http_response` con `status_code` vacío) era doble: (a) el worker de pg_net necesitaba unos minutos/horas para arrancar tras crear el proyecto nuevo · ya procesa todo (status 200); (b) las queries a `net._http_response` vía **psql/pooler se colgaban** (problema del pooler, NO de pg_net) · consultadas vía el **MCP de Supabase** responden al toque. El keyword `[FIX-TELEGRAM-PG-NET]` quedó OBSOLETO · no había nada que arreglar.
 
-Eventos que disparan (cuando funciona):
-- Login exitoso (con rol)
-- Login OK con reintento (`[LOGIN-RETRY-TELEMETRY]` desde mayo 20)
-- Login timeout (Supabase lento)
-- Auto-logout por inactividad
-- Lockout por intentos fallidos
+### 📊 Resumen diario · `[TG-RESUMEN-DIARIO]` (27-jun-2026)
+
+Antes, cada cambio de stock/precio/cliente/punto disparaba un Telegram instantáneo. El volumen era brutal: **20-jun = 114 mensajes en un día** solo por stock (medido en `admin_actions`). Alejo pidió reemplazar ese bombardeo por **un único resumen diario al cierre**.
+
+**Implementación (100% server-side · no toca frontend):**
+- **Función `public.daily_summary(p_dia date)`** · arma un mensaje unificado en castellano con: 📦 stock (neto +/− por perfume del día, nombres en MAYÚSCULA con fallback embelleciendo el slug para los 82 perfumes del seed sin `name` en `perfume_overrides`), 💰 precios, 👤 clientes nuevos (con link `https://wa.me/<tel>` clickeable), ⭐ puntos otorgados (parsea `clientes.puntos_log` jsonb). Cada sección solo aparece si tiene datos. Si no hubo nada: "Sin movimientos hoy 😴".
+  - Fuentes: `admin_actions` (action `stock_update`/`price_update`, jsonb `changes` con `{old,new}`), `clientes` (created_at + puntos_log), `perfume_overrides` (name).
+  - Neto del día = primer `old` vs último `new` por slug (window `first_value`). Filtra los que quedaron en neto 0.
+- **`pg_cron`** (extensión instalada 27-jun) · job `resumen-diario-telegram` programado `0 2 * * *` (**02:00 UTC = 23:00 ART**) · ejecuta `SELECT send_telegram(daily_summary())`. La función con default `(now() AT TIME ZONE 'America/Argentina/Buenos_Aires')::date` resuelve correctamente al día que cierra.
+  - Ajustar/ver: `SELECT * FROM cron.job;` · `SELECT cron.schedule('resumen-diario-telegram', '<cron>', $$...$$);` · `SELECT cron.unschedule('resumen-diario-telegram');`
+- **6 `notifyTelegram` instantáneas silenciadas** en admin.html (comentadas con marcador `[TG-RESUMEN-DIARIO]`): stock (~4519), precio (~4413), nuevo cliente (~3911), 3× puntos (~4015/4029/4048). Estas quedan cubiertas por el resumen. Commit `1ded56a` · SW v1.1.74.
+
+**Eventos que SIGUEN en tiempo real** (NO los cubre el resumen · son seguridad o acciones admin puntuales/esporádicas):
+- Login exitoso / reintento (`[LOGIN-RETRY-TELEMETRY]`) / timeout / auto-logout / lockout / intentos fallidos
+- Perfume editado/eliminado, combo creado/editado/eliminado, cierre programado, horario cambiado, votación, push enviada
+- Cliente editado/bloqueado/eliminado (≠ "cliente nuevo"), opinión eliminada, waitlist auto-notificada
 - Backup creado
-- Acciones críticas (delete perfume, etc.)
+
+**Si querés silenciar más** (ej. combos, perfumes) hay que comentar la `notifyTelegram` correspondiente Y agregar esa info al resumen `daily_summary` (sino se pierde).
 
 ---
 
