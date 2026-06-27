@@ -3212,7 +3212,7 @@
       if (sBanner) sBanner.innerHTML = '';
       cont.innerHTML = '<p style="color:#888;">Cargando…</p>';
       var res = await sb.from('password_reset_requests')
-        .select('*').eq('status', 'pending').order('created_at', { ascending: false });
+        .select('*, clientes(nombre)').eq('status', 'pending').order('created_at', { ascending: false });
       if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">Error: ' + res.error.message + '</p>'; return; }
       var data = res.data || [];
       if (data.length === 0) {
@@ -3224,11 +3224,15 @@
         var wa = 'https://wa.me/' + tel;
         var fecha = new Date(r.created_at).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
         var noReg = r.cliente_id ? '' : ' <span style="color:#e67e22;font-size:.75rem;">(número no registrado)</span>';
+        var nombre = (r.clientes && r.clientes.nombre) ? escapeHtml(r.clientes.nombre) : '';
+        var ident = nombre
+          ? '<strong style="font-size:1rem;">👤 ' + nombre + '</strong>' + noReg + '<br><span style="color:#bbb;font-size:.85rem;">📞 ' + r.telefono + '</span>'
+          : '<strong style="font-size:1rem;">📞 ' + r.telefono + '</strong>' + noReg;
         var resetBtn = r.cliente_id
           ? '<button class="action-btn btn-price" onclick="resetClientePass(\'' + r.id + '\',\'' + r.cliente_id + '\',\'' + tel + '\')">🔓 Resetear contraseña</button>'
           : '';
         return '<div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:.75rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;">' +
-            '<div><strong style="font-size:1rem;">📞 ' + r.telefono + '</strong>' + noReg +
+            '<div>' + ident +
               '<br><span style="color:#888;font-size:.75rem;">Pedido: ' + fecha + '</span></div>' +
             '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
               '<a class="action-btn" style="background:#25D366;color:#fff;text-decoration:none;" href="' + wa + '" target="_blank">💬 WhatsApp</a>' +
