@@ -243,6 +243,7 @@
       var titleEl = document.getElementById('authTitle');
       var subEl = document.getElementById('authSubtitle');
       var btnEl = document.getElementById('authBtn');
+      var forgotEl = document.getElementById('authForgot'); // [FORGOT-PASS-A]
       document.getElementById('authError').textContent = '';
       if (phonePreview) phonePreview.textContent = '';
       if (phone2Match) phone2Match.textContent = '';
@@ -253,6 +254,7 @@
         titleEl.textContent = 'Iniciá sesión';
         subEl.innerHTML = '&iquest;No ten&eacute;s cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" style="color:var(--amarillo)">Cre&aacute; una</a>';
         btnEl.textContent = 'Entrar';
+        if (forgotEl) forgotEl.style.display = 'block';
       } else {
         nameEl.style.display = '';
         if (phone2El) phone2El.style.display = '';
@@ -260,6 +262,36 @@
         titleEl.textContent = 'Unite a ST';
         subEl.innerHTML = 'Guardá tus favoritos, votá el perfume del mes y recibí ofertas<br><br>¿Ya tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
         btnEl.textContent = 'Unirme';
+        if (forgotEl) forgotEl.style.display = 'none';
+      }
+    }
+
+    // [FORGOT-PASS-A] El cliente toca "¿Olvidaste tu contraseña?" → crea un
+    // pedido en password_reset_requests + avisa al admin por Telegram. El admin
+    // verifica identidad por WhatsApp y resetea desde Admin → Pedidos pass.
+    // NO revelamos si el número existe o no (privacidad): mensaje genérico siempre.
+    async function requestPasswordReset() {
+      var errEl = document.getElementById('authError');
+      var rawPhone = (document.getElementById('authPhone') || {}).value || '';
+      rawPhone = rawPhone.trim();
+      if (!rawPhone) {
+        errEl.style.color = '#e74c3c';
+        errEl.textContent = 'Escribí tu número de WhatsApp arriba y volvé a tocar el link';
+        return;
+      }
+      var phone = cleanPhone(rawPhone);
+      try {
+        var existing = await sb.from('clientes').select('id, nombre').eq('telefono', phone).limit(1);
+        var cli = (existing.data && existing.data[0]) ? existing.data[0] : null;
+        await sb.from('password_reset_requests').insert({ telefono: phone, cliente_id: cli ? cli.id : null });
+        if (cli) {
+          notifyTG('🔐 Pedido de RESET de contraseña\n👤 ' + cli.nombre + '\n📞 ' + phone + '\n📲 https://wa.me/' + phone + '\n\n➡️ Resolvé en Admin → 🔑 Pedidos pass');
+        }
+        errEl.style.color = '#2ecc71';
+        errEl.textContent = '✓ Listo. Si el número está registrado, te contactamos por WhatsApp para ayudarte a recuperar tu cuenta.';
+      } catch (e) {
+        errEl.style.color = '#e74c3c';
+        errEl.textContent = 'No se pudo enviar el pedido. Probá de nuevo o escribinos por WhatsApp.';
       }
     }
 

@@ -1323,6 +1323,7 @@
           <div class="sb-tab-list">
             <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this);closeMobileSidebar()">💰 Precios & Stock</button>
             <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this);closeMobileSidebar()">👥 Clientes</button>
+            <button class="tab-btn" data-tab="resetpass" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()">🔑 Pedidos pass</button>
             <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this);closeMobileSidebar()">✏️ Editar</button>
             <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()">📍 Espera</button>
             <button class="tab-btn" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()">💧 Decants</button>
@@ -1418,6 +1419,16 @@
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
       </table>
+    </div>
+
+    <!-- [FORGOT-PASS-A] TAB: PEDIDOS DE RESET DE CONTRASEÑA -->
+    <div class="tab-content" id="tab-resetpass">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
+        <h2 style="margin:0 0 .4rem;font-size:1.1rem;">🔑 Pedidos de recuperación de contraseña</h2>
+        <p style="color:#bbb;font-size:.82rem;margin:0;line-height:1.5;">Cuando un cliente toca <em>"¿Olvidaste tu contraseña?"</em> en la web, su pedido aparece acá.<br>
+        ⚠️ <strong style="color:#f1c40f;">Verificá su identidad por WhatsApp ANTES de resetear</strong> — preguntale algo que solo el cliente real sepa (qué compró, cuándo vino, etc).</p>
+      </div>
+      <div id="resetRequestsList"><p style="color:#888;">Cargando…</p></div>
     </div>
 
     <!-- TAB: EDITAR PERFUME EXISTENTE -->
@@ -3183,6 +3194,70 @@
     // ============================================================
     function notifyTelegram(msg) {
       sb.rpc('send_telegram', { msg: msg }).then(function(){}).catch(function(){});
+    }
+
+    // ============================================================
+    // [FORGOT-PASS-A] PEDIDOS DE RESET DE CONTRASEÑA
+    // Tabla password_reset_requests. El cliente pide reset desde la web →
+    // acá la chica verifica identidad por WhatsApp y resetea. Resetear =
+    // poner clientes.password en NULL → la próxima clave que escriba el
+    // cliente al loguearse queda como suya (reusa el flujo "primer login").
+    // ============================================================
+    async function loadResetRequests() {
+      var cont = document.getElementById('resetRequestsList');
+      if (!cont) return;
+      cont.innerHTML = '<p style="color:#888;">Cargando…</p>';
+      var res = await sb.from('password_reset_requests')
+        .select('*').eq('status', 'pending').order('created_at', { ascending: false });
+      if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">Error: ' + res.error.message + '</p>'; return; }
+      var data = res.data || [];
+      if (data.length === 0) {
+        cont.innerHTML = '<p style="color:#888;padding:1rem 0;">No hay pedidos pendientes. 🎉</p>';
+        return;
+      }
+      cont.innerHTML = data.map(function(r) {
+        var tel = (r.telefono || '').replace(/[^0-9]/g, '');
+        var wa = 'https://wa.me/' + tel;
+        var fecha = new Date(r.created_at).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+        var noReg = r.cliente_id ? '' : ' <span style="color:#e67e22;font-size:.75rem;">(número no registrado)</span>';
+        var resetBtn = r.cliente_id
+          ? '<button class="action-btn btn-price" onclick="resetClientePass(\'' + r.id + '\',\'' + r.cliente_id + '\',\'' + tel + '\')">🔓 Resetear contraseña</button>'
+          : '';
+        return '<div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:.75rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;">' +
+            '<div><strong style="font-size:1rem;">📞 ' + r.telefono + '</strong>' + noReg +
+              '<br><span style="color:#888;font-size:.75rem;">Pedido: ' + fecha + '</span></div>' +
+            '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
+              '<a class="action-btn" style="background:#25D366;color:#fff;text-decoration:none;" href="' + wa + '" target="_blank">💬 WhatsApp</a>' +
+              resetBtn +
+              '<button class="action-btn" style="background:#555;color:#fff;" onclick="rejectResetRequest(\'' + r.id + '\')">✖ Descartar</button>' +
+            '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    async function resetClientePass(reqId, clienteId, tel) {
+      if (!confirm('¿Ya verificaste por WhatsApp que es el cliente real?\n\nAl resetear, su contraseña queda en blanco y la PRÓXIMA que escriba al entrar a la web será su nueva contraseña.')) return;
+      var upd = await sb.from('clientes').update({ password: null }).eq('id', clienteId);
+      if (upd.error) { alert('No se pudo resetear: ' + upd.error.message); return; }
+      await sb.from('password_reset_requests').update({
+        status: 'resolved', resolved_by: (currentRole || 'admin'), resolved_at: new Date().toISOString()
+      }).eq('id', reqId);
+      notifyTelegram('🔓 Contraseña reseteada\n📞 ' + tel + '\n👤 por ' + (currentRole || 'admin'));
+      loadResetRequests();
+      var msg = encodeURIComponent('¡Hola! Ya te reseteé la contraseña de ST Perfumería 🌸 Entrá a la web con tu número de WhatsApp y la PRÓXIMA contraseña que pongas queda como tu nueva clave. Cualquier cosa avisame!');
+      setTimeout(function() {
+        if (confirm('✓ Contraseña reseteada.\n\n¿Abrir WhatsApp para avisarle al cliente cómo entrar?')) {
+          window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
+        }
+      }, 300);
+    }
+
+    async function rejectResetRequest(reqId) {
+      if (!confirm('¿Descartar este pedido? (ej: spam, o número que no reconocés)')) return;
+      await sb.from('password_reset_requests').update({
+        status: 'rejected', resolved_by: (currentRole || 'admin'), resolved_at: new Date().toISOString()
+      }).eq('id', reqId);
+      loadResetRequests();
     }
 
     // ============================================================

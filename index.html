@@ -486,6 +486,10 @@
       <input type="password" class="auth-input" id="authPass" placeholder="Cre&#225; una contrase&#241;a (m&#237;n. 4 caracteres)" minlength="4" maxlength="30">
       <button class="auth-btn" id="authBtn" onclick="handleAuth()">Unirme</button>
       <p class="auth-error" id="authError"></p>
+      <!-- [FORGOT-PASS-A] solo visible en modo login (lo togglea switchAuthMode) -->
+      <p class="auth-forgot" id="authForgot" style="display:none;margin-top:.6rem;text-align:center;">
+        <a href="#" onclick="event.preventDefault();requestPasswordReset()" style="color:#bbb;font-size:.78rem;text-decoration:underline;">¿Olvidaste tu contraseña?</a>
+      </p>
     </div>
   </div>
 
