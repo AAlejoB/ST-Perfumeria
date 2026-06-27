@@ -102,6 +102,22 @@ Velocidad inicial. Funciona pero es inseguro:
 
 **Tiempo total:** 30-60 min.
 
+### `[FORGOT-PASS-A]` · recuperación de contraseña (27-jun-2026 · commit `db9d485`)
+
+Flujo "olvidé mi contraseña" con verificación humana (sin SMS gateway · costo cero). Tabla `password_reset_requests` (ver `docs/DATABASE.md`).
+
+**Diseño clave · REUSA el flujo "primer login setea pass":** el código de login ya maneja `if (!cliente.password)` (cuenta creada por admin sin pass · el primer login setea la que el cliente escriba · `app.js` ~L391-407). El reset aprovecha esto: en vez de generar códigos temporales + forzar cambio con modal, **pone `clientes.password = NULL`** y el flujo existente hace el resto. Menos código, patrón probado.
+
+**Flujo end-to-end:**
+1. Cliente toca "¿Olvidaste tu contraseña?" en el modal de login (link solo visible en modo login · toggle en `switchAuthMode`).
+2. `requestPasswordReset()` (app.js): busca el cliente por teléfono, INSERT en `password_reset_requests` (anon), avisa al jefe por Telegram con link `wa.me`. Mensaje genérico al cliente (NO revela si el número existe · privacidad).
+3. Admin → tab "🔑 Pedidos pass" (sin `data-role` · empleadas también). `loadResetRequests()` lista pendientes.
+4. La chica toca "💬 WhatsApp" → **verifica identidad** (preguntar algo que solo el cliente real sepa).
+5. Si OK → `resetClientePass()` pone `password=NULL`, marca `status='resolved'`, abre WhatsApp con mensaje pre-armado.
+6. Cliente entra con su teléfono → escribe nueva clave → queda guardada (flujo "primer login").
+
+**Seguridad:** reset NO automático (requiere verificación humana). NO se tocó el login existente → cero riesgo para clientes actuales. ⚠️ La pass sigue PLANO (se migra con `[BCRYPT-MIGRATION]` · ahora más relevante).
+
 ### Plan a futuro: Supabase Auth
 
 Migrar a `auth.users` con relación a `clientes` vía `auth_uid`. Beneficios:

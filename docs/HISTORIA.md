@@ -1376,10 +1376,24 @@ Sesión multi-tema. Lo principal: se construyó el **resumen diario de Telegram*
 - `[SLASH-COMMANDS]` (commits `208afd0` + `6c49346`) · documentados 8 slash commands en `docs/SLASH_COMMANDS.md` + implementados los 3 prioritarios en `.claude/commands/` (`handoff`, `quick-fix-ui`, `security-scan`). `.gitignore` ajustado a `.claude/*` + `!.claude/commands/`.
 - **CodeGraph MCP instalado** (global) · indexación pendiente de confirmar (`codegraph init -i`).
 
-#### Pendiente inmediato
+#### `[FORGOT-PASS-A]` · recuperación de contraseña de clientes (commit `db9d485` · SW v1.1.75)
 
-- **`[FORGOT-PASS-A]`** · es lo próximo que pidió Alejo. El SQL de la tabla `password_reset_requests` quedó escrito en `sql/forgot-pass-a-create-table.sql` (en el main repo, sin ejecutar). Ahora con el MCP de Supabase la tabla se puede crear directo (sin copy/paste). Toca admin.html (tab "Pedidos pass") → ventana segura.
-- Decisión menor pendiente: ¿el resumen diario manda "Sin movimientos 😴" los días sin actividad, o silencio total? Quedó con el 😴 (ajustable en 1 línea).
+Implementado COMPLETO en la misma sesión (Alejo eligió hacerlo todo aunque se pasara del horario de apertura). Flujo "Opción A" (verificación humana, sin SMS gateway, costo cero).
+
+**Diseño clave (simplificación que ahorró trabajo):** en vez de generar códigos temporales tipo `ST-XK29` + forzar cambio con modal nuevo, se REUSA el flujo existente del proyecto: al resetear se pone `clientes.password = NULL`, y el código que ya existía (`js/app.js` L391-407 · "cuenta sin password → primer login setea la pass") hace el resto. Menos código, patrón probado, coherente.
+
+**Componentes:**
+- **BD** · tabla `public.password_reset_requests` creada vía MCP de Supabase (10 cols, 4 RLS policies, 3 índices). INSERT abierto a `anon` (el cliente no está logueado al pedir reset), SELECT/UPDATE/DELETE solo `authenticated` (admin). Detalle en `docs/DATABASE.md`.
+- **Frontend público** (`index.html` + `js/app.js`): link "¿Olvidaste tu contraseña?" en el modal de login (visible solo en modo login, toggle en `switchAuthMode`). `requestPasswordReset()` busca el cliente por teléfono, inserta el pedido + avisa al jefe por Telegram con link `wa.me`. Mensaje genérico al cliente (NO revela si el número existe · privacidad).
+- **Admin** (`admin.html`): tab "🔑 Pedidos pass" (sin `data-role` · empleadas también, son las que atienden). `loadResetRequests()` lista pendientes con botones WhatsApp / Resetear / Descartar. `resetClientePass()` pone `password=NULL` tras confirmar verificación de identidad + marca el pedido resolved + abre WhatsApp con mensaje pre-armado. `rejectResetRequest()` descarta spam.
+- **Seguridad:** el reset NO es automático · requiere que la chica verifique identidad por WhatsApp antes (preguntar algo que solo el cliente sepa). NO se tocó el flujo de login existente → cero riesgo para clientes actuales. ⚠️ La pass sigue en PLANO (alinea con `clientes.password` · ver `[BCRYPT-MIGRATION]` / `docs/SECURITY.md` S2).
+- Sintaxis validada con `node --check` (app.js + JS inline de admin.html) antes de deployar.
+
+**Test pendiente (lo hace Alejo cuando pueda):** crear cuenta de prueba → pedir reset → confirmar Telegram → resetear desde admin → reloguear con clave nueva. NO urgente · no rompe nada existente.
+
+#### Decisión menor pendiente
+
+- ¿El resumen diario de Telegram manda "Sin movimientos 😴" los días sin actividad, o silencio total? Quedó con el 😴 (ajustable en 1 línea de `daily_summary`).
 
 #### Herramienta nueva validada
 
@@ -1387,8 +1401,8 @@ El **MCP de Supabase** (`mcp__...__execute_sql`, `list_extensions`, etc.) result
 
 ---
 
-**Última actualización:** Junio 27, 2026 (sábado madrugada) — Resumen diario de Telegram `[TG-RESUMEN-DIARIO]` implementado y ANDANDO (función `daily_summary` + `pg_cron` job a las 23:00 ART + 6 notifs instantáneas silenciadas · commit `1ded56a` · SW → **v1.1.74**). Reemplaza el bombardeo de 16-114 Telegrams/día por 1 resumen al cierre. Telegram confirmado FUNCIONANDO (el `[FIX-TELEGRAM-PG-NET]` era falsa alarma · obsoleto). También: badge violeta admin `[BADGE-LAST-VIOLETA]` (`42b5dce`), 3 slash commands implementados, QA post Plan B OK. **El MCP de Supabase es ahora la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema). Detalle completo en sección "Sesión 27-jun-2026" arriba + `docs/BACKEND.md`.
-**Próxima revisión cuando:** **`[FORGOT-PASS-A]`** (próximo · SQL en `sql/forgot-pass-a-create-table.sql`) · ⚠️ **`[SECURITY-AUDIT-S1]` (CRÍTICO · passwords admin hardcoded públicas)** · `[BCRYPT-MIGRATION]` (cae adentro de S1) · bajar proyecto viejo Oregon (sigue ACTIVE_HEALTHY · pagando de más desde el 28-may) · `git pull` en main repo desincronizado · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2.
+**Última actualización:** Junio 27, 2026 (sábado mañana) — Sesión larga y productiva. Dos features grandes ANDANDO: (1) `[TG-RESUMEN-DIARIO]` resumen diario de Telegram (función `daily_summary` + `pg_cron` 23:00 ART + 6 notifs silenciadas · commit `1ded56a`) que reemplaza el bombardeo de 16-114 Telegrams/día por 1 resumen al cierre; (2) `[FORGOT-PASS-A]` recuperación de contraseña de clientes COMPLETA (tabla `password_reset_requests` + botón "¿Olvidaste tu contraseña?" en login + tab admin "Pedidos pass" · commit `db9d485`) · reusa el flujo "primer login setea pass" (password=NULL) · NO toca el login existente. SW v1.1.73 → **v1.1.75** (badge violeta `[BADGE-LAST-VIOLETA]` `42b5dce` + TG-RESUMEN `1ded56a` + docs `8229726` + FORGOT-PASS `db9d485`). Telegram confirmado FUNCIONANDO (`[FIX-TELEGRAM-PG-NET]` era falsa alarma · obsoleto). **El MCP de Supabase es la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema). Detalle exhaustivo en sección "Sesión 27-jun-2026" arriba + `docs/BACKEND.md` + `docs/DATABASE.md`.
+**Próxima revisión cuando:** ⚠️ **`[SECURITY-AUDIT-S1]` (CRÍTICO · passwords admin hardcoded públicas en admin.html L2766-2767)** · `[BCRYPT-MIGRATION]` (cae adentro de S1 · clientes.password sigue PLANO, ahora más relevante con FORGOT-PASS) · **bajar proyecto viejo Oregon** (sigue ACTIVE_HEALTHY · pagando 2 proyectos Pro desde el 28-may · ~5 semanas de costo de más) · `git pull` en main repo desincronizado · **testear FORGOT-PASS-A** con cuenta de prueba · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2.
 
 ---
 

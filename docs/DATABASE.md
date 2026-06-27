@@ -56,6 +56,7 @@
 | `decants_custom` | Perfumes "estrella" del armador no en catálogo | |
 | `favoritos` | `(user_id, slug)` | |
 | `lista_espera` | "Avisame cuando vuelva" | |
+| `password_reset_requests` | `[FORGOT-PASS-A]` pedidos de reset de contraseña de clientes | INSERT anon (cliente no logueado), SELECT/UPDATE/DELETE solo authenticated. Creada 27-jun-2026 vía MCP. Ver detalle abajo |
 | `opiniones` | Mensajes en "Tu sector" | Públicos |
 | `announcements` | Pushes que aparecen en banner (últimos 7d) | |
 | `admin_actions` | Audit log de acciones admin | Inmutable, 60d retención |
@@ -64,6 +65,35 @@
 | `perfume_views` | Stats de visitas por perfume | Mostrado como "+N personas vieron" |
 | `backups` | Snapshots diarios | Retención 15d / 200 snapshots |
 | `push_subscriptions` | Suscripciones a web push | Dedupe por `endpoint` |
+
+---
+
+## 🔑 `[FORGOT-PASS-A]` · tabla `password_reset_requests` (27-jun-2026)
+
+Trackea los pedidos de "olvidé mi contraseña" de clientes. SQL fuente en `sql/forgot-pass-a-create-table.sql`. Creada vía MCP de Supabase.
+
+```sql
+CREATE TABLE public.password_reset_requests (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  cliente_id    uuid REFERENCES clientes(id) ON DELETE CASCADE,  -- NULL si el tel no matchea
+  telefono      text NOT NULL,
+  status        text DEFAULT 'pending' CHECK (status IN ('pending','resolved','rejected','expired')),
+  created_at    timestamptz DEFAULT now(),
+  expires_at    timestamptz DEFAULT (now() + interval '24 hours'),
+  resolved_by   text,           -- 'jefe' | 'empleado'
+  resolved_at   timestamptz,
+  temp_password text,           -- reservado · hoy NO se usa (el reset pone clientes.password=NULL)
+  notes         text
+);
+```
+
+**RLS (clave · distinto del patrón estándar):**
+- `prr_insert_open` · INSERT TO **anon**, authenticated · el cliente NO está logueado en Supabase Auth cuando pide reset (usa anon key). Sin esto, el botón no funciona.
+- `prr_select_auth` / `prr_update_auth` / `prr_delete_auth` · solo **authenticated** · los pedidos tienen teléfono, NO son públicos. Solo el admin (logueado en Supabase Auth) los ve/resuelve.
+
+**Índices:** partial sobre `status='pending'` (query frecuente del admin), por `cliente_id`, por `telefono`.
+
+**Flujo:** cliente toca "¿Olvidaste tu contraseña?" → INSERT (anon) + Telegram al jefe → admin verifica identidad por WhatsApp → "Resetear" pone `clientes.password=NULL` (reusa flujo "primer login setea pass" de app.js L391-407) → marca `status='resolved'`. Ver `docs/BACKEND.md` § Auth para el detalle del flujo.
 
 ---
 
