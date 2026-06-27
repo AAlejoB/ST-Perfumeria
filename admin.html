@@ -3908,7 +3908,8 @@
 
       msgEl.textContent = '✓ ' + nombre + ' registrado' + (compro ? ' con 1 punto' : '');
       msgEl.style.color = '#2ecc71';
-      notifyTelegram('👤 Nuevo cliente (admin)\n📱 ' + nombre + ' · ' + telefono + (compro ? '\n⭐ 1 punto' : ''));
+      // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
+      // notifyTelegram('👤 Nuevo cliente (admin)\n📱 ' + nombre + ' · ' + telefono + (compro ? '\n⭐ 1 punto' : ''));
 
       // Armar link de WhatsApp con saludo + instrucciones de primer ingreso.
       // El cliente quedó sin password en DB → la 1ra clave que ingrese al loguearse queda como suya.
@@ -4012,7 +4013,8 @@
 
         msgEl.textContent = '✓ ' + nombre + ' registrado + 1 punto';
         msgEl.style.color = '#2ecc71';
-        notifyTelegram('⭐ Punto + nuevo cliente\n👤 ' + nombre + ' · ' + telefono);
+        // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
+        // notifyTelegram('⭐ Punto + nuevo cliente\n👤 ' + nombre + ' · ' + telefono);
       } else {
         // Existe → sumar punto
         var cliente = data[0];
@@ -4026,7 +4028,8 @@
 
         msgEl.textContent = '✓ ' + cliente.nombre + ' ahora tiene ' + nuevosPuntos + ' punto' + (nuevosPuntos !== 1 ? 's' : '');
         msgEl.style.color = '#2ecc71';
-        notifyTelegram('⭐ +1 punto\n👤 ' + cliente.nombre + ' → ' + nuevosPuntos + ' pts');
+        // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
+        // notifyTelegram('⭐ +1 punto\n👤 ' + cliente.nombre + ' → ' + nuevosPuntos + ' pts');
       }
 
       document.getElementById('puntoQuery').value = '';
@@ -4045,7 +4048,8 @@
         return;
       }
       await pushPuntoLogEntry(c, +1, c.puntos || 0, nuevosPuntos, '+1 desde panel');
-      notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
+      // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
+      // notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
       loadClientes();
     }
 
@@ -4410,7 +4414,8 @@
       msgEl.textContent = '✓ Precio actualizado en Supabase';
       msgEl.style.color = '#2ecc71';
 
-      notifyTelegram('\ud83d\udcb0 Precio actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcb5 Precio: $' + newPrice.toLocaleString('es-AR') + (newPromo ? '\n\ud83c\udf1f Promo: $' + newPromo.toLocaleString('es-AR') : ''));
+      // [TG-RESUMEN-DIARIO] silenciado \u00b7 ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
+      // notifyTelegram('\ud83d\udcb0 Precio actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcb5 Precio: $' + newPrice.toLocaleString('es-AR') + (newPromo ? '\n\ud83c\udf1f Promo: $' + newPromo.toLocaleString('es-AR') : ''));
 
       renderPrecios();
       if (typeof renderStock === 'function') renderStock();
@@ -4516,7 +4521,8 @@
       msgEl.textContent = 'Stock actualizado: ' + info.badgeText;
       msgEl.style.color = '#2ecc71';
 
-      notifyTelegram('📦 Stock actualizado\n🌶 ' + p.name + '\n📊 ' + info.badgeText + (paused ? ' (pausado)' : ''));
+      // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
+      // notifyTelegram('📦 Stock actualizado\n🌶 ' + p.name + '\n📊 ' + info.badgeText + (paused ? ' (pausado)' : ''));
 
       renderPrecios();
 
