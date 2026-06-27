@@ -1389,7 +1389,12 @@ Implementado COMPLETO en la misma sesión (Alejo eligió hacerlo todo aunque se 
 - **Seguridad:** el reset NO es automático · requiere que la chica verifique identidad por WhatsApp antes (preguntar algo que solo el cliente sepa). NO se tocó el flujo de login existente → cero riesgo para clientes actuales. ⚠️ La pass sigue en PLANO (alinea con `clientes.password` · ver `[BCRYPT-MIGRATION]` / `docs/SECURITY.md` S2).
 - Sintaxis validada con `node --check` (app.js + JS inline de admin.html) antes de deployar.
 
-**Test pendiente (lo hace Alejo cuando pueda):** crear cuenta de prueba → pedir reset → confirmar Telegram → resetear desde admin → reloguear con clave nueva. NO urgente · no rompe nada existente.
+**Rework de UX + bug encontrado (mismo día):**
+- Alejo probó y vio "No se pudo enviar el pedido". Primero reforcé la UX (commit `4268b78`): el link "¿Olvidaste tu contraseña?" ahora abre una **pantalla dedicada "Recuperá tu cuenta"** (3er modo de `switchAuthMode`) con instrucciones claras y solo el campo de teléfono (antes era confuso). `cleanPhone` ya normaliza el formato solo (no requiere el `549`).
+- Pero seguía fallando incluso en incógnito. **`[FORGOT-PASS-FIX]` (commit `38a1aeb`):** el bug REAL estaba en `notifyTG()` (app.js) que hacía `sb.rpc('send_telegram', {msg}).catch(...)`. En supabase-js v2, `sb.rpc()` devuelve un **PostgREST builder** (thenable con `.then()` pero SIN `.catch()`), así que `.catch()` directo tiraba `TypeError: sb.rpc(...).catch is not a function`. Como `[FORGOT-PASS-A]` llama `notifyTG()` dentro del `try` SOLO cuando el teléfono está registrado (cli existe), ese throw caía al catch → error genérico. Por eso fallaba solo con teléfono registrado (mis primeras pruebas usaron un número no registrado → cli=null → no llamaba notifyTG → no fallaba). Fix: `Promise.resolve(sb.rpc(...)).catch()` + try/catch. Arregla TODOS los usos de notifyTG (login bloqueado, primer ingreso, perfil editado, waitlist) que tenían el mismo bug latente.
+- **Método de diagnóstico clave:** el preview local (Python http.server) estaba inestable en Windows, así que diagnostiqué con **puppeteer-core + Edge headless contra producción**, reproduciendo el flujo paso a paso hasta aislar la línea exacta. SW v1.1.75 → **v1.1.77**.
+
+**Test pendiente (lo hace Alejo cuando pueda):** crear cuenta de prueba → pedir reset → confirmar Telegram → resetear desde admin → reloguear con clave nueva. El flujo del cliente (pedir reset) ya quedó VERIFICADO end-to-end con browser headless (mensaje de éxito verde).
 
 #### Decisión menor pendiente
 
