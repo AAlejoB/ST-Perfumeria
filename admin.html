@@ -1428,6 +1428,7 @@
         <p style="color:#bbb;font-size:.82rem;margin:0;line-height:1.5;">Cuando un cliente toca <em>"¿Olvidaste tu contraseña?"</em> en la web, su pedido aparece acá.<br>
         ⚠️ <strong style="color:#f1c40f;">Verificá su identidad por WhatsApp ANTES de resetear</strong> — preguntale algo que solo el cliente real sepa (qué compró, cuándo vino, etc).</p>
       </div>
+      <div id="resetSuccessBanner"></div>
       <div id="resetRequestsList"><p style="color:#888;">Cargando…</p></div>
     </div>
 
@@ -3206,6 +3207,9 @@
     async function loadResetRequests() {
       var cont = document.getElementById('resetRequestsList');
       if (!cont) return;
+      // [FORGOT-PASS-A] limpiar el banner de éxito al refrescar / reentrar a la tab
+      var sBanner = document.getElementById('resetSuccessBanner');
+      if (sBanner) sBanner.innerHTML = '';
       cont.innerHTML = '<p style="color:#888;">Cargando…</p>';
       var res = await sb.from('password_reset_requests')
         .select('*').eq('status', 'pending').order('created_at', { ascending: false });
@@ -3244,12 +3248,24 @@
       }).eq('id', reqId);
       notifyTelegram('🔓 Contraseña reseteada\n📞 ' + tel + '\n👤 por ' + (currentRole || 'admin'));
       loadResetRequests();
+      // [FORGOT-PASS-A] Aviso al cliente vía link TAPPABLE (no pop-up automático).
+      // El window.open anterior corría tras await + setTimeout, sin gesto del usuario,
+      // así que el bloqueador de pop-ups lo frenaba (peor en tablet). Un <a> que la
+      // chica toca = gesto directo → WhatsApp abre siempre.
       var msg = encodeURIComponent('¡Hola! Ya te reseteé la contraseña de ST Perfumería 🌸 Entrá a la web con tu número de WhatsApp y la PRÓXIMA contraseña que pongas queda como tu nueva clave. Cualquier cosa avisame!');
-      setTimeout(function() {
-        if (confirm('✓ Contraseña reseteada.\n\n¿Abrir WhatsApp para avisarle al cliente cómo entrar?')) {
-          window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
-        }
-      }, 300);
+      var waUrl = 'https://wa.me/' + tel + '?text=' + msg;
+      var banner = document.getElementById('resetSuccessBanner');
+      if (banner) {
+        banner.innerHTML =
+          '<div style="background:#0f3d24;border:1px solid #1e7e45;border-radius:8px;padding:1rem;margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;">' +
+            '<div style="color:#d6f5e3;font-size:.9rem;">✓ Contraseña de <strong>' + tel + '</strong> reseteada. Avisale cómo volver a entrar:</div>' +
+            '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
+              '<a class="action-btn" style="background:#25D366;color:#fff;text-decoration:none;font-weight:600;" href="' + waUrl + '" target="_blank" rel="noopener">💬 Avisar al cliente</a>' +
+              '<button class="action-btn" style="background:#555;color:#fff;" onclick="document.getElementById(\'resetSuccessBanner\').innerHTML=\'\'">✖ Cerrar</button>' +
+            '</div>' +
+          '</div>';
+        banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     }
 
     async function rejectResetRequest(reqId) {
