@@ -244,20 +244,39 @@
       var subEl = document.getElementById('authSubtitle');
       var btnEl = document.getElementById('authBtn');
       var forgotEl = document.getElementById('authForgot'); // [FORGOT-PASS-A]
+      // [FORGOT-PASS-A] reset de elementos que requestPasswordReset oculta tras el éxito
+      var phoneElReset = document.getElementById('authPhone');
+      if (phoneElReset) phoneElReset.style.display = '';
+      if (btnEl) { btnEl.style.display = ''; btnEl.disabled = false; }
       document.getElementById('authError').textContent = '';
       if (phonePreview) phonePreview.textContent = '';
       if (phone2Match) phone2Match.textContent = '';
       if (mode === 'login') {
         nameEl.style.display = 'none';
         if (phone2El) phone2El.style.display = 'none';
+        passEl.style.display = '';
         passEl.placeholder = 'Tu contraseña';
         titleEl.textContent = 'Iniciá sesión';
         subEl.innerHTML = '&iquest;No ten&eacute;s cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" style="color:var(--amarillo)">Cre&aacute; una</a>';
         btnEl.textContent = 'Entrar';
+        if (forgotEl) {
+          forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'recover\')" style="color:#bbb;font-size:.78rem;text-decoration:underline;">¿Olvidaste tu contraseña?</a>';
+          forgotEl.style.display = 'block';
+        }
+      } else if (mode === 'recover') {
+        // [FORGOT-PASS-A] Pantalla dedicada de recuperación · solo teléfono, instrucciones claras
+        nameEl.style.display = 'none';
+        if (phone2El) phone2El.style.display = 'none';
+        passEl.style.display = 'none';
+        titleEl.textContent = 'Recuperá tu cuenta';
+        subEl.innerHTML = 'No te preocupes 🌸 Escribí abajo tu número de WhatsApp (el mismo con el que te registraste) y nuestro equipo te va a contactar para ayudarte a entrar de nuevo.';
+        btnEl.textContent = 'Pedir ayuda';
+        if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:#bbb;font-size:.78rem;text-decoration:underline;">← Volver a iniciar sesión</a>';
         if (forgotEl) forgotEl.style.display = 'block';
       } else {
         nameEl.style.display = '';
         if (phone2El) phone2El.style.display = '';
+        passEl.style.display = '';
         passEl.placeholder = 'Creá una contraseña (mín. 4 caracteres)';
         titleEl.textContent = 'Unite a ST';
         subEl.innerHTML = 'Guardá tus favoritos, votá el perfume del mes y recibí ofertas<br><br>¿Ya tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
@@ -272,26 +291,40 @@
     // NO revelamos si el número existe o no (privacidad): mensaje genérico siempre.
     async function requestPasswordReset() {
       var errEl = document.getElementById('authError');
+      var btn = document.getElementById('authBtn');
       var rawPhone = (document.getElementById('authPhone') || {}).value || '';
       rawPhone = rawPhone.trim();
-      if (!rawPhone) {
-        errEl.style.color = '#e74c3c';
-        errEl.textContent = 'Escribí tu número de WhatsApp arriba y volvé a tocar el link';
+      errEl.style.color = '#e74c3c';
+      if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
+        errEl.textContent = 'Escribí tu número de WhatsApp para que podamos ayudarte';
         return;
       }
       var phone = cleanPhone(rawPhone);
+      btn.disabled = true;
+      btn.textContent = 'Enviando…';
       try {
         var existing = await sb.from('clientes').select('id, nombre').eq('telefono', phone).limit(1);
         var cli = (existing.data && existing.data[0]) ? existing.data[0] : null;
-        await sb.from('password_reset_requests').insert({ telefono: phone, cliente_id: cli ? cli.id : null });
+        var ins = await sb.from('password_reset_requests').insert({ telefono: phone, cliente_id: cli ? cli.id : null });
+        if (ins.error) throw ins.error;
         if (cli) {
           notifyTG('🔐 Pedido de RESET de contraseña\n👤 ' + cli.nombre + '\n📞 ' + phone + '\n📲 https://wa.me/' + phone + '\n\n➡️ Resolvé en Admin → 🔑 Pedidos pass');
         }
+        // Éxito: ocultar el formulario y mostrar confirmación grande y clara
+        var phoneEl = document.getElementById('authPhone');
+        var preview = document.getElementById('authPhonePreview');
+        var forgotEl = document.getElementById('authForgot');
+        if (phoneEl) phoneEl.style.display = 'none';
+        if (preview) preview.textContent = '';
+        btn.style.display = 'none';
+        if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo);font-size:.85rem;">Volver al inicio</a>';
         errEl.style.color = '#2ecc71';
-        errEl.textContent = '✓ Listo. Si el número está registrado, te contactamos por WhatsApp para ayudarte a recuperar tu cuenta.';
+        errEl.innerHTML = '✓ ¡Listo! Si tu número está registrado, te vamos a escribir por WhatsApp en breve para ayudarte a entrar de nuevo. 🌸';
       } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Pedir ayuda';
         errEl.style.color = '#e74c3c';
-        errEl.textContent = 'No se pudo enviar el pedido. Probá de nuevo o escribinos por WhatsApp.';
+        errEl.textContent = 'No se pudo enviar el pedido. Probá de nuevo en un momento o escribinos por WhatsApp.';
       }
     }
 
@@ -387,6 +420,9 @@
       var btn = document.getElementById('authBtn');
       errEl.textContent = '';
       errEl.style.color = '#e74c3c';
+
+      // [FORGOT-PASS-A] modo recuperación: pide SOLO el teléfono (sin contraseña)
+      if (authMode === 'recover') { return requestPasswordReset(); }
 
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) { errEl.textContent = 'Poné un número de WhatsApp válido'; return; }
       var phone = cleanPhone(rawPhone);
