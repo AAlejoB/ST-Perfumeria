@@ -510,7 +510,13 @@
 
     // Notificar Telegram desde frontend
     function notifyTG(msg) {
-      sb.rpc('send_telegram', { msg: msg }).catch(function(){});
+      // [FORGOT-PASS-FIX] sb.rpc() en supabase-js v2 devuelve un builder (thenable),
+      // NO una Promise con .catch(). Llamar .catch() directo tiraba
+      // "sb.rpc(...).catch is not a function". Lo envolvemos en try + Promise.resolve
+      // para que NUNCA propague (las notifs son best-effort, no deben romper el flujo).
+      try {
+        Promise.resolve(sb.rpc('send_telegram', { msg: msg })).catch(function(){});
+      } catch (e) { /* notif best-effort · ignorar */ }
     }
 
     // Editar perfil
