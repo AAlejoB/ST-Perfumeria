@@ -1406,8 +1406,109 @@ El **MCP de Supabase** (`mcp__...__execute_sql`, `list_extensions`, etc.) result
 
 ---
 
-**Última actualización:** Junio 27, 2026 (sábado mañana) — Sesión larga y productiva. Dos features grandes ANDANDO: (1) `[TG-RESUMEN-DIARIO]` resumen diario de Telegram (función `daily_summary` + `pg_cron` 23:00 ART + 6 notifs silenciadas · commit `1ded56a`) que reemplaza el bombardeo de 16-114 Telegrams/día por 1 resumen al cierre; (2) `[FORGOT-PASS-A]` recuperación de contraseña de clientes COMPLETA (tabla `password_reset_requests` + botón "¿Olvidaste tu contraseña?" en login + tab admin "Pedidos pass" · commit `db9d485`) · reusa el flujo "primer login setea pass" (password=NULL) · NO toca el login existente. SW v1.1.73 → **v1.1.75** (badge violeta `[BADGE-LAST-VIOLETA]` `42b5dce` + TG-RESUMEN `1ded56a` + docs `8229726` + FORGOT-PASS `db9d485`). Telegram confirmado FUNCIONANDO (`[FIX-TELEGRAM-PG-NET]` era falsa alarma · obsoleto). **El MCP de Supabase es la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema). Detalle exhaustivo en sección "Sesión 27-jun-2026" arriba + `docs/BACKEND.md` + `docs/DATABASE.md`.
-**Próxima revisión cuando:** ⚠️ **`[SECURITY-AUDIT-S1]` (CRÍTICO · passwords admin hardcoded públicas en admin.html L2766-2767)** · `[BCRYPT-MIGRATION]` (cae adentro de S1 · clientes.password sigue PLANO, ahora más relevante con FORGOT-PASS) · **bajar proyecto viejo Oregon** (sigue ACTIVE_HEALTHY · pagando 2 proyectos Pro desde el 28-may · ~5 semanas de costo de más) · `git pull` en main repo desincronizado · **testear FORGOT-PASS-A** con cuenta de prueba · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2.
+### Sesión 27-jun-2026 · parte 2 (cerrada el 12-ago-2026) · **Test E2E de `[FORGOT-PASS-A]` + `[FORGOT-PASS-WA]`**
+
+Continuación de la misma sesión del 27-jun (mañana). Alejo pidió "seguir arreglando cosas" y de 4 opciones eligió **cerrar el loop del feature de recuperación de contraseña**, que había quedado con el test pendiente. Se probó de punta a punta contra la BD de producción, apareció un bug real en el camino, se arregló, y se sumó una mejora de UX.
+
+> ⚠️ **Nota de calendario:** el trabajo técnico se hizo el 27-jun. Alejo volvió al chat el **12-ago** (~6,5 semanas después) y ahí se cerró la documentación. En el medio **nadie tocó el repo** (`origin/main` quedó clavado en `196586e`) y el sitio corrió con SW v1.1.78 sin reportes de fallas. Ver "Pendientes que se pudrieron con el tiempo" abajo.
+
+#### Qué se hizo
+
+**1. Test E2E de `[FORGOT-PASS-A]` · VERIFICADO end-to-end en producción**
+
+Método usado: **Alejo toca la UI real, Claude verifica la BD con el MCP de Supabase después de cada paso.** Así se probó el código productivo (RLS, policies, funciones), no un atajo por SQL.
+
+| Etapa | Verificación concreta | Resultado |
+|---|---|---|
+| Cliente pide reset | fila en `password_reset_requests` `status=pending` + `cliente_id` linkeado (creada 11:16:45) | ✅ |
+| Aviso al jefe | `net._http_response` id 1216 · status 200 · `message_id` 3083 · **11:16:46** (0,1 s después) | ✅ |
+| Admin resetea | `clientes.password` → NULL · pedido → `resolved` · `resolved_by='jefe'` (11:35:10) | ✅ |
+| Telegram del reset | id 1221 · status 200 · msg 3087 · 11:35:10 | ✅ |
+| Cliente re-loguea | `password` re-seteada (len 9) · **puntos intactos (5)** | ✅ |
+| Telegram "primer ingreso" | id 1222 · status 200 · msg 3088 · 11:38:53 | ✅ |
+
+Dato lindo: el pedido pendiente que había en la BD era **de la propia cuenta de Alejo** (creado en su prueba de la mañana), así que el test fue real y seguro a la vez.
+
+**2. `[FORGOT-PASS-WA]` · el "Avisar por WhatsApp" no abría nada (commit `3e52dbd`)**
+
+Lo detectó Alejo probando: el reseteo funcionaba pero el pop-up de WhatsApp no llevaba a ningún lado.
+
+- **Causa raíz:** `window.open(url, '_blank')` sólo abre si el navegador lo asocia a un **gesto directo del usuario** (*user activation*). En `resetClientePass()` la llamada corría después de **2 `await` de SQL + `setTimeout(300)` + un segundo `confirm`** → para entonces el navegador ya había perdido el rastro del clic original y el **bloqueador de pop-ups lo frenaba en silencio** (más agresivo todavía en tablet, que es donde trabajan las chicas).
+- **Fix (opción A de 3 que se le ofrecieron):** se reemplazó el pop-up automático por un **banner verde con un `<a href target="_blank">` tappable** ("💬 Avisar al cliente") + botón "✖ Cerrar". Tocar el link ES el gesto → WhatsApp abre siempre. El banner se limpia al refrescar la lista o al reentrar a la tab.
+- El botón verde 💬 WhatsApp de cada fila **nunca estuvo roto** (siempre fue un `<a>` real). El bug era sólo el pop-up automático post-reseteo.
+- SW v1.1.77 → **v1.1.78**.
+
+**3. Nombre del cliente en la tab "Pedidos pass" (commit `eefdfe9`)**
+
+Mejora menor flageada por Claude y aprobada por Alejo: la lista mostraba sólo el teléfono, teniendo el `cliente_id` linkeado.
+
+- `loadResetRequests()` ahora trae el nombre con **join embebido de PostgREST** (`.select('*, clientes(nombre)')`, apoyado en la FK `password_reset_requests_cliente_id_fkey`).
+- Se verificó (con `pg_policies`, sin escribir) que `clientes` tiene policy `SELECT` que permite el embed bajo el rol `authenticated` → el nombre efectivamente se muestra.
+- El nombre **se escapa con `escapeHtml()`** (helper que ya existía en `admin.html` L7212) para no sumar un punto de XSS · ver S10 abajo.
+
+**4. Hallazgos de seguridad + re-scoping de S1 (commit `196586e` · `docs/SECURITY.md`)**
+
+Al verificar S1 antes de tocar nada, se descubrió que **el inventario estaba desactualizado**:
+
+- Las constantes están en **L2778-2779**, no L2766-2767 (el archivo creció ~12 líneas).
+- **El login del admin YA NO usa esas passwords** · autentica contra Supabase Auth (`sb.auth.signInWithPassword`) → **S1 no es un login-bypass**, como decía el doc.
+- `ADMIN_PASS_EMPLEADO` es **código muerto** (se declara, nunca se referencia) → borrable sin riesgo.
+- `ADMIN_PASS` **sigue vivo** como secreto compartido para `/api/send-notification` (L7229) → al estar en JS público, cualquiera puede mandar **push spam a todos los suscriptores**. Borrarlo NO es one-liner: hay que cambiar la auth del endpoint (validar sesión server-side) + rotar el secreto en Vercel.
+- **S2 agravado (hallazgo nuevo):** `clientes` tiene policy `SELECT` para `public` con `USING (true)` y la **anon key está en el JS público** → cualquiera puede bajarse **todos los teléfonos + contraseñas en plano** con un `fetch` al REST, sin loguearse ni tener el dump. Apretar la RLS a secas **rompe el login** (el front lee `clientes` como anon para comparar la pass) → queda atado a `[BCRYPT-MIGRATION]`. Mitigación propuesta: mover la verificación a una función `SECURITY DEFINER` que devuelva sólo un booleano.
+- **S10 (nuevo · ALTA):** **stored XSS** en la tab "Clientes" del admin · `renderClients` (~L3900) inyecta `c.nombre` sin escapar vía `innerHTML`. Un atacante se registra con un nombre tipo `<img src=x onerror=...>` y el payload corre **en la sesión admin autenticada** de la chica. El código nuevo de "Pedidos pass" ya escapa · el issue es para los lugares preexistentes.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **`window.open` tras `await` = pop-up bloqueado.** Patrón replicable: si querés abrir una pestaña después de operaciones async, **no** uses `window.open` automático · dejá un link/botón que el usuario toque. Aplica a cualquier lugar del panel que quiera "abrir WhatsApp solo".
+- **Los docs de seguridad envejecen y mienten.** S1 decía "explotable en 30 segundos, login bypass" y hoy no lo es; las líneas ni siquiera coincidían. Lección: **verificar contra el código antes de ejecutar un plan de fix** basado en un doc de hace semanas (mismo espíritu que el aprendizaje #56).
+- **El sandbox de Claude Code no tiene salida HTTP.** `curl` a producción devolvió `000` (y también a GitHub) → parecía "deploy no salió" cuando en realidad estaba `READY`. **Para verificar deploys usar el MCP de Vercel** (`list_deployments`), no `curl`. El `git push` sí funciona (va por otro canal).
+- **Correlacionar acciones con Telegrams vía `net._http_response`.** Los timestamps (`created at time zone 'America/Argentina/Buenos_Aires'`) permiten confirmar que una notificación salió por una acción concreta (ej. reset 11:35:10 → Telegram 11:35:10). Herramienta útil para QA de flujos con notificación.
+- **Patrón de test E2E "vos tocás, yo verifico".** Funcionó muy bien: Alejo opera la UI real y Claude confirma cada efecto en la BD. Prueba el código productivo completo (RLS incluida) sin que Claude necesite credenciales del panel.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[FORGOT-PASS-A]` | **Test E2E COMPLETO verificado en producción** (cliente → admin → re-login · puntos intactos · 3 Telegrams confirmados). El feature queda cerrado. |
+| `[FORGOT-PASS-WA]` | Fix del aviso al cliente: banner con link tappable en lugar del `window.open` que el bloqueador de pop-ups frenaba (`3e52dbd`). |
+| `[FORGOT-PASS-NOMBRE]` | Nombre del cliente visible en la tab "Pedidos pass" vía join embebido + `escapeHtml` (`eefdfe9`). |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[SECURITY-AUDIT-S1]` | **Re-scoped**: (a) borrar `ADMIN_PASS_EMPLEADO` (muerto, trivial) · (b) sacar `ADMIN_PASS` del JS público cambiando la auth de `/api/send-notification` a sesión server-side + rotar secreto en Vercel. Ya NO es login-bypass. |
+| `[BCRYPT-MIGRATION]` | Más urgente que antes: S2 quedó demostrado como **remotamente explotable** (anon key + RLS abierta = passwords en plano por REST). Incluye la mitigación con función `SECURITY DEFINER`. |
+| `S10` (XSS admin) | Escapar `c.nombre` / `c.nota` en `renderClients` (~L3900) y auditar los demás `innerHTML` del panel. |
+| **Bajar Oregon** | 💸 Sigue pendiente · ver abajo. |
+
+#### 🕐 Pendientes que se pudrieron con el tiempo (al 12-ago)
+
+- 💸 **Bajar el proyecto Supabase viejo de Oregon (`rtgjzzkjrwbkdhkslxix`)** · el rollback window venció el **28-may**. Si sigue activo, son **~2,5 meses de facturación doble** (2 proyectos Pro ≈ **USD 60-75 de más**). Es lo más caro de la lista y lo más barato de resolver (pausar es reversible y no toca código). ⚠️ **Verificar primero que siga activo** — en el cierre del 12-ago el MCP de Supabase estaba desconectado y no se pudo confirmar.
+- 🔴 Los issues de seguridad llevan **~3 meses** abiertos desde que se detectaron el 21-may.
+
+#### 💬 Mensajes meta
+
+- Alejo cerró preguntando *"¿me prometés que si me avisan que algo falla lo resolvemos juntos?"*. La respuesta honesta funcionó mejor que una promesa vacía: **no** prometer que nada se rompe, sí acotar el radio de impacto real (se tocó una sola tab · login/catálogo/ventas intactos), recordar que **el rollback de Vercel está a un click** (el deploy previo figura como `isRollbackCandidate`), y confirmar que sí, cuando vuelva se resuelve juntos. Ver aprendizaje #67.
+- El hueco de 6,5 semanas confirma que **`HISTORIA.md` ES la memoria real del proyecto**, no el chat. Al volver, la primera pregunta de Alejo fue *"¿dejamos algo en el .md?"*. Ver aprendizaje #68.
+
+---
+
+**Última actualización:** **Agosto 12, 2026** (cierre de la sesión 27-jun parte 2 · el trabajo técnico es del 27-jun, la doc se cerró el 12-ago tras 6,5 semanas sin actividad). **`[FORGOT-PASS-A]` quedó CERRADO y verificado end-to-end en producción** (cliente pide → admin resetea → cliente re-loguea · puntos intactos · 3 Telegrams confirmados por timestamp en `net._http_response`). En el camino apareció y se arregló **`[FORGOT-PASS-WA]`** (el `window.open` de "Avisar por WhatsApp" corría tras `await` + `setTimeout` → sin *user activation* → lo frenaba el bloqueador de pop-ups · ahora es un link tappable · `3e52dbd`), y se sumó el **nombre del cliente en "Pedidos pass"** (`eefdfe9`). SW v1.1.75 → **v1.1.78**. En `docs/SECURITY.md` (`196586e`) se **re-scopeó S1** (el login admin ya NO usa esas passwords · `ADMIN_PASS_EMPLEADO` es código muerto · `ADMIN_PASS` sigue vivo sólo para el endpoint de push), se **agravó S2** (la RLS abierta de `clientes` + la anon key pública = teléfonos y passwords en plano descargables por REST sin loguearse) y se sumó **S10** (stored XSS por `c.nombre` sin escapar en la tab Clientes). Detalle exhaustivo en la sección "Sesión 27-jun-2026 · parte 2" arriba.
+
+**Estado del repo al 12-ago:** `origin/main` = `196586e` · nadie tocó nada en 6,5 semanas · sitio corriendo estable con SW v1.1.78, sin reportes de fallas.
+
+**Contexto histórico previo (27-jun mañana):** Sesión larga y productiva. Dos features grandes ANDANDO: (1) `[TG-RESUMEN-DIARIO]` resumen diario de Telegram (función `daily_summary` + `pg_cron` 23:00 ART + 6 notifs silenciadas · commit `1ded56a`) que reemplaza el bombardeo de 16-114 Telegrams/día por 1 resumen al cierre; (2) `[FORGOT-PASS-A]` recuperación de contraseña de clientes COMPLETA (tabla `password_reset_requests` + botón "¿Olvidaste tu contraseña?" en login + tab admin "Pedidos pass" · commit `db9d485`) · reusa el flujo "primer login setea pass" (password=NULL) · NO toca el login existente. SW v1.1.73 → **v1.1.75** (badge violeta `[BADGE-LAST-VIOLETA]` `42b5dce` + TG-RESUMEN `1ded56a` + docs `8229726` + FORGOT-PASS `db9d485`). Telegram confirmado FUNCIONANDO (`[FIX-TELEGRAM-PG-NET]` era falsa alarma · obsoleto). **El MCP de Supabase es la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema). Detalle exhaustivo en sección "Sesión 27-jun-2026" arriba + `docs/BACKEND.md` + `docs/DATABASE.md`.
+**Próxima revisión cuando:** (orden recomendado al 12-ago)
+
+1. 💸 **Bajar el proyecto Supabase viejo de Oregon** (`rtgjzzkjrwbkdhkslxix`) — **lo más caro y lo más fácil**. El rollback window venció el 28-may; si sigue activo van ~2,5 meses de 2 proyectos Pro (**≈ USD 60-75 de más**). Pausar es reversible y no toca una línea de código. ⚠️ Verificar primero que siga ACTIVE (el 12-ago el MCP de Supabase estaba caído).
+2. 🔴 **`[BCRYPT-MIGRATION]` / S2** — demostrado **remotamente explotable**: anon key pública + `SELECT public USING(true)` en `clientes` = cualquiera baja teléfonos + passwords en plano por REST. Mitigación intermedia: función `SECURITY DEFINER` que valide la pass y devuelva un booleano, para poder cerrar la policy sin romper el login.
+3. 🟠 **`[SECURITY-AUDIT-S1]` (re-scoped)** — (a) borrar `ADMIN_PASS_EMPLEADO` (código muerto, trivial) · (b) sacar `ADMIN_PASS` del JS público cambiando `/api/send-notification` a auth de sesión server-side + rotar el secreto. **Ya NO es login-bypass** (verificado 27-jun).
+4. 🟠 **S10 · stored XSS en el admin** — escapar `c.nombre`/`c.nota` en `renderClients` (~L3900) y auditar el resto de los `innerHTML` del panel.
+5. 🟡 Rotar token de Telegram (S3) + DB passwords (S5) · migrar a Supabase Auth.
+6. 🟢 CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2 · tab "Orden de compra sugerida".
+
+✅ **Salieron de la lista:** testear `[FORGOT-PASS-A]` (hecho y verificado en prod) · `git pull` del main repo desincronizado (los commits van por worktree con `git push origin <branch>:main`, que funciona bien).
 
 ---
 

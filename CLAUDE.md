@@ -151,7 +151,7 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 var CACHE_VERSION = 'v1.1.64';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.64**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.78**.
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 >
@@ -239,12 +239,12 @@ Definido en la lógica de admin.html (`currentRole`).
 
 ## 📌 Pendientes conocidos (con prioridad)
 
-1. 🔴 **`[SECURITY-AUDIT-S1]`** — passwords admin HARDCODED en `admin.html` L2766-2767 (públicas) + auditoría completa. Ver `docs/SECURITY.md`.
-2. 🔴 **`[BCRYPT-MIGRATION]`** Hashear contraseñas de clientes (lazy migration) — sigue PLANO · más relevante ahora con `[FORGOT-PASS-A]` activo. Cae adentro de S1.
-3. 🟡 **Bajar proyecto viejo Supabase Oregon** (`rtgjzzkjrwbkdhkslxix`) — sigue ACTIVE_HEALTHY pagando 2 proyectos Pro desde 28-may.
+1. 💸 **Bajar proyecto viejo Supabase Oregon** (`rtgjzzkjrwbkdhkslxix`) — **lo más caro y lo más fácil.** El rollback window venció el 28-may; si sigue activo van ~2,5 meses de 2 proyectos Pro (**≈ USD 60-75 de más**). Pausar es reversible y no toca código. ⚠️ Verificar primero que siga ACTIVE.
+2. 🔴 **`[BCRYPT-MIGRATION]` / S2** — `clientes.password` sigue PLANO **y es remotamente explotable**: la anon key es pública y `clientes` tiene `SELECT public USING(true)` → cualquiera baja teléfonos + passwords por REST. Apretar la RLS a secas rompe el login → mitigar con función `SECURITY DEFINER`. Ver `docs/SECURITY.md` § S2.
+3. 🟠 **`[SECURITY-AUDIT-S1]` (re-scoped 27-jun)** — las constantes están en **L2778-2779** y **el login admin YA NO las usa** (usa Supabase Auth) → no es login-bypass. Queda: borrar `ADMIN_PASS_EMPLEADO` (código muerto) + sacar `ADMIN_PASS` del JS público cambiando la auth de `/api/send-notification`. **+ S10 nuevo:** stored XSS por `c.nombre` sin escapar en la tab Clientes (~L3900).
 4. 🟡 **Migrar a Supabase Auth** — solo en una "semana sin grandes cambios".
 5. 🟡 **Tab "Orden de compra sugerida"** (on-demand, opción C definida).
-6. ✅ ~~**Botón "Olvidé mi contraseña"**~~ — HECHO 27-jun (`[FORGOT-PASS-A]` commit `db9d485`). Falta testear con cuenta de prueba.
+6. ✅ ~~**Botón "Olvidé mi contraseña"**~~ — HECHO y **TESTEADO E2E en producción** 27-jun (`[FORGOT-PASS-A]` `db9d485` + fix del aviso WhatsApp `[FORGOT-PASS-WA]` `3e52dbd` + nombre del cliente en la tab `eefdfe9`). Cerrado.
 7. 🟢 **Permisos de tabs configurables por jefe** — postergado.
 8. 🟢 **Sistema de puntos para decants** desde el armador.
 7. 🟢 **Wireframe Juegos ST** (Quiz + Desafío side by side).
@@ -283,4 +283,13 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** Junio 27, 2026 (sábado mañana) — Sesión larga con 2 features grandes ANDANDO: **`[TG-RESUMEN-DIARIO]`** (resumen diario de Telegram al cierre 23:00 ART · función SQL `daily_summary` + `pg_cron` + 6 notifs instantáneas silenciadas · commit `1ded56a`) que reemplaza el bombardeo de 16-114 Telegrams/día, y **`[FORGOT-PASS-A]`** (recuperación de contraseña de clientes COMPLETA · tabla `password_reset_requests` + botón "¿Olvidaste tu contraseña?" en login + tab admin "Pedidos pass" · commit `db9d485` · reusa el flujo "primer login setea pass", NO toca el login existente). También: badge violeta admin `[BADGE-LAST-VIOLETA]` (`42b5dce`), 3 slash commands implementados (`.claude/commands/`), CodeGraph MCP instalado, QA post Plan B OK. SW v1.1.71 → **v1.1.75**. **Telegram CONFIRMADO funcionando** (el `[FIX-TELEGRAM-PG-NET]` del 21-may era falsa alarma · obsoleto · el worker de pg_net tardó en arrancar y las queries vía psql se colgaban, pero vía MCP responden bien). **El MCP de Supabase es ahora la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema · `C:\Program Files\PostgreSQL\18\` vacío). 🚨 **Issues de seguridad SIGUEN pendientes** (de la sesión 21-may): passwords admin **HARDCODED en `admin.html` L2766-2767** · agendado **`[SECURITY-AUDIT-S1]`** (CRÍTICO). Detalle exhaustivo en `docs/HISTORIA.md` § "Sesión 27-jun-2026" + `docs/BACKEND.md` + `docs/DATABASE.md`. **Pendientes:** ⚠️ **`[SECURITY-AUDIT-S1]`** (CRÍTICO) · `[BCRYPT-MIGRATION]` (más relevante con FORGOT-PASS activo) · **bajar proyecto viejo Oregon** (pagando 2 Pro desde 28-may) · `git pull` en main repo desincronizado · **testear FORGOT-PASS-A** con cuenta de prueba · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes con `?width=400` · JS-CHUNK iter 2 · SUPABASE-AUTH.
+**Última actualización:** **Agosto 12, 2026** — cierre de la sesión 27-jun parte 2 (el trabajo técnico es del 27-jun · la doc se cerró el 12-ago tras 6,5 semanas sin actividad · `origin/main` quedó clavado en `196586e` y el sitio corrió estable todo ese tiempo). **`[FORGOT-PASS-A]` CERRADO y verificado E2E en producción** (cliente pide → admin resetea → cliente re-loguea con clave nueva · puntos intactos · 3 Telegrams confirmados). Se arregló **`[FORGOT-PASS-WA]`** (el `window.open` de "Avisar por WhatsApp" corría tras `await`+`setTimeout` → sin *user activation* → bloqueado por el pop-up blocker · ahora es link tappable · `3e52dbd`) y se sumó el nombre del cliente en "Pedidos pass" (`eefdfe9`). SW v1.1.75 → **v1.1.78**. En seguridad (`196586e`): **S1 re-scopeado** (el login admin ya NO usa las passwords hardcoded), **S2 agravado** (RLS abierta + anon key pública = passwords en plano por REST) y **S10 nuevo** (stored XSS en la tab Clientes). Detalle en `docs/HISTORIA.md` § "Sesión 27-jun-2026 · parte 2" + `docs/SECURITY.md`. **Pendientes (orden):** 💸 bajar Oregon (~USD 60-75 de más) · 🔴 `[BCRYPT-MIGRATION]`/S2 · 🟠 S1 re-scoped + S10 · 🟡 rotar token TG y DB pass · 🟢 CLS iter 5, SW-BANNER-SMART, logo @2x, `?width=400`, JS-CHUNK iter 2.
+
+<details>
+<summary>Contexto histórico previo (27-jun mañana)</summary>
+
+Sesión larga con 2 features grandes ANDANDO: **`[TG-RESUMEN-DIARIO]`** (resumen diario de Telegram al cierre 23:00 ART · función SQL `daily_summary` + `pg_cron` + 6 notifs instantáneas silenciadas · commit `1ded56a`) que reemplaza el bombardeo de 16-114 Telegrams/día, y **`[FORGOT-PASS-A]`** (recuperación de contraseña de clientes COMPLETA · tabla `password_reset_requests` + botón "¿Olvidaste tu contraseña?" en login + tab admin "Pedidos pass" · commit `db9d485` · reusa el flujo "primer login setea pass", NO toca el login existente). También: badge violeta admin `[BADGE-LAST-VIOLETA]` (`42b5dce`), 3 slash commands implementados (`.claude/commands/`), CodeGraph MCP instalado, QA post Plan B OK. SW v1.1.71 → **v1.1.75**. **Telegram CONFIRMADO funcionando** (el `[FIX-TELEGRAM-PG-NET]` del 21-may era falsa alarma · obsoleto · el worker de pg_net tardó en arrancar y las queries vía psql se colgaban, pero vía MCP responden bien). **El MCP de Supabase es ahora la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema · `C:\Program Files\PostgreSQL\18\` vacío). 🚨 **Issues de seguridad SIGUEN pendientes** (de la sesión 21-may): passwords admin **HARDCODED en `admin.html` L2766-2767** · agendado **`[SECURITY-AUDIT-S1]`** (CRÍTICO). Detalle exhaustivo en `docs/HISTORIA.md` § "Sesión 27-jun-2026" + `docs/BACKEND.md` + `docs/DATABASE.md`. **Pendientes:** ⚠️ **`[SECURITY-AUDIT-S1]`** (CRÍTICO) · `[BCRYPT-MIGRATION]` (más relevante con FORGOT-PASS activo) · **bajar proyecto viejo Oregon** (pagando 2 Pro desde 28-may) · `git pull` en main repo desincronizado · **testear FORGOT-PASS-A** con cuenta de prueba · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes con `?width=400` · JS-CHUNK iter 2 · SUPABASE-AUTH.
+
+</details>
+
+*Ubicación de este archivo: `D:\workspace\ST_Perfumeria\CLAUDE.md`*
