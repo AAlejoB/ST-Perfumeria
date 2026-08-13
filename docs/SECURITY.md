@@ -258,7 +258,7 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Severidad:** 🟠 ALTA en potencia · nunca llegó a ser explotable. **Hallado y arreglado el mismo día (12-ago-2026).**
 
-> ✅ **ESTADO: RESUELTO** · commit `ef1507d`. La condición ahora es `if (!ADMIN_PASS || adminPass !== ADMIN_PASS)` → **falla cerrado**: sin la variable configurada, se rechaza todo. Verificado con los 5 casos posibles (sin variable + sin `adminPass` → 401 · sin variable + pass falsa → 401 · con variable + vacía/falsa → 401 · con variable + correcta → permite). **No requirió bump de SW** (las funciones de `api/` son código de servidor, el SW no las cachea). Se deja documentado abajo el análisis original porque el **patrón** es el aprendizaje, no el caso puntual.
+> ✅ **ESTADO: RESUELTO** · commit `ef1507d`. La condición ahora es `if (!ADMIN_PASS || adminPass !== ADMIN_PASS)` → **falla cerrado**: sin la variable configurada, se rechaza todo. Verificado **la lógica** con los 5 casos posibles en Node (sin variable + sin `adminPass` → 401 · sin variable + pass falsa → 401 · con variable + vacía/falsa → 401 · con variable + correcta → permite). ⚠️ **El `401` no se puede observar en producción todavía** porque la función muere al cargar (ver abajo) → **re-testear al hacer `[VERCEL-ENV-VARS]`**. **No requirió bump de SW** (las funciones de `api/` son código de servidor, el SW no las cachea). Se deja documentado abajo el análisis original porque el **patrón** es el aprendizaje, no el caso puntual.
 
 **Dónde está:**
 - `api/send-notification.js` L11 y L35:
@@ -272,7 +272,9 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **El problema:** la comparación **no verifica que `ADMIN_PASS` exista**. Si la variable no está configurada, una petición que simplemente **omita** el campo `adminPass` pasa la validación (`undefined !== undefined` es `false`).
 
-**Por qué hoy no se puede explotar:** el proyecto de Vercel **no tiene ninguna variable de entorno** (ver abajo), así que la función también se queda sin `SUPABASE_URL` ni claves VAPID y falla antes de enviar nada. La puerta está abierta pero el cuarto está vacío.
+**Por qué hoy no se puede explotar (verificado en producción 12-ago):** la función **ni siquiera arranca**. En `api/send-notification.js` L16-20, `webpush.setVapidDetails(...)` se ejecuta **a nivel de módulo** (fuera del handler) con `VAPID_PUBLIC`/`VAPID_PRIVATE` en `undefined` → `web-push` tira error al cargar el archivo → **todo request devuelve 500 antes de correr una sola línea del handler**. Comprobado con un POST de body vacío contra producción: `500`, no `401` ni `400`. O sea que el agujero **nunca fue alcanzable**; se activaba sólo al reponer las variables.
+
+⚠️ **Consecuencia para la verificación:** mientras no existan las env vars, **el `401` del fix NO se puede observar en producción** (el módulo muere antes). Lo verificado es (a) la lógica de la condición en Node con los 5 casos y (b) que el código está desplegado. **Al ejecutar `[VERCEL-ENV-VARS]`, re-testear este endpoint**: con las variables puestas, un POST sin `adminPass` tiene que dar `401`.
 
 **Cuándo se vuelve peligroso:** el día que se repongan `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` + `VAPID_*` **y se olvide `ADMIN_PASS`**. Ahí el endpoint queda como pasarela abierta: cualquiera puede mandar notificaciones push a **todos los suscriptores** en nombre de ST Perfumería (con un techo de 5 envíos por día por el rate limit).
 
@@ -300,7 +302,7 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 |---|---|---|
 | `api/cron/backup.js` | Backup diario propio a `admin_backups` | ❌ corta con "SUPABASE_URL o SERVICE_KEY no configurados" |
 | `api/push-subscribe.js` | Registra suscriptores de notificaciones | ❌ |
-| `api/send-notification.js` | Envía el push masivo | ❌ + habilita S11 |
+| `api/send-notification.js` | Envía el push masivo | ❌ **500 en todo request** · `webpush.setVapidDetails()` corre a nivel de módulo (L16) y explota con las claves en `undefined`, así que la función ni carga |
 
 **Evidencia:** el cron **sí** está declarado en `vercel.json` (`/api/cron/backup`, `0 3 * * *`) y conserva los 12 más recientes, pero `admin_backups` tiene **sólo 4 filas, del 2 al 16 de mayo** → ya fallaba **antes** de la migración. Los logs de Vercel no sirven para confirmar (retención de **1 hora** en plan Hobby).
 
