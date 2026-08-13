@@ -1332,6 +1332,7 @@
           <div class="sb-tab-list">
             <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this);closeMobileSidebar()">💰 Precios & Stock</button>
             <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this);closeMobileSidebar()">👥 Clientes</button>
+            <button class="tab-btn" data-tab="deposito" onclick="switchTab('deposito',this);renderDeposito();closeMobileSidebar()">📦 Depósito</button>
             <button class="tab-btn" data-tab="resetpass" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()">🔑 Pedidos pass</button>
             <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this);closeMobileSidebar()">✏️ Editar</button>
             <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()">📍 Espera</button>
@@ -1441,6 +1442,67 @@
       </table>
       <!-- [OCULTAR-PAUSADOS] Red de seguridad: avisa que hay pausados fuera de la vista -->
       <p id="avisoPausados" style="font-size:.65rem;color:var(--gris);margin:.5rem 0 0;"></p>
+    </div>
+
+    <!-- [DEPOSITO] TAB: STOCK EN DEPÓSITO (aparte del stock del local) -->
+    <div class="tab-content" id="tab-deposito">
+      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.25rem;margin-bottom:1rem;">
+        <h2 style="margin:0 0 .4rem;font-size:1.1rem;">📦 Stock en depósito</h2>
+        <p style="color:#bbb;font-size:.82rem;margin:0;line-height:1.5;">Lo que hay <strong>guardado en el depósito</strong>, separado de lo que está en el local.<br>
+        Este número <strong style="color:var(--amarillo);">no se muestra en la web</strong> — el cliente sigue viendo sólo el stock del local.</p>
+      </div>
+
+      <div class="stock-stats" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="statDepUnidades">—</div>
+          <div class="stat-label">Unidades en depósito</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🌸</div>
+          <div class="stat-value" id="statDepPerfumes">—</div>
+          <div class="stat-label">Perfumes con depósito</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-value" id="statDepReponer">—</div>
+          <div class="stat-label">Sin local pero con depósito</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
+        <input type="text" class="admin-search" id="searchDeposito" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('deposito')" style="margin-bottom:0;flex:1;min-width:180px;"/>
+        <select class="admin-search" id="sortDeposito" onchange="renderDeposito()" style="margin-bottom:0;width:auto;min-width:150px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
+          <option value="dep-desc" selected>Más en depósito</option>
+          <option value="dep-asc">Menos en depósito</option>
+          <option value="name-asc">Nombre A-Z</option>
+          <option value="reponer">Para reponer primero</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
+          <input type="checkbox" id="chkSoloConDeposito" onchange="renderDeposito()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
+          Sólo con depósito
+        </label>
+      </div>
+      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> para cambiarlo. La columna <strong>Local</strong> es de sólo lectura — se edita desde <strong>Precios &amp; Stock</strong>.</p>
+      <table class="admin-table">
+        <thead><tr><th>Perfume</th><th>Local</th><th>Depósito</th></tr></thead>
+        <tbody id="tbodyDeposito"></tbody>
+      </table>
+      <p id="avisoDeposito" style="font-size:.65rem;color:var(--gris);margin:.5rem 0 0;"></p>
+    </div>
+
+    <!-- [DEPOSITO] MODAL: editar unidades en depósito -->
+    <div class="modal-overlay" id="modalDeposito">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('modalDeposito')">&times;</button>
+        <p class="modal-title">📦 Stock en depósito</p>
+        <p id="modalDepNombre" style="text-align:center;font-weight:600;margin-bottom:.25rem;"></p>
+        <p id="modalDepLocal" style="text-align:center;font-size:.75rem;color:var(--gris);margin-bottom:1rem;"></p>
+        <label style="display:block;font-size:.7rem;color:var(--gris);margin-bottom:.3rem;">Unidades en depósito</label>
+        <input type="number" class="modal-input" id="modalDepQty" min="0" step="1" inputmode="numeric" style="text-align:center;font-size:1.3rem;font-weight:700;"/>
+        <button class="modal-btn" onclick="saveDeposito()" id="modalDepBtn">Guardar</button>
+        <p class="modal-success" id="modalDepMsg"></p>
+      </div>
     </div>
 
     <!-- [FORGOT-PASS-A] TAB: PEDIDOS DE RESET DE CONTRASEÑA -->
@@ -3461,13 +3523,15 @@
     // ============================================================
     async function loadStockFromDB() {
       try {
-        var { data } = await sb.from('perfume_overrides').select('slug, stock_status, stock_qty');
+        var { data } = await sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito');
         if (data) {
           data.forEach(function(row) {
             var p = PERFUMES.find(function(pf) { return pf.slug === row.slug; });
             if (!p) return;
             if (row.stock_status) p._stockStatus = row.stock_status;
             if (row.stock_qty !== null && row.stock_qty !== undefined) p._stockQty = row.stock_qty;
+            // [DEPOSITO] unidades guardadas en el depósito (no en el local)
+            if (row.stock_deposito !== null && row.stock_deposito !== undefined) p._stockDeposito = row.stock_deposito;
           });
         }
       } catch(e) { console.error('loadStockFromDB:', e); }
@@ -3498,6 +3562,8 @@
           if (o.notas_base) p.notas_base = o.notas_base;
           if (o.stock_status) p._stockStatus = o.stock_status;
           if (o.stock_qty !== null && o.stock_qty !== undefined) p._stockQty = o.stock_qty;
+          // [DEPOSITO] unidades en depósito, separadas del stock del local
+          if (o.stock_deposito !== null && o.stock_deposito !== undefined) p._stockDeposito = o.stock_deposito;
           if (o.fotos_extra) p.fotos_extra = o.fotos_extra;
           if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';
           if (o.etiqueta_color) p.etiqueta_color = o.etiqueta_color;
@@ -3579,6 +3645,126 @@
         case 'stock-out': sorted.sort(function(a, b) { var order = { pausado: 0, out: 1, low: 2, ok: 3 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
       }
       return sorted;
+    }
+
+    // ============================================================
+    // [DEPOSITO] Stock guardado en el depósito, aparte del stock del local.
+    // Vive en perfume_overrides.stock_deposito. NO se muestra en la web:
+    // el catálogo público sigue leyendo sólo stock_qty / stock_status.
+    // La columna "Local" acá es de SOLO LECTURA — se edita en Precios & Stock.
+    // ============================================================
+    var editingDepSlug = null;
+
+    function depQty(p) {
+      return (typeof p._stockDeposito === 'number') ? p._stockDeposito : 0;
+    }
+
+    // Hay depósito pero el local está en cero → hay que ir a buscarlo
+    function depParaReponer(p) {
+      return depQty(p) > 0 && (p._stockQty === 0 || p._stockStatus === 'out');
+    }
+
+    function renderDeposito() {
+      var tbody = document.getElementById('tbodyDeposito');
+      if (!tbody) return;
+      var soloCon = !!(document.getElementById('chkSoloConDeposito') || {}).checked;
+      var sortKey = (document.getElementById('sortDeposito') || {}).value || 'dep-desc';
+
+      var todos = PERFUMES.filter(function(p) { return !p.esSet; });
+
+      // Métricas sobre TODO el catálogo (antes de filtrar la vista)
+      var unidades = 0, conDep = 0, reponer = 0;
+      todos.forEach(function(p) {
+        var d = depQty(p);
+        if (d > 0) { unidades += d; conDep++; }
+        if (depParaReponer(p)) reponer++;
+      });
+      var setText = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+      setText('statDepUnidades', unidades.toLocaleString('es-AR'));
+      setText('statDepPerfumes', conDep);
+      setText('statDepReponer', reponer);
+
+      var list = soloCon ? todos.filter(function(p) { return depQty(p) > 0; }) : todos.slice();
+
+      list.sort(function(a, b) {
+        switch (sortKey) {
+          case 'dep-asc':  return depQty(a) - depQty(b) || a.name.localeCompare(b.name);
+          case 'name-asc': return a.name.localeCompare(b.name);
+          case 'reponer':
+            return (depParaReponer(a) ? 0 : 1) - (depParaReponer(b) ? 0 : 1) ||
+                   depQty(b) - depQty(a) || a.name.localeCompare(b.name);
+          default:         return depQty(b) - depQty(a) || a.name.localeCompare(b.name);
+        }
+      });
+
+      var html = '';
+      list.forEach(function(p) {
+        var d = depQty(p);
+        var info = deriveStockInfo(p);
+        var searchStr = ((p.name || '') + ' ' + (p.marca || '') + ' ' +
+                         (p.marca_real || '') + ' ' + (p.alias || '')).toLowerCase().replace(/"/g, '');
+        var alerta = depParaReponer(p)
+          ? ' <span style="color:#e67e22;font-size:.62rem;white-space:nowrap;">← traer al local</span>' : '';
+        html += '<tr data-search="' + searchStr + '">' +
+            '<td class="td-name">' + escapeHtml(p.name) + alerta + '</td>' +
+            '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '">' + info.badgeText + '</span></td>' +
+            '<td class="td-stock"><span class="badge-stock" style="cursor:pointer;user-select:none;background:' +
+              (d > 0 ? '#1e5b3a' : '#3a3a3a') + ';color:#fff;" title="Tocá para cambiar" ' +
+              'onclick="openDepositoModal(\'' + p.slug + '\')">' + d + ' u.</span></td>' +
+          '</tr>';
+      });
+      tbody.innerHTML = html;
+
+      var aviso = document.getElementById('avisoDeposito');
+      if (aviso) {
+        aviso.textContent = list.length + ' perfume' + (list.length !== 1 ? 's' : '') + ' en la lista' +
+          (soloCon ? ' (mostrando sólo los que tienen depósito)' : '');
+      }
+    }
+
+    function openDepositoModal(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      editingDepSlug = slug;
+      var local = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      document.getElementById('modalDepNombre').textContent = p.name;
+      document.getElementById('modalDepLocal').textContent =
+        'En el local: ' + (local === null ? 'sin dato' : local + ' u.');
+      document.getElementById('modalDepQty').value = depQty(p);
+      document.getElementById('modalDepMsg').textContent = '';
+      document.getElementById('modalDeposito').classList.add('active');
+    }
+
+    async function saveDeposito() {
+      if (!editingDepSlug) return;
+      var p = PERFUMES.find(function(pf) { return pf.slug === editingDepSlug; });
+      if (!p) return;
+      var msgEl = document.getElementById('modalDepMsg');
+      var btn = document.getElementById('modalDepBtn');
+      var qty = parseInt(document.getElementById('modalDepQty').value, 10);
+      if (isNaN(qty) || qty < 0) qty = 0;
+      var prev = depQty(p);
+
+      btn.disabled = true;
+      // upsert parcial: sólo toca stock_deposito, no pisa stock_qty ni el resto
+      var res = await sb.from('perfume_overrides').upsert(
+        { slug: editingDepSlug, stock_deposito: qty },
+        { onConflict: 'slug' }
+      );
+      btn.disabled = false;
+
+      if (res.error) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Error: ' + res.error.message;
+        return;
+      }
+
+      p._stockDeposito = qty;
+      msgEl.style.color = '#2ecc71';
+      msgEl.textContent = '✓ Guardado';
+      logAdminAction('deposito_update', editingDepSlug, { stock_deposito: { old: prev, new: qty } });
+      renderDeposito();
+      setTimeout(function() { closeModal('modalDeposito'); }, 900);
     }
 
     // ============================================================
