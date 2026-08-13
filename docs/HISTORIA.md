@@ -1494,21 +1494,155 @@ Al verificar S1 antes de tocar nada, se descubrió que **el inventario estaba de
 
 ---
 
+### Sesión 12-ago-2026 (tarde/noche) · **`[FOTOS-OREGON]` — la mudanza de mayo había quedado a medias**
+
+Sesión que arrancó como *"bajemos el proyecto viejo para dejar de pagar"* (el pendiente #1 desde mayo) y terminó destapando que **la migración a São Paulo nunca se completó del todo**: 97 filas de la base seguían apuntando las fotos al servidor de Oregon. Apagarlo sin mirar habría dejado el catálogo público con 80 imágenes rotas. De paso aparecieron dos hallazgos serios (backup propio y notificaciones caídos hace 3 meses) y se midió **por primera vez con números** la exposición de los datos de clientes.
+
+#### `[FOTOS-OREGON]` · 97 direcciones apuntando al servidor viejo
+
+**Cómo se descubrió.** Antes de pausar Oregon se verificó qué dependía de él. El repo estaba limpio (`grep rtgjzzkjrwbkdhkslxix` sólo aparecía en `.claude/settings.local.json`, que no ejecuta nada) y Vercel no tenía ninguna variable configurada. **Pero el navegador contra producción mostró 80 `<img>` cargando desde `rtgjzzkjrwbkdhkslxix.supabase.co`.** Las URLs se guardan enteras en la BD: el Plan B de mayo copió los archivos al bucket nuevo pero **no reescribió las direcciones guardadas**.
+
+**Por qué nadie lo notó en 3 meses:** Oregon seguía prendido y pagado, así que las fotos cargaban perfecto. El problema era invisible **hasta el momento exacto de apagarlo** — el peor tipo de bug latente.
+
+**Alcance real (la BD dijo más que el navegador).** El navegador sólo ve lo que está renderizado en la home. La consulta a la BD encontró **97 filas en 5 tablas**:
+
+| Tabla · columna | Filas | Qué es |
+|---|---|---|
+| `perfume_overrides.foto` | 72 | Fotos del catálogo |
+| `perfumes_nuevos.foto` | 15 | Perfumes cargados desde el panel |
+| `decants_custom.foto_url` | 5 | Decants "estrella" |
+| `home_slides.media_url` | 3 | Slider viejo (2 jpg + 1 mp4) |
+| `combos.foto` | 2 | Packs/sets |
+
+Si se hubiera corregido sólo lo que mostraba el navegador (76), **quedaban 21 rotas** que iban a aparecer recién cuando alguien entrara a combos o decants. **Lección: la BD es la fuente de verdad, el navegador es el testigo.**
+
+**Qué NO se tocó, a propósito:** `edit_log` (75), `admin_actions` (26) y `admin_backups` (4) también contienen la URL vieja, pero son **historial**. Reescribirlos sería falsificar el libro de actas y no arregla nada — el panel los renderiza como texto plano (`truncateLog`, `admin.html` L4847), no como imágenes. Nota: si algún día se restaura un `admin_backups` viejo, hay que volver a correr el reemplazo.
+
+**Método usado (5 redes de contención, decidido con Alejo que pidió explícitamente "lo más seguro"):**
+1. **Pre-chequeo de archivos:** se verificó con el navegador que las **88 URLs únicas existieran en São Paulo** antes de reapuntar nada. 87 dieron OK y 1 falló → era el `.mp4` probado con `new Image()` (falso negativo). Reprobado con `<video>`: **88/88 presentes.**
+2. **Respaldo:** tabla `respaldo_urls_oregon` con los valores previos (creada **con RLS activada** — el propio dashboard avisó, ver más abajo).
+3. **Ensayo:** `SELECT` con `antes → después` revisado por Alejo antes de escribir.
+4. **Atómico:** los 5 `UPDATE ... replace(...)` en un solo `begin; ... commit;`.
+5. **Verificación doble:** la BD devolvió **0 filas** apuntando a Oregon, y el sitio en vivo pasó de *80 Oregon + 61 SP* a **141 São Paulo, 0 Oregon, 0 imágenes rotas** (la cuenta cierra exacta: 61 + 80 = 141).
+
+**Agujero en la verificación propia (lo encontró la desconfianza de Alejo).** La consulta de descubrimiento filtraba `data_type IN ('text','varchar','json','jsonb')` — **dejaba fuera las columnas tipo `ARRAY`**. Alejo preguntó *"¿es así que solo eran las fotos?"* y al revisar apareció el hueco. Se cerró de dos formas: (a) escaneo desde el navegador de **381 filas en 14 tablas leyendo TODAS las columnas sin filtrar por tipo** → 0 rastros; (b) segunda consulta SQL con `data_type NOT IN (...)` → vacío. `fotos_extra` resultó ser columna de **texto** (se guarda desde un input), así que la consulta original sí la había cubierto.
+
+#### Oregon: no se pudo pausar, se mudó a una organización Free
+
+- **Pausar está deshabilitado en plan pago.** El botón existe pero gris, con el tooltip *"Projects on a paid plan will always be running"*. **Lo encontró Alejo**, que no se quedó con el "abajo solo aparece Delete" y siguió buscando.
+- **Corrección del costo:** se había estimado "USD 60-75 de más". Supabase cobra **por organización**, y ambos proyectos estaban en la misma (`Alejo_Bello`, Pro) → Oregon sumaba sólo su cómputo (~USD 10/mes), no una suscripción entera. **El número real está en la factura.**
+- **Salida elegida (sin borrar nada):** Alejo creó la organización **`BACKUP_ST_desdeMayo2026`** (plan Free) y **transfirió el proyecto de Oregon** ahí. Costo → 0, el proyecto sigue existiendo, y en Free sí se puede pausar (además se auto-pausa tras ~1 semana de inactividad).
+- **Motivo extra para NO borrarlo:** los backups diarios de Supabase **no incluyen Storage** (ver abajo) → hoy Oregon es la **única segunda copia de las 171 fotos**.
+- **Decisión de Alejo:** dejarlo prendido por ahora, sin pausar. Se le señaló que lo expuesto ahí no son datos suyos sino de sus clientes (teléfonos + passwords en plano de mayo); reafirmó la decisión y **ya no cuesta plata**, así que se respetó. Probablemente se auto-pause solo.
+- El sitio se verificó **después** de la transferencia: 141 imágenes SP, 0 rotas, 462 tarjetas, 233 filas de stock legibles. **Nada se movió.**
+
+#### 🚨 Hallazgo nuevo · Vercel no tiene NINGUNA variable de entorno
+
+`Settings → Environment Variables` del proyecto `st-perfumeria` está **vacío** (verificado por Alejo en pantalla). Consecuencia: las 3 funciones que necesitan hablar con Supabase **vienen fallando en silencio**:
+
+| Función | Qué hace | Estado |
+|---|---|---|
+| `api/cron/backup.js` | Backup diario propio (`admin_backups`) | ❌ corta con "SUPABASE_URL o SERVICE_KEY no configurados" |
+| `api/push-subscribe.js` | Registrar suscriptores de notificaciones | ❌ |
+| `api/send-notification.js` | Enviar el push a todos | ❌ (además usa `ADMIN_PASS`, que tampoco está) |
+
+**Evidencia:** el `cron` **sí** está configurado (`vercel.json`, `/api/cron/backup` a las `0 3 * * *`) y guarda los 12 más recientes, pero `admin_backups` tiene **sólo 4 filas, del 2 al 16 de mayo** — o sea que ya venía fallando **antes** de la migración. Los logs de Vercel no sirvieron para confirmar (retención de **1 hora** en plan Hobby).
+
+⚠️ Cuando se repongan, la service key se copia **directo de Supabase a Vercel** — nunca por chat (ver S6 en `SECURITY.md`).
+
+#### ✅ Los backups que SÍ funcionan (y su límite)
+
+`Database → Backups → Scheduled backups` del proyecto de São Paulo tiene **backups diarios hasta hoy**, cada uno con botón `Restore`. O sea: si mañana se borra el stock por accidente, **se recupera**. Esa era la preocupación real de Alejo ("mis amigos tienen todo el stock ahí").
+
+⚠️ **Pero el propio panel avisa: "Storage objects are not included".** Los backups guardan la BD, **no las fotos**. De ahí sale el pendiente nuevo `[BACKUP-FOTOS-LOCAL]`.
+
+#### 🔴 Exposición de datos de clientes · medida con números (S2)
+
+Primera medición real, hecha con la clave pública desde el navegador, **sin mostrar ningún dato**:
+
+| Medición | Resultado |
+|---|---|
+| ¿`clientes` legible por `anon`? | **Sí** |
+| Fichas descargables | **82** (eran 38-40 en mayo) |
+| Contraseñas legibles | **78** |
+| Que parecen hash | **0** |
+| En texto plano | **78** (largos entre 4 y 22) |
+| Columnas expuestas | `nombre`, `telefono`, `password`, `nota`, `puntos`, `bloqueado`, `puntos_log` |
+
+**Plan acordado con Alejo (3 escalones):**
+1. **Cerrar la puerta** (~1 h) · RLS cerrada + login por función `SECURITY DEFINER` que devuelve sólo un booleano. ⚠️ **No se puede cerrar la policy a secas: el login actual lee la tabla como `anon` y se rompería.** Va junto o no va.
+2. **Hashear** (~1-2 h) · bcrypt con migración perezosa.
+3. **Supabase Auth** · sesión dedicada, cuando haya una semana tranquila.
+
+**Plan de respuesta ante filtración (pedido explícito de Alejo):** (1) cortar — rotar anon key + cerrar RLS; (2) **resetear todas las contraseñas poniendo `password = NULL`** → el flujo `[FORGOT-PASS-A]` hace que cada cliente defina una nueva al entrar, sin atender a nadie uno por uno; (3) avisar a los clientes con el mensaje clave *"si usabas esa misma contraseña en otro lado, cambiala"* (el daño real es la reutilización de contraseñas); (4) dejar registro de qué pasó y cuándo.
+
+#### `[OCULTAR-PAUSADOS]` + `[OCULTAR-VALOR-INV]` · commit `c5678ae` · SW v1.1.79
+
+Dos pedidos de Alejo para el panel, en el mismo commit:
+
+- **`[OCULTAR-PAUSADOS]`** · casilla "Mostrar pausados" en la misma fila que "Ordenar por", **para los dos roles**. Arranca sin marcar (lista limpia), la preferencia se guarda por dispositivo (`localStorage: st_admin_ver_pausados`) para no tildarla en cada ingreso, y un `<p id="avisoPausados">` muestra **"N pausados ocultos"** como red de seguridad para que un perfume pausado nunca desaparezca sin explicación. **El filtro se aplica DESPUÉS de calcular las métricas**, así el mini-dashboard da igual esté marcada o no (los pausados nunca contaron, L3594).
+- **`[OCULTAR-VALOR-INV]`** · la tarjeta 💰 "Valor de inventario" lleva `data-role="jefe"`, reusando el sistema de roles existente (L1080). La grilla pasa de 4 a 3 columnas para `role-empleado` así no queda un hueco en la tablet. **Es ocultamiento visual (CSS), igual que el resto del sistema de roles** — cumple el objetivo de uso real, no es una barrera técnica.
+
+**Verificación responsive (Alejo pidió explícitamente "corroborar que no rompa al cambiar la dimensión"):** medido en **iframe aislado** (para que el CSS del sitio no contamine) + `resize_window` real, en ambos roles, a **1265 / 753 / 375 px**. Resultado: barra en 1 línea (2 en celular, la casilla baja entera), texto nunca se parte, **sin scroll horizontal en ninguna medida**, grillas 4/2/1 (jefe) y 3/3/1 (empleada). ⚠️ **Dos errores de medición propios, corregidos en el camino:** (a) medir el `top` de elementos con `align-items:center` da tops distintos aunque estén en la misma línea → hay que medir el **centro vertical**; (b) cambiar el ancho de un iframe por CSS **no reevalúa las media queries** → hay que redimensionar la ventana de verdad.
+
+#### Decisiones / bugs / aprendizajes
+
+- **`mockups.html` funcionó como banco de pruebas** y se restauró con `git checkout --` al terminar (estaba commiteado, cero riesgo). El preview trata el worktree como carpeta externa → renderiza captura estática, no sirve para redimensionar; la vía que sí funciona es **iframe + `resize_window`**.
+- **El dashboard de Supabase avisó solo** al crear la tabla de respaldo sin RLS ("Clients using anon or authenticated keys may be able to access..."). Se eligió **"Run and enable RLS"**: con RLS y sin policies la tabla queda cerrada a `anon`, y el editor SQL (rol `postgres`) la sigue leyendo. Confirma que el problema documentado en S2 es real.
+- **El MCP de Supabase se cayó a mitad de sesión** → todo el SQL lo corrió Alejo por el dashboard con textos preparados. Funcionó bien y es un patrón replicable cuando el MCP no está.
+- **El sandbox no tiene salida HTTP** (`curl` da `000` hasta contra GitHub). Para verificar producción: **navegador (Browser pane) o MCP de Vercel**, no `curl`.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[FOTOS-OREGON]` | 97 URLs de fotos reapuntadas de Oregon a São Paulo · verificado 0 rastros en BD y en el sitio vivo |
+| `[OCULTAR-PAUSADOS]` | Casilla "Mostrar pausados" en Precios & Stock · ambos roles · preferencia por dispositivo + aviso "N pausados ocultos" |
+| `[OCULTAR-VALOR-INV]` | "Valor de inventario" sólo para el jefe · grilla 3 columnas para empleada |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[VERCEL-ENV-VARS]` 🔴 | Reponer `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_*`, `CRON_SECRET`. Revive backup propio + notificaciones push. La key se copia directo Supabase→Vercel, nunca por chat |
+| `[BCRYPT-MIGRATION]` / S2 🔴 | Los 3 escalones de arriba. El paso 1 y el 2 se hacen juntos, con el local cerrado |
+| `[BACKUP-FOTOS-LOCAL]` 🟡 | Bajar el bucket `perfume-fotos` a `D:\backups\`. Hoy las fotos sólo viven en Supabase (los backups diarios NO las incluyen) |
+| `[SECURITY-AUDIT-S1]` 🟠 | Borrar `ADMIN_PASS_EMPLEADO` (código muerto) + sacar `ADMIN_PASS` del JS público cambiando la auth de `/api/send-notification`. Se solapa con `[VERCEL-ENV-VARS]` |
+| S10 🟠 | Escapar `c.nombre` en la tab Clientes (`renderClients`, ~L3900) |
+
+#### 💬 Mensajes meta
+
+- **Alejo desconfía con criterio y hay que agradecerlo, no defenderse.** Preguntó *"¿es así que solo eran las fotos?"* y esa duda destapó un hueco real en mi verificación (columnas `ARRAY`). También encontró el tooltip de "pausar deshabilitado" que yo no sabía. Ver aprendizaje **#71**.
+- **Pidió explícitamente "el método más seguro"** y valoró que se le explicaran las alternativas descartadas, no sólo la elegida. Ver aprendizaje **#72**.
+- Cuando algo se pone técnico pide **traducción a criollo con analogías** (la mudanza de casa, la agenda con la dirección vieja, el libro de actas) y **dibujos antes de implementar** (*"mostrame y/o graficame lo que hayas entendido y yo recién ahí te digo qué hacemos"*). Ver aprendizaje **#73**.
+- Aprendizajes técnicos de la sesión: **#74** (medir responsive con iframe + `resize_window`, no con `top` ni ancho por CSS) y **#75** (en una migración, la BD es la fuente de verdad y el navegador el testigo).
+
+---
+
 **Última actualización:** **Agosto 12, 2026** (cierre de la sesión 27-jun parte 2 · el trabajo técnico es del 27-jun, la doc se cerró el 12-ago tras 6,5 semanas sin actividad). **`[FORGOT-PASS-A]` quedó CERRADO y verificado end-to-end en producción** (cliente pide → admin resetea → cliente re-loguea · puntos intactos · 3 Telegrams confirmados por timestamp en `net._http_response`). En el camino apareció y se arregló **`[FORGOT-PASS-WA]`** (el `window.open` de "Avisar por WhatsApp" corría tras `await` + `setTimeout` → sin *user activation* → lo frenaba el bloqueador de pop-ups · ahora es un link tappable · `3e52dbd`), y se sumó el **nombre del cliente en "Pedidos pass"** (`eefdfe9`). SW v1.1.75 → **v1.1.78**. En `docs/SECURITY.md` (`196586e`) se **re-scopeó S1** (el login admin ya NO usa esas passwords · `ADMIN_PASS_EMPLEADO` es código muerto · `ADMIN_PASS` sigue vivo sólo para el endpoint de push), se **agravó S2** (la RLS abierta de `clientes` + la anon key pública = teléfonos y passwords en plano descargables por REST sin loguearse) y se sumó **S10** (stored XSS por `c.nombre` sin escapar en la tab Clientes). Detalle exhaustivo en la sección "Sesión 27-jun-2026 · parte 2" arriba.
 
-**Estado del repo al 12-ago:** `origin/main` = `196586e` · nadie tocó nada en 6,5 semanas · sitio corriendo estable con SW v1.1.78, sin reportes de fallas.
+**Estado del repo al 12-ago (mañana):** `origin/main` = `196586e` · nadie tocó nada en 6,5 semanas · sitio corriendo estable con SW v1.1.78, sin reportes de fallas.
+
+---
+
+**⭐ ÚLTIMA ACTUALIZACIÓN REAL — Agosto 12, 2026 (tarde/noche · sesión `[FOTOS-OREGON]`).** Se fue a bajar el proyecto de Oregon y se descubrió que **la migración de mayo había quedado a medias**: 97 filas en 5 tablas apuntaban las fotos al servidor viejo (el navegador sólo mostraba 80 · **la BD es la fuente de verdad**). Se corrigieron con respaldo + ensayo + bloque atómico y se verificó doble: **0 rastros en la BD y 141 imágenes desde São Paulo, 0 rotas, en el sitio vivo**. Oregon **no se pudo pausar** (deshabilitado en plan pago) así que Alejo creó la organización Free **`BACKUP_ST_desdeMayo2026`** y **transfirió el proyecto** ahí: costo → 0, **sin borrar nada**, y queda como única segunda copia de las fotos. Dos hallazgos nuevos serios: **Vercel no tiene NINGUNA variable de entorno** (backup propio + push rotos desde mayo) y **los backups diarios de Supabase SÍ funcionan pero NO incluyen las fotos**. Se midió S2 con números: **82 fichas de clientes y 78 contraseñas en texto plano descargables con la clave pública**. Features nuevas `[OCULTAR-PAUSADOS]` + `[OCULTAR-VALOR-INV]` (`c5678ae`). **SW v1.1.78 → v1.1.79.** Detalle exhaustivo en la sección "Sesión 12-ago-2026 (tarde/noche)" arriba.
+
+**Estado del repo al cierre:** `origin/main` = `c5678ae` · SW **v1.1.79** · sitio verificado OK post-cambios (141 imágenes SP, 0 rotas, 462 tarjetas, 233 filas de stock).
 
 **Contexto histórico previo (27-jun mañana):** Sesión larga y productiva. Dos features grandes ANDANDO: (1) `[TG-RESUMEN-DIARIO]` resumen diario de Telegram (función `daily_summary` + `pg_cron` 23:00 ART + 6 notifs silenciadas · commit `1ded56a`) que reemplaza el bombardeo de 16-114 Telegrams/día por 1 resumen al cierre; (2) `[FORGOT-PASS-A]` recuperación de contraseña de clientes COMPLETA (tabla `password_reset_requests` + botón "¿Olvidaste tu contraseña?" en login + tab admin "Pedidos pass" · commit `db9d485`) · reusa el flujo "primer login setea pass" (password=NULL) · NO toca el login existente. SW v1.1.73 → **v1.1.75** (badge violeta `[BADGE-LAST-VIOLETA]` `42b5dce` + TG-RESUMEN `1ded56a` + docs `8229726` + FORGOT-PASS `db9d485`). Telegram confirmado FUNCIONANDO (`[FIX-TELEGRAM-PG-NET]` era falsa alarma · obsoleto). **El MCP de Supabase es la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema). Detalle exhaustivo en sección "Sesión 27-jun-2026" arriba + `docs/BACKEND.md` + `docs/DATABASE.md`.
-**Próxima revisión cuando:** (orden recomendado al 12-ago)
+**Próxima revisión cuando:** (orden recomendado al **cierre del 12-ago noche**)
 
-1. 💸 **Bajar el proyecto Supabase viejo de Oregon** (`rtgjzzkjrwbkdhkslxix`) — **lo más caro y lo más fácil**. El rollback window venció el 28-may; si sigue activo van ~2,5 meses de 2 proyectos Pro (**≈ USD 60-75 de más**). Pausar es reversible y no toca una línea de código. ⚠️ Verificar primero que siga ACTIVE (el 12-ago el MCP de Supabase estaba caído).
-2. 🔴 **`[BCRYPT-MIGRATION]` / S2** — demostrado **remotamente explotable**: anon key pública + `SELECT public USING(true)` en `clientes` = cualquiera baja teléfonos + passwords en plano por REST. Mitigación intermedia: función `SECURITY DEFINER` que valide la pass y devuelva un booleano, para poder cerrar la policy sin romper el login.
-3. 🟠 **`[SECURITY-AUDIT-S1]` (re-scoped)** — (a) borrar `ADMIN_PASS_EMPLEADO` (código muerto, trivial) · (b) sacar `ADMIN_PASS` del JS público cambiando `/api/send-notification` a auth de sesión server-side + rotar el secreto. **Ya NO es login-bypass** (verificado 27-jun).
-4. 🟠 **S10 · stored XSS en el admin** — escapar `c.nombre`/`c.nota` en `renderClients` (~L3900) y auditar el resto de los `innerHTML` del panel.
-5. 🟡 Rotar token de Telegram (S3) + DB passwords (S5) · migrar a Supabase Auth.
-6. 🟢 CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2 · tab "Orden de compra sugerida".
+1. 🔴 **`[BCRYPT-MIGRATION]` / S2 — LO MÁS IMPORTANTE.** Medido el 12-ago: **82 fichas y 78 contraseñas en texto plano** descargables con la clave pública. El daño real le cae a los clientes (reutilizan contraseñas). Plan de 3 escalones acordado con Alejo: **(1) cerrar la RLS + login por función `SECURITY DEFINER` que devuelva un booleano ~1 h · (2) hashear con bcrypt + migración perezosa ~1-2 h · (3) Supabase Auth, sesión aparte.** ⚠️ **Los pasos 1 y 2 van juntos o no van** — cerrar la policy a secas rompe el login. Hacerlo con el local cerrado.
+2. 🔴 **`[VERCEL-ENV-VARS]` (nuevo)** — Vercel está **sin ninguna variable**: backup propio, alta de suscriptores y envío de push **rotos desde mayo**. Reponer `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET`. ⚠️ La service key se copia **directo de Supabase a Vercel, nunca por chat**. Se solapa con S1 (si el push pasa a auth de sesión, `ADMIN_PASS` desaparece).
+3. 🟡 **`[BACKUP-FOTOS-LOCAL]` (nuevo)** — bajar el bucket `perfume-fotos` a `D:\backups\`. Los backups diarios de Supabase **no incluyen Storage**; hoy la única segunda copia son los archivos que quedaron en el proyecto de Oregon.
+4. 🟠 **`[SECURITY-AUDIT-S1]` (re-scoped)** — (a) borrar `ADMIN_PASS_EMPLEADO` (código muerto, trivial) · (b) sacar `ADMIN_PASS` del JS público cambiando `/api/send-notification` a auth de sesión server-side. **Ya NO es login-bypass** (verificado 27-jun).
+5. 🟠 **S10 · stored XSS en el admin** — escapar `c.nombre`/`c.nota` en `renderClients` (~L3900) y auditar el resto de los `innerHTML` del panel.
+6. 🟡 Rotar token de Telegram (S3) + DB passwords (S5) · migrar a Supabase Auth.
+7. 🟢 CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes Supabase con `?width=400` · JS-CHUNK iter 2 · tab "Orden de compra sugerida".
 
-✅ **Salieron de la lista:** testear `[FORGOT-PASS-A]` (hecho y verificado en prod) · `git pull` del main repo desincronizado (los commits van por worktree con `git push origin <branch>:main`, que funciona bien).
+✅ **Salieron de la lista:** testear `[FORGOT-PASS-A]` (hecho y verificado en prod) · `git pull` del main repo desincronizado (los commits van por worktree con `git push origin <branch>:main`) · 💸 **bajar Oregon** (resuelto el 12-ago: transferido a la organización Free `BACKUP_ST_desdeMayo2026`, ya no cuesta) · `[FOTOS-OREGON]` (97 URLs corregidas y verificadas).
+
+⚠️ **Pendiente de decisión, no de trabajo:** Oregon quedó **prendido** en Free por decisión de Alejo. Se auto-pausa solo tras ~1 semana de inactividad. Mientras esté prendido, sigue online una copia de mayo con teléfonos y contraseñas en plano.
 
 ---
 

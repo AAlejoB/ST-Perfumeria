@@ -1,6 +1,6 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** Junio 27, 2026 (sábado · 2 hallazgos nuevos + verificación de S1 durante el test de `[FORGOT-PASS-A]` · ver nota en S1, addendum de S2 y el nuevo S10). Previa: Mayo 21, 2026 (post Plan B Supabase).
+> **Última actualización:** **Agosto 12, 2026** (sesión `[FOTOS-OREGON]` · **S2 medido con números** · **S11 nuevo: auth "fail-open" en el endpoint de push** · hallazgo de que **Vercel no tiene ninguna variable de entorno**). Previas: Junio 27, 2026 (verificación de S1 + S10) · Mayo 21, 2026 (post Plan B Supabase).
 > **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
 >
 > **Audiencia:** Alejo + Claude Code de próximas sesiones. Cuando arranque la sesión `[SECURITY-AUDIT-S1]`, **leer este archivo primero.**
@@ -94,6 +94,38 @@ y bajarse **TODOS los teléfonos + contraseñas en plano** de los clientes. No h
 **Por qué no se puede apretar la RLS a secas:** el login del cliente (`js/app.js`) lee `clientes` como `anon` para comparar la pass. Cerrar el `SELECT` público **rompe el login** hasta migrar a Supabase Auth + bcrypt. Por eso el fix va atado a `[BCRYPT-MIGRATION]`, no es un cambio de policy aislado.
 
 **Mitigación posible sin romper login:** mover la verificación de pass a una función `SECURITY DEFINER` (RPC) que reciba `telefono`+`pass` y devuelva sólo un booleano; entonces el `SELECT password` deja de necesitar estar abierto a anon y la policy puede restringir columnas/filas.
+
+#### 📊 Medición real · 12-ago-2026
+
+Ejecutada con la **clave pública** desde el navegador contra producción, sin exponer ningún valor:
+
+| Medición | Resultado |
+|---|---|
+| ¿`clientes` legible por `anon` sin cuenta? | **Sí** |
+| Fichas descargables | **82** (eran 38-40 en mayo · el negocio creció) |
+| Contraseñas legibles | **78** |
+| Que parecen hash bcrypt (≥55 chars) | **0** |
+| En texto plano (<40 chars) | **78** · largos entre 4 y 22 |
+| Columnas expuestas | `id`, `nombre`, `telefono`, `password`, `bloqueado`, `puntos`, `compro`, `nota`, `puntos_log` |
+
+**El daño real no es del negocio, es de los clientes:** la gente reutiliza contraseñas, así que la misma clave puede abrir su mail o sus redes. Por eso este es el issue #1 de la lista.
+
+#### 🎯 Plan acordado con Alejo (12-ago) · 3 escalones
+
+| # | Qué | Qué resuelve | Esfuerzo |
+|---|---|---|---|
+| 1 | **Cerrar la puerta** · RLS cerrada en `clientes` + login por función `SECURITY DEFINER` que devuelva sólo un booleano | Deja de ser explotable por cualquiera desde internet | ~1 h |
+| 2 | **Hashear** · bcrypt con migración perezosa (al primer login se reemplaza el plano por el hash) | Aunque alguien llegue a la BD, no se lleva contraseñas usables | ~1-2 h |
+| 3 | **Migrar a Supabase Auth** (mismo sistema que ya usa el panel admin) | Deja de mantenerse código propio de seguridad | Sesión dedicada |
+
+⚠️ **Los pasos 1 y 2 van juntos o no van.** El login del cliente hoy lee `clientes` como `anon` para comparar la contraseña: cerrar la policy a secas **deja a todos los clientes afuera**. Hacerlo con el local cerrado y verificando el login antes de dar por terminado.
+
+#### 🚨 Plan de respuesta ANTE una filtración (pedido explícito de Alejo)
+
+1. **Cortar** · rotar la anon key + cerrar la RLS, para que la filtración no siga.
+2. **Resetear todas las contraseñas** · `UPDATE clientes SET password = NULL`. El flujo `[FORGOT-PASS-A]` hace que cada cliente defina una nueva la próxima vez que entra, **sin atender a nadie uno por uno**. Es la palanca de emergencia que quedó construida el 27-jun.
+3. **Avisar a los clientes** (WhatsApp / redes) con el mensaje que de verdad los protege: *"si usabas esa misma contraseña en otro lado, cambiala"*.
+4. **Dejar registro** de qué pasó, qué datos y cuándo. En Argentina rige la ley de protección de datos personales (25.326 · AAIP); avisar a los afectados es lo correcto además de lo que corresponde.
 
 ---
 
@@ -219,6 +251,60 @@ y bajarse **TODOS los teléfonos + contraseñas en plano** de los clientes. No h
 - Escapar TODO texto libre del cliente antes de inyectarlo (`escapeHtml()` ya existe en `admin.html`, L7212). Aplicar en `renderClients` a `nombre`, `nota` y cualquier campo editable por el cliente.
 - Auditar TODOS los `innerHTML` del panel que mezclen datos de usuario.
 - ✅ En el código nuevo de "Pedidos pass" (commit `eefdfe9`) el nombre YA se escapa · este issue es para los lugares preexistentes.
+
+---
+
+### **S11 · Auth "fail-open" en `/api/send-notification` · TRAMPA para la próxima sesión**
+
+**Severidad:** 🟠 ALTA en potencia · **hoy NO explotable**, pero se activa sola en cuanto se repongan las variables de Vercel. Hallado 12-ago-2026.
+
+**Dónde está:**
+- `api/send-notification.js` L11 y L35:
+  ```js
+  const ADMIN_PASS = process.env.ADMIN_PASS;   // hoy = undefined
+  ...
+  if (adminPass !== ADMIN_PASS) {              // undefined !== undefined → false
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+  ```
+
+**El problema:** la comparación **no verifica que `ADMIN_PASS` exista**. Si la variable no está configurada, una petición que simplemente **omita** el campo `adminPass` pasa la validación (`undefined !== undefined` es `false`).
+
+**Por qué hoy no se puede explotar:** el proyecto de Vercel **no tiene ninguna variable de entorno** (ver abajo), así que la función también se queda sin `SUPABASE_URL` ni claves VAPID y falla antes de enviar nada. La puerta está abierta pero el cuarto está vacío.
+
+**Cuándo se vuelve peligroso:** el día que se repongan `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` + `VAPID_*` **y se olvide `ADMIN_PASS`**. Ahí el endpoint queda como pasarela abierta: cualquiera puede mandar notificaciones push a **todos los suscriptores** en nombre de ST Perfumería (con un techo de 5 envíos por día por el rate limit).
+
+**Fix (una línea · fallar cerrado):**
+```js
+if (!ADMIN_PASS || adminPass !== ADMIN_PASS) {
+  return res.status(401).json({ error: 'No autorizado' });
+}
+```
+Aplicar **antes o junto con** `[VERCEL-ENV-VARS]`, nunca después. Idealmente, aprovechar y cambiar la auth del endpoint a **sesión de Supabase validada server-side** (eso además cierra S1, porque `ADMIN_PASS` deja de existir en el JS público).
+
+**Patrón a revisar en el resto de las funciones:** cualquier comparación contra una variable de entorno que pueda ser `undefined`. `api/cron/backup.js` **sí lo hace bien** (`const validAuth = CRON_SECRET && auth === 'Bearer ' + CRON_SECRET` · el `&&` lo salva).
+
+---
+
+### **S12 · Vercel sin ninguna variable de entorno · 3 funciones caídas desde mayo**
+
+**Severidad:** 🟡 ALTA como problema operativo (no es una vulnerabilidad en sí, pero rompe el backup propio y habilita S11).
+
+**Estado verificado 12-ago-2026:** `Settings → Environment Variables` del proyecto `st-perfumeria` está **completamente vacío** (pestaña Project). Faltan: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET`.
+
+**Consecuencias:**
+
+| Función | Qué hace | Estado |
+|---|---|---|
+| `api/cron/backup.js` | Backup diario propio a `admin_backups` | ❌ corta con "SUPABASE_URL o SERVICE_KEY no configurados" |
+| `api/push-subscribe.js` | Registra suscriptores de notificaciones | ❌ |
+| `api/send-notification.js` | Envía el push masivo | ❌ + habilita S11 |
+
+**Evidencia:** el cron **sí** está declarado en `vercel.json` (`/api/cron/backup`, `0 3 * * *`) y conserva los 12 más recientes, pero `admin_backups` tiene **sólo 4 filas, del 2 al 16 de mayo** → ya fallaba **antes** de la migración. Los logs de Vercel no sirven para confirmar (retención de **1 hora** en plan Hobby).
+
+**Mitigante importante:** los **backups diarios propios de Supabase SÍ funcionan** (`Database → Backups → Scheduled`, con `Restore`, hasta hoy). Los datos del negocio están cubiertos. ⚠️ Pero **no incluyen Storage** → las fotos no están en ningún backup automático (pendiente `[BACKUP-FOTOS-LOCAL]`).
+
+⚠️ **Al reponerlas:** la `SUPABASE_SERVICE_KEY` se copia **directo del dashboard de Supabase al de Vercel**. Nunca por chat, ni a Claude ni a nadie (ver S6).
 
 ---
 
