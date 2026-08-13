@@ -1097,6 +1097,15 @@
     @media (max-width: 480px) {
       .stock-stats { grid-template-columns: 1fr; gap: .45rem; }
     }
+    /* [OCULTAR-VALOR-INV] la empleada no ve "Valor de inventario" (data-role="jefe"),
+       así que su grilla pasa de 4 a 3 columnas y no queda un hueco vacío. */
+    body.role-empleado .stock-stats { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 900px) {
+      body.role-empleado .stock-stats { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 480px) {
+      body.role-empleado .stock-stats { grid-template-columns: 1fr; }
+    }
     .stat-card {
       background: linear-gradient(180deg, #131316 0%, #101013 100%);
       border: 1px solid var(--borde);
@@ -1396,7 +1405,8 @@
           <div class="stat-value" id="statSinStock">—</div>
           <div class="stat-label">Sin stock</div>
         </div>
-        <div class="stat-card stat-value-inv">
+        <!-- [OCULTAR-VALOR-INV] solo el jefe ve cuánta plata hay en mercadería -->
+        <div class="stat-card stat-value-inv" data-role="jefe">
           <div class="stat-icon">💰</div>
           <div class="stat-value" id="statValorInv">—</div>
           <div class="stat-label">Valor de inventario</div>
@@ -1413,12 +1423,20 @@
           <option value="stock-ok">En stock primero</option>
           <option value="stock-out">Sin stock primero</option>
         </select>
+        <!-- [OCULTAR-PAUSADOS] Casilla en la misma fila que "Ordenar por".
+             Sin data-role: la ven jefe y empleadas por igual. -->
+        <label id="lblVerPausados" title="Los perfumes pausados no se muestran en el catálogo público" style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
+          <input type="checkbox" id="chkVerPausados" onchange="toggleVerPausados()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
+          Mostrar pausados
+        </label>
       </div>
       <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
       </table>
+      <!-- [OCULTAR-PAUSADOS] Red de seguridad: avisa que hay pausados fuera de la vista -->
+      <p id="avisoPausados" style="font-size:.65rem;color:var(--gris);margin:.5rem 0 0;"></p>
     </div>
 
     <!-- [FORGOT-PASS-A] TAB: PEDIDOS DE RESET DE CONTRASEÑA -->
@@ -3560,11 +3578,41 @@
     }
 
     // ============================================================
+    // [OCULTAR-PAUSADOS] Casilla "Mostrar pausados" (fila de Ordenar por)
+    // Los pausados YA están ocultos del catálogo público; esto sólo afecta
+    // la vista del panel. La preferencia se guarda por dispositivo para que
+    // la chica no tenga que tildarla cada vez que entra. Default: sin marcar.
+    // ============================================================
+    var VER_PAUSADOS_KEY = 'st_admin_ver_pausados';
+    var _verPausadosRestaurado = false;
+
+    function verPausadosActivo() {
+      var el = document.getElementById('chkVerPausados');
+      return !!(el && el.checked);
+    }
+
+    function toggleVerPausados() {
+      try { localStorage.setItem(VER_PAUSADOS_KEY, verPausadosActivo() ? '1' : '0'); } catch (e) {}
+      renderPrecios();
+    }
+
+    function restoreVerPausados() {
+      var el = document.getElementById('chkVerPausados');
+      if (!el) return;
+      var v = null;
+      try { v = localStorage.getItem(VER_PAUSADOS_KEY); } catch (e) {}
+      el.checked = (v === '1');
+    }
+
+    // ============================================================
     // PRECIOS & STOCK — tabla unificada
     //   Columna Estado = badge clickeable (abre modalStock)
     //   Columna Acción = botón "Editar" (abre modalPrice)
     // ============================================================
     function renderPrecios() {
+      // Restaurar la preferencia una sola vez, sin importar qué call site
+      // dispare el primer render.
+      if (!_verPausadosRestaurado) { restoreVerPausados(); _verPausadosRestaurado = true; }
       var tbody = document.getElementById('tbodyPrecios');
       if (!tbody) return;
       var sortKey = document.getElementById('sortPrecios').value;
@@ -3607,6 +3655,22 @@
       setText('statSinStock',      fmt(sinStock));
       setText('statValorInv',      fmtMoney(valorInv));
       // ─────────────────────────────────────────────────────────────
+
+      // [OCULTAR-PAUSADOS] Filtramos DESPUÉS de calcular las métricas, así los
+      // números de arriba dan igual esté marcada o no la casilla (los pausados
+      // nunca contaron para ninguna estadística).
+      var ocultosPausados = 0;
+      if (!verPausadosActivo()) {
+        var antesLen = list.length;
+        list = list.filter(function(p) { return p._stockStatus !== 'pausado'; });
+        ocultosPausados = antesLen - list.length;
+      }
+      var avisoEl = document.getElementById('avisoPausados');
+      if (avisoEl) {
+        avisoEl.textContent = ocultosPausados
+          ? (ocultosPausados + (ocultosPausados === 1 ? ' pausado oculto' : ' pausados ocultos'))
+          : '';
+      }
 
       var html = '';
       list.forEach(function(p) {
