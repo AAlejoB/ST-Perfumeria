@@ -31,8 +31,13 @@ module.exports = async (req, res) => {
   try {
     const { title, body, url, adminPass } = req.body || {};
 
-    // Verificar contraseña admin
-    if (adminPass !== ADMIN_PASS) {
+    // Verificar contraseña admin.
+    // [S11] El `!ADMIN_PASS` es obligatorio: si la env var NO está configurada
+    // en Vercel, ADMIN_PASS queda undefined y una request que OMITA adminPass
+    // pasaba la comparación (undefined !== undefined es false) → cualquiera
+    // podía mandar push a todos los suscriptores. Sin la variable, se rechaza
+    // todo (fail closed), que es lo correcto.
+    if (!ADMIN_PASS || adminPass !== ADMIN_PASS) {
       return res.status(401).json({ error: 'No autorizado' });
     }
 
