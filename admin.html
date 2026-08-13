@@ -1413,6 +1413,10 @@
         </div>
       </div>
 
+      <!-- [WAITLIST-AVISO-REAL] Panel de avisos pendientes al volver el stock.
+           Reemplaza los window.open automáticos (los frenaba el pop-up blocker). -->
+      <div id="waitlistBanner"></div>
+
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <select class="admin-search" id="sortPrecios" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
@@ -4603,37 +4607,81 @@
         var pending = q.data || [];
         if (pending.length === 0) return [];
 
-        // Marcar como notificados (una sola UPDATE por los IDs).
-        var ids = pending.map(function(e) { return e.id; });
-        var now = new Date().toISOString();
-        var up = await sb.from('lista_espera').update({ notified_at: now }).in('id', ids);
-        if (up.error) {
-          console.error('[auto-notify] update error:', up.error);
-          // Seguimos abriendo los WA igual — el admin puede marcar a mano.
-        }
+        // [WAITLIST-AVISO-REAL] Acá ANTES se marcaba a TODOS como notificados
+        // antes de intentar mandar un solo mensaje. Se eliminó: ahora la marca
+        // la pone marcarAvisadoWaitlist(), al tocar el botón de cada persona.
 
-        // Reflejar en memoria si esperaData est\u00e1 cargado.
-        if (Array.isArray(esperaData) && esperaData.length) {
-          ids.forEach(function(id) {
-            var row = esperaData.find(function(r) { return r.id === id; });
-            if (row) row.notified_at = now;
-          });
-          var espTab = document.getElementById('tab-espera');
-          if (espTab && espTab.classList.contains('active')) renderListaEspera();
-        }
+        // [WAITLIST-AVISO-REAL] Panel con un botón por persona. Al tocarlo se
+        // abre WhatsApp (gesto directo → el pop-up blocker NO lo frena) y RECIÉN
+        // AHÍ se marca como avisado. Antes se marcaba todo de una y se intentaban
+        // abrir N ventanas solas: el navegador permite una por gesto, así que de
+        // la segunda en adelante nadie recibía nada — pero figuraba "avisado".
+        var cont = document.getElementById('waitlistBanner');
+        if (!cont) return pending;
 
-        // Abrir los WA staggered.
+        var perfumeObj = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        var nombrePerfume = perfumeObj ? perfumeObj.name : slug;
         var msgEnc = encodeURIComponent(buildWaitlistMsg());
-        pending.forEach(function(e, i) {
-          setTimeout(function() {
-            window.open('https://wa.me/' + e.telefono + '?text=' + msgEnc, '_blank');
-          }, i * 800);
-        });
+
+        var filas = pending.map(function(e) {
+          var tel = String(e.telefono || '').replace(/[^0-9]/g, '');
+          var quien = e.nombre ? escapeHtml(e.nombre) : tel;
+          return '<div data-waitlist-row style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;padding:.5rem 0;border-top:1px solid rgba(255,255,255,.10);">' +
+              '<span style="font-size:.85rem;color:#e8f5ee;">👤 ' + quien +
+                ' <span style="color:#8fae9c;font-size:.72rem;">' + tel + '</span></span>' +
+              '<span style="display:flex;gap:.5rem;align-items:center;">' +
+                '<span data-estado style="font-size:.7rem;color:#8fae9c;"></span>' +
+                '<a class="action-btn" style="background:#25D366;color:#fff;text-decoration:none;font-weight:600;" ' +
+                  'target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + msgEnc + '" ' +
+                  'onclick="marcarAvisadoWaitlist(\'' + e.id + '\', this)">💬 Avisar</a>' +
+              '</span>' +
+            '</div>';
+        }).join('');
+
+        cont.innerHTML =
+          '<div style="background:#0f3d24;border:1px solid #1e7e45;border-radius:8px;padding:1rem;margin-bottom:1rem;">' +
+            '<div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;">' +
+              '<strong style="color:#d6f5e3;font-size:.95rem;">📬 ' + pending.length + ' persona' + (pending.length !== 1 ? 's' : '') +
+                ' esperaba' + (pending.length !== 1 ? 'n' : '') + ' ' + escapeHtml(nombrePerfume) + '</strong>' +
+              '<button class="action-btn" style="background:#555;color:#fff;" onclick="document.getElementById(\'waitlistBanner\').innerHTML=\'\'">✖ Cerrar</button>' +
+            '</div>' +
+            '<p style="color:#a8c9b6;font-size:.72rem;margin:.45rem 0 .1rem;line-height:1.5;">Tocá <strong>Avisar</strong> en cada uno: se abre el WhatsApp con el mensaje ya escrito. Recién ahí queda marcado como avisado.</p>' +
+            filas +
+          '</div>';
+        cont.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
         return pending;
       } catch(e) {
         console.error('[auto-notify] except:', e);
         return [];
+      }
+    }
+
+    // [WAITLIST-AVISO-REAL] Marca a UNA persona como avisada, en el momento en
+    // que la chica toca su botón — o sea, cuando WhatsApp se abrió de verdad.
+    // NO hace preventDefault: el link abre igual aunque la marca falle.
+    async function marcarAvisadoWaitlist(id, el) {
+      var fila = (el && el.closest) ? el.closest('[data-waitlist-row]') : null;
+      var estado = fila ? fila.querySelector('[data-estado]') : null;
+      try {
+        var now = new Date().toISOString();
+        var up = await sb.from('lista_espera').update({ notified_at: now }).eq('id', id);
+        if (up.error) {
+          console.error('[waitlist] marcar error:', up.error);
+          if (estado) { estado.textContent = 'no se pudo marcar'; estado.style.color = '#e74c3c'; }
+          return;
+        }
+        if (estado) { estado.textContent = '✓ avisado'; estado.style.color = '#2ecc71'; }
+        if (fila) fila.style.opacity = '.55';
+        // Reflejar en memoria para que la tab Espera no quede desactualizada.
+        if (Array.isArray(esperaData) && esperaData.length) {
+          var row = esperaData.find(function(r) { return r.id === id; });
+          if (row) row.notified_at = now;
+          var espTab = document.getElementById('tab-espera');
+          if (espTab && espTab.classList.contains('active')) renderListaEspera();
+        }
+      } catch (e) {
+        console.error('[waitlist] marcar except:', e);
       }
     }
 
@@ -4696,9 +4744,9 @@
         if (notified.length > 0) {
           msgEl.innerHTML = '\u2713 Stock actualizado<br>' +
             '<span style="color:var(--amarillo);font-weight:600;">\ud83d\udcec ' + notified.length + ' persona' + (notified.length !== 1 ? 's' : '') +
-            ' avisada' + (notified.length !== 1 ? 's' : '') + ' autom\u00e1ticamente por WhatsApp</span>';
+            ' esperando el aviso \u2014 avisales con los botones de abajo</span>';
           msgEl.style.color = '#2ecc71';
-          notifyTelegram('\ud83d\udcec Waitlist auto-notificada\n\ud83c\udf36 ' + p.name + '\n\ud83d\udc65 ' + notified.length + ' persona(s)');
+          notifyTelegram('\ud83d\udcec Waitlist PENDIENTE de aviso\n\ud83c\udf36 ' + p.name + '\n\ud83d\udc65 ' + notified.length + ' persona(s)');
           setTimeout(function() { closeModal('modalStock'); }, 5000);
         } else {
           setTimeout(function() { closeModal('modalStock'); }, 1200);
@@ -8138,26 +8186,29 @@
       renderListaEspera();
     }
 
+    // [WAITLIST-AVISO-REAL] "Avisar a todos" ya NO marca a nadie como avisado.
+    // Antes abría N ventanas de WhatsApp y marcaba a todos igual: el navegador
+    // permite una sola ventana por gesto, así que de la segunda en adelante
+    // nadie recibía nada, pero en el sistema figuraban avisados. Ahora abre lo
+    // que el navegador permita y la marca la pone el botón individual de cada
+    // fila (que sí funciona), al tocarlo.
     async function avisarTodos(slug) {
       var group = esperaData.filter(function(r) { return r.slug === slug && !r.notified_at; });
       if (group.length === 0) return;
+      if (group.length > 1) {
+        alert('Ojo: el navegador deja abrir un WhatsApp por vez.\n\n' +
+              'Se va a abrir el primero. Para el resto, usá el botón "Avisar" de cada fila — ' +
+              'así queda bien registrado quién recibió el mensaje.');
+      }
       var msgEnc = encodeURIComponent(buildWaitlistMsg());
       // Abrir cada WA en nueva pesta\u00f1a
       group.forEach(function(item, i) {
         var waLink = 'https://wa.me/' + item.telefono + '?text=' + msgEnc;
         setTimeout(function() { window.open(waLink, '_blank'); }, i * 800);
       });
-      // Marcar todos como notificados en una sola UPDATE
-      var ids = group.map(function(e) { return e.id; });
-      var now = new Date().toISOString();
-      try {
-        await sb.from('lista_espera').update({ notified_at: now }).in('id', ids);
-      } catch(e) { console.warn('[waitlist] avisarTodos update error:', e); }
-      ids.forEach(function(id) {
-        var row = esperaData.find(function(r) { return r.id === id; });
-        if (row) row.notified_at = now;
-      });
-      renderListaEspera();
+      // [WAITLIST-AVISO-REAL] Acá antes iba una UPDATE marcando a TODO el grupo
+      // como notificado. Se eliminó: sólo se marca a quien recibió el mensaje
+      // de verdad, vía el botón individual (markEsperaNotified).
     }
 
     function filterDoctor(filter) {
