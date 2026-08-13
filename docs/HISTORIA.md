@@ -1585,6 +1585,26 @@ Dos pedidos de Alejo para el panel, en el mismo commit:
 
 **Verificación responsive (Alejo pidió explícitamente "corroborar que no rompa al cambiar la dimensión"):** medido en **iframe aislado** (para que el CSS del sitio no contamine) + `resize_window` real, en ambos roles, a **1265 / 753 / 375 px**. Resultado: barra en 1 línea (2 en celular, la casilla baja entera), texto nunca se parte, **sin scroll horizontal en ninguna medida**, grillas 4/2/1 (jefe) y 3/3/1 (empleada). ⚠️ **Dos errores de medición propios, corregidos en el camino:** (a) medir el `top` de elementos con `align-items:center` da tops distintos aunque estén en la misma línea → hay que medir el **centro vertical**; (b) cambiar el ancho de un iframe por CSS **no reevalúa las media queries** → hay que redimensionar la ventana de verdad.
 
+#### `[WAITLIST-AVISO-REAL]` · el aviso "Avisame cuando vuelva" fallaba en silencio · commit `0dc444f` · SW v1.1.80
+
+Alejo reportó que tocar "Avisame cuando vuelva" **"no se termina efectuando"**. Diagnóstico: **el botón funciona bien** (37 pedidos desde el 28-abr, el último de ayer) · **lo que fallaba era el aviso de vuelta**, y por el **mismo patrón que `[FORGOT-PASS-WA]` de esta misma sesión**.
+
+**El bug:** al reponer stock, `autoNotifyWaitlist()` (a) marcaba a **todos** los pendientes con `notified_at = now()` **ANTES de mandar nada**, y (b) intentaba abrir un `window.open` por persona con stagger de 800 ms, después de varios `await`. **El navegador permite una sola ventana por gesto del usuario** → la primera quizá abría, el resto las frenaba el pop-up blocker (peor en tablet). Resultado: gente marcada como "avisada" que nunca recibió el mensaje, y el panel mostrando *"N personas avisadas automáticamente por WhatsApp"*. **Falla silenciosa que además reportaba éxito** — de los 27 marcados como avisados, no se sabe cuántos recibieron algo.
+
+**El mismo bug estaba en un segundo lugar:** `avisarTodos()` de la tab Espera hacía exactamente lo mismo (N pop-ups + UPDATE masiva).
+
+**Fix:** `autoNotifyWaitlist` ya no marca nada; pinta el panel `#waitlistBanner` (arriba de Precios & Stock) con **un botón "Avisar" por persona** — un `<a>` real, o sea gesto directo → WhatsApp abre siempre. `marcarAvisadoWaitlist(id, el)` marca a **una** persona al tocar su botón, sin `preventDefault` (el link abre aunque falle la marca). A `avisarTodos()` se le sacó la UPDATE masiva. Los textos del modal y del Telegram dejaron de decir "avisadas automáticamente". `markEsperaNotified()` (botón individual de la tab Espera) **ya estaba bien hecho** y fue el patrón que se replicó.
+
+**Regla que sale de acá (vale para cualquier proyecto):** *nunca marcar "hecho" antes de confirmar que se hizo*, y *el disparador de una notificación no puede vivir en el navegador de una persona*.
+
+#### `[AVISOS-PRIORIDAD]` · diseñado, NO implementado · ver `docs/PLAN_AVISOS_PRIORIDAD.md`
+
+De la charla sobre qué hacen otros sitios (los avisos de reposición son un patrón conocido de e-commerce: Amazon, Nike SNKRS, Zara, apps de Shopify) salió la idea de darle un **beneficio real** a quien se anota: una **ventana de privilegio** donde los clientes marcados se enteran primero y el producto sigue oculto para el público.
+
+**Dato que aportó Alejo y que define el diseño:** en el local **ya lo hacen informalmente** — al cliente fiel le guardan el producto. O sea que no se inventa una práctica, se sistematiza una existente. Su pedido textual: *"desligando al empleado y a mí de todo esto"* + *"pensemos algo general para usarlo hoy y mañana que le vendamos a otros lugares"*.
+
+**Decisiones tomadas:** prioridad **100% manual** (estrella que pone el jefe · nada automático por compras o puntos, porque el criterio real es humano) · ventana **configurable** en tabla, no hardcodeada · se apoya en el estado `pausado` **que ya existe** (cero cambios en el catálogo público) · liberación automática por `pg_cron` · **ejecución en la próxima sesión**. Plan completo, SQL propuesto (sin testear) y riesgos en `docs/PLAN_AVISOS_PRIORIDAD.md`.
+
 #### Decisiones / bugs / aprendizajes
 
 - **`mockups.html` funcionó como banco de pruebas** y se restauró con `git checkout --` al terminar (estaba commiteado, cero riesgo). El preview trata el worktree como carpeta externa → renderiza captura estática, no sirve para redimensionar; la vía que sí funciona es **iframe + `resize_window`**.
@@ -1600,6 +1620,7 @@ Dos pedidos de Alejo para el panel, en el mismo commit:
 | `[OCULTAR-PAUSADOS]` | Casilla "Mostrar pausados" en Precios & Stock · ambos roles · preferencia por dispositivo + aviso "N pausados ocultos" |
 | `[OCULTAR-VALOR-INV]` | "Valor de inventario" sólo para el jefe · grilla 3 columnas para empleada |
 | **S11** (`ef1507d`) | Auth *fail-open* en `/api/send-notification` · ahora falla cerrado |
+| `[WAITLIST-AVISO-REAL]` (`0dc444f`) | El aviso de reposición se manda de verdad · se marca al avisar, no antes |
 
 #### 🪤 S11 · la trampa que apareció escribiendo este mismo cierre
 
@@ -1624,6 +1645,7 @@ if (adminPass !== ADMIN_PASS) return res.status(401)...  // undefined !== undefi
 | `[VERCEL-ENV-VARS]` 🔴 | Reponer `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_*`, `CRON_SECRET`. Revive backup propio + notificaciones push. La key se copia directo Supabase→Vercel, nunca por chat |
 | `[BCRYPT-MIGRATION]` / S2 🔴 | Los 3 escalones de arriba. El paso 1 y el 2 se hacen juntos, con el local cerrado |
 | `[BACKUP-FOTOS-LOCAL]` 🟡 | Bajar el bucket `perfume-fotos` a `D:\backups\`. Hoy las fotos sólo viven en Supabase (los backups diarios NO las incluyen) |
+| `[AVISOS-PRIORIDAD]` 🟢 | **Etapa 1** de la ventana de privilegio. Diseño cerrado y SQL escrito (sin testear) en `docs/PLAN_AVISOS_PRIORIDAD.md`. Prioridad manual · liberación por cron · empezar por la BD |
 | `[SECURITY-AUDIT-S1]` 🟠 | Borrar `ADMIN_PASS_EMPLEADO` (código muerto) + sacar `ADMIN_PASS` del JS público cambiando la auth de `/api/send-notification`. Se solapa con `[VERCEL-ENV-VARS]` |
 | S10 🟠 | Escapar `c.nombre` en la tab Clientes (`renderClients`, ~L3900) |
 

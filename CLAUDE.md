@@ -15,6 +15,8 @@ Si necesitás profundizar en un área específica:
 | Tablas, schemas, RLS, migraciones, índices | [`docs/DATABASE.md`](docs/DATABASE.md) |
 | Decisiones tomadas, bugs históricos, evolución | [`docs/HISTORIA.md`](docs/HISTORIA.md) |
 | Validar todo el sitio antes de releases (170 items) | [`docs/QA-PRE-JULIO.md`](docs/QA-PRE-JULIO.md) |
+| Seguridad: issues abiertos, severidad, planes de fix | [`docs/SECURITY.md`](docs/SECURITY.md) |
+| Ventana de privilegio para la lista de espera (diseñado, sin implementar) | [`docs/PLAN_AVISOS_PRIORIDAD.md`](docs/PLAN_AVISOS_PRIORIDAD.md) |
 
 Este archivo (`CLAUDE.md`) tiene el resumen general. Para dive deep, andá a la doc específica.
 
@@ -151,7 +153,7 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 var CACHE_VERSION = 'v1.1.64';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.79**.
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.80**.
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 >
@@ -248,7 +250,8 @@ Definido en la lógica de admin.html (`currentRole`).
 7. 🟡 **Tab "Orden de compra sugerida"** (on-demand, opción C definida).
 8. ✅ ~~**Botón "Olvidé mi contraseña"**~~ — HECHO y **TESTEADO E2E en producción** 27-jun (`[FORGOT-PASS-A]` `db9d485` + `[FORGOT-PASS-WA]` `3e52dbd` + nombre del cliente `eefdfe9`). Cerrado.
 9. ✅ ~~**Bajar proyecto viejo Supabase Oregon**~~ — RESUELTO el 12-ago **sin borrar nada**: no se podía pausar (deshabilitado en plan pago), así que se **transfirió a la organización Free `BACKUP_ST_desdeMayo2026`**. Costo → 0 y queda como única segunda copia de las fotos. Antes hubo que corregir `[FOTOS-OREGON]` (97 URLs). ⚠️ Quedó **prendido** por decisión de Alejo; se auto-pausa tras ~1 semana de inactividad.
-10. 🟢 **Permisos de tabs configurables por jefe** — postergado.
+10. 🟢 **`[AVISOS-PRIORIDAD]` (nuevo 12-ago)** — ventana de privilegio: los clientes marcados con ⭐ se enteran primero de una reposición y el producto sigue oculto al público N horas. **Diseño cerrado, SQL escrito sin testear** en [`docs/PLAN_AVISOS_PRIORIDAD.md`](docs/PLAN_AVISOS_PRIORIDAD.md). Prioridad **manual** · se apoya en el estado `pausado` que ya existe · liberación por `pg_cron`. ⚠️ Requiere acuerdo previo con las chicas (apartar unidades de verdad).
+11. 🟢 **Permisos de tabs configurables por jefe** — postergado.
 8. 🟢 **Sistema de puntos para decants** desde el armador.
 7. 🟢 **Wireframe Juegos ST** (Quiz + Desafío side by side).
 8. 🟢 **Estandarizador automático del uploader del slider** (compresión + resize webp).
@@ -286,7 +289,7 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
-**Última actualización:** **Agosto 12, 2026 (tarde/noche)** — sesión **`[FOTOS-OREGON]`**. Se fue a bajar el proyecto viejo de Oregon y se descubrió que **la migración de mayo había quedado a medias**: **97 filas en 5 tablas** apuntaban las fotos al servidor viejo (el navegador sólo mostraba 80 · **la BD es la fuente de verdad, el navegador el testigo**). Corregidas con respaldo + ensayo + bloque atómico, y verificado doble: **0 rastros en la BD** y **141 imágenes desde São Paulo, 0 rotas** en el sitio vivo. Oregon **no se pudo pausar** (deshabilitado en plan pago) → Alejo creó la organización Free **`BACKUP_ST_desdeMayo2026`** y **transfirió el proyecto**: costo → 0, **sin borrar nada**, y queda como única segunda copia de las fotos. **Hallazgos nuevos:** Vercel **no tiene ninguna variable de entorno** (backup propio + push rotos desde mayo · `[VERCEL-ENV-VARS]`), los backups diarios de Supabase **sí funcionan pero NO incluyen las fotos** (`[BACKUP-FOTOS-LOCAL]`), y **S11**: auth *fail-open* en `/api/send-notification`. **S2 medido:** 82 fichas y 78 contraseñas en texto plano descargables con la clave pública. Features nuevas **`[OCULTAR-PAUSADOS]`** (casilla "Mostrar pausados", ambos roles, preferencia por dispositivo) y **`[OCULTAR-VALOR-INV]`** (la empleada no ve el valor de inventario) · commit `c5678ae` · **SW v1.1.78 → v1.1.79**. Detalle exhaustivo en `docs/HISTORIA.md` § "Sesión 12-ago-2026 (tarde/noche)" + `docs/SECURITY.md`. **Pendientes (orden):** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` (con S11 antes) · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 re-scoped + S10 · 🟡 rotar token TG y DB pass · 🟢 CLS iter 5, SW-BANNER-SMART, logo @2x, `?width=400`, JS-CHUNK iter 2.
+**Última actualización:** **Agosto 12, 2026 (tarde/noche)** — sesión **`[FOTOS-OREGON]`**. Se fue a bajar el proyecto viejo de Oregon y se descubrió que **la migración de mayo había quedado a medias**: **97 filas en 5 tablas** apuntaban las fotos al servidor viejo (el navegador sólo mostraba 80 · **la BD es la fuente de verdad, el navegador el testigo**). Corregidas con respaldo + ensayo + bloque atómico, y verificado doble: **0 rastros en la BD** y **141 imágenes desde São Paulo, 0 rotas** en el sitio vivo. Oregon **no se pudo pausar** (deshabilitado en plan pago) → Alejo creó la organización Free **`BACKUP_ST_desdeMayo2026`** y **transfirió el proyecto**: costo → 0, **sin borrar nada**, y queda como única segunda copia de las fotos. **Hallazgos nuevos:** Vercel **no tiene ninguna variable de entorno** (backup propio + push rotos desde mayo · `[VERCEL-ENV-VARS]`), los backups diarios de Supabase **sí funcionan pero NO incluyen las fotos** (`[BACKUP-FOTOS-LOCAL]`), y **S11**: auth *fail-open* en `/api/send-notification`. **S2 medido:** 82 fichas y 78 contraseñas en texto plano descargables con la clave pública. También se arregló **`[WAITLIST-AVISO-REAL]`** (el aviso de "Avisame cuando vuelva" fallaba en silencio y encima reportaba éxito: marcaba a todos como avisados ANTES de mandar nada e intentaba abrir N ventanas de WhatsApp que el pop-up blocker frenaba · `0dc444f`) y quedó **diseñada** la ventana de privilegio `[AVISOS-PRIORIDAD]` (ver `docs/PLAN_AVISOS_PRIORIDAD.md`). Features nuevas **`[OCULTAR-PAUSADOS]`** (casilla "Mostrar pausados", ambos roles, preferencia por dispositivo) y **`[OCULTAR-VALOR-INV]`** (la empleada no ve el valor de inventario) · commit `c5678ae` · **SW v1.1.78 → v1.1.80**. Detalle exhaustivo en `docs/HISTORIA.md` § "Sesión 12-ago-2026 (tarde/noche)" + `docs/SECURITY.md`. **Pendientes (orden):** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` (con S11 antes) · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 re-scoped + S10 · 🟡 rotar token TG y DB pass · 🟢 CLS iter 5, SW-BANNER-SMART, logo @2x, `?width=400`, JS-CHUNK iter 2.
 
 <details>
 <summary>Contexto previo (cierre 27-jun parte 2 · doc cerrada el 12-ago)</summary>
