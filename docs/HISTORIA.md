@@ -1599,6 +1599,21 @@ Dos pedidos de Alejo para el panel, en el mismo commit:
 | `[FOTOS-OREGON]` | 97 URLs de fotos reapuntadas de Oregon a São Paulo · verificado 0 rastros en BD y en el sitio vivo |
 | `[OCULTAR-PAUSADOS]` | Casilla "Mostrar pausados" en Precios & Stock · ambos roles · preferencia por dispositivo + aviso "N pausados ocultos" |
 | `[OCULTAR-VALOR-INV]` | "Valor de inventario" sólo para el jefe · grilla 3 columnas para empleada |
+| **S11** (`ef1507d`) | Auth *fail-open* en `/api/send-notification` · ahora falla cerrado |
+
+#### 🪤 S11 · la trampa que apareció escribiendo este mismo cierre
+
+Documentando el hallazgo de las variables de Vercel, se revisó `api/send-notification.js` y apareció esto en L35:
+
+```js
+const ADMIN_PASS = process.env.ADMIN_PASS;   // sin env vars → undefined
+...
+if (adminPass !== ADMIN_PASS) return res.status(401)...  // undefined !== undefined → false
+```
+
+**Una request que OMITIERA el campo `adminPass` pasaba la validación.** No era explotable hoy (sin `SUPABASE_URL` ni claves VAPID la función falla igual, antes de enviar), **pero se activaba sola** en cuanto se repusieran las variables olvidando `ADMIN_PASS`: pasarela abierta para mandar push a todos los suscriptores. Se arregló en el acto con `if (!ADMIN_PASS || adminPass !== ADMIN_PASS)` (fallar cerrado), verificado con los 5 casos posibles. **No requirió bump de SW** (las funciones de `api/` son código de servidor · el SW no las cachea · confirmado con `grep "api/" sw.js` vacío).
+
+**Aprendizaje generalizable:** toda comparación contra una variable de entorno que pueda ser `undefined` tiene que **fallar cerrado**. `api/cron/backup.js` ya lo hacía bien (`CRON_SECRET && auth === ...`); fue el único otro caso y estaba OK. Es un patrón para revisar cada vez que se toque un endpoint con auth.
 
 #### Keywords abiertos para próxima sesión
 

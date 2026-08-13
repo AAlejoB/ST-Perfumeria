@@ -254,9 +254,11 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S11 · Auth "fail-open" en `/api/send-notification` · TRAMPA para la próxima sesión**
+### **S11 · Auth "fail-open" en `/api/send-notification` · ✅ ARREGLADO**
 
-**Severidad:** 🟠 ALTA en potencia · **hoy NO explotable**, pero se activa sola en cuanto se repongan las variables de Vercel. Hallado 12-ago-2026.
+**Severidad:** 🟠 ALTA en potencia · nunca llegó a ser explotable. **Hallado y arreglado el mismo día (12-ago-2026).**
+
+> ✅ **ESTADO: RESUELTO** · commit `ef1507d`. La condición ahora es `if (!ADMIN_PASS || adminPass !== ADMIN_PASS)` → **falla cerrado**: sin la variable configurada, se rechaza todo. Verificado con los 5 casos posibles (sin variable + sin `adminPass` → 401 · sin variable + pass falsa → 401 · con variable + vacía/falsa → 401 · con variable + correcta → permite). **No requirió bump de SW** (las funciones de `api/` son código de servidor, el SW no las cachea). Se deja documentado abajo el análisis original porque el **patrón** es el aprendizaje, no el caso puntual.
 
 **Dónde está:**
 - `api/send-notification.js` L11 y L35:
@@ -274,13 +276,13 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Cuándo se vuelve peligroso:** el día que se repongan `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` + `VAPID_*` **y se olvide `ADMIN_PASS`**. Ahí el endpoint queda como pasarela abierta: cualquiera puede mandar notificaciones push a **todos los suscriptores** en nombre de ST Perfumería (con un techo de 5 envíos por día por el rate limit).
 
-**Fix (una línea · fallar cerrado):**
+**Fix aplicado (una línea · fallar cerrado):**
 ```js
 if (!ADMIN_PASS || adminPass !== ADMIN_PASS) {
   return res.status(401).json({ error: 'No autorizado' });
 }
 ```
-Aplicar **antes o junto con** `[VERCEL-ENV-VARS]`, nunca después. Idealmente, aprovechar y cambiar la auth del endpoint a **sesión de Supabase validada server-side** (eso además cierra S1, porque `ADMIN_PASS` deja de existir en el JS público).
+Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente, aprovechar y cambiar la auth del endpoint a **sesión de Supabase validada server-side** (eso además cierra S1, porque `ADMIN_PASS` deja de existir en el JS público).
 
 **Patrón a revisar en el resto de las funciones:** cualquier comparación contra una variable de entorno que pueda ser `undefined`. `api/cron/backup.js` **sí lo hace bien** (`const validAuth = CRON_SECRET && auth === 'Bearer ' + CRON_SECRET` · el `&&` lo salva).
 
