@@ -6629,6 +6629,8 @@
       max-height: 92vh; display: flex; flex-direction: column;
       animation: slideUp .3s ease;
       box-shadow: 0 -8px 40px rgba(0,0,0,.7);
+      /* [DECANTS-SCROLL] que nada se escape de los bordes redondeados */
+      overflow: hidden;
     }
     @keyframes slideUp {
       from { transform: translateY(100%); opacity: .6; }
@@ -6640,6 +6642,41 @@
       padding: 1.1rem 1.2rem .8rem;
       border-bottom: 1px solid var(--borde);
       position: relative; flex-shrink: 0;
+    }
+    /* ============================================================
+       [DECANTS-ESPACIO] Aire para el listado en pantallas bajas.
+
+       Problema reportado por un CLIENTE REAL: "cuando selecciono 1 me sugiere
+       otro y me tapa todo el listado, iba a agregar más pero no pude".
+
+       Medido en 375x640 con 1 decant en el pack, ANTES de este fix:
+         header 201 + buscador 37 + footer 159 = 397 px de marco fijo
+         listado = 189 px  →  UNA card visible.
+       El footer engorda de 89 a 159 apenas hay items (suma resumen + aviso),
+       y encima puede aparecer la sugerencia. El listado queda en nada.
+
+       No es un problema de scroll (el listado scrollea bien): es que el marco
+       fijo se come el 67% del modal. La solución es ACHICAR EL MARCO, no
+       redistribuir. Se recorta lo redundante:
+         - subtítulo "Decants de 5 ml · Máx N": el contador ya lo dice
+         - escalera de precios: la barra de progreso ya comunica lo mismo
+         - aviso de conservación: es info de después de comprar, no de mientras
+       DESPUÉS del fix, mismo escenario: listado 299 px → TRES cards. Medido.
+
+       El tope es 900px y no 800 porque la PWA instalada NO tiene barra de
+       direcciones: un iPhone que en el navegador da ~750 de alto, instalado da
+       844. Medido a 390x844: 3 cards → 5 cards.
+       Verificado también en 1280x800 (laptop): 3 → 4 cards, footer y botón de
+       WhatsApp visibles. No rompe nada en pantallas altas: ahí no aplica.
+       ============================================================ */
+    @media (max-height: 900px) {
+      .decant-builder { max-height: 96vh; }
+      .decant-builder-header { padding: .6rem .9rem .45rem; }
+      .decant-builder-subtitle { display: none; }
+      .decant-builder-ladder { display: none; }
+      .decant-builder-search { margin: .4rem 1rem; }
+      .decant-builder-footer { padding: .45rem .9rem .6rem; }
+      .decant-builder-footer .decant-builder-aviso { display: none; }
     }
     .decant-builder-close {
       position: absolute; top: .6rem; right: .7rem;
@@ -6889,10 +6926,16 @@
     .decant-progress-tiers span.unlocked { color: #4caf50; }
 
     /* Grid scroll */
+    /* [DECANTS-ESPACIO] min-height:0 es defensivo, NO es el fix: un flex item con
+       overflow != visible ya tiene mínimo automático 0 por spec. Se deja por si
+       alguien saca el overflow. overscroll-behavior evita que el scroll del
+       listado arrastre la página de atrás. El fix real está más abajo, en el
+       @media por alto de pantalla. */
     .decant-builder-grid {
-      flex: 1; overflow-y: auto; padding: 0 1rem .5rem;
+      flex: 1; min-height: 0; overflow-y: auto; padding: 0 1rem .5rem;
       display: flex; flex-direction: column; gap: .4rem;
       -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
     .decant-grid-empty {
       text-align: center; color: #888; padding: 2rem 1rem;
