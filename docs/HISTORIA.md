@@ -1709,7 +1709,7 @@ if (adminPass !== ADMIN_PASS) return res.status(401)...  // undefined !== undefi
 
 | Keyword | Qué falta |
 |---|---|
-| `[VERCEL-ENV-VARS]` 🔴 | Reponer `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_*`, `CRON_SECRET`. Revive backup propio + notificaciones push. La key se copia directo Supabase→Vercel, nunca por chat |
+| `[VERCEL-ENV-VARS]` 🔴 | Reponer `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_*`, `CRON_SECRET`. Revive backup propio + notificaciones push. La key se copia directo Supabase→Vercel, nunca por chat. ⚠️ **Al terminar, re-testear `/api/send-notification`**: un POST sin `adminPass` tiene que dar 401 (hoy la función ni carga, así que el fix de S11 no es observable) |
 | `[BCRYPT-MIGRATION]` / S2 🔴 | Los 3 escalones de arriba. El paso 1 y el 2 se hacen juntos, con el local cerrado |
 | `[BACKUP-FOTOS-LOCAL]` 🟡 | Bajar el bucket `perfume-fotos` a `D:\backups\`. Hoy las fotos sólo viven en Supabase (los backups diarios NO las incluyen) |
 | `[AVISOS-PRIORIDAD]` 🟢 | **Etapa 1** de la ventana de privilegio. Diseño cerrado y SQL escrito (sin testear) en `docs/PLAN_AVISOS_PRIORIDAD.md`. Prioridad manual · liberación por cron · empezar por la BD |
@@ -1731,7 +1731,25 @@ if (adminPass !== ADMIN_PASS) return res.status(401)...  // undefined !== undefi
 
 ---
 
-**⭐ ÚLTIMA ACTUALIZACIÓN REAL — Agosto 12, 2026 (tarde/noche · sesión `[FOTOS-OREGON]`).** Se fue a bajar el proyecto de Oregon y se descubrió que **la migración de mayo había quedado a medias**: 97 filas en 5 tablas apuntaban las fotos al servidor viejo (el navegador sólo mostraba 80 · **la BD es la fuente de verdad**). Se corrigieron con respaldo + ensayo + bloque atómico y se verificó doble: **0 rastros en la BD y 141 imágenes desde São Paulo, 0 rotas, en el sitio vivo**. Oregon **no se pudo pausar** (deshabilitado en plan pago) así que Alejo creó la organización Free **`BACKUP_ST_desdeMayo2026`** y **transfirió el proyecto** ahí: costo → 0, **sin borrar nada**, y queda como única segunda copia de las fotos. Dos hallazgos nuevos serios: **Vercel no tiene NINGUNA variable de entorno** (backup propio + push rotos desde mayo) y **los backups diarios de Supabase SÍ funcionan pero NO incluyen las fotos**. Se midió S2 con números: **82 fichas de clientes y 78 contraseñas en texto plano descargables con la clave pública**. Features nuevas `[OCULTAR-PAUSADOS]` + `[OCULTAR-VALOR-INV]` (`c5678ae`). **SW v1.1.78 → v1.1.79.** Detalle exhaustivo en la sección "Sesión 12-ago-2026 (tarde/noche)" arriba.
+**⭐⭐ CIERRE DEFINITIVO DE LA SESIÓN — Agosto 12, 2026 (noche).** 16 commits. Arrancó como "¿qué pendientes tenemos?" y terminó con **6 keywords cerrados, 1 plan nuevo diseñado y 2 bugs que costaban ventas arreglados**. SW v1.1.78 → **v1.1.83** (5 bumps).
+
+**Lo que se cerró:** `[FOTOS-OREGON]` (97 URLs de fotos reapuntadas · la migración de mayo estaba a medias) · **Oregon transferido a la organización Free `BACKUP_ST_desdeMayo2026`** (costo → 0 sin borrar nada · no se podía pausar en plan pago) · **S11** (auth *fail-open* en `/api/send-notification`, arreglado antes de que fuera alcanzable) · `[WAITLIST-AVISO-REAL]` (el aviso de reposición fallaba en silencio **y reportaba éxito**) · `[DEPOSITO]` (pestaña nueva con el stock del depósito) · `[PAUSADO-OCULTO]` (los pausados = archivados salen de toda la web · 71 productos) · `[DECANTS-ESPACIO]` (**un cliente real no pudo comprar**: el marco fijo del armador dejaba 1 card visible en celular · ahora 3-5) · `[OCULTAR-PAUSADOS]` + `[OCULTAR-VALOR-INV]`.
+
+**Lo que quedó diseñado sin implementar:** `[AVISOS-PRIORIDAD]` — ventana de privilegio para la lista de espera, con SQL escrito y **sin testear**, en `docs/PLAN_AVISOS_PRIORIDAD.md`. Decisión de Alejo: **prioridad 100% manual**.
+
+**Los tres hallazgos que más importan para la próxima:** (1) **Vercel no tiene NINGUNA variable de entorno** → backup propio y push rotos desde mayo; (2) los backups diarios de Supabase funcionan pero **NO incluyen las fotos**; (3) **82 fichas de clientes y 78 contraseñas en texto plano** descargables con la clave pública.
+
+**Patrón que se repitió 3 veces en la misma sesión** (`[FORGOT-PASS-WA]`, `[WAITLIST-AVISO-REAL]`, y el `avisarTodos` de la tab Espera): **`window.open` después de un `await` lo frena el bloqueador de pop-ups**, y peor todavía cuando el código marca "hecho" antes de confirmar. Regla que sale de acá: *nunca marcar como hecho antes de verificar, y el disparador de una notificación no puede vivir en el navegador de una persona*.
+
+**Dos veces me equivoqué y las dos las corregí midiendo, no discutiendo:** la consulta de descubrimiento de `[FOTOS-OREGON]` dejaba afuera las columnas `ARRAY` (lo destapó Alejo preguntando *"¿es así?"*), y el diagnóstico inicial de `[DECANTS-ESPACIO]` (`min-height: 0`) era un mito desmentido por un A/B. **Ambas correcciones están documentadas a propósito**, porque el error plausible es el que se repite.
+
+**Estado al cierre:** repo limpio, todo pusheado, `origin/main` = `bcc0ffe`, sitio verificado en vivo (141 imágenes desde São Paulo, 0 rotas).
+
+**Próxima revisión cuando:** 🔴 `[VERCEL-ENV-VARS]` (revive backup + push · **re-testear el 401 de `/api/send-notification`**, que hoy no es observable) · 🔴 `[BCRYPT-MIGRATION]`/S2 (pasos 1 y 2 juntos, con el local cerrado) · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 `[SECURITY-AUDIT-S1]` + S10 · 🟢 `[AVISOS-PRIORIDAD]` Etapa 1 · 🟢 CLS iter 5, SW-BANNER-SMART, logo @2x, `?width=400`, JS-CHUNK iter 2.
+
+---
+
+**Agosto 12, 2026 (tarde/noche · sesión `[FOTOS-OREGON]`).** Se fue a bajar el proyecto de Oregon y se descubrió que **la migración de mayo había quedado a medias**: 97 filas en 5 tablas apuntaban las fotos al servidor viejo (el navegador sólo mostraba 80 · **la BD es la fuente de verdad**). Se corrigieron con respaldo + ensayo + bloque atómico y se verificó doble: **0 rastros en la BD y 141 imágenes desde São Paulo, 0 rotas, en el sitio vivo**. Oregon **no se pudo pausar** (deshabilitado en plan pago) así que Alejo creó la organización Free **`BACKUP_ST_desdeMayo2026`** y **transfirió el proyecto** ahí: costo → 0, **sin borrar nada**, y queda como única segunda copia de las fotos. Dos hallazgos nuevos serios: **Vercel no tiene NINGUNA variable de entorno** (backup propio + push rotos desde mayo) y **los backups diarios de Supabase SÍ funcionan pero NO incluyen las fotos**. Se midió S2 con números: **82 fichas de clientes y 78 contraseñas en texto plano descargables con la clave pública**. Features nuevas `[OCULTAR-PAUSADOS]` + `[OCULTAR-VALOR-INV]` (`c5678ae`). **SW v1.1.78 → v1.1.79.** Detalle exhaustivo en la sección "Sesión 12-ago-2026 (tarde/noche)" arriba.
 
 **Estado del repo al cierre:** `origin/main` = `c5678ae` · SW **v1.1.79** · sitio verificado OK post-cambios (141 imágenes SP, 0 rotas, 462 tarjetas, 233 filas de stock).
 
