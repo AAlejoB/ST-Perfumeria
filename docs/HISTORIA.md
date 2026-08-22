@@ -1605,6 +1605,32 @@ De la charla sobre qué hacen otros sitios (los avisos de reposición son un pat
 
 **Decisiones tomadas:** prioridad **100% manual** (estrella que pone el jefe · nada automático por compras o puntos, porque el criterio real es humano) · ventana **configurable** en tabla, no hardcodeada · se apoya en el estado `pausado` **que ya existe** (cero cambios en el catálogo público) · liberación automática por `pg_cron` · **ejecución en la próxima sesión**. Plan completo, SQL propuesto (sin testear) y riesgos en `docs/PLAN_AVISOS_PRIORIDAD.md`.
 
+#### `[DEPOSITO]` · pestaña nueva con el stock del depósito · commit `533dce8` · SW v1.1.81
+
+Pedido de Alejo: una pestaña como "Precios & Stock" pero **sólo con el stock guardado en el depósito**, aparte del stock del local, visible para **jefe Y empleadas**.
+
+- **BD:** migración `add_stock_deposito_a_perfume_overrides` → `perfume_overrides.stock_deposito integer not null default 0`.
+- **Verificado antes de confiar:** que el upsert parcial `{slug, stock_deposito}` **NO pise** `stock_qty` ni `stock_status`, probándolo sobre una fila real con un valor no destructivo (`intacto: true`).
+- **Front:** tab `📦 Depósito` sin `data-role` (la ven los dos roles · `canAccessTab` lo permite porque el botón no está marcado como jefe-only). Tabla `Perfume | Local (sólo lectura) | Depósito (editable)`, buscador, 4 órdenes y casilla "sólo con depósito". Tres métricas, entre ellas **"sin local pero con depósito"** (lo que hay que ir a buscar) y la marca "← traer al local" por fila.
+- **El catálogo público no se toca:** sigue leyendo sólo `stock_qty`/`stock_status`.
+- **Pendiente decidido a propósito:** no hay botón "mover del depósito al local", porque mover stock dispara los avisos de lista de espera y no convenía mezclar dos cosas en un mismo cambio.
+
+#### `[PAUSADO-OCULTO]` · los pausados desaparecen de la web · commit `62fdf93` · SW v1.1.82
+
+Alejo reportó que los perfumes **pausados seguían saliendo en el catálogo** con el cartel "Próximamente". **Semántica real acordada:** *pausado = ARCHIVADO* — productos fuera de temporada o que no van a traer hasta nuevo aviso. Mostrarlos como "Próximamente" con botón "Reservar por WhatsApp" **prometía algo que no iba a llegar**.
+
+⚠️ **El panel mentía:** el texto del modal de stock decía *"Pausado — oculto en catálogo público"* y era **falso**. Corregido y ampliado.
+
+**Decisión técnica clave:** se creó una bandera propia `p._pausado` en vez de reusar `_oculto`, aunque `_oculto` habría sido **una sola línea**. Motivo: `_oculto` significa *"perfume eliminado"* y además **marca como ROTO a cualquier combo que lo contenga** (`js/app.js` filtro de sets) → pausar un perfume habría hecho **desaparecer packs enteros** del sitio sin aviso. **Ahorrar una línea no vale romper los combos.**
+
+Se filtra en: catálogo, buscador (las cards son el sustrato del search), relacionados, similares manuales, recomendador/quiz, Selección ST, armador de decants (`extras.js`, 3 puntos), rango del slider de precios, "nuevos" y contadores de categorías. **NO** se filtra en el chequeo de combos rotos, a propósito.
+
+**Bug preexistente arreglado de paso:** `renderSeleccionST()` **no filtraba nada** — un perfume **eliminado** podía seguir apareciendo en el podio de la home.
+
+**Impacto medido ANTES de aplicar:** 71 pausados (vs 111 `ok`, 32 `out`, 23 `low`). Se frenó el deploy para confirmarlo con Alejo, porque era casi un tercio del catálogo. **Lección: medir el impacto de un filtro antes de encenderlo, no después.**
+
+**Corrección propia:** el plan `[AVISOS-PRIORIDAD]`, escrito horas antes, asumía que `pausado` ya ocultaba del catálogo. **Era falso al escribirlo.** Recién con este commit la premisa es cierta · anotado en el propio plan.
+
 #### Decisiones / bugs / aprendizajes
 
 - **`mockups.html` funcionó como banco de pruebas** y se restauró con `git checkout --` al terminar (estaba commiteado, cero riesgo). El preview trata el worktree como carpeta externa → renderiza captura estática, no sirve para redimensionar; la vía que sí funciona es **iframe + `resize_window`**.
@@ -1621,6 +1647,8 @@ De la charla sobre qué hacen otros sitios (los avisos de reposición son un pat
 | `[OCULTAR-VALOR-INV]` | "Valor de inventario" sólo para el jefe · grilla 3 columnas para empleada |
 | **S11** (`ef1507d`) | Auth *fail-open* en `/api/send-notification` · ahora falla cerrado |
 | `[WAITLIST-AVISO-REAL]` (`0dc444f`) | El aviso de reposición se manda de verdad · se marca al avisar, no antes |
+| `[DEPOSITO]` (`533dce8`) | Pestaña nueva con el stock del depósito, aparte del local · ambos roles |
+| `[PAUSADO-OCULTO]` (`62fdf93`) | Los pausados (= archivados) desaparecen de toda la web · 71 productos |
 
 #### 🪤 S11 · la trampa que apareció escribiendo este mismo cierre
 
