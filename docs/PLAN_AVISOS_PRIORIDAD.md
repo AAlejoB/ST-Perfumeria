@@ -59,6 +59,8 @@ Esta es la parte central del pedido:
 | El criterio de prioridad es **un flag**, no una fórmula hardcodeada | Mañana se puede sumar "por antigüedad" o "por monto" sin romper lo existente |
 | La ventana se apoya en el estado `pausado` **que ya existe** | Cero cambios en el catálogo público en la Etapa 1 |
 
+> ⚠️ **Corrección importante (mismo día, después de escribir este plan):** cuando redacté esto asumí que `pausado` ya ocultaba del catálogo público. **Era falso** — los pausados se mostraban con badge "Próximamente" y botón "Reservar por WhatsApp". Se arregló en `[PAUSADO-OCULTO]`: ahora un perfume pausado **no aparece en ningún lado público** (catálogo, buscador, Selección ST, relacionados, armador de decants, contadores de categorías). **Recién ahora la premisa de este plan es cierta.** Semántica acordada con Alejo: *pausado = archivado* (no se trae hasta nuevo aviso), no "próximamente".
+
 ---
 
 ## 5. Esquema de base de datos (PROPUESTO · sin testear)

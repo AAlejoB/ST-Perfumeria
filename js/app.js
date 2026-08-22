@@ -748,7 +748,7 @@
 
       // Puntuar cada perfume
       var scored = PERFUMES.filter(function(p) {
-        if (p.esSet || p._oculto) return false;
+        if (p.esSet || p._oculto || p._pausado) return false;
         if (gender !== 'any') {
           var catMatch = p.cat === gender || p.cat === 'Unisex' || p.cat.indexOf(gender) !== -1;
           if (!catMatch) return false;
@@ -2147,7 +2147,10 @@
       // tanto el render es no-op si p.nota_jefe es vacío.
       TOP_VENTAS_SLUGS.forEach(function(slug, idx) {
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-        if (!p) return;
+        // [PAUSADO-OCULTO] no mostrar destacados pausados ni eliminados. Antes
+        // sólo se chequeaba que existiera, así que un perfume dado de baja podía
+        // seguir apareciendo en el podio.
+        if (!p || p._oculto || p._pausado) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var imgHTML = p.foto
           ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async" width="300" height="300">'
@@ -2458,8 +2461,8 @@
 
       // Recorrer TODOS los perfumes del catálogo
       PERFUMES.forEach(function(p) {
-        // Saltear el mismo perfume, los sets y los ocultos
-        if (p.slug === slug || p.esSet || p._oculto) return;
+        // Saltear el mismo perfume, los sets, los ocultos y los pausados
+        if (p.slug === slug || p.esSet || p._oculto || p._pausado) return;
 
         var notasP = getNotas(p);
         if (notasP.length === 0) return;  // sin notas = no se puede comparar
@@ -2614,7 +2617,7 @@
       var recomendadosManuales = Array.isArray(perfume.similares_manuales)
         ? perfume.similares_manuales
             .map(function(s) { return PERFUMES.find(function(pf) { return pf.slug === s; }); })
-            .filter(function(p) { return p && !p._oculto && !p.esSet; })
+            .filter(function(p) { return p && !p._oculto && !p._pausado && !p.esSet; })
         : [];
 
       // 3) Algoritmo por notas (solo si hay >60% match).
@@ -2889,7 +2892,7 @@
 
     function initPriceSlider() {
       // Calcular min/max reales del catálogo
-      var prices = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; }).map(function(p) {
+      var prices = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto && !p._pausado; }).map(function(p) {
         return p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
       }).filter(function(n) { return !isNaN(n) && n > 0; });
 
@@ -3017,7 +3020,7 @@
     // MARCAR PERFUMES NUEVOS (últimos 10 del array)
     // ============================================================
     function markNewPerfumes() {
-      var nonSet = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; });
+      var nonSet = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto && !p._pausado; });
       var last10 = nonSet.slice(-10);
       last10.forEach(function(p) { p._isNew = true; });
     }
@@ -3055,7 +3058,8 @@
       var cardsHTML = '';
       var failedCount = 0;
       PERFUMES.forEach(function(p) {
-        if (p.esSet || p._oculto) return;
+        // [PAUSADO-OCULTO] los pausados no salen en el catálogo público
+        if (p.esSet || p._oculto || p._pausado) return;
         try {
           cardsHTML += buildCard(p);
         } catch(e) {
@@ -3656,6 +3660,9 @@
     function renderCategories() {
       const counts = { Unisex: 0, Hombre: 0, Mujer: 0 };
       PERFUMES.forEach(p => {
+        // [PAUSADO-OCULTO] contar sólo lo que realmente se muestra, sino la
+        // categoría promete "+50 fragancias" y adentro hay muchas menos.
+        if (p.esSet || p._oculto || p._pausado || !p.cat) return;
         p.cat.split(',').map(c => c.trim()).forEach(c => {
           if (counts[c] !== undefined) counts[c]++;
         });
@@ -4479,6 +4486,11 @@
       if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
       if (o.notas_base) p.notas_base = o.notas_base;
       if (o.stock_status) p._stockStatus = o.stock_status;
+      // [PAUSADO-OCULTO] Un perfume pausado NO se muestra en el catálogo público.
+      // Bandera propia y NO reuso _oculto a propósito: _oculto significa "perfume
+      // eliminado" y además marca como ROTO a cualquier combo que lo contenga
+      // (ver filtro de sets). Pausar no debería hacer desaparecer un pack.
+      p._pausado = (o.stock_status === 'pausado');
       if (o.stock_qty !== null && o.stock_qty !== undefined) p._stockQty = o.stock_qty;
       if (o.fotos_extra) p.fotos_extra = o.fotos_extra;
       if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';

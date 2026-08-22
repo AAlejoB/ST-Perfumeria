@@ -93,7 +93,7 @@
       if (!p || !p.slug) return;
       if (p.slug === anchor.slug) return;
       if (inPack[p.slug]) return;
-      if (p.esSet || p._oculto) return;
+      if (p.esSet || p._oculto || p._pausado) return;
 
       var score = 0;
       if (p.marca_real && anchor.marca_real && p.marca_real === anchor.marca_real) score += 3;
@@ -143,7 +143,7 @@
     // Total de items "del catálogo regular" — el número del badge debería
     // reflejar lo que el cliente ve si toca "Catálogo". Customs especiales
     // los contamos también porque aparecen en esa tab.
-    var totalCatalog = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto; }).length
+    var totalCatalog = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto && !p._pausado; }).length
                      + (Array.isArray(DECANTS_CUSTOM_LIST) ? DECANTS_CUSTOM_LIST.length : 0);
 
     // ─── Tabs ─────────────────────────────────────────────────
@@ -227,7 +227,7 @@
     var qNorm = stripAccents(q);
 
     var list = PERFUMES.filter(function(p) {
-      if (p.esSet || p._oculto) return false;
+      if (p.esSet || p._oculto || p._pausado) return false;
       if (!qNorm) return true;
       var hay = stripAccents([p.name, p.marca, p.marca_real||'', p.alias||'', (typeof getGamaAlias==='function'?getGamaAlias(p):'')].join(' ').toLowerCase());
       return hay.indexOf(qNorm) !== -1;
