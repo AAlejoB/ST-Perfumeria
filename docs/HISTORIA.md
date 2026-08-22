@@ -1631,6 +1631,44 @@ Se filtra en: catálogo, buscador (las cards son el sustrato del search), relaci
 
 **Corrección propia:** el plan `[AVISOS-PRIORIDAD]`, escrito horas antes, asumía que `pausado` ya ocultaba del catálogo. **Era falso al escribirlo.** Recién con este commit la premisa es cierta · anotado en el propio plan.
 
+#### `[DECANTS-ESPACIO]` · el armador no dejaba agregar decants en celular · commit `8f08d2a` · SW v1.1.83
+
+**Reportado por un CLIENTE REAL** (mensaje reenviado por Alejo):
+
+> *"Tenés listado de decants disponibles? porque intenté por página y cuando selecciono 1 me sugiere otro y me tapa todo el listado, iba a agregar más pero no pude"*
+
+Una venta perdida, no un detalle estético.
+
+**⚠️ Mi primera hipótesis fue INCORRECTA y conviene dejarla escrita.** Diagnostiqué que faltaba `min-height: 0` en `.decant-builder-grid` — el clásico "flex item que no se achica". Sonaba impecable y hasta había evidencia circunstancial: un comentario viejo en `index.html` (`[DECANTS-UX-2 fix scroll]`) mostraba que alguien ya había peleado con el mismo síntoma y lo había esquivado moviendo contenido de lugar. **Pero al medirlo con un test A/B en un iframe aislado, los números dieron IDÉNTICOS.** Motivo: por especificación, un flex item con `overflow` distinto de `visible` **ya tiene mínimo automático 0** — `min-height: 0` era redundante. El listado siempre scrolleó bien.
+
+**La causa real** (medido en el sitio vivo, 375x640, con 1 decant en el pack):
+
+| Bloque | Alto |
+|---|---|
+| Header | 201 px |
+| Buscador | 37 px |
+| **Footer** | **159 px** (engorda de 89 a 159 apenas hay items: suma resumen + aviso) |
+| **Listado** | **189 px → UNA card visible** |
+
+El **marco fijo se comía el 67% del modal** (397 de 589 px). Y encima puede aparecer la sugerencia "Combinás bien con". Por eso el cliente lo vive como *"me tapa todo el listado"*: técnicamente estaba ahí, pero era una franjita.
+
+**Fix (sólo CSS):** achicar el marco en pantallas bajas recortando lo redundante — subtítulo "Decants de N ml · Máx N" (el contador ya lo dice), escalera de precios (la barra de progreso comunica lo mismo), aviso de conservación (es info de *después* de comprar), paddings más ajustados y `max-height` 92vh → 96vh.
+
+**Resultados medidos, con 1 decant en el pack:**
+
+| Pantalla | Listado antes | Listado después | Cards |
+|---|---|---|---|
+| 375x640 (celu chico) | 189 px | 299 px | **1 → 3** |
+| 390x844 (PWA instalada) | 383 px | 495 px | **3 → 5** |
+| 1280x800 (laptop) | 323 px | 449 px | **3 → 4** |
+
+**El corte es `max-height: 900px`, no 800**, porque la **PWA instalada no tiene barra de direcciones**: un iPhone que en el navegador da ~750 de alto, instalado da 844. Con el corte en 800, **justo los clientes que instalaron la app —los más fieles— se quedaban sin el arreglo.**
+
+**Aprendizajes:**
+1. **Una hipótesis que "suena bien" no es un diagnóstico.** `min-height: 0` es la respuesta correcta a *otro* problema. Medir antes y después es lo que separó el mito del fix.
+2. **Cuando encontrás un parche viejo esquivando un síntoma, la causa sigue viva** — pero no asumas que es la que vos pensás.
+3. **Los breakpoints por alto tienen que contemplar la PWA instalada**, que gana ~90 px al no tener barra del navegador.
+
 #### Decisiones / bugs / aprendizajes
 
 - **`mockups.html` funcionó como banco de pruebas** y se restauró con `git checkout --` al terminar (estaba commiteado, cero riesgo). El preview trata el worktree como carpeta externa → renderiza captura estática, no sirve para redimensionar; la vía que sí funciona es **iframe + `resize_window`**.
@@ -1649,6 +1687,7 @@ Se filtra en: catálogo, buscador (las cards son el sustrato del search), relaci
 | `[WAITLIST-AVISO-REAL]` (`0dc444f`) | El aviso de reposición se manda de verdad · se marca al avisar, no antes |
 | `[DEPOSITO]` (`533dce8`) | Pestaña nueva con el stock del depósito, aparte del local · ambos roles |
 | `[PAUSADO-OCULTO]` (`62fdf93`) | Los pausados (= archivados) desaparecen de toda la web · 71 productos |
+| `[DECANTS-ESPACIO]` (`8f08d2a`) | El armador de decants deja ver 3-5 cards en celular en vez de 1 |
 
 #### 🪤 S11 · la trampa que apareció escribiendo este mismo cierre
 

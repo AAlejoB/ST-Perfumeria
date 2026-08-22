@@ -193,6 +193,27 @@ Modal full-screen con grid de cards (cada card = 1 perfume).
 
 **Función clave:** `renderDecantGrid()` en `app.js`.
 
+### ⚠️ El presupuesto de alto · `[DECANTS-ESPACIO]` (12-ago-2026)
+
+El modal es una **columna flex con 4 bloques que NO se encogen** y uno que sí:
+
+```
+.decant-builder  (max-height 92vh → 96vh en pantallas bajas)
+├── header               flex-shrink: 0   ← crece al agregar items
+├── buscador             flex-shrink: 0
+├── grid (el listado)    flex: 1 · overflow-y: auto   ← el único que cede
+├── combo sticky         flex-shrink: 0   ← aparece al agregar items
+└── footer               flex-shrink: 0   ← engorda de 89 a 159 px con items
+```
+
+**Regla:** cada vez que agregues algo al header, al footer o al sticky, **le estás sacando espacio al listado**. En un celular de 640 px de alto, el marco fijo llegó a comerse el **67%** del modal y dejó **una sola card visible** — un cliente real no pudo terminar su compra.
+
+**Cómo verificarlo (no a ojo):** abrir el armador en el sitio, agregar 1 decant y medir `header + buscador + footer` contra el alto del modal. Si el listado queda por debajo de ~280 px, hay que recortar el marco.
+
+**Mito a no repetir:** `min-height: 0` en el grid **NO es el fix**. Un flex item con `overflow` distinto de `visible` ya tiene mínimo automático 0 por especificación. Se probó con un A/B y dio idéntico. El fix es **achicar el marco fijo**, no redistribuir.
+
+**Breakpoints por alto:** usar `max-height: 900px`, no 800. La **PWA instalada no tiene barra de direcciones** y gana ~90 px: un iPhone que en el navegador da ~750 de alto, instalado da 844. Con el corte en 800, los clientes que instalaron la app se quedan sin el arreglo.
+
 ---
 
 ## 🔍 Search bar
