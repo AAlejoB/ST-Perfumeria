@@ -1317,11 +1317,15 @@
       width: 16px; height: 16px; stroke: var(--gris); fill: none; stroke-width: 2;
       pointer-events: none;
     }
+    /* [BUSCADOR-MOBILE] Los 16px NO son capricho de diseño: Safari en iOS hace
+       zoom automático al enfocar CUALQUIER input con font-size < 16px, y no
+       vuelve solo — el usuario queda con la página agrandada y tiene que
+       pellizcar para salir. En desktop volvemos a .8rem (allá no hay zoom). */
     .search-input {
       width: 100%;
       padding: .5rem .5rem .5rem 34px;
       font-family: var(--font-body);
-      font-size: .8rem;
+      font-size: 16px;
       color: #fff;
       background: rgba(255,255,255,.08);
       border: 1px solid var(--borde-sutil);
@@ -1330,8 +1334,19 @@
       transition: border-color .2s, background .2s;
       box-sizing: border-box;
     }
-    .search-input::placeholder { color: var(--gris); font-size: .75rem; letter-spacing: .04em; }
+    .search-input::placeholder { color: var(--gris); font-size: .8rem; letter-spacing: .04em; }
     .search-input:focus { border-color: var(--amarillo); background: rgba(255,255,255,.12); }
+    /* type="search" agrega una ✕ nativa que chocaría con nuestro .search-clear
+       (quedaban dos cruces pegadas). La sacamos y dejamos la nuestra. */
+    .search-input::-webkit-search-cancel-button,
+    .search-input::-webkit-search-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    @media (min-width: 768px) {
+      .search-input { font-size: .8rem; }
+      .search-input::placeholder { font-size: .75rem; }
+    }
     .search-clear {
       display: none;
       position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
