@@ -6223,7 +6223,10 @@
         input.value = newText;
         if (msg) { msg.textContent = '✅ Badge guardado: "' + newText + '"'; msg.style.color = '#66bb6a'; }
         if (typeof logAdminAction === 'function') {
-          logAdminAction('seleccion_badge_update', { badge_text: newText });
+          // La firma es (action, target_slug, changes). Acá faltaba el
+          // target_slug, así que el objeto se iba a esa columna (que es
+          // texto) y el registro no se guardaba.
+          logAdminAction('seleccion_badge_update', null, { badge_text: newText });
         }
         // Limpiar el mensaje después de 4 segundos
         setTimeout(function() { if (msg) msg.textContent = ''; }, 4000);
@@ -8729,8 +8732,60 @@
       'votacion_update':      { icon: '🗳️', label: 'Votación' },
       'decants_config_update':{ icon: '💧', label: 'Decants config' },
       'backup_create_manual':{ icon: '💾', label: 'Backup manual' },
-      'backup_create_auto':  { icon: '🤖', label: 'Backup auto' }
+      'backup_create_auto':  { icon: '🤖', label: 'Backup auto' },
+      // Estas se registraban pero NO estaban acá, así que el historial
+      // caía al fallback y mostraba el nombre crudo: "deposito_update".
+      'deposito_update':      { icon: '📦', label: 'Depósito' },
+      'price_update':         { icon: '💰', label: 'Precio' },
+      'seleccion_badge_update':{ icon: '⭐', label: 'Badge selección' },
+      'badges_update':        { icon: '🏷️', label: 'Beneficios' },
+      'home_banner_msg_update':{ icon: '🏠', label: 'Mensaje del banner' },
+      'home_banner_msg_delete':{ icon: '🗑️', label: 'Borrar mensaje' },
+      'home_slide_add':       { icon: '🏠', label: 'Agregar slide' },
+      'home_slide_update':    { icon: '✏️', label: 'Editar slide' },
+      'home_slide_delete':    { icon: '🗑️', label: 'Borrar slide' }
     };
+
+    /* ── [LOG-LEGIBLE] Traducir la jerga de la base al castellano ──
+       El historial mostraba lo que hay guardado TAL CUAL: el slug con
+       guiones (amber-oud-dubai-night), los nombres de columna con guión
+       bajo (stock_qty, stock_deposito) y las acciones que faltaban arriba.
+       Las chicas entran a chequear si se equivocaron y tenían que
+       descifrarlo. Acá se traduce todo a lo que dice el panel. */
+    var AUDIT_FIELD_LABELS = {
+      stock_qty: 'Unidades', stock_status: 'Estado', stock_deposito: 'En depósito',
+      price: 'Precio', promo: 'Promo', name: 'Nombre', nombre: 'Nombre',
+      marca: 'Marca', tipo: 'Tipo', url: 'Imagen', id: 'ID',
+      badge_text: 'Texto del badge', items_count: 'Productos', count: 'Cantidad',
+      slugs: 'Perfumes', from: 'Antes', to: 'Ahora',
+      desde: 'Desde', hasta: 'Hasta', dias: 'Días', motivo: 'Motivo',
+      mes: 'Mes', masc_count: 'Masculinos', fem_count: 'Femeninos',
+      size_bytes: 'Tamaño', row_counts: 'Filas por tabla', rows: 'Filas'
+    };
+
+    /* Los valores también: en la base el estado es 'out'/'low'/'pausado',
+       pero en el panel la chica ve "Sin stock"/"Último"/"Pausado". */
+    var AUDIT_VALUE_LABELS = {
+      stock_status: { ok: 'En stock', low: 'Último', out: 'Sin stock', pausado: 'Pausado' }
+    };
+
+    function auditPerfumeName(slug) {
+      if (!slug || typeof PERFUMES === 'undefined') return null;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      return p ? p.name : null;
+    }
+
+    function auditFieldLabel(k) {
+      // Fallback: al menos sacarle los guiones bajos.
+      return AUDIT_FIELD_LABELS[k] || String(k).replace(/_/g, ' ');
+    }
+
+    function auditValueLabel(k, v) {
+      if (v === null || v === undefined || v === '') return 'vacío';
+      var mapa = AUDIT_VALUE_LABELS[k];
+      if (mapa && mapa[v] != null) return mapa[v];
+      return String(v);
+    }
 
     function auditFormatTime(iso) {
       try {
@@ -8753,12 +8808,15 @@
         var parts = [];
         Object.keys(changes).forEach(function(k) {
           var v = changes[k];
+          // escHtml sobre la etiqueta también: la clave sale de un JSON de
+          // la base, no de una constante nuestra.
+          var etiqueta = '<b>' + escHtml(auditFieldLabel(k)) + ':</b> ';
           if (v && typeof v === 'object' && 'old' in v && 'new' in v) {
-            parts.push('<b>' + k + ':</b> ' + escHtml(String(v.old)) + ' → ' + escHtml(String(v.new)));
-          } else if (typeof v === 'object') {
-            parts.push('<b>' + k + ':</b> ' + escHtml(JSON.stringify(v)));
+            parts.push(etiqueta + escHtml(auditValueLabel(k, v.old)) + ' → ' + escHtml(auditValueLabel(k, v.new)));
+          } else if (v && typeof v === 'object') {
+            parts.push(etiqueta + escHtml(JSON.stringify(v)));
           } else {
-            parts.push('<b>' + k + ':</b> ' + escHtml(String(v)));
+            parts.push(etiqueta + escHtml(auditValueLabel(k, v)));
           }
         });
         return parts.slice(0, 5).join(' · ') + (parts.length > 5 ? ' …' : '');
@@ -8799,14 +8857,17 @@
         }
 
         var rows = data.map(function(r) {
-          var label = AUDIT_ACTION_LABELS[r.action] || { icon: '•', label: r.action };
+          var label = AUDIT_ACTION_LABELS[r.action] || { icon: '•', label: String(r.action).replace(/_/g, ' ') };
+          // El nombre real del perfume en vez del slug. Si el perfume ya no
+          // existe (o el target no era un perfume), cae al slug original.
+          var nombrePerfume = r.target_slug ? (auditPerfumeName(r.target_slug) || r.target_slug) : null;
           var actorShort = (r.actor_role === 'jefe') ? '👑 jefe'
                          : (r.actor_role === 'empleado' ? '👤 emp.' : (r.actor_role || '—'));
           return '<tr>'
             + '<td style="font-size:.7rem;color:var(--gris-claro);white-space:nowrap;">' + escHtml(auditFormatTime(r.created_at)) + '</td>'
             + '<td style="font-size:.72rem;">' + escHtml(actorShort) + '</td>'
             + '<td style="font-size:.72rem;"><span style="font-size:.9rem;">' + label.icon + '</span> ' + escHtml(label.label) + '</td>'
-            + '<td style="font-size:.72rem;color:var(--amarillo);">' + (r.target_slug ? escHtml(r.target_slug) : '<span style="color:var(--gris);">—</span>') + '</td>'
+            + '<td style="font-size:.72rem;color:var(--amarillo);"' + (nombrePerfume && nombrePerfume !== r.target_slug ? ' title="' + escHtml(r.target_slug) + '"' : '') + '>' + (nombrePerfume ? escHtml(nombrePerfume) : '<span style="color:var(--gris);">—</span>') + '</td>'
             + '<td style="font-size:.68rem;color:var(--gris-claro);line-height:1.45;">' + auditFormatChanges(r.changes) + '</td>'
           + '</tr>';
         }).join('');
