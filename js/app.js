@@ -4034,13 +4034,29 @@
       // 3) Esperar a que el teclado se cierre del todo (resize del viewport)
       //    Scrollear al catalogGrid (NO al filter-bar que es sticky)
       setTimeout(function() {
-        var grid = document.getElementById('catalogGrid');
-        var gridTop = grid.getBoundingClientRect().top + window.pageYOffset - 130;
-        window.scrollTo(0, gridTop); // scroll instantáneo
+        // Scrolleamos a la CARD elegida, no al grid. El -130 fijo de antes
+        // estaba calibrado para las cards horizontales viejas y con
+        // [CARD-VERTICAL] dejaba la card tapada por la barra sticky.
+        //
+        // Cuánto hay que frenar antes lo define UN solo lugar: el
+        // scroll-padding-top del <html> (76px en desktop, 240px en mobile,
+        // donde el nav Y el filter-bar quedan pegados arriba). Lo leemos del
+        // CSS en vez de hardcodear un número que envejece cada vez que
+        // cambia el alto de la barra.
+        var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
+        var destino = card || document.getElementById('catalogGrid');
+        var pad = parseFloat(window.getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+        // behavior:'instant' EXPLÍCITO. La forma corta scrollTo(x, y) hereda
+        // el scroll-behavior:smooth del <html>, así que el "scroll instantáneo"
+        // que prometía el comentario original nunca lo fue: animaba ~1s desde
+        // arriba de todo. Acá no queremos animación, queremos aparecer.
+        window.scrollTo({
+          top: destino.getBoundingClientRect().top + window.pageYOffset - pad,
+          behavior: 'instant'
+        });
 
         // 4) Highlight la card
         setTimeout(function() {
-          var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
           if (card) {
             card.style.boxShadow = '0 0 20px rgba(232,184,0,.5)';
             setTimeout(function() { card.style.boxShadow = ''; }, 2000);

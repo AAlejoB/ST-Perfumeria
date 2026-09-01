@@ -48,7 +48,11 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    /* scroll-padding-top: cuando el navegador scrollea a un destino (un #hash
+       o un scrollIntoView), frena ANTES para no dejarlo abajo del nav sticky.
+       En mobile el valor sube porque ahí el filter-bar también queda pegado
+       (ver [CARD-VERTICAL]). */
+    html { scroll-behavior: smooth; scroll-padding-top: 76px; }
     body {
       background: var(--negro);
       color: var(--blanco);
@@ -3146,6 +3150,105 @@
       .card-notes-preview { display: none; }
       .product-card:hover .card-reveal { transform: translateX(100%); opacity: 0; pointer-events: none; }
       .card-reveal { display: none !important; }
+    }
+
+    /* ================================================================
+       [CARD-VERTICAL] La card del catálogo se APILA en celular.
+
+       Antes: layout horizontal FOTO | INFO con .card-image al 30%. En un
+       celu de 375px eso daba una foto de ~100px — una perfumería donde no
+       se ven los perfumes. Y el swipe de la galería pasaba por esos mismos
+       100px, peleando contra el scroll vertical de la página.
+
+       Ahora en mobile: foto cuadrada a todo el ancho arriba (~345px), info
+       abajo. El swipe gana 3,4x de área horizontal y deja de competir con
+       el scroll.
+
+       Solo aplica en mobile. El layout horizontal + mirror + panel reveal
+       de desktop queda EXACTAMENTE igual: el .mirror completo vive dentro
+       de @media (min-width: 768px), así que nada de esto lo toca.
+       ================================================================ */
+    @media (max-width: 767px) {
+      .product-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 0;              /* el padding pasa al .card-info */
+      }
+      /* La foto: de 30% a todo el ancho, cuadrada. */
+      .card-image {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+      }
+      .card-image img {
+        max-height: none;        /* el tope de 250px la achicaba */
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      /* La galería y sus slides tienen que llenar el cuadrado. Sin esto
+         quedan bandas del fondo del padre arriba y abajo, que es justo
+         el "look roto" que ya se había descartado en desktop. */
+      .card-gallery,
+      .card-gallery-slide,
+      .card-gallery-slide--single { height: 100%; }
+      .card-gallery-slide { min-height: 0; }
+      .photo-coming { height: 100%; min-height: 0; }
+
+      .card-info {
+        width: 100%;             /* era 70% */
+        padding: 13px 15px 15px;
+        gap: 3px;
+      }
+      /* Los 30px fijos abajo de la marca ya sobraban en el layout viejo;
+         en el vertical parten la card al medio. */
+      .card-brand { margin-bottom: 8px; }
+
+      /* ── Skeleton: mismo layout vertical ──
+         Si el skeleton sigue siendo horizontal de 230px y la card real
+         mide ~535px, vuelve el Layout Shift que arregló [CLS-RESERVE]. */
+      .card-skel {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 0 !important;
+        min-height: 0;
+      }
+      .card-skel-img {
+        width: 100% !important;
+        aspect-ratio: 1 / 1;
+        border-radius: 6px 6px 0 0;
+      }
+      .card-skel-body { padding: 14px 15px 18px; }
+
+      /* El reserve de [CLS-RESERVE] en el grid NO se toca a propósito.
+         Los 6 skeletons ahora son verticales, así que ocupan el alto real
+         por sí mismos y el reserve deja de ser el que sostiene el layout
+         durante la carga. Se intentó anularlo con :has(.card-skel) para que
+         una búsqueda de 1 resultado no dejara vacío abajo, pero la
+         invalidación de estilos de :has() no se recalcula al sacar los
+         skeletons del DOM y el grid quedaba clavado en el valor de carga.
+         El min-height de 900px es el que ya había: sin regresión. */
+
+      /* ── Buscar con la lupita, cómodo ──
+         44px es el mínimo que Apple y Google recomiendan para algo que se
+         toca con el dedo. El input medía ~34px: se erraba seguido. */
+      .search-input { padding: .72rem .5rem .72rem 38px; }
+      .search-icon { left: 12px; width: 18px; height: 18px; }
+      .search-clear.visible {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        right: 2px;
+        font-size: 1.5rem;
+      }
+
+      /* Al saltar a una card (sugerencia del buscador, link con #hash) el
+         destino quedaba escondido abajo de la barra sticky de filtros.
+         Con scroll-padding-top el navegador frena antes. */
+      html { scroll-padding-top: 240px; }
     }
     /* DESKTOP: card muestra tags, oculta notas preview. Reveal lateral normal */
     @media (min-width: 768px) {
