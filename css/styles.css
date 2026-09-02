@@ -8639,6 +8639,56 @@
     }
 
     /* ════════════════════════════════════════════════════════════════
+       [DECANTS-ESPACIO-2] (2-sep-2026) — el marco volvió a crecer.
+
+       [DECANTS-ESPACIO] (ago-2026) había dejado el listado en 299px = 3
+       cards. Después se sumaron DOS bloques fijos: la barra de progreso
+       (62px) y la sugerencia "combinás bien con" (49px). Medido de nuevo a
+       375x667 con 1 decant en el pack: marco 433px = 68% del modal,
+       listado 181px, DOS cards de 168. Volvimos al problema original.
+
+       No se saca ninguna de las dos features: se las achica, que es lo que
+       hizo el fix original con el subtítulo, la escalera y el aviso.
+
+       ⚠️ POR QUÉ ESTE BLOQUE VIVE ACÁ ABAJO Y NO JUNTO AL OTRO:
+       primero lo puse dentro del @media (max-height:900px) de arriba y NO
+       aplicó nada. Una media query no suma especificidad: con la misma
+       specificity gana la regla que aparece DESPUÉS en el archivo, y
+       .decant-progress-tiers, .decant-builder-title y el bloque
+       @media (max-width:480px) del combo están todos más abajo.
+       El bloque de agosto funcionaba porque usaba display:none sobre
+       elementos cuyo CSS base no declara display — no competía con nadie.
+       Si agregás más recortes acá, que sea al final de la sección.
+       ════════════════════════════════════════════════════════════════ */
+    @media (max-height: 900px) {
+      /* Cabecera, título y contador: mismo contenido, menos aire. */
+      .decant-builder-header { padding: .45rem .9rem .3rem; }
+      .decant-builder-title { font-size: .95rem; margin-bottom: .05rem; }
+      .decant-builder-counter { padding: .3rem .6rem; margin-bottom: .25rem; }
+      .decant-tabs { margin-top: .25rem; }
+
+      /* Progreso: se queda el mensaje (es lo que empuja a sumar decants) y
+         la barra. Se va la fila de tramos, que repite la escalera de precios
+         que el bloque de agosto ya oculta. */
+      .decant-progress { padding: 5px 10px; margin-top: 5px; }
+      .decant-progress-msg { font-size: .62rem; margin-bottom: 4px; }
+      .decant-progress-bar { height: 5px; }
+      .decant-progress-tiers { display: none; }
+
+      /* Sugerencia: la misma info y el mismo botón, en una línea más fina. */
+      .decant-combo-sticky { padding: 4px 10px 2px; }
+      .decant-combo-sticky-inner { padding: .3rem .4rem .3rem .45rem; gap: 6px; }
+      .decant-combo-icon { width: 22px; height: 22px; font-size: .68rem; }
+      .decant-combo-name { font-size: .68rem; }
+      .decant-combo-btn { padding: .35rem .7rem; font-size: .62rem; }
+
+      /* Resumen del pie: el total sigue siendo lo más grande, con menos aire. */
+      .decant-builder-footer-summary { padding: 1px 2px 4px; gap: 8px; }
+      .decant-bs-total { font-size: 1.05rem; line-height: 1.15; }
+      .decant-bs-qty { font-size: .54rem; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
        Banner Juegos ST — CTA al Quiz "Encontrá tu perfume"
        Variante "game-show energético": violeta → magenta con emoji
        bouncing. Distinto del banner amarillo "EXPLORÁ +150" para que

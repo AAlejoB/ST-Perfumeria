@@ -118,7 +118,7 @@ CREATE POLICY "mi_tabla_write_auth" ON mi_tabla
 
 ### Casos especiales
 
-- **`admin_actions`**: read solo auth, NO update, NO delete (inmutable).
+- **`admin_actions`**: read **solo el mail del jefe** (`admin_actions_select` filtra por `auth.jwt() ->> 'email' = 'jefe@stperfumeria.local'`), NO update, NO delete (inmutable). ⚠️ Decía "read solo auth", que se leía como "cualquier usuario autenticado" — es falso: la cuenta de empleada está autenticada y **no** puede leer esta tabla. Verificado contra `pg_policies` el 2-sep-2026.
 - **`puntos_log`**: read pública, write auth, NO update, NO delete.
 - **`favoritos`**: read sólo del propio user, write sólo del propio user.
 - **`backups`**: read auth (solo admin), write auth.

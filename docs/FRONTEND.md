@@ -210,6 +210,22 @@ El modal es una **columna flex con 4 bloques que NO se encogen** y uno que sí:
 
 **Cómo verificarlo (no a ojo):** abrir el armador en el sitio, agregar 1 decant y medir `header + buscador + footer` contra el alto del modal. Si el listado queda por debajo de ~280 px, hay que recortar el marco.
 
+### 🔁 Volvió a pasar · `[DECANTS-ESPACIO-2]` (2-sep-2026)
+
+El fix de agosto dejó el listado en 299 px. Después se sumaron **dos bloques fijos más**: la barra de progreso (62 px) y la sugerencia "combinás bien con" (49 px). Medido de nuevo a **375×667 con 1 decant**: marco 433 px = **68%**, listado **181 px, DOS cards**. Volvimos al punto de partida.
+
+Se achicaron los dos (no se sacó ninguna feature) + cabecera, contador y pie. Resultado medido:
+
+| Pantalla | Listado antes | Listado ahora | Cards |
+|---|---|---|---|
+| 375×667 | 181 px | **262 px** | 2 → **3** |
+| 375×812 | 318 px | **400 px** | 3 → **4** |
+| 1280×800 | — | 396 px | **4** · todo visible |
+
+⚠️ **Dónde va el CSS importa.** El primer intento fue meter los recortes dentro del `@media (max-height:900px)` de arriba y **no aplicó nada**. Una media query NO suma especificidad: con la misma specificity gana la regla que aparece **después** en el archivo, y `.decant-progress-tiers`, `.decant-builder-title` y el `@media (max-width:480px)` del combo están todos más abajo. El bloque de agosto funcionaba porque usaba `display:none` sobre elementos cuyo CSS base no declara `display` — no competía con nadie. **Los recortes nuevos van al final de la sección de decants.**
+
+📌 El umbral de 280 px es un proxy: lo que importa es **cuántas cards ve el cliente**. 262 px no llega a 280 pero ya muestra 3, que era el objetivo.
+
 **Mito a no repetir:** `min-height: 0` en el grid **NO es el fix**. Un flex item con `overflow` distinto de `visible` ya tiene mínimo automático 0 por especificación. Se probó con un A/B y dio idéntico. El fix es **achicar el marco fijo**, no redistribuir.
 
 **Breakpoints por alto:** usar `max-height: 900px`, no 800. La **PWA instalada no tiene barra de direcciones** y gana ~90 px: un iPhone que en el navegador da ~750 de alto, instalado da 844. Con el corte en 800, los clientes que instalaron la app se quedan sin el arreglo.
