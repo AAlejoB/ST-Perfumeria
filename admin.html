@@ -1549,7 +1549,15 @@
         <p id="modalDepNombre" style="text-align:center;font-weight:600;margin-bottom:.25rem;"></p>
         <p id="modalDepLocal" style="text-align:center;font-size:.75rem;color:var(--gris);margin-bottom:1rem;"></p>
         <label style="display:block;font-size:.7rem;color:var(--gris);margin-bottom:.3rem;">Unidades en depósito</label>
-        <input type="number" class="modal-input" id="modalDepQty" min="0" step="1" inputmode="numeric" style="text-align:center;font-size:1.3rem;font-weight:700;"/>
+        <input type="number" class="modal-input" id="modalDepQty" min="0" step="1" inputmode="numeric" oninput="toggleDepSumar()" style="text-align:center;font-size:1.3rem;font-weight:700;"/>
+        <!-- [DEP-SUMAR] Aparece sólo si el depósito baja de ≥2 directo a 0. Destildada => suma al local. -->
+        <div id="depSumarWrap" style="display:none;">
+          <label style="display:flex;align-items:flex-start;gap:.5rem;font-size:.74rem;color:#e4e4e4;cursor:pointer;margin:.8rem 0 .2rem;padding:.6rem;background:rgba(232,184,0,.1);border-radius:8px;border:1px solid var(--amarillo);">
+            <input type="checkbox" id="modalDepNoSumar" onchange="toggleDepSumar()" style="width:16px;height:16px;accent-color:var(--amarillo);cursor:pointer;margin-top:.1rem;flex-shrink:0;"/>
+            <span><strong>No sumar al stock local</strong></span>
+          </label>
+          <p id="depSumarHint" style="font-size:.66rem;color:var(--gris);margin:.1rem 0 0;"></p>
+        </div>
         <button class="modal-btn" onclick="saveDeposito()" id="modalDepBtn">Guardar</button>
         <p class="modal-success" id="modalDepMsg"></p>
       </div>
@@ -3774,6 +3782,7 @@
     // La columna "Local" acá es de SOLO LECTURA — se edita en Precios & Stock.
     // ============================================================
     var editingDepSlug = null;
+    var depPrevQty = 0; // [DEP-SUMAR] cantidad de depósito al abrir el modal
 
     function depQty(p) {
       return (typeof p._stockDeposito === 'number') ? p._stockDeposito : 0;
@@ -3846,13 +3855,33 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       editingDepSlug = slug;
+      depPrevQty = depQty(p);
       var local = (typeof p._stockQty === 'number') ? p._stockQty : null;
       document.getElementById('modalDepNombre').textContent = p.name;
       document.getElementById('modalDepLocal').textContent =
         'En el local: ' + (local === null ? 'sin dato' : local + ' u.');
-      document.getElementById('modalDepQty').value = depQty(p);
+      document.getElementById('modalDepQty').value = depPrevQty;
       document.getElementById('modalDepMsg').textContent = '';
+      document.getElementById('modalDepNoSumar').checked = false;
+      toggleDepSumar();
       document.getElementById('modalDeposito').classList.add('active');
+    }
+
+    // [DEP-SUMAR] Muestra la casilla sólo si el depósito baja de ≥2 directo a 0,
+    // y actualiza el texto de ayuda según esté tildada o no.
+    function toggleDepSumar() {
+      var wrap = document.getElementById('depSumarWrap');
+      var hint = document.getElementById('depSumarHint');
+      if (!wrap) return;
+      var qty = parseInt((document.getElementById('modalDepQty') || {}).value, 10);
+      var aplica = depPrevQty >= 2 && qty === 0;
+      wrap.style.display = aplica ? 'block' : 'none';
+      if (aplica && hint) {
+        var noSumar = document.getElementById('modalDepNoSumar').checked;
+        hint.textContent = noSumar
+          ? 'Solo vaciás el depósito, el local queda igual.'
+          : 'Vas a mover las ' + depPrevQty + ' u. del depósito al local.';
+      }
     }
 
     async function saveDeposito() {
@@ -3865,12 +3894,26 @@
       if (isNaN(qty) || qty < 0) qty = 0;
       var prev = depQty(p);
 
+      // [DEP-SUMAR] Si el depósito baja de ≥2 directo a 0 y la casilla "No sumar"
+      // está destildada, movemos esas N unidades al stock local.
+      var sumar = prev >= 2 && qty === 0 &&
+                  !document.getElementById('modalDepNoSumar').checked;
+
+      var payload = { slug: editingDepSlug, stock_deposito: qty };
+      var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : 0;
+      var newLocal, prevStatus, newStatus;
+      if (sumar) {
+        newLocal = prevLocal + prev;
+        prevStatus = p._stockStatus || 'ok';
+        // Recalcular estado desde la nueva cantidad (respeta 'pausado')
+        newStatus = deriveStockInfo({ _stockQty: newLocal,
+          _stockStatus: (prevStatus === 'pausado') ? 'pausado' : null }).status;
+        payload.stock_qty = newLocal;
+        payload.stock_status = newStatus;
+      }
+
       btn.disabled = true;
-      // upsert parcial: sólo toca stock_deposito, no pisa stock_qty ni el resto
-      var res = await sb.from('perfume_overrides').upsert(
-        { slug: editingDepSlug, stock_deposito: qty },
-        { onConflict: 'slug' }
-      );
+      var res = await sb.from('perfume_overrides').upsert(payload, { onConflict: 'slug' });
       btn.disabled = false;
 
       if (res.error) {
@@ -3880,9 +3923,21 @@
       }
 
       p._stockDeposito = qty;
-      msgEl.style.color = '#2ecc71';
-      msgEl.textContent = '✓ Guardado';
       logAdminAction('deposito_update', editingDepSlug, { stock_deposito: { old: prev, new: qty } });
+
+      if (sumar) {
+        p._stockQty = newLocal;
+        p._stockStatus = newStatus;
+        lastLocalUpsert = { slug: editingDepSlug, at: Date.now() }; // anti-echo watchdog
+        logAdminAction('stock_update', editingDepSlug, {
+          stock_qty: { old: prevLocal, new: newLocal },
+          stock_status: { old: prevStatus, new: newStatus }
+        });
+        try { renderStock && renderStock(); } catch (e) {}
+      }
+
+      msgEl.style.color = '#2ecc71';
+      msgEl.textContent = sumar ? ('✓ Guardado · +' + prev + ' al local') : '✓ Guardado';
       renderDeposito();
       setTimeout(function() { closeModal('modalDeposito'); }, 900);
     }
