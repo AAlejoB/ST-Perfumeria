@@ -226,8 +226,16 @@
     var q = qInput ? qInput.value.trim().toLowerCase() : '';
     var qNorm = stripAccents(q);
 
+    // [DECANT-DEDUP] Nombres normalizados de los decants de diseñador activos.
+    // El perfume ya cargado en `decants_custom` con su precio real NO debe volver
+    // a aparecer en el catálogo A→Z con la escalera genérica: eran dos cards del
+    // mismo perfume y el cliente se llevaba la barata.
+    var customNames = (typeof decantCustomNombres === 'function') ? decantCustomNombres() : {};
+    var normName = (typeof decantNombreNorm === 'function') ? decantNombreNorm : function(s){ return s; };
+
     var list = PERFUMES.filter(function(p) {
       if (p.esSet || p._oculto || p._pausado) return false;
+      if (customNames[normName(p.name)]) return false;   // ya existe como decant de diseñador
       if (!qNorm) return true;
       var hay = stripAccents([p.name, p.marca, p.marca_real||'', p.alias||'', (typeof getGamaAlias==='function'?getGamaAlias(p):'')].join(' ').toLowerCase());
       return hay.indexOf(qNorm) !== -1;
@@ -307,6 +315,24 @@
       var img = fotoSrc
         ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
         : '<div class="decant-card-img-ph">' + (p.name.charAt(0) || '•') + '</div>';
+
+      // [DECANT-TOPE] Perfume cuyo frasco supera el tope: a este precio el decant
+      // saldría bajo costo. No se puede sumar al pack — se cotiza por WhatsApp.
+      var aConsultar = (typeof decantAConsultar === 'function') && decantAConsultar(p);
+      if (aConsultar) {
+        return '<div class="decant-card decant-card-consultar">'
+          + '<div class="decant-card-img">' + img + '</div>'
+          + '<div class="decant-card-info">'
+            + '<p class="decant-card-name">' + p.name + '</p>'
+            + '<p class="decant-card-brand">' + (p.marca_real || p.marca || '') + '</p>'
+            + '<p class="decant-card-price decant-card-price-pending">💬 Precio a consultar</p>'
+          + '</div>'
+          + '<div class="decant-card-ctrl">'
+            + '<button class="decant-ctrl-btn decant-ctrl-consultar" onclick="consultarDecantWA(\'' + p.slug + '\')" title="Consultar por WhatsApp" aria-label="Consultar precio por WhatsApp">Consultar</button>'
+          + '</div>'
+        + '</div>';
+      }
+
       return '<div class="decant-card' + (qty > 0 ? ' has-qty' : '') + '">'
         + '<div class="decant-card-img">' + img + '</div>'
         + '<div class="decant-card-info">'

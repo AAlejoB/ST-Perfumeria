@@ -2472,6 +2472,19 @@
             <input type="number" class="modal-input" id="decMax" placeholder="100" style="margin-bottom:0;"/>
           </div>
         </div>
+
+        <!-- [DECANT-TOPE] Tope de precio de frasco para entrar a la escalera -->
+        <div style="margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--borde);">
+          <label class="modal-label">Tope de precio de frasco (equivalente 100 ml)</label>
+          <input type="number" class="modal-input" id="decFrascoMax" placeholder="170000" title="0 = desactivado" oninput="updateFrascoMaxHint()" style="margin-bottom:.35rem;"/>
+          <p style="font-size:.66rem;color:var(--gris);margin:0;line-height:1.5;">
+            Los perfumes cuyo frasco supere este valor <strong>no se pueden sumar al pack</strong>:
+            la card muestra “💬 Precio a consultar” con botón de WhatsApp.<br>
+            Evita vender bajo costo (un frasco de $430.000 deja el decant de 5 ml en $21.500 de costo).
+            <strong>0 = desactivado.</strong>
+          </p>
+          <p id="decFrascoMaxHint" style="font-size:.66rem;color:var(--amarillo);margin:.4rem 0 0;"></p>
+        </div>
       </div>
 
       <!-- Mensaje de conservación -->
@@ -8799,6 +8812,7 @@
         precio_3: 8500,
         precio_5: 7500,
         max_decants: 100,
+        precio_frasco_max: 170000,
         aviso_conservacion: 'Guard\u00e1 tu decant en lugar fresco y seco, lejos de la luz directa y cambios bruscos de temperatura.'
       };
       var cfg = def;
@@ -8826,7 +8840,30 @@
       document.getElementById('decPrecio3').value = cfg.precio_3 != null ? cfg.precio_3 : 8500;
       document.getElementById('decPrecio5').value = cfg.precio_5 != null ? cfg.precio_5 : 7500;
       document.getElementById('decMax').value = cfg.max_decants != null ? cfg.max_decants : 100;
+      document.getElementById('decFrascoMax').value = cfg.precio_frasco_max != null ? cfg.precio_frasco_max : 170000;
       document.getElementById('decAviso').value = cfg.aviso_conservacion || '';
+      updateFrascoMaxHint();
+    }
+
+    // [DECANT-TOPE] Muestra cuántos perfumes del catálogo quedarían "a consultar"
+    // con el tope que el admin está escribiendo, antes de guardar.
+    function updateFrascoMaxHint() {
+      var hint = document.getElementById('decFrascoMaxHint');
+      var inp = document.getElementById('decFrascoMax');
+      if (!hint || !inp) return;
+      var tope = parseFloat(inp.value);
+      if (!isFinite(tope) || tope <= 0) { hint.textContent = 'Regla desactivada — todos entran a la escalera.'; return; }
+      if (typeof PERFUMES === 'undefined' || !Array.isArray(PERFUMES)) { hint.textContent = ''; return; }
+      var enGrid = PERFUMES.filter(function(p) { return !p.esSet && !p._pausado; });
+      var fuera = enGrid.filter(function(p) {
+        var precio = parseFloat(String(p.price == null ? '' : p.price).replace(/[^0-9.]/g, ''));
+        if (!isFinite(precio) || precio <= 0) return false;
+        var ml = parseFloat(String(p.ml == null ? '' : p.ml).replace(/[^0-9.]/g, ''));
+        if (!isFinite(ml) || ml <= 0) ml = 100;
+        return (precio / ml * 100) > tope;
+      });
+      hint.textContent = '→ ' + fuera.length + ' de ' + enGrid.length + ' perfumes quedarían "a consultar"'
+        + (fuera.length ? ' (ej.: ' + fuera.slice(0, 3).map(function(p) { return p.name; }).join(', ') + ')' : '');
     }
 
     async function saveDecantsAdmin() {
@@ -8840,6 +8877,8 @@
       var p3 = parseInt(document.getElementById('decPrecio3').value, 10);
       var p5 = parseInt(document.getElementById('decPrecio5').value, 10);
       var maxD = parseInt(document.getElementById('decMax').value, 10);
+      var frascoMax = parseInt(document.getElementById('decFrascoMax').value, 10);
+      if (isNaN(frascoMax) || frascoMax < 0) frascoMax = 0;   // 0 = regla desactivada
       var aviso = (document.getElementById('decAviso').value || '').trim();
 
       if (!ml || ml < 1) { msg.style.color = '#e74c3c'; msg.textContent = 'Tamaño en ml inválido.'; return; }
@@ -8860,6 +8899,7 @@
         precio_3: p3,
         precio_5: p5,
         max_decants: maxD,
+        precio_frasco_max: frascoMax,
         aviso_conservacion: aviso,
         updated_at: new Date().toISOString()
       };

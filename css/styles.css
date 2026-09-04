@@ -8920,6 +8920,32 @@
       cursor: not-allowed;
     }
 
+    /* [DECANT-TOPE] Perfume cuyo frasco supera el tope configurado: a precio de
+       escalera el decant saldría bajo costo, así que no se puede sumar al pack.
+       En vez del +/− mostramos un botón "Consultar" que abre WhatsApp. */
+    .decant-card-consultar {
+      opacity: .82;
+    }
+    .decant-card-consultar:hover { opacity: 1; }
+    .decant-ctrl-consultar {
+      background: transparent;
+      border: 1px solid var(--amarillo, #E8B800);
+      color: var(--amarillo, #E8B800);
+      border-radius: 20px;
+      padding: .3rem .7rem;
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      cursor: pointer;
+      white-space: nowrap;
+      width: auto;
+      transition: background .18s, color .18s;
+    }
+    .decant-ctrl-consultar:hover {
+      background: var(--amarillo, #E8B800);
+      color: #111;
+    }
+
     /* ════════════════════════════════════════════════════════════════
        LIGHT THEME · Controles +/- y footer del decant builder
        Bug: .decant-builder * { color: inherit } forzaba carbón a todo,

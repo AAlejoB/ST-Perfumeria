@@ -6480,6 +6480,11 @@
       precio_3: 8500,
       precio_5: 7500,
       max_decants: 100,
+      // [DECANT-TOPE] Tope de precio de frasco (normalizado a 100 ml) para que un
+      // perfume entre al armador con la escalera. Si el frasco vale más que esto,
+      // el decant saldría bajo costo → la card se muestra "Precio a consultar".
+      // 0 / null = regla desactivada (comportamiento viejo). Editable desde admin.
+      precio_frasco_max: 170000,
       aviso_conservacion: 'Guardá tu decant en lugar fresco y seco. Duración óptima: 6-12 meses.'
     };
 
@@ -6510,6 +6515,8 @@
         var floatBtn = document.getElementById('decantFloat');
         if (floatBtn) floatBtn.style.display = 'none';
       }
+      // [DECANT-TOPE] Limpiar del pack guardado lo que ahora quedó bloqueado.
+      sanitizeDecantsPack();
       updateDecantUI();
     }
 
@@ -6519,7 +6526,99 @@
       return DECANTS_CONFIG.precio_1;
     }
 
+    // ════════════════════════════════════════════════════════════
+    // [DECANT-TOPE] Perfumes caros que NO pueden ir a precio de escalera.
+    //
+    // Problema que resuelve: el armador listaba TODO el catálogo con precio
+    // fijo ($9.500) sin mirar cuánto sale el frasco. Un Erba Pura de $430.000
+    // deja un decant de 5ml a costo $21.500 → se vendía perdiendo $12.000.
+    //
+    // Normalizamos a "precio equivalente de frasco de 100ml" para que un 50ml
+    // caro no zafe del filtro sólo por ser un frasco chico.
+    // ════════════════════════════════════════════════════════════
+    function decantPrecioFrasco100(p) {
+      var precio = parseFloat(String(p && p.price != null ? p.price : '').replace(/[^0-9.]/g, ''));
+      if (!isFinite(precio) || precio <= 0) return 0;   // sin precio → no bloqueamos
+      var ml = parseFloat(String(p && p.ml != null ? p.ml : '').replace(/[^0-9.]/g, ''));
+      if (!isFinite(ml) || ml <= 0) ml = 100;
+      return precio / ml * 100;
+    }
+
+    // true → la card se muestra como "Precio a consultar" (no se puede agregar)
+    function decantAConsultar(p) {
+      var tope = parseFloat(DECANTS_CONFIG.precio_frasco_max);
+      if (!isFinite(tope) || tope <= 0) return false;   // regla desactivada
+      var eq = decantPrecioFrasco100(p);
+      return eq > 0 && eq > tope;
+    }
+
+    // [DECANT-DEDUP] Un perfume cargado en `decants_custom` (con su precio real)
+    // también existe en el catálogo regular → se dibujaban DOS cards del mismo
+    // perfume y el cliente elegía la barata. Acá armamos el set de nombres
+    // normalizados de los customs para poder esconder el duplicado del catálogo.
+    function decantNombreNorm(s) {
+      return (s == null ? '' : String(s)).toUpperCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^A-Z0-9]/g, '');
+    }
+
+    function decantCustomNombres() {
+      var set = {};
+      if (Array.isArray(DECANTS_CUSTOM_LIST)) {
+        DECANTS_CUSTOM_LIST.forEach(function(c) {
+          if (c && c.activo !== false && c.nombre) set[decantNombreNorm(c.nombre)] = true;
+        });
+      }
+      return set;
+    }
+
+    // Un pack viejo guardado en localStorage puede tener slugs que ahora quedaron
+    // bloqueados (o duplicados). Los sacamos para que no se cobren mal.
+    function sanitizeDecantsPack() {
+      if (!Array.isArray(decantsPack) || decantsPack.length === 0) return;
+      if (typeof PERFUMES === 'undefined' || !Array.isArray(PERFUMES)) return;
+      var antes = decantsPack.length;
+      var customs = decantCustomNombres();
+      decantsPack = decantsPack.filter(function(s) {
+        if (typeof s !== 'string' || s.indexOf('custom-') === 0) return true;
+        var pf = PERFUMES.find(function(x) { return x.slug === s; });
+        if (!pf) return true;
+        if (decantAConsultar(pf)) return false;
+        if (customs[decantNombreNorm(pf.name)]) return false;
+        return true;
+      });
+      if (decantsPack.length !== antes) {
+        saveDecantsPack();
+        if (typeof updateDecantUI === 'function') updateDecantUI();
+      }
+    }
+
+    // Consulta por WhatsApp de un perfume que quedó fuera de la escalera.
+    function consultarDecantWA(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      var nombre = (currentUser && currentUser.nombre) ? String(currentUser.nombre).trim().split(' ')[0] : '';
+      var saludo = nombre ? ('Hola, soy ' + nombre + '!') : 'Hola!';
+      var msg = saludo + ' Quería consultar el precio del decant de '
+              + (p ? p.name : 'un perfume') + ' 🙂';
+      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+    }
+    window.consultarDecantWA = consultarDecantWA;
+
     function addDecant(slug) {
+      // [DECANT-TOPE] Red de seguridad: aunque la card venga con el "+" deshabilitado,
+      // bloqueamos acá también (DOM viejo, consola, pack restaurado, etc.).
+      if (typeof slug === 'string' && slug.indexOf('custom-') !== 0) {
+        var pBloq = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (pBloq && decantAConsultar(pBloq)) {
+          var msgTope = document.getElementById('decantLadder');
+          if (msgTope) {
+            msgTope.textContent = '💬 ' + pBloq.name + ' se cotiza aparte — consultanos el precio.';
+            msgTope.style.color = '#e8b800';
+            setTimeout(function() { msgTope.style.color = ''; updateDecantUI(); }, 2600);
+          }
+          return;
+        }
+      }
       if (decantsPack.length >= DECANTS_CONFIG.max_decants) {
         var msgEl = document.getElementById('decantLadder');
         if (msgEl) {
@@ -6882,6 +6981,19 @@
           .order('orden', { ascending: true });
         if (res && !res.error && res.data) {
           DECANTS_CUSTOM_LIST = res.data;
+          // [DECANT-DEDUP] Recién ahora sabemos qué perfumes son "de diseñador",
+          // así que volvemos a limpiar el pack por si tenía el duplicado barato.
+          sanitizeDecantsPack();
+          // Si el cliente fue más rápido que esta carga y ya tiene el armador
+          // abierto, la grilla se dibujó SIN dedup (se veían las dos cards).
+          // La re-dibujamos ahora que sí sabemos cuáles esconder.
+          try {
+            var ov = document.getElementById('decantBuilderOverlay');
+            if (ov && ov.classList.contains('active') &&
+                window.__extrasLoaded && typeof renderDecantGrid === 'function') {
+              renderDecantGrid();
+            }
+          } catch (e) { /* silent */ }
         }
       } catch(e) { /* tabla no existe: queda lista vacía */ }
     }
