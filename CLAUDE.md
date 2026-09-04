@@ -257,6 +257,14 @@ Definido en la lógica de admin.html (`currentRole`).
 8. 🟢 **Estandarizador automático del uploader del slider** (compresión + resize webp).
 9. 🟢 **TikTok como slide del slider con video + link**.
 
+### 🖐️ Panel admin · pedidos de las chicas (2-sep-2026)
+
+Los tres salen de uso real en las Galaxy Tab A9, **en vertical**.
+
+12. 🟡 **`[BUSCADOR-X-TOGGLES]`** — "agregar ✕ en los toggle de buscador". ⚠️ **Pendiente de aclarar con Alejo qué es un "toggle de buscador"**: los **7 inputs de texto** ya tienen su ✕ desde `a7c2bc9` (`initBuscadoresConX` en `admin.html`), así que esto apunta a otra cosa — probablemente los `<select>` de "Ordenar por" o las casillas tipo "Mostrar pausados" / "Sólo con depósito", que no se pueden limpiar de un toque.
+13. 🟡 **`[DEPOSITO-MISMO-+/-]`** — el ± del **depósito** tiene que ser **exactamente el mismo** que el de **Precios & Stock**. Las chicas dicen que el del local es muy cómodo y quieren los dos iguales. Hoy son dos flujos distintos: en stock se toca la badge de Estado y se abre `modalStock` con − / campo / + (`stockQtyStep`); en depósito se toca el número y se abre `modalDeposito`, que es otro modal aparte.
+14. 🟠 **`[DEPOSITO-A-LOCAL]`** — cuando en el **depósito** se **restan** unidades, que esas unidades **se sumen solas al stock del local**. Es el movimiento real del negocio (sacar del depósito y ponerlo en el mostrador) y hoy hay que hacerlo a mano en dos pantallas, con riesgo de que quede a medias. ⚠️ **Ojo al diseñar**: no toda resta en el depósito es un pase al local (también se puede corregir un error de carga o dar de baja una unidad rota), así que hace falta distinguir "mover al local" de "corregir". Toca `perfume_overrides.stock_deposito` y `stock_qty` en la misma operación → conviene que sea **atómica**, y que quede **un solo registro** en el historial diciendo "movió N del depósito al local".
+
 Lista completa con detalles en `docs/HISTORIA.md`.
 
 ---

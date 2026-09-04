@@ -226,6 +226,28 @@ Se achicaron los dos (no se sacó ninguna feature) + cabecera, contador y pie. R
 
 📌 El umbral de 280 px es un proxy: lo que importa es **cuántas cards ve el cliente**. 262 px no llega a 280 pero ya muestra 3, que era el objetivo.
 
+### 🗄️ El cajón · `[DECANTS-CAJON]` (2-sep-2026) — opción C
+
+`[DECANTS-ESPACIO]` (ago) y `[DECANTS-ESPACIO-2]` (sep) fueron **el mismo parche dos veces**: recortar el marco para devolverle aire al listado. Iba a pasar una tercera. La causa no era el tamaño de cada bloque, era que **cada feature nueva se apilaba arriba del listado**.
+
+Ahora la lista es la pantalla y todo lo demás (contador, ahorro, progreso, escalera y la sugerencia) vive en un **cajón** al pie que se abre de un toque. El armador pasa a **pantalla completa** en celular (`100dvh`, sin bordes redondeados ni el tope de 92vh).
+
+| | Listado | Cards |
+|---|---|---|
+| Antes de todo (ago) | 181 px | 2 |
+| Con `[DECANTS-ESPACIO-2]` | 262 px | 3 |
+| **Con el cajón, cerrado** | **390 px** | **4** |
+| Con el cajón, abierto | 302 px | 3 |
+| Desktop 1280×800 | 434 px | 4 |
+
+**Lo importante: el marco ya no puede volver a crecer.** Lo que se agregue va adentro del cajón, no encima del listado.
+
+**Markup:** el contador, el ahorro, el progreso y la escalera se movieron del `.decant-builder-header` al `.decant-builder-footer`, dentro de `#decantSheetBody`. En desktop el cuerpo está siempre abierto y la manija (`.decant-sheet-handle`) no existe — el único cambio visible allá es que esos bloques quedaron abajo, al lado del total y del botón de WhatsApp.
+
+⚠️ **El colapso usa `display`, no `max-height`.** Se intentó con `max-height` y **no funcionó**: con `.sheet-open` puesta y el selector matcheando, el computed seguía dando `0px` — incluso poniéndole al elemento un `max-height` inline con `!important`, que debería ganarle a todo. No se encontró la causa. `display` anda y es verificable; el precio es que el cajón abre de una, sin deslizarse. Si se quiere la animación, primero hay que entender eso.
+
+📌 El total salía **duplicado** al abrir el cajón (una vez en el contador, otra en el resumen del pie, que quedaron pegados). El resumen ahora se oculta cuando el cajón está abierto — y en desktop siempre, porque allá el cajón nunca se cierra.
+
 **Mito a no repetir:** `min-height: 0` en el grid **NO es el fix**. Un flex item con `overflow` distinto de `visible` ya tiene mínimo automático 0 por especificación. Se probó con un A/B y dio idéntico. El fix es **achicar el marco fijo**, no redistribuir.
 
 **Breakpoints por alto:** usar `max-height: 900px`, no 800. La **PWA instalada no tiene barra de direcciones** y gana ~90 px: un iPhone que en el navegador da ~750 de alto, instalado da 844. Con el corte en 800, los clientes que instalaron la app se quedan sin el arreglo.

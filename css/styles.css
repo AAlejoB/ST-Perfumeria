@@ -8689,6 +8689,81 @@
     }
 
     /* ════════════════════════════════════════════════════════════════
+       [DECANTS-CAJON] (2-sep-2026) — la opción C de los mockups.
+
+       La lista pasa a ser la pantalla. Todo lo que la rodeaba (contador,
+       ahorro, progreso, escalera y la sugerencia) baja a un cajón cerrado
+       que se abre de un toque, como el carrito de una app de delivery.
+
+       POR QUÉ ESTO Y NO SEGUIR RECORTANDO: [DECANTS-ESPACIO] (ago) y
+       [DECANTS-ESPACIO-2] (sep) fueron el mismo parche dos veces. Cada
+       feature nueva se apilaba arriba y le comía espacio al listado. Con
+       el cajón lo nuevo ya no tiene dónde apilarse: entra adentro.
+
+       Solo celular (≤700px). En desktop el cuerpo del cajón está siempre
+       abierto y la manija no existe.
+       ════════════════════════════════════════════════════════════════ */
+    .decant-sheet-handle { display: none; }
+
+    @media (max-width: 700px) {
+      /* El armador ocupa el teléfono entero: sin bordes redondeados ni el
+         tope de 92vh, que arriba era espacio muerto. */
+      .decant-builder {
+        max-height: none;
+        height: 100vh;
+        height: 100dvh;          /* descuenta la barra del navegador */
+        max-width: none;
+        border-radius: 0;
+        border-top: 0;
+      }
+      .decant-builder-grid { flex: 1 1 auto; }
+
+      .decant-sheet-handle {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        width: 100%; padding: 6px 0 7px;
+        background: none; border: 0; cursor: pointer;
+        font-family: inherit; font-size: .56rem; font-weight: 700;
+        letter-spacing: .1em; text-transform: uppercase; color: var(--gris);
+      }
+      .decant-sheet-grabber {
+        width: 38px; height: 4px; border-radius: 2px; background: #3a3a42;
+      }
+      .decant-sheet-handle:active .decant-sheet-grabber { background: var(--amarillo); }
+
+      /* El cuerpo arranca cerrado.
+
+         Se colapsa con display y no con max-height a propósito: el
+         max-height NO funcionó acá — con la clase .sheet-open puesta y el
+         selector matcheando, el computed seguía dando 0px, incluso
+         poniéndole al elemento un max-height inline con !important (que
+         debería ganarle a todo). No encontré la causa. display sí anda y
+         es verificable; el precio es que el cajón abre de una, sin
+         deslizarse. Si algún día se quiere la animación, hay que entender
+         primero por qué pasaba eso. */
+      .decant-sheet-body { display: none; }
+      .decant-builder.sheet-open .decant-sheet-body {
+        display: block;
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+      /* Con el cajón cerrado la sugerencia tampoco ocupa lugar fijo: vive
+         adentro del cajón, como todo lo demás. */
+      .decant-builder:not(.sheet-open) .decant-combo-sticky { display: none; }
+
+      /* Con el cajon ABIERTO el total sale dos veces: una en el contador y
+         otra en el resumen, que ahora quedaron pegados. Con el cajon cerrado
+         el resumen es el unico total, asi que solo lo sacamos al abrir. */
+      .decant-builder.sheet-open .decant-builder-footer.has-items .decant-builder-footer-summary { display: none; }
+    }
+
+    /* En desktop el cajon esta siempre abierto, asi que el resumen siempre
+       duplicaria al contador. */
+    @media (min-width: 701px) {
+      .decant-builder-footer.has-items .decant-builder-footer-summary { display: none; }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════════
        Banner Juegos ST — CTA al Quiz "Encontrá tu perfume"
        Variante "game-show energético": violeta → magenta con emoji
        bouncing. Distinto del banner amarillo "EXPLORÁ +150" para que

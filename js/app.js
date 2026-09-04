@@ -6924,6 +6924,21 @@
         console.error('[extras] no se pudo cargar el armador:', e);
       });
     }
+    // [DECANTS-CAJON] Abre y cierra el cajón del armador en celular.
+    // Vive en app.js y no en extras.js a propósito: solo toca clases, no
+    // depende del armador cargado, y el onclick es inline en el HTML — así
+    // que tiene que existir en window desde el arranque.
+    function toggleDecantSheet() {
+      var b = document.querySelector('.decant-builder');
+      if (!b) return;
+      var abierto = b.classList.toggle('sheet-open');
+      var h = document.getElementById('decantSheetHandle');
+      var l = document.getElementById('decantSheetHandleLabel');
+      if (h) h.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+      if (l) l.textContent = abierto ? 'Ocultar detalle' : 'Ver detalle del pack';
+    }
+    window.toggleDecantSheet = toggleDecantSheet;
+
     function closeDecantBuilder() {
       if (window.__extrasLoaded && window.closeDecantBuilder !== closeDecantBuilder) {
         window.closeDecantBuilder();
