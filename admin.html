@@ -8908,6 +8908,23 @@
         var res = await sb
           .from('decants_config')
           .upsert(payload, { onConflict: 'id' });
+        // Si la columna precio_frasco_max todavía no existe (falta correr
+        // sql/add_precio_frasco_max.sql), reintentamos SIN esa columna.
+        // Sin esto se perdía TODO el guardado — precios de la escalera,
+        // máximo de decants y aviso incluidos — no sólo el tope nuevo.
+        // Mismo patrón que precio_unit en saveDecantCustom().
+        if (res.error && /precio_frasco_max/i.test(res.error.message || '')) {
+          delete payload.precio_frasco_max;
+          res = await sb
+            .from('decants_config')
+            .upsert(payload, { onConflict: 'id' });
+          if (!res.error) {
+            logAdminAction('decants_config_update', null, payload);
+            msg.style.color = '#fbbf24';
+            msg.textContent = '⚠ Guardado SIN el tope (falta correr sql/add_precio_frasco_max.sql)';
+            return;
+          }
+        }
         if (res.error) throw res.error;
         logAdminAction('decants_config_update', null, payload);
         msg.style.color = '#27ae60';
