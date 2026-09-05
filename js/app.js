@@ -4503,17 +4503,28 @@
     async function loadOverrides() {
       // Pre-aplicar cache si existe (instant fallback)
       var cached = readCache('perfume_overrides');
-      // [DECANT-PRECIO-MANUAL] Slugs a los que el CACHE les puso precio de decant.
-      // applyOverrideToPerfume sólo pisa cuando el valor nuevo no es null (misma
-      // convención que el resto de los campos), así que un precio BORRADO en el
-      // admin llegaba como null, no pisaba nada, y el precio viejo del cache
-      // quedaba vivo hasta que el cache expiraba (30 min).
-      // Anotamos qué puso el cache para poder limpiarlo antes de aplicar lo fresco.
-      var slugsPrecioDesdeCache = [];
+      // [DECANT-PRECIO-MANUAL] applyOverrideToPerfume sólo pisa cuando el valor
+      // nuevo no es null (misma convención que el resto de los campos), así que
+      // un precio BORRADO en el admin llegaba como null, no pisaba nada, y el
+      // precio viejo del cache quedaba vivo hasta que el cache expiraba (30 min).
+      //
+      // Para poder deshacer lo que pone el cache guardamos el valor PREVIO, no
+      // sólo el slug: loadPerfumesNuevos() corre ANTES que esta función, así que
+      // acá `p._precioDecant` puede traer ya el precio cargado en perfumes_nuevos.
+      // Borrar a ciegas se lo llevaba puesto y dejaba el perfume "a consultar"
+      // durante una carga. Snapshot antes de aplicar el cache, restore después.
+      var previoPrecioDecant = [];
       if (cached && Array.isArray(cached)) {
         cached.forEach(function(o) {
           if (o && o.precio_decant !== undefined && o.precio_decant !== null) {
-            slugsPrecioDesdeCache.push(o.slug);
+            var pPrev = PERFUMES.find(function(x) { return x.slug === o.slug; });
+            if (pPrev) {
+              previoPrecioDecant.push({
+                slug:  o.slug,
+                tenia: Object.prototype.hasOwnProperty.call(pPrev, '_precioDecant'),
+                valor: pPrev._precioDecant
+              });
+            }
           }
           applyOverrideToPerfume(o);
         });
@@ -4528,15 +4539,15 @@
         if (error) { console.warn('[loadOverrides] supabase error:', error.message); return; }
         if (data && data.length > 0) {
           writeCache('perfume_overrides', data);
-          // [DECANT-PRECIO-MANUAL] Limpiar SÓLO lo que había puesto el cache.
-          // Ojo: no se puede limpiar a lo bruto para todos, porque un perfume
-          // dado de alta en perfumes_nuevos con precio de decant puede tener
-          // además una fila en perfume_overrides creada por el modal de stock
-          // (que no toca precio_decant, o sea NULL) — borrarle el precio ahí
-          // sería peor que el bug original.
-          slugsPrecioDesdeCache.forEach(function(slug) {
-            var p = PERFUMES.find(function(x) { return x.slug === slug; });
-            if (p) delete p._precioDecant;
+          // [DECANT-PRECIO-MANUAL] Deshacer lo que puso el cache dejando el valor
+          // que había ANTES (normalmente el de perfumes_nuevos), no borrando.
+          // Si antes no había nada, ahí sí se borra la clave. Recién después
+          // aplicamos lo fresco, que es lo que manda.
+          previoPrecioDecant.forEach(function(snap) {
+            var p = PERFUMES.find(function(x) { return x.slug === snap.slug; });
+            if (!p) return;
+            if (snap.tenia) p._precioDecant = snap.valor;
+            else delete p._precioDecant;
           });
           data.forEach(applyOverrideToPerfume);
         }
