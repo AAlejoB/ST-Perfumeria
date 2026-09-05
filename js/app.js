@@ -4503,8 +4503,20 @@
     async function loadOverrides() {
       // Pre-aplicar cache si existe (instant fallback)
       var cached = readCache('perfume_overrides');
+      // [DECANT-PRECIO-MANUAL] Slugs a los que el CACHE les puso precio de decant.
+      // applyOverrideToPerfume sólo pisa cuando el valor nuevo no es null (misma
+      // convención que el resto de los campos), así que un precio BORRADO en el
+      // admin llegaba como null, no pisaba nada, y el precio viejo del cache
+      // quedaba vivo hasta que el cache expiraba (30 min).
+      // Anotamos qué puso el cache para poder limpiarlo antes de aplicar lo fresco.
+      var slugsPrecioDesdeCache = [];
       if (cached && Array.isArray(cached)) {
-        cached.forEach(applyOverrideToPerfume);
+        cached.forEach(function(o) {
+          if (o && o.precio_decant !== undefined && o.precio_decant !== null) {
+            slugsPrecioDesdeCache.push(o.slug);
+          }
+          applyOverrideToPerfume(o);
+        });
         console.log('[loadOverrides] aplicado desde cache:', cached.length, 'overrides');
       }
       try {
@@ -4516,6 +4528,16 @@
         if (error) { console.warn('[loadOverrides] supabase error:', error.message); return; }
         if (data && data.length > 0) {
           writeCache('perfume_overrides', data);
+          // [DECANT-PRECIO-MANUAL] Limpiar SÓLO lo que había puesto el cache.
+          // Ojo: no se puede limpiar a lo bruto para todos, porque un perfume
+          // dado de alta en perfumes_nuevos con precio de decant puede tener
+          // además una fila en perfume_overrides creada por el modal de stock
+          // (que no toca precio_decant, o sea NULL) — borrarle el precio ahí
+          // sería peor que el bug original.
+          slugsPrecioDesdeCache.forEach(function(slug) {
+            var p = PERFUMES.find(function(x) { return x.slug === slug; });
+            if (p) delete p._precioDecant;
+          });
           data.forEach(applyOverrideToPerfume);
         }
       } catch(e) {
