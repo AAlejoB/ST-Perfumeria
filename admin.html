@@ -411,7 +411,7 @@
        Ninguno la tenía: para buscar el siguiente perfume había que mantener
        el backspace o hacer long-press → "Seleccionar todo" → borrar. En el
        flujo de descontar stock eso era ~40% de los taps.
-       El wrapper lo arma initBuscadoresConX() por JS — ver el porqué ahí. */
+       El wrapper lo arma initCamposConX() por JS — ver el porqué ahí. */
     .admin-search-wrap { position: relative; display: inline-flex; align-items: center; }
     /* El margen inferior se lo pasamos al wrapper (lo hace el JS), sino la ✕
        queda descentrada: el margen del input contaría dentro del wrapper. */
@@ -1530,7 +1530,7 @@
         </select>
         <label style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
           <input type="checkbox" id="chkSoloConDeposito" onchange="renderDeposito()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
-          Sólo con depósito
+          Sólo los que tienen unidades
         </label>
       </div>
       <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> para cambiarlo. La columna <strong>Local</strong> es de sólo lectura — se edita desde <strong>Precios &amp; Stock</strong>.</p>
@@ -3556,32 +3556,36 @@
     function closeMobileSidebar() { document.body.classList.remove('sidebar-open'); }
 
     // ============================================================
-    // [BUSCADOR-X] Una ✕ para limpiar en todos los buscadores del panel
+    // [CAMPOS-X] Una ✕ para limpiar en TODOS los campos de texto del panel
     //
-    // Ninguno de los 7 la tenía. Para buscar el perfume siguiente había que
-    // mantener el backspace o hacer long-press → "Seleccionar todo" → borrar.
-    // Contado sobre el flujo de descontar stock, eso era ~40% de los taps.
+    // Antes ([BUSCADOR-X]) la ✕ estaba sólo en 7 buscadores, con los IDs
+    // escritos a mano. Eso dejaba afuera 48 campos — entre ellos puntoQuery,
+    // el buscador de cliente para cargarle puntos — y además cualquier campo
+    // nuevo nacía sin ✕ hasta que alguien se acordara de sumarlo a la lista.
+    // La lista a mano envejecía sola.
     //
-    // Se arma por JS y no a mano en cada input porque los 7 tienen estilos
-    // inline distintos (flex:1, min-width, anchos fijos, márgenes). Meterle
-    // un wrapper a mano a cada uno rompía esos layouts; acá el wrapper
-    // HEREDA lo que posiciona al input en su fila y el input pasa a ocupar
-    // el ancho completo adentro.
+    // Ahora se buscan por SELECTOR: todo input de texto del panel la tiene,
+    // incluidos los que se agreguen en el futuro. Para dejar uno afuera,
+    // ponerle data-sin-x="1" en el HTML.
+    //
+    // El wrapper se arma por JS y no a mano en cada input porque tienen
+    // estilos inline distintos (flex:1, min-width, anchos fijos, márgenes).
+    // Meterle un wrapper a mano a cada uno rompía esos layouts; acá el
+    // wrapper HEREDA lo que posiciona al input en su fila y el input pasa a
+    // ocupar el ancho completo adentro.
     // ============================================================
-    var ADMIN_SEARCH_INPUTS = [
-      'searchPrecios',        // Precios & Stock
-      'searchDeposito',       // Depósito
-      'editSearch',           // Editar
-      'searchNuevos',         // Perfume nuevo
-      'searchClientes',       // Clientes
-      'destacadoSearch',      // Modal de destacados
-      'puntosFilterCliente'   // Ranking de puntos
-    ];
+    function camposDeTextoDelPanel() {
+      var todos = document.querySelectorAll('input[type="text"], input[type="search"]');
+      return Array.prototype.filter.call(todos, function(inp) {
+        if (inp.dataset.sinX === '1') return false;      // opt-out explícito
+        if (inp.closest('#loginWrap')) return false;     // el login no lleva ✕
+        return true;
+      });
+    }
 
-    function initBuscadoresConX() {
-      ADMIN_SEARCH_INPUTS.forEach(function(id) {
-        var inp = document.getElementById(id);
-        if (!inp || inp.dataset.xLista) return;   // idempotente
+    function initCamposConX() {
+      camposDeTextoDelPanel().forEach(function(inp) {
+        if (inp.dataset.xLista) return;   // idempotente
         inp.dataset.xLista = '1';
 
         var wrap = document.createElement('span');
@@ -3604,13 +3608,13 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'admin-search-clear';
-        btn.setAttribute('aria-label', 'Limpiar búsqueda');
+        btn.setAttribute('aria-label', 'Limpiar campo');
         btn.innerHTML = '&times;';
         btn.addEventListener('click', function() {
           inp.value = '';
-          // Disparar 'input' hace correr el oninput que YA tiene cada
-          // buscador (filterTable, filterClientes, renderNuevos...), así no
-          // duplicamos la lógica de filtrado de cada tab acá adentro.
+          // Disparar 'input' hace correr el oninput que YA tenga el campo
+          // (filterTable, filterClientes, decantHintAdmin...), así no
+          // duplicamos acá la lógica de cada uno.
           inp.dispatchEvent(new Event('input', { bubbles: true }));
           inp.focus();
         });
@@ -3623,7 +3627,8 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', initBuscadoresConX);
+    window.initCamposConX = initCamposConX;   // re-ejecutable si algo se crea después
+    document.addEventListener('DOMContentLoaded', initCamposConX);
 
     function switchTab(tab, btn) {
       // Bloqueo por rol: si un empleado intenta forzar una pestaña jefe-only, abortar
