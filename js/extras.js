@@ -235,6 +235,8 @@
 
     var list = PERFUMES.filter(function(p) {
       if (p.esSet || p._oculto || p._pausado) return false;
+      // [DECANT-PRECIO-MANUAL] Marcado "No ofrecer en decants" desde el admin.
+      if (typeof decantExcluido === 'function' && decantExcluido(p)) return false;
       if (customNames[normName(p.name)]) return false;   // ya existe como decant de diseñador
       if (!qNorm) return true;
       var hay = stripAccents([p.name, p.marca, p.marca_real||'', p.alias||'', (typeof getGamaAlias==='function'?getGamaAlias(p):'')].join(' ').toLowerCase());
@@ -333,11 +335,19 @@
         + '</div>';
       }
 
+      // [DECANT-PRECIO-MANUAL] Si el empleado le cargó precio de decant, lo
+      // mostramos en la card (como los de diseñador) en vez de la escalera.
+      var manual = (typeof decantPrecioManual === 'function') ? decantPrecioManual(p) : 0;
+      var precioTag = manual > 0
+        ? '<p class="decant-card-price">$' + Math.round(manual).toLocaleString('es-AR') + ' c/u</p>'
+        : '';
+
       return '<div class="decant-card' + (qty > 0 ? ' has-qty' : '') + '">'
         + '<div class="decant-card-img">' + img + '</div>'
         + '<div class="decant-card-info">'
           + '<p class="decant-card-name">' + p.name + '</p>'
           + '<p class="decant-card-brand">' + (p.marca_real || p.marca || '') + '</p>'
+          + precioTag
         + '</div>'
         + '<div class="decant-card-ctrl">'
           + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(\'' + p.slug + '\')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'

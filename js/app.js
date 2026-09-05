@@ -4436,7 +4436,11 @@
               promo: p.promo ? intToPrice(p.promo) : '',
               foto: p.foto || '', ml: p.ml || 100,
               notas_salida: p.notas_salida || '', notas_corazon: p.notas_corazon || '',
-              notas_base: p.notas_base || '', _isNew: true
+              notas_base: p.notas_base || '', _isNew: true,
+              // [DECANT-PRECIO-MANUAL] Precio de decant que cargó el empleado
+              // al dar de alta el perfume, y la casilla de exclusión.
+              _precioDecant: (p.precio_decant != null ? p.precio_decant : null),
+              _decantExcluido: !!p.decant_excluido
             };
             PERFUMES.push(pNorm);
             newPerfumesToCache.push(pNorm);
@@ -4488,6 +4492,11 @@
       // perfumes destacados del podio). Activación pendiente de SQL ALTER TABLE
       // perfume_overrides ADD COLUMN nota_jefe TEXT + UI admin para editarlo.
       if (o.nota_jefe !== undefined && o.nota_jefe !== null) p.nota_jefe = o.nota_jefe;
+      // [DECANT-PRECIO-MANUAL] Precio de decant y exclusión, cargados desde el
+      // admin (Editar perfume). Si la columna no existe todavía, quedan undefined
+      // y el armador se comporta como antes.
+      if (o.precio_decant !== undefined && o.precio_decant !== null) p._precioDecant = o.precio_decant;
+      if (o.decant_excluido !== undefined && o.decant_excluido !== null) p._decantExcluido = !!o.decant_excluido;
     }
 
     // Cargar overrides desde Supabase y aplicar sobre perfumes.js
@@ -6544,8 +6553,30 @@
       return precio / ml * 100;
     }
 
-    // true → la card se muestra como "Precio a consultar" (no se puede agregar)
+    // ════════════════════════════════════════════════════════════
+    // [DECANT-PRECIO-MANUAL] Precio de decant cargado a mano por el empleado
+    // o el jefe desde el admin (campo "Precio del decant" en Nuevo perfume y
+    // en Editar perfume). Vive en perfumes_nuevos.precio_decant y en
+    // perfume_overrides.precio_decant.
+    //
+    // Es la fuente de verdad: si está cargado, ese precio manda y el perfume
+    // se vende normalmente aunque el frasco sea carísimo. Nadie tiene que
+    // consultar nada ni esperar a que alguien conteste un WhatsApp.
+    // ════════════════════════════════════════════════════════════
+    function decantPrecioManual(p) {
+      var v = parseFloat(p && p._precioDecant != null ? p._precioDecant : NaN);
+      return (isFinite(v) && v > 0) ? v : 0;
+    }
+
+    // El perfume no se ofrece en decants (casilla "No ofrecer en decants").
+    function decantExcluido(p) {
+      return !!(p && p._decantExcluido);
+    }
+
+    // true → la card se muestra como "Precio a consultar" (no se puede agregar).
+    // Sólo pasa si el frasco supera el tope Y nadie cargó precio de decant.
     function decantAConsultar(p) {
+      if (decantPrecioManual(p) > 0) return false;      // tiene precio cargado → se vende
       var tope = parseFloat(DECANTS_CONFIG.precio_frasco_max);
       if (!isFinite(tope) || tope <= 0) return false;   // regla desactivada
       var eq = decantPrecioFrasco100(p);
@@ -6583,6 +6614,7 @@
         if (typeof s !== 'string' || s.indexOf('custom-') === 0) return true;
         var pf = PERFUMES.find(function(x) { return x.slug === s; });
         if (!pf) return true;
+        if (decantExcluido(pf)) return false;
         if (decantAConsultar(pf)) return false;
         if (customs[decantNombreNorm(pf.name)]) return false;
         return true;
@@ -6609,6 +6641,7 @@
       // bloqueamos acá también (DOM viejo, consola, pack restaurado, etc.).
       if (typeof slug === 'string' && slug.indexOf('custom-') !== 0) {
         var pBloq = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (pBloq && decantExcluido(pBloq)) return;   // no se ofrece en decants
         if (pBloq && decantAConsultar(pBloq)) {
           var msgTope = document.getElementById('decantLadder');
           if (msgTope) {
@@ -6698,8 +6731,10 @@
       function setTxt(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
 
       // Separar slugs en 2 grupos:
-      //  - "fixed": customs con precio_unit definido (no entran a la escalera)
-      //  - "ladder": el resto (regulares + customs sin precio_unit)
+      //  - "fixed": precio propio definido (no entran a la escalera). Son los
+      //    customs con precio_unit Y los perfumes del catálogo con
+      //    precio_decant cargado a mano desde el admin.
+      //  - "ladder": el resto
       var fixedCount = 0;
       var fixedTotal = 0;
       var ladderCount = 0;
@@ -6710,6 +6745,16 @@
           if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
             fixedCount++;
             fixedTotal += parseFloat(c.precio_unit);
+            return;
+          }
+        } else if (typeof s === 'string') {
+          // [DECANT-PRECIO-MANUAL] Perfume del catálogo con precio de decant
+          // cargado por el empleado: se cobra ese precio, no la escalera.
+          var pf = PERFUMES.find(function(x) { return x.slug === s; });
+          var manual = decantPrecioManual(pf);
+          if (manual > 0) {
+            fixedCount++;
+            fixedTotal += manual;
             return;
           }
         }

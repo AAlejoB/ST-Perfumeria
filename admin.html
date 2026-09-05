@@ -1654,7 +1654,18 @@
             </div>
             <div>
               <label class="modal-label">Tamaño (ml)</label>
-              <input type="number" class="modal-input" id="editMl" placeholder="100" style="margin-bottom:0;"/>
+              <input type="number" class="modal-input" id="editMl" placeholder="100" oninput="decantHintAdmin('edit')" style="margin-bottom:0;"/>
+            </div>
+            <!-- [DECANT-PRECIO-MANUAL] Precio de decant, libre para quien edita el perfume -->
+            <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
+              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">💧 Decants</p>
+              <label class="modal-label">Precio del decant (opcional)</label>
+              <input type="number" class="modal-input" id="editPrecioDecant" placeholder="Vacío = precio general de decants" oninput="decantHintAdmin('edit')" style="margin-bottom:.45rem;"/>
+              <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:#e4e4e4;cursor:pointer;margin:.2rem 0;">
+                <input type="checkbox" id="editDecantExcluido" onchange="decantHintAdmin('edit')" style="width:16px;height:16px;accent-color:var(--amarillo);cursor:pointer;flex-shrink:0;"/>
+                <span>No ofrecer este perfume en decants</span>
+              </label>
+              <p id="editDecantHint" style="font-size:.66rem;margin:.35rem 0 0;line-height:1.5;"></p>
             </div>
             <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
               <p style="font-size:.65rem;font-weight:700;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">⏰ Descuento temporal</p>
@@ -1861,7 +1872,18 @@
             </div>
             <div>
               <label class="modal-label">ML</label>
-              <input type="number" class="modal-input" id="nuevoMl" placeholder="100" value="100" style="margin-bottom:0;"/>
+              <input type="number" class="modal-input" id="nuevoMl" placeholder="100" value="100" oninput="decantHintAdmin('nuevo')" style="margin-bottom:0;"/>
+            </div>
+            <!-- [DECANT-PRECIO-MANUAL] Precio de decant, libre para quien carga el perfume -->
+            <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
+              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">💧 Decants</p>
+              <label class="modal-label">Precio del decant (opcional)</label>
+              <input type="number" class="modal-input" id="nuevoPrecioDecant" placeholder="Vacío = precio general de decants" oninput="decantHintAdmin('nuevo')" style="margin-bottom:.45rem;"/>
+              <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:#e4e4e4;cursor:pointer;margin:.2rem 0;">
+                <input type="checkbox" id="nuevoDecantExcluido" onchange="decantHintAdmin('nuevo')" style="width:16px;height:16px;accent-color:var(--amarillo);cursor:pointer;flex-shrink:0;"/>
+                <span>No ofrecer este perfume en decants</span>
+              </label>
+              <p id="nuevoDecantHint" style="font-size:.66rem;margin:.35rem 0 0;line-height:1.5;"></p>
             </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">Foto del perfume</label>
@@ -3718,6 +3740,9 @@
           if (o.nota_ultimo !== undefined && o.nota_ultimo !== null) p.nota_ultimo = o.nota_ultimo;
           if (o.nota_sin_stock !== undefined && o.nota_sin_stock !== null) p.nota_sin_stock = o.nota_sin_stock;
           if (o.nota_proximamente !== undefined && o.nota_proximamente !== null) p.nota_proximamente = o.nota_proximamente;
+          // [DECANT-PRECIO-MANUAL] para que el form de Editar muestre lo guardado
+          if (o.precio_decant !== undefined && o.precio_decant !== null) p._precioDecant = o.precio_decant;
+          if (o.decant_excluido !== undefined && o.decant_excluido !== null) p._decantExcluido = !!o.decant_excluido;
         });
       } catch(e) { console.error('loadOverridesIntoPerfumes:', e); }
     }
@@ -5490,6 +5515,10 @@
       document.getElementById('editPrice').value = p.price || '';
       document.getElementById('editPromo').value = p.promo || '';
       document.getElementById('editMl').value = p.ml || '';
+      // [DECANT-PRECIO-MANUAL]
+      document.getElementById('editPrecioDecant').value = (p._precioDecant != null ? p._precioDecant : '');
+      document.getElementById('editDecantExcluido').checked = !!p._decantExcluido;
+      decantHintAdmin('edit');
       document.getElementById('editDescuentoPct').value = p.descuento_pct || '';
       // Formatear fecha para el input datetime-local
       if (p.descuento_hasta) {
@@ -5749,7 +5778,13 @@
         nota_sin_stock:     document.getElementById('editNotaSinStock').value.trim(),
         nota_proximamente:  document.getElementById('editNotaProximamente').value.trim(),
         // [SELECCION-ST-1B] Quote del jefe — solo visible en cards de Selección ST top 6.
-        nota_jefe:          document.getElementById('editNotaJefe').value.trim()
+        nota_jefe:          document.getElementById('editNotaJefe').value.trim(),
+        // [DECANT-PRECIO-MANUAL] Precio de decant y exclusión (libres).
+        precio_decant:   (function() {
+                            var v = parseInt(document.getElementById('editPrecioDecant').value, 10);
+                            return (isNaN(v) || v <= 0) ? null : v;
+                          })(),
+        decant_excluido: !!document.getElementById('editDecantExcluido').checked
       };
 
       var msgEl = document.getElementById('editMsg');
@@ -5758,6 +5793,18 @@
 
       // Upsert: insert si no existe, update si ya existe
       var { error } = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
+
+      // [DECANT-PRECIO-MANUAL] Si todavía no se corrió el ALTER TABLE, reintentamos
+      // sin esas columnas para no perder TODO el resto de la edición.
+      if (error && /precio_decant|decant_excluido/i.test(error.message || '')) {
+        delete obj.precio_decant; delete obj.decant_excluido;
+        var retry = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
+        if (!retry.error) {
+          msgEl.style.color = '#fbbf24';
+          msgEl.textContent = '⚠ Guardado SIN los datos de decant (falta correr sql/add_precio_decant.sql).';
+          return;
+        }
+      }
 
       if (error) {
         msgEl.textContent = 'Error: ' + error.message;
@@ -6203,6 +6250,63 @@
       });
     }
 
+    // ════════════════════════════════════════════════════════════
+    // [DECANT-PRECIO-MANUAL] Aviso en vivo en los formularios de perfume.
+    //
+    // Objetivo: que quien carga el perfume (empleado o jefe) se dé cuenta SOLO
+    // de que un perfume caro sin precio de decant va a salir "a consultar", y
+    // lo resuelva ahí mismo — sin tener que preguntarle a nadie.
+    //
+    // prefix: 'nuevo' | 'edit'
+    // ════════════════════════════════════════════════════════════
+    function decantHintAdmin(prefix) {
+      var hint = document.getElementById(prefix + 'DecantHint');
+      if (!hint) return;
+      var num = function(id) {
+        var el = document.getElementById(id);
+        if (!el) return 0;
+        return parseFloat(String(el.value || '').replace(/[^0-9.]/g, '')) || 0;
+      };
+      var excl = (document.getElementById(prefix + 'DecantExcluido') || {}).checked;
+      if (excl) {
+        hint.style.color = 'var(--gris)';
+        hint.textContent = 'Este perfume no va a aparecer en el armador de decants.';
+        return;
+      }
+
+      var precioDecant = num(prefix + 'PrecioDecant');
+      if (precioDecant > 0) {
+        hint.style.color = '#2ecc71';
+        hint.textContent = '✓ Se va a vender a $' + precioDecant.toLocaleString('es-AR') + ' el decant.';
+        return;
+      }
+
+      // Sin precio propio → ¿el frasco pasa el tope?
+      var precio = num(prefix + 'Price');
+      var ml = num(prefix + 'Ml') || 100;
+      var tope = (typeof DECANTS_ADMIN_TOPE === 'number' && DECANTS_ADMIN_TOPE > 0) ? DECANTS_ADMIN_TOPE : 0;
+      if (!precio || !tope) { hint.textContent = ''; return; }
+
+      if ((precio / ml * 100) > tope) {
+        hint.style.color = '#ff9f43';
+        hint.innerHTML = '⚠️ <strong>Este perfume es caro y va a salir como "Precio a consultar"</strong> '
+          + '(el cliente no lo va a poder comprar solo).<br>Cargale un precio de decant acá arriba para que se venda normalmente.';
+      } else {
+        hint.style.color = 'var(--gris)';
+        hint.textContent = 'Sin precio propio → usa el precio general de decants.';
+      }
+    }
+
+    // Tope de frasco leído de decants_config, para el aviso de los formularios.
+    var DECANTS_ADMIN_TOPE = 170000;
+    (async function loadTopeParaHints() {
+      try {
+        if (!sb) return;
+        var r = await sb.from('decants_config').select('precio_frasco_max').eq('id', 1).maybeSingle();
+        if (r && r.data && r.data.precio_frasco_max != null) DECANTS_ADMIN_TOPE = r.data.precio_frasco_max;
+      } catch (e) { /* queda el default */ }
+    })();
+
     function generateSlug(name) {
       return name.toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -6241,19 +6345,36 @@
       var aliasN = document.getElementById('nuevoAlias').value.trim();
 
       var slug = generateSlug(name);
+      // [DECANT-PRECIO-MANUAL] Precio de decant y exclusión (libres).
+      var precioDecantN = parseInt(document.getElementById('nuevoPrecioDecant').value, 10);
+      if (isNaN(precioDecantN) || precioDecantN <= 0) precioDecantN = null;
+      var decantExclN = !!document.getElementById('nuevoDecantExcluido').checked;
+
       var obj = {
         slug: slug, name: name, marca: marca, marca_real: marcaReal,
         cat: cat, perfil: perfil, tipo: tipoFinalN, price: price, promo: promo,
         foto: foto, ml: ml,
         notas_salida: salida, notas_corazon: corazon, notas_base: base,
-        alias: aliasN
+        alias: aliasN,
+        precio_decant: precioDecantN, decant_excluido: decantExclN
       };
 
       var result;
-      if (editId) {
-        result = await sb.from('perfumes_nuevos').update(obj).eq('id', parseInt(editId));
-      } else {
-        result = await sb.from('perfumes_nuevos').insert(obj);
+      var doSave = async function() {
+        return editId
+          ? await sb.from('perfumes_nuevos').update(obj).eq('id', parseInt(editId))
+          : await sb.from('perfumes_nuevos').insert(obj);
+      };
+      result = await doSave();
+
+      // [DECANT-PRECIO-MANUAL] Retry sin las columnas nuevas si falta el ALTER TABLE.
+      if (result.error && /precio_decant|decant_excluido/i.test(result.error.message || '')) {
+        delete obj.precio_decant; delete obj.decant_excluido;
+        result = await doSave();
+        if (!result.error) {
+          msgEl.textContent = '⚠ Perfume guardado SIN los datos de decant (falta correr sql/add_precio_decant.sql).';
+          msgEl.style.color = '#fbbf24';
+        }
       }
 
       if (result.error) {
@@ -6302,6 +6423,10 @@
         previewWrap.style.display = 'none';
       }
       document.getElementById('nuevoMl').value = data.ml || 100;
+      // [DECANT-PRECIO-MANUAL]
+      document.getElementById('nuevoPrecioDecant').value = (data.precio_decant != null ? data.precio_decant : '');
+      document.getElementById('nuevoDecantExcluido').checked = !!data.decant_excluido;
+      decantHintAdmin('nuevo');
       document.getElementById('nuevoSalida').value = data.notas_salida || '';
       document.getElementById('nuevoCorazon').value = data.notas_corazon || '';
       document.getElementById('nuevoBase').value = data.notas_base || '';
@@ -6350,6 +6475,10 @@
       document.getElementById('fotoPreview').style.display = 'none';
       document.getElementById('fotoUploadMsg').textContent = '';
       document.getElementById('nuevoMl').value = '100';
+      // [DECANT-PRECIO-MANUAL]
+      document.getElementById('nuevoPrecioDecant').value = '';
+      document.getElementById('nuevoDecantExcluido').checked = false;
+      decantHintAdmin('nuevo');
       document.getElementById('nuevoSalida').value = '';
       document.getElementById('nuevoCorazon').value = '';
       document.getElementById('nuevoBase').value = '';
