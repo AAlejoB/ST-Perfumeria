@@ -195,22 +195,30 @@
        Layouts: mobile (≤700px, sidebar overlay con hamburguesa) /
        tablet (700-1100px, sidebar 200px) / desktop (≥1100px, sidebar 240px).
        ──────────────────────────────────────────────────────────────── */
+    /* [SIDEBAR-RIEL] La barra dejó de ser una columna que empuja el contenido.
+       Antes el grid iba de 240px a 0 al plegar y el área de trabajo cambiaba de
+       ancho: las tablas se reacomodaban enteras cada vez. Ahora la columna es un
+       RIEL fijo de 56px (solo iconos) que nunca cambia, y al expandir, el panel
+       con los nombres se dibuja SUPERPUESTO encima del contenido.
+       Resultado: el ancho del área de trabajo es constante. */
     .app-shell {
       display: grid;
-      grid-template-columns: 240px 1fr;
+      grid-template-columns: var(--riel, 56px) 1fr;
       gap: 0;
       min-height: calc(100vh - 70px); /* descuenta el panel-header */
+      position: relative;             /* ancla del panel superpuesto */
     }
-    /* Al plegar la barra en desktop/tablet, .sidebar animaba su width y
-       opacity en .25s pero la columna del grid saltaba a 0 de una: el
-       contenido se corría de golpe mientras la barra se desvanecía encima.
-       Transicionar también el grid las sincroniza. En un navegador que no
-       sepa animar grid-template-columns se comporta como hasta ahora. */
+    /* El riel mide siempre igual, así que el grid ya no necesita animarse:
+       lo que se mueve ahora es el panel superpuesto, no la columna.
+
+       El contenido se ancla a la 2ª columna A MANO. Hace falta porque al
+       expandir, la barra pasa a position:absolute y sale del flujo del grid:
+       sin esto el <main> se corría solo a la columna del riel (56px) y el
+       panel se lo comía entero.
+       min-width:0 además evita que una tabla ancha estire la columna y
+       desborde el layout — justo lo que queremos que no pase. */
     @media (min-width: 701px) {
-      .app-shell { transition: grid-template-columns .25s ease; }
-    }
-    @media (max-width: 1100px) {
-      .app-shell { grid-template-columns: 200px 1fr; }
+      .admin-main { grid-column: 2; min-width: 0; }
     }
     @media (max-width: 700px) {
       .app-shell { grid-template-columns: 1fr; }
@@ -281,18 +289,77 @@
     }
     .sidebar-hamburger:hover { background: rgba(232,184,0,.08); }
 
-    /* Sidebar collapsed en desktop/tablet (persistido en localStorage) */
+    /* [SIDEBAR-RIEL] Desktop/tablet: riel de iconos ↔ panel superpuesto.
+       El estado expandido se persiste en localStorage (ver SB_KEY_EXPANDED). */
     @media (min-width: 701px) {
-      body.sidebar-collapsed .app-shell { grid-template-columns: 0 1fr; }
-      body.sidebar-collapsed .sidebar {
-        width: 0;
-        min-width: 0;
-        padding: 0;
-        border-right: 0;
-        overflow: hidden;
-        opacity: 0;
-        transition: opacity .2s, width .25s, padding .25s;
+      /* — Modo riel (default): solo iconos, 56px — */
+      .sidebar {
+        width: var(--riel, 56px);
+        padding: .8rem .35rem;
+        overflow-x: hidden;
+        transition: width .22s ease;
       }
+      .sidebar .sb-label { display: none; }
+      .sidebar .tab-btn {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+        gap: 0;
+      }
+      /* Los títulos de grupo no entran en 56px: quedan como una línea fina
+         separadora, que igual sirve para agrupar visualmente los iconos. */
+      .sidebar .sb-group-header {
+        font-size: 0;
+        letter-spacing: 0;
+        padding: .3rem 0;
+        justify-content: center;
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        margin-bottom: .2rem;
+      }
+      .sidebar .sb-group-header .sb-chev { font-size: .55rem; }
+
+      /* — Modo expandido: el panel FLOTA sobre el contenido — */
+      body.sidebar-expanded .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 240px;
+        z-index: 60;
+        padding: .8rem .5rem;
+        background: #0a0a0c;
+        box-shadow: 8px 0 24px rgba(0,0,0,.55);
+        overflow-y: auto;
+      }
+      body.sidebar-expanded .sidebar .sb-label { display: inline; }
+      body.sidebar-expanded .sidebar .tab-btn {
+        justify-content: flex-start;
+        padding-left: .65rem;
+        padding-right: .65rem;
+        gap: .45rem;
+      }
+      body.sidebar-expanded .sidebar .sb-group-header {
+        font-size: .55rem;
+        letter-spacing: .15em;
+        padding: .4rem .65rem;
+        justify-content: space-between;
+        border-bottom: 0;
+        margin-bottom: 0;
+      }
+      /* Fondo clickeable para cerrar el panel tocando fuera. */
+      body.sidebar-expanded .sidebar-backdrop {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 55;
+      }
+    }
+    body.light .sidebar .sb-group-header { border-bottom-color: rgba(0,0,0,.1); }
+    @media (min-width: 701px) {
+      body.light.sidebar-expanded .sidebar { background: #fdf8e8; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sidebar { transition: none; }
     }
 
     /* Grupos del sidebar */
@@ -323,6 +390,17 @@
       gap: 1px;
       padding: 2px 0 4px;
     }
+
+    /* [SIDEBAR-RIEL] El icono va en su propio span para poder centrarlo en el
+       riel; el nombre va en .sb-label, que es lo que se oculta a 56px. */
+    .sidebar .sb-ico {
+      font-size: 1.05rem;
+      line-height: 1;
+      flex-shrink: 0;
+      width: 1.35rem;
+      text-align: center;
+    }
+    .sidebar .sb-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* Override total de tab-btn para versión sidebar */
     .sidebar .tab-btn {
@@ -1376,61 +1454,68 @@
       <div class="sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
 
       <aside class="sidebar" id="adminSidebar">
-        <!-- ⭐ TOP (pinned, no se colapsa) -->
+        <!-- [SIDEBAR-USO] Orden segun uso medido en admin_actions (5-jul a 5-sep, 2.308 acciones).
+             OJO al leer los numeros: admin_actions solo registra ESCRITURAS, y ademas hay
+             pestanas que escriben SIN loguear (Clientes hace 11 escrituras sin log). Un cero
+             puede significar "no se usa" o "no se mide" — solo se bajo a Avanzado lo que tiene
+             log instrumentado Y aun asi marco cero en 2 meses. Nada se apago. -->
+
+        <!-- Stock 1756 + Deposito 282 = 88% de toda la actividad. Fijas, no se pliegan. -->
         <div class="sb-group" data-group="top">
-          <div class="sb-group-header locked"><span>⭐ Top</span></div>
+          <div class="sb-group-header locked"><span>&#11088; Lo de siempre</span></div>
           <div class="sb-tab-list">
-            <button class="tab-btn active" data-tab="precios" onclick="switchTab('precios',this);closeMobileSidebar()">💰 Precios & Stock</button>
-            <button class="tab-btn" data-tab="clientes" onclick="switchTab('clientes',this);closeMobileSidebar()">👥 Clientes</button>
-            <button class="tab-btn" data-tab="deposito" onclick="switchTab('deposito',this);renderDeposito();closeMobileSidebar()">📦 Depósito</button>
-            <button class="tab-btn" data-tab="resetpass" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()">🔑 Pedidos pass</button>
-            <button class="tab-btn" data-role="jefe" data-tab="editar" onclick="switchTab('editar',this);closeMobileSidebar()">✏️ Editar</button>
-            <button class="tab-btn" data-role="jefe" data-tab="espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()">📍 Espera</button>
-            <button class="tab-btn" data-tab="decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()">💧 Decants</button>
+            <button class="tab-btn active" data-tab="precios" title="Precios &amp; Stock" onclick="switchTab('precios',this);closeMobileSidebar()"><span class="sb-ico">&#128176;</span><span class="sb-label">Precios &amp; Stock</span></button>
+            <button class="tab-btn" data-tab="deposito" title="Depósito" onclick="switchTab('deposito',this);renderDeposito();closeMobileSidebar()"><span class="sb-ico">&#128230;</span><span class="sb-label">Depósito</span></button>
           </div>
         </div>
 
-        <!-- 📦 PRODUCTOS -->
+        <!-- Punto ciego: escriben sin loguear o son de solo lectura. Se dejan a mano. -->
+        <div class="sb-group" data-group="dia">
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>&#128203; D&iacute;a a d&iacute;a</span><span class="sb-chev">&#9662;</span></div>
+          <div class="sb-tab-list">
+            <button class="tab-btn" data-tab="clientes" title="Clientes" onclick="switchTab('clientes',this);closeMobileSidebar()"><span class="sb-ico">&#128101;</span><span class="sb-label">Clientes</span></button>
+            <button class="tab-btn" data-tab="resetpass" title="Pedidos pass" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()"><span class="sb-ico">&#128273;</span><span class="sb-label">Pedidos pass</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="espera" title="Espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()"><span class="sb-ico">&#128205;</span><span class="sb-label">Espera</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="opiniones" title="Opiniones" onclick="switchTab('opiniones',this);closeMobileSidebar()"><span class="sb-ico">&#128172;</span><span class="sb-label">Opiniones</span></button>
+            <button class="tab-btn" data-tab="decants" title="Decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()"><span class="sb-ico">&#128167;</span><span class="sb-label">Decants</span></button>
+          </div>
+        </div>
+
+        <!-- Perfume 75 escrituras · Editar 30 (100% jefe) -->
         <div class="sb-group" data-group="productos">
-          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>📦 Productos</span><span class="sb-chev">▾</span></div>
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>&#128230; Productos</span><span class="sb-chev">&#9662;</span></div>
           <div class="sb-tab-list">
-            <button class="tab-btn" data-only-empleado="true" data-tab="editar" onclick="switchTab('editar',this);closeMobileSidebar()">✏️ Editar</button>
-            <button class="tab-btn" data-tab="nuevos" onclick="switchTab('nuevos',this);closeMobileSidebar()">➕ Perfume</button>
-            <button class="tab-btn" data-tab="combos" onclick="switchTab('combos',this);closeMobileSidebar()">🍱 Combos</button>
+            <button class="tab-btn" data-tab="nuevos" title="Perfume" onclick="switchTab('nuevos',this);closeMobileSidebar()"><span class="sb-ico">&#10133;</span><span class="sb-label">Perfume</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="editar" title="Editar" onclick="switchTab('editar',this);closeMobileSidebar()"><span class="sb-ico">&#9999;&#65039;</span><span class="sb-label">Editar</span></button>
+            <button class="tab-btn" data-only-empleado="true" data-tab="editar" title="Editar" onclick="switchTab('editar',this);closeMobileSidebar()"><span class="sb-ico">&#9999;&#65039;</span><span class="sb-label">Editar</span></button>
           </div>
         </div>
 
-        <!-- 👥 GESTIÓN (jefe-only entera) -->
-        <div class="sb-group" data-group="gestion" data-jefe-only="true">
-          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>👥 Gestión</span><span class="sb-chev">▾</span></div>
+        <!-- Solo lectura: no dejan rastro en admin_actions por definicion. -->
+        <div class="sb-group" data-group="consulta">
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>&#128202; Consulta</span><span class="sb-chev">&#9662;</span></div>
           <div class="sb-tab-list">
-            <button class="tab-btn" data-role="jefe" data-tab="opiniones" onclick="switchTab('opiniones',this);closeMobileSidebar()">💬 Opiniones</button>
-            <button class="tab-btn" data-role="jefe" data-tab="puntos" onclick="switchTab('puntos',this);loadPuntosAdmin();closeMobileSidebar()">🎯 Puntos</button>
-            <button class="tab-btn" data-role="jefe" data-tab="votacion" onclick="switchTab('votacion',this);closeMobileSidebar()">🏆 Votación</button>
-            <button class="tab-btn" data-role="jefe" data-tab="horario" onclick="switchTab('horario',this);closeMobileSidebar()">⏰ Horario</button>
+            <button class="tab-btn" data-tab="stats" title="Estadísticas" onclick="switchTab('stats',this);closeMobileSidebar()"><span class="sb-ico">&#128202;</span><span class="sb-label">Estadísticas</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="analytics" title="Analytics" onclick="switchTab('analytics',this);loadAnalytics();closeMobileSidebar()"><span class="sb-ico">&#128200;</span><span class="sb-label">Analytics</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="auditlog" title="Log" onclick="switchTab('auditlog',this);loadAuditLog();closeMobileSidebar()"><span class="sb-ico">&#128203;</span><span class="sb-label">Log</span></button>
           </div>
         </div>
 
-        <!-- 📣 MARKETING & HOME -->
-        <div class="sb-group" data-group="marketing">
-          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>📣 Marketing & Home</span><span class="sb-chev">▾</span></div>
+        <!-- Cero medido: tienen logAdminAction instrumentado y no registraron ni una
+             escritura en 2 meses. Backup (1 uso) y Doctor (diagnostico) por criterio. -->
+        <div class="sb-group collapsed" data-group="avanzado" data-default-collapsed="true">
+          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>&#128295; Avanzado</span><span class="sb-chev">&#9662;</span></div>
           <div class="sb-tab-list">
-            <button class="tab-btn" data-tab="destacados" onclick="switchTab('destacados',this);closeMobileSidebar()">⭐ Destacados</button>
-            <button class="tab-btn" data-tab="badges" onclick="switchTab('badges',this);loadBadgesAdmin();closeMobileSidebar()">🏷️ Beneficios</button>
-            <button class="tab-btn" data-tab="home" onclick="switchTab('home',this);loadHomeAdmin();closeMobileSidebar()">🏠 Home</button>
-            <button class="tab-btn" data-tab="push" onclick="switchTab('push',this);closeMobileSidebar()">🔔 Notificaciones</button>
-          </div>
-        </div>
-
-        <!-- 🛠️ SISTEMA (collapsed por default; empleada ve solo Estadísticas) -->
-        <div class="sb-group collapsed" data-group="sistema">
-          <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>🛠️ Sistema</span><span class="sb-chev">▾</span></div>
-          <div class="sb-tab-list">
-            <button class="tab-btn" data-tab="stats" onclick="switchTab('stats',this);closeMobileSidebar()">📊 Estadísticas</button>
-            <button class="tab-btn" data-role="jefe" data-tab="analytics" onclick="switchTab('analytics',this);loadAnalytics();closeMobileSidebar()">📈 Analytics</button>
-            <button class="tab-btn" data-role="jefe" data-tab="auditlog" onclick="switchTab('auditlog',this);loadAuditLog();closeMobileSidebar()">📋 Log</button>
-            <button class="tab-btn" data-role="jefe" data-tab="backups" onclick="switchTab('backups',this);loadBackups();closeMobileSidebar()">💾 Backup</button>
-            <button class="tab-btn" data-role="jefe" data-tab="doctor" onclick="switchTab('doctor',this);runCatalogDoctor();closeMobileSidebar()">🩺 Doctor</button>
+            <button class="tab-btn" data-tab="combos" title="Combos" onclick="switchTab('combos',this);closeMobileSidebar()"><span class="sb-ico">&#127857;</span><span class="sb-label">Combos</span></button>
+            <button class="tab-btn" data-tab="destacados" title="Destacados" onclick="switchTab('destacados',this);closeMobileSidebar()"><span class="sb-ico">&#11088;</span><span class="sb-label">Destacados</span></button>
+            <button class="tab-btn" data-tab="badges" title="Beneficios" onclick="switchTab('badges',this);loadBadgesAdmin();closeMobileSidebar()"><span class="sb-ico">&#127991;&#65039;</span><span class="sb-label">Beneficios</span></button>
+            <button class="tab-btn" data-tab="home" title="Home" onclick="switchTab('home',this);loadHomeAdmin();closeMobileSidebar()"><span class="sb-ico">&#127968;</span><span class="sb-label">Home</span></button>
+            <button class="tab-btn" data-tab="push" title="Notificaciones" onclick="switchTab('push',this);closeMobileSidebar()"><span class="sb-ico">&#128276;</span><span class="sb-label">Notificaciones</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="puntos" title="Puntos" onclick="switchTab('puntos',this);loadPuntosAdmin();closeMobileSidebar()"><span class="sb-ico">&#127919;</span><span class="sb-label">Puntos</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="votacion" title="Votación" onclick="switchTab('votacion',this);closeMobileSidebar()"><span class="sb-ico">&#127942;</span><span class="sb-label">Votación</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="horario" title="Horario" onclick="switchTab('horario',this);closeMobileSidebar()"><span class="sb-ico">&#9200;</span><span class="sb-label">Horario</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="backups" title="Backup" onclick="switchTab('backups',this);loadBackups();closeMobileSidebar()"><span class="sb-ico">&#128190;</span><span class="sb-label">Backup</span></button>
+            <button class="tab-btn" data-role="jefe" data-tab="doctor" title="Doctor" onclick="switchTab('doctor',this);runCatalogDoctor();closeMobileSidebar()"><span class="sb-ico">&#129658;</span><span class="sb-label">Doctor</span></button>
           </div>
         </div>
       </aside>
@@ -3493,14 +3578,19 @@
     var tabLoaded = {};
 
     // [ZAPATO] Sidebar — persistencia en localStorage del estado del sidebar y de los grupos colapsados.
-    var SB_KEY_COLLAPSED = 'st_admin_sidebar_collapsed';   // 'true' / 'false' (solo aplica desktop/tablet)
-    var SB_KEY_GROUPS    = 'st_admin_sidebar_groups';      // array JSON de data-group colapsados
+    // [SIDEBAR-RIEL] El estado de escritorio ya no es "plegada si/no" sino
+    // "riel (default) / panel expandido superpuesto". Key nueva porque el valor
+    // viejo significaba lo contrario y lo heredaba al reves.
+    var SB_KEY_EXPANDED  = 'st_admin_sidebar_expanded';    // 'true' / 'false' (solo desktop/tablet)
+    // v2: los grupos se renombraron al reordenar por uso (dia/consulta/avanzado).
+    // La lista vieja apuntaba a grupos que ya no existen, asi que se descarta sola.
+    var SB_KEY_GROUPS    = 'st_admin_sidebar_groups_v2';   // array JSON de data-group colapsados
 
     function loadSidebarPrefs() {
       try {
-        // Sidebar entero (solo desktop/tablet)
-        if (localStorage.getItem(SB_KEY_COLLAPSED) === 'true' && window.innerWidth > 700) {
-          document.body.classList.add('sidebar-collapsed');
+        // Panel expandido (solo desktop/tablet). Default: riel.
+        if (localStorage.getItem(SB_KEY_EXPANDED) === 'true' && window.innerWidth > 700) {
+          document.body.classList.add('sidebar-expanded');
         }
         // Grupos colapsados
         var raw = localStorage.getItem(SB_KEY_GROUPS);
@@ -3512,10 +3602,13 @@
             else if (g) {} // group ya no existe, ignorar
           });
           // Si un grupo NO está en la lista guardada, asegurarse de que esté expandido
-          // (excepto los locked que nunca se colapsan)
+          // (excepto los locked, y los que nacen plegados a propósito como Avanzado:
+          //  esos sólo se abren si el usuario los abrió alguna vez)
           document.querySelectorAll('.sb-group').forEach(function(el) {
             var g = el.dataset.group;
-            if (g && collapsed.indexOf(g) === -1 && !el.querySelector('.sb-group-header.locked')) {
+            if (g && collapsed.indexOf(g) === -1
+                && !el.querySelector('.sb-group-header.locked')
+                && el.dataset.defaultCollapsed !== 'true') {
               el.classList.remove('collapsed');
             }
           });
@@ -3543,17 +3636,26 @@
       if (window.innerWidth <= 700) {
         document.body.classList.toggle('sidebar-open');
       } else {
-        document.body.classList.toggle('sidebar-collapsed');
+        document.body.classList.toggle('sidebar-expanded');
         try {
-          localStorage.setItem(SB_KEY_COLLAPSED,
-            document.body.classList.contains('sidebar-collapsed') ? 'true' : 'false');
+          localStorage.setItem(SB_KEY_EXPANDED,
+            document.body.classList.contains('sidebar-expanded') ? 'true' : 'false');
         } catch(e) {}
       }
     }
 
     // Compat con el onclick del hamburguesa
     function toggleMobileSidebar() { toggleSidebar(); }
-    function closeMobileSidebar() { document.body.classList.remove('sidebar-open'); }
+    // [SIDEBAR-RIEL] Se llama desde el onclick de TODAS las pestañas. En celular
+    // cierra el overlay; en escritorio repliega el panel al riel, así el contenido
+    // queda despejado apenas elegís. El riel deja los iconos a un click igual.
+    function closeMobileSidebar() {
+      document.body.classList.remove('sidebar-open');
+      if (window.innerWidth > 700 && document.body.classList.contains('sidebar-expanded')) {
+        document.body.classList.remove('sidebar-expanded');
+        try { localStorage.setItem(SB_KEY_EXPANDED, 'false'); } catch(e) {}
+      }
+    }
 
     // ============================================================
     // [CAMPOS-X] Una ✕ para limpiar en TODOS los campos de texto del panel
