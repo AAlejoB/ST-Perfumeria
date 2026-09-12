@@ -16,7 +16,8 @@
   "main": "add-marca-real.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "webp": "node convertir-webp.js"
+    "webp": "node convertir-webp.js",
+    "metricas": "bash scripts/metricas.sh"
   },
   "repository": {
     "type": "git",

@@ -12,6 +12,71 @@
     :root {
       --negro: #0a0a0a; --amarillo: #e8b800; --amarillo-claro: #f5d442;
       --gris: #888; --gris-claro: #ccc; --borde: rgba(255,255,255,.08);
+
+      /* ══════════════════════════════════════════════════════════
+         [TOKENS] FASE 1 — Escala de medidas del panel.
+
+         NO son valores inventados: salieron de contar los 887 atributos de
+         estilo inline de este archivo y quedarse con los que más se repiten.
+         El número al lado de cada uno es cuántas veces aparecía.
+
+         Para qué sirve: hoy hay NUEVE tamaños de fuente distintos entre
+         .55rem y .8rem — visualmente indistinguibles pero nunca iguales.
+         Eso es lo que el ojo lee como "hecho a mano". Estos tokens son
+         los únicos valores permitidos de acá en adelante; lo viejo se va
+         reemplazando de a poco (Fase 2), no todo junto.
+         ══════════════════════════════════════════════════════════ */
+
+      /* Espaciado — padding, gap y margin salían casi todos de acá */
+      --sp-1: .25rem;   /*  9× */
+      --sp-2: .4rem;    /* 17× */
+      --sp-3: .6rem;    /* 17× */
+      --sp-4: .8rem;    /* 12× */
+      --sp-5: 1rem;     /* 27× ← el más usado */
+      --sp-6: 1.5rem;   /* 14× */
+      --sp-7: 2rem;     /* 13× */
+
+      /* Tipografía — colapsa los 9 tamaños actuales a 5 escalones */
+      --fs-xs: .6rem;   /* 48× · etiquetas, badges */
+      --fs-sm: .65rem;  /* 61× ← el más usado · texto de apoyo */
+      --fs-md: .72rem;  /* 32× · texto de tabla */
+      --fs-lg: .8rem;   /* 31× · texto normal del panel */
+      --fs-xl: 1rem;    /*      · títulos de sección */
+
+      /* Radios */
+      --r-sm: 4px;      /* 27× */
+      --r-md: 6px;      /* 18× */
+      --r-lg: 8px;      /* 57× ← el más usado */
+      --r-xl: 12px;
+      --r-full: 999px;
+
+      /* Área táctil. El panel se usa con el dedo en la Galaxy Tab A9:
+         44px es el mínimo para acertarle sin pelearse con la pantalla. */
+      --tap-min: 44px;
+      --ctrl-h: 40px;
+
+      /* Transiciones */
+      --t-fast: .15s;
+      --t-med: .25s;
+    }
+
+    /* [TOKENS] Área táctil mínima en los controles que quedaban chicos.
+       Medido en la tablet: la hamburguesa daba 32px, el botón de tema 26,
+       cerrar sesión 27 y los labels de checkbox 38. Todos por debajo del
+       mínimo cómodo, y la hamburguesa es de lo que más se toca. */
+    .sidebar-hamburger {
+      min-width: var(--tap-min);
+      min-height: var(--tap-min);
+      justify-content: center;
+    }
+    #themeToggleBtn,
+    .panel-logout {
+      min-height: var(--ctrl-h);
+    }
+    /* Los 9 checkbox del panel ya viven dentro de un <label>, así que el
+       label ES el área clickeable: alcanza con darle altura mínima. */
+    #adminPanel label:has(> input[type="checkbox"]) {
+      min-height: var(--tap-min);
     }
     body {
       font-family: 'Inter', sans-serif; background: var(--negro); color: #fff;
