@@ -3917,13 +3917,19 @@
       var hint = document.getElementById('depSumarHint');
       if (!wrap) return;
       var qty = parseInt((document.getElementById('modalDepQty') || {}).value, 10);
-      var aplica = depPrevQty >= 2 && qty === 0;
+      if (isNaN(qty) || qty < 0) qty = 0;
+      // [DEP-SUMAR] Aplica ante CUALQUIER bajada, y mueve la DIFERENCIA.
+      // El depósito está físicamente debajo del local: si bajás la cantidad
+      // es porque subiste esas unidades. 5 → 2 significa "subí 3".
+      var movidas = depPrevQty - qty;
+      var aplica = movidas > 0;
       wrap.style.display = aplica ? 'block' : 'none';
       if (aplica && hint) {
         var noSumar = document.getElementById('modalDepNoSumar').checked;
+        var u = movidas === 1 ? '1 unidad' : movidas + ' unidades';
         hint.textContent = noSumar
-          ? 'Solo vaciás el depósito, el local queda igual.'
-          : 'Vas a mover las ' + depPrevQty + ' u. del depósito al local.';
+          ? 'Sacás ' + u + ' del depósito sin sumarlas al local.'
+          : 'Vas a mover ' + u + ' del depósito al local.';
       }
     }
 
@@ -3937,16 +3943,19 @@
       if (isNaN(qty) || qty < 0) qty = 0;
       var prev = depQty(p);
 
-      // [DEP-SUMAR] Si el depósito baja de ≥2 directo a 0 y la casilla "No sumar"
-      // está destildada, movemos esas N unidades al stock local.
-      var sumar = prev >= 2 && qty === 0 &&
+      // [DEP-SUMAR] Ante CUALQUIER bajada del depósito movemos la DIFERENCIA
+      // al stock local, salvo que tilden "No sumar". El depósito está debajo
+      // del local: bajar la cantidad significa que esas unidades subieron.
+      // Ej: 5 → 2 suma 3 al local y deja 2 en depósito.
+      var movidas = prev - qty;
+      var sumar = movidas > 0 &&
                   !document.getElementById('modalDepNoSumar').checked;
 
       var payload = { slug: editingDepSlug, stock_deposito: qty };
       var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : 0;
       var newLocal, prevStatus, newStatus;
       if (sumar) {
-        newLocal = prevLocal + prev;
+        newLocal = prevLocal + movidas;
         prevStatus = p._stockStatus || 'ok';
         // Recalcular estado desde la nueva cantidad (respeta 'pausado')
         newStatus = deriveStockInfo({ _stockQty: newLocal,
@@ -3980,7 +3989,7 @@
       }
 
       msgEl.style.color = '#2ecc71';
-      msgEl.textContent = sumar ? ('✓ Guardado · +' + prev + ' al local') : '✓ Guardado';
+      msgEl.textContent = sumar ? ('✓ Guardado · +' + movidas + ' al local') : '✓ Guardado';
       renderDeposito();
       setTimeout(function() { closeModal('modalDeposito'); }, 900);
     }
