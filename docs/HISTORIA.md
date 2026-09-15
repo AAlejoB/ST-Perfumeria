@@ -1863,7 +1863,7 @@ Cerró el pendiente 🟡 "medir riel/tokens a 600px". La Fase 1 del panel (`a3a7
 
 | Keyword | Qué falta |
 |---|---|
-| `[DEPOSITO-MISMO-+/-]` 🟡 | El ± del depósito idéntico al de Precios & Stock (hoy dos modales distintos) |
+| ~~`[DEPOSITO-MISMO-+/-]`~~ ✅ | **HECHO el 16-sep** (`e18ac20`) — ver § "Sesión 16-sep-2026" |
 | `[DC-HEADER-600]` 🟢 | El mini-header de columnas del grid de decants de diseñador asoma −43 px a 600 y no sigue el stack de `.dc-row`; a ≤1099 sobra o hay que hacerlo responsive |
 | Contador del tope infla 🟢 | Restar los que tienen custom |
 | Historial: 2 registros por pase depósito→local 🟢 | Unificar en una acción propia |
@@ -1875,9 +1875,56 @@ Cerró el pendiente 🟡 "medir riel/tokens a 600px". La Fase 1 del panel (`a3a7
 - Cuando dice **"me recontra perdí"**, quiere **una sola acción concreta** ("pegame el patch"), no una tabla de opciones. La tabla A/B/C de antes fue lo que lo perdió.
 - Delegó la decisión del breakpoint en la dupla y pidió mi opinión sobre el proceso: la respuesta que sirvió fue **separar quién decide qué** (44 px → él en 10 segundos; riel vs overlay → las chicas, mirando las dos) en vez de opinar sobre el layout.
 
+### Sesión 16-sep-2026 · **`[DEPOSITO-MISMO-+/-]` + `[DEPOSITO-LOCAL-CLICK]`** — el depósito con el mismo ± que el stock
+
+Pedido de las chicas vía Alejo, con captura del modal de Stock: *"quiero agregar ESTO así tal cual '+ X −' en el depósito, y que al clickear la columna de Stock Local en la sección DEPÓSITO se cambie justamente el stock local"*. Cierra el pendiente 🟡 `[DEPOSITO-MISMO-+/-]` y suma una pata nueva. Alejo pidió sumar también el buscador que se perdía al guardar. 4 commits · SW **v1.1.97 → v1.1.99**.
+
+#### Qué se hizo
+
+- **Ritual git**: `status` limpio → `fetch` → `checkout -B <rama> origin/main` → HEAD `8f612b5`. Lectura previa de `modalStock` / `modalDeposito` / `renderDeposito` / `saveStock` / `saveDeposito`, plan en tabla (qué hay hoy vs qué se hace), go de Alejo.
+- **`[DEPOSITO-MISMO-+/-]` · `e18ac20`** — en `modalDeposito` el input pelado se reemplazó por **la misma fila `− / campo / +` de `modalStock`** (mismas clases `action-btn btn-stock`, mismo estilo inline, `min-width 44`; el input pasa a `max=999`, `font-size 1.4rem`, `margin-bottom 0; flex:1`, y el label a `.modal-label`). Nueva `depQtyStep(delta)` calcada de `stockQtyStep` (clamp 0..999) que llama `toggleDepSumar()` en cada toque → al tocar **−** aparece en vivo la casilla "No sumar al stock local" con el hint *"Vas a mover N unidades del depósito al local"*, igual que si tipearas. Tocar afuera cierra (`closeModal('modalDeposito',event)` en el overlay + `stopPropagation` en la caja, como en Stock). **`saveDeposito` y toda la lógica `[DEP-SUMAR]` quedan intactas**: los ± sólo mueven el número del campo.
+- **`[DEPOSITO-LOCAL-CLICK]` · mismo commit** — en `renderDeposito` la badge de **Local** dejó de ser de sólo lectura: `onclick="openStockModal(slug)"` → abre **el mismo modal de Precios & Stock** (±, preview "Se mostrará como", Pausado). Nada duplicado. `saveStock` ahora también llama `renderDeposito()` para que esa tabla muestre el local nuevo al toque (y recalcule el "← traer al local"). Tip de la tabla: *"tocá el número de Depósito o la badge de Local para cambiarlos. Es el mismo control que en Precios & Stock."*
+- **Buscador que sobrevive al guardado · mismo commit** — `renderPrecios` y `renderDeposito` terminan con `filterTable(...)`. Antes, guardar (o cambiar el orden / la casilla) re-dibujaba las 146 filas y la chica perdía lo que había buscado. Pasaba en las dos pestañas.
+- **`[TAP-44]` para los modales · `4329a59`** — midiendo salió que el **− / +** medían 40,2 px en los dos modales (también en Stock, que ya era así: el `[TAP-44]` del 15-sep fue tema/logout/barra) y el Guardar / OK 39,6-40,6. Regla nueva en el bloque `[TOKENS]`: `.modal-box .btn-stock, .modal-btn { min-height: var(--tap-min) }`. Los 22 `.modal-btn` del panel quedaron ≥ 44; las cajas crecen 3,4-4 px y entran en 600 (`right` 576).
+- **Bumps** `bc14edc` (v1.1.98) y `1cb7246` (v1.1.99), leídos del `CACHE_VERSION` real. Dos pushes fast-forward (`8f612b5..bc14edc`, `bc14edc..1cb7246`).
+- **Verificación a 600 px** (servidor local `no-store` + `sb` stubbeado + clicks y teclas **reales** · 0 requests a `supabase.co`): las dos filas ± **idénticas en todo lo computado** (rects, padding, fuente, fondo, radio); 5 → − − → "Vas a mover 3 unidades" → + + + → 5 y la casilla se esconde; clamp 0..999; Enter en `#modalDepQty` dispara Guardar; tap afuera cierra; Local → `modalStock` con nombre y "2 u." correctos → + → Enter → **"3 u." en la tabla de Depósito y en la de Precios al toque**; buscador "your touch" 2/146 visibles antes y después del re-render (Precios "asad" 3/146); 0 desbordes en la pestaña ni en el modal con la casilla visible.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Ediciones múltiples en `admin.html` con un script Node de reemplazos exactos** (`edit-deposito.js` en el scratchpad): cada "antes" tiene que aparecer **exactamente una vez** o no se escribe nada; round-trip UTF-8 verificado antes de escribir; CRLF intacto (10070 → 10098 CR = líneas); y un parseo de los `<script>` inline con `new Function` como chequeo de sintaxis. 8 ediciones, 0 sorpresas. Es el reemplazo seguro de `sed -i` en este repo.
+- **Los modales están centrados verticalmente: cuando aparece la casilla `[DEP-SUMAR]` la caja crece y la fila ± se corre ~30 px hacia arriba.** Mis clicks 2 y 3 en **−** fallaron por coordenadas viejas, no por el código. Regla para tests con `computer left_click`: **re-medir coordenadas después de cada cambio de layout** (o clickear por `ref`).
+- **`renderDeposito()` en cada `saveStock`** dibuja 146 filas aunque la pestaña no esté a la vista. Mismo costo que `renderPrecios` (que ya se llamaba siempre); no se notó. Si algún día pesa, condicionar a `#tab-deposito.active`.
+- **El − / + medían 40 en Stock desde siempre** y nadie lo había medido: `[TAP-44]` del 15-sep tocó tema/logout/barra porque eso pedía el criterio. Lección: cuando se copia un control "idéntico", medirlo también destapa lo que el original tenía mal.
+- **Confusión al cierre**: dije "`[DEPOSITO-MISMO-+/-]` pasa a cerrado" refiriéndome a la **doc** y Alejo entendió que el código no estaba hecho. Decir "en la doc" explícito cuando la feature ya está subida.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[DEPOSITO-MISMO-+/-]` | El ± del depósito idéntico al de Precios & Stock, con la casilla `[DEP-SUMAR]` en vivo · `e18ac20` |
+| `[DEPOSITO-LOCAL-CLICK]` | La badge de Local en Depósito abre `modalStock`; `saveStock` refresca la tabla de Depósito · `e18ac20` |
+| Buscador que sobrevive al guardado | `filterTable()` al final de `renderPrecios` / `renderDeposito` · `e18ac20` |
+| `[TAP-44]` modales | − / + y Guardar / OK de todos los modales a 44 · `4329a59` |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[DC-HEADER-600]` 🟢 | El mini-header de columnas del grid de decants de diseñador asoma −43 px a 600 y no sigue el stack de `.dc-row` |
+| Contador del tope infla 🟢 | Restar los que tienen custom |
+| Historial: 2 registros por pase depósito→local 🟢 | Unificar en una acción propia |
+| Cuentas separadas por empleada 🟢 | Prerrequisito para medir uso por persona |
+
+#### 💬 Mensajes meta
+
+- Alejo pide features **con captura de lo que ya existe** ("ESTO así tal cual") — la referencia es un control del propio panel, no un diseño nuevo. Copiar exacto y medir que sea exacto.
+- **Plan en tabla "qué hay hoy / qué hago" → "¿Dale?" → un solo "Dale"** funcionó de nuevo; sumó "incluí lo del buscador también" a un ortogonal que le flageé con costo (1 línea) — flagear con costo ayuda a que decida rápido.
+
 ---
 
-**Última actualización:** **Septiembre 15, 2026 (noche)** — sesión corta de verificación · 2 commits · SW **v1.1.96 → v1.1.97**. Se midió (no se miró) el riel / tokens / Enter de la Fase 1 en el ancho real de la Galaxy Tab A9 vertical (**600 px CSS**): todo funciona, `.admin-main` idéntico con la barra plegada y desplegada, 0 scroll horizontal en 22 pestañas, Enter guarda / no borra / baja el teclado. Hallazgo: **el riel vive en ≥701 y la tablet vertical cae en overlay** — se midió la variante riel a 600 sin tocar el repo (568 vs 512 de ancho útil) y **se decidió dejar el overlay a propósito**. `[TAP-44]` (`55df691`, patch del cowork): tema, cerrar sesión y los 12 botones de la barra a 44 px. Método reproducible (servidor `no-store` + `sb` stubbeado + tecla real) y 9 gotchas documentados en § "Sesión 15-sep-2026 (noche)". **Próxima revisión cuando:** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` · 🟡 `[DEPOSITO-MISMO-+/-]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 + S10 · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 unificar historial depósito→local · 🟢 cuentas por empleada.
+**Última actualización:** **Septiembre 16, 2026** — sesión corta de feature · 4 commits · SW **v1.1.97 → v1.1.99**. Pedido de las chicas con captura: **`[DEPOSITO-MISMO-+/-]`** (el ± del depósito idéntico al de Precios & Stock, con la casilla "No sumar al stock local" en vivo al tocar −) + **`[DEPOSITO-LOCAL-CLICK]`** (la badge de Local en Depósito abre el mismo modal de Stock y la tabla se refresca al guardar) + buscador que sobrevive al guardado en Precios y Depósito · `e18ac20`. Midiendo salió que el − / + y el Guardar de los modales medían 40 → **`[TAP-44]` modales** `4329a59`. Todo verificado a 600 px con clicks y teclas reales y `sb` stubbeado. Detalle en § "Sesión 16-sep-2026". **Próxima revisión cuando:** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 + S10 · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 unificar historial depósito→local · 🟢 cuentas por empleada.
+
+**Estado del repo al cierre (16-sep):** `origin/main` = `1cb7246` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main · árbol limpio · SW **v1.1.99** pusheado (dos bumps seguidos: las tablets ven el banner amarillo dos veces) · pendiente de probar en la Tab A9 real: Depósito → número verde → − − → casilla; badge Local → modal de Stock; buscar + guardar → la búsqueda sigue.
 
 **Estado del repo al cierre (15-sep, noche):** `origin/main` = `0f11376` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main · árbol limpio · SW **v1.1.97** pusheado (Vercel deploya solo; las tablets ven el banner amarillo) · breakpoint 700 sin cambios, decisión documentada.
 
