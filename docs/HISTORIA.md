@@ -1725,7 +1725,76 @@ if (adminPass !== ADMIN_PASS) return res.status(401)...  // undefined !== undefi
 
 ---
 
-**Última actualización:** **Agosto 12, 2026** (cierre de la sesión 27-jun parte 2 · el trabajo técnico es del 27-jun, la doc se cerró el 12-ago tras 6,5 semanas sin actividad). **`[FORGOT-PASS-A]` quedó CERRADO y verificado end-to-end en producción** (cliente pide → admin resetea → cliente re-loguea · puntos intactos · 3 Telegrams confirmados por timestamp en `net._http_response`). En el camino apareció y se arregló **`[FORGOT-PASS-WA]`** (el `window.open` de "Avisar por WhatsApp" corría tras `await` + `setTimeout` → sin *user activation* → lo frenaba el bloqueador de pop-ups · ahora es un link tappable · `3e52dbd`), y se sumó el **nombre del cliente en "Pedidos pass"** (`eefdfe9`). SW v1.1.75 → **v1.1.78**. En `docs/SECURITY.md` (`196586e`) se **re-scopeó S1** (el login admin ya NO usa esas passwords · `ADMIN_PASS_EMPLEADO` es código muerto · `ADMIN_PASS` sigue vivo sólo para el endpoint de push), se **agravó S2** (la RLS abierta de `clientes` + la anon key pública = teléfonos y passwords en plano descargables por REST sin loguearse) y se sumó **S10** (stored XSS por `c.nombre` sin escapar en la tab Clientes). Detalle exhaustivo en la sección "Sesión 27-jun-2026 · parte 2" arriba.
+### Sesión 2→14-sep-2026 · **El panel cómodo para las tablets + decants sin vender bajo costo**
+
+Una sola conversación que duró dos semanas de calendario (2, 4, 5, 7, 12 y 14 de septiembre). Arrancó con "el catálogo quedó medio feo en el celular" y terminó en un patrón nuevo de trabajo: **ClaudeChat diseña y escribe los patches, Claude Code los aplica, los mide y los verifica antes de mergear.** 25 commits · SW **v1.1.83 → v1.1.96**. Todo mergeado a `main`, todo confirmado contra `www.stperfumeria.com`.
+
+#### Qué se hizo
+
+**Sitio público (celular)**
+- `[BUSCADOR-MOBILE]` `42a1abf` · el `.search-input` estaba en 12.8px y Safari iOS hacía zoom al enfocarlo sin volver. 16px en mobile, `type="search"` + `enterkeyhint`, Enter baja el teclado. Borrado el código muerto del nav search.
+- `[CARD-VERTICAL]` `4149ad9` · la foto del perfume medía ~100px (`.card-image{width:30%}` sin override mobile). Card apilada: foto cuadrada de 294px arriba, info abajo. El swipe de la galería pasa de 100 a 303px de ancho. Desktop intacto (el `.mirror` entero vive en `min-width:768px`). `selectSuggestion()` scrolleaba al grid con `-130` hardcodeado y decía "instantáneo" sin serlo (`scrollTo(x,y)` hereda `scroll-behavior:smooth`): ahora `behavior:'instant'` leyendo `scroll-padding-top` del CSS.
+- `[DECANTS-ESPACIO-2]` `e77b5f5` · el fix de agosto (299px) había vuelto a 181px porque después se apilaron la barra de progreso (62px) y el combo (49px). Recorte: 262px, 3 cards.
+- `[DECANTS-CAJON]` `f35c572` · opción C de los mockups. El armador pasa a pantalla completa en celular y contador/ahorro/progreso/escalera/combo bajan a un **cajón** (`#decantSheetBody`) cerrado por defecto. Listado **390px, 4 cards** cerrado. Lo importante: el marco **ya no puede volver a crecer**, lo nuevo entra al cajón.
+
+**Decants — el bug de plata**
+- `[DECANT-TOPE]` + `[DECANT-DEDUP]` `0402dfa` (patch de ClaudeChat) · el armador listaba TODO el catálogo a precio de escalera sin mirar el frasco: un Erba Pura de $430.000 salía como decant a $9.500 con costo real de $21.500. Tope `precio_frasco_max` (170.000, normalizado a 100ml) en `decants_config`: arriba del tope → "💬 Precio a consultar" + WhatsApp. Y de-duplica contra `decants_custom` (se dibujaban dos cards del mismo perfume y el cliente elegía la barata). + `f99de42` retry sin la columna si falta el SQL (sin eso se rompía TODO el guardado de Decants, no sólo el tope).
+- `[DECANT-PRECIO-MANUAL]` `341df8e` · columnas `precio_decant` + `decant_excluido` en `perfumes_nuevos` y `perfume_overrides`. Bloque "💧 Decants" en Editar y Nuevo perfume con aviso en vivo (naranja si va a salir "a consultar", verde con el precio). El armador cobra el precio manual como fijo.
+- Cache · `50393d0` + `9755cdb` · un precio **borrado** llegaba como `null`, `applyOverrideToPerfume` no pisa nulls, y el valor viejo sobrevivía 30 min en `st_cache_perfume_overrides`. El primer patch lo arregló pero **borraba a ciegas** y se llevaba el precio de `perfumes_nuevos` (reproducido: nuevos=18000, override=NULL, cache=25000 → quedaba "a consultar"). El segundo guarda `{slug, tenia, valor}` con `hasOwnProperty` y restaura. Tres escenarios medidos.
+
+**Panel admin (Galaxy Tab A9, vertical)**
+- `[LOG-LEGIBLE]` `5b6d7d7` · el historial mostraba slugs crudos, columnas con guión bajo y 9 acciones sin etiqueta. Traducido con `AUDIT_FIELD_LABELS` / `AUDIT_VALUE_LABELS` / `auditPerfumeName`. De paso: `logAdminAction('seleccion_badge_update', {…})` se llamaba con 2 argumentos y nunca registraba.
+- `[BUSCADOR-X]` `a7c2bc9` → `{CAMPOS-X}` `7d7e45f` · primero la ✕ en 7 buscadores por lista de IDs; Alejo aclaró que la quería en **todos los campos**. Ahora por selector (54/54), `data-sin-x="1"` para excluir. + inputs a 16px + backdrop del sidebar con fade. + "Sólo con depósito" → "Sólo los que tienen unidades" (Alejo preguntó qué hacía: señal de que no se entendía).
+- `[DEPOSITO-A-LOCAL]` `0be83ce` (patch de Alejo) · restar el depósito suma al local, atómico, con casilla "No sumar al stock local". Luego `46a030a`: mueve la **diferencia** (5→2 suma 3), no sólo al llegar a 0.
+- Fase 1 `a3a7742` + `74a22e4` · sidebar como riel con grupos **por uso real** + tokens de medidas / área táctil mínima + `npm run metricas` (marcador de deuda visual: 452 `!important`, 887 `style=` inline, 522 KB).
+- `76c9e39` · Enter guarda en modales (listener delegado, 76 campos), en buscadores baja el teclado; `modalClientDelete` excluido con `data-sin-enter`; `MODAL_CIERRE_MS = 350` (antes 900–1500 ms con Supabase contestando en ~194).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Ranking de uso real** (`admin_actions`, 2.308 registros, 5-jul→5-sep): Stock 1.756 + Depósito 282 = **88%** de todo. Las empleadas nunca usaron Editar ni Ocultar (0/0). Config de decants y backup manual: 1 vez cada uno. ⚠️ `admin_actions` sólo registra ESCRITURAS: lo que se mira (Analytics, Estadísticas, el historial) sale en cero aunque se use. Retención 60 días. Las dos empleadas comparten cuenta → no se puede separar por persona. Con esto el "superadmin" se descartó: se reordenó la barra en vez de apagar funciones.
+- **El historial para las empleadas: NO.** La policy real de `admin_actions` es `email = 'jefe@…'` — la doc decía "read solo auth" y era falso (corregido en `DATABASE.md`). Alejo decidió dejarlo como está.
+- **Android no hace zoom** al enfocar inputs <16px (es de Safari). Corregí un diagnóstico mío: en las Tab A9 los 13.6px eran legibilidad, no zoom.
+- **`:has()` no invalidaba** al sacar los skeletons del DOM (min-height clavado en 2900). Y **`max-height` con `!important` inline computaba 0px** en el cajón de decants — sin causa encontrada; se usó `display`. Ambos documentados en `FRONTEND.md`.
+- **Especificidad**: un `@media` no suma nada; el recorte de decants no aplicó hasta moverlo al FINAL de la sección. El bloque de agosto funcionaba "de casualidad" (`display:none` sobre elementos sin `display` base).
+- **`scrollIntoView` es no-op en el panel de preview** de Claude Code; `window.scrollTo` sí anda. No shippear lo que no se puede verificar.
+- **Los previews de Vercel redirigen a SSO**: un `200` desde acá es la pantalla de login, no prueba nada. Producción se verifica contra `www.stperfumeria.com` (`sw.js` + grep de la lógica).
+- **El worktree "vuelve solo" a `0be83ce`** entre sesiones (pasó 3 veces). `git status` da limpio y no lo detecta. Defensa: `git checkout -B <rama> origin/main` como paso 2 de todo prompt de patch, y comparar el `index <hash>` del patch contra `git rev-parse origin/main:admin.html`.
+- El patch del contador de decants **infla** el número: cuenta perfumes sobre el tope sin descontar los que tienen custom (que se esconden, no salen "a consultar"). 7 mostrados, 6 reales.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[BUSCADOR-MOBILE]` | Input 16px, sin zoom iOS, Enter baja teclado |
+| `[CARD-VERTICAL]` | Card apilada en celular, foto 294px |
+| `[DECANTS-ESPACIO-2]` / `[DECANTS-CAJON]` | Armador full-screen con cajón · 4 cards |
+| `[DECANT-TOPE]` / `[DECANT-DEDUP]` / `[DECANT-PRECIO-MANUAL]` | No vender bajo costo + precio manual por perfume |
+| `[LOG-LEGIBLE]` | Historial en castellano |
+| `[BUSCADOR-X]` → `{CAMPOS-X}` | ✕ en los 54 campos, por selector |
+| `[DEPOSITO-A-LOCAL]` (+ diferencia) | Restar depósito suma al local |
+| `{ERROR-PRECIO-PERFUME-EN-SECTOR-DECANT}` | Era el bug de plata → cerrado por DECANT-TOPE |
+| `[BUSCADOR-X-TOGGLES]` | Renombrado a `{CAMPOS-X}` |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[DEPOSITO-MISMO-+/-]` 🟡 | El ± del depósito idéntico al de Precios & Stock (hoy dos modales distintos) |
+| Verificación visual del riel 🟡 | Fase 1 y Enter se mergearon por urgencia sin medir a 600px |
+| Contador del tope infla 🟢 | Restar los que tienen custom |
+| Historial: 2 registros por pase depósito→local 🟢 | Unificar en una acción propia |
+| Cuentas separadas por empleada 🟢 | Prerrequisito para medir uso por persona |
+
+#### 💬 Mensajes meta
+
+- La dupla **ClaudeChat (diseña a ciegas) + Claude Code (verifica con los ojos abiertos)** funcionó: 8 patches, 2 bugs reales atrapados antes de mergear (uno mío al medir, el arreglo elegante de él). Alejo tenía razón en que yo subestimaba a ClaudeChat.
+- Alejo trabaja con **prompts numerados en 3 partes** (aplicar / verificar checklist / commit+push+preview). Cuando llegan sin contexto (patch que no existe, base desfasada), frenar y explicar en criollo.
+
+---
+
+**Última actualización:** **Septiembre 15, 2026** (cierre de la sesión 2→14-sep · 25 commits · SW **v1.1.83 → v1.1.96**). Catálogo cómodo en celular (`[CARD-VERTICAL]`, `[BUSCADOR-MOBILE]`, `[DECANTS-CAJON]`), decants que ya no se venden bajo costo y con precio manual por perfume (`[DECANT-TOPE]`/`[DECANT-PRECIO-MANUAL]`), y el panel de las tablets pulido con datos de uso real (`{CAMPOS-X}`, `[LOG-LEGIBLE]`, `[DEPOSITO-A-LOCAL]`, riel + tokens + Enter). Patrón nuevo: ClaudeChat escribe patches, Claude Code verifica midiendo. Detalle en § "Sesión 2→14-sep-2026". **Próxima revisión cuando:** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` · 🟡 `[DEPOSITO-MISMO-+/-]` · 🟡 medir riel/tokens a 600px · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 + S10 · 🟢 contador del tope · 🟢 unificar historial depósito→local · 🟢 cuentas por empleada.
+
+**Estado del repo al cierre (15-sep):** `origin/main` = `f6492f9` · rama `feat/admin-fluido` = main · árbol limpio · SW **v1.1.96** confirmado en `www.stperfumeria.com` · SQL `add_precio_frasco_max.sql` y `add_precio_decant.sql` ya corridos por Alejo (columnas verificadas).
 
 **Estado del repo al 12-ago (mañana):** `origin/main` = `196586e` · nadie tocó nada en 6,5 semanas · sitio corriendo estable con SW v1.1.78, sin reportes de fallas.
 
