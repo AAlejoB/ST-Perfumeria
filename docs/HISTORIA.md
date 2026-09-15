@@ -1790,9 +1790,96 @@ Una sola conversación que duró dos semanas de calendario (2, 4, 5, 7, 12 y 14 
 - La dupla **ClaudeChat (diseña a ciegas) + Claude Code (verifica con los ojos abiertos)** funcionó: 8 patches, 2 bugs reales atrapados antes de mergear (uno mío al medir, el arreglo elegante de él). Alejo tenía razón en que yo subestimaba a ClaudeChat.
 - Alejo trabaja con **prompts numerados en 3 partes** (aplicar / verificar checklist / commit+push+preview). Cuando llegan sin contexto (patch que no existe, base desfasada), frenar y explicar en criollo.
 
+### Sesión 15-sep-2026 (noche) · **Verificación del riel / tokens / Enter a 600px** + `[TAP-44]`
+
+Cerró el pendiente 🟡 "medir riel/tokens a 600px". La Fase 1 del panel (`a3a7742` riel + `74a22e4` tokens) y el Enter (`76c9e39`) se habían mergeado por urgencia sin medirlos nunca en el ancho real de la **Galaxy Tab A9 en vertical: 600 px CSS** (800 físicos / DPR 1,33 — ⚠️ en notas viejas de mayo figura "800px", eso son los físicos). Alejo pidió **medir, no mirar**: servidor local `no-store`, panel forzado, `window.sb` stubbeado, nada de previews de Vercel. De paso se aplicó el patch de 44px del cowork (ClaudeChat) y se cerró la decisión del breakpoint. Sesión corta: 2 commits de código + este cierre.
+
+#### Qué se hizo
+
+- **Ritual git al arrancar**: `status` limpio → `fetch origin main` → `checkout -B <rama> origin/main` **aunque estuviera limpio** (el worktree se había vuelto solo a `0be83ce` tres veces) → HEAD confirmado en `06451f4`. EOL verificado con `od`: `admin.html`, `app.js`, `styles.css`, `sw.js` son **CRLF en el árbol** (`autocrlf=true`, índice LF).
+- **Setup de medición, reproducible, vive en el scratchpad de Claude Code (NO en el repo):**
+  - `server.js` (Node sin deps, puerto 8765): sirve la raíz del worktree con `Cache-Control: no-store` en todo; **`/sw.js` → 404** para que no se registre ningún Service Worker entre el navegador y los archivos; `/__harness.js` sirve el stub; `?demo` inyecta el harness y entra solo al panel; `/admin-riel.html` sirve `admin.html` transformado en memoria (ver variante abajo).
+  - `harness.js`: reemplaza `window.sb` por un **Proxy encadenable** (`.from().select()…` resuelve `{data:[], error:null}`, `auth.getSession()` sin sesión, `channel().on().subscribe()` no-op) y llama `enterAdminPanel('jefe')`. Expone `window.__m` (rects, layout, desborde por pestaña). Verificado en cada carga: **0 requests a `supabase.co`, 0 SW registrados**.
+  - Viewport emulado 600×1005 (Tab A9 vertical) y 800×1280 (control, del otro lado del breakpoint 700). Todo por `getBoundingClientRect` / `getComputedStyle`; Enter con **tecla real** del navegador y espías sobre `saveStock` / `deleteClient`; recorrido de las **22 pestañas del jefe** con `switchTab` midiendo `scrollWidth` y cualquier elemento con `right > innerWidth`.
+- **Resultados de la verificación (código de `06451f4`, antes de tocar nada):**
+
+  | Criterio | 600 px (≤700 · rama "mobile") | 800 px (≥701 · rama riel) |
+  |---|---|---|
+  | `.admin-main` plegada vs desplegada | **x=16 / w=568 en ambos** ✅ | **x=56 / w=729 en ambos** ✅ |
+  | Qué es la barra | Overlay `position:fixed` 260px (`translateX(-100%)` ↔ `0`), grid de **1 columna**. **No hay riel.** | Riel `static` 56px ↔ panel `absolute` 240px superpuesto, grid `56px 729px` fijo |
+  | Scroll horizontal (22 pestañas) | `scrollWidth` 600 = `innerWidth` en todas ✅ | 785 < 800 en todas ✅ |
+  | Elementos desbordados | **1**: header "Acciones" del grid de decants de diseñador (ver abiertos) | 0 |
+  | Hamburguesa | 44×44 ✅ | 44×44 ✅ |
+  | Tema / Cerrar sesión | 81×**40** / 132×**40** ❌ (token `--ctrl-h`) | ídem ❌ |
+  | 13 labels de checkbox (9 estáticos + 4 de Beneficios que renderiza JS; 3 viven en formularios plegados y se destaparon para medir) | **todos 44** (`modalStock` 48) ✅ | todos 44 (`modalStock` 63) ✅ |
+  | Enter en `#modalStockQty` | `saveStock` **1×**, `defaultPrevented` ✅ | 1× ✅ |
+  | Enter en `modalClientDelete` con el botón **habilitado** (tipeado "ST" — si se deja `disabled`, ese guard tapa al de `data-sin-enter` y la prueba no dice nada) | `deleteClient` **0×**, modal sigue abierto ✅ | 0× ✅ |
+  | Enter en `#searchPrecios` (id) y `#editSearch` (sólo clase `.admin-search`) | foco → `BODY` (blur), sin disparar guardado ✅ | ✅ |
+
+  **Conclusión: Fase 1 y Enter funcionan a 600.** Los únicos ❌ eran una decisión del CSS (tema/logout a 40), no bugs → `[TAP-44]`.
+- **Hallazgo principal: el riel no llega a la tablet vertical.** Vive en `@media (min-width: 701px)`; a ≤700 aplica la rama overlay de `[ZAPATO]`. La Tab A9 en vertical (600) cae en overlay + hamburguesa; **en horizontal (~1005) sí cae en riel**. Lo que se había mergeado "para las tablets" nunca se ejecutó en la orientación en que las usan.
+- **Variante riel a 600, medida SIN tocar el repo**: `/admin-riel.html` transforma `admin.html` en memoria con **11 reemplazos literales** (`(min-width: 701px)`→`600px` ×3, `(max-width: 700px)`→`599px` ×5, `innerWidth > 700)` ×1, `innerWidth > 700 &&` ×1, `innerWidth <= 700)` ×1). Contar reemplazos salvó el error: el primer intento dio 10 porque `closeMobileSidebar` (L3770) usa `> 700 &&` sin paréntesis.
+
+  | | **Overlay (hoy)** | **Riel (variante)** |
+  |---|---|---|
+  | `.admin-main` plegada = desplegada | x=16 / **w=568** ✅ | x=72 / **w=512** ✅ (no 544: el `.panel` a ≤600 tiene 16px de padding por lado) |
+  | Stock ↔ Depósito | 2 toques (☰ → pestaña) | 1 toque |
+  | Scroll horizontal (22 pestañas) | 0 | 0 |
+  | Tabla Precios (4 col) / Depósito (3 col) | entra | entra: 475 px en 480 de wrapper, filas de 44 |
+  | Header "Acciones" de decants | asoma −43 px, recortado por `overflow:hidden` | asoma **−103 px** — pasa de "se corta" a "no se lee" |
+  | Iconos del riel | — | 12 × 43,8×40 (→ 44 de alto con `[TAP-44]`) |
+  | Panel expandido | 260 px `fixed` | 240 px `absolute` sobre el contenido, backdrop ✅ |
+  | Header / barra al scrollear | ninguno es sticky | ídem: en las dos hay que subir para cambiar de pestaña |
+
+  Las dos variantes quedaron abribles en el mismo servidor (`/admin.html?demo` y `/admin-riel.html?demo` a 600 de ancho) por si el jefe o las chicas quieren verlas.
+- **`[TAP-44]` · `55df691`** — patch del cowork `tap-44-unificado.patch` (base `index d818294` = `origin/main:admin.html`), `git apply --check` limpio contra árbol (CRLF) e índice (LF). 3 hunks: borra `--ctrl-h`; `#themeToggleBtn, .panel-logout` → `var(--tap-min)`; **`.sidebar .tab-btn { min-height: 40px }` hardcodeado (L485) → `var(--tap-min)`** — ese tercero es hallazgo del cowork y resuelve los iconos del riel a 40 que yo había flageado como ortogonal. Medido antes/después en la misma página: 600 → tema/logout/12 botones 40→44, header 123,4→127,4 (+4, dos filas por el bloque `max-width:600px`); 800 → 40→44 los tres, header **77→77**, `.admin-main` 56/729 idéntico plegada y desplegada.
+- **`0f11376`** — bump SW **v1.1.96 → v1.1.97**, leído del `CACHE_VERSION` real con Node (no hardcodeado), commit aparte.
+- **Push** `06451f4..0f11376` → `main` (fast-forward verificado con `merge-base --is-ancestor`, sin force).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Breakpoint: el overlay a ≤700 queda A PROPÓSITO.** Razones con número: el objetivo real (que el contenido no cambie de ancho al abrir la barra) **ya se cumple** a 600 (16/568 idéntico plegada y desplegada); el riel costaría **56 px fijos de 600** (568→512, −10 %); empeora el header de decants de −43 a −103; el único beneficio concreto es Stock↔Depósito en 1 toque en vez de 2, y el panel **arranca en Stock, que es el 76 % del uso** (1.756 / 2.308 acciones). El cowork recomendó lo mismo por su cuenta con una simulación independiente que dio los mismos números (512 / 482 / −100). Es una decisión de uso: si el jefe o las chicas piden el riel en vertical, se reabre **con estos números**, no desde cero.
+- **Si algún día se baja el umbral, son 11 lugares, no 7**: CSS L285, **L288**, L302, L330, L359, L423, L518, L529 + JS L3657, L3701, L3770 (números de `0f11376`). **L288 es la grave**: `.app-shell { grid-template-columns: 1fr }` a ≤700; si queda, a 600 el main pide `grid-column: 2` sobre un grid de una columna, se va a una columna implícita y el layout se rompe entero. Y si se olvida uno solo de los 3 de JS, el CSS muestra el riel pero la hamburguesa alterna `sidebar-open` en vez de `sidebar-expanded` y la barra no abre (falla silenciosa y total). Además a **exactamente 600 aplicarían dos ramas** (`min-width:600` + el bloque celular `max-width:600px` de L1006): habría que decidir si ese bloque baja a 599.
+- **El riel nunca se diseñó para la tablet vertical: se heredó.** El breakpoint 700 nació en **`f4437a7` (14-may, `[ZAPATO]`)**; el riel (`a3a7742`, 5-sep) se metió adentro de la rama de escritorio existente y sumó 1 `min-width:701` + 1 `innerWidth` (`closeMobileSidebar`). El cowork lo confirmó en criollo: *"no lo pensé, lo heredé"*. (Atribuyó el origen a `f35c572`, que es posterior; ahí ya estaba.)
+- **Con el pane del navegador oculto, las transiciones CSS no avanzan y TODOS los rects dan 0.** Primera medición del overlay abierto dio `translateX(-260)` después de 800 ms: no era el CSS, era que sin frames de render la transición no corre. Defensa que quedó en el método: inyectar `*{transition:none!important}` durante la medición (no afecta posiciones ni tamaños) + un guard que aborta si `#adminPanel` mide 0. Corolario: **cuando todo da 0, sospechar del instrumento antes que del panel.**
+- **Bug mío en el harness**: un helper "destapaba" ancestros `display:none` para medir labels plegados y el `undo` capturaba la variable del loop (closure clásico) → restauró sobre `document.body` y lo dejó en `display:none`, y `#editFormWrap` / `#newClientForm` / `#depSumarWrap` quedaron destapados. Detectado porque el panel entero dio 0×0 con `display:block`; revertido a mano contra los `style` originales del HTML y verificado que `.admin-main` volvió a 16/568 antes de seguir. No tocó el repo.
+- **`computer key "Return"` no llega a la página; `"Enter"` sí.** El listener de captura no vio ningún keydown con `Return`. Con `Enter`: keydown real en el input, `saveStock` 1×, y un `type "7"` entró al campo (prueba de teclado real, no sintético).
+- **`sed` en Git Bash se come el `\r` al leer archivos CRLF** (`sed -n 74p | od -c` mostró sólo `\n` en un archivo 100 % CRLF) → un `sed -i` habría convertido `admin.html` entero a LF. Las ediciones se hicieron **byte a byte con Node (`latin1`)** y se verificó CR = líneas antes y después. `git apply`, en cambio, **aplica bien un patch LF sobre el árbol CRLF** (`--check` pasó tanto contra el árbol como `--cached`) y deja CRLF.
+- **`git reset --hard` lo frena el clasificador de auto-mode** (destrucción local irreversible). Con el árbol limpio, `git checkout -B <rama> origin/main` mueve la rama igual, deja los commits descartados en el reflog, y **es el paso 3 del ritual** — no hace falta pelear el permiso.
+- **Se descartaron 2 commits propios (`ee747dc` + `9b8993e`, locales, nunca pusheados)** que hacían sólo L74, para aplicar el patch del cowork que era superconjunto (L56 + L74 + L485). Un commit limpio con la autoría del patch > dos commits solapados. Quedan en el reflog del worktree.
+- **A 600 el header crece 4 px con los 44** (123,4→127,4): había predicho que no crecía y medí que sí, porque a ≤600 el `.panel-header` va en dos filas y la segunda la mandan tema/logout. A 800 (una fila, la manda la hamburguesa) 77→77. Predicción ≠ medición: se reporta la medición.
+- **Las respuestas del cowork se chequean contra el repo antes de opinar**: de 3 hechos, 1 exacto (L485 con `min-height: 40px` hardcodeado — buen hallazgo), 1 con error de detalle (origen del breakpoint) y 1 incompleto que habría roto el layout ("4 lugares en CSS": son 8, faltaba L288). Sus mediciones simuladas coincidieron con las reales.
+- **Decants: header "Acciones" del grid de diseñador** (`admin.html` ~L2687-2694): grid inline de 7 columnas fijas (`60px 1.3fr 1fr 110px 70px 80px 110px`) que a 600 llega a `right=627` contra 584 del main (−43 recortado, sin scroll por el `overflow:hidden` del main). No sigue el stack responsive de `.dc-row` de `[DC-RESPONSIVE-FIX]`, así que a ≤1099 sus columnas ni se alinean con las filas. Cosmético, preexistente, flageado — no tocado.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| Verificación riel / tokens / Enter a 600 | Medido en las dos ramas: Fase 1 y Enter funcionan; `.admin-main` idéntico plegada/desplegada; 0 scroll horizontal en 22 pestañas; 13 labels a 44 |
+| `[TAP-44]` | Tema, cerrar sesión y los 12 botones de la barra a `--tap-min` (44); `--ctrl-h` borrado · `55df691` + SW v1.1.97 `0f11376` |
+| Breakpoint riel vs overlay | **Cerrado: overlay a ≤700 a propósito**, con números de las dos variantes (568 vs 512 · −43 vs −103) |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[DEPOSITO-MISMO-+/-]` 🟡 | El ± del depósito idéntico al de Precios & Stock (hoy dos modales distintos) |
+| `[DC-HEADER-600]` 🟢 | El mini-header de columnas del grid de decants de diseñador asoma −43 px a 600 y no sigue el stack de `.dc-row`; a ≤1099 sobra o hay que hacerlo responsive |
+| Contador del tope infla 🟢 | Restar los que tienen custom |
+| Historial: 2 registros por pase depósito→local 🟢 | Unificar en una acción propia |
+| Cuentas separadas por empleada 🟢 | Prerrequisito para medir uso por persona |
+
+#### 💬 Mensajes meta
+
+- Alejo arrancó con **"decime qué vas a medir y cómo, antes de tocar nada"** y funcionó: el plan previo (con dos avisos que salían de leer el código, no de medir) le permitió decidir "medí las dos ramas" antes de que yo gastara nada.
+- Cuando dice **"me recontra perdí"**, quiere **una sola acción concreta** ("pegame el patch"), no una tabla de opciones. La tabla A/B/C de antes fue lo que lo perdió.
+- Delegó la decisión del breakpoint en la dupla y pidió mi opinión sobre el proceso: la respuesta que sirvió fue **separar quién decide qué** (44 px → él en 10 segundos; riel vs overlay → las chicas, mirando las dos) en vez de opinar sobre el layout.
+
 ---
 
-**Última actualización:** **Septiembre 15, 2026** (cierre de la sesión 2→14-sep · 25 commits · SW **v1.1.83 → v1.1.96**). Catálogo cómodo en celular (`[CARD-VERTICAL]`, `[BUSCADOR-MOBILE]`, `[DECANTS-CAJON]`), decants que ya no se venden bajo costo y con precio manual por perfume (`[DECANT-TOPE]`/`[DECANT-PRECIO-MANUAL]`), y el panel de las tablets pulido con datos de uso real (`{CAMPOS-X}`, `[LOG-LEGIBLE]`, `[DEPOSITO-A-LOCAL]`, riel + tokens + Enter). Patrón nuevo: ClaudeChat escribe patches, Claude Code verifica midiendo. Detalle en § "Sesión 2→14-sep-2026". **Próxima revisión cuando:** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` · 🟡 `[DEPOSITO-MISMO-+/-]` · 🟡 medir riel/tokens a 600px · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 + S10 · 🟢 contador del tope · 🟢 unificar historial depósito→local · 🟢 cuentas por empleada.
+**Última actualización:** **Septiembre 15, 2026 (noche)** — sesión corta de verificación · 2 commits · SW **v1.1.96 → v1.1.97**. Se midió (no se miró) el riel / tokens / Enter de la Fase 1 en el ancho real de la Galaxy Tab A9 vertical (**600 px CSS**): todo funciona, `.admin-main` idéntico con la barra plegada y desplegada, 0 scroll horizontal en 22 pestañas, Enter guarda / no borra / baja el teclado. Hallazgo: **el riel vive en ≥701 y la tablet vertical cae en overlay** — se midió la variante riel a 600 sin tocar el repo (568 vs 512 de ancho útil) y **se decidió dejar el overlay a propósito**. `[TAP-44]` (`55df691`, patch del cowork): tema, cerrar sesión y los 12 botones de la barra a 44 px. Método reproducible (servidor `no-store` + `sb` stubbeado + tecla real) y 9 gotchas documentados en § "Sesión 15-sep-2026 (noche)". **Próxima revisión cuando:** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` · 🟡 `[DEPOSITO-MISMO-+/-]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 + S10 · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 unificar historial depósito→local · 🟢 cuentas por empleada.
+
+**Estado del repo al cierre (15-sep, noche):** `origin/main` = `0f11376` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main · árbol limpio · SW **v1.1.97** pusheado (Vercel deploya solo; las tablets ven el banner amarillo) · breakpoint 700 sin cambios, decisión documentada.
 
 **Estado del repo al cierre (15-sep):** `origin/main` = `f6492f9` · rama `feat/admin-fluido` = main · árbol limpio · SW **v1.1.96** confirmado en `www.stperfumeria.com` · SQL `add_precio_frasco_max.sql` y `add_precio_decant.sql` ya corridos por Alejo (columnas verificadas).
 
