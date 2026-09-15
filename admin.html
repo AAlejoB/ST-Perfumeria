@@ -53,7 +53,6 @@
       /* Área táctil. El panel se usa con el dedo en la Galaxy Tab A9:
          44px es el mínimo para acertarle sin pelearse con la pantalla. */
       --tap-min: 44px;
-      --ctrl-h: 40px;
 
       /* Transiciones */
       --t-fast: .15s;
@@ -71,7 +70,7 @@
     }
     #themeToggleBtn,
     .panel-logout {
-      min-height: var(--ctrl-h);
+      min-height: var(--tap-min);
     }
     /* Los 9 checkbox del panel ya viven dentro de un <label>, así que el
        label ES el área clickeable: alcanza con darle altura mínima. */
@@ -482,7 +481,7 @@
       cursor: pointer;
       transition: all .15s;
       text-align: left;
-      min-height: 40px;
+      min-height: var(--tap-min);
       display: flex;
       align-items: center;
       gap: .5rem;
