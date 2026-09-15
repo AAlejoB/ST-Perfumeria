@@ -3081,7 +3081,7 @@
   </div>
 
   <!-- MODAL: ELIMINAR CLIENTE -->
-  <div class="modal-overlay" id="modalClientDelete" onclick="closeModal('modalClientDelete',event)">
+  <div class="modal-overlay" id="modalClientDelete" data-sin-enter="true" onclick="closeModal('modalClientDelete',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal('modalClientDelete')">&times;</button>
       <p class="modal-title">Eliminar cliente</p>
@@ -3711,6 +3711,57 @@
 
     // Compat con el onclick del hamburguesa
     function toggleMobileSidebar() { toggleSidebar(); }
+    // [CIERRE-RAPIDO] Cuánto queda abierto el modal después de guardar.
+    // Supabase contesta en ~194 ms; el resto de la espera la poníamos
+    // nosotros (eran 900, 1200 y hasta 1500 ms). Con 1.756 guardados de
+    // stock en dos meses, eso es media hora de gente mirando una pantalla
+    // que ya terminó. La confirmación real es la tabla actualizándose
+    // atrás, no el cartelito.
+    var MODAL_CIERRE_MS = 350;
+
+    // ════════════════════════════════════════════════════════════
+    // [ENTER-GUARDA] La tecla Enter hace lo que uno espera.
+    //
+    // Antes NO existía: había 76 campos de modal sin ningún manejo de
+    // teclado y cero <form> en el panel, así que el Enter de la tablet
+    // no hacía nada y había que ir a tocar "Guardar" con el dedo.
+    //
+    // Un solo listener delegado en vez de 76 onkeydown sueltos: cubre
+    // todos los campos de hoy y los que se agreguen después.
+    //
+    //   · Enter en un buscador  → cierra el teclado de la tablet, que es
+    //     lo que molesta de verdad: tapa media pantalla y no deja ver la
+    //     lista que acabás de filtrar.
+    //   · Enter en un campo de modal → guarda, como si tocaras el botón.
+    //   · En <textarea> no hace nada (ahí Enter es salto de línea).
+    //   · Los modales con data-sin-enter quedan afuera a propósito:
+    //     modalClientDelete borra un cliente para siempre y no puede
+    //     dispararse de un Enter apurado.
+    // ════════════════════════════════════════════════════════════
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+      var el = e.target;
+      if (!el || el.tagName !== 'INPUT') return;
+      var tipo = (el.type || 'text').toLowerCase();
+      if (tipo === 'checkbox' || tipo === 'radio' || tipo === 'file') return;
+
+      // Buscadores: sólo bajar el teclado y dejar ver los resultados.
+      if (el.classList.contains('admin-search') || /^search/i.test(el.id || '')) {
+        e.preventDefault();
+        el.blur();
+        return;
+      }
+
+      var modal = el.closest('.modal-overlay');
+      if (!modal || !modal.classList.contains('active')) return;
+      if (modal.dataset.sinEnter === 'true') return;      // opt-out (borrados)
+
+      var btn = modal.querySelector('.modal-btn');
+      if (!btn || btn.disabled) return;
+      e.preventDefault();
+      btn.click();
+    });
+
     // [SIDEBAR-RIEL] Se llama desde el onclick de TODAS las pestañas. En celular
     // cierra el overlay; en escritorio repliega el panel al riel, así el contenido
     // queda despejado apenas elegís. El riel deja los iconos a un click igual.
@@ -4158,7 +4209,7 @@
       msgEl.style.color = '#2ecc71';
       msgEl.textContent = sumar ? ('✓ Guardado · +' + movidas + ' al local') : '✓ Guardado';
       renderDeposito();
-      setTimeout(function() { closeModal('modalDeposito'); }, 900);
+      setTimeout(function() { closeModal('modalDeposito'); }, MODAL_CIERRE_MS);
     }
 
     // ============================================================
@@ -4920,7 +4971,7 @@
         msgEl.textContent = 'Cliente actualizado ✓';
         notifyTelegram('✏️ Cliente editado: ' + nombre + ' · ' + telefono + ' · ' + puntos + ' pts');
         loadClientes();
-        setTimeout(function() { closeModal('modalClientEdit'); }, 1200);
+        setTimeout(function() { closeModal('modalClientEdit'); }, MODAL_CIERRE_MS);
       }
       btn.textContent = 'Guardar cambios'; btn.disabled = false;
     }
@@ -4974,7 +5025,7 @@
         msgEl.textContent = 'Cliente eliminado ✓';
         notifyTelegram('🗑️ Cliente eliminado: ' + deletingClientName);
         loadClientes();
-        setTimeout(function() { closeModal('modalClientDelete'); }, 1000);
+        setTimeout(function() { closeModal('modalClientDelete'); }, MODAL_CIERRE_MS);
       }
       btn.textContent = 'Eliminar definitivamente'; btn.disabled = false;
     }
@@ -5162,7 +5213,7 @@
 
       renderPrecios();
       if (typeof renderStock === 'function') renderStock();
-      setTimeout(function() { closeModal('modalPrice'); }, 1500);
+      setTimeout(function() { closeModal('modalPrice'); }, MODAL_CIERRE_MS);
     }
 
     // ============================================================
@@ -5329,10 +5380,10 @@
           notifyTelegram('\ud83d\udcec Waitlist PENDIENTE de aviso\n\ud83c\udf36 ' + p.name + '\n\ud83d\udc65 ' + notified.length + ' persona(s)');
           setTimeout(function() { closeModal('modalStock'); }, 5000);
         } else {
-          setTimeout(function() { closeModal('modalStock'); }, 1200);
+          setTimeout(function() { closeModal('modalStock'); }, MODAL_CIERRE_MS);
         }
       } else {
-        setTimeout(function() { closeModal('modalStock'); }, 1200);
+        setTimeout(function() { closeModal('modalStock'); }, MODAL_CIERRE_MS);
       }
     }
 
@@ -9866,7 +9917,7 @@
         loadPuntosHistory();
         msg.style.color = '#9bd28b';
         msg.textContent = '✓ ' + (sign>0?'Sumado':'Restado') + ' ' + amt + ' pts';
-        setTimeout(function(){ closeModal('modalPuntos'); }, 800);
+        setTimeout(function(){ closeModal('modalPuntos'); }, MODAL_CIERRE_MS);
       } catch(e) {
         msg.style.color = '#ff7a7a';
         msg.textContent = '✗ ' + (e.message||e);
