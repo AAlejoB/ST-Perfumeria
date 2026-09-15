@@ -77,6 +77,13 @@
     #adminPanel label:has(> input[type="checkbox"]) {
       min-height: var(--tap-min);
     }
+    /* Los botones de los modales: el − / + de stock y depósito (1.756 cambios de
+       stock en dos meses: lo que más se toca) y el Guardar / OK de todos. Medidos
+       en 40 y 39,6 px; ahora los cuatro controles del modal miden lo mismo. */
+    .modal-box .btn-stock,
+    .modal-btn {
+      min-height: var(--tap-min);
+    }
     body {
       font-family: 'Inter', sans-serif; background: var(--negro); color: #fff;
       min-height: 100vh;
