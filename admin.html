@@ -3595,7 +3595,13 @@
       // El window.open anterior corría tras await + setTimeout, sin gesto del usuario,
       // así que el bloqueador de pop-ups lo frenaba (peor en tablet). Un <a> que la
       // chica toca = gesto directo → WhatsApp abre siempre.
-      var msg = encodeURIComponent('¡Hola! Ya te reseteé la contraseña de ST Perfumería 🌸 Entrá a la web con tu número de WhatsApp y la PRÓXIMA contraseña que pongas queda como tu nueva clave. Cualquier cosa avisame!');
+      var msg = encodeURIComponent(
+        '¡Hola! 🌸 Te dejé la cuenta lista para que elijas una contraseña nueva.\n\n' +
+        '1. Entrá a stperfumeria.com\n' +
+        '2. Tocá "Iniciar sesión"\n' +
+        '3. Tu número: ' + tel + '\n' +
+        '4. Donde dice Contraseña, escribí *la clave nueva que quieras* — la que pongas ahí queda guardada.\n\n' +
+        '*Anotala*, porque es la que vas a usar de ahora en más. Cualquier cosa avisame 💛');
       var waUrl = 'https://wa.me/' + tel + '?text=' + msg;
       var banner = document.getElementById('resetSuccessBanner');
       if (banner) {

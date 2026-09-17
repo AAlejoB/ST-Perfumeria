@@ -320,7 +320,7 @@
         btn.style.display = 'none';
         if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo);font-size:.85rem;">Volver al inicio</a>';
         errEl.style.color = '#2ecc71';
-        errEl.innerHTML = '✓ ¡Listo! Si tu número está registrado, te vamos a escribir por WhatsApp en breve para ayudarte a entrar de nuevo. 🌸';
+        errEl.innerHTML = '✓ Pedido enviado. Si tu número está registrado, te escribimos por WhatsApp para que elijas una contraseña nueva. Si el local está cerrado puede ser recién mañana — no hace falta pedirlo de nuevo. 🌸';
       } catch (e) {
         btn.disabled = false;
         btn.textContent = 'Pedir ayuda';
@@ -479,7 +479,7 @@
             // Cuenta creada desde admin o reseteada: la clave que acaba de
             // escribir quedó fijada, ya hasheada, del lado del servidor.
             errEl.style.color = '#2ecc71';
-            errEl.textContent = '\u2713 Cuenta activada. \u00a1Bienvenido/a, ' + r.nombre + '!';
+            errEl.textContent = '\u2713 \u00a1Listo! Tu contrase\u00f1a nueva qued\u00f3 guardada: es la que acab\u00e1s de escribir. Anotala para la pr\u00f3xima.';
             notifyTG('\ud83d\udd13 Primer ingreso\n\ud83d\udc64 ' + r.nombre + ' (' + r.telefono + ')');
             setTimeout(function() {
               onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });
