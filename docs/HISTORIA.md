@@ -1267,12 +1267,12 @@ VALUES ('perfume-fotos', 'perfume-fotos', true);
 #### Descubrimiento que dispara `[SECURITY-AUDIT-S1]`
 
 Al final de la sesión, escribiendo el mensaje de verificación para Alejo, dije:
-> *"Hacé login con la password del jefe que usás normalmente (`SANTOMY2026` según el código)."*
+> *"Hacé login con la password del jefe que usás normalmente (`<ADMIN_PASS · ver admin.html · S1>` según el código)."*
 
 Alejo me detectó que esa frase "según el código" sugería que la password estaba en el código (HTML público). Le confirmé que sí: `admin.html` líneas 2766-2767 tiene:
 ```js
-var ADMIN_PASS = 'SANTOMY2026';
-var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO';
+var ADMIN_PASS = '<ADMIN_PASS · ver admin.html · S1>';
+var ADMIN_PASS_EMPLEADO = '<ADMIN_PASS_EMPLEADO · ver admin.html · S1>';
 ```
 
 Cualquier visitor con "Ver código fuente" lee las passwords del jefe y la empleada. Es trivialmente explotable. Alejo preguntó:
@@ -1920,9 +1920,63 @@ Pedido de las chicas vía Alejo, con captura del modal de Stock: *"quiero agrega
 - Alejo pide features **con captura de lo que ya existe** ("ESTO así tal cual") — la referencia es un control del propio panel, no un diseño nuevo. Copiar exacto y medir que sea exacto.
 - **Plan en tabla "qué hay hoy / qué hago" → "¿Dale?" → un solo "Dale"** funcionó de nuevo; sumó "incluí lo del buscador también" a un ortogonal que le flageé con costo (1 línea) — flagear con costo ayuda a que decida rápido.
 
+### Sesión 16→17-sep-2026 · **`[BCRYPT-MIGRATION]` S2 RESUELTO** — las contraseñas de los clientes dejan de estar al alcance de cualquiera
+
+El pendiente 🔴 más viejo del proyecto (documentado desde mayo, agravado en junio, medido en agosto). Se hizo con la dupla: **ClaudeChat diseñó y escribió** (SQL + parche de `app.js`) a partir de un brief con hechos verificados, **Claude Code aplicó y midió** en producción, **Alejo corrió las fases SQL** en el SQL Editor y decidió el orden. 1 commit de código (`98b556c`) · SW **v1.1.99 → v1.1.100** · 2 fases SQL en producción · S2 cerrado el 17-sep.
+
+#### Qué se hizo
+
+- **Brief para el cowork** (16-sep) con hechos del código (las 8 llamadas `anon` a `clientes` en `app.js`, líneas y qué necesitaba seguir funcionando; los 17 usos `authenticated` del panel; el flujo `[FORGOT-PASS-A]`), y **addendum con hechos de la base** consultados por MCP: las 4 policies reales eran todas para `public` con `true` — **incluida una de DELETE** que nadie había relevado (cualquiera con la anon key podía borrar clientes) — y **no existía ninguna policy de `authenticated`**: el panel entraba por las de `public`. Ese dato cambió el diseño: la FASE 3 crea las 4 de `authenticated` **antes** de borrar las viejas.
+- **Diseño (ClaudeChat)**: 5 RPC `SECURITY DEFINER` (`cliente_login`, `cliente_registrar`, `cliente_editar`, `cliente_puntos`, `cliente_reset_solicitar`) + helper `_cliente_hash` (bcrypt cost 10, **73 ms medidos** en la instancia) + tabla `cliente_login_intentos` (rate-limit server-side: 5 fallos → 15 min; RLS activa sin policies, sólo la tocan las funciones). Migración perezosa: si la clave guardada no empieza con `$2`, compara en plano y la reemplaza por el hash en el mismo login; también al editar perfil. Hash dummy cuando el teléfono no existe (**77,1 ms vs 76,2 ms** de un login real: el tiempo no delata qué números existen). Mensaje unificado *"Teléfono o contraseña incorrectos"*. La columna `bloqueado` **por fin bloquea** (el panel tenía un botón que nunca hizo nada: el login jamás la leyó) y devuelve el mismo `invalido` que una clave mala. `password = ''` (alta manual del panel, default de la columna) se activa igual que `NULL` (reset).
+- **Prompt 1/3** (16-sep): rama `feat/s2-bcrypt` sobre `f7da8bf`, `git apply --check` limpio, `app.js` con **0** `from('clientes')`, `node --check` OK. SQL sin correr.
+- **Prompt 2/3 · FASE 1 en producción** (16-sep, vía `apply_migration`): funciones creadas, policies viejas intactas. Al probar `cliente_registrar` → **`invalid input syntax for type bigint: "eff38d8b-…"`**: **`clientes.id` es `uuid`**, no `BIGSERIAL` como decía `DATABASE.md` (y `password_reset_requests.cliente_id` también). Freno, rollback natural (la transacción abortó: 0 filas de prueba, 96 clientes intactos), y devolución al cowork con 3 hallazgos más: `where telefono = p_telefono` ambiguo con el OUT param `telefono`, `_cliente_hash` ejecutable por `anon` por los *default privileges* de Supabase, y el drop obligatorio de las firmas viejas.
+- **El cowork lo probó contra un Postgres 16 real** y devolvió 4 correcciones más: `drop function` también en `cliente_login` y `cliente_registrar` (cambia el tipo de retorno: `create or replace` no puede, 42P13), `v_id uuid` en `reset_solicitar`, `on conflict on constraint cliente_login_intentos_pkey` (la cláusula de inferencia no admite calificar la columna), y FASE 1 dentro de `begin`/`commit`. Partió el SQL en `sql/fase1.sql` (415 líneas) y `sql/fase3.sql` (138) para que no se pudiera pegar la FASE 3 por error, más `sql/s2_bcrypt_migration.sql` completo (477, blob `21fdfb8`).
+- **Worktree reciclado en el medio** (17-sep): el `app.js` parcheado y el SQL sin commitear se perdieron, y el patch v2 traía el SQL como diff contra un blob (`c6b45fe`) que nunca llegó a git. `git apply --check` falló limpio ("No such file"); se pidió el archivo entero. El hunk de `app.js` aplicaba solo (`7106df3`) — el cowork creyó ver un hash distinto por comparar contra el archivo CRLF del disco; normalizado a LF era idéntico.
+- **Commit `98b556c` sin push** (17-sep, orden cambiado por Alejo: commit primero para que el SQL del repo fuera el corregido antes de pegarlo) → **Alejo corrió `fase1.sql`** → verificación por MCP de que las firmas en producción eran las corregidas (`id uuid`, `p_id uuid`, `on constraint`, `_cliente_hash` sólo `postgres`) → **push `f7da8bf..98b556c`** → producción sirviendo `v1.1.100` + `app.js` con RPC en **1 minuto**.
+- **Verificación en producción** (tabla completa en el reporte del prompt 2): `registrar` → `ok` + `$2a$10$` (60 chars) · login ok · 5 fallos **de a uno** → 5º `bloqueado` con `espera_seg` 900 · clave correcta estando bloqueado → `bloqueado` · inexistente `invalido` en 77 ms · alta manual con `''` → `activado` + hash · `bloqueado = true` + clave correcta → `invalido` · desbloqueo → `ok` · **E2E desde `www.stperfumeria.com`** con el JS deployado: entra, sesión `{id uuid, nombre, telefono}` sin password; clave mala e inexistente → mismo mensaje.
+- **FASE 3 la corrió Alejo** en el SQL Editor y verificó: anon leyendo `clientes` → **0 filas** (antes 98) · anon llamando `cliente_login` → responde · policies → **sólo las 4 de `authenticated`**. Esa asimetría era el objetivo.
+- **Fuga en la doc** (hallazgo de Alejo al revisar antes del commit de docs): `SECURITY.md` § S3 tenía el **token real del bot de Telegram y el chat_id** escritos completos "para documentar la fuga" — en un repo público, en 32 commits de historial. Enmascarados en este commit (`<REVOCADO — ver historial>`), token rotado por Alejo (el nuevo vive sólo en `public.send_telegram` y en las env vars de Vercel), y **regla nueva en `SECURITY.md`**: los documentos de auditoría no llevan valores de credenciales, sólo dónde viven. La pasada por `docs/`, `memory/` y `RECOMENDACIONES_CLAUDECHAT/` encontró además las dos contraseñas de S1 pegadas en 10 lugares (ya públicas en `admin.html`, pero la regla es la regla): enmascaradas. Las connection strings del Plan B eran placeholders.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **La doc no es la fuente de verdad de la base: `pg_policies`, `information_schema` y `pg_proc` lo son.** `DATABASE.md` decía `id BIGSERIAL` y `puntos NUMERIC(8,2)`; eran `uuid` e `integer`. Costó un ensayo fallido en producción (sin daño: la transacción abortó). Todo brief para el cowork lleva los tipos consultados, no copiados.
+- **`SECURITY DEFINER` + *default privileges* de Supabase**: cada función nueva nace con EXECUTE para `anon, authenticated, service_role`; `revoke all … from public` no toca esos grants. Un helper que no debe llamar nadie necesita `revoke execute … from anon, authenticated, service_role` explícito.
+- **plpgsql y los parámetros de salida**: `returns table (…, telefono text, …)` convierte `telefono` en variable; `where telefono = …` es ambiguo (error en runtime, no al crear) y `on conflict (telefono)` también. Calificar con alias o usar `on conflict on constraint`.
+- **`create or replace function` no puede cambiar el tipo de retorno** (42P13): cambio de firma = `drop function` previo, y por eso la FASE 1 fue transaccional.
+- **Probar N llamadas en UNA sentencia SQL miente**: 5 `cliente_login` en un `generate_series` dieron siempre `invalido` con `intentos = 1` (mismo snapshot: los upserts se pisan) y los CTE no ven los inserts de otros CTE. Cada login real es una request aparte: se prueba **una llamada por sentencia**. Los tiempos se miden con `explain (analyze)`, no con `clock_timestamp()` en CTE.
+- **El worktree reciclado se lleva lo no commiteado**, incluidos los blobs que un patch usa de base. Si un archivo nuevo va a ser base de un patch futuro, se commitea antes; y para un archivo nuevo se pide el archivo entero, no un diff.
+- **`git checkout -B` de una rama que quedó "usada" por un worktree borrado falla** (`already used by worktree at …`); no hacía falta la rama para pushear `HEAD:main`. `git worktree prune` lo hace Alejo desde Windows, después del deploy; `feat/s2-bcrypt` apunta a `f7da8bf` sin commits propios.
+- **Riesgo que quedó**: un cliente con el `app.js` viejo cacheado ve "Teléfono o contraseña incorrectos" hasta que el SW le entregue `v1.1.100` (`[PWA-AUTO-RELOAD]` lo resuelve al abrir el sitio; ventana de minutos). Sin reportes.
+- **Deuda anotada por el propio cowork**: `cliente_puntos` y `cliente_reset_solicitar` siguen respondiendo con sólo el teléfono (misma exposición que antes: nombre y puntos). Se resuelve en el escalón 3 (Supabase Auth). **S2-bis** (nuevo, S13 en `SECURITY.md`): `favoritos`, `votos` y `opiniones` se escriben como `anon` con el `user_id` del localStorage.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[BCRYPT-MIGRATION]` / **S2** | Login de clientes por RPC + bcrypt con migración perezosa + rate-limit server-side + `anon` sin acceso directo a `clientes` · `98b556c` + FASE 1/3 en producción |
+| S3 (parcial) | Token y chat_id fuera de la doc, token rotado; queda mover a Vault |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| **D** de S2 🟡 | Alejo entra con su cuenta de cliente real → verificar `left(password,7) = '$2a$10$'` y segundo login. Los 2 clientes de prueba (`549000000000[12]`) se borran desde "Eliminar definitivamente" del panel (prueba `clientes_delete_auth`) |
+| `[LOGIN-INTENTOS-CLEANUP]` 🟢 | `pg_cron` que borre de `cliente_login_intentos` las filas de más de un día (crece con cada intento fallido de cualquier número) |
+| **S13 / S2-bis** 🟠 | `favoritos` / `votos` / `opiniones` escribibles a nombre de otro cliente |
+| S3 (Vault) 🟡 | `send_telegram` leyendo de `vault.secrets` en vez de constantes |
+| `.claude/commands/security-scan.md` 🟢 | Tiene las dos contraseñas de S1 como ejemplo; no se tocó por la regla de no modificar `.claude\` — decidir |
+| `[VERCEL-ENV-VARS]` 🔴 · `[BACKUP-FOTOS-LOCAL]` 🟡 · S1 + S10 🟠 · `[DC-HEADER-600]` 🟢 · contador del tope 🟢 · historial depósito→local 🟢 · cuentas por empleada 🟢 | sin cambios |
+
+#### 💬 Mensajes meta
+
+- Alejo **manejó el orden del despliegue mejor que el plan**: cambió "push y después FASE 1" por "commit primero, FASE 1 con el SQL del repo, push después" para no pegar un SQL viejo en producción, y corrió las dos fases él mismo. Y frenó el commit de docs al ver el token en `SECURITY.md`. El que decide es él; conviene darle los hechos, no las conclusiones.
+- La dupla con brief + addendum de hechos verificados funcionó: 1 ensayo fallido (por la doc, no por el diseño), 8 correcciones cruzadas entre los dos, cero clientes afectados.
+
 ---
 
-**Última actualización:** **Septiembre 16, 2026** — sesión corta de feature · 4 commits · SW **v1.1.97 → v1.1.99**. Pedido de las chicas con captura: **`[DEPOSITO-MISMO-+/-]`** (el ± del depósito idéntico al de Precios & Stock, con la casilla "No sumar al stock local" en vivo al tocar −) + **`[DEPOSITO-LOCAL-CLICK]`** (la badge de Local en Depósito abre el mismo modal de Stock y la tabla se refresca al guardar) + buscador que sobrevive al guardado en Precios y Depósito · `e18ac20`. Midiendo salió que el − / + y el Guardar de los modales medían 40 → **`[TAP-44]` modales** `4329a59`. Todo verificado a 600 px con clicks y teclas reales y `sb` stubbeado. Detalle en § "Sesión 16-sep-2026". **Próxima revisión cuando:** 🔴 `[BCRYPT-MIGRATION]`/S2 · 🔴 `[VERCEL-ENV-VARS]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟠 S1 + S10 · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 unificar historial depósito→local · 🟢 cuentas por empleada.
+**Última actualización:** **Septiembre 17, 2026** — **S2 RESUELTO** (`[BCRYPT-MIGRATION]`): login de clientes por RPC `SECURITY DEFINER`, bcrypt cost 10 con migración perezosa, rate-limit server-side, `anon` sin ninguna policy sobre `clientes` (antes tenía hasta DELETE) · `98b556c` · SW **v1.1.99 → v1.1.100** · FASE 1 y 3 corridas por Alejo en producción · verificado: 0 filas por REST (antes 98), E2E de login en el sitio real. Dupla ClaudeChat (diseño) + Claude Code (medición) + Alejo (orden y SQL Editor): 1 ensayo fallido por doc desactualizada (`id` es uuid), 8 correcciones cruzadas, 0 clientes afectados. **Fuga en la doc**: el token real de Telegram estaba escrito en `SECURITY.md` § S3 → enmascarado, rotado, y regla nueva (los docs no llevan valores de credenciales). Detalle en § "Sesión 16→17-sep-2026". **Próxima revisión cuando:** 🟡 **D** de S2 (Alejo con su cuenta) + borrar clientes de prueba · 🔴 `[VERCEL-ENV-VARS]` · 🟠 S13 / S1 + S10 · 🟡 S3 Vault · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟢 `[LOGIN-INTENTOS-CLEANUP]` · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 historial depósito→local · 🟢 cuentas por empleada.
+
+**Estado del repo al cierre (17-sep):** `origin/main` = `98b556c` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main (worktree reciclado a `serene-jennings-e9d305` en el medio) · `feat/s2-bcrypt` local sin commits propios, ligada a un worktree que ya no existe (`git worktree prune` lo hace Alejo desde Windows) · SW **v1.1.100** en producción · policies de `clientes`: sólo 4 `authenticated` · 98 clientes (96 + 2 de prueba), 2 bcrypt (los de prueba), 92 en plano esperando su primer login.
 
 **Estado del repo al cierre (16-sep):** `origin/main` = `1cb7246` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main · árbol limpio · SW **v1.1.99** pusheado (dos bumps seguidos: las tablets ven el banner amarillo dos veces) · pendiente de probar en la Tab A9 real: Depósito → número verde → − − → casilla; badge Local → modal de Stock; buscar + guardar → la búsqueda sigue.
 

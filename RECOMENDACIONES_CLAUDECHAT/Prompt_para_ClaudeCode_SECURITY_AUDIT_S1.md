@@ -24,7 +24,7 @@ ClaudeChat (vos) propone diseño y plan · Alejo valida · Claude Code ejecuta c
 
 ## 2. El problema que estamos resolviendo
 
-El **21-may-2026 a las 5 de la mañana** (al final de la sesión de Plan B Supabase), Alejo detectó que en mi mensaje le había dicho *"hacé login con la password del jefe (SANTOMY2026 según el código)"*. Ese "según el código" le hizo ruido y me preguntó:
+El **21-may-2026 a las 5 de la mañana** (al final de la sesión de Plan B Supabase), Alejo detectó que en mi mensaje le había dicho *"hacé login con la password del jefe (<ADMIN_PASS · ver admin.html · S1> según el código)"*. Ese "según el código" le hizo ruido y me preguntó:
 
 > *"habrá que planificar una sesión de seguridad informática con claudechat + claudecode?"*
 
@@ -33,8 +33,8 @@ Le confirmé que sí · ese descubrimiento expuso un issue CRÍTICO + abrió la 
 **El issue crítico que dispara esta sesión:**
 - Las passwords del jefe y la empleada están **HARDCODED en `admin.html` línea 2766-2767** como variables JS:
   ```js
-  var ADMIN_PASS = 'SANTOMY2026';
-  var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO';
+  var ADMIN_PASS = '<ADMIN_PASS · ver admin.html · S1>';
+  var ADMIN_PASS_EMPLEADO = '<ADMIN_PASS_EMPLEADO · ver admin.html · S1>';
   ```
 - `admin.html` es PÚBLICAMENTE accesible vía `https://www.stperfumeria.com/admin.html` (necesario, las chicas lo usan)
 - Cualquier visitor puede hacer Ctrl+U (View Source) y leer las passwords en bandeja

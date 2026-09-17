@@ -39,7 +39,7 @@
 
 | Tabla | Función | Notas |
 |---|---|---|
-| `clientes` | Auth custom + datos + `puntos` | ⚠️ password en plano |
+| `clientes` | Auth custom **vía RPC** (`cliente_login` & co.) + datos + `puntos` | ✅ bcrypt desde 17-sep-2026 (migración perezosa) · `anon` **sin acceso directo** · `id` es **uuid** |
 | `ventas` | Histórica (UI de registro eliminada en v1.0.80) | No escribir desde el front por ahora |
 | `perfume_overrides` | Stock + status por perfume | Editado masivamente desde admin |
 | `perfumes_nuevos` | Perfumes agregados por admin (extra al seed `perfumes.js`) | |
@@ -133,18 +133,50 @@ CREATE POLICY "mi_tabla_write_auth" ON mi_tabla
 
 ### `clientes`
 
+⚠️ **Corregido el 17-sep-2026 tras consultar `information_schema` en producción** — la versión anterior de este bloque decía `id BIGSERIAL` y `puntos NUMERIC(8,2)` y **estaba mal**; costó un ensayo fallido de S2. La base es la fuente de verdad, no este doc.
+
 ```sql
-id           BIGSERIAL PRIMARY KEY,
+id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 nombre       TEXT,
 telefono     TEXT UNIQUE NOT NULL,
-password     TEXT,                                -- ⚠️ plano, pendiente bcrypt
-puntos       NUMERIC(8,2) NOT NULL DEFAULT 0,
+password     TEXT DEFAULT '',                    -- bcrypt ($2a$10$…) desde 17-sep · '' = alta manual sin clave · NULL = reseteada
+puntos       INTEGER NOT NULL DEFAULT 0,
+bloqueado    BOOLEAN DEFAULT FALSE,             -- desde S2 el login lo respeta (antes nunca se leía)
+compro       BOOLEAN,
+nota         TEXT,
+puntos_log   JSONB,
 created_at   TIMESTAMPTZ DEFAULT NOW()
 ```
 
+**RLS (desde `sql/fase3.sql`, 17-sep-2026):** `anon` **no tiene ninguna policy** (antes tenía SELECT/INSERT/UPDATE/DELETE con `true`). `authenticated` (panel admin): `clientes_select_auth`, `clientes_insert_auth`, `clientes_update_auth`, `clientes_delete_auth`, todas `true`.
+
+**Acceso del sitio público — sólo por RPC `SECURITY DEFINER`** (`sql/fase1.sql`; `revoke … from public` + `grant execute … to anon, authenticated`):
+
+| Función | Reemplaza | Devuelve |
+|---|---|---|
+| `cliente_login(telefono, pass)` | el `select … password` + la activación | `estado` (`ok` · `activado` · `invalido` · `bloqueado`), `id`, `nombre`, `telefono`, `espera_seg` |
+| `cliente_registrar(nombre, telefono, pass)` | chequeo de duplicado + `insert` | `estado` (`ok` · `duplicado` · `invalido`), `id`, `nombre`, `telefono` |
+| `cliente_editar(id, pass, nombre, telefono)` | verificación + `update` (antes sin clave) | `estado` (`ok` · `pass_incorrecta` · `duplicado` · `invalido`) |
+| `cliente_puntos(telefono)` | `select puntos, nombre` | `puntos`, `nombre` — misma exposición que antes (sin prueba de identidad) |
+| `cliente_reset_solicitar(telefono)` | lookup + `insert` en `password_reset_requests` | `nombre` (sólo para el Telegram) |
+| `_cliente_hash(pass)` | — | helper, `crypt(pass, gen_salt('bf', 10))` · **sin EXECUTE para nadie** (revoke explícito: los *default privileges* de Supabase se lo daban a anon) |
+
+**Gotchas plpgsql que costaron un ensayo:** `returns table (…, telefono …)` convierte `telefono` en variable → `where telefono = …` y `on conflict (telefono)` son ambiguos (calificar con alias / `on conflict on constraint`). `create or replace` no puede cambiar el tipo de retorno → `drop function` previo.
+
+### `cliente_login_intentos`
+
+```sql
+telefono        TEXT PRIMARY KEY,
+intentos        INTEGER NOT NULL DEFAULT 0,
+ultimo_intento  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+bloqueado_hasta TIMESTAMPTZ
+```
+
+Rate-limit del login de clientes (5 fallos → 15 min). **RLS activa y sin policies**: la tocan sólo las funciones `SECURITY DEFINER`. Crece con cada intento fallido de cualquier número (existente o no) y **no tiene limpieza** → `[LOGIN-INTENTOS-CLEANUP]` 🟢 (pg_cron, filas de más de un día).
+
 **Anti-patterns conocidos:**
-- `password` en plano → migrar a bcrypt (lazy migration).
-- `id` BIGSERIAL — si migramos a Supabase Auth, mantener este id y agregar `auth_uid TEXT REFERENCES auth.users(id)`.
+- `cliente_puntos` y `cliente_reset_solicitar` responden con sólo el teléfono (deuda hasta Supabase Auth, escalón 3 de S2).
+- Si migramos a Supabase Auth, mantener este `id` (uuid) y agregar `auth_uid UUID REFERENCES auth.users(id)`.
 
 ### `perfume_overrides`
 

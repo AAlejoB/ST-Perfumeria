@@ -17,7 +17,7 @@
 |---|---|---|
 | BaaS | Supabase (Postgres + Realtime + Storage) | **Pro tier $25/mes** · proyecto activo: `znmjhproimtprptheumy` en `sa-east-1` São Paulo (migrado desde us-west-2 Oregon el 21-may-2026 · `[PLAN-B-SWITCH]` commit `f532525`) · proyecto legacy `rtgjzzkjrwbkdhkslxix` se mantiene pausable a partir del 28-may como rollback safety net |
 | Auth admin | Supabase Auth (email + password) | 3 cuentas en `auth.users`: `jefe@stperfumeria.local`, `empleado@stperfumeria.local`, `alejooobello7@gmail.com` (cuenta personal de Alejo). Hashes bcrypt `$2a$10$...` preservados a través de la migración Plan B. ⚠️ **Issue de seguridad activo:** las passwords del jefe y empleada están HARDCODED en `admin.html` L2766-2767 como constantes JS (`ADMIN_PASS`/`ADMIN_PASS_EMPLEADO`) que cualquiera puede leer con "Ver código fuente" · fix pendiente en `[SECURITY-AUDIT-S1]` |
-| Auth cliente | Custom (telefono + password plano en `clientes`) | ⚠️ Pendiente migrar a bcrypt · `[BCRYPT-MIGRATION]` · cae adentro de `[SECURITY-AUDIT-S1]` |
+| Auth cliente | Custom (telefono + password) **vía RPC `SECURITY DEFINER`** · bcrypt en `clientes.password` | ✅ `[BCRYPT-MIGRATION]` hecho el 17-sep-2026 · `anon` sin acceso directo a la tabla · pendiente escalón 3 (Supabase Auth) |
 | Anon key | Formato nuevo `sb_publishable_*` (post-2024) | El proyecto nuevo usa el formato nuevo · supabase-js v2 acepta ambos formatos (compat backward). En el frontend está hardcodeada en `admin.html` L2769 y `js/app.js` L5 |
 | Realtime | Supabase channels | `admin-stock-sync` |
 | Serverless | Vercel functions (Edge runtime para OG) | `/api/cron/`, `/api/og/`. ⚠️ Las que usan `process.env.SUPABASE_URL` están "rotas en silencio" porque **Vercel NO tiene env vars definidas** (verificado el 21-may con `vercel env ls`). Pendiente: agregar env vars o eliminar API functions no usadas |
@@ -71,36 +71,34 @@ Loguea en `admin_actions` y notifica por Telegram.
 
 ---
 
-## 👤 Auth cliente (custom, A MIGRAR)
+## 👤 Auth cliente (custom · bcrypt vía RPC desde 17-sep-2026)
 
 ### Estado actual
 
-Tabla `clientes` con columnas `telefono` + `password` (texto plano).
+Tabla `clientes` (`id uuid`, `telefono`, `password` **bcrypt**, ver `docs/DATABASE.md`). El sitio público **no lee ni escribe la tabla**: llama 5 RPC `SECURITY DEFINER` que corren como el owner y devuelven sólo lo mínimo. `anon` no tiene ninguna policy sobre `clientes`.
 
 Login en `js/app.js`:
 ```js
-var existing = await sb.from('clientes').select('id, nombre, telefono, password').eq('telefono', phone).limit(1);
-var cliente = existing.data[0];
-if (cliente.password === pass) { ... } // ⚠️ COMPARACIÓN EN PLANO
+var rpcLogin = await sb.rpc('cliente_login', { p_telefono: phone, p_pass: pass });
+var r = rpcLogin.data && rpcLogin.data[0];   // { estado, id, nombre, telefono, espera_seg }
+// estado: 'ok' | 'activado' (cuenta sin clave: la primera que escribe queda fija) | 'invalido' | 'bloqueado'
+onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });   // la sesión local NO guarda la contraseña
 ```
+
+- **Migración perezosa**: la función compara en plano si la clave guardada no empieza con `$2`, y si coincide la reemplaza por `crypt(pass, gen_salt('bf', 10))` en ese mismo login. Nadie tuvo que cambiar su clave. Registro y activación guardan hasheado.
+- **Rate-limit server-side**: 5 fallos → 15 min (`cliente_login_intentos`). El lockout de localStorage (`st_auth_lockout`) sigue como UX; el que protege es el del servidor.
+- **Sin filtrar información**: teléfono inexistente cuesta un hash igual (~77 ms, como un login real) y el mensaje es siempre "Teléfono o contraseña incorrectos". `bloqueado = true` (botón del panel) devuelve el mismo `invalido`.
+- **Editar perfil** (`cliente_editar`) exige la clave: antes el `update` corría como anon sin verificar nada.
 
 ### Por qué se hizo así
 
-Velocidad inicial. Funciona pero es inseguro:
-- Si la DB se filtra → contraseñas en claro
-- La gente reusa pass → robar IG/Gmail/etc.
+S2 en `docs/SECURITY.md`: con la anon key pública y RLS abierta, cualquiera podía bajarse las 96 fichas con la contraseña en plano (y borrarlas). Se cerró la puerta y se hasheó **en el mismo cambio**, porque cerrar la RLS sola dejaba a todos los clientes afuera. Diseño de ClaudeChat, aplicado y medido por Claude Code, fases SQL corridas por Alejo. Detalle y tropiezos (uuid vs bigint, ambigüedad de OUT params, default privileges) en `docs/HISTORIA.md` § "Sesión 16→17-sep-2026".
 
-### Plan de migración (lazy bcrypt)
+### Deuda que queda (escalón 3 · Supabase Auth)
 
-1. Agregar `bcryptjs` vía CDN en `index.html` (5KB).
-2. En login (línea ~378 de `app.js`):
-   - Si `cliente.password` arranca con `$2` → bcrypt, comparar con `bcrypt.compare`
-   - Si no → es plano, comparar plano. Si match: hashear y guardar (`UPDATE clientes SET password = hashed`). Próximo login usa hash.
-3. En register: hashear ANTES de insertar.
-
-**Riesgo del cambio para clientes:** CERO (transparente, lazy migration). +200ms en primer login.
-
-**Tiempo total:** 30-60 min.
+- No hay sesión del lado del servidor: `cliente_puntos` y `cliente_reset_solicitar` responden con sólo el teléfono (misma exposición que antes).
+- `favoritos` / `votos` / `opiniones` se escriben como anon con el `user_id` del localStorage (S13 en `SECURITY.md`).
+- Migrar a Supabase Auth resuelve las dos: `auth.uid()` en las policies.
 
 ### `[FORGOT-PASS-A]` · recuperación de contraseña (27-jun-2026 · commit `db9d485`)
 

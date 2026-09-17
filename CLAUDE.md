@@ -40,7 +40,7 @@ Este archivo (`CLAUDE.md`) tiene el resumen general. Para dive deep, andá a la 
 | Hosting | Vercel | Free tier |
 | Dominio | stperfumeria.com (también legacy `st-perfumeria.vercel.app`) |
 | PWA | Service Worker custom (`sw.js`) | Versionado manual |
-| Auth | Custom phone+password en tabla `clientes` | ⚠️ **Pass en plano — pendiente migrar a bcrypt** |
+| Auth | Custom phone+password en tabla `clientes`, **vía RPC `SECURITY DEFINER`** | ✅ **bcrypt desde 17-sep-2026** (`[BCRYPT-MIGRATION]`) · `anon` sin acceso directo · pendiente escalón 3 (Supabase Auth) |
 
 ---
 
@@ -85,7 +85,7 @@ Tablas principales:
 
 | Tabla | Función |
 |---|---|
-| `clientes` | Auth custom (telefono + password en plano) + datos + `puntos` |
+| `clientes` | Auth custom (telefono + password **bcrypt**, sólo por RPC) + datos + `puntos` · `id` es **uuid** |
 | `ventas` | Tabla histórica (la tab "Registrar Venta" del admin fue eliminada — el jefe va a re-pensar el flujo). NO escribir desde el front por ahora. |
 | `perfume_overrides` | Stock + status por perfume (`stock_qty`, `stock_status`, `nota_*`) |
 | `perfumes_nuevos` | Perfumes agregados por admin (extra al seed) |
@@ -224,7 +224,7 @@ Cosas que aprendimos a la mala y NO hay que volver a tocar:
 6. **Timezone Argentina** al guardar fechas — usar `toLocaleString('en-US', {timeZone: 'America/Argentina/Buenos_Aires'})`, NO `new Date().toISOString()` (eso es UTC y rompe a la noche)
 7. **Categorías y trust badges quedan oscuros también en light** (decisión del jefe)
 8. **Tabs del admin con `data-role="jefe"`** son SOLO para el jefe. Para empleadas, no poner ese atributo.
-9. **Auth: pass en plano por ahora** — si se modifica el flujo, mantener compat con clientes existentes (lazy migration, ver `docs/HISTORIA.md`)
+9. **Auth de clientes: SÓLO por las RPC `cliente_*`** (`sql/fase1.sql`) — el sitio público no lee ni escribe `clientes` (anon no tiene policies). Cualquier flujo nuevo que necesite la tabla va como función `SECURITY DEFINER`, nunca como `from('clientes')` desde `app.js`. Compat con clientes existentes garantizada por la migración perezosa.
 
 ---
 
@@ -241,7 +241,7 @@ Definido en la lógica de admin.html (`currentRole`).
 
 ## 📌 Pendientes conocidos (con prioridad)
 
-1. 🔴 **`[BCRYPT-MIGRATION]` / S2 — EL MÁS IMPORTANTE.** Medido el 12-ago: **82 fichas de clientes y 78 contraseñas en texto plano** descargables con la clave pública (0 hasheadas). El daño le cae a los clientes, que reutilizan contraseñas. Plan de 3 escalones en `docs/SECURITY.md` § S2. ⚠️ **Los pasos 1 y 2 van juntos**: cerrar la RLS a secas deja a todos los clientes afuera del login.
+1. ✅ ~~**`[BCRYPT-MIGRATION]` / S2**~~ — **RESUELTO el 17-sep-2026** (`98b556c` + `sql/fase1.sql` y `sql/fase3.sql` corridos por Alejo). Login por RPC, bcrypt con migración perezosa, rate-limit server-side, `anon` sin ninguna policy sobre `clientes` (verificado: 0 filas por REST, antes 98). Queda: **D** (Alejo entra con su cuenta real y se verifica el hash) · borrar los 2 clientes de prueba desde el panel · `[LOGIN-INTENTOS-CLEANUP]` 🟢 · escalón 3 (Supabase Auth) · **S13** nuevo. Ver `docs/SECURITY.md` § S2 y S13.
 2. 🔴 **`[VERCEL-ENV-VARS]` (nuevo 12-ago)** — Vercel **no tiene NINGUNA variable de entorno**: el backup propio, el alta de suscriptores y el envío de push están **rotos desde mayo**. Reponer `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_*`, `CRON_SECRET`. La service key se copia **directo Supabase→Vercel, nunca por chat**. Ver `docs/SECURITY.md` § S12. *(La trampa que había acá, S11, ya está arreglada · `ef1507d`.)*
 3. ✅ ~~**S11 · auth "fail-open" en `/api/send-notification`**~~ — ARREGLADO el 12-ago (`ef1507d`). Comparaba `adminPass !== ADMIN_PASS` sin chequear que la variable existiera → sin env var, una request que omitiera el campo pasaba. Ahora **falla cerrado**. Sin esto, reponer las variables olvidando `ADMIN_PASS` dejaba el endpoint abierto para que cualquiera mandara push a todos los suscriptores.
 4. 🟡 **`[BACKUP-FOTOS-LOCAL]` (nuevo 12-ago)** — bajar el bucket `perfume-fotos` a `D:\backups\`. Los backups diarios de Supabase **NO incluyen Storage** (lo avisa el propio panel); hoy la única segunda copia son los archivos del proyecto viejo de Oregon.

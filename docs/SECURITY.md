@@ -1,9 +1,17 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Agosto 12, 2026** (sesión `[FOTOS-OREGON]` · **S2 medido con números** · **S11 nuevo: auth "fail-open" en el endpoint de push** · hallazgo de que **Vercel no tiene ninguna variable de entorno**). Previas: Junio 27, 2026 (verificación de S1 + S10) · Mayo 21, 2026 (post Plan B Supabase).
+> **Última actualización:** **Septiembre 17, 2026** — **S2 RESUELTO** (`[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side). Token de Telegram y chat_id **sacados de este doc** y token rotado (S3 parcial). Regla nueva arriba: los docs no llevan valores de credenciales. S13 nuevo (S2-bis). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
 > **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
 >
 > **Audiencia:** Alejo + Claude Code de próximas sesiones. Cuando arranque la sesión `[SECURITY-AUDIT-S1]`, **leer este archivo primero.**
+
+---
+
+## 📏 Regla · los documentos de auditoría NO llevan valores de credenciales
+
+> Un doc de seguridad describe **dónde vive** una credencial (archivo, línea, función SQL, env var), **nunca su valor**. Ni "para documentar la fuga", ni entre comillas, ni parcial. El repo es público y git no olvida: lo que se pega una vez queda en el historial para siempre, y la única salida es rotar la credencial.
+>
+> Aprendido el 17-sep-2026: § S3 tenía el token real del bot de Telegram y el chat_id escritos completos desde mayo. Se enmascararon y se rotó el token. Vale para `docs/`, `memory/`, `RECOMENDACIONES_CLAUDECHAT/`, commits y chats. Si un valor hace falta para ejecutar algo, se copia **directo** de donde vive (Supabase → Vercel), no por acá.
 
 ---
 
@@ -14,8 +22,8 @@
 **Severidad:** 🔴 CRÍTICA · explotable en 30 segundos por cualquiera con navegador.
 
 **Archivos / líneas exactas:**
-- `admin.html` línea **2766:** `var ADMIN_PASS = 'SANTOMY2026';`
-- `admin.html` línea **2767:** `var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO';`
+- `admin.html` línea **2766:** `var ADMIN_PASS = '<ADMIN_PASS · ver admin.html · S1>';`
+- `admin.html` línea **2767:** `var ADMIN_PASS_EMPLEADO = '<ADMIN_PASS_EMPLEADO · ver admin.html · S1>';`
 
 **Cómo explotarlo (esto debe poderse hacer hoy mismo · es trivial):**
 1. Cualquiera navega a `https://www.stperfumeria.com/admin.html`
@@ -57,13 +65,22 @@ Antes que existiera Supabase Auth, el admin se protegía con un check JS simple 
   3. Authentication → Users → seleccionar `jefe@stperfumeria.local` → "Send password recovery" o cambiar directamente
   4. Mismo para `empleado@stperfumeria.local`
   5. Avisar a las chicas las passwords nuevas (por canal privado · NO chat ni email del cliente)
-- Una vez hecho · las passwords del HTML (`SANTOMY2026` y `CAFE_MATE_PROHIBIDO`) ya no abren el admin · gano tiempo para el fix completo.
+- Una vez hecho · las passwords del HTML (`<ADMIN_PASS · ver admin.html · S1>` y `<ADMIN_PASS_EMPLEADO · ver admin.html · S1>`) ya no abren el admin · gano tiempo para el fix completo.
 
 ---
 
-### **S2 · Pass de clientes en plano en tabla `clientes`**
+### **S2 · Pass de clientes en plano en tabla `clientes` · ✅ RESUELTO 17-sep-2026**
 
 **Severidad:** 🔴 CRÍTICA · pendiente desde antes (`[BCRYPT-MIGRATION]` documentado en HISTORIA.md).
+
+> ✅ **ESTADO: RESUELTO** · commit `98b556c` (`[BCRYPT-MIGRATION]`, SW v1.1.100) + `sql/fase1.sql` y `sql/fase3.sql` corridos por Alejo en producción el 17-sep-2026. **Escalones 1 y 2 hechos juntos**, como pedía este plan:
+> - `anon` **ya no tiene ninguna policy** sobre `clientes` (antes tenía SELECT, INSERT, UPDATE **y DELETE** con `true` — la de DELETE nadie la había relevado). Verificado con la anon key: `GET /rest/v1/clientes?select=telefono` → **0 filas** (antes 98). El panel admin sigue igual con 4 policies nuevas `to authenticated`.
+> - El login pasa por `cliente_login(telefono, pass)` (`SECURITY DEFINER`): compara **en el servidor**, y si la clave guardada está en plano y coincide, la reemplaza por **bcrypt cost 10** en ese mismo login (migración perezosa; nadie tuvo que cambiar su clave). Registro y activación guardan hasheado desde el primer segundo. También `cliente_registrar`, `cliente_editar` (ahora exige la clave: antes anon podía cambiar nombre/teléfono de cualquiera), `cliente_puntos`, `cliente_reset_solicitar`.
+> - **Rate-limit del lado del servidor** (`cliente_login_intentos`: 5 fallos → 15 min), hash dummy para teléfonos inexistentes (77 ms vs 76 ms: el tiempo no delata qué números existen), mensaje unificado, y la columna `bloqueado` por fin bloquea.
+> - Métrica: los hashes suben con cada login (`count(*) filter (where password like '$2%')`). Los 4 clientes sin clave se activan con la primera que escriban.
+> - **Queda:** escalón 3 (Supabase Auth) · `cliente_puntos` / `cliente_reset_solicitar` responden con sólo el teléfono (misma exposición que antes: nombre y puntos) · **S13** (abajo) · `[LOGIN-INTENTOS-CLEANUP]`. Detalle de diseño y tropiezos en `docs/HISTORIA.md` § "Sesión 16→17-sep-2026".
+>
+> Lo que sigue abajo es el análisis original, se conserva como historia.
 
 **Donde está:**
 - Tabla `public.clientes` columna `password` (texto plano)
@@ -135,12 +152,14 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Severidad:** 🟡 ALTA · el bot token permite a un atacante mandar mensajes en nombre del bot a cualquier chat al que tenga acceso.
 
+> 🔁 **17-sep-2026:** el token y el chat_id que estaban escritos acá "para documentar" se **enmascararon** (el repo es público y el valor quedó en el historial de git — por eso el token se **rotó** en BotFather ese mismo día). El nuevo vive **sólo** en `public.send_telegram` y en las env vars de Vercel: **no se copia en ningún doc ni en ningún chat**. Queda pendiente el paso a Vault.
+
 **Donde está:**
 - Función `public.send_telegram(msg text)` del schema `public` (en BOTH proyectos viejo y nuevo)
 - Body de la función:
   ```sql
-  bot_token TEXT := '8768088055:AAEMKidQXGv23KqwNDzMcip3agVvNdw_f-4';
-  chat_id TEXT := '6071313124';
+  bot_token TEXT := '<REVOCADO — ver historial>';   -- el valor real vive SÓLO en public.send_telegram (Supabase) y en Vercel
+  chat_id TEXT := '<REVOCADO — ver historial>';
   ```
 
 **Quién puede ver esto:**
@@ -149,7 +168,7 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 - Cualquiera que tenga el dump pre-migración del paso 0
 
 **Riesgo real:**
-- Un atacante puede mandar mensajes spam o phishing al chat_id `6071313124` (Alejo)
+- Un atacante puede mandar mensajes spam o phishing al chat_id `<REVOCADO — ver historial>` (Alejo)
 - NO puede leer mensajes (Telegram bot API no permite eso al token-poseedor)
 - NO puede acceder a otros chats donde el bot no esté
 
@@ -312,6 +331,18 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 
 ---
 
+### **S13 · `favoritos`, `votos` y `opiniones` se escriben como `anon` a nombre de cualquier cliente (S2-bis)**
+
+**Severidad:** 🟠 MEDIA-ALTA · hallado el 16-sep-2026 al relevar S2. **Pendiente.**
+
+**Dónde está:** `js/app.js` — `favoritos` (`insert`/`delete` con `user_id: currentUser.id`), `votos` (`upsert`) y `opiniones` (`insert`) corren con la anon key y el `id` que vive en `localStorage.st_cliente`. No hay sesión del lado del servidor: el "login" del cliente es un objeto en localStorage.
+
+**Riesgo real:** cualquiera con la anon key puede escribir favoritos, votos u opiniones **a nombre de otro cliente** si conoce (o adivina) su `id`. Ahora que `clientes` no es legible, los `id` (uuid) ya no se listan — baja mucho la explotabilidad, pero el agujero sigue.
+
+**Fix recomendado:** se resuelve de verdad con el escalón 3 de S2 (Supabase Auth: `auth.uid()` en las policies). Mientras tanto no empeora con S2: las RPC de S2 no devuelven nada que antes no se viera.
+
+---
+
 ## 🟢 Issues MEDIOS · revisar pero no urgente
 
 ### **S7 · admin.html accesible públicamente · cualquiera puede llegar al login**
@@ -391,7 +422,7 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 | **Proyecto Supabase legacy** | us-west-2 Oregon · ref `rtgjzzkjrwbkdhkslxix` · activo hasta 28-may como rollback |
 | **Anon key activa** | `sb_publishable_Bb4Jo74f4Wh7vhz...` (nuevo formato Supabase, ~46 chars) |
 | **DB password expuesta** | ⚠️ Sí · ambas en chat de esta sesión. Reset pendiente |
-| **Bot Telegram token** | Expuesto en SQL function · pendiente migrar a Vault |
+| **Bot Telegram token** | Rotado el 17-sep-2026 · vive sólo en `public.send_telegram` y en Vercel · pendiente migrar a Vault · ⚠️ el anterior quedó en el historial de git |
 | **Service role keys** | NUNCA en repo · estuvieron en `D:\tmp\.env` (borrado) |
 | **Backup dump pre-migración** | `D:\backups\st-perfumeria-pre-migracion-20may2026.sql` · 6.2 MB · conservar 7 días · contiene passwords en plano de clientes |
 
@@ -412,7 +443,7 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
    - 🔴 **S1 primero** (passwords hardcoded admin) · cualquier hora · 30 min
    - 🟡 **S3 después** (rotar bot token Telegram) · 15 min
    - 🟡 **S5** (rotar DB passwords expuestas) · 5 min cada una
-   - 🔴 **S2 (BCRYPT-MIGRATION)** · más complejo · planear con cuidado · 2-3 horas
+   - ✅ ~~**S2 (BCRYPT-MIGRATION)**~~ · **RESUELTO 17-sep-2026** (`98b556c` + FASE 1/3) · ver § S2
    - 🟡 **S4** se resuelve automáticamente al bajar proyecto viejo el 28-may
    - 🟢 **S8** (storage policies) · puede ir junto con BCRYPT-MIGRATION
 
