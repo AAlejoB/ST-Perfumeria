@@ -303,12 +303,13 @@
       btn.disabled = true;
       btn.textContent = 'Enviando…';
       try {
-        var existing = await sb.from('clientes').select('id, nombre').eq('telefono', phone).limit(1);
-        var cli = (existing.data && existing.data[0]) ? existing.data[0] : null;
-        var ins = await sb.from('password_reset_requests').insert({ telefono: phone, cliente_id: cli ? cli.id : null });
-        if (ins.error) throw ins.error;
-        if (cli) {
-          notifyTG('🔐 Pedido de RESET de contraseña\n👤 ' + cli.nombre + '\n📞 ' + phone + '\n📲 https://wa.me/' + phone + '\n\n➡️ Resolvé en Admin → 🔑 Pedidos pass');
+        // [BCRYPT-MIGRATION] Una sola RPC: busca al cliente e inserta el pedido.
+        // Antes anon leía la tabla clientes para esto; ya no puede.
+        var rpcReset = await sb.rpc('cliente_reset_solicitar', { p_telefono: phone });
+        if (rpcReset.error) throw rpcReset.error;
+        var cliNombre = (rpcReset.data && rpcReset.data[0]) ? rpcReset.data[0].nombre : null;
+        if (cliNombre) {
+          notifyTG('\ud83d\udd10 Pedido de RESET de contrase\u00f1a\n\ud83d\udc64 ' + cliNombre + '\n\ud83d\udcde ' + phone + '\n\ud83d\udcf2 https://wa.me/' + phone + '\n\n\u27a1\ufe0f Resolv\u00e9 en Admin \u2192 \ud83d\udd11 Pedidos pass');
         }
         // Éxito: ocultar el formulario y mostrar confirmación grande y clara
         var phoneEl = document.getElementById('authPhone');
@@ -444,65 +445,69 @@
 
       try {
         if (authMode === 'login') {
-          // Login: verificar teléfono + contraseña
-          var existing = await sb.from('clientes').select('id, nombre, telefono, password').eq('telefono', phone).limit(1);
-          if (!existing.data || existing.data.length === 0) {
-            // Numero inexistente cuenta como intento fallido
+          // [BCRYPT-MIGRATION] El navegador ya no ve la contraseña: compara el
+          // servidor. La RPC además migra el hash sola en el primer login y
+          // aplica el bloqueo por intentos del lado del servidor.
+          // estado: 'ok' | 'activado' | 'invalido' | 'bloqueado'
+          var rpcLogin = await sb.rpc('cliente_login', { p_telefono: phone, p_pass: pass });
+          if (rpcLogin.error) { errEl.textContent = 'Error de conexión'; btn.disabled = false; return; }
+          var r = (rpcLogin.data && rpcLogin.data[0]) ? rpcLogin.data[0] : null;
+          var estadoLogin = r ? r.estado : 'invalido';
+
+          if (estadoLogin === 'bloqueado') {
+            var minEsp = Math.max(1, Math.ceil((r.espera_seg || 900) / 60));
+            errEl.textContent = 'Demasiados intentos. Esperá ' + minEsp + ' minuto' + (minEsp === 1 ? '' : 's') + ' y volvé a probar.';
+            btn.disabled = false; return;
+          }
+
+          if (estadoLogin !== 'ok' && estadoLogin !== 'activado') {
+            // Mensaje unificado a propósito: distinguir "no existe el número" de
+            // "contraseña incorrecta" le confirma a cualquiera qué teléfonos
+            // están registrados.
             registerAuthFail(errEl);
             if (errEl.textContent.indexOf('Esper') === -1) {
-              errEl.textContent = 'No hay cuenta con ese número. ¿Querés registrarte?';
+              var stTmp = getAuthLockout();
+              var leftTmp = 5 - (stTmp.fails % 5);
+              errEl.textContent = 'Teléfono o contraseña incorrectos (' + leftTmp + ' intento' + (leftTmp === 1 ? '' : 's') + ' antes del bloqueo). Si no tenés cuenta, registrate.';
             }
             btn.disabled = false; return;
           }
-          var cliente = existing.data[0];
 
-          // Cuenta creada desde admin sin contraseña: el primer login setea
-          // la pass que escriba el cliente como definitiva. No falla, lo activa.
-          if (!cliente.password) {
-            var upd = await sb.from('clientes').update({ password: pass }).eq('id', cliente.id);
-            if (upd.error) {
-              errEl.textContent = 'No se pudo activar la cuenta: ' + upd.error.message;
-              btn.disabled = false; return;
-            }
-            clearAuthLockout();
+          clearAuthLockout(); // login exitoso resetea
+
+          if (estadoLogin === 'activado') {
+            // Cuenta creada desde admin o reseteada: la clave que acaba de
+            // escribir quedó fijada, ya hasheada, del lado del servidor.
             errEl.style.color = '#2ecc71';
-            errEl.textContent = '✓ Cuenta activada. ¡Bienvenido/a, ' + cliente.nombre + '!';
-            notifyTG('🔓 Primer ingreso\n👤 ' + cliente.nombre + ' (' + cliente.telefono + ')');
+            errEl.textContent = '\u2713 Cuenta activada. \u00a1Bienvenido/a, ' + r.nombre + '!';
+            notifyTG('\ud83d\udd13 Primer ingreso\n\ud83d\udc64 ' + r.nombre + ' (' + r.telefono + ')');
             setTimeout(function() {
-              onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: cliente.telefono });
+              onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });
               closeAuth();
             }, 1200);
             return;
           }
 
-          if (cliente.password !== pass) {
-            registerAuthFail(errEl);
-            if (errEl.textContent.indexOf('Esper') === -1) {
-              var stTmp = getAuthLockout();
-              var leftTmp = 5 - (stTmp.fails % 5);
-              errEl.textContent = 'Contraseña incorrecta (' + leftTmp + ' intento' + (leftTmp === 1 ? '' : 's') + ' antes del bloqueo)';
-            }
-            btn.disabled = false; return;
-          }
-          clearAuthLockout(); // login exitoso resetea
-          onLogin({ id: cliente.id, nombre: cliente.nombre, telefono: cliente.telefono });
+          onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });
           closeAuth();
         } else {
           // Register
           if (!name || name.length < 2) { errEl.textContent = 'Poné tu nombre completo'; btn.disabled = false; return; }
-          var existing2 = await sb.from('clientes').select('id').eq('telefono', phone).limit(1);
-          if (existing2.data && existing2.data.length > 0) {
-            errEl.textContent = 'Este número ya está registrado. ¿Querés iniciar sesión?';
+          // [BCRYPT-MIGRATION] Chequeo de duplicado + alta en una sola RPC.
+          // La contraseña se guarda hasheada desde el primer segundo.
+          var rpcReg = await sb.rpc('cliente_registrar', { p_nombre: name, p_telefono: phone, p_pass: pass });
+          if (rpcReg.error) { errEl.textContent = 'Error de conexión'; btn.disabled = false; return; }
+          var rr = (rpcReg.data && rpcReg.data[0]) ? rpcReg.data[0] : null;
+          if (rr && rr.estado === 'duplicado') {
             errEl.innerHTML = 'Este número ya está registrado. <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
             btn.disabled = false; return;
           }
-          var res = await sb.from('clientes').insert({ nombre: name, telefono: phone, password: pass }).select().single();
-          if (res.error) {
-            errEl.textContent = res.error.message;
+          if (!rr || rr.estado !== 'ok') {
+            errEl.textContent = 'Revisá los datos e intentá de nuevo';
             btn.disabled = false; return;
           }
           closeAuth();
-          onLogin({ id: res.data.id, nombre: res.data.nombre, telefono: res.data.telefono });
+          onLogin({ id: rr.id, nombre: rr.nombre, telefono: rr.telefono });
         }
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;
@@ -550,19 +555,29 @@
       btn.disabled = true;
 
       try {
-        // Verificar contraseña actual
-        var check = await sb.from('clientes').select('password, telefono, nombre').eq('id', currentUser.id).single();
-        if (!check.data || check.data.password !== confirmPass) {
+        // [BCRYPT-MIGRATION] Verificar y guardar en una sola RPC, del lado del
+        // servidor. Antes el update corría como anon SIN pedir contraseña: con
+        // la anon key y un id se le podía cambiar nombre y teléfono a cualquiera.
+        var oldName = currentUser.nombre;
+        var oldPhone = currentUser.telefono;
+
+        var rpcEd = await sb.rpc('cliente_editar', {
+          p_id: currentUser.id, p_pass: confirmPass, p_nombre: newName, p_telefono: newPhone
+        });
+        if (rpcEd.error) { errEl.textContent = 'Error de conexión'; btn.disabled = false; return; }
+        var estadoEd = (rpcEd.data && rpcEd.data[0]) ? rpcEd.data[0].estado : 'invalido';
+        if (estadoEd === 'pass_incorrecta') {
           errEl.textContent = 'Contraseña incorrecta';
           btn.disabled = false; return;
         }
-
-        var oldName = check.data.nombre;
-        var oldPhone = check.data.telefono;
-
-        // Guardar cambios
-        var { error } = await sb.from('clientes').update({ nombre: newName, telefono: newPhone }).eq('id', currentUser.id);
-        if (error) { errEl.textContent = error.message; btn.disabled = false; return; }
+        if (estadoEd === 'duplicado') {
+          errEl.textContent = 'Ese número ya está en uso por otra cuenta';
+          btn.disabled = false; return;
+        }
+        if (estadoEd !== 'ok') {
+          errEl.textContent = 'Revisá los datos e intentá de nuevo';
+          btn.disabled = false; return;
+        }
 
         // Actualizar sesión local
         currentUser.nombre = newName;
@@ -7010,11 +7025,13 @@
         if (typeof sb === 'undefined' || !sb) return;
         // Traer saldo de puntos + config en paralelo
         var [cliRes, cfgRes] = await Promise.all([
-          sb.from('clientes').select('puntos, nombre').eq('telefono', currentUser.telefono).maybeSingle(),
+          sb.rpc('cliente_puntos', { p_telefono: currentUser.telefono }),
           sb.from('puntos_config').select('*').limit(1)
         ]);
-        var puntos = (cliRes && cliRes.data && Number(cliRes.data.puntos)) || 0;
-        var nombreCli = (cliRes && cliRes.data && cliRes.data.nombre) || (currentUser.nombre || 'Cliente');
+        // [BCRYPT-MIGRATION] la RPC devuelve un array, no un objeto
+        var cliRow = (cliRes && cliRes.data && cliRes.data[0]) ? cliRes.data[0] : null;
+        var puntos = (cliRow && Number(cliRow.puntos)) || 0;
+        var nombreCli = (cliRow && cliRow.nombre) || (currentUser.nombre || 'Cliente');
         var cfg = (cfgRes && cfgRes.data && cfgRes.data[0]) || { threshold_proximo_premio: 5, mensaje_promo: 'SUMÁ 1 MÁS Y CONSULTÁ POR TU PREMIO 📲' };
         // Lógica de mensaje:
         //  - puntos === 0: invitamos a sumar
