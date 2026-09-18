@@ -1975,13 +1975,18 @@ El pendiente 🔴 más viejo del proyecto (documentado desde mayo, agravado en j
 | `.claude/commands/security-scan.md` 🟢 | Tiene las dos contraseñas de S1 como ejemplo; no se tocó por la regla de no modificar `.claude\` — decidir |
 | `[VERCEL-ENV-VARS]` 🔴 · `[BACKUP-FOTOS-LOCAL]` 🟡 · S1 + S10 🟠 · `[DC-HEADER-600]` 🟢 · contador del tope 🟢 · historial depósito→local 🟢 · cuentas por empleada 🟢 | sin cambios |
 
-#### 🎯 Próximos temas (elegidos por Alejo el 17-sep, en este orden)
+#### 🎯 Orden de trabajo (decidido por Alejo el 18-sep)
 
-1. **`[DISEÑOACORTADOR-PANELADMIN]`**
-2. **`[LAUTARO-MIMANODERECHA]`**
-3. **`[FACILITAR-MOBILE-EN-CATALOGO]`**
+⚠️ **Corrección de atribución:** el cierre del 17-sep decía "elegidos por Alejo… antes de cualquiera: ordenar el repo". Ese orden venía de una **recomendación de ClaudeChat** que llegó en el mensaje de cierre y quedó registrado como decisión de Alejo. Lo detectó el propio ClaudeChat al leer el estado y preguntó. **Regla: lo que recomienda el cowork no es decisión hasta que Alejo lo diga con sus palabras.**
 
-**Antes de cualquiera de los tres: ordenar el repo.** (Los tres sin brief todavía; se definen al arrancar cada uno.)
+**El orden real, decidido por Alejo el 18-sep:**
+
+1. **Tanda de seguridad, chica y en una sola sesión** = **S1** (rotar la contraseña de admin que está en `admin.html` y sacarla del repo · lo hace Alejo a mano) + **`[VERCEL-ENV-VARS]`** (Alejo carga las variables en Vercel; se destraba con S1) + **S14 `[TELEGRAM-ANON-ABIERTO]`** (patch de ClaudeChat con el brief ya escrito; Claude Code verifica) + **`[SW-PRECACHE-PERFUMES]`** (1 línea, viaja en el mismo bump).
+2. Después, **los tres temas**: `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]` (sin brief todavía; se definen al arrancar cada uno).
+
+**Ordenar el repo NO va antes de nada**: cero impacto en clientes ni en las chicas. Se hace de a poco, en la sesión de cada tema (la tanda 1 del plan — docs, mockups, prompts viejos — puede ir con cualquier commit de docs; mover `perfumes.js` no hace falta).
+
+**`[SW-PRECACHE-PERFUMES]`** 🟢 (verificado el 18-sep al chequear el "sw.js roto" que mencionó ClaudeChat): **no está roto**. El precache lista `'/js/perfumes.js'` (L63) y en producción da **404** porque `perfumes.js` vive en la raíz; como el SW hace `cache.add` uno por uno con `catch` (L74-76), el install no se rompe — sólo desperdicia un 404 y el archivo entra al cache por la vía normal al primer uso. Fix: 1 línea (`'/perfumes.js'`) + bump.
 
 #### 💬 Mensajes meta
 
@@ -1990,7 +1995,7 @@ El pendiente 🔴 más viejo del proyecto (documentado desde mayo, agravado en j
 
 ---
 
-**Última actualización:** **Septiembre 17, 2026 (noche)** — **S2 RESUELTO y verificado** (`[BCRYPT-MIGRATION]` · `98b556c` · FASE 1/3 en producción · D cerrado por Alejo: los 92 en plano entran con su clave de siempre) · **`[RESET-TEXTOS]`** arriba (`6049a2a`) · SW **v1.1.99 → v1.1.101** · **token de Telegram rotado y verificado** · fuga en `SECURITY.md` cerrada + regla nueva (los docs no llevan valores) · hallazgo **`[TELEGRAM-ANON-ABIERTO]`** 🔴 (S14): rotar no alcanza, `anon` puede invocar `send_telegram`. Repo sin `.patch` sueltos. Detalle en § "Sesión 16→17-sep-2026". **Próximos temas de Alejo, en orden:** `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`, y **antes de cualquiera: ordenar el repo**. **Pendientes técnicos:** 🔴 S14 `[TELEGRAM-ANON-ABIERTO]` · 🔴 `[VERCEL-ENV-VARS]` · 🟠 S13 / S1 + S10 · 🟡 `[RESET-EXPIRES]` · 🟡 S3 Vault · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟢 borrar clientes de prueba · 🟢 `[LOGIN-INTENTOS-CLEANUP]` · 🟢 `[RESET-TEMP-PASSWORD-MUERTA]` · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 historial depósito→local · 🟢 cuentas por empleada.
+**Última actualización:** **Septiembre 18, 2026** — **S2 RESUELTO y verificado** (`[BCRYPT-MIGRATION]` · `98b556c` · FASE 1/3 en producción · D cerrado por Alejo: los 92 en plano entran con su clave de siempre) · **`[RESET-TEXTOS]`** arriba (`6049a2a`) · SW **v1.1.99 → v1.1.101** · **token de Telegram rotado y verificado** · fuga en `SECURITY.md` cerrada + regla nueva (los docs no llevan valores) · hallazgo **`[TELEGRAM-ANON-ABIERTO]`** 🔴 (S14): rotar no alcanza, `anon` puede invocar `send_telegram`. Repo sin `.patch` sueltos. Detalle en § "Sesión 16→17-sep-2026". **Orden decidido por Alejo el 18-sep** (corrigiendo una atribución errónea del cierre anterior — "ordenar el repo primero" era recomendación de ClaudeChat, no decisión de Alejo): **(1) tanda de seguridad chica en una sesión** — S1 + `[VERCEL-ENV-VARS]` a mano por Alejo, S14 por patch del cowork, `[SW-PRECACHE-PERFUMES]` 🟢 (1 línea: el precache pide `/js/perfumes.js`, que da 404; el SW no se rompe, `cache.add` con catch) — **(2) los tres temas**: `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`. Ordenar el repo: de a poco, dentro de cada tema. **Pendientes técnicos:** 🔴 S14 `[TELEGRAM-ANON-ABIERTO]` · 🔴 `[VERCEL-ENV-VARS]` · 🟠 S13 / S1 + S10 · 🟡 `[RESET-EXPIRES]` · 🟡 S3 Vault · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟢 borrar clientes de prueba · 🟢 `[LOGIN-INTENTOS-CLEANUP]` · 🟢 `[RESET-TEMP-PASSWORD-MUERTA]` · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 historial depósito→local · 🟢 cuentas por empleada.
 
 **Estado del repo al cierre (17-sep, noche):** `origin/main` = `7ab38cd` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main (worktree `serene-jennings-e9d305`; el anterior fue reciclado) · `feat/s2-bcrypt` local sin commits propios, ligada a un worktree borrado → `git worktree prune` desde Windows en otra sesión · **0 `.patch` sueltos** · SW **v1.1.101** en producción · policies de `clientes`: sólo 4 `authenticated` · 98 clientes (96 + 2 de prueba a borrar desde el panel), bcrypt creciendo con cada login.
 

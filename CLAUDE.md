@@ -52,12 +52,12 @@ ST_Perfumeria/
 ├── admin.html              ← Panel admin (jefe + empleadas) — con sidebar lateral desde [ZAPATO] may-2026
 ├── offline.html
 ├── sw.js                   ← Service Worker (versionado manual)
+├── perfumes.js             ← Array de los ~150 perfumes (catálogo seed) · en la RAÍZ, lo cargan index.html y admin.html con src="perfumes.js"
 ├── manifest.json           ← PWA
 ├── mockups.html            ← Archivo único de mockups (convención may-2026, lección #7). Esqueleto vacío entre sesiones.
 ├── js/
 │   ├── app.js              ← Core JS del front público (~6500 líneas tras [JS-CHUNK])
 │   ├── extras.js           ← Chunk lazy-loaded (armador decants) — se carga con requestIdleCallback
-│   └── perfumes.js         ← Array de los ~150 perfumes (catálogo seed)
 ├── css/
 │   └── styles.css          ← TODO el CSS (~8000 líneas) — incluye light mode + admin sidebar
 ├── img/                    ← Logos, banners
@@ -268,6 +268,7 @@ Los tres salen de uso real en las Galaxy Tab A9, **en vertical**.
 16. 🟡 **`[RESET-EXPIRES]`** (nuevo 17-sep-2026, salió de leer el flujo de reset) — `password_reset_requests.expires_at` **no se respeta**: la tabla pone 24 h de vencimiento por default, pero `loadResetRequests` (`admin.html`) filtra sólo por `status = 'pending'`. Un pedido de hace 5 días aparece en "Pedidos pass" como si fuera de hoy. Fix: filtrar también `expires_at > now()` (o marcar los vencidos) y mostrar la antigüedad.
 17. 🟢 **`[RESET-TEMP-PASSWORD-MUERTA]`** (nuevo 17-sep-2026) — `password_reset_requests.temp_password` es una **columna muerta**: existe (reservada en `[FORGOT-PASS-A]`) y el panel nunca la usa (el reset pone `clientes.password = NULL` y el cliente fija la suya al entrar). Confunde a quien lea el esquema: dropearla o documentarla como no usada en `DATABASE.md`.
 18. 🔴 **`[TELEGRAM-ANON-ABIERTO]`** (nuevo 17-sep-2026, salió de verificar la rotación del token) — `anon` tiene **EXECUTE sobre `public.send_telegram(text)`** y la función acepta texto libre. Verificado: `has_function_privilege('anon', 'public.send_telegram(text)', 'execute')` → **true**. Con la anon key (pública, está en `app.js`) cualquiera puede `POST /rest/v1/rpc/send_telegram` con `{"msg":"…"}` y el bot lo entrega en el chat del jefe. **Rotar el token NO cierra esto.** Salida: que cada RPC de S2 mande su propio aviso **del lado del servidor** con el texto armado ahí (`cliente_reset_solicitar` y `cliente_login` ya saben cuándo corresponde; hoy el aviso lo dispara el front con `notifyTG`), y después `revoke execute on function public.send_telegram(text) from anon, authenticated, service_role`, dejándola interna como `_cliente_hash`. En el mismo parche, fijarle `set search_path = public, extensions`: hoy tiene `proconfig` null, a diferencia de las `cliente_*`. Ver `docs/SECURITY.md` § S14.
+19. 🟢 **`[SW-PRECACHE-PERFUMES]`** (verificado 18-sep-2026) — el precache de `sw.js` (L63) pide `'/js/perfumes.js'`, que en producción da **404**: `perfumes.js` vive en la raíz (y `CLAUDE.md` § estructura también lo ubica mal en `js/`). El SW **no se rompe** — hace `cache.add` uno por uno con `catch` — sólo desperdicia un 404 por instalación. Fix: 1 línea (`'/perfumes.js'`) + bump; viaja con el próximo bump que haya (tanda de seguridad). **Orden decidido por Alejo el 18-sep:** primero esa tanda de seguridad chica (S1 + `[VERCEL-ENV-VARS]` a mano, S14 por patch, este 🟢), después `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`. Ordenar el repo: de a poco, dentro de cada tema.
 
 Lista completa con detalles en `docs/HISTORIA.md`.
 
