@@ -1937,6 +1937,9 @@ El pendiente 🔴 más viejo del proyecto (documentado desde mayo, agravado en j
 - **D · migración perezosa sobre el caso real, cerrado por Alejo** (17-sep, contra producción, como `anon`): puso a Test QA (`5490000000001`) con `password = 'test1234'` **en texto plano, igual que los 92** → `cliente_login(…, 'test1234')` → `ok` → la password quedó `$2a$10$…` (60 chars) → `crypt('test1234', password) = password` → **true** · `crypt('otraclave', password) = password` → **false** → segundo login, ya contra el hash → `ok`. **Los 92 entran con su clave de siempre.** Dato importante: **B y C nunca pasan por texto plano** (B guarda bcrypt desde el alta, C entra por la rama `activado`), así que D era el **único** caso que cubría el camino de la mayoría de los clientes. Valía probarlo aparte, y no hizo falta una cuenta real.
 - **FASE 3 la corrió Alejo** en el SQL Editor y verificó: anon leyendo `clientes` → **0 filas** (antes 98) · anon llamando `cliente_login` → responde · policies → **sólo las 4 de `authenticated`**. Esa asimetría era el objetivo.
 - **Fuga en la doc** (hallazgo de Alejo al revisar antes del commit de docs): `SECURITY.md` § S3 tenía el **token real del bot de Telegram y el chat_id** escritos completos "para documentar la fuga" — en un repo público, en 32 commits de historial. Enmascarados en este commit (`<REVOCADO — ver historial>`), token rotado por Alejo (el nuevo vive sólo en `public.send_telegram` y en las env vars de Vercel), y **regla nueva en `SECURITY.md`**: los documentos de auditoría no llevan valores de credenciales, sólo dónde viven. La pasada por `docs/`, `memory/` y `RECOMENDACIONES_CLAUDECHAT/` encontró además las dos contraseñas de S1 pegadas en 10 lugares (ya públicas en `admin.html`, pero la regla es la regla): enmascaradas. Las connection strings del Plan B eran placeholders.
+- **`[RESET-TEXTOS]` · `6049a2a` + SW v1.1.101 (`8fef946`)** — patch del cowork, 3 cadenas y cero lógica, salido de leer el flujo de reset después de S2: el cartel de "pedido enviado" ya no dice "en breve" (si el local está cerrado son horas, el cliente volvía a apretar y quedaban 3 pedidos); el cartel de la rama `activado` **dice que la clave que acaba de escribir quedó guardada** (antes decía "Cuenta activada, bienvenido/a" y el cliente no se enteraba de que acababa de fijar una clave → a la semana pedía otro reset); y el WhatsApp que manda el local pasa a 4 pasos numerados con link y número. Sin el nombre del cliente en los carteles que él ve, a propósito. Verificado en producción (0 rastros del texto viejo). De leer ese flujo salieron **`[RESET-EXPIRES]`** 🟡 (`expires_at` no se respeta) y **`[RESET-TEMP-PASSWORD-MUERTA]`** 🟢 (`7ab38cd`).
+- **Token de Telegram rotado y verificado por Alejo** (17-sep): BotFather → `public.send_telegram` actualizada → verificación por `md5(prosrc)` sin exponer el valor. Y al verificar apareció **`[TELEGRAM-ANON-ABIERTO]`** 🔴 (S14): `anon` tiene EXECUTE sobre `send_telegram(text)` y acepta texto libre → con la anon key cualquiera manda lo que quiera al chat del jefe. **Rotar no cierra eso.** Salida diseñada: los avisos los mandan las RPC de S2 desde el servidor y `send_telegram` queda interna (`revoke` explícito por rol + `search_path` fijo).
+- **Limpieza**: los 9 `.patch` untracked (worktree + raíz del repo principal) borrados — **convención: los patches no viven en el repo una vez aplicados**. `git worktree prune` queda para otra sesión, desde Windows.
 
 #### Decisiones / bugs encontrados / workarounds
 
@@ -1956,7 +1959,8 @@ El pendiente 🔴 más viejo del proyecto (documentado desde mayo, agravado en j
 | Keyword | Qué hace |
 |---|---|
 | `[BCRYPT-MIGRATION]` / **S2** | Login de clientes por RPC + bcrypt con migración perezosa + rate-limit server-side + `anon` sin acceso directo a `clientes` · `98b556c` + FASE 1/3 en producción |
-| S3 (parcial) | Token y chat_id fuera de la doc, token rotado; queda mover a Vault |
+| `[RESET-TEXTOS]` | Los carteles del reset dicen que la clave que escribís es la que queda · `6049a2a` · SW v1.1.101 |
+| S3 (parcial) | Token y chat_id fuera de la doc, **token rotado y verificado**; queda Vault y **S14** |
 
 #### Keywords abiertos para próxima sesión
 
@@ -1965,9 +1969,19 @@ El pendiente 🔴 más viejo del proyecto (documentado desde mayo, agravado en j
 | ~~**D** de S2~~ ✅ | Cerrado por Alejo el 17-sep contra producción (ver arriba). Queda sólo **borrar los 2 clientes de prueba** (`549000000000[12]`) desde "Eliminar definitivamente" del panel — de paso prueba `clientes_delete_auth` |
 | `[LOGIN-INTENTOS-CLEANUP]` 🟢 | `pg_cron` que borre de `cliente_login_intentos` las filas de más de un día (crece con cada intento fallido de cualquier número) |
 | **S13 / S2-bis** 🟠 | `favoritos` / `votos` / `opiniones` escribibles a nombre de otro cliente |
+| **`[TELEGRAM-ANON-ABIERTO]` / S14** 🔴 | `anon` puede invocar `send_telegram` con texto libre → avisos desde las RPC de S2 + `revoke` + `search_path`. Ver `SECURITY.md` § S14 |
+| `[RESET-EXPIRES]` 🟡 · `[RESET-TEMP-PASSWORD-MUERTA]` 🟢 | `expires_at` no se respeta en Pedidos pass · columna muerta |
 | S3 (Vault) 🟡 | `send_telegram` leyendo de `vault.secrets` en vez de constantes |
 | `.claude/commands/security-scan.md` 🟢 | Tiene las dos contraseñas de S1 como ejemplo; no se tocó por la regla de no modificar `.claude\` — decidir |
 | `[VERCEL-ENV-VARS]` 🔴 · `[BACKUP-FOTOS-LOCAL]` 🟡 · S1 + S10 🟠 · `[DC-HEADER-600]` 🟢 · contador del tope 🟢 · historial depósito→local 🟢 · cuentas por empleada 🟢 | sin cambios |
+
+#### 🎯 Próximos temas (elegidos por Alejo el 17-sep, en este orden)
+
+1. **`[DISEÑOACORTADOR-PANELADMIN]`**
+2. **`[LAUTARO-MIMANODERECHA]`**
+3. **`[FACILITAR-MOBILE-EN-CATALOGO]`**
+
+**Antes de cualquiera de los tres: ordenar el repo.** (Los tres sin brief todavía; se definen al arrancar cada uno.)
 
 #### 💬 Mensajes meta
 
@@ -1976,9 +1990,9 @@ El pendiente 🔴 más viejo del proyecto (documentado desde mayo, agravado en j
 
 ---
 
-**Última actualización:** **Septiembre 17, 2026** — **S2 RESUELTO** (`[BCRYPT-MIGRATION]`): login de clientes por RPC `SECURITY DEFINER`, bcrypt cost 10 con migración perezosa, rate-limit server-side, `anon` sin ninguna policy sobre `clientes` (antes tenía hasta DELETE) · `98b556c` · SW **v1.1.99 → v1.1.100** · FASE 1 y 3 corridas por Alejo en producción · verificado: 0 filas por REST (antes 98), E2E de login en el sitio real. Dupla ClaudeChat (diseño) + Claude Code (medición) + Alejo (orden y SQL Editor): 1 ensayo fallido por doc desactualizada (`id` es uuid), 8 correcciones cruzadas, 0 clientes afectados. **Fuga en la doc**: el token real de Telegram estaba escrito en `SECURITY.md` § S3 → enmascarado, rotado, y regla nueva (los docs no llevan valores de credenciales). Detalle en § "Sesión 16→17-sep-2026". **Próxima revisión cuando:** 🟢 borrar los 2 clientes de prueba desde el panel (D ✅ cerrado por Alejo: los 92 entran con su clave de siempre) · 🔴 `[VERCEL-ENV-VARS]` · 🟠 S13 / S1 + S10 · 🟡 S3 Vault · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟢 `[LOGIN-INTENTOS-CLEANUP]` · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 historial depósito→local · 🟢 cuentas por empleada.
+**Última actualización:** **Septiembre 17, 2026 (noche)** — **S2 RESUELTO y verificado** (`[BCRYPT-MIGRATION]` · `98b556c` · FASE 1/3 en producción · D cerrado por Alejo: los 92 en plano entran con su clave de siempre) · **`[RESET-TEXTOS]`** arriba (`6049a2a`) · SW **v1.1.99 → v1.1.101** · **token de Telegram rotado y verificado** · fuga en `SECURITY.md` cerrada + regla nueva (los docs no llevan valores) · hallazgo **`[TELEGRAM-ANON-ABIERTO]`** 🔴 (S14): rotar no alcanza, `anon` puede invocar `send_telegram`. Repo sin `.patch` sueltos. Detalle en § "Sesión 16→17-sep-2026". **Próximos temas de Alejo, en orden:** `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`, y **antes de cualquiera: ordenar el repo**. **Pendientes técnicos:** 🔴 S14 `[TELEGRAM-ANON-ABIERTO]` · 🔴 `[VERCEL-ENV-VARS]` · 🟠 S13 / S1 + S10 · 🟡 `[RESET-EXPIRES]` · 🟡 S3 Vault · 🟡 `[BACKUP-FOTOS-LOCAL]` · 🟢 borrar clientes de prueba · 🟢 `[LOGIN-INTENTOS-CLEANUP]` · 🟢 `[RESET-TEMP-PASSWORD-MUERTA]` · 🟢 `[DC-HEADER-600]` · 🟢 contador del tope · 🟢 historial depósito→local · 🟢 cuentas por empleada.
 
-**Estado del repo al cierre (17-sep):** `origin/main` = `98b556c` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main (worktree reciclado a `serene-jennings-e9d305` en el medio) · `feat/s2-bcrypt` local sin commits propios, ligada a un worktree que ya no existe (`git worktree prune` lo hace Alejo desde Windows) · SW **v1.1.100** en producción · policies de `clientes`: sólo 4 `authenticated` · 98 clientes (96 + 2 de prueba), 2 bcrypt (los de prueba), 92 en plano esperando su primer login.
+**Estado del repo al cierre (17-sep, noche):** `origin/main` = `7ab38cd` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main (worktree `serene-jennings-e9d305`; el anterior fue reciclado) · `feat/s2-bcrypt` local sin commits propios, ligada a un worktree borrado → `git worktree prune` desde Windows en otra sesión · **0 `.patch` sueltos** · SW **v1.1.101** en producción · policies de `clientes`: sólo 4 `authenticated` · 98 clientes (96 + 2 de prueba a borrar desde el panel), bcrypt creciendo con cada login.
 
 **Estado del repo al cierre (16-sep):** `origin/main` = `1cb7246` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main · árbol limpio · SW **v1.1.99** pusheado (dos bumps seguidos: las tablets ven el banner amarillo dos veces) · pendiente de probar en la Tab A9 real: Depósito → número verde → − − → casilla; badge Local → modal de Stock; buscar + guardar → la búsqueda sigue.
 
