@@ -1,6 +1,6 @@
 # SLASH COMMANDS · custom para ST Perfumería
 
-> Catálogo de slash commands custom recomendados para Claude Code en este proyecto. Cada uno automatiza un flow REPETITIVO de Alejo. **NO están implementados todavía** · este archivo es el design doc para cuando los queramos crear.
+> Catálogo de slash commands custom recomendados para Claude Code en este proyecto. Cada uno automatiza un flow REPETITIVO de Alejo. **Tres están implementados** en `.claude/commands/` — `/handoff` (cierre de sesión: HISTORIA + reconciliar CLAUDE.md § Pendientes + memoria + commit + push · revisado el 18-sep-2026), `/quick-fix-ui` y `/security-scan` — y **el resto sigue siendo design doc** para cuando los queramos crear.
 >
 > **Creado:** 22-may-2026 (después del QA post Plan B). Pensados en base a 2+ meses de trabajo en este proyecto con Claude Code · NO son slash commands genéricos sacados de TikTok · son específicos del flow ST Perfumería.
 
