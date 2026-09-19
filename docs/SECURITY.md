@@ -11,7 +11,7 @@
 
 > Un doc de seguridad describe **dónde vive** una credencial (archivo, línea, función SQL, env var), **nunca su valor**. Ni "para documentar la fuga", ni entre comillas, ni parcial. El repo es público y git no olvida: lo que se pega una vez queda en el historial para siempre, y la única salida es rotar la credencial.
 >
-> Aprendido el 17-sep-2026: § S3 tenía el token real del bot de Telegram y el chat_id escritos completos desde mayo. Se enmascararon y se rotó el token. Vale para `docs/`, `memory/`, `RECOMENDACIONES_CLAUDECHAT/`, commits y chats. Si un valor hace falta para ejecutar algo, se copia **directo** de donde vive (Supabase → Vercel), no por acá.
+> Aprendido el 17-sep-2026: § S3 tenía el token real del bot de Telegram y el chat_id escritos completos desde mayo. Se enmascararon y se rotó el token. Vale para `docs/`, `memory/`, `RECOMENDACIONES_CLAUDECHAT/`, commits y chats. Si un valor hace falta para ejecutar algo, se copia **directo** de donde vive (Supabase → Vercel), no por acá. **Vale también para capturas de pantalla** (19-sep: una captura del SQL Editor mostró el token y hubo que rotarlo de nuevo): antes de mandar una imagen, tapar el valor. Y "verificado" para una credencial significa **un uso exitoso** (un mensaje entregado, un login que entra), no un hash del cuerpo de la función.
 
 ---
 
@@ -153,7 +153,7 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Severidad:** 🟡 ALTA · el bot token permite a un atacante mandar mensajes en nombre del bot a cualquier chat al que tenga acceso.
 
-> 🔁 **17-sep-2026 · ROTADO y verificado.** El token y el chat_id que estaban escritos acá "para documentar" se **enmascararon** (el repo es público y el valor quedó en el historial de git). Alejo **rotó el token en BotFather** y actualizó `public.send_telegram`; verificado que la función en producción tiene el token nuevo **comparando el `md5(prosrc)` sin exponer el valor**. El nuevo vive **sólo** en Supabase (y en las env vars de Vercel cuando se repongan): no se copia en ningún doc ni en ningún chat. ⚠️ **S3 queda parcialmente abierto**: rotar no sirve de nada mientras `anon` pueda **invocar** la función — ver **S14 `[TELEGRAM-ANON-ABIERTO]`**. Queda también el paso a Vault.
+> 🔁 **17-sep-2026 · rotado · 19-sep-2026 · rotado OTRA VEZ y esta vez verificado de verdad.** El token y el chat_id que estaban escritos acá se **enmascararon** el 17-sep (el repo es público y el valor quedó en el historial). Alejo rotó el token en BotFather ese día, pero **el valor quedó mal pegado en `public.send_telegram`**: al copiarlo se arrastró la hora del mensaje de BotFather (`…:54`), 4 caracteres de más → Telegram respondía **404** a todo. **Ningún aviso ni el resumen diario se entregó entre el 18-sep 21:05 y el 19-sep 04:02.** La "verificación por md5 de `prosrc`" sólo probaba que el cuerpo había cambiado, no que el token sirviera: **lo único que verifica un token es un mensaje entregado (`status_code = 200` en `net._http_response`)**. Corregido el 19-sep con un `DO` que valida el formato (`^[0-9]{8,11}:[A-Za-z0-9_-]{35}$`) antes de tocar la función; y como el valor apareció en una captura de pantalla durante el arreglo, **se rotó de nuevo** y se recargó con el mismo `DO`. El vigente vive **sólo** en `public.send_telegram` (y en Vercel cuando se repongan las env vars): no se copia en docs, chats **ni capturas**. `anon` ya no puede invocarla (S14 ✅). Queda el paso a Vault.
 
 **Donde está:**
 - Función `public.send_telegram(msg text)` del schema `public` (en BOTH proyectos viejo y nuevo)
@@ -344,9 +344,16 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 
 ---
 
-### **S14 · `[TELEGRAM-ANON-ABIERTO]` · `anon` puede invocar `send_telegram` con texto libre**
+### **S14 · `[TELEGRAM-ANON-ABIERTO]` · `anon` podía invocar `send_telegram` con texto libre · ✅ RESUELTO 19-sep-2026**
 
-**Severidad:** 🔴 ALTA · hallado el 17-sep-2026 al verificar la rotación del token de S3. **Pendiente.**
+**Severidad:** 🔴 ALTA · hallado el 17-sep-2026 al verificar la rotación del token de S3.
+
+> ✅ **ESTADO: RESUELTO** · `b0cde5e` (SQL: `sql/fase4a_telegram_avisos.sql` + `sql/fase4b_telegram_cerrar.sql`, corridos por Alejo en ese orden) + `5af3d85` (JS) + SW v1.1.102 · 19-sep-2026. Diseño de ClaudeChat, decisión (a) de Alejo: `authenticated` conserva EXECUTE (el panel manda 31 avisos por `notifyTelegram`).
+> - Los 5 avisos del sitio público (reset, primer ingreso, bloqueo, perfil editado, lista de espera) los manda **el servidor** desde las RPC de S2 vía `_aviso_tg` (best-effort: `exception when others`, un Telegram caído no tumba un login) y un trigger `after insert` en `lista_espera`. `app.js` ya no tiene `notifyTG`. El aviso de bloqueo pasó de contar en localStorage a contar en el servidor por teléfono, y sale **una sola vez** al cruzar el umbral, con el teléfono enmascarado.
+> - `send_telegram`: `revoke all from public` (el ACL real tenía `=X/postgres`: revocar sólo a `anon` no cerraba nada) + `revoke from anon` + `grant` explícito a `authenticated, service_role` + `search_path` fijo, sin tocar el cuerpo.
+> - **De yapa, el mismo agujero en `admin_actions_cleanup`**: `SECURITY DEFINER`, borra filas de `admin_actions` (2.625) y era ejecutable por `anon` — cualquiera con la anon key podía purgar la auditoría. Cerrada igual.
+> - **Verificado en producción:** `has_function_privilege('anon', …)` → false en las dos · POST anónimo con la anon key a `/rpc/send_telegram` y `/rpc/admin_actions_cleanup` → **401 permission denied** · `cliente_login` sigue 200 · ACL sin `=X/` · `proconfig` con `search_path` en las 4 funciones · **los 5 avisos entregados con `200` en `net._http_response`** (04:03:18 → 04:04:04) · el 6º intento estando bloqueado no volvió a avisar.
+> - **Queda:** opción (b) `admin_notificar()` si algún día se quiere cerrar también a `authenticated` · `[S3-VAULT]`.
 
 **Dónde está:** `public.send_telegram(msg text)` es `SECURITY DEFINER` y tiene **EXECUTE para `anon`** (`has_function_privilege('anon', 'public.send_telegram(text)', 'execute')` → `true`). El front la llama con `sb.rpc('send_telegram', { msg })` (`notifyTG` en `js/app.js`) para los avisos de "Primer ingreso" y "Pedido de RESET".
 
@@ -440,7 +447,7 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 | **Proyecto Supabase legacy** | us-west-2 Oregon · ref `rtgjzzkjrwbkdhkslxix` · activo hasta 28-may como rollback |
 | **Anon key activa** | `sb_publishable_Bb4Jo74f4Wh7vhz...` (nuevo formato Supabase, ~46 chars) |
 | **DB password expuesta** | ⚠️ Sí · ambas en chat de esta sesión. Reset pendiente |
-| **Bot Telegram token** | **Rotado y verificado el 17-sep-2026** (md5 de `prosrc`, sin exponer el valor) · vive sólo en `public.send_telegram` · el anterior quedó en el historial de git · ⚠️ `anon` todavía puede invocar la función (S14) · pendiente Vault |
+| **Bot Telegram token** | **Rotado el 19-sep-2026 y verificado por entrega (`200` en `pg_net`)** · el del 17-sep quedó mal pegado (404, nada se entregó ~31 h) y además salió en una captura → rotado de nuevo · vive sólo en `public.send_telegram` · `anon` sin EXECUTE (S14 ✅) · pendiente Vault |
 | **Service role keys** | NUNCA en repo · estuvieron en `D:\tmp\.env` (borrado) |
 | **Backup dump pre-migración** | `D:\backups\st-perfumeria-pre-migracion-20may2026.sql` · 6.2 MB · conservar 7 días · contiene passwords en plano de clientes |
 

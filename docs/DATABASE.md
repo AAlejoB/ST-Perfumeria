@@ -163,6 +163,12 @@ created_at   TIMESTAMPTZ DEFAULT NOW()
 
 **Gotchas plpgsql que costaron un ensayo:** `returns table (…, telefono …)` convierte `telefono` en variable → `where telefono = …` y `on conflict (telefono)` son ambiguos (calificar con alias / `on conflict on constraint`). `create or replace` no puede cambiar el tipo de retorno → `drop function` previo.
 
+### Avisos de Telegram desde el servidor · `_aviso_tg` + `trg_lista_espera_aviso` (S14, 19-sep-2026)
+
+Desde `sql/fase4a_telegram_avisos.sql`: `_aviso_tg(msg)` es un wrapper `SECURITY DEFINER` de `send_telegram` con `exception when others` (un Telegram caído nunca tumba la operación); **sin EXECUTE para nadie** (revoke explícito por rol). La llaman `cliente_login` (rama `activado` y al cruzar el umbral de bloqueo, una sola vez, teléfono enmascarado), `cliente_editar` (antes/después) y `cliente_reset_solicitar` (sólo si el teléfono existe). Para `lista_espera` hay un trigger **`trg_lista_espera_aviso`** `after insert for each row` (`lista_espera_aviso()`) que arma el aviso desde la fila (`perfume_name`/`slug`, `telefono`, `nombre`) — ⚠️ dispara en **todo** insert: una carga masiva mandaría un Telegram por fila.
+
+`send_telegram(text)` y `admin_actions_cleanup()`: desde `sql/fase4b_telegram_cerrar.sql` **sin EXECUTE para `public` ni `anon`**, `grant` explícito a `authenticated, service_role`, `search_path` fijo. El panel (`authenticated`) sigue llamando `send_telegram` por `notifyTelegram`. La entrega real se verifica en **`net._http_response`** (`status_code`, `created`; no seleccionar la URL: lleva el token).
+
 ### `cliente_login_intentos`
 
 ```sql

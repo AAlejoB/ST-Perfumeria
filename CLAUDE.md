@@ -153,7 +153,7 @@ Ejemplo: `fix(decants): grid alfabético + agregados arriba en builder`
 var CACHE_VERSION = 'v1.1.64';   // ← incrementá este
 ```
 
-Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.101** (18-sep-2026).
+Si no lo bumpeás, los usuarios siguen viendo el archivo viejo cacheado. Versión actual al momento de escribir esto: **v1.1.102** (19-sep-2026).
 
 > **Desde v1.1.32 (sesión 15-may-2026)** existe `[PWA-AUTO-RELOAD]`: cuando se deploya una versión nueva del SW, el frontend RECARGA SOLA la página (sin que el cliente toque F5 ni cierre tabs) — siempre que NO esté interactuando (modal abierto / input focused / scroll < 3s). Ver `docs/HISTORIA.md` para detalles.
 >
@@ -246,7 +246,6 @@ Definido en la lógica de admin.html (`currentRole`).
 ### 🔴 Urgentes
 
 - **`[VERCEL-ENV-VARS]`** (12-ago) — Vercel **no tiene NINGUNA variable de entorno**: el backup propio, el alta de suscriptores y el envío de push están **rotos desde mayo**. Reponer `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_*`, `CRON_SECRET`. La service key se copia **directo Supabase→Vercel, nunca por chat**. Ver `docs/SECURITY.md` § S12. Lo hace **Alejo a mano**; Claude Code verifica después (cron, fila nueva en `backups`, push). Se destraba con `[SECURITY-AUDIT-S1]`. *(S11, la trampa que había acá, ya está arreglada · `ef1507d`.)*
-- **`[TELEGRAM-ANON-ABIERTO]` / S14** (17-sep) — `anon` tiene **EXECUTE sobre `public.send_telegram(text)`** y la función acepta texto libre (`has_function_privilege('anon', …)` → true): con la anon key (pública, está en `app.js`) cualquiera hace `POST /rest/v1/rpc/send_telegram` y el bot lo entrega en el chat del jefe. **Rotar el token no cierra esto.** Fix: los avisos del sitio público salen desde las RPC de S2 en el servidor (`cliente_login` activado/bloqueado, `cliente_reset_solicitar`, `cliente_editar`, y `lista_espera` por trigger o RPC), `revoke execute … from anon` (explícito por rol, por los *default privileges*), `set search_path = public, extensions` (hoy `proconfig` null). ⚠️ El panel admin también la llama (`notifyTelegram`, 31 avisos, como `authenticated`): el revoke no puede incluir `authenticated` sin reemplazo. Brief escrito; patch del cowork; Claude Code verifica. Ver `docs/SECURITY.md` § S14.
 
 ### 🟠 Altos
 
@@ -264,7 +263,6 @@ Definido en la lógica de admin.html (`currentRole`).
 
 ### 🟢 Bajos
 
-- **`[SW-PRECACHE-PERFUMES]`** (18-sep) — el precache de `sw.js` (L63) pide `'/js/perfumes.js'` → **404** (`perfumes.js` vive en la raíz). El SW **no se rompe** (`cache.add` uno por uno con `catch`, L74-76); desperdicia un 404 por instalación. 1 línea (`'/perfumes.js'`) + bump; viaja con la tanda de seguridad.
 - **`[CLIENTES-PRUEBA]`** — borrar `549000000000[12]` (Test QA, de la verificación de S2) desde "Eliminar definitivamente" del panel; de paso prueba `clientes_delete_auth`. Lo hace Alejo.
 - **`[LOGIN-INTENTOS-CLEANUP]`** — `pg_cron` que borre de `cliente_login_intentos` las filas de más de un día (crece con cada intento fallido de cualquier número, exista o no).
 - **`[RESET-TEMP-PASSWORD-MUERTA]`** (17-sep) — `password_reset_requests.temp_password` es **columna muerta** (reservada en `[FORGOT-PASS-A]`, el panel nunca la usa): dropearla o documentarla como no usada en `DATABASE.md`.
@@ -282,7 +280,7 @@ Definido en la lógica de admin.html (`currentRole`).
 
 ### 🎯 Orden de trabajo (decidido por Alejo el 18-sep-2026)
 
-1. **Tanda de seguridad chica, una sesión:** `[SECURITY-AUDIT-S1]` + `[VERCEL-ENV-VARS]` (Alejo a mano) · `[TELEGRAM-ANON-ABIERTO]` (patch del cowork, Claude Code verifica) · `[SW-PRECACHE-PERFUMES]` (mismo bump).
+1. **Tanda de seguridad chica, una sesión:** ~~`[TELEGRAM-ANON-ABIERTO]`~~ ✅ y ~~`[SW-PRECACHE-PERFUMES]`~~ ✅ hechos el 19-sep. Quedan **`[SECURITY-AUDIT-S1]` + `[VERCEL-ENV-VARS]`** (Alejo a mano; Claude Code verifica después).
 2. **Los tres temas:** `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]` (sin brief todavía; se definen al arrancar cada uno).
 
 Ordenar el repo: **de a poco, dentro de cada tema** — no antes (era recomendación del cowork, no decisión de Alejo).
@@ -319,6 +317,11 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 
 ---
 
+**Última actualización:** **Septiembre 19, 2026** — **S14 `[TELEGRAM-ANON-ABIERTO]` RESUELTO y verificado**: los 5 avisos del sitio público los manda el servidor desde las RPC de S2 (+ trigger en `lista_espera`), `anon` sin EXECUTE sobre `send_telegram` **ni sobre `admin_actions_cleanup`** (que borraba filas y también estaba abierta) — POST anónimo → 401, los 5 avisos entregados con `200` en `pg_net`. `[SW-PRECACHE-PERFUMES]` en el mismo bump · **SW v1.1.102**. **Hallazgo:** el token de Telegram rotado el 17-sep estaba **mal pegado** (arrastraba la hora del mensaje de BotFather): ningún Telegram se entregó entre el 18-sep 21:05 y el 19-sep 04:02, incluido el resumen diario — corregido con un `DO` que valida el formato antes de tocar la función, y **rotado de nuevo** porque el valor apareció en una captura de pantalla. `pg_net` (`net._http_response`) es la única verificación real de entrega; el md5 no verifica un token. Detalle en `docs/HISTORIA.md` § "Sesión 19-sep-2026". **Pendientes (mismo orden que § Pendientes):** 🔴 `[VERCEL-ENV-VARS]` · 🟠 `[SECURITY-AUDIT-S1]`+S10 · `[S13-ESCRITURAS-ANON]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · `[RESET-EXPIRES]` · `[S3-VAULT]` · `[ROTAR-DB-PASS]` · `[SUPABASE-AUTH]` · `[ORDEN-COMPRA-SUGERIDA]` · 🟢 `[CLIENTES-PRUEBA]` · `[LOGIN-INTENTOS-CLEANUP]` · `[RESET-TEMP-PASSWORD-MUERTA]` · `[DC-HEADER-600]` · `[DECANT-TOPE-CONTADOR]` · `[DEPOSITO-HISTORIAL-UNIFICADO]` · `[CUENTAS-POR-EMPLEADA]` · `[SECURITY-SCAN-CMD-VALORES]` · `[AVISOS-PRIORIDAD]` · `[PERMISOS-TABS-JEFE]` · `[PUNTOS-DECANTS]` · `[JUEGOS-ST-WIREFRAME]` · `[UPLOADER-WEBP-AUTO]` · `[TIKTOK-SLIDE]`. **Orden de trabajo:** lo que queda de la tanda de seguridad (S1 + env vars, a mano) → `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`.
+
+<details>
+<summary>Contexto previo (18-sep-2026 · cierre con /handoff v2)</summary>
+
 **Última actualización:** **Septiembre 18, 2026** — cierre con el `/handoff` revisado (`c1fa9de`): § Pendientes **reconciliada** (sólo abiertos, ID = keyword entre corchetes, 8 resueltos movidos a `docs/HISTORIA.md` § "✅ Resueltos") y este pie sincronizado con el cuerpo. **Estado:** S2 `[BCRYPT-MIGRATION]` **resuelto y verificado** el 17-sep (login por RPC `SECURITY DEFINER`, bcrypt con migración perezosa, rate-limit server-side, `anon` sin ninguna policy sobre `clientes`) · `[RESET-TEXTOS]` arriba · **SW v1.1.101** · token de Telegram rotado · `SECURITY.md` sin valores de credenciales (regla § 📏) · orden de trabajo decidido por Alejo. Detalle en `docs/HISTORIA.md` § "Sesión 16→17-sep-2026" y "Sesión 18-sep-2026". **Pendientes (mismo orden que § Pendientes):** 🔴 `[VERCEL-ENV-VARS]` · `[TELEGRAM-ANON-ABIERTO]` · 🟠 `[SECURITY-AUDIT-S1]`+S10 · `[S13-ESCRITURAS-ANON]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · `[RESET-EXPIRES]` · `[S3-VAULT]` · `[ROTAR-DB-PASS]` · `[SUPABASE-AUTH]` · `[ORDEN-COMPRA-SUGERIDA]` · 🟢 `[SW-PRECACHE-PERFUMES]` · `[CLIENTES-PRUEBA]` · `[LOGIN-INTENTOS-CLEANUP]` · `[RESET-TEMP-PASSWORD-MUERTA]` · `[DC-HEADER-600]` · `[DECANT-TOPE-CONTADOR]` · `[DEPOSITO-HISTORIAL-UNIFICADO]` · `[CUENTAS-POR-EMPLEADA]` · `[SECURITY-SCAN-CMD-VALORES]` · `[AVISOS-PRIORIDAD]` · `[PERMISOS-TABS-JEFE]` · `[PUNTOS-DECANTS]` · `[JUEGOS-ST-WIREFRAME]` · `[UPLOADER-WEBP-AUTO]` · `[TIKTOK-SLIDE]`. **Orden de trabajo:** tanda de seguridad chica → `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`.
 
 <details>
@@ -335,6 +338,8 @@ No suelo hacer PRs en este repo — es un solo dev. Commits van directo a `main`
 <summary>Contexto histórico previo (27-jun mañana)</summary>
 
 Sesión larga con 2 features grandes ANDANDO: **`[TG-RESUMEN-DIARIO]`** (resumen diario de Telegram al cierre 23:00 ART · función SQL `daily_summary` + `pg_cron` + 6 notifs instantáneas silenciadas · commit `1ded56a`) que reemplaza el bombardeo de 16-114 Telegrams/día, y **`[FORGOT-PASS-A]`** (recuperación de contraseña de clientes COMPLETA · tabla `password_reset_requests` + botón "¿Olvidaste tu contraseña?" en login + tab admin "Pedidos pass" · commit `db9d485` · reusa el flujo "primer login setea pass", NO toca el login existente). También: badge violeta admin `[BADGE-LAST-VIOLETA]` (`42b5dce`), 3 slash commands implementados (`.claude/commands/`), CodeGraph MCP instalado, QA post Plan B OK. SW v1.1.71 → **v1.1.75**. **Telegram CONFIRMADO funcionando** (el `[FIX-TELEGRAM-PG-NET]` del 21-may era falsa alarma · obsoleto · el worker de pg_net tardó en arrancar y las queries vía psql se colgaban, pero vía MCP responden bien). **El MCP de Supabase es ahora la vía principal para SQL/infra** (psql/pg_dump desaparecieron del sistema · `C:\Program Files\PostgreSQL\18\` vacío). 🚨 **Issues de seguridad SIGUEN pendientes** (de la sesión 21-may): passwords admin **HARDCODED en `admin.html` L2766-2767** · agendado **`[SECURITY-AUDIT-S1]`** (CRÍTICO). Detalle exhaustivo en `docs/HISTORIA.md` § "Sesión 27-jun-2026" + `docs/BACKEND.md` + `docs/DATABASE.md`. **Pendientes:** ⚠️ **`[SECURITY-AUDIT-S1]`** (CRÍTICO) · `[BCRYPT-MIGRATION]` (más relevante con FORGOT-PASS activo) · **bajar proyecto viejo Oregon** (pagando 2 Pro desde 28-may) · `git pull` en main repo desincronizado · **testear FORGOT-PASS-A** con cuenta de prueba · CLS Desktop iter 5 · `[SW-BANNER-SMART]` · logo @2x · imágenes con `?width=400` · JS-CHUNK iter 2 · SUPABASE-AUTH.
+
+</details>
 
 </details>
 
