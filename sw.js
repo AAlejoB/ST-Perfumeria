@@ -60,7 +60,7 @@ var PRECACHE_URLS = [
   '/offline.html',
   '/css/styles.css',
   '/js/app.js',
-  '/js/perfumes.js',
+  '/perfumes.js',
   '/manifest.json',
   '/img/icon-st.svg'
 ];

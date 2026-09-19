@@ -307,10 +307,9 @@
         // Antes anon leía la tabla clientes para esto; ya no puede.
         var rpcReset = await sb.rpc('cliente_reset_solicitar', { p_telefono: phone });
         if (rpcReset.error) throw rpcReset.error;
-        var cliNombre = (rpcReset.data && rpcReset.data[0]) ? rpcReset.data[0].nombre : null;
-        if (cliNombre) {
-          notifyTG('\ud83d\udd10 Pedido de RESET de contrase\u00f1a\n\ud83d\udc64 ' + cliNombre + '\n\ud83d\udcde ' + phone + '\n\ud83d\udcf2 https://wa.me/' + phone + '\n\n\u27a1\ufe0f Resolv\u00e9 en Admin \u2192 \ud83d\udd11 Pedidos pass');
-        }
+        // [TELEGRAM-ANON-ABIERTO] El aviso lo manda ahora cliente_reset_solicitar
+        // del lado del servidor, con el mismo texto. El front ya no puede hacer
+        // hablar al bot: anon perdio el EXECUTE sobre send_telegram.
         // Éxito: ocultar el formulario y mostrar confirmación grande y clara
         var phoneEl = document.getElementById('authPhone');
         var preview = document.getElementById('authPhonePreview');
@@ -401,7 +400,10 @@
         setAuthLockout(st);
         renderAuthLockout();
         startAuthLockoutTimer();
-        try { notifyTG('\ud83d\udea8 Login del cat\u00e1logo BLOQUEADO por ' + authFormatRemaining(cd) + '\n\ud83d\udd22 ' + st.fails + ' intentos fallidos'); } catch(e) {}
+        // [TELEGRAM-ANON-ABIERTO] El aviso de bloqueo lo manda cliente_login.
+        // Este contador vive en localStorage y se borra vaciandolo, asi que
+        // como senal de seguridad no servia; el del servidor cuenta por
+        // telefono. El bloqueo visual de aca sigue igual.
       } else {
         setAuthLockout(st);
       }
@@ -480,7 +482,6 @@
             // escribir quedó fijada, ya hasheada, del lado del servidor.
             errEl.style.color = '#2ecc71';
             errEl.textContent = '\u2713 \u00a1Listo! Tu contrase\u00f1a nueva qued\u00f3 guardada: es la que acab\u00e1s de escribir. Anotala para la pr\u00f3xima.';
-            notifyTG('\ud83d\udd13 Primer ingreso\n\ud83d\udc64 ' + r.nombre + ' (' + r.telefono + ')');
             setTimeout(function() {
               onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });
               closeAuth();
@@ -511,17 +512,6 @@
         }
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;
-    }
-
-    // Notificar Telegram desde frontend
-    function notifyTG(msg) {
-      // [FORGOT-PASS-FIX] sb.rpc() en supabase-js v2 devuelve un builder (thenable),
-      // NO una Promise con .catch(). Llamar .catch() directo tiraba
-      // "sb.rpc(...).catch is not a function". Lo envolvemos en try + Promise.resolve
-      // para que NUNCA propague (las notifs son best-effort, no deben romper el flujo).
-      try {
-        Promise.resolve(sb.rpc('send_telegram', { msg: msg })).catch(function(){});
-      } catch (e) { /* notif best-effort · ignorar */ }
     }
 
     // Editar perfil
@@ -558,9 +548,6 @@
         // [BCRYPT-MIGRATION] Verificar y guardar en una sola RPC, del lado del
         // servidor. Antes el update corría como anon SIN pedir contraseña: con
         // la anon key y un id se le podía cambiar nombre y teléfono a cualquiera.
-        var oldName = currentUser.nombre;
-        var oldPhone = currentUser.telefono;
-
         var rpcEd = await sb.rpc('cliente_editar', {
           p_id: currentUser.id, p_pass: confirmPass, p_nombre: newName, p_telefono: newPhone
         });
@@ -585,13 +572,8 @@
         localStorage.setItem('st_cliente', JSON.stringify(currentUser));
         updateAuthUI();
 
-        // Notificar Telegram
-        var changes = [];
-        if (oldName !== newName) changes.push('Nombre: ' + oldName + ' → ' + newName);
-        if (oldPhone !== newPhone) changes.push('Tel: ' + oldPhone + ' → ' + newPhone);
-        if (changes.length > 0) {
-          notifyTG('✏️ Perfil editado\n👤 ' + newName + '\n' + changes.join('\n') + '\n📲 https://wa.me/' + newPhone);
-        }
+        // [TELEGRAM-ANON-ABIERTO] El aviso con el antes/despues lo arma
+        // cliente_editar, que tiene los valores viejos en v_cli.
 
         closeEditProfile();
         errEl.style.color = '#27ae60';
@@ -4284,7 +4266,7 @@
       var btn = document.getElementById('waitlistSubmitBtn');
       msgEl.textContent = '';
       // Flag: si ya mostramos el mensaje de éxito, cualquier error posterior
-      // (notifyTG, DOM update, race con otro fetch) NO debe pisar el "¡Listo!".
+      // (markWaitlistSlug, DOM update, race con otro fetch) NO debe pisar el "¡Listo!".
       var successShown = false;
 
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
@@ -4338,7 +4320,7 @@
         }
 
         // Mostrar éxito INMEDIATAMENTE — antes de nada que pueda fallar.
-        // Así si markWaitlistSlug o notifyTG explotan, el usuario no ve "Error de conexión"
+        // Así si markWaitlistSlug explota, el usuario no ve "Error de conexión"
         // después del "¡Listo!".
         successShown = true;
         msgEl.style.color = '#27ae60';
@@ -4347,11 +4329,12 @@
 
         // Side-effects en try/catch individuales para no romper el flujo
         try { markWaitlistSlug(slug); } catch(e) { console.error('[waitlist] markWaitlistSlug falló:', e); }
-        try { notifyTG('\ud83d\udd14 Lista de espera\n\ud83e\uddf4 ' + (perfume ? perfume.name : slug) + '\n\ud83d\udcf1 ' + phone + (nombre ? '\n\ud83d\udc64 ' + nombre : '')); } catch(e) { console.error('[waitlist] notifyTG falló:', e); }
+        // [TELEGRAM-ANON-ABIERTO] El aviso lo manda el trigger
+        // trg_lista_espera_aviso, que lee la fila recien insertada.
       } catch(e) {
         console.error('[waitlist] Excepción:', e);
         // Si el success ya se mostró, NO pisamos con un error — el guardado funcionó,
-        // el error probablemente vino de notifyTG o algún side-effect irrelevante.
+        // el error probablemente vino de algún side-effect irrelevante.
         if (!successShown) {
           msgEl.style.color = '#e74c3c';
           msgEl.textContent = 'Error: ' + (e.message || 'conexión fallida');
