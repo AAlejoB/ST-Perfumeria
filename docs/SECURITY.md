@@ -1,6 +1,6 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 17, 2026** — **S2 RESUELTO** (`[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side). Token de Telegram y chat_id **sacados de este doc** y token rotado (S3 parcial). Regla nueva arriba: los docs no llevan valores de credenciales. S13 nuevo (S2-bis). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
+> **Última actualización:** **Septiembre 20, 2026** — **S10 y S10-bis RESUELTOS** (stored XSS del panel admin: Clientes `f457b89`, Lista de espera + Opiniones `033ab70`/`ce52def`, SW v1.1.104). De yapa, `[WA-LINK-549-DUPLICADO]` (no es seguridad) también resuelto. Antes: 17-sep (**S2 RESUELTO** · `[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side; token de Telegram y chat_id sacados de este doc y rotado; regla nueva de no llevar valores de credenciales; S13 nuevo). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
 > **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
 >
 > **Audiencia:** Alejo + Claude Code de próximas sesiones. Cuando arranque la sesión `[SECURITY-AUDIT-S1]`, **leer este archivo primero.**
@@ -249,13 +249,19 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S10 · Stored XSS · nombre de cliente sin escapar en el panel admin · ✅ RESUELTO 20-sep-2026 (queda S10-bis)**
+### **S10 · Stored XSS · nombre de cliente sin escapar en el panel admin · ✅ RESUELTO 20-sep-2026 (S10-bis también resuelto)**
 
 **Severidad:** 🟡 ALTA · hallado 27-jun-2026 durante el test de `[FORGOT-PASS-A]`.
 
 > ✅ **ESTADO: RESUELTO en la pestaña Clientes** · `f457b89` (`[S10-XSS-CLIENTES]`, rama `fix-xss-admin-panel` mergeada fast-forward a `main`) + SW **v1.1.103** (`c8f8b51`) · 20-sep-2026. En `renderClients` (cards y tabla) pasan por `escapeHtml()`: `nombre`, `telefono`, `telefono2`, `nota`, la inicial del avatar y el `data-name` del buscador; `openPuntosModal(c.id)` con comillas (uuid). `escapeHtml(` pasa de 10 a 20 ocurrencias en `admin.html`. Verificado en producción: `admin.html` servido con los 20, SW v1.1.103.
 >
-> ⚠️ **S10-bis · `[S10-BIS-XSS-ESPERA-OPINIONES]` · PENDIENTE 🟠** — al cerrar S10 se relevaron los demás `innerHTML` del panel con texto que escribe un cliente, y **el mismo patrón sigue en dos pestañas**: **Lista de espera** (`renderListaEspera`, ~L8921: `item.nombre` de `lista_espera`, que inserta `anon` desde el sitio) y **Opiniones** (~L4564-4568: `o.nombre` y `o.texto` de `opiniones`, también `anon`; `texto` va además en un atributo `title` con sólo `"` reemplazada). Mismo fix (`escapeHtml()`), mismo riesgo (se ejecuta en la tablet de las chicas al abrir la pestaña). `log.nombre` en el historial (~L5627) es nombre de perfume cargado por admin: menor.
+> ✅ **S10-bis · `[S10-BIS-XSS-ESPERA-OPINIONES]` · RESUELTO 20-sep-2026 (más tarde)** — rama `fix-s10-bis-xss-espera-opiniones` → `main` fast-forward (`033ab70` + `ce52def`) + SW **v1.1.104** (`aae744e`). Mismo patrón que Clientes, en las dos pestañas que quedaban: **Lista de espera** (`renderListaEspera`: `group.name`, `item.telefono` y `item.nombre` de `lista_espera`, escribible por `anon` desde el sitio, ahora por `escapeHtml()`; el `href` de WhatsApp usa el teléfono limpiado a solo dígitos, no `escapeHtml()`, mismo patrón que `renderClientes`) y **Opiniones** (`loadOpiniones`: `o.nombre`, `o.perfume_slug` y `o.texto` — el `title`, que antes sólo reemplazaba `"`, ahora usa `escapeHtml()` por consistencia; no era explotable como estaba, pero quedaba inconsistente con el resto del archivo).
+>
+> **Hallazgo aparte durante el análisis, más grave que los anteriores:** el botón "Avisar a todos" armaba `onclick="avisarTodos('` + `slug` + `')"` con el `slug` de `lista_espera` (mismo dato alcanzable por `anon`) sin escapar dentro de un string JS de comillas simples. `escapeHtml()` no escapa comillas simples, así que **no alcanzaba con envolverlo** — bastaba un `slug` con un `'` para romper el string y ejecutar JS arbitrario en la sesión admin, y con `" onmouseover="..."` ni siquiera hacía falta click, alcanzaba con pasar el mouse por el botón. Verificado con 7 payloads antes y después del fix. Solución: `escapeHtml(JSON.stringify(slug))` — `JSON.stringify` arma el literal JS con sus propias comillas (sin necesitar escapar `'`), y `escapeHtml()` neutraliza esas comillas para el atributo HTML.
+>
+> `escapeHtml(` pasa de 20 a 28 ocurrencias (25 líneas, verificado con grep). Verificado también: `node --check` sobre el `<script>` inline sigue pasando (no se rompió ninguna comilla), y el `href` de WhatsApp de Lista de espera queda con solo dígitos ante teléfonos con comillas/espacios/intentos de inyección. `item.id` (Lista de espera) y `o.id` (Opiniones) quedaron sin escapar en sus `onclick` a propósito — son `bigint`/`uuid` generados por la DB, no texto libre de usuario, mismo criterio que el resto del panel. Detalle completo en `docs/HISTORIA.md` § "✅ Resueltos" (movidos 20-sep-2026, más tarde).
+>
+> **De yapa, no es XSS:** `[WA-LINK-549-DUPLICADO]` resuelto en el mismo push (`ce52def`) — `renderClientes` armaba el link de WhatsApp con `'https://wa.me/549' + tel` cuando `tel` ya trae el `549` guardado, generando un número de 16 dígitos que no abría WhatsApp. Ahora son 13. No afecta a `renderListaEspera`, que nunca tuvo el prefijo de más.
 
 **Dónde está:**
 - `admin.html` (~L3900) · la tab "Clientes" (`renderClients`) inyecta `c.nombre` directo vía `innerHTML` sin escapar:
