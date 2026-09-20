@@ -4563,9 +4563,9 @@
         var fecha = new Date(o.created_at).toLocaleDateString('es-AR');
         var textoCorto = o.texto && o.texto.length > 60 ? o.texto.substring(0, 60) + '...' : (o.texto || '');
         html += '<tr>'
-          + '<td>' + (o.nombre || 'Anónimo') + '</td>'
-          + '<td>' + (o.perfume_slug || '-') + '</td>'
-          + '<td style="max-width:200px;font-size:.7rem;color:var(--gris-claro);" title="' + (o.texto || '').replace(/"/g, '&quot;') + '">' + textoCorto + '</td>'
+          + '<td>' + escapeHtml(o.nombre || 'Anónimo') + '</td>'
+          + '<td>' + escapeHtml(o.perfume_slug || '-') + '</td>'
+          + '<td style="max-width:200px;font-size:.7rem;color:var(--gris-claro);" title="' + escapeHtml(o.texto || '') + '">' + escapeHtml(textoCorto) + '</td>'
           + '<td>' + fecha + '</td>'
           + '<td><button class="action-btn btn-hide" onclick="deleteOpinion(\'' + o.id + '\', this)">Eliminar</button></td>'
         + '</tr>';
@@ -8902,23 +8902,24 @@
 
         html += '<div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;' + (isHistory ? 'opacity:.75;' : '') + '">';
         html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.3rem;">';
-        html += '<div><p style="font-size:.8rem;font-weight:700;color:#fff;">' + group.name + '</p>' + statusBadge + '</div>';
+        html += '<div><p style="font-size:.8rem;font-weight:700;color:#fff;">' + escapeHtml(group.name) + '</p>' + statusBadge + '</div>';
         html += '<span style="font-size:.65rem;color:var(--amarillo);font-weight:600;">' + group.items.length + (isHistory ? ' avisad' + (group.items.length !== 1 ? 'os' : 'o') : ' esperando') + '</span>';
         html += '</div>';
 
         group.items.forEach(function(item) {
           var fecha = new Date(item.created_at);
           var fechaStr = fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
-          var subLine = '+' + item.telefono + ' \u00b7 ' + fechaStr;
+          var subLine = '+' + escapeHtml(item.telefono || '') + ' \u00b7 ' + fechaStr;
           if (isHistory && item.notified_at) {
             var fn = new Date(item.notified_at);
             subLine += ' \u00b7 Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
           }
 
-          var waLink = 'https://wa.me/' + item.telefono + '?text=' + msgEnc;
+          var tel = (item.telefono || '').replace(/[^0-9]/g, '');
+          var waLink = 'https://wa.me/' + tel + '?text=' + msgEnc;
           html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-top:1px solid var(--borde);gap:.5rem;">';
           html += '<div style="min-width:0;">';
-          html += '<p style="font-size:.72rem;color:#fff;font-weight:500;">' + (item.nombre || 'Sin nombre') + '</p>';
+          html += '<p style="font-size:.72rem;color:#fff;font-weight:500;">' + escapeHtml(item.nombre || 'Sin nombre') + '</p>';
           html += '<p style="font-size:.62rem;color:var(--gris);">' + subLine + '</p>';
           html += '</div>';
           html += '<div style="display:flex;gap:.3rem;flex-shrink:0;">';
@@ -8935,7 +8936,7 @@
 
         // Bot\u00f3n "Avisar a todos" solo en pendientes y si hay >1
         if (!isHistory && group.items.length > 1) {
-          html += '<button class="action-btn btn-price" style="width:100%;margin-top:.6rem;font-size:.65rem;padding:.45rem;" onclick="avisarTodos(\'' + slug + '\')">&#128227; Avisar a todos (' + group.items.length + ')</button>';
+          html += '<button class="action-btn btn-price" style="width:100%;margin-top:.6rem;font-size:.65rem;padding:.45rem;" onclick="avisarTodos(' + escapeHtml(JSON.stringify(slug)) + ')">&#128227; Avisar a todos (' + group.items.length + ')</button>';
         }
 
         html += '</div>';
