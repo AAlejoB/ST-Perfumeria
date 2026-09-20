@@ -4630,7 +4630,7 @@
 
         // WhatsApp link (AD)
         var tel = (c.telefono || '').replace(/[^0-9]/g, '');
-        var waLink = 'https://wa.me/549' + tel;
+        var waLink = 'https://wa.me/' + tel;
         var waBtn = '<a href="' + waLink + '" target="_blank" class="client-btn" style="background:rgba(37,211,102,.15);color:#25D366;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;" title="Enviar WhatsApp">💬 WhatsApp</a>';
 
         var notaHTML = c.nota ? '<div style="margin-top:.4rem;font-size:.65rem;color:var(--gris-claro);font-style:italic;line-height:1.4;">📝 ' + escapeHtml(c.nota) + '</div>' : '';
