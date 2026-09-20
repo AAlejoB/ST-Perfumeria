@@ -249,9 +249,13 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S10 · Stored XSS · nombre de cliente sin escapar en el panel admin**
+### **S10 · Stored XSS · nombre de cliente sin escapar en el panel admin · ✅ RESUELTO 20-sep-2026 (queda S10-bis)**
 
 **Severidad:** 🟡 ALTA · hallado 27-jun-2026 durante el test de `[FORGOT-PASS-A]`.
+
+> ✅ **ESTADO: RESUELTO en la pestaña Clientes** · `f457b89` (`[S10-XSS-CLIENTES]`, rama `fix-xss-admin-panel` mergeada fast-forward a `main`) + SW **v1.1.103** (`c8f8b51`) · 20-sep-2026. En `renderClients` (cards y tabla) pasan por `escapeHtml()`: `nombre`, `telefono`, `telefono2`, `nota`, la inicial del avatar y el `data-name` del buscador; `openPuntosModal(c.id)` con comillas (uuid). `escapeHtml(` pasa de 10 a 20 ocurrencias en `admin.html`. Verificado en producción: `admin.html` servido con los 20, SW v1.1.103.
+>
+> ⚠️ **S10-bis · `[S10-BIS-XSS-ESPERA-OPINIONES]` · PENDIENTE 🟠** — al cerrar S10 se relevaron los demás `innerHTML` del panel con texto que escribe un cliente, y **el mismo patrón sigue en dos pestañas**: **Lista de espera** (`renderListaEspera`, ~L8921: `item.nombre` de `lista_espera`, que inserta `anon` desde el sitio) y **Opiniones** (~L4564-4568: `o.nombre` y `o.texto` de `opiniones`, también `anon`; `texto` va además en un atributo `title` con sólo `"` reemplazada). Mismo fix (`escapeHtml()`), mismo riesgo (se ejecuta en la tablet de las chicas al abrir la pestaña). `log.nombre` en el historial (~L5627) es nombre de perfume cargado por admin: menor.
 
 **Dónde está:**
 - `admin.html` (~L3900) · la tab "Clientes" (`renderClients`) inyecta `c.nombre` directo vía `innerHTML` sin escapar:
