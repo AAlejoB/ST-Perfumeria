@@ -4612,7 +4612,7 @@
       var html = '';
       list.forEach(function(c) {
         var fecha = new Date(c.created_at).toLocaleDateString('es-AR');
-        var initials = (c.nombre || '?').charAt(0).toUpperCase();
+        var initials = escapeHtml((c.nombre || '?').charAt(0).toUpperCase());
         var isBlocked = c.bloqueado === true;
         var blockedBadge = isBlocked ? ' <span class="client-blocked-badge">Bloqueado</span>' : '';
         var blockBtnClass = isBlocked ? 'client-btn client-btn-blocked' : 'client-btn client-btn-block';
@@ -4633,16 +4633,16 @@
         var waLink = 'https://wa.me/549' + tel;
         var waBtn = '<a href="' + waLink + '" target="_blank" class="client-btn" style="background:rgba(37,211,102,.15);color:#25D366;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;" title="Enviar WhatsApp">💬 WhatsApp</a>';
 
-        var notaHTML = c.nota ? '<div style="margin-top:.4rem;font-size:.65rem;color:var(--gris-claro);font-style:italic;line-height:1.4;">📝 ' + c.nota + '</div>' : '';
+        var notaHTML = c.nota ? '<div style="margin-top:.4rem;font-size:.65rem;color:var(--gris-claro);font-style:italic;line-height:1.4;">📝 ' + escapeHtml(c.nota) + '</div>' : '';
 
-        html += '<div class="client-card" data-name="' + (c.nombre || '').toLowerCase() + '" data-tel="' + (c.telefono || '') + '" data-nota="' + (c.nota || '').toLowerCase() + '">'
+        html += '<div class="client-card" data-name="' + escapeHtml((c.nombre || '').toLowerCase()) + '" data-tel="' + escapeHtml(c.telefono || '') + '" data-nota="' + escapeHtml((c.nota || '').toLowerCase()) + '">'
           + '<div class="client-top">'
-            + '<div class="client-name"><span class="client-name-icon">' + initials + '</span> ' + c.nombre + blockedBadge + '</div>'
+            + '<div class="client-name"><span class="client-name-icon">' + initials + '</span> ' + escapeHtml(c.nombre) + blockedBadge + '</div>'
             + '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">' + comproTag + puntosHTML + '<span class="client-date">' + fecha + '</span></div>'
           + '</div>'
           + '<div class="client-details">'
-            + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + c.telefono + '</span></span>'
-            + (c.telefono2 ? '<span class="client-detail"><span class="client-detail-icon">📞</span> <span class="client-detail-value">' + c.telefono2 + '</span></span>' : '')
+            + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + escapeHtml(c.telefono) + '</span></span>'
+            + (c.telefono2 ? '<span class="client-detail"><span class="client-detail-icon">📞</span> <span class="client-detail-value">' + escapeHtml(c.telefono2) + '</span></span>' : '')
           + '</div>'
           + notaHTML
           + '<div class="client-actions">'
@@ -9882,11 +9882,11 @@
         var pts = Number(c.puntos||0).toFixed(2).replace(/\.?0+$/,'');
         html += '<tr>'
           + '<td style="color:var(--gris);">'+ (i+1) +'</td>'
-          + '<td style="font-weight:600;">'+ (c.nombre||'—') +'</td>'
-          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ (c.telefono||'—') +'</td>'
+          + '<td style="font-weight:600;">'+ escapeHtml(c.nombre||'—') +'</td>'
+          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ escapeHtml(c.telefono||'—') +'</td>'
           + '<td style="text-align:right;font-weight:700;color:#E8B800;">'+ pts +'</td>'
           + '<td>'
-            + '<button class="action-btn" onclick="openPuntosModal('+ c.id +')" style="padding:.3rem .7rem;font-size:.72rem;background:#E8B800;color:#121214;font-weight:700;">Ajustar</button>'
+            + '<button class="action-btn" onclick="openPuntosModal(\''+ c.id +'\')" style="padding:.3rem .7rem;font-size:.72rem;background:#E8B800;color:#121214;font-weight:700;">Ajustar</button>'
           + '</td>'
         + '</tr>';
       }
