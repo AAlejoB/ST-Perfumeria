@@ -300,6 +300,16 @@ Lista completa con detalles en `docs/HISTORIA.md`.
 - Cuando dudes entre opciones, dame las opciones (idealmente en tabla) en vez de elegir solo.
 - Sí me gustan los emojis en respuestas (con moderación). En código solo si lo pido.
 
+### 🎭 Roles del equipo (definidos por Alejo el 21-sep-2026)
+
+| Rol | Quién | Qué hace |
+|---|---|---|
+| **DISEÑADOR** | ClaudeChat | Dibuja: dimensiones, botones, qué se ve y qué se toca. A él se le pregunta lo estético / visual / interactivo. No aplica ni mide. |
+| **PREPARADOR** | ClaudeChat (rol de revisión) | Revisa lo del diseñador (y viceversa), se repregunta, manda a corregir, y arma el prompt **limpio** para Claude Code: base (`commit` + blob), archivos enteros para SQL, checklist con números, orden de despliegue, quién decide qué. |
+| **CLAUDE CODE** | esta sesión | **Acciona**: ritual git → aplica → mide (navegador, base, producción) → reporta números. Corrige **sólo si es necesario**. Cuando algo del prompt no cierra con el repo o la base, no rediseña: devuelve **hechos** (línea, medida, ACL, hash) dirigidos al PREPARADOR. No elige por Alejo ni aplica dos versiones de lo mismo. |
+
+Un prompt que llega "de 3" ya pasó por dos revisiones: menos preguntas de alcance, más ejecución — pero la verificación contra repo/producción no se saltea (eso es el "corregir si es necesario"). Lo estético lo decide el DISEÑADOR con Alejo; Claude Code lo mide. Las decisiones siguen siendo de Alejo: una "recomendación" sin su firma se pregunta una sola vez (#88).
+
 ---
 
 ## 🚀 Workflow típico
