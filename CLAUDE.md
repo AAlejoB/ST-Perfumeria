@@ -318,6 +318,8 @@ Un prompt que llega "de 3" ya pasó por dos revisiones: menos preguntas de alcan
 
 Alejo tiene tiempo justo: el objetivo es que los tres trabajen a la vez y él sólo copie y pegue.
 
+**Skills globales** (21-sep, en `C:UsersAlejo.claudeskills`, valen en todos los proyectos): `/idea` (ficha en `docs/IDEAS.md`, sin tocar código), `/arranque` (tablero de quién espera qué), `/enrutar` (los bloques de arriba, sistemático), `/bases` (commit + blob + EOL + SW real para el PREPARADOR). Detalle en `docs/SLASH_COMMANDS.md` § Skills globales.
+
 ---
 
 ## 🚀 Workflow típico
