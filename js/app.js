@@ -2997,19 +2997,19 @@
 
     async function loadPerfumeViews() {
       try {
-        var { data, error } = await sb.from('perfume_clicks').select('slug');
+        var { data, error } = await sb.rpc('perfume_clicks_resumen');
         if (error) {
-          console.warn('[views] Error leyendo perfume_clicks:', error.message);
+          console.warn('[views] Error leyendo perfume_clicks_resumen:', error.message);
           return;
         }
         if (data) {
-          data.forEach(function(c) { perfumeViews[c.slug] = (perfumeViews[c.slug] || 0) + 1; });
+          data.forEach(function(r) { perfumeViews[r.slug] = r.clicks; });
           if (data.length === 0) {
-            console.warn('[views] La tabla perfume_clicks está vacía. El ordenar por visitados usará tiebreaker alfabético.');
+            console.warn('[views] perfume_clicks_resumen no devolvió datos. El ordenar por visitados usará tiebreaker alfabético.');
           }
         }
       } catch(e) {
-        console.warn('[views] Excepción leyendo perfume_clicks:', e);
+        console.warn('[views] Excepción leyendo perfume_clicks_resumen:', e);
       }
     }
 
