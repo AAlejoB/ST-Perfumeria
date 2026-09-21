@@ -53,6 +53,9 @@
       /* Área táctil. El panel se usa con el dedo en la Galaxy Tab A9:
          44px es el mínimo para acertarle sin pelearse con la pantalla. */
       --tap-min: 44px;
+      /* El control más tocado del panel (la badge de stock: 1.860 cambios de stock
+         + 501 de depósito en jul-sep) va más grande que el mínimo. */
+      --tap-comfort: 48px;
 
       /* Transiciones */
       --t-fast: .15s;
@@ -83,6 +86,20 @@
     .modal-box .btn-stock,
     .modal-btn {
       min-height: var(--tap-min);
+    }
+    /* [BADGE-48] La badge de stock llena la celda: 48px de alto, ancho completo.
+       Es lo que más se toca del panel (1.860 stock_update + 501 deposito_update
+       en jul-sep) y medía 20,6px con el onclick en el span, no en la celda.
+       Sólo dentro de una celda .td-stock: la vista previa "Se mostrará como" del
+       modal de stock (updateStockPreview) sigue siendo la badge chica.
+       td.td-stock con .admin-table adelante: (0,2,1) le gana al padding de
+       .admin-table td y al del @media 600px, que son (0,1,1). */
+    .admin-table td.td-stock { padding: 0; }
+    .td-stock .badge-stock {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: var(--tap-comfort);
+      border-radius: 0;
+      box-sizing: border-box;
     }
     body {
       font-family: 'Inter', sans-serif; background: var(--negro); color: #fff;
