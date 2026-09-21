@@ -169,11 +169,11 @@ Desde `sql/fase4a_telegram_avisos.sql`: `_aviso_tg(msg)` es un wrapper `SECURITY
 
 `send_telegram(text)` y `admin_actions_cleanup()`: desde `sql/fase4b_telegram_cerrar.sql` **sin EXECUTE para `public` ni `anon`**, `grant` explícito a `authenticated, service_role`, `search_path` fijo. El panel (`authenticated`) sigue llamando `send_telegram` por `notifyTelegram`. La entrega real se verifica en **`net._http_response`** (`status_code`, `created`; no seleccionar la URL: lleva el token).
 
-### `perfume_clicks_resumen()` · RPC agregada para lectura pública (`[CLICKS-RESUMEN]`, 21-sep-2026)
+### `perfume_clicks_resumen()` · RPC agregada para lectura pública (`[CLICKS-RESUMEN]`, 20-sep-2026)
 
 `perfume_clicks` tiene RLS con `SELECT` sólo para `authenticated` (para que `anon` no pueda bajar la tabla cruda). El problema: el catálogo público (`js/app.js`) necesita el conteo de clicks por perfume para ordenar "más visitados", y como visitante anónimo leía 0 filas por la RLS. `perfume_clicks_resumen()` resuelve esto agrupando por slug en Postgres (`GROUP BY slug`, ~264 filas en vez de ~230k) y devolviendo `TABLE(slug text, clicks integer)` — nunca expone las filas crudas (fecha, IP si la tuviera, etc.), sólo el total agregado por perfume.
 
-Es `SECURITY DEFINER` con `EXECUTE` **a propósito** para `anon`, precisamente para bypassear la RLS de `SELECT` de la tabla sin abrirle la tabla entera. Verificado en producción (21-sep-2026):
+Es `SECURITY DEFINER` con `EXECUTE` **a propósito** para `anon`, precisamente para bypassear la RLS de `SELECT` de la tabla sin abrirle la tabla entera. Verificado en producción (20-sep-2026):
 
 | Rol | `EXECUTE` |
 |---|---|

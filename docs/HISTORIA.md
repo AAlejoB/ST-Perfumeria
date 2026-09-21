@@ -2079,7 +2079,62 @@ Sin cambios en la lista de `CLAUDE.md` § Pendientes salvo los dos cerrados. Lo 
 
 ---
 
-**Última actualización:** **Septiembre 19, 2026** — **S14 `[TELEGRAM-ANON-ABIERTO]` RESUELTO y verificado** (`b0cde5e` + `5af3d85` · SW **v1.1.102**): avisos del sitio desde el servidor, `anon` sin EXECUTE sobre `send_telegram` ni `admin_actions_cleanup` (que borraba auditoría), POST anónimo → 401, 5 avisos entregados con `200`. `[SW-PRECACHE-PERFUMES]` cerrado. **Hallazgo:** el token rotado el 17-sep estaba mal pegado (hora del mensaje de BotFather arrastrada) → **404 en todo, ~31 h sin ningún Telegram** (resumen diario incluido); corregido con un `DO` con guard de formato, y **rotado otra vez** porque salió en una captura. Regla ampliada: verificar credenciales por uso (`pg_net` 200), no por md5; las capturas también cuentan. Detalle en § "Sesión 19-sep-2026". **Próxima revisión cuando:** 🔴 `[VERCEL-ENV-VARS]` · 🟠 `[SECURITY-AUDIT-S1]`+S10 · `[S13-ESCRITURAS-ANON]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · `[RESET-EXPIRES]` · `[S3-VAULT]` · `[ROTAR-DB-PASS]` · `[SUPABASE-AUTH]` · `[ORDEN-COMPRA-SUGERIDA]` · 🟢 `[CLIENTES-PRUEBA]` · `[LOGIN-INTENTOS-CLEANUP]` · `[RESET-TEMP-PASSWORD-MUERTA]` · `[DC-HEADER-600]` · `[DECANT-TOPE-CONTADOR]` · `[DEPOSITO-HISTORIAL-UNIFICADO]` · `[CUENTAS-POR-EMPLEADA]` · `[SECURITY-SCAN-CMD-VALORES]` · `[AVISOS-PRIORIDAD]` · `[PERMISOS-TABS-JEFE]` · `[PUNTOS-DECANTS]` · `[JUEGOS-ST-WIREFRAME]` · `[UPLOADER-WEBP-AUTO]` · `[TIKTOK-SLIDE]`. **Orden de trabajo:** S1 + env vars (Alejo, a mano) → `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`.
+### Sesión 20-sep-2026 · **`[S10-XSS-CLIENTES]` → `[S10-BIS-XSS-ESPERA-OPINIONES]` → `[WA-LINK-549-DUPLICADO]`** (cierre retroactivo de proceso — sin `/handoff` propio en su momento)
+
+Segunda parte de la "tanda de seguridad chica". Esta tanda **ya quedó completamente documentada el mismo día** en `docs/SECURITY.md` § S10 y en § "✅ Resueltos" arriba (ver esa sección para el detalle completo — no se repite acá) y en el pie de `CLAUDE.md` de esa hora, pero nunca tuvo su propio commit `docs: cierre sesión`, así que el rango de commits de este `/handoff` la incluye. Se deja constancia acá para que la próxima sesión no tenga que reconstruirlo desde `git log`.
+
+**Resumen de una línea por keyword** (detalle completo en § "✅ Resueltos"):
+
+| Keyword | Qué hace | Commits | SW |
+|---|---|---|---|
+| `[S10-XSS-CLIENTES]` | Stored XSS en la tab Clientes (nombre/teléfono/nota sin escapar antes de `innerHTML`) → `escapeHtml()` en cards y tabla | `f457b89` | v1.1.103 |
+| `[S10-BIS-XSS-ESPERA-OPINIONES]` | Mismo patrón en Lista de espera y Opiniones · hallazgo más grave que S10: el `onclick="avisarTodos(slug)"` rompía con un `'` en el slug (dato de `anon`, sin login) → fix `escapeHtml(JSON.stringify(slug))` | `033ab70` + `aae744e` | v1.1.104 |
+| `[WA-LINK-549-DUPLICADO]` | `renderClientes` armaba el link de WhatsApp con `549` duplicado (el teléfono ya lo trae guardado) → 16 dígitos que no abrían WhatsApp, ahora 13 | `ce52def` | (sin bump propio, viajó con el de arriba) |
+
+### Sesión 20-sep-2026 (más tarde) · **`[CLICKS-RESUMEN]`** — el catálogo público por fin cuenta "más visitados" de verdad
+
+Sesión de performance-con-lado-de-seguridad: `loadPerfumeViews()` (`js/app.js`, catálogo público) y `loadStats()` (`admin.html`, panel) leían la tabla `perfume_clicks` completa (230.901 filas) para contar visitas por perfume. El problema no era sólo el volumen: la RLS de `SELECT` de esa tabla exige `authenticated`, así que un **visitante anónimo leía 0 filas** y el orden "más visitados" caía al alfabético en silencio — el propio `console.warn` decía "la tabla está vacía", que era falso (RLS se la escondía). Ya existía en producción la RPC `perfume_clicks_resumen()` (`SECURITY DEFINER`, agrupa por slug) sin usar en el frontend.
+
+#### Qué se hizo
+
+- **Diagnóstico verificado, no asumido:** antes de tocar código, Alejo corrió en producción `has_function_privilege('anon'/'authenticated'/'public', oid, 'EXECUTE')` sobre `perfume_clicks_resumen()` → `true`/`true`/`false`, confirmó que es `SECURITY DEFINER`, y que `SUM(clicks)` del resumen (264 filas) es **idéntico** a `COUNT(*)` de la tabla cruda (230.901 = 230.901) antes de aprobar el approach.
+- **`loadPerfumeViews()`** (`js/app.js` L2996-3014): pasa de `sb.from('perfume_clicks').select('slug')` (contando en JS) a `sb.rpc('perfume_clicks_resumen')` (ya agregado); el loop pasa de incrementar a asignar directo (`perfumeViews[r.slug] = r.clicks`). Los 3 `console.warn` dejan de mencionar "la tabla está vacía" (afirmación que el frontend no puede verificar) y pasan a "la RPC no devolvió datos".
+- **`loadStats()`** (`admin.html` L4383-4462): reemplaza **dos** queries (`count:'exact',head:true` sobre toda la tabla + `select('slug').limit(50000)` para el TOP 10) por **una sola** llamada a la RPC; `totalClicks` sale de sumar el resumen en vez de un round-trip aparte — de yapa corrige una inconsistencia latente (antes el count no tenía límite pero el select del TOP 10 sí lo tenía en 50k, podían divergir si la tabla crecía más).
+- **Verificación sin instalar nada nuevo** (decisión de Alejo, ver abajo): harness de Node que extrae el código **real** de ambos archivos con `fs.readFileSync` (nunca reescrito de memoria) y lo corre en una `vm` con `sb` stubbeado, 3 escenarios (datos / error / lista vacía) — 21 asserts, todos OK; `node --check` sobre el `<script>` inline completo de `admin.html` (347.884 caracteres); grep confirmando que en `js/app.js` sólo queda **1** referencia cruda a la tabla (el insert de `trackClick`, L44, fuera de alcance) y en `admin.html` **0**.
+- **Rama `fix-clicks-resumen`** → 2 commits (`ff078d2` fix + `6b44d80` bump SW v1.1.104→v1.1.105) → merge fast-forward a `main` → deploy verificado contra producción con `curl https://www.stperfumeria.com/sw.js` → `v1.1.105` confirmado en el primer intento.
+- **Documentado** en `docs/DATABASE.md` (subsección nueva sobre `perfume_clicks_resumen()`) y `docs/SECURITY.md` (fila en "✅ Lo que SÍ está OK") con los valores reales verificados — commit `7dbfaec`.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** no instalar Playwright/Puppeteer/jsdom para la verificación en navegador ("este repo no los tiene y no quiero sumar una dependencia pesada por un test") — en su lugar, un test de Node sobre el código real extraído, y él mismo mira el catálogo en el navegador con `http-server -c-1` (comando se le pasó, no lo corrí yo).
+- **Decidió Alejo:** sacar el `count:'exact',head:true` separado y sumar el resumen para `totalClicks`, después de que yo propusiera la alternativa con su justificación — la aprobó recién **después** de verificar personalmente en producción que `SUM(clicks) = COUNT(*)`.
+- **Me equivoqué yo, corregido por Alejo (dos veces):** (1) cité `docs/SECURITY.md` L368 (`send_telegram` con `EXECUTE` para `anon`) como plantilla de cómo documentar RPCs — esa línea describe el problema **ya resuelto** por S14, quedó en presente debajo de un header "✅ RESUELTO" (la "trampa" del doc). Alejo lo verificó en producción (`anon` → `false`) antes de dejarme documentar `perfume_clicks_resumen()` con datos propios, no con esa plantilla. (2) Puse "21-sep-2026" en los dos docs nuevos — la fecha real del día es 20-sep-2026 (confirmado con `date`), corregido antes de este cierre.
+- **Bugs propios del script de verificación** (no del código de producción, corregidos sobre la marcha): el índice de corte del bloque de `admin.html` cortaba en el `;` interno del `.reduce(...)` en vez de en `}, 0);`, y faltaba un `await` sobre el resultado de una IIFE async al evaluarla en la `vm`.
+- **Pendiente aparte, no arreglado ahora (pedido explícito de Alejo):** `docs/SECURITY.md` tiene descripciones del problema *original* en presente debajo de headers "✅ RESUELTO" (el caso de S14/`send_telegram` en L368 es el que salió esta sesión, pero puede haber más) — hay que pasarlas a pasado o marcarlas como históricas para que no se citen como estado actual.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[CLICKS-RESUMEN]` | Catálogo público y panel de stats leen `perfume_clicks_resumen()` (RPC agregada, `SECURITY DEFINER`) en vez de la tabla cruda de 230k+ filas; el visitante anónimo por fin ordena por "más visitados" de verdad · `ff078d2` + `6b44d80` + `7dbfaec` · SW v1.1.105 |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]` (nuevo) | `docs/SECURITY.md` tiene descripciones del problema original en presente debajo de headers "✅ RESUELTO" (ej. S14 L368) — pasarlas a pasado o marcarlas como históricas para que una sesión futura no las cite como estado vigente |
+
+#### 💬 Mensajes meta
+
+- Alejo verifica con sus propias queries SQL en producción antes de aprobar cualquier afirmación mía sobre grants/RLS/agregados — no acepta "debería funcionar" sin el número real. Lo hizo dos veces en esta sesión (el grant de `perfume_clicks_resumen`, y la igualdad `SUM=COUNT`) antes de dejarme avanzar.
+- Cuando hay dudas de qué hace el código en producción, prefiere que lo verifique con el código **real extraído del archivo** (no reescrito de memoria) — lo pidió explícito para el harness de Node de esta sesión. Ver `memory/preferencias_alejo.md`.
+- Corrige con precisión quirúrgica y sin vueltas cuando algo está mal citado (la trampa de la L368) — la corrección viene con la verificación ya hecha (el resultado de la query), no como una sospecha a confirmar.
+
+---
+
+**Última actualización:** **Septiembre 20, 2026 (noche)** — **`[CLICKS-RESUMEN]` RESUELTO** (rama `fix-clicks-resumen` → `main` fast-forward `6b44d80`, docs `7dbfaec`, SW **v1.1.104 → v1.1.105**): `loadPerfumeViews()` (catálogo público) y `loadStats()` (panel) dejaron de leer `perfume_clicks` cruda (230.901 filas, RLS de `SELECT` exige `authenticated` → el anónimo leía 0 filas y "más visitados" caía al alfabético en silencio) y pasaron a `sb.rpc('perfume_clicks_resumen')` (`SECURITY DEFINER`, agrupa por slug, `EXECUTE` a propósito para `anon` — verificado `anon=true`/`authenticated=true`/`public=false`). `admin.html` deriva `totalClicks` sumando el resumen en vez de un `count` aparte (verificado `SUM=COUNT=230.901`). Documentado en `DATABASE.md`/`SECURITY.md` con los valores reales. **De yapa**, cierre de proceso retroactivo de la tanda `[S10-BIS-XSS-ESPERA-OPINIONES]` + `[WA-LINK-549-DUPLICADO]` (ya resuelta esa misma tarde, nunca tuvo su `docs: cierre sesión`). Detalle en § "Sesión 20-sep-2026 (más tarde) · `[CLICKS-RESUMEN]`" y § "Sesión 20-sep-2026 · S10-XSS→S10-bis→WA-LINK". **Pendiente nuevo:** `[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]` 🟢 (descripciones del problema original en presente debajo de headers "✅ RESUELTO" en `SECURITY.md`, ej. S14 L368 — pasarlas a pasado). **Próxima revisión cuando:** 🔴 `[VERCEL-ENV-VARS]` · 🟠 `[SECURITY-AUDIT-S1]` · `[S13-ESCRITURAS-ANON]` · 🟡 `[BACKUP-FOTOS-LOCAL]` · `[RESET-EXPIRES]` · `[S3-VAULT]` · `[ROTAR-DB-PASS]` · `[SUPABASE-AUTH]` · `[ORDEN-COMPRA-SUGERIDA]` · 🟢 `[CLIENTES-PRUEBA]` · `[LOGIN-INTENTOS-CLEANUP]` · `[RESET-TEMP-PASSWORD-MUERTA]` · `[DC-HEADER-600]` · `[DECANT-TOPE-CONTADOR]` · `[DEPOSITO-HISTORIAL-UNIFICADO]` · `[CUENTAS-POR-EMPLEADA]` · `[SECURITY-SCAN-CMD-VALORES]` · `[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]` · `[AVISOS-PRIORIDAD]` · `[PERMISOS-TABS-JEFE]` · `[PUNTOS-DECANTS]` · `[JUEGOS-ST-WIREFRAME]` · `[UPLOADER-WEBP-AUTO]` · `[TIKTOK-SLIDE]`. **Orden de trabajo:** S1 + env vars (Alejo, a mano) → `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`.
+
+**Estado del repo al cierre (20-sep, noche):** `origin/main` = `7dbfaec` (+ este commit de docs) · árbol limpio salvo untracked pre-existentes sin relación (`.codegraph/`, `Claude outputs/`, reportes PDF/PNG, `add_precio_decant.sql`, `sql/forgot-pass-a-create-table.sql` — ninguno tocado ni commiteado) · SW **v1.1.105** en producción (verificado con `curl`) · `perfume_clicks_resumen()` con `EXECUTE` para `anon`/`authenticated`, no para `public` · rama `fix-clicks-resumen` mergeada y puede borrarse.
 
 **Estado del repo al cierre (19-sep):** `origin/main` = `154e51c` (+ este commit de docs) · rama de worktree `claude/st-perfumeria-tablet-responsive-2974b8` = main (worktree `serene-jennings-e9d305`) · árbol limpio · 0 `.patch` sueltos · SW **v1.1.102** en producción · `send_telegram` y `admin_actions_cleanup` sin EXECUTE para anon · token de Telegram vigente (rotado 19-sep 04:07, verificado por entrega) · 99 clientes (97 reales + 2 de prueba), un real nuevo desde ayer ya con bcrypt · `git worktree prune` sigue pendiente desde Windows.
 

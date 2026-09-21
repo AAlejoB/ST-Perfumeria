@@ -446,7 +446,7 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 | HTTPS en producción | ✓ Vercel auto |
 | Storage CDN cache | ✓ 1 semana (`[CACHE-CONTROL-1W]`) |
 | Service Worker · no cachea Supabase API | ✓ Configurado (`network-only` para `*.supabase.co`) |
-| `perfume_clicks_resumen()` con `EXECUTE` para `anon` (`[CLICKS-RESUMEN]`, 21-sep-2026) | ✓ A propósito — `SECURITY DEFINER`, devuelve sólo `(slug, clicks)` agregado por `GROUP BY`, nunca las filas crudas de `perfume_clicks`. Existe porque la RLS de `SELECT` de esa tabla exige `authenticated` y el catálogo público necesita el conteo agregado para ordenar "más visitados". Verificado en producción: `anon=true`, `authenticated=true`, `public=false`. Detalle en `docs/DATABASE.md`. |
+| `perfume_clicks_resumen()` con `EXECUTE` para `anon` (`[CLICKS-RESUMEN]`, 20-sep-2026) | ✓ A propósito — `SECURITY DEFINER`, devuelve sólo `(slug, clicks)` agregado por `GROUP BY`, nunca las filas crudas de `perfume_clicks`. Existe porque la RLS de `SELECT` de esa tabla exige `authenticated` y el catálogo público necesita el conteo agregado para ordenar "más visitados". Verificado en producción: `anon=true`, `authenticated=true`, `public=false`. Detalle en `docs/DATABASE.md`. |
 
 ---
 
