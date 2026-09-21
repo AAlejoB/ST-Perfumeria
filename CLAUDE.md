@@ -310,6 +310,14 @@ Lista completa con detalles en `docs/HISTORIA.md`.
 
 Un prompt que llega "de 3" ya pasó por dos revisiones: menos preguntas de alcance, más ejecución — pero la verificación contra repo/producción no se saltea (eso es el "corregir si es necesario"). Lo estético lo decide el DISEÑADOR con Alejo; Claude Code lo mide. Las decisiones siguen siendo de Alejo: una "recomendación" sin su firma se pregunta una sola vez (#88).
 
+**Enrutar, no enterrar.** Cada vez que Claude Code se cruza con algo que no es suyo, lo saca en un bloque con destinatario y **texto listo para pegar** — nunca como una frase perdida en un párrafo:
+
+> **📐 Para el DISEÑADOR:** lo estético / visual / interactivo (medidas, radios, colores, qué se ve y qué se toca), con el número que lo motiva.
+> **🧾 Para el PREPARADOR:** lo que cambia un prompt futuro (bases `commit` + blob, hechos del repo o de la base que contradicen el diseño, colisiones con lo que ya está en `main`, prompts que quedaron superados).
+> **🧑 Para Alejo (decidís vos):** la decisión, en una línea, con las opciones si hay más de una.
+
+Alejo tiene tiempo justo: el objetivo es que los tres trabajen a la vez y él sólo copie y pegue.
+
 ---
 
 ## 🚀 Workflow típico
