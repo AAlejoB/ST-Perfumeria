@@ -1534,6 +1534,16 @@
        vez (〃): el par depósito+stock queda pegado sin reordenar nada y sin
        afirmar que hubo una transferencia (eso es [DEPOSITO-TRANSFERENCIA-EVENTO]).
        Todo el color sale de tokens: nada inline, o el tema claro no lo alcanza. */
+    .log-resumen {
+      background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-lg);
+      padding: .7rem .9rem; margin-bottom: .8rem;
+    }
+    .log-resumen-title { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gris); margin-bottom: .35rem; }
+    .log-resumen-linea { font-size: .8rem; font-weight: 700; }
+    .log-resumen-linea + .log-resumen-linea { margin-top: .25rem; font-size: .72rem; font-weight: 600; color: var(--stat-tinta-perfumes); }
+    .log-salieron { color: var(--stat-tinta-out); }
+    .log-entraron { color: var(--stat-tinta-inv); }
+    .log-neto { color: var(--gris); font-weight: 600; }
     .log-controles { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-bottom: .6rem; }
     .log-buscar { flex: 1 1 200px; min-width: 160px; min-height: var(--tap-min); }
     .log-hint { font-size: .62rem; color: var(--gris); white-space: nowrap; }
@@ -2832,6 +2842,12 @@
         <p style="font-size:2rem;margin-bottom:.3rem;">📋</p>
         <p style="font-size:1rem;font-weight:700;margin-bottom:.3rem;">Registro de acciones</p>
         <p class="log-hint">Retención 60 días · Inmutable</p>
+      </div>
+
+      <div class="log-resumen" id="logResumen">
+        <div class="log-resumen-title">📌 Resumen de hoy</div>
+        <div class="log-resumen-linea" id="logResumenLocal">—</div>
+        <div class="log-resumen-linea" id="logResumenDep" style="display:none;"></div>
       </div>
 
       <div class="log-controles">
@@ -9738,6 +9754,34 @@
 
     function logRender() { logRenderChips(); logRenderFeed(); }
 
+    // El resumen sale de resumen_stock_dia() — la MISMA función que arma el Telegram
+    // de las 23 h (decisión 34). Sin argumentos: el "hoy" lo decide el servidor en hora
+    // Argentina, así el panel y el mensaje no pueden desfasarse al cambiar el día.
+    async function logCargarResumen() {
+      var local = document.getElementById('logResumenLocal');
+      var dep = document.getElementById('logResumenDep');
+      if (!local) return;
+      try {
+        var res = await sb.rpc('resumen_stock_dia');
+        if (res.error || !res.data) throw res.error || new Error('sin datos');
+        var r = res.data;
+        var neto = Number(r.neto || 0);
+        local.innerHTML = 'Salieron <span class="log-salieron">' + escHtml(r.salieron || 0) + '</span> · '
+                        + 'Entraron <span class="log-entraron">' + escHtml(r.entraron || 0) + '</span> · '
+                        + 'Neto <span class="log-neto">' + (neto > 0 ? '+' : '') + escHtml(neto) + '</span>';
+        // La línea de depósito es del jefe (decisión 34), aunque la empleada pueda leer los eventos.
+        if (dep && currentRole === 'jefe') {
+          dep.style.display = '';
+          dep.innerHTML = 'Depósito: entraron ' + escHtml(r.dep_entraron || 0) + ' · salieron ' + escHtml(r.dep_salieron || 0);
+        } else if (dep) { dep.style.display = 'none'; }
+      } catch (e) {
+        // El resumen es secundario: si falla, el feed sigue entero. Mismo criterio que logAdminAction.
+        console.warn('[log] resumen no disponible:', e);
+        local.textContent = '—';
+        if (dep) dep.style.display = 'none';
+      }
+    }
+
     async function loadAuditLog() {
       var feed = document.getElementById('logFeed');
       var pie = document.getElementById('logPie');
@@ -9752,6 +9796,8 @@
           if (r && r.data) console.log('[audit] cleanup: ' + r.data + ' registros viejos borrados');
         }).catch(function(e) { console.warn('[audit] cleanup fallo:', e); });
       }
+
+      logCargarResumen();
 
       try {
         var q = sb.from('admin_actions').select('*');
