@@ -14,6 +14,9 @@
 //   node scripts/medir_targets.js --ancho 800     → otro ancho
 //   node scripts/medir_targets.js --sin-fuente    → bloquea fonts.googleapis para probar que se niega
 //   node scripts/medir_targets.js --json          → salida cruda
+//   node scripts/medir_targets.js --sonda x.js    → evalúa ese archivo DENTRO de la página (panel abierto, Inter
+//                                                    verificada, pestañas visibles) e imprime el JSON que devuelva.
+//                                                    Es el instrumento para medir cualquier otra cosa del panel.
 //   node scripts/medir_targets.js --navegador "C:\...\msedge.exe"
 //
 // Sin dependencias: servidor estático propio (no-store, sin Service Worker,
@@ -41,6 +44,7 @@ function opt(nombre, def) { const i = args.indexOf('--' + nombre); return i >= 0
 const ANCHO = +opt('ancho', 600), ALTO = +opt('alto', 900);
 const SIN_FUENTE = args.includes('--sin-fuente');
 const JSON_OUT = args.includes('--json');
+const SONDA = opt('sonda');   // archivo .js a evaluar dentro de la página, después de abrir el panel y verificar Inter
 const MIN = 44;
 
 // ── Stub de supabase-js: Proxy encadenable y thenable, todo resuelve a { data: [], error: null } ──
@@ -80,7 +84,8 @@ const MEDIR_EN_PAGINA = String(function () {
         if (vistos.has(el)) return; vistos.add(el);
         if (excluirModales && el.closest('.modal-overlay')) return;
         const r = el.getBoundingClientRect(); if (r.height <= 0 || r.width <= 0) return;
-        lista.push({ firma: firma(el), id: el.id || '', h: h(el) });
+        const cubiertoPorLabel = el.tagName === 'INPUT' && el.type === 'checkbox' && el.parentElement && el.parentElement.tagName === 'LABEL';
+        lista.push({ firma: firma(el), id: el.id || '', h: h(el), cubiertoPorLabel });
       });
       return lista;
     }
@@ -98,14 +103,16 @@ const MEDIR_EN_PAGINA = String(function () {
     st.remove();
 
     const todos = enTabs.concat(enModales);
-    const cortos = todos.filter(x => x.h < MIN);
+    // Decisión 8: un checkbox de 13-18 px dentro de un <label> no cuenta como corto — el dedo toca el label, que ya mide 44 por [TAP-44].
+    const cortos = todos.filter(x => x.h < MIN && !x.cubiertoPorLabel);
+    const checkboxCubiertos = todos.filter(x => x.h < MIN && x.cubiertoPorLabel).length;
     function agrupar(lista) { const g = {}; lista.forEach(x => { const k = x.firma; g[k] = g[k] || { n: 0, min: Infinity, max: -Infinity }; g[k].n++; g[k].min = Math.min(g[k].min, x.h); g[k].max = Math.max(g[k].max, x.h); }); return Object.entries(g).sort((a, b) => b[1].n - a[1].n).map(([k, v]) => ({ firma: k, n: v.n, min: v.min, max: v.max })); }
     return {
       fuente, viewport: [innerWidth, innerHeight], filas,
       referencias,
-      totales: { controles: todos.length, enTabs: enTabs.length, enModales: enModales.length, cortos: cortos.length, cortosEnTabs: cortos.filter(x => !x.modal).length, cortosEnModales: cortos.filter(x => x.modal).length },
+      totales: { controles: todos.length, enTabs: enTabs.length, enModales: enModales.length, cortos: cortos.length, cortosEnTabs: cortos.filter(x => !x.modal).length, cortosEnModales: cortos.filter(x => x.modal).length, checkboxCubiertos },
       cortosPorFirma: agrupar(cortos),
-      definicion: { selector: SEL, minimo: MIN, criterio: 'alto del getBoundingClientRect < mínimo; sólo elementos con alto y ancho > 0; pestañas forzadas visibles; modales activados uno a uno; sin duplicados' }
+      definicion: { selector: SEL, minimo: MIN, criterio: 'alto del getBoundingClientRect < mínimo; sólo elementos con alto y ancho > 0; pestañas forzadas visibles; modales activados uno a uno; sin duplicados; un checkbox dentro de un <label> no cuenta (decisión 8: el label es el área táctil)' }
     };
   };
 });
@@ -199,6 +206,13 @@ function cdp(url) {
     const ev = await c.enviar('Runtime.evaluate', { expression: 'window.__medir(' + MIN + ')', awaitPromise: true, returnByValue: true }, sessionId);
     if (ev.exceptionDetails) throw new Error('en la página: ' + (ev.exceptionDetails.exception?.description || ev.exceptionDetails.text));
     const R = ev.result.value;
+    if (SONDA && R.fuente.interCargada) {
+      const codigo = fs.readFileSync(path.resolve(SONDA), 'utf8');
+      const ev2 = await c.enviar('Runtime.evaluate', { expression: '(async () => { ' + codigo + ' })()', awaitPromise: true, returnByValue: true }, sessionId);
+      clearTimeout(reloj); limpiar();
+      if (ev2.exceptionDetails) { console.error('❌ sonda: ' + (ev2.exceptionDetails.exception?.description || ev2.exceptionDetails.text)); process.exit(2); }
+      console.log(JSON.stringify(ev2.result.value, null, 2)); process.exit(0);
+    }
     clearTimeout(reloj); limpiar();
 
     if (JSON_OUT) { console.log(JSON.stringify(R, null, 2)); process.exit(R.fuente.interCargada ? 0 : 1); }
@@ -215,7 +229,7 @@ function cdp(url) {
     console.log('Filas: tbodyPrecios ' + R.filas.tbodyPrecios + ' · tbodyDeposito ' + R.filas.tbodyDeposito + ' · badges en DOM ' + R.referencias.badgesEnDOM);
     console.log('Referencias: badge ' + R.referencias.badge + ' px · fila Precios ' + R.referencias.trPrecios + ' · fila Depósito ' + R.referencias.trDeposito);
     console.log('\nControles: ' + R.totales.controles + ' (' + R.totales.enTabs + ' en pestañas + ' + R.totales.enModales + ' en modales)');
-    console.log('< ' + MIN + ' px: ' + R.totales.cortos + ' (' + R.totales.cortosEnTabs + ' en pestañas, ' + R.totales.cortosEnModales + ' en modales)');
+    console.log(R.totales.cortos + ' controles reales por debajo de ' + MIN + ' px, de ' + R.totales.controles + ' (' + R.totales.cortosEnTabs + ' en pestañas, ' + R.totales.cortosEnModales + ' en modales). Más ' + R.totales.checkboxCubiertos + ' checkbox que no cuentan — el label ya da 44 (decisión 8).');
     if (R.cortosPorFirma.length) {
       console.log('\n' + 'firma'.padEnd(48) + 'n'.padStart(5) + '   alto min–max');
       console.log('─'.repeat(48) + '  ' + '─'.repeat(20));
