@@ -39,8 +39,13 @@
       --amarillo:       #E8B800;       /* color principal de la marca ST */
       --amarillo-claro: #F5CD3D;       /* versión más clara para hovers */
       --blanco:         #f0ede8;       /* texto principal (no es blanco puro, es más cálido) */
-      --gris:           #777777;       /* texto secundario/apagado */
+      --gris:           #888888;       /* texto secundario/apagado · [TEMA-CLARO] decisión 28: era #777777 (3,89 sobre #1a1a1a); alineado al panel */
       --gris-claro:     #bbbbbb;       /* texto terciario, subtítulos */
+      /* [TEMA-CLARO] Tintas que cambian con el tema. Acá el valor de OSCURO; el de claro
+         está en body:not(.dark-mode). Ojo: el panel usa body.light, éste usa
+         body:not(.dark-mode) — un token declarado bajo uno NO llega al otro. */
+      --tinta-precio:   #ffcc00;       /* .price-promo — 11,51 sobre la card oscura */
+      --tinta-efectivo: #4caf50;       /* .price-cash — 6,26 sobre la card oscura */
       --borde:          rgba(232, 184, 0, 0.18);  /* bordes dorados sutiles */
       --borde-sutil:    rgba(255,255,255,0.06);    /* bordes casi invisibles */
       --font-display:   'Playfair Display', serif;  /* tipografía elegante para títulos */
@@ -2484,7 +2489,7 @@
     }
     .card-brand {
       font-size: 1rem;
-      color: gray;
+      color: var(--gris);   /* [TEMA-CLARO] era gray (#808080): 3,95 sobre la card blanca */
       text-transform: uppercase;
       margin-bottom: 30px;
     }
@@ -2598,20 +2603,19 @@
     body.dark-mode .product-card { background: #1a1a1a; border-color: #2a2a2a; }
     @media (hover: hover) { body.dark-mode .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); } }
     body.dark-mode .card-name { color: #f0f0f0; }
-    body.dark-mode .card-brand { color: #888; }
     body.dark-mode .card-brand-st { color: var(--amarillo); }
-    body.dark-mode .price-promo { color: #ffcc00; }
+    /* [TEMA-CLARO] Acá vivían cinco overrides de oscuro (.card-brand, .price-promo,
+       .price-cash, .card-views y su svg) que repetían literales. Las bases usan tokens,
+       así que el override sobraba y además le ganaba al token en oscuro. .card-brand-st
+       se queda: su color se decide entero en [JERARQUIA-CARD]. */
     body.dark-mode .price-original { color: #666; }
     body.dark-mode .price-label { color: #777; }
-    body.dark-mode .price-cash { color: #4caf50; }
     body.dark-mode .fav-heart { background: rgba(40,40,40,.85); color: #555; }
     body.dark-mode .fav-heart:hover { color: #e74c3c; }
     body.dark-mode .fav-heart.liked { color: #e74c3c; background: rgba(40,40,40,.95); }
     body.dark-mode .tag-cat { background: rgba(232,184,0,.15); }
     body.dark-mode .tag-ml { background: rgba(255,255,255,.06); color: #999; border-color: rgba(255,255,255,.1); }
     body.dark-mode .tag-acorde { background: rgba(255,255,255,.04); color: #b0b0b0; border-color: rgba(255,255,255,.08); }
-    body.dark-mode .card-views { color: #888; }
-    body.dark-mode .card-views svg { fill: #888; }
     body.dark-mode .bottle-body,
     body.dark-mode .bottle-neck { border-color: #555; }
     body.dark-mode .bottle-cap { background: #555; }
@@ -2956,14 +2960,14 @@
     .price-promo {
       font-size: 1.4rem;
       font-weight: bold;
-      color: #ffcc00;
+      color: var(--tinta-precio);   /* [TEMA-CLARO] en claro era #ffcc00: 1,51 sobre blanco */
       margin-bottom: 0;
     }
     /* [5] Light mode fix: usar var(--gris-claro) en lugar de #999/#bbb hardcoded
        que daba contraste 1.6:1 sobre fondo crema (WCAG fail). */
     .price-original { font-size: .9rem; color: var(--gris-claro); text-decoration: line-through; opacity: .75; }
     .price-label { font-size: .55rem; color: var(--gris); font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
-    .price-cash { width: 100%; font-size: .85rem; color: #4caf50; font-weight: 600; }
+    .price-cash { width: 100%; font-size: .85rem; color: var(--tinta-efectivo); font-weight: 600; }   /* [TEMA-CLARO] en claro era #4caf50: 2,78 */
     /* [HOTSALE] Label cash cuando hay promo activa (Hot Sale, descuento custom, etc) */
     .price-cash--hotsale {
       color: #ff7043 !important;
@@ -3126,7 +3130,7 @@
     /* [5] reveal lateral usa los mismos colores adaptables */
     .reveal-pricing .price-label { font-size: .35rem; color: var(--gris); }
     .reveal-pricing .price-original { font-size: .45rem; color: var(--gris-claro); text-decoration: line-through; opacity: .75; }
-    .reveal-pricing .price-cash { width: 100%; font-size: .42rem; color: #4caf50; font-weight: 600; }
+    .reveal-pricing .price-cash { width: 100%; font-size: .42rem; color: var(--tinta-efectivo); font-weight: 600; }
     /* [1] Reveal mini: neutralizar el border-left/background del Hot Sale para que entre */
     .reveal-pricing .price-cash--hotsale {
       padding: 0;
@@ -7377,6 +7381,9 @@
       --negro-hover:  #d8caa3;
       --blanco:       #1a1a1d;   /* texto principal */
       --gris:         #5e564a;
+      /* [TEMA-CLARO] las dos tintas de precio sobre la card blanca */
+      --tinta-precio:   #8a6d00;   /* .price-promo — 4,92 (era #ffcc00: 1,51) */
+      --tinta-efectivo: #3a863d;   /* .price-cash — 4,51 (era #4caf50: 2,78) */
       --gris-claro:   #2a2622;
       --borde:        rgba(120,90,0,.28);
       --borde-sutil:  rgba(0,0,0,.06);

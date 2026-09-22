@@ -30,6 +30,14 @@
 
 `<body class="dark-mode">` es el estado por defecto. Toggle vía botón en nav.
 
+### Tokens de tema — dos superficies, dos selectores (`[TEMA-CLARO]`, 22-sep-2026)
+
+- Los colores que cambian con el tema viven en **tokens**, no en overrides sueltos: el valor de oscuro en `:root`, el de claro en el selector de claro. Así "terminado" se verifica buscando hex hardcodeado y corriendo `npm run contraste` (los tokens × los dos temas).
+- **El selector de claro es distinto en cada superficie**: catálogo `body:not(.dark-mode)` (`css/styles.css`), panel `body.light` (`admin.html`). Un token declarado bajo uno **no llega** al otro.
+- Catálogo: `--tinta-precio` (`.price-promo`) y `--tinta-efectivo` (`.price-cash`, también en `.reveal-pricing`). Panel: `--rojo-fondo` / `--rojo-tinta` (el rojo partido por rol, decisión 22) y `--stat-fondo` / `--stat-borde` / `--stat-tinta*` de las stat cards.
+- **`--gris` del catálogo pasó a `#888888`** (era 3,89 sobre la card oscura), alineado con el panel. El orden importa: ① subir el token → ② borrar los overrides `body.dark-mode` que lo repetían → ③ recién ahí pasar las bases a `var(--gris)`. Al revés, `.card-brand` cae a 3,89 en oscuro mientras se arregla claro.
+- `.card-brand-st` sigue en `var(--amarillo)` (1,86 sobre la card blanca): la clase entera se decide en **`[JERARQUIA-CARD]`**. `contraste.js` la lista como ⚠️ conocida y no falla por ella.
+
 ### Light mode
 
 Activado removiendo la clase `dark-mode`. Reglas en CSS:
