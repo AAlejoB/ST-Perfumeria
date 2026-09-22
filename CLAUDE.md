@@ -310,15 +310,14 @@ Lista completa con detalles en `docs/HISTORIA.md`.
 
 Un prompt que llega "de 3" ya pasó por dos revisiones: menos preguntas de alcance, más ejecución — pero la verificación contra repo/producción no se saltea (eso es el "corregir si es necesario"). Lo estético lo decide el DISEÑADOR con Alejo; Claude Code lo mide. Las decisiones siguen siendo de Alejo: una "recomendación" sin su firma se pregunta una sola vez (#88).
 
-**Enrutar, no enterrar.** Cada vez que Claude Code se cruza con algo que no es suyo, lo saca en un bloque con destinatario y **texto listo para pegar** — nunca como una frase perdida en un párrafo:
+**Enrutar, no enterrar — en UN solo bloque.** Cada vez que Claude Code se cruza con algo que no es suyo, lo saca con **texto listo para pegar**, nunca como una frase perdida en un párrafo. Desde el **22-sep-2026** (regla propuesta por el PREPARADOR, decidida por Alejo) el turno termina con **un único bloque dirigido al PREPARADOR**: `## 🧾 Para el PREPARADOR — mandale esto tal cual`. Lo que sea para el DISEÑADOR va **adentro** de ese bloque, marcado ("Para el DISEÑADOR, adentro de este bloque: …"); el PREPARADOR lo verifica y lo rutea. **No** se mandan bloques separados por destinatario.
 
-> **📐 Para el DISEÑADOR:** lo estético / visual / interactivo (medidas, radios, colores, qué se ve y qué se toca), con el número que lo motiva.
-> **🧾 Para el PREPARADOR:** lo que cambia un prompt futuro (bases `commit` + blob, hechos del repo o de la base que contradicen el diseño, colisiones con lo que ya está en `main`, prompts que quedaron superados).
-> **🧑 Para Alejo (decidís vos):** la decisión, en una línea, con las opciones si hay más de una.
+> Qué va adentro: 📐 lo estético / visual / interactivo (medidas, radios, colores, qué se ve y qué se toca), con el número que lo motiva · 🧾 lo que cambia un prompt futuro (bases `commit` + blob, hechos del repo o de la base que contradicen el diseño, colisiones con `main`, prompts superados) · hechos medidos, nunca "creo que".
+> Lo único que queda **afuera** del bloque es lo que decide Alejo (`🧑 Para Alejo (decidís vos)`, una línea con las opciones): eso no se reenvía a nadie.
 
-Alejo tiene tiempo justo: el objetivo es que los tres trabajen a la vez y él sólo copie y pegue.
+Alejo es el único humano de la cadena: cada mensaje extra que tiene que clasificar es carga suya, no de Claude Code. El objetivo sigue siendo que los tres trabajen a la vez y él sólo copie y pegue — **una vez por turno**.
 
-**Skills globales** (21-sep, en `C:UsersAlejo.claudeskills`, valen en todos los proyectos): `/idea` (ficha en `docs/IDEAS.md`, sin tocar código), `/arranque` (tablero de quién espera qué), `/enrutar` (los bloques de arriba, sistemático), `/bases` (commit + blob + EOL + SW real para el PREPARADOR). Detalle en `docs/SLASH_COMMANDS.md` § Skills globales.
+**Skills globales** (21-sep, en `C:\Users\Alejo\.claude\skills\`, valen en todos los proyectos): `/idea` (ficha en `docs/IDEAS.md`, sin tocar código), `/arranque` (tablero de quién espera qué), `/enrutar` (el bloque único de arriba, sistemático), `/bases` (commit + blob + EOL + SW real para el PREPARADOR). Detalle en `docs/SLASH_COMMANDS.md` § Skills globales.
 
 ---
 
