@@ -17,7 +17,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "webp": "node convertir-webp.js",
-    "metricas": "bash scripts/metricas.sh"
+    "metricas": "bash scripts/metricas.sh",
+    "contraste": "node scripts/contraste.js"
   },
   "repository": {
     "type": "git",

@@ -11,6 +11,7 @@ compress-images.js
 !js/dvd-bouncer.js
 !api/*.js
 !api/**/*.js
+!scripts/*.js
 notas.json
 notas_pendientes.xlsx
 ~$*
