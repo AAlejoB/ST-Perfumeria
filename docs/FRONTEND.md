@@ -330,6 +330,9 @@ Fix: usar la misma foto como `background-image` con `filter: blur(28px)`.
 - Acento dorado pleno: `#E8B800` (var `--amarillo`).
 - Acento dorado-marrón (light mode labels): `#8a6d00`.
 - Verde de descuento efectivo: `#1b5e20` (light) / `#4caf50` (dark).
+- **Fuentes self-host (`[FONTS-SELFHOST]`, 22-sep-2026):** Inter, Playfair Display y Bodoni Moda viven en `/fonts/` (4 woff2 variables de Google, subset latin) y se declaran en `/fonts/fonts.css` con los **mismos pesos fijos que pedía la link vieja** — `index.html`, `admin.html` y `guia.html` cargan ese CSS, nada de `fonts.googleapis.com`. Inter va en `PRECACHE_URLS`; Playfair/Bodoni se cachean al primer uso.
+- **Un woff2 nunca se sobreescribe con el mismo nombre**: `vercel.json` los sirve `immutable` un año; versión nueva de Google = nombre nuevo (`v20`/`v40`/`v28` van en el nombre).
+- **Inter 800/900 no está declarada a propósito**: los `font-weight: 800/900` que caen en Inter renderizan con la cara 700, igual que con Google. Declararla (o un rango `300 700`) los engordaría: sería una decisión visual que el DISEÑADOR no tomó.
 
 ---
 

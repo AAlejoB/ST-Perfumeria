@@ -62,7 +62,12 @@ var PRECACHE_URLS = [
   '/js/app.js',
   '/perfumes.js',
   '/manifest.json',
-  '/img/icon-st.svg'
+  '/img/icon-st.svg',
+  // [FONTS-SELFHOST] sólo Inter (la del panel y la guía): mismo origen → pasa el guard
+  // resp.type === 'basic' y queda para el arranque sin red. Playfair y Bodoni (catálogo)
+  // se cachean al primer uso por la rama de estáticos; precachearlas cargaría a cada visitante.
+  '/fonts/fonts.css',
+  '/fonts/inter-v20-latin-normal-var.woff2'
 ];
 
 // ============================================================

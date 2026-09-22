@@ -12,7 +12,7 @@
 //
 //   node scripts/medir_targets.js                 → 600×900 (Galaxy Tab A9 vertical)
 //   node scripts/medir_targets.js --ancho 800     → otro ancho
-//   node scripts/medir_targets.js --sin-fuente    → bloquea fonts.googleapis para probar que se niega
+//   node scripts/medir_targets.js --sin-fuente    → bloquea /fonts/ (self-host) para probar que se niega
 //   node scripts/medir_targets.js --json          → salida cruda
 //   node scripts/medir_targets.js --pagina index.html --ancho 360 --sonda x.js
 //                                                  → lo mismo sobre OTRA página del repo (sin abrir panel)
@@ -206,7 +206,7 @@ function cdp(url) {
     await c.enviar('Page.enable', {}, sessionId);
     await c.enviar('Runtime.enable', {}, sessionId);
     await c.enviar('Emulation.setDeviceMetricsOverride', { width: ANCHO, height: ALTO, deviceScaleFactor: 1, mobile: false }, sessionId);
-    if (SIN_FUENTE) { await c.enviar('Network.enable', {}, sessionId); await c.enviar('Network.setBlockedURLs', { urls: ['*fonts.googleapis.com*', '*fonts.gstatic.com*'] }, sessionId); }
+    if (SIN_FUENTE) { await c.enviar('Network.enable', {}, sessionId); await c.enviar('Network.setBlockedURLs', { urls: ['*/fonts/*'] }, sessionId); }
     const cargada = c.esperar('Page.loadEventFired', sessionId);
     await c.enviar('Page.navigate', { url: base + '/' + PAGINA }, sessionId);
     await cargada;
@@ -229,7 +229,7 @@ function cdp(url) {
       console.log('\n❌ Inter NO cargó — me niego a reportar alturas: darían ~2 px menos que en la tablet.');
       console.log('   ancho "Inter, sans-serif" = ' + R.fuente.anchos.inter_sans + ' vs "sans-serif" = ' + R.fuente.anchos.sans + ' · "Inter, serif" = ' + R.fuente.anchos.inter_serif + ' vs "serif" = ' + R.fuente.anchos.serif);
       console.log('   (document.fonts.check("16px Inter") dijo ' + R.fuente.fontsCheckDiceTrue + ': por eso no se usa)');
-      console.log('   Fuentes cargadas: ' + (R.fuente.cargadas.join(', ') || 'ninguna') + '. ¿Hay red a fonts.googleapis.com / fonts.gstatic.com?');
+      console.log('   Fuentes cargadas: ' + (R.fuente.cargadas.join(', ') || 'ninguna') + '. ¿Se sirve /fonts/fonts.css y los woff2 (self-host desde [FONTS-SELFHOST])?');
       process.exit(1);
     }
     console.log('✅ Inter cargada (' + R.fuente.cargadas.join(', ') + ') · ancho Inter ' + R.fuente.anchos.inter_sans + ' vs sans-serif ' + R.fuente.anchos.sans);
