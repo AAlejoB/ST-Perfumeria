@@ -87,6 +87,14 @@
     .modal-btn {
       min-height: var(--tap-min);
     }
+    /* [TAP-44] decisión 7 (21-sep-2026): .modal-input y .admin-search al mínimo.
+       Es por la MÉTRICA de "controles < 44 px" (cierra 50 de los 80 que quedaban),
+       NO por ergonomía: nadie nota 1,6 px. Con Inter cargada ya miden 44,38; con la
+       fuente de fallback (Arial/sans-serif, que es como los midió el PREPARADOR:
+       43,4 y 42,4) caen debajo de 44. El min-height los hace independientes de si
+       la fuente llegó o no. El * { box-sizing: border-box } de arriba hace que 44
+       sea el alto total, no suma padding. */
+    .modal-input, .admin-search { min-height: var(--tap-min); }
     /* [BADGE-48] La badge de stock llena la celda: 48px de alto, ancho completo.
        Es lo que más se toca del panel (1.860 stock_update + 501 deposito_update
        en jul-sep) y medía 20,6px con el onclick en el span, no en la celda.
