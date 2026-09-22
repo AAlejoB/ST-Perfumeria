@@ -217,23 +217,30 @@ function servir() {
 }
 
 // ── Navegador headless ──
-function buscarNavegador() {
-  const pedido = opt('navegador'); if (pedido) return pedido;
-  const candidatos = [
+// Los navegadores a probar, en orden. Ya no alcanza con "el primero que exista en disco":
+// un Edge instalado puede salir con código 0 y stderr vacío sin publicar el endpoint de
+// DevTools (pasó el 22-sep-2026 en la máquina de Alejo), y entonces la medición moría
+// aunque hubiera un Chrome sano al lado. Se prueban todos hasta que uno responda.
+function candidatos() {
+  const pedido = opt('navegador'); if (pedido) return [pedido];
+  const rutas = [
     'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
     'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
     path.join(process.env.LOCALAPPDATA || '', 'Google/Chrome/Application/chrome.exe'),
     '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
   ];
-  return candidatos.find(c => c && fs.existsSync(c));
+  return rutas.filter(c => c && fs.existsSync(c));
 }
 function lanzar(bin, perfil) {
   return new Promise((resolve, reject) => {
     const proc = spawn(bin, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--user-data-dir=' + perfil, '--remote-debugging-port=0', '--window-size=' + ANCHO + ',' + ALTO, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
     let err = '';
     proc.stderr.on('data', d => { err += d; const m = err.match(/DevTools listening on (ws:\/\/\S+)/); if (m) resolve({ proc, ws: m[1] }); });
-    proc.on('exit', code => reject(new Error('el navegador salio con ' + code + ': ' + err.slice(-300))));
-    setTimeout(() => reject(new Error('el navegador no publico el endpoint de DevTools en 15 s')), 15000);
+    // spawn de una ruta que no existe emite 'error', no 'exit': sin esto revienta con un stack de
+    // Node en vez del mensaje que dice qué se probó y por qué falló.
+    proc.on('error', e => reject(new Error(path.basename(bin) + ' no se pudo ejecutar: ' + (e.code === 'ENOENT' ? 'no existe esa ruta' : e.message))));
+    proc.on('exit', code => reject(new Error(path.basename(bin) + ' salió con código ' + code + (err.trim() ? ': ' + err.slice(-300) : ' y sin decir nada (no publicó el endpoint de DevTools)'))));
+    setTimeout(() => reject(new Error(path.basename(bin) + ' no publicó el endpoint de DevTools en 15 s')), 15000);
   });
 }
 
@@ -255,16 +262,41 @@ function cdp(url) {
   });
 }
 
+// Prueba los candidatos en orden y devuelve el primero que realmente arranca. Cada fallo se
+// informa (cuál y por qué) en vez de morir en el primero: el objetivo es medir, no estrenar navegador.
+// OJO: un perfil NUEVO por candidato. Si se reusa, Chrome rechaza el que dejó Edge con
+// "Settings version is not 1" (código 21) y el segundo intento falla por una razón que no es suya.
+async function abrirNavegador() {
+  const rutas = candidatos();
+  if (!rutas.length) { console.error('❌ No encontré Edge ni Chrome. Pasá la ruta con --navegador.'); process.exit(2); }
+  const fallos = [], sobran = [];
+  for (const bin of rutas) {
+    const perfil = fs.mkdtempSync(path.join(os.tmpdir(), 'st-medir-'));
+    try {
+      const nav = await lanzar(bin, perfil);
+      sobran.forEach(borrar);
+      return { nav, bin, perfil };
+    } catch (e) {
+      fallos.push(path.basename(bin) + ': ' + e.message);
+      sobran.push(perfil);
+    }
+  }
+  sobran.forEach(borrar);
+  console.error('❌ Ninguno de los ' + rutas.length + ' navegadores arrancó:');
+  fallos.forEach(f => console.error('   · ' + f));
+  console.error('   Pasá otra ruta con --navegador.');
+  process.exit(2);
+}
+
+function borrar(dir) { try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) {} }
+
 (async () => {
-  const bin = buscarNavegador();
-  if (!bin) { console.error('❌ No encontré Edge ni Chrome. Pasá la ruta con --navegador.'); process.exit(2); }
-  const perfil = fs.mkdtempSync(path.join(os.tmpdir(), 'st-medir-'));
-  let srv, nav, c;
-  const limpiar = () => { try { c && c.cerrar(); } catch (e) {} try { nav && nav.proc.kill(); } catch (e) {} try { srv && srv.close(); } catch (e) {} setTimeout(() => { try { fs.rmSync(perfil, { recursive: true, force: true }); } catch (e) {} }, 500); };
+  let srv, nav, c, bin, perfil;
+  const limpiar = () => { try { c && c.cerrar(); } catch (e) {} try { nav && nav.proc.kill(); } catch (e) {} try { srv && srv.close(); } catch (e) {} setTimeout(() => { if (perfil) borrar(perfil); }, 500); };
   const reloj = setTimeout(() => { console.error('❌ Timeout general (90 s).'); limpiar(); process.exit(2); }, 90000);
   try {
     const servidor = await servir(); srv = servidor.srv; const base = servidor.url;
-    nav = await lanzar(bin, perfil);
+    const abierto = await abrirNavegador(); nav = abierto.nav; bin = abierto.bin; perfil = abierto.perfil;
     c = await cdp(nav.ws);
     const { targetId } = await c.enviar('Target.createTarget', { url: 'about:blank' });
     const { sessionId } = await c.enviar('Target.attachToTarget', { targetId, flatten: true });
