@@ -16,6 +16,11 @@
 //   node scripts/medir_targets.js --json          → salida cruda
 //   node scripts/medir_targets.js --pagina index.html --ancho 360 --sonda x.js
 //                                                  → lo mismo sobre OTRA página del repo (sin abrir panel)
+//   node scripts/medir_targets.js --fixture datos.json --sonda x.js
+//                                                  → carga datos de mentira para las tablas de Supabase: el stub deja
+//                                                    de devolver [] y responde lo que pida la consulta (select/gte/in/
+//                                                    order/limit), y anota cada llamada en window.__sbCalls. El JSON es
+//                                                    { "<tabla>": [ …filas… ] } y NO vive en el repo: es de la medición.
 //   node scripts/medir_targets.js --sonda x.js    → evalúa ese archivo DENTRO de la página (panel abierto, Inter
 //                                                    verificada, pestañas visibles) e imprime el JSON que devuelva.
 //                                                    Es el instrumento para medir cualquier otra cosa del panel.
@@ -47,11 +52,70 @@ const ANCHO = +opt('ancho', 600), ALTO = +opt('alto', 900);
 const SIN_FUENTE = args.includes('--sin-fuente');
 const JSON_OUT = args.includes('--json');
 const SONDA = opt('sonda');   // archivo .js a evaluar dentro de la página, después de abrir el panel y verificar Inter
+const FIXTURE = opt('fixture');   // JSON { tabla: [filas] } para el stub; sin él, el stub responde [] como siempre
 const PAGINA = opt('pagina', 'admin.html');   // otra página del repo (index.html…): sin enterAdminPanel, sólo fuente + sonda
 const MIN = 44;
 
 // ── Stub de supabase-js: Proxy encadenable y thenable, todo resuelve a { data: [], error: null } ──
-const STUB_SUPABASE = `<script>(function(){var R={data:[],error:null,count:0,status:200};function mk(){return new Proxy(function(){},{get:function(_,p){if(p==='then')return function(a,b){return Promise.resolve(R).then(a,b)};if(p==='catch')return function(b){return Promise.resolve(R).catch(b)};if(p==='finally')return function(f){return Promise.resolve(R).finally(f)};if(p===Symbol.toPrimitive)return function(){return ''};if(p==='toJSON')return function(){return null};return mk()},apply:function(){return mk()}})}window.supabase={createClient:function(){return mk()}};window.__sbStub='pre';})();</script>`;
+// Stub de supabase-js. Sin fixture responde { data: [], error: null } a cualquier cadena, como antes.
+// Con fixture, from(tabla) devuelve un builder que acumula la consulta (select/eq/in/gte/lte/order/limit),
+// la resuelve contra los datos de mentira y la anota en window.__sbCalls — así una sonda puede verificar
+// QUÉ se pidió y CUÁNTAS veces (p. ej. que cambiar de vista no dispare una consulta nueva).
+// rpc() sale del fixture si hay una clave "rpc:<nombre>"; auth/channel/storage siguen con el Proxy de siempre.
+const STUB_SUPABASE = `<script>(function(){
+var FX = window.__fixture || {};
+var R = { data: [], error: null, count: 0, status: 200 };
+function mk(){return new Proxy(function(){},{get:function(_,p){
+if(p==='then')return function(a,b){return Promise.resolve(R).then(a,b)};
+if(p==='catch')return function(b){return Promise.resolve(R).catch(b)};
+if(p==='finally')return function(f){return Promise.resolve(R).finally(f)};
+if(p===Symbol.toPrimitive)return function(){return ""};
+if(p==='toJSON')return function(){return null};
+return mk()},apply:function(){return mk()}})}
+function norm(v){return v===null||v===undefined?v:String(v)}
+function builder(tabla){
+  var ops=[], filas=(FX[tabla]||[]).slice();
+  function aplicar(){
+    var out=filas.slice();
+    ops.forEach(function(o){
+      if(o.m==='eq') out=out.filter(function(f){return norm(f[o.a])===norm(o.b)});
+      else if(o.m==='in') out=out.filter(function(f){return (o.b||[]).map(norm).indexOf(norm(f[o.a]))>=0});
+      else if(o.m==='gte') out=out.filter(function(f){return String(f[o.a])>=String(o.b)});
+      else if(o.m==='lte') out=out.filter(function(f){return String(f[o.a])<=String(o.b)});
+      else if(o.m==='order'){var asc=!(o.b&&o.b.ascending===false);out.sort(function(x,y){var a=String(x[o.a]),b=String(y[o.a]);return a<b?(asc?-1:1):a>b?(asc?1:-1):0})}
+      else if(o.m==='limit') out=out.slice(0,o.a);
+    });
+    return out;
+  }
+  var b={};
+  ['select','eq','in','gte','lte','lt','gt','order','limit','range','neq','is','not','filter','match','single','maybeSingle'].forEach(function(m){
+    b[m]=function(a,c){ops.push({m:m,a:a,b:c});return b};
+  });
+  function resolver(){
+    var res=aplicar();
+    (window.__sbCalls=window.__sbCalls||[]).push({tabla:tabla,ops:ops.map(function(o){return o.m}),detalle:ops,filas:res.length});
+    return Promise.resolve({data:res,error:null,count:res.length,status:200});
+  }
+  b.then=function(ok,ko){return resolver().then(ok,ko)};
+  b.catch=function(ko){return resolver().catch(ko)};
+  b.finally=function(f){return resolver().finally(f)};
+  return b;
+}
+function cliente(){
+  return new Proxy({},{get:function(_,p){
+    if(p==='from')return function(t){return window.__fixture?builder(t):mk()};
+    if(p==='rpc')return function(n,args){
+      var k='rpc:'+n;
+      (window.__sbCalls=window.__sbCalls||[]).push({rpc:n,args:args||null});
+      if(window.__fixture&&(k in FX)){var v=FX[k];return Promise.resolve(v&&v.__error?{data:null,error:{message:v.__error}}:{data:v,error:null})}
+      return mk();
+    };
+    return mk()[p];
+  }});
+}
+window.supabase={createClient:function(){return cliente()}};
+window.__sbStub='pre';
+})();</script>`;
 const CDN_SUPABASE = /<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"[^>]*><\/script>/;   // index.html lo lleva con defer
 
 // ── Lo que corre DENTRO de la página ──
@@ -134,7 +198,8 @@ function servir() {
       if (url === '/' + PAGINA) {
         let html = fs.readFileSync(path.join(RAIZ, PAGINA), 'utf8');
         if (!CDN_SUPABASE.test(html)) { res.writeHead(500); return res.end('no encontre el <script> del CDN de supabase en ' + PAGINA); }
-        html = html.replace(CDN_SUPABASE, STUB_SUPABASE);
+        var datos = FIXTURE ? '<script>window.__fixture = ' + JSON.stringify(JSON.parse(fs.readFileSync(path.resolve(FIXTURE), 'utf8'))) + ';</script>' : '';
+        html = html.replace(CDN_SUPABASE, datos + STUB_SUPABASE);
         html = html.replace('</body>', '<script>(' + MEDIR_EN_PAGINA + ')();</script>' + (PAGINA === 'admin.html' ? '<script>enterAdminPanel(\'jefe\');</script>' : '') + '</body>');
         res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.writeHead(200); return res.end(html);
       }
