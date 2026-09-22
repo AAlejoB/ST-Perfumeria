@@ -26,6 +26,9 @@
       --stat-tinta-out: var(--rojo-tinta);
       --stat-tinta-perfumes: #5dade2;
       --stat-tinta-inv: #2ecc71;
+      /* [LOG-EMPLEADA] Superficie de las listas (filas del Log). En claro son BLANCAS,
+         como el resto de las listas del panel (decisión 26: crema arriba, blanco abajo). */
+      --superficie: #1a1a1d;
 
       /* ══════════════════════════════════════════════════════════
          [TOKENS] FASE 1 — Escala de medidas del panel.
@@ -1207,6 +1210,7 @@
       --stat-tinta-out: #b8342a;
       --stat-tinta-perfumes: #1c699d;
       --stat-tinta-inv: #1e5b3a;
+      --superficie: #ffffff;
       background: var(--negro);
       color: #1a1a1a;
     }
@@ -1522,6 +1526,56 @@
       border-color: rgba(184,140,0,.3);
       color: #8a6a00 !important;
     }
+    /* ══════════════════════════════════════════════════════════
+       [LOG-EMPLEADA] 22-sep-2026 · La pestaña Log, para las dos.
+       Decisión 35: el feed es CRONOLÓGICO ESTRICTO — se lee como una historia
+       ("qué pasó desde que me fui"); el estado ya lo da el resumen de arriba.
+       Cuando dos eventos seguidos son del mismo perfume, el nombre va una sola
+       vez (〃): el par depósito+stock queda pegado sin reordenar nada y sin
+       afirmar que hubo una transferencia (eso es [DEPOSITO-TRANSFERENCIA-EVENTO]).
+       Todo el color sale de tokens: nada inline, o el tema claro no lo alcanza. */
+    .log-controles { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-bottom: .6rem; }
+    .log-buscar { flex: 1 1 200px; min-width: 160px; min-height: var(--tap-min); }
+    .log-hint { font-size: .62rem; color: var(--gris); white-space: nowrap; }
+    .log-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .6rem; }
+    .log-chip {
+      font-family: inherit; font-size: .66rem; font-weight: 700; letter-spacing: .04em;
+      padding: 0 .8rem; min-height: var(--tap-min); border-radius: var(--r-full);
+      background: var(--superficie); color: inherit; border: 1px solid var(--borde);
+      cursor: pointer; display: inline-flex; align-items: center; gap: .3rem;
+    }
+    .log-chip.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    .log-vista { display: inline-flex; border: 1px solid var(--borde); border-radius: var(--r-md); overflow: hidden; margin-left: auto; }
+    .log-vista button {
+      font-family: inherit; font-size: .64rem; font-weight: 700; padding: 0 .7rem;
+      min-height: var(--tap-min); background: var(--superficie); color: inherit; border: none; cursor: pointer;
+    }
+    .log-vista button.active { background: var(--amarillo); color: #000; }
+    .log-dia {
+      font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--amarillo); padding: .6rem .2rem .3rem;
+    }
+    .log-perfume-grupo { font-size: .7rem; font-weight: 700; padding: .5rem .2rem .2rem; }
+    .log-item {
+      display: flex; align-items: center; gap: .5rem; min-height: var(--tap-min);
+      padding: .4rem .6rem; border-bottom: 1px solid var(--borde);
+      background: var(--superficie); font-size: .72rem;
+    }
+    .log-hora { font-size: .66rem; color: var(--gris); white-space: nowrap; flex: 0 0 auto; }
+    .log-nombre { flex: 1 1 auto; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .log-nombre-idem { color: var(--gris); font-weight: 400; }
+    .log-accion { flex: 0 0 auto; font-size: .66rem; color: var(--gris); white-space: nowrap; }
+    .log-item.log-deposito .log-accion { color: var(--stat-tinta-perfumes); }
+    .log-cambio { flex: 0 0 auto; font-size: .68rem; white-space: nowrap; }
+    .log-old { color: var(--stat-tinta-out); text-decoration: line-through; }
+    .log-new { color: var(--stat-tinta-inv); font-weight: 700; }
+    .log-corona { flex: 0 0 auto; font-size: .8rem; }
+    .log-vacio, .log-pie { font-size: .68rem; color: var(--gris); text-align: center; padding: 1.2rem .6rem; }
+    .log-pie { padding: .8rem .6rem 0; }
+    @media (max-width: 600px) {
+      .log-item { flex-wrap: wrap; }
+      .log-nombre { flex: 1 1 100%; order: -1; }
+    }
   </style>
 </head>
 <body>
@@ -1628,7 +1682,7 @@
           <div class="sb-tab-list">
             <button class="tab-btn" data-tab="stats" title="Estadísticas" onclick="switchTab('stats',this);closeMobileSidebar()"><span class="sb-ico">&#128202;</span><span class="sb-label">Estadísticas</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="analytics" title="Analytics" onclick="switchTab('analytics',this);loadAnalytics();closeMobileSidebar()"><span class="sb-ico">&#128200;</span><span class="sb-label">Analytics</span></button>
-            <button class="tab-btn" data-role="jefe" data-tab="auditlog" title="Log" onclick="switchTab('auditlog',this);loadAuditLog();closeMobileSidebar()"><span class="sb-ico">&#128203;</span><span class="sb-label">Log</span></button>
+            <button class="tab-btn" data-tab="auditlog" title="Log" onclick="switchTab('auditlog',this);loadAuditLog();closeMobileSidebar()"><span class="sb-ico">&#128203;</span><span class="sb-label">Log</span></button>
           </div>
         </div>
 
@@ -2774,31 +2828,22 @@
 
     <!-- TAB: AUDIT LOG (solo jefe) -->
     <div class="tab-content" id="tab-auditlog">
-      <div style="text-align:center;margin-bottom:1.5rem;">
+      <div style="text-align:center;margin-bottom:1rem;">
         <p style="font-size:2rem;margin-bottom:.3rem;">📋</p>
-        <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Registro de acciones</p>
-        <p style="font-size:.7rem;color:var(--gris);">Últimos 200 eventos · Retención 60 días · Inmutable</p>
+        <p style="font-size:1rem;font-weight:700;margin-bottom:.3rem;">Registro de acciones</p>
+        <p class="log-hint">Retención 60 días · Inmutable</p>
       </div>
 
-      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-        <button class="action-btn" onclick="loadAuditLog()" style="padding:.5rem 1rem;">↺ Refrescar</button>
-        <span id="auditLogMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
+      <div class="log-controles">
+        <input type="text" class="admin-search log-buscar" id="logBuscar" placeholder="🔍 Buscar perfume…" autocomplete="off" />
+        <span class="log-hint">últimos 60 días</span>
+        <button class="action-btn" id="logRefrescar" onclick="loadAuditLog()" style="min-height:var(--tap-min);padding:0 1rem;">↺</button>
       </div>
 
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-        <table class="admin-table" style="margin:0;">
-          <thead><tr>
-            <th style="width:120px;">Cuándo</th>
-            <th style="width:90px;">Quién</th>
-            <th style="width:160px;">Acción</th>
-            <th style="width:140px;">Perfume</th>
-            <th>Detalle</th>
-          </tr></thead>
-          <tbody id="tbodyAuditLog">
-            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div class="log-chips" id="logChips"></div>
+
+      <div id="logFeed"><p class="log-vacio">Cargando…</p></div>
+      <p class="log-pie" id="logPie" style="display:none;">Los cambios de precio y catálogo los ve el jefe</p>
     </div>
 
     <!-- TAB: ANALYTICS -->
@@ -9534,11 +9579,171 @@
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    // ============================================================
+    // [LOG-EMPLEADA] 22-sep-2026 · El Log, para el jefe y para la empleada.
+    //
+    // Decisión 33: al abrir, HOY + AYER. Antes de ayer, sólo buscando.
+    // Decisión 35: feed CRONOLÓGICO estricto (default) + vista "Por perfume" a un
+    //   toque, sobre los MISMOS datos (cambiar de vista no vuelve a pedir nada).
+    // Decisión 36: se busca por NOMBRE de perfume; las chips filtran por acción.
+    // Decisión 37: la empleada ve stock y depósito DE QUIEN SEA; el único tag es 👑,
+    //   y sale de actor_email (actor_role lo manda el cliente: sirve para pintar,
+    //   no para decidir). Si la RLS fallara, el filtro de abajo igual la protege.
+    // ============================================================
+    var logEventos = [];       // lo último que trajo la base (sin filtrar)
+    var logChipActiva = 'todo';
+    var logSoloJefe = false;
+    var logBuscando = '';
+    var logVista = (function() { try { return localStorage.getItem('st_log_vista') === 'perfume' ? 'perfume' : 'crono'; } catch (e) { return 'crono'; } })();
+
+    // El día en hora Argentina como 'YYYY-MM-DD'. NUNCA getDate(): el dato viene en
+    // UTC y a las 22:30 ART ya es el día siguiente allá — el feed mostraría "hoy" vacío.
+    function logDiaARG(d) {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    }
+    // Ayer 00:00 ART en ISO. ART es UTC−3 fijo (sin horario de verano desde 2009).
+    function logDesdeAyerISO() {
+      var hoy = logDiaARG(new Date()).split('-').map(Number);
+      return new Date(Date.UTC(hoy[0], hoy[1] - 1, hoy[2] - 1, 3, 0, 0)).toISOString();
+    }
+    function logHoraARG(iso) {
+      try {
+        return new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso));
+      } catch (e) { return ''; }
+    }
+    // "HOY" / "AYER" / "18 SEP" — el encabezado de cada tramo del feed.
+    function logEtiquetaDia(dia) {
+      var hoy = logDiaARG(new Date());
+      var h = hoy.split('-').map(Number);
+      var ayer = logDiaARG(new Date(Date.UTC(h[0], h[1] - 1, h[2] - 1, 12, 0, 0)));
+      if (dia === hoy) return 'HOY';
+      if (dia === ayer) return 'AYER';
+      var d = dia.split('-').map(Number);
+      var MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+      return d[2] + ' ' + MESES[d[1] - 1];
+    }
+    function logNormalizar(t) {
+      return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    // Familias de acción. "Catálogo" es todo lo que no es stock ni precio (textual del
+    // DISEÑADOR, decisión 36): se lleva también login/logout y los backups.
+    function logFamilia(action) {
+      if (action === 'stock_update') return 'stock';
+      if (action === 'deposito_update') return 'deposito';
+      if (action === 'price_update') return 'precios';
+      return 'catalogo';
+    }
+    var LOG_CHIPS_JEFE = [
+      { id: 'todo', label: 'Todo' }, { id: 'stock', label: '📦 Stock' }, { id: 'deposito', label: '📦 Depósito' },
+      { id: 'precios', label: '💰 Precios' }, { id: 'catalogo', label: '🗂️ Catálogo' }
+    ];
+    var LOG_CHIPS_EMPLEADA = [
+      { id: 'todo', label: 'Todo' }, { id: 'stock', label: '📦 Stock local' }, { id: 'deposito', label: '📦 Depósito' }
+    ];
+
+    function logRenderChips() {
+      var cont = document.getElementById('logChips'); if (!cont) return;
+      var esJefe = currentRole === 'jefe';
+      var chips = (esJefe ? LOG_CHIPS_JEFE : LOG_CHIPS_EMPLEADA).map(function(c) {
+        return '<button type="button" class="log-chip' + (logChipActiva === c.id ? ' active' : '') + '" data-chip="' + c.id + '">' + escHtml(c.label) + '</button>';
+      });
+      // 👑 Jefe es chip sólo para el jefe; para la empleada es tag y nada más (decisión 37).
+      if (esJefe) chips.push('<button type="button" class="log-chip' + (logSoloJefe ? ' active' : '') + '" data-chip="jefe">👑 Jefe</button>');
+      chips.push('<span class="log-vista"><button type="button" data-vista="crono" class="' + (logVista === 'crono' ? 'active' : '') + '">Cronológico</button>'
+               + '<button type="button" data-vista="perfume" class="' + (logVista === 'perfume' ? 'active' : '') + '">Por perfume</button></span>');
+      cont.innerHTML = chips.join('');
+    }
+
+    // Filtro de cliente. La RLS ya deja afuera lo que la empleada no puede leer; esto es
+    // defensa en profundidad: si la política fallara, el panel igual no lo pinta.
+    function logVisibles() {
+      var out = logEventos.slice();
+      if (currentRole === 'empleado') out = out.filter(function(e) { return e.action === 'stock_update' || e.action === 'deposito_update'; });
+      if (logChipActiva !== 'todo') out = out.filter(function(e) { return logFamilia(e.action) === logChipActiva; });
+      if (logSoloJefe) out = out.filter(function(e) { return e.actor_email === JEFE_EMAIL; });
+      return out;
+    }
+
+    function logNombre(e) {
+      if (!e.target_slug) return 'Panel';
+      return auditPerfumeName(e.target_slug) || e.target_slug;
+    }
+    // El cambio, con el old tachado y el new resaltado. Si no es {old,new} cae al
+    // render compacto de siempre (auditFormatChanges ya escapa todo).
+    function logCambio(e) {
+      var c = e.changes;
+      if (!c || typeof c !== 'object') return '';
+      var campo = e.action === 'deposito_update' ? 'stock_deposito' : (e.action === 'stock_update' ? 'stock_qty' : null);
+      var v = campo && c[campo];
+      if (v && typeof v === 'object' && 'old' in v && 'new' in v) {
+        return '<span class="log-old">' + escHtml(auditValueLabel(campo, v.old)) + '</span> → <span class="log-new">' + escHtml(auditValueLabel(campo, v.new)) + '</span>';
+      }
+      return auditFormatChanges(c);
+    }
+    function logItem(e, idem) {
+      var label = AUDIT_ACTION_LABELS[e.action] || { icon: '•', label: String(e.action).replace(/_/g, ' ') };
+      var dep = e.action === 'deposito_update' ? ' log-deposito' : '';
+      return '<div class="log-item' + dep + '">'
+        + '<span class="log-hora">' + escHtml(logHoraARG(e.created_at)) + '</span>'
+        + '<span class="log-nombre' + (idem ? ' log-nombre-idem' : '') + '">' + (idem ? '〃' : escHtml(logNombre(e))) + '</span>'
+        + '<span class="log-accion">' + label.icon + ' ' + escHtml(label.label) + '</span>'
+        + '<span class="log-cambio">' + logCambio(e) + '</span>'
+        + (e.actor_email === JEFE_EMAIL ? '<span class="log-corona" title="Jefe">👑</span>' : '')
+      + '</div>';
+    }
+
+    function logRenderFeed() {
+      var cont = document.getElementById('logFeed'); if (!cont) return;
+      var eventos = logVisibles();
+      if (!eventos.length) {
+        cont.innerHTML = '<p class="log-vacio">' + (logBuscando ? 'Nada en los últimos 60 días' : 'Sin movimientos hoy ni ayer') + '</p>';
+        return;
+      }
+      // Agrupar por día (hora Argentina), manteniendo el orden que vino de la base.
+      var dias = [], porDia = {};
+      eventos.forEach(function(e) {
+        var d = logDiaARG(new Date(e.created_at));
+        if (!porDia[d]) { porDia[d] = []; dias.push(d); }
+        porDia[d].push(e);
+      });
+      var html = dias.map(function(d) {
+        var delDia = porDia[d];
+        var cabeza = '<div class="log-dia">' + escHtml(logEtiquetaDia(d)) + ' · ' + delDia.length + '</div>';
+        if (logVista === 'perfume') {
+          // Mismos eventos, otro orden de lectura: día → perfume → eventos. Los que no
+          // son de un perfume (login, backup…) van juntos al final del día.
+          var grupos = [], porSlug = {};
+          delDia.forEach(function(e) {
+            var k = e.target_slug || '__panel__';
+            if (!porSlug[k]) { porSlug[k] = []; grupos.push(k); }
+            porSlug[k].push(e);
+          });
+          grupos.sort(function(a, b) { return (a === '__panel__') - (b === '__panel__'); });
+          return cabeza + grupos.map(function(k) {
+            var nombre = k === '__panel__' ? 'Panel' : (auditPerfumeName(k) || k);
+            return '<div class="log-perfume-grupo">' + escHtml(nombre) + '</div>'
+                 + porSlug[k].map(function(e) { return logItem(e, true); }).join('');
+          }).join('');
+        }
+        // Cronológico: si el evento anterior EN PANTALLA es del mismo perfume, 〃.
+        var previo = null;
+        return cabeza + delDia.map(function(e) {
+          var idem = previo !== null && e.target_slug && previo === e.target_slug;
+          previo = e.target_slug || null;
+          return logItem(e, idem);
+        }).join('');
+      }).join('');
+      cont.innerHTML = html;
+    }
+
+    function logRender() { logRenderChips(); logRenderFeed(); }
+
     async function loadAuditLog() {
-      var tbody = document.getElementById('tbodyAuditLog');
-      var meta  = document.getElementById('auditLogMeta');
-      if (!tbody) return;
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>';
+      var feed = document.getElementById('logFeed');
+      var pie = document.getElementById('logPie');
+      if (!feed) return;
+      feed.innerHTML = '<p class="log-vacio">Cargando…</p>';
+      if (pie) pie.style.display = currentRole === 'empleado' ? '' : 'none';
 
       // Cleanup de registros > 60 días (una vez por sesión)
       if (!auditCleanupRan) {
@@ -9549,43 +9754,53 @@
       }
 
       try {
-        var { data, error } = await sb
-          .from('admin_actions')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(200);
-
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Sin registros todavía. Cuando haya cambios en el panel, aparecerán acá.</td></tr>';
-          meta.textContent = '';
-          return;
+        var q = sb.from('admin_actions').select('*');
+        if (logBuscando) {
+          // Buscando: 60 días completos, pero sólo los perfumes cuyo nombre coincide.
+          var t = logNormalizar(logBuscando);
+          var slugs = (typeof PERFUMES !== 'undefined' ? PERFUMES : []).filter(function(p) {
+            return logNormalizar(p.name).indexOf(t) !== -1 || logNormalizar(p.marca).indexOf(t) !== -1 || logNormalizar(p.alias).indexOf(t) !== -1;
+          }).map(function(p) { return p.slug; });
+          if (!slugs.length) { logEventos = []; logRender(); return; }
+          q = q.in('target_slug', slugs);
+        } else {
+          q = q.gte('created_at', logDesdeAyerISO());
         }
-
-        var rows = data.map(function(r) {
-          var label = AUDIT_ACTION_LABELS[r.action] || { icon: '•', label: String(r.action).replace(/_/g, ' ') };
-          // El nombre real del perfume en vez del slug. Si el perfume ya no
-          // existe (o el target no era un perfume), cae al slug original.
-          var nombrePerfume = r.target_slug ? (auditPerfumeName(r.target_slug) || r.target_slug) : null;
-          var actorShort = (r.actor_role === 'jefe') ? '👑 jefe'
-                         : (r.actor_role === 'empleado' ? '👤 emp.' : (r.actor_role || '—'));
-          return '<tr>'
-            + '<td style="font-size:.7rem;color:var(--gris-claro);white-space:nowrap;">' + escHtml(auditFormatTime(r.created_at)) + '</td>'
-            + '<td style="font-size:.72rem;">' + escHtml(actorShort) + '</td>'
-            + '<td style="font-size:.72rem;"><span style="font-size:.9rem;">' + label.icon + '</span> ' + escHtml(label.label) + '</td>'
-            + '<td style="font-size:.72rem;color:var(--amarillo);"' + (nombrePerfume && nombrePerfume !== r.target_slug ? ' title="' + escHtml(r.target_slug) + '"' : '') + '>' + (nombrePerfume ? escHtml(nombrePerfume) : '<span style="color:var(--gris);">—</span>') + '</td>'
-            + '<td style="font-size:.68rem;color:var(--gris-claro);line-height:1.45;">' + auditFormatChanges(r.changes) + '</td>'
-          + '</tr>';
-        }).join('');
-
-        tbody.innerHTML = rows;
-        meta.textContent = data.length + ' evento' + (data.length === 1 ? '' : 's') + ' · actualizado ' + new Date().toLocaleTimeString('es-AR');
+        var { data, error } = await q.order('created_at', { ascending: false }).limit(1000);
+        if (error) throw error;
+        logEventos = data || [];
+        logRender();
       } catch (e) {
         console.error('[auditlog] load error:', e);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">Error al cargar el log: ' + escHtml(e.message || String(e)) + '</td></tr>';
+        feed.innerHTML = '<p class="log-vacio">Error al cargar el log: ' + escHtml(e.message || String(e)) + '</p>';
       }
     }
+
+    // Chips, vista y buscador: delegación, sin onclick con datos de la base.
+    document.addEventListener('click', function(ev) {
+      var chip = ev.target.closest && ev.target.closest('#logChips .log-chip');
+      if (chip) {
+        var id = chip.dataset.chip;
+        if (id === 'jefe') logSoloJefe = !logSoloJefe; else logChipActiva = id;
+        logRender(); return;
+      }
+      var vista = ev.target.closest && ev.target.closest('#logChips .log-vista button');
+      if (vista) {
+        logVista = vista.dataset.vista === 'perfume' ? 'perfume' : 'crono';
+        try { localStorage.setItem('st_log_vista', logVista); } catch (e) {}
+        logRender();   // mismos datos: cambiar de vista NO vuelve a pedir nada
+      }
+    });
+    document.addEventListener('input', function(ev) {
+      if (!ev.target || ev.target.id !== 'logBuscar') return;
+      var v = ev.target.value.trim();
+      clearTimeout(window.__logBuscarTimer);
+      window.__logBuscarTimer = setTimeout(function() {
+        if (v === logBuscando) return;
+        logBuscando = v;
+        loadAuditLog();
+      }, 300);
+    });
 
     // ============================================================
     // ANALYTICS — loader del tab 📊
