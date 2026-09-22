@@ -1,26 +1,28 @@
 #!/usr/bin/env node
 // ══════════════════════════════════════════════════════════════════
-// CONTRASTE DEL SITIO — ST Perfumería · [BADGE-TEXTO] 21-sep-2026 · [TEMA-CLARO] 22-sep-2026
+// CONTRASTE DEL SITIO — ST Perfumería
+// [BADGE-TEXTO] 21-sep-2026 · [TEMA-CLARO] 22-sep-2026 · motor de cascada 22-sep-2026
 //
 // Mide las DOS superficies (panel admin.html · catálogo css/styles.css) en los DOS
-// temas (oscuro · claro) y sale con 1 si algún texto queda por debajo de 4,5:1
-// (WCAG AA, texto normal). Es la red que mantiene vivas tres reglas del DISEÑADOR:
+// temas y sale con 1 si algún texto que SE VE queda por debajo de 4,5:1 (WCAG AA).
+// Mantiene vivas las reglas del DISEÑADOR: regla 19 (el fondo elige el texto),
+// decisión 22 (rojo partido por rol) y la paleta de tema claro.
 //
-//   · Regla 19 (rol FONDO): el texto de una badge es oscuro cuando su fondo
-//     contrasta más con negro que con blanco, y claro en el caso contrario.
-//   · Decisión 22 (rol TINTA): cuando el color ES el texto no hay nada más que
-//     mover; el rojo se parte en --rojo-fondo (#b8342a) y --rojo-tinta (#e74c3c).
-//   · La paleta de tema claro: los tokens cambian con el tema — panel: :root
-//     oscuro / body.light claro; catálogo: :root oscuro / body:not(.dark-mode)
-//     claro. Un token declarado bajo uno NO llega al otro.
+//   node scripts/contraste.js      (npm run contraste)
 //
-//   node scripts/contraste.js      (npm run contraste)   → tablas · exit 1 si falla algo
+// ── Por qué tiene un motor de cascada ──
+// La primera versión leía "la declaración base" y por eso dijo que el catálogo en
+// claro estaba roto (1,51 / 2,78 / 3,95) cuando en pantalla se ve 17,36 / 7,87 /
+// 15,01 desde mayo: lo pisa el bloque de `193e3dd` (56 reglas !important bajo
+// body:not(.dark-mode), L8040-8200), escritas porque una usuaria real no podía
+// leer el catálogo en claro. Un script que dice 0 midiendo CSS que no se ve es
+// peor que no tenerlo. Ahora, para cada elemento y tema, se calcula el ganador de
+// verdad: se consideran TODAS las reglas cuyo selector — solo o dentro de una
+// lista — apunte a ese elemento, gana el !important y después la especificidad y
+// el orden, y se informa qué regla impone el valor (archivo:línea).
 //
-// Lee el CSS por regex, en cascada: para cada propiedad toma la ÚLTIMA declaración
-// que matchea (hay selectores repetidos: .stat-card está en L978 y en L1344) y
-// resuelve var(--x) recursivo contra los tokens del tema y después los de :root.
-// Un gradiente se mide en todos sus extremos y vale el peor. Lo que falla con
-// decisión tomada de resolverlo en otro lado se imprime ⚠️ y no cuenta como falla.
+// Un token declarado que queda pisado por un !important se reporta ⚠️ y NO suma a
+// fallas: el número que se ve pasa. El destino de ese bloque es [LIGHT-MAYO-56].
 // ══════════════════════════════════════════════════════════════════
 'use strict';
 var fs = require('fs');
@@ -29,7 +31,7 @@ var path = require('path');
 var RAIZ = path.join(__dirname, '..');
 var MINIMO = 4.5;
 var NOMBRES = { gray: '#808080', grey: '#808080', white: '#ffffff', black: '#000000', red: '#ff0000', silver: '#c0c0c0' };
-var CONOCIDAS = [   // falla hoy, pero la clase entera se va con [JERARQUIA-CARD]: se informa, no frena
+var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no frena
   { superficie: 'catálogo', nombre: '.card-brand-st', tema: 'claro', keyword: '[JERARQUIA-CARD]' }
 ];
 
@@ -48,16 +50,34 @@ function luminancia(hex) {
 function contraste(a, b) { var la = luminancia(a), lb = luminancia(b); return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05); }
 function f2(n) { return n.toFixed(2).replace('.', ','); }
 
-// ── CSS: bloques, declaraciones, tokens, var() ──
-function estilos(archivo) {
+// ── CSS ──
+// Los comentarios se neutralizan ANTES de parsear: hay comentarios con una llave adentro (3 en el repo)
+// y partían los bloques — el selector siguiente quedaba pegado a media frase y no matcheaba nada. Se
+// reemplazan por espacios conservando los saltos de línea, así los números de línea siguen siendo reales.
+function sinComentarios(css) { return css.replace(/\/\*[\s\S]*?\*\//g, function (c) { return c.replace(/[^\n]/g, ' '); }); }
+function hoja(archivo) {
   var t = fs.readFileSync(path.join(RAIZ, archivo), 'utf8');
-  if (/\.html?$/.test(archivo)) { var m = t.match(/<style>([\s\S]*?)<\/style>/); if (!m) throw new Error(archivo + ': sin <style>'); return m[1]; }
-  return t;
+  if (!/\.html?$/.test(archivo)) return { css: sinComentarios(t), offset: 0, archivo: archivo };
+  var i = t.indexOf('<style>'); if (i < 0) throw new Error(archivo + ': sin <style>');
+  var ini = i + '<style>'.length;
+  return { css: sinComentarios(t.slice(ini, t.indexOf('</style>', ini))), offset: (t.slice(0, ini).match(/\n/g) || []).length, archivo: archivo };
 }
-// Todos los bloques cuyo selector (lo que está antes de "{") matchea. En orden de aparición.
-function bloques(css, selectorRegex) {
-  var out = [], re = /([^{}]+)\{([^{}]*)\}/g, m;
-  while ((m = re.exec(css))) { var sel = m[1].replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim(); if (selectorRegex.test(sel)) out.push({ selector: sel, cuerpo: m[2] }); }
+// Reglas con su lista de selectores y la línea REAL de cada uno.
+function reglas(h) {
+  var out = [], re = /([^{}]+)\{([^{}]*)\}/g, m, n = 0;
+  while ((m = re.exec(h.css))) {
+    var bruto = m[1];
+    if (/@/.test(bruto)) continue;   // @media / @supports: el selector real viene en el bloque de adentro
+    var base = (h.css.slice(0, m.index).match(/\n/g) || []).length;
+    var sels = [], desde = 0;
+    bruto.split(',').forEach(function (trozo) {
+      var limpio = trozo.replace(/\s+/g, ' ').trim();
+      var linea = h.offset + base + (bruto.slice(0, desde).match(/\n/g) || []).length + 1;
+      desde += trozo.length + 1;
+      if (limpio) sels.push({ sel: limpio, linea: linea });
+    });
+    if (sels.length) out.push({ sels: sels, cuerpo: m[2], orden: n++, archivo: h.archivo });
+  }
   return out;
 }
 function declaracion(cuerpo, prop) {
@@ -66,103 +86,120 @@ function declaracion(cuerpo, prop) {
   if (!ultimo) return null;
   return { valor: ultimo.replace(/!important/, '').trim(), important: /!important/.test(ultimo) };
 }
-// Cascada: gana la última declaración; un !important le gana a cualquiera sin !important.
-function ultimaDecl(css, selectorRegex, prop) {
-  var mejor = null;
-  bloques(css, selectorRegex).forEach(function (b) {
-    var d = declaracion(b.cuerpo, prop); if (!d) return;
-    if (!mejor || d.important || !mejor.important) mejor = d;
-  });
-  return mejor;
+// (#id, .clase/:pseudo/[attr], elemento) — :not() cuenta como su argumento, igual que el navegador.
+function especificidad(sel) {
+  var s = sel.replace(/:not\(([^)]*)\)/g, ' $1 ');
+  var ids = (s.match(/#[\w-]+/g) || []).length;
+  var clases = (s.match(/\.[\w-]+|\[[^\]]+\]|:[\w-]+(?:\([^)]*\))?/g) || []).length;
+  var elems = (s.replace(/[.#][\w-]+|\[[^\]]+\]|:[\w-]+(?:\([^)]*\))?/g, ' ').match(/[a-zA-Z][\w-]*/g) || []).length;
+  return ids * 10000 + clases * 100 + elems;
 }
-function tokens(css, selectorRegex) {
+// Un .price-cash dentro de un .bottom-sheet recibe TAMBIÉN las reglas de .price-cash a secas: para un
+// target contextual se consideran sus equivalentes más genéricos (el último compound), como el navegador.
+function equivalentes(target) { var ultimo = target.split(/\s+|>/).filter(Boolean).pop(); return ultimo && ultimo !== target ? [target, ultimo] : [target]; }
+// El ganador para `target` en este tema: el selector puede estar SOLO o dentro de una lista.
+// Gana !important; después especificidad; después el orden. Devuelve también la base (sin prefijo de tema).
+function ganador(rs, target, prefijos, prop) {
+  var targets = equivalentes(target);
+  var cands = [];
+  rs.forEach(function (r) {
+    r.sels.forEach(function (s) {
+      var esBase = targets.indexOf(s.sel) >= 0;
+      var esTema = prefijos.some(function (p) { return targets.some(function (t) { return s.sel === p + ' ' + t; }); });
+      if (!esBase && !esTema) return;
+      var d = declaracion(r.cuerpo, prop); if (!d) return;
+      cands.push({ valor: d.valor, important: d.important, base: esBase, exacto: s.sel === target, selector: s.sel, linea: s.linea, archivo: r.archivo, orden: r.orden, esp: especificidad(s.sel) });
+    });
+  });
+  if (!cands.length) return null;
+  cands.sort(function (a, b) { return (a.important - b.important) || (a.esp - b.esp) || (a.orden - b.orden); });
+  var gana = cands[cands.length - 1];
+  var bases = cands.filter(function (c) { return c.exacto; });
+  gana.declaracionBase = bases.length ? bases[bases.length - 1] : null;
+  return gana;
+}
+function tokens(rs, selector) {
   var map = {};
-  bloques(css, selectorRegex).forEach(function (b) { var re = /(--[\w-]+)\s*:\s*([^;]+);/g, m; while ((m = re.exec(b.cuerpo))) map[m[1]] = m[2].trim(); });
+  rs.forEach(function (r) { r.sels.forEach(function (s) { if (s.sel !== selector) return; var re = /(--[\w-]+)\s*:\s*([^;]+);/g, m; while ((m = re.exec(r.cuerpo))) map[m[1]] = m[2].trim(); }); });
   return map;
 }
-// Resuelve un valor CSS a lista de hex: var() recursivo (tema → raíz, con fallback), nombres, gradientes.
 function resolver(valor, capas, prof) {
   prof = prof || 0; if (!valor || prof > 8) return [];
   var v = String(valor).trim();
   var m = v.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([\s\S]+))?\)$/);
-  if (m) {
-    for (var i = 0; i < capas.length; i++) if (capas[i] && capas[i][m[1]]) return resolver(capas[i][m[1]], capas, prof + 1);
-    return m[2] ? resolver(m[2], capas, prof + 1) : [];
-  }
-  if (/gradient\(/.test(v)) {
-    var out = [], re = /var\(\s*--[\w-]+[^)]*\)|#[0-9a-fA-F]{3,6}\b/g, x;
-    while ((x = re.exec(v))) out = out.concat(resolver(x[0], capas, prof + 1));
-    return out;
-  }
+  if (m) { for (var i = 0; i < capas.length; i++) if (capas[i] && capas[i][m[1]]) return resolver(capas[i][m[1]], capas, prof + 1); return m[2] ? resolver(m[2], capas, prof + 1) : []; }
+  if (/gradient\(/.test(v)) { var out = [], re = /var\(\s*--[\w-]+[^)]*\)|#[0-9a-fA-F]{3,6}\b/g, x; while ((x = re.exec(v))) out = out.concat(resolver(x[0], capas, prof + 1)); return out; }
   var h = normalizarHex(v); return h ? [h] : [];
 }
 
 // ── medición ──
-var filas = [], fallas = 0, conocidas = 0;
-function esConocida(superficie, nombre, tema) { return CONOCIDAS.filter(function (c) { return c.superficie === superficie && c.nombre === nombre && c.tema === tema; })[0]; }
-function fila(superficie, tema, rol, nombre, textoHex, fondos, extra, falloRegla) {
-  var conocida = esConocida(superficie, nombre, tema);
-  if (!textoHex || !fondos.length) {
-    filas.push({ superficie: superficie, tema: tema, rol: rol, nombre: nombre, error: !textoHex ? 'no pude resolver el texto' : 'no pude resolver el fondo' });
-    fallas++; return;
-  }
-  var r = Math.min.apply(null, fondos.map(function (f) { return contraste(textoHex, f); }));
-  var ok = r >= MINIMO && !falloRegla;
-  if (!ok) { if (conocida) conocidas++; else fallas++; }
-  filas.push({ superficie: superficie, tema: tema, rol: rol, nombre: nombre, texto: textoHex, fondos: fondos.join('→'), ratio: r, ok: ok, conocida: conocida && conocida.keyword, extra: extra || '' });
+var filas = [], fallas = 0, conocidas = 0, pisados = 0;
+function medir(o) {
+  var conocida = CONOCIDAS.filter(function (c) { return c.superficie === o.superficie && c.nombre === o.nombre && c.tema === o.tema; })[0];
+  if (!o.texto || !o.fondos.length) { filas.push({ superficie: o.superficie, tema: o.tema, rol: o.rol, nombre: o.nombre, error: !o.texto ? 'no pude resolver el texto' : 'no pude resolver el fondo' }); fallas++; return; }
+  var r = Math.min.apply(null, o.fondos.map(function (f) { return contraste(o.texto, f); }));
+  var ok = r >= MINIMO && !o.falloRegla;
+  var notas = [];
+  if (o.pisado) { pisados++; notas.push('⚠️ token pisado por !important (' + o.impone + ') · ver [LIGHT-MAYO-56]'); }
+  if (o.extra) notas.push(o.extra);
+  if (!ok) { if (conocida) { conocidas++; notas.push('⚠️ conocida ' + conocida.keyword); } else fallas++; }
+  filas.push({ superficie: o.superficie, tema: o.tema, rol: o.rol, nombre: o.nombre, texto: o.texto, fondos: o.fondos.join('→'), ratio: r, ok: ok, alerta: !!conocida || o.pisado, impone: o.impone, nota: notas.join(' · ') });
+}
+// Un valor efectivo + de dónde sale + si tapó un token.
+function efectivo(rs, target, prefijos, prop, capas) {
+  var g = ganador(rs, target, prefijos, prop);
+  if (!g) return { hex: [], impone: '(sin declaración)', pisado: false };
+  var base = g.declaracionBase;
+  return {
+    hex: resolver(g.valor, capas),
+    impone: path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : ''),
+    pisado: !!(base && base !== g && g.important && /var\(/.test(base.valor))
+  };
 }
 
-// ═══ PANEL (admin.html) ═══
+// ═══ PANEL ═══
 (function () {
-  var css = estilos('admin.html');
-  var capas = { oscuro: [tokens(css, /^:root$/)], claro: [tokens(css, /^body\.light$/), tokens(css, /^:root$/)] };
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz] }, claro: { pref: ['body.light'], capas: [luz, raiz] } };
   ['oscuro', 'claro'].forEach(function (tema) {
-    // Rol FONDO: las 6 badges de stock. En claro pisa el override body.light .badge-X (hoy sólo paused).
+    var c = cfg[tema];
     ['ok', 'mid', 'low', 'out', 'last', 'paused'].forEach(function (b) {
-      var base = new RegExp('^\\.badge-' + b + '$'), over = new RegExp('^body\\.light \\.badge-' + b + '$');
-      var bg = ultimaDecl(css, base, 'background'), fg = ultimaDecl(css, base, 'color');
-      if (tema === 'claro') { bg = ultimaDecl(css, over, 'background') || bg; fg = ultimaDecl(css, over, 'color') || fg; }
-      var fondos = resolver(bg && bg.valor, capas[tema]), texto = resolver(fg && fg.valor, capas[tema])[0];
-      var extra = '', falloRegla = false;
-      if (fondos.length && texto) {   // regla 19
-        var manda = contraste(fondos[0], '#000000') > contraste(fondos[0], '#ffffff') ? 'oscuro' : 'claro';
-        var es = luminancia(texto) < 0.5 ? 'oscuro' : 'claro';
-        falloRegla = es !== manda;
-        extra = falloRegla ? 'regla 19 ❌ (el fondo pide texto ' + manda + ')' : 'regla 19 ✅';
+      var bg = efectivo(rs, '.badge-' + b, c.pref, 'background', c.capas), fg = efectivo(rs, '.badge-' + b, c.pref, 'color', c.capas);
+      var extra = '', fallo = false;
+      if (bg.hex.length && fg.hex[0]) {
+        var manda = contraste(bg.hex[0], '#000000') > contraste(bg.hex[0], '#ffffff') ? 'oscuro' : 'claro';
+        var es = luminancia(fg.hex[0]) < 0.5 ? 'oscuro' : 'claro';
+        fallo = es !== manda; extra = fallo ? 'regla 19 ❌ (el fondo pide texto ' + manda + ')' : 'regla 19 ✅';
       }
-      fila('panel', tema, 'fondo', '.badge-' + b, texto, fondos, extra, falloRegla);
+      medir({ superficie: 'panel', tema: tema, rol: 'fondo', nombre: '.badge-' + b, texto: fg.hex[0], fondos: bg.hex, extra: extra, falloRegla: fallo, impone: fg.impone, pisado: fg.pisado || bg.pisado });
     });
-    // Rol TINTA: .stat-value sobre .stat-card. En claro gana el bloque body.light cuya lista incluya .stat-card
-    // (hoy el #fff con !important del grupo); si no hay, la .stat-card que manda, resuelta con los tokens del tema.
-    var fondoCard = ultimaDecl(css, /^\.stat-card$/, 'background');
-    if (tema === 'claro') { var o = ultimaDecl(css, /(^|, )body\.light \.stat-card(,|$)/, 'background'); if (o) fondoCard = o; }
-    var fondos = resolver(fondoCard && fondoCard.valor, capas[tema]);
-    [['.stat-value (default)', '\\.stat-value'],
-     ['.stat-out .stat-value', '\\.stat-card\\.stat-out \\.stat-value'],
-     ['.stat-perfumes .stat-value', '\\.stat-card\\.stat-perfumes \\.stat-value'],
-     ['.stat-value-inv .stat-value', '\\.stat-card\\.stat-value-inv \\.stat-value']].forEach(function (t) {
-      var fg = ultimaDecl(css, new RegExp('^' + t[1] + '$'), 'color');
-      if (tema === 'claro') fg = ultimaDecl(css, new RegExp('^body\\.light ' + t[1] + '$'), 'color') || fg;
-      fila('panel', tema, 'tinta', t[0], resolver(fg && fg.valor, capas[tema])[0], fondos);
+    var card = efectivo(rs, '.stat-card', c.pref, 'background', c.capas);
+    [['.stat-value (default)', '.stat-value'], ['.stat-out .stat-value', '.stat-card.stat-out .stat-value'],
+     ['.stat-perfumes .stat-value', '.stat-card.stat-perfumes .stat-value'], ['.stat-value-inv .stat-value', '.stat-card.stat-value-inv .stat-value']].forEach(function (t) {
+      var fg = efectivo(rs, t[1], c.pref, 'color', c.capas);
+      medir({ superficie: 'panel', tema: tema, rol: 'tinta', nombre: t[0], texto: fg.hex[0], fondos: card.hex, impone: fg.impone, pisado: fg.pisado });
     });
   });
 })();
 
-// ═══ CATÁLOGO (css/styles.css) ═══
+// ═══ CATÁLOGO ═══
 (function () {
-  var css = estilos('css/styles.css');
-  var capas = { oscuro: [tokens(css, /^:root$/)], claro: [tokens(css, /^body:not\(\.dark-mode\)$/), tokens(css, /^:root$/)] };
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
   ['oscuro', 'claro'].forEach(function (tema) {
-    // Los componentes del catálogo son claros por defecto, con override oscuro (al revés que los tokens).
-    var bg = ultimaDecl(css, /^\.product-card$/, 'background');
-    if (tema === 'oscuro') bg = ultimaDecl(css, /^body\.dark-mode \.product-card$/, 'background') || bg;
-    var fondos = resolver(bg && bg.valor, capas[tema]);
-    [['.price-promo', '\\.price-promo'], ['.price-cash', '\\.price-cash'], ['.card-brand', '\\.card-brand'], ['.card-brand-st', '\\.card-brand-st']].forEach(function (t) {
-      var fg = ultimaDecl(css, new RegExp('^' + t[1] + '$'), 'color');
-      if (tema === 'oscuro') fg = ultimaDecl(css, new RegExp('^body\\.dark-mode ' + t[1] + '$'), 'color') || fg;
-      fila('catálogo', tema, 'tinta', t[0], resolver(fg && fg.valor, capas[tema])[0], fondos);
+    var c = cfg[tema];
+    var card = efectivo(rs, '.product-card', c.pref, 'background', c.capas);
+    ['.price-promo', '.price-cash', '.card-brand', '.card-brand-st'].forEach(function (t) {
+      var fg = efectivo(rs, t, c.pref, 'color', c.capas);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: t, texto: fg.hex[0], fondos: card.hex, impone: fg.impone, pisado: fg.pisado });
     });
-    fila('catálogo', tema, 'token', '--gris', resolver('var(--gris)', capas[tema])[0], fondos, '52 usos');
+    medir({ superficie: 'catálogo', tema: tema, rol: 'token', nombre: '--gris', texto: resolver('var(--gris)', c.capas)[0], fondos: card.hex, extra: '154 elementos con texto visible', impone: 'token' });
+    // El bottom-sheet tiene su propio fondo y sus propias reglas: se mide aparte.
+    var bs = efectivo(rs, '.bottom-sheet', c.pref, 'background', c.capas);
+    var bsCash = efectivo(rs, '.bottom-sheet .price-cash', c.pref, 'color', c.capas);
+    if (bs.hex.length && bsCash.hex.length) medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '.bottom-sheet .price-cash', texto: bsCash.hex[0], fondos: bs.hex, impone: bsCash.impone, pisado: bsCash.pisado });
   });
 })();
 
@@ -170,20 +207,22 @@ function fila(superficie, tema, rol, nombre, textoHex, fondos, extra, falloRegla
 function tabla(titulo, lista) {
   if (!lista.length) return;
   console.log('\n' + titulo);
-  var cab = ['rol', 'qué', 'texto', 'fondo', 'ratio', '>= 4,5', 'nota'];
+  var cab = ['rol', 'qué', 'texto', 'fondo', 'ratio', '>= 4,5', 'lo impone', 'nota'];
   var cuerpo = lista.map(function (r) {
-    if (r.error) return [r.rol, r.nombre, '—', '—', '—', '❌', r.error];
-    return [r.rol, r.nombre, r.texto, r.fondos, f2(r.ratio) + ':1', r.ok ? '✅' : (r.conocida ? '⚠️' : '❌'), (r.conocida ? '⚠️ conocida ' + r.conocida + ' ' : '') + r.extra];
+    if (r.error) return [r.rol, r.nombre, '—', '—', '—', '❌', '—', r.error];
+    return [r.rol, r.nombre, r.texto, r.fondos, f2(r.ratio) + ':1', r.ok ? (r.alerta ? '✅⚠️' : '✅') : (r.alerta ? '⚠️' : '❌'), r.impone || '', r.nota || ''];
   });
   var anchos = cab.map(function (h, i) { return Math.max(h.length, Math.max.apply(null, cuerpo.map(function (f) { return String(f[i]).length; }))); });
-  var linea = function (f) { return f.map(function (c, i) { return String(c).padEnd(anchos[i]); }).join('  '); };
+  var linea = function (f) { return f.map(function (c, i) { return String(c).padEnd(anchos[i]); }).join('  ').replace(/\s+$/, ''); };
   console.log(linea(cab)); console.log(anchos.map(function (a) { return '─'.repeat(a); }).join('  '));
   cuerpo.forEach(function (f) { console.log(linea(f)); });
 }
-console.log('Contraste del sitio · mínimo ' + f2(MINIMO) + ':1 (WCAG AA texto normal) · panel = admin.html · catálogo = css/styles.css');
-[['panel', 'oscuro', '(tokens de :root)'], ['panel', 'claro', '(tokens de body.light)'],
- ['catálogo', 'oscuro', '(tokens de :root + overrides body.dark-mode)'], ['catálogo', 'claro', '(tokens de body:not(.dark-mode))']].forEach(function (s) {
+console.log('Contraste del sitio · mínimo ' + f2(MINIMO) + ':1 (WCAG AA texto normal) · valor EFECTIVO en cascada (!important > especificidad > orden)');
+[['panel', 'oscuro', '(:root)'], ['panel', 'claro', '(body.light)'],
+ ['catálogo', 'oscuro', '(:root + body.dark-mode)'], ['catálogo', 'claro', '(body:not(.dark-mode))']].forEach(function (s) {
   tabla('■ ' + s[0].toUpperCase() + ' · tema ' + s[1] + ' ' + s[2], filas.filter(function (r) { return r.superficie === s[0] && r.tema === s[1]; }));
 });
-console.log('\n' + (fallas === 0 ? '✅ 0 falla(s)' : '❌ ' + fallas + ' falla(s)') + (conocidas ? ' + ' + conocidas + ' ⚠️ conocida(s)' : '') + ' · ' + filas.length + ' mediciones.');
+console.log('\n' + (fallas === 0 ? '✅ 0 falla(s)' : '❌ ' + fallas + ' falla(s)') +
+            (pisados ? ' + ' + pisados + ' ⚠️ token(s) pisado(s)' : '') +
+            (conocidas ? ' + ' + conocidas + ' ⚠️ conocida(s)' : '') + ' · ' + filas.length + ' mediciones.');
 process.exit(fallas === 0 ? 0 : 1);

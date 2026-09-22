@@ -7383,7 +7383,7 @@
       --gris:         #5e564a;
       /* [TEMA-CLARO] las dos tintas de precio sobre la card blanca */
       --tinta-precio:   #8a6d00;   /* .price-promo — 4,92 (era #ffcc00: 1,51) */
-      --tinta-efectivo: #3a863d;   /* .price-cash — 4,51 (era #4caf50: 2,78) */
+      --tinta-efectivo: #2e7d32;   /* .price-cash — 5,13 sobre la card blanca · decisión 32: es el verde que el sistema YA usa en claro (bottom-sheet, .card-live-viewers); #3a863d daba 4,51, a 0,01 del piso */
       --gris-claro:   #2a2622;
       --borde:        rgba(120,90,0,.28);
       --borde-sutil:  rgba(0,0,0,.06);
@@ -8060,7 +8060,7 @@
     }
     body:not(.dark-mode) .bottom-sheet .price-promo,
     body:not(.dark-mode) .bottom-sheet .price-original { color: #1a1a1d !important; }
-    body:not(.dark-mode) .bottom-sheet .price-cash { color: #2e7d32 !important; }
+    body:not(.dark-mode) .bottom-sheet .price-cash { color: var(--tinta-efectivo); }
     body:not(.dark-mode) .bottom-sheet .bs-handle-arrow { color: #5e564a !important; }
     body:not(.dark-mode) .bottom-sheet .bs-handle { background: rgba(120,90,0,.4) !important; }
     body:not(.dark-mode) .bottom-sheet .bs-img-placeholder {
