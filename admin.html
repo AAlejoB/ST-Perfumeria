@@ -1547,7 +1547,10 @@
     .log-controles { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-bottom: .6rem; }
     .log-buscar { flex: 1 1 200px; min-width: 160px; min-height: var(--tap-min); }
     .log-hint { font-size: .62rem; color: var(--gris); white-space: nowrap; }
-    .log-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .6rem; }
+    /* [LOG-SISTEMA-CHIP] align-items: center — sin esto el flex estira los ítems de cada línea al
+       alto de su línea, y el toggle Cronológico|Por perfume mide 46 (44 + 1 px de borde arriba y abajo):
+       al sumar la chip Sistema, ⚙️ y 👑 cayeron a esa línea y pasaron de 44 a 46. */
+    .log-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-bottom: .6rem; }
     .log-chip {
       font-family: inherit; font-size: .66rem; font-weight: 700; letter-spacing: .04em;
       padding: 0 .8rem; min-height: var(--tap-min); border-radius: var(--r-full);
@@ -9641,17 +9644,22 @@
     function logNormalizar(t) {
       return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
-    // Familias de acción. "Catálogo" es todo lo que no es stock ni precio (textual del
-    // DISEÑADOR, decisión 36): se lleva también login/logout y los backups.
+    // Familias de acción. "Catálogo" sigue siendo "todo lo demás" (decisión 36), pero desde
+    // [LOG-SISTEMA-CHIP] login/logout y los backups salieron a su propia chip: ver abajo.
     function logFamilia(action) {
       if (action === 'stock_update') return 'stock';
       if (action === 'deposito_update') return 'deposito';
       if (action === 'price_update') return 'precios';
+      // [LOG-SISTEMA-CHIP] Un filtro cuyo trabajo es sacar ruido no puede tener adentro
+      // "login 09:02" entre dos ediciones de catálogo: login/logout y los backups van a Sistema.
+      if (action === 'login_success' || action === 'logout' || action === 'backup_create_manual' || action === 'backup_create_auto') return 'sistema';
       return 'catalogo';
     }
     var LOG_CHIPS_JEFE = [
       { id: 'todo', label: 'Todo' }, { id: 'stock', label: '📦 Stock' }, { id: 'deposito', label: '📦 Depósito' },
-      { id: 'precios', label: '💰 Precios' }, { id: 'catalogo', label: '🗂️ Catálogo' }
+      { id: 'precios', label: '💰 Precios' }, { id: 'catalogo', label: '🗂️ Catálogo' },
+      // Última de la fila a propósito: si envuelve a 600 px, la que cae es la que menos se toca.
+      { id: 'sistema', label: '⚙️ Sistema' }
     ];
     var LOG_CHIPS_EMPLEADA = [
       { id: 'todo', label: 'Todo' }, { id: 'stock', label: '📦 Stock local' }, { id: 'deposito', label: '📦 Depósito' }
