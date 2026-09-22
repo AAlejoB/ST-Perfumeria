@@ -100,6 +100,10 @@
       width: 100%; min-height: var(--tap-comfort);
       border-radius: 0;
       box-sizing: border-box;
+      /* [BADGE-TEXTO] decisión 18: devuelve el límite de fila cuando hay varias del
+         mismo estado seguidas, sin romper la tira continua del radio 0. No cuesta
+         alto: el box-sizing:border-box de arriba se lo come. */
+      border-bottom: 1px solid rgba(0,0,0,.25);
     }
     body {
       font-family: 'Inter', sans-serif; background: var(--negro); color: #fff;
@@ -615,12 +619,19 @@
       font-size: .65rem; font-weight: 700; letter-spacing: .06em; padding: .3rem .7rem;
       border-radius: 4px; text-transform: uppercase; display: inline-block;
     }
-    .badge-ok { background: #2ecc71; color: #fff; }    /* verde — stock OK (>=4) */
-    .badge-mid { background: #e67e22; color: #fff; }   /* naranja — 3 unidades */
+    /* [BADGE-TEXTO] Regla del color del texto (decisión 19 del DISEÑADOR, 21-sep-2026):
+       el texto de una badge es NEGRO cuando su fondo contrasta más con negro que
+       con blanco, y BLANCO cuando contrasta más con blanco. No es una lista de
+       excepciones: es una regla, y se banca cualquier fondo futuro — blanco pasa
+       4,5:1 con L ≤ 0,1833 y negro con L ≥ 0,1750, así que las franjas se solapan
+       y no hay hueco. Cuando se multiplique la saturación, se REAPLICA la regla.
+       La verifica `node scripts/contraste.js` (sale con 1 si alguna badge falla). */
+    .badge-ok { background: #2ecc71; color: #000; }    /* verde — stock OK (>=4) · 9,99:1 */
+    .badge-mid { background: #e67e22; color: #000; }   /* naranja — 3 unidades · 7,37:1 */
     .badge-low { background: #f1c40f; color: #000; }   /* amarillo — 2 unidades */
-    .badge-out { background: #e74c3c; color: #fff; }   /* rojo — 0 (Sin stock) */
+    .badge-out { background: #b8342a; color: #fff; }   /* rojo oscuro — 0 (Sin stock) · 5,89:1 · decisión 20: preferencia del diseñador (con el rojo viejo la regla 19 pedía negro, 5,50); NO es el rojo de errores/borrar del resto del panel */
     .badge-last { background: #7d3c98; color: #fff; }  /* violeta profundo — 1 u. (Último) */
-    .badge-paused { background: #95a5a6; color: #fff; } /* gris — pausado (orthogonal) */
+    .badge-paused { background: #95a5a6; color: #000; } /* gris — pausado (orthogonal) · 8,21:1 */
 
     /* ACTIONS */
     .action-btn {
