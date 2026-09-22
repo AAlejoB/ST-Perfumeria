@@ -14,6 +14,8 @@
 //   node scripts/medir_targets.js --ancho 800     → otro ancho
 //   node scripts/medir_targets.js --sin-fuente    → bloquea fonts.googleapis para probar que se niega
 //   node scripts/medir_targets.js --json          → salida cruda
+//   node scripts/medir_targets.js --pagina index.html --ancho 360 --sonda x.js
+//                                                  → lo mismo sobre OTRA página del repo (sin abrir panel)
 //   node scripts/medir_targets.js --sonda x.js    → evalúa ese archivo DENTRO de la página (panel abierto, Inter
 //                                                    verificada, pestañas visibles) e imprime el JSON que devuelva.
 //                                                    Es el instrumento para medir cualquier otra cosa del panel.
@@ -45,26 +47,31 @@ const ANCHO = +opt('ancho', 600), ALTO = +opt('alto', 900);
 const SIN_FUENTE = args.includes('--sin-fuente');
 const JSON_OUT = args.includes('--json');
 const SONDA = opt('sonda');   // archivo .js a evaluar dentro de la página, después de abrir el panel y verificar Inter
+const PAGINA = opt('pagina', 'admin.html');   // otra página del repo (index.html…): sin enterAdminPanel, sólo fuente + sonda
 const MIN = 44;
 
 // ── Stub de supabase-js: Proxy encadenable y thenable, todo resuelve a { data: [], error: null } ──
 const STUB_SUPABASE = `<script>(function(){var R={data:[],error:null,count:0,status:200};function mk(){return new Proxy(function(){},{get:function(_,p){if(p==='then')return function(a,b){return Promise.resolve(R).then(a,b)};if(p==='catch')return function(b){return Promise.resolve(R).catch(b)};if(p==='finally')return function(f){return Promise.resolve(R).finally(f)};if(p===Symbol.toPrimitive)return function(){return ''};if(p==='toJSON')return function(){return null};return mk()},apply:function(){return mk()}})}window.supabase={createClient:function(){return mk()}};window.__sbStub='pre';})();</script>`;
-const CDN_SUPABASE = /<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/;
+const CDN_SUPABASE = /<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"[^>]*><\/script>/;   // index.html lo lleva con defer
 
 // ── Lo que corre DENTRO de la página ──
 const MEDIR_EN_PAGINA = String(function () {
   window.__medir = async function (MIN) {
     const espera = (ms) => new Promise(r => setTimeout(r, ms));
-    for (let i = 0; i < 100 && !(document.getElementById('adminPanel') || {}).classList?.contains('active'); i++) await espera(100);
+    if (document.getElementById('adminPanel')) for (let i = 0; i < 100 && !document.getElementById('adminPanel').classList.contains('active'); i++) await espera(100);
     await document.fonts.ready;
     await espera(300);
 
-    // 1. ¿Cargó Inter? Ancho de una cadena con y sin la fuente.
-    function ancho(familia) { const s = document.createElement('span'); s.textContent = 'Perfumería ST 0123456789 · abcdefghijklmnopqrstuvwxyz ÁÉÍÓÚ wiWI'; s.style.cssText = 'position:absolute;left:-9999px;top:0;font-size:32px;white-space:nowrap;font-family:' + familia; document.body.appendChild(s); const w = s.getBoundingClientRect().width; s.remove(); return +w.toFixed(2); }
+    // 1. ¿Cargó Inter? Ancho de una cadena con y sin la fuente. Peso y estilo EXPLÍCITOS: el body del
+    //    público es font-weight 300 y un span que lo hereda pide Inter 300, que puede no estar cargada
+    //    todavía (document.fonts carga cada cara cuando se usa) → fallback → falso negativo.
+    try { await document.fonts.load('400 32px Inter'); } catch (e) {}
+    function ancho(familia) { const s = document.createElement('span'); s.textContent = 'Perfumería ST 0123456789 · abcdefghijklmnopqrstuvwxyz ÁÉÍÓÚ wiWI'; s.style.cssText = 'position:absolute;left:-9999px;top:0;font-size:32px;font-weight:400;font-style:normal;letter-spacing:0;white-space:nowrap;font-family:' + familia; document.body.appendChild(s); const w = s.getBoundingClientRect().width; s.remove(); return +w.toFixed(2); }
     const anchos = { inter_sans: ancho('Inter, sans-serif'), sans: ancho('sans-serif'), inter_serif: ancho('Inter, serif'), serif: ancho('serif') };
     const interCargada = anchos.inter_sans !== anchos.sans && anchos.inter_serif !== anchos.serif;
     const fuente = { interCargada, anchos, fontsCheckDiceTrue: document.fonts.check('16px Inter'), cargadas: [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family + ' ' + f.weight) };
     if (!interCargada) return { fuente };
+    if (!document.getElementById('adminPanel')) return { fuente, soloFuente: true };   // otra página: el inventario es del panel
 
     // 2. Pantallas: sin esto la línea de base daba 119 en vez de 557.
     if (typeof renderPrecios === 'function') renderPrecios();
@@ -124,11 +131,11 @@ function servir() {
       const url = decodeURIComponent(req.url.split('?')[0]);
       res.setHeader('Cache-Control', 'no-store');
       if (url === '/sw.js') { res.writeHead(404); return res.end(); }
-      if (url === '/admin.html') {
-        let html = fs.readFileSync(path.join(RAIZ, 'admin.html'), 'utf8');
-        if (!CDN_SUPABASE.test(html)) { res.writeHead(500); return res.end('no encontre el <script> del CDN de supabase en admin.html'); }
+      if (url === '/' + PAGINA) {
+        let html = fs.readFileSync(path.join(RAIZ, PAGINA), 'utf8');
+        if (!CDN_SUPABASE.test(html)) { res.writeHead(500); return res.end('no encontre el <script> del CDN de supabase en ' + PAGINA); }
         html = html.replace(CDN_SUPABASE, STUB_SUPABASE);
-        html = html.replace('</body>', '<script>(' + MEDIR_EN_PAGINA + ')();</script><script>enterAdminPanel(\'jefe\');</script></body>');
+        html = html.replace('</body>', '<script>(' + MEDIR_EN_PAGINA + ')();</script>' + (PAGINA === 'admin.html' ? '<script>enterAdminPanel(\'jefe\');</script>' : '') + '</body>');
         res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.writeHead(200); return res.end(html);
       }
       const file = path.normalize(path.join(RAIZ, url));
@@ -201,7 +208,7 @@ function cdp(url) {
     await c.enviar('Emulation.setDeviceMetricsOverride', { width: ANCHO, height: ALTO, deviceScaleFactor: 1, mobile: false }, sessionId);
     if (SIN_FUENTE) { await c.enviar('Network.enable', {}, sessionId); await c.enviar('Network.setBlockedURLs', { urls: ['*fonts.googleapis.com*', '*fonts.gstatic.com*'] }, sessionId); }
     const cargada = c.esperar('Page.loadEventFired', sessionId);
-    await c.enviar('Page.navigate', { url: base + '/admin.html' }, sessionId);
+    await c.enviar('Page.navigate', { url: base + '/' + PAGINA }, sessionId);
     await cargada;
     const ev = await c.enviar('Runtime.evaluate', { expression: 'window.__medir(' + MIN + ')', awaitPromise: true, returnByValue: true }, sessionId);
     if (ev.exceptionDetails) throw new Error('en la página: ' + (ev.exceptionDetails.exception?.description || ev.exceptionDetails.text));
@@ -217,7 +224,7 @@ function cdp(url) {
 
     if (JSON_OUT) { console.log(JSON.stringify(R, null, 2)); process.exit(R.fuente.interCargada ? 0 : 1); }
 
-    console.log('Áreas táctiles del panel · ' + ANCHO + '×' + ALTO + ' · ' + path.basename(bin) + (SIN_FUENTE ? ' · fuentes BLOQUEADAS a propósito' : ''));
+    console.log('Áreas táctiles del panel · ' + PAGINA + ' · ' + ANCHO + '×' + ALTO + ' · ' + path.basename(bin) + (SIN_FUENTE ? ' · fuentes BLOQUEADAS a propósito' : ''));
     if (!R.fuente.interCargada) {
       console.log('\n❌ Inter NO cargó — me niego a reportar alturas: darían ~2 px menos que en la tablet.');
       console.log('   ancho "Inter, sans-serif" = ' + R.fuente.anchos.inter_sans + ' vs "sans-serif" = ' + R.fuente.anchos.sans + ' · "Inter, serif" = ' + R.fuente.anchos.inter_serif + ' vs "serif" = ' + R.fuente.anchos.serif);
@@ -226,6 +233,7 @@ function cdp(url) {
       process.exit(1);
     }
     console.log('✅ Inter cargada (' + R.fuente.cargadas.join(', ') + ') · ancho Inter ' + R.fuente.anchos.inter_sans + ' vs sans-serif ' + R.fuente.anchos.sans);
+    if (R.soloFuente) { console.log('(' + PAGINA + ': el inventario de controles es del panel; usá --sonda para medir acá)'); process.exit(0); }
     console.log('Filas: tbodyPrecios ' + R.filas.tbodyPrecios + ' · tbodyDeposito ' + R.filas.tbodyDeposito + ' · badges en DOM ' + R.referencias.badgesEnDOM);
     console.log('Referencias: badge ' + R.referencias.badge + ' px · fila Precios ' + R.referencias.trPrecios + ' · fila Depósito ' + R.referencias.trDeposito);
     console.log('\nControles: ' + R.totales.controles + ' (' + R.totales.enTabs + ' en pestañas + ' + R.totales.enModales + ' en modales)');
