@@ -153,7 +153,9 @@ function efectivo(rs, target, prefijos, prop, capas) {
   return {
     hex: resolver(g.valor, capas),
     impone: path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : ''),
-    pisado: !!(base && base !== g && g.important && /var\(/.test(base.valor))
+    // "Pisado" es un token cuyo valor NO se ve. Si el !important impone exactamente lo mismo que el token,
+    // token y pantalla coinciden y no hay nada que reportar: se marca sólo cuando el hex efectivo difiere.
+    pisado: !!(base && base !== g && g.important && /var\(/.test(base.valor) && resolver(base.valor, capas).join() !== resolver(g.valor, capas).join())
   };
 }
 

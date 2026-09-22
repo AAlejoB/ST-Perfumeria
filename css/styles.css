@@ -7382,8 +7382,8 @@
       --blanco:       #1a1a1d;   /* texto principal */
       --gris:         #5e564a;
       /* [TEMA-CLARO] las dos tintas de precio sobre la card blanca */
-      --tinta-precio:   #8a6d00;   /* .price-promo — 4,92 (era #ffcc00: 1,51) */
-      --tinta-efectivo: #2e7d32;   /* .price-cash — 5,13 sobre la card blanca · decisión 32: es el verde que el sistema YA usa en claro (bottom-sheet, .card-live-viewers); #3a863d daba 4,51, a 0,01 del piso */
+      --tinta-precio:   #1a1a1d;   /* = L8160 (mayo) · 17,36 sobre la card blanca · decisión 32: el token dice lo mismo que la pantalla */
+      --tinta-efectivo: #1b5e20;   /* = L8155 (mayo) · 7,87 sobre la card · 6,85 sobre el bottom-sheet (#f5efde) · decisión 32 */
       --gris-claro:   #2a2622;
       --borde:        rgba(120,90,0,.28);
       --borde-sutil:  rgba(0,0,0,.06);
