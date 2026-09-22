@@ -12,6 +12,20 @@
     :root {
       --negro: #0a0a0a; --amarillo: #e8b800; --amarillo-claro: #f5d442;
       --gris: #888; --gris-claro: #ccc; --borde: rgba(255,255,255,.08);
+      /* [TEMA-CLARO] 22-sep-2026 · los colores que cambian con el tema viajan en tokens:
+         acá el valor de OSCURO, en body.light el de claro. El panel usa body.light;
+         el catálogo usa body:not(.dark-mode) — un token bajo uno no llega al otro. */
+      /* Decisión 22: el rojo partido por rol. Fondo = lleva texto blanco encima.
+         Tinta = el color ES el texto: 4,85 sobre el gradiente de las stat cards,
+         el valor más ajustado del panel y el único que no se rescata cambiando el texto. */
+      --rojo-fondo: #b8342a;
+      --rojo-tinta: #e74c3c;
+      --stat-fondo: linear-gradient(180deg, #131316 0%, #101013 100%);
+      --stat-borde: var(--borde);
+      --stat-tinta: var(--amarillo);
+      --stat-tinta-out: var(--rojo-tinta);
+      --stat-tinta-perfumes: #5dade2;
+      --stat-tinta-inv: #2ecc71;
 
       /* ══════════════════════════════════════════════════════════
          [TOKENS] FASE 1 — Escala de medidas del panel.
@@ -637,7 +651,7 @@
     .badge-ok { background: #2ecc71; color: #000; }    /* verde — stock OK (>=4) · 9,99:1 */
     .badge-mid { background: #e67e22; color: #000; }   /* naranja — 3 unidades · 7,37:1 */
     .badge-low { background: #f1c40f; color: #000; }   /* amarillo — 2 unidades */
-    .badge-out { background: #b8342a; color: #fff; }   /* rojo oscuro — 0 (Sin stock) · 5,89:1 · decisión 20: preferencia del diseñador (con el rojo viejo la regla 19 pedía negro, 5,50); NO es el rojo de errores/borrar del resto del panel */
+    .badge-out { background: var(--rojo-fondo); color: #fff; } /* rojo oscuro — 0 (Sin stock) · 5,89:1 · decisión 20 */
     .badge-last { background: #7d3c98; color: #fff; }  /* violeta profundo — 1 u. (Último) */
     .badge-paused { background: #95a5a6; color: #000; } /* gris — pausado (orthogonal) · 8,21:1 */
 
@@ -651,7 +665,7 @@
     .btn-price:hover { background: #ffd633; }
     .btn-stock { background: #3498db; color: #fff; }
     .btn-stock:hover { background: #5dade2; }
-    .btn-hide { background: #e74c3c; color: #fff; }
+    .btn-hide { background: var(--rojo-fondo); color: #fff; }   /* 3,82 → 5,89 */
     .btn-hide:hover { background: #f1948a; }
 
     /* MODAL */
@@ -700,7 +714,7 @@
     .modal-btn:disabled { opacity: .3; cursor: not-allowed; }
     .modal-btn-price { background: var(--amarillo); color: #000; }
     .modal-btn-price:hover:not(:disabled) { background: var(--amarillo-claro); }
-    .modal-btn-danger { background: #e74c3c; color: #fff; }
+    .modal-btn-danger { background: var(--rojo-fondo); color: #fff; }   /* 3,82 → 5,89 */
     .modal-btn-danger:hover:not(:disabled) { background: #c0392b; }
     .modal-success {
       font-size: .75rem; color: #2ecc71; text-align: center; margin-top: .5rem; min-height: 1.2rem;
@@ -1185,6 +1199,14 @@
       --gris: #6b6b6b;
       --gris-claro: #3a3a3a;
       --borde: rgba(0,0,0,.10);
+      /* [TEMA-CLARO] crema PLANO, no degradado: el degradado caía a 4,54 en el extremo
+         de abajo, menos aire que el rojo tinta. Plano además es un solo valor = un token. */
+      --stat-fondo: #fffaf0;
+      --stat-borde: rgba(184,140,0,.35);
+      --stat-tinta: #8a6d00;
+      --stat-tinta-out: #b8342a;
+      --stat-tinta-perfumes: #1c699d;
+      --stat-tinta-inv: #1e5b3a;
       background: var(--negro);
       color: #1a1a1a;
     }
@@ -1259,7 +1281,9 @@
     body.light .combo-item,
     body.light .client-card,
     body.light .cliente-card,
-    body.light .stat-card,
+    /* [TEMA-CLARO] .stat-card salió de este grupo: en claro va crema (--stat-fondo).
+       Los otros cinco quedan BLANCOS a propósito — el modo claro tiene dos superficies:
+       tarjetas crema arriba, listas blancas abajo. No se pelea !important con !important. */
     body.light .opinion-card,
     body.light .edit-log-item,
     body.light .audit-row,
@@ -1342,8 +1366,8 @@
       body.role-empleado .stock-stats { grid-template-columns: 1fr; }
     }
     .stat-card {
-      background: linear-gradient(180deg, #131316 0%, #101013 100%);
-      border: 1px solid var(--borde);
+      background: var(--stat-fondo);
+      border: 1px solid var(--stat-borde);
       border-radius: 8px;
       padding: .75rem .9rem;
       position: relative;
@@ -1367,14 +1391,14 @@
     .stat-value {
       font-family: var(--font-display, inherit);
       font-size: 1.4rem; font-weight: 700;
-      color: var(--amarillo);
+      color: var(--stat-tinta);
       letter-spacing: -.5px;
       line-height: 1.1;
       margin-bottom: .15rem;
     }
-    .stat-card.stat-out .stat-value { color: #e74c3c; }
-    .stat-card.stat-perfumes .stat-value { color: #5dade2; }
-    .stat-card.stat-value-inv .stat-value { color: #2ecc71; }
+    .stat-card.stat-out .stat-value { color: var(--stat-tinta-out); }
+    .stat-card.stat-perfumes .stat-value { color: var(--stat-tinta-perfumes); }
+    .stat-card.stat-value-inv .stat-value { color: var(--stat-tinta-inv); }
     .stat-label {
       font-size: .58rem;
       letter-spacing: .1em;
@@ -1384,10 +1408,10 @@
     }
 
     /* Light mode */
-    body.light .stat-card {
-      background: linear-gradient(180deg, #fffaf0 0%, #fff5e0 100%);
-      border-color: rgba(184,140,0,.2);
-    }
+    /* [TEMA-CLARO] El fondo crema y el borde llegan por --stat-fondo / --stat-borde.
+       Este color lo traía el grupo de arriba (sin !important) y tiene que viajar con la clase:
+       sin él, el texto de las tarjetas heredaría lo que venga. */
+    body.light .stat-card { color: #1a1a1a; }
     body.light .stat-card .stat-label { color: #555; }
 
     /* ============================================================
@@ -4099,6 +4123,17 @@
     var editingDepSlug = null;
     var depPrevQty = 0; // [DEP-SUMAR] cantidad de depósito al abrir el modal
 
+    // [ESCALA-8-A-6] El Depósito usa la escala compartida de badges. Nunca rojo ni
+    // "Último": esos hablan de vender y el depósito no vende. 0 es "no hay nada para
+    // traer", no una emergencia → gris. Fondo y texto viajan en la clase: nada inline,
+    // así body.light no lo pisa (era el bug de 2,17 / 1,53 en claro).
+    function deriveDepositoInfo(d) {
+      if (d === 0) return { badgeClass: 'badge-paused', badgeText: 'Vacío' };
+      if (d <= 2)  return { badgeClass: 'badge-low',    badgeText: d + ' u.' };
+      if (d === 3) return { badgeClass: 'badge-mid',    badgeText: '3 u.' };
+      return           { badgeClass: 'badge-ok',     badgeText: d + ' u.' };
+    }
+
     function depQty(p) {
       return (typeof p._stockDeposito === 'number') ? p._stockDeposito : 0;
     }
@@ -4145,6 +4180,7 @@
       list.forEach(function(p) {
         var d = depQty(p);
         var info = deriveStockInfo(p);
+        var dep = deriveDepositoInfo(d);
         var searchStr = ((p.name || '') + ' ' + (p.marca || '') + ' ' +
                          (p.marca_real || '') + ' ' + (p.alias || '')).toLowerCase().replace(/"/g, '');
         var alerta = depParaReponer(p)
@@ -4154,9 +4190,8 @@
             // [DEPOSITO-LOCAL-CLICK] La badge de Local abre el MISMO modal de Precios & Stock.
             '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock local" ' +
               'onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>' +
-            '<td class="td-stock"><span class="badge-stock" style="cursor:pointer;user-select:none;background:' +
-              (d > 0 ? '#1e5b3a' : '#3a3a3a') + ';color:#fff;" title="Tocá para cambiar" ' +
-              'onclick="openDepositoModal(\'' + p.slug + '\')">' + d + ' u.</span></td>' +
+            '<td class="td-stock"><span class="badge-stock ' + dep.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar" ' +
+              'onclick="openDepositoModal(\'' + p.slug + '\')">' + dep.badgeText + '</span></td>' +
           '</tr>';
       });
       tbody.innerHTML = html;
