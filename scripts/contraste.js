@@ -182,6 +182,16 @@ function efectivo(rs, target, prefijos, prop, capas) {
       var fg = efectivo(rs, t[1], c.pref, 'color', c.capas);
       medir({ superficie: 'panel', tema: tema, rol: 'tinta', nombre: t[0], texto: fg.hex[0], fondos: card.hex, impone: fg.impone, pisado: fg.pisado });
     });
+    // [LOG-EMPLEADA] Las filas del Log viven sobre --superficie (listas: blancas en claro).
+    // El texto principal no declara color: hereda del body, que en claro pone #1a1a1a.
+    var sup = efectivo(rs, '.log-item', c.pref, 'background', c.capas);
+    var heredado = tema === 'claro' ? (efectivo(rs, 'body.light', [], 'color', c.capas).hex[0] || '#1a1a1a') : '#ffffff';
+    [['.log-item (texto)', null, heredado], ['.log-hora / .log-accion', '.log-hora', null],
+     ['.log-old (salió)', '.log-old', null], ['.log-new (entró)', '.log-new', null],
+     ['.log-deposito (acción)', '.log-item.log-deposito .log-accion', null], ['.log-dia', '.log-dia', null]].forEach(function (t) {
+      var hex = t[2] ? [t[2]] : efectivo(rs, t[1], c.pref, 'color', c.capas).hex;
+      medir({ superficie: 'panel', tema: tema, rol: 'log', nombre: t[0], texto: hex[0], fondos: sup.hex, impone: t[2] ? 'heredado del body' : efectivo(rs, t[1], c.pref, 'color', c.capas).impone });
+    });
   });
 })();
 
