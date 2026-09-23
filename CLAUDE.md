@@ -271,6 +271,7 @@ Definido en la lógica de admin.html (`currentRole`).
 
 - **`[CLIENTES-PRUEBA]`** — borrar `549000000000[12]` (Test QA, de la verificación de S2) desde "Eliminar definitivamente" del panel; de paso prueba `clientes_delete_auth`. Lo hace Alejo.
 - **`[LOGIN-INTENTOS-CLEANUP]`** — `pg_cron` que borre de `cliente_login_intentos` las filas de más de un día (crece con cada intento fallido de cualquier número, exista o no).
+- **`[MEDIR-TEMP-SWEEP]`** (22-sep, salió de `[LOG-EMPLEADA]`) — `scripts/medir_targets.js` crea un perfil temporal por corrida (`%TEMP%st-medir-*`) y el borrado final está en un `try/catch`: en Windows el perfil suele quedar bloqueado por procesos hijos de Chromium que sobreviven al `kill` del padre, así que **se acumulan**. El 22-sep había **28 carpetas = 3 GB** y `C:` había bajado a 14 GB libres (se limpiaron a mano: 128 procesos zombis terminados y las 28 carpetas borradas → 25 GB). Fix: al arrancar, barrer los `st-medir-*` propios que no estén en uso. Sin apuro.
 - **`[RESET-TEMP-PASSWORD-MUERTA]`** (17-sep) — `password_reset_requests.temp_password` es **columna muerta** (reservada en `[FORGOT-PASS-A]`, el panel nunca la usa): dropearla o documentarla como no usada en `DATABASE.md`.
 - **`[DC-HEADER-600]`** — el mini-header de columnas del grid de decants de diseñador (`admin.html` ~L2687) asoma −43 px a 600 y no sigue el stack de `.dc-row`.
 - **`[DECANT-TOPE-CONTADOR]`** — el contador de perfumes "a consultar" del armador infla (7 mostrados, 6 reales): restar los que tienen decant custom.
