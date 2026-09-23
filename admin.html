@@ -3240,7 +3240,6 @@
     // (el endpoint de Vercel la valida server-side). El login del panel ya NO
     // compara contra este string — autentica contra Supabase Auth.
     var ADMIN_PASS = 'SANTOMY2026';
-    var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO';
     var SUPABASE_URL = 'https://znmjhproimtprptheumy.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_Bb4Jo74f4Wh7vhzAKz8ODg_4Upk6cvb';
     // storageKey propio para que la sesión del admin NO contamine el cliente
@@ -3689,8 +3688,8 @@
         var noReg = r.cliente_id ? '' : ' <span style="color:#e67e22;font-size:.75rem;">(número no registrado)</span>';
         var nombre = (r.clientes && r.clientes.nombre) ? escapeHtml(r.clientes.nombre) : '';
         var ident = nombre
-          ? '<strong style="font-size:1rem;">👤 ' + nombre + '</strong>' + noReg + '<br><span style="color:#bbb;font-size:.85rem;">📞 ' + r.telefono + '</span>'
-          : '<strong style="font-size:1rem;">📞 ' + r.telefono + '</strong>' + noReg;
+          ? '<strong style="font-size:1rem;">👤 ' + nombre + '</strong>' + noReg + '<br><span style="color:#bbb;font-size:.85rem;">📞 ' + escapeHtml(r.telefono) + '</span>'
+          : '<strong style="font-size:1rem;">📞 ' + escapeHtml(r.telefono) + '</strong>' + noReg;
         var resetBtn = r.cliente_id
           ? '<button class="action-btn btn-price" onclick="resetClientePass(\'' + r.id + '\',\'' + r.cliente_id + '\',\'' + tel + '\')">🔓 Resetear contraseña</button>'
           : '';
