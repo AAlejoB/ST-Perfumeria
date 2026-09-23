@@ -590,6 +590,7 @@
       var bi = document.getElementById('boardInput');
       if (bi) bi.placeholder = 'Ej: El 9 AM me dura todo el día, increíble...';
       loadFavsFromSupabase();
+      syncWaitlistFromDB();
       unlockVoting();
       setTimeout(initMiSeleccion, 500);
     }
@@ -597,6 +598,9 @@
     function onLogout() {
       currentUser = null;
       localStorage.removeItem('st_cliente');
+      // [ESPERA-SEGURA] La lista de espera es de ESTE cliente: no queda en el dispositivo al salir.
+      localStorage.removeItem('st_waitlist');
+      waitlistSlugs = [];
       favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
       updateAuthUI();
       var bi = document.getElementById('boardInput');
@@ -4202,6 +4206,26 @@
     // ============================================================
     var waitlistSlugs = JSON.parse(localStorage.getItem('st_waitlist') || '[]');
 
+    // [ESPERA-SEGURA] El "✓ Te avisamos" sale de la base (decisión 46): los perfumes que este teléfono
+    // tiene PENDIENTES. st_waitlist queda como caché para el primer pintado. Si la RPC falla o no existe,
+    // se sigue con la caché; si la base cambió algo, se repinta (mismo patrón que loadFavsFromSupabase).
+    async function syncWaitlistFromDB() {
+      if (!currentUser || !currentUser.telefono) return;
+      var tel = currentUser.telefono;
+      try {
+        var res = await sb.rpc('lista_espera_pendientes', { p_telefono: tel });
+        if (res.error || !Array.isArray(res.data)) return;
+        if (!currentUser || currentUser.telefono !== tel) return;   // salió o cambió de cuenta mientras tanto
+        var nuevos = res.data.filter(function(s) { return typeof s === 'string'; });
+        var antes = JSON.stringify((waitlistSlugs || []).slice().sort());
+        waitlistSlugs = nuevos;
+        localStorage.setItem('st_waitlist', JSON.stringify(waitlistSlugs));
+        // Si el catálogo todavía no se pintó, la primera pintada (la de después de los overrides) ya usa esta
+        // lista: repintar antes mostraría por un instante el seed sin overrides, pausados incluidos.
+        if (JSON.stringify(nuevos.slice().sort()) !== antes && document.querySelector('#catalogGrid .product-card')) renderCatalog();
+      } catch(e) {}
+    }
+
     function openWaitlist(slug, e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
       // Solo usuarios registrados pueden anotarse en la lista de espera.
@@ -4284,27 +4308,11 @@
       btn.disabled = true;
 
       try {
-        // Verificar si ya está en lista para este perfume
-        var existing = await sb.from('lista_espera').select('id').eq('slug', slug).eq('telefono', phone).limit(1);
-        if (existing.error) {
-          console.error('[waitlist] SELECT falló:', existing.error);
-          msgEl.style.color = '#e74c3c';
-          msgEl.textContent = 'Error al consultar: ' + existing.error.message;
-          btn.disabled = false;
-          return;
-        }
-        if (existing.data && existing.data.length > 0) {
-          msgEl.style.color = 'var(--amarillo)';
-          msgEl.textContent = '\u00a1Ya est\u00e1s en la lista! Te avisamos cuando vuelva.';
-          markWaitlistSlug(slug);
-          setTimeout(function() { closeWaitlist(); }, 1800);
-          btn.disabled = false;
-          return;
-        }
-
         var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
         var nombre = currentUser ? currentUser.nombre : '';
 
+        // [ESPERA-SEGURA] El catálogo ya no lee lista_espera (anon no puede): inserta directo, y el índice
+        // único parcial (slug, telefono) WHERE notified_at IS NULL responde 23505 si ya estaba pendiente.
         var res = await sb.from('lista_espera').insert({
           slug: slug,
           telefono: phone,
@@ -4312,6 +4320,14 @@
           perfume_name: perfume ? perfume.name : slug
         });
 
+        if (res.error && res.error.code === '23505') {
+          msgEl.style.color = 'var(--amarillo)';
+          msgEl.textContent = '\u00a1Ya est\u00e1s en la lista! Te avisamos cuando vuelva.';
+          markWaitlistSlug(slug);
+          setTimeout(function() { closeWaitlist(); }, 1800);
+          btn.disabled = false;
+          return;
+        }
         if (res.error) {
           msgEl.style.color = '#e74c3c';
           msgEl.textContent = 'Error: ' + res.error.message;
