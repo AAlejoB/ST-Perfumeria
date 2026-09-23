@@ -1893,7 +1893,7 @@
         var alreadyWaiting = waitlistSlugs.indexOf(p.slug) !== -1;
         if (alreadyWaiting) {
           waitlistHTML = '<button class="waitlist-btn subscribed" onclick="openWaitlist(\'' + p.slug + '\', event)">'
-            + '<span class="waitlist-ico waitlist-ico--check">&#10003;</span>'
+            + '<span class="waitlist-ico waitlist-ico--check">&#10003;</span> '
             + '<span class="waitlist-label">Te avisamos cuando vuelva</span>'
           + '</button>';
         } else {
@@ -4204,7 +4204,19 @@
     // ============================================================
     // LISTA DE ESPERA — Sin stock / Pausados
     // ============================================================
-    var waitlistSlugs = JSON.parse(localStorage.getItem('st_waitlist') || '[]');
+    // [ESPERA-SEGURA] Sin cliente no hay ✓: la caché puede ser de alguien que salió antes de v1.1.114 (el
+    // onLogout viejo no la borraba). Con cliente sirve sólo para el primer pintado; después manda la base.
+    // currentUser ya está resuelto acá: la sesión se restaura más arriba, antes de que corra esta línea.
+    var waitlistSlugs = [];
+    if (currentUser) {
+      try { waitlistSlugs = JSON.parse(localStorage.getItem('st_waitlist') || '[]'); } catch (e) { waitlistSlugs = []; }
+    } else {
+      try { localStorage.removeItem('st_waitlist'); } catch (e) {}
+    }
+    // Lo que markWaitlistSlug marca mientras la RPC está en vuelo (la respuesta no lo trae). SIN inicializador
+    // a propósito: la primera sincronización arranca desde onLogin, antes de que se ejecute esta línea, y un
+    // "= null" acá pisaría el array que ella ya abrió.
+    var waitlistMarcadosDurante;
 
     // [ESPERA-SEGURA] El "✓ Te avisamos" sale de la base (decisión 46): los perfumes que este teléfono
     // tiene PENDIENTES. st_waitlist queda como caché para el primer pintado. Si la RPC falla o no existe,
@@ -4212,18 +4224,24 @@
     async function syncWaitlistFromDB() {
       if (!currentUser || !currentUser.telefono) return;
       var tel = currentUser.telefono;
+      waitlistMarcadosDurante = [];
       try {
         var res = await sb.rpc('lista_espera_pendientes', { p_telefono: tel });
         if (res.error || !Array.isArray(res.data)) return;
         if (!currentUser || currentUser.telefono !== tel) return;   // salió o cambió de cuenta mientras tanto
         var nuevos = res.data.filter(function(s) { return typeof s === 'string'; });
+        // Lo que el cliente anotó mientras la RPC estaba en vuelo no viene en la respuesta: se conserva.
+        (waitlistMarcadosDurante || []).forEach(function(s) { if (nuevos.indexOf(s) === -1) nuevos.push(s); });
         var antes = JSON.stringify((waitlistSlugs || []).slice().sort());
         waitlistSlugs = nuevos;
         localStorage.setItem('st_waitlist', JSON.stringify(waitlistSlugs));
         // Si el catálogo todavía no se pintó, la primera pintada (la de después de los overrides) ya usa esta
         // lista: repintar antes mostraría por un instante el seed sin overrides, pausados incluidos.
         if (JSON.stringify(nuevos.slice().sort()) !== antes && document.querySelector('#catalogGrid .product-card')) renderCatalog();
-      } catch(e) {}
+      } catch(e) {
+      } finally {
+        waitlistMarcadosDurante = null;
+      }
     }
 
     function openWaitlist(slug, e) {
@@ -4245,18 +4263,16 @@
       document.getElementById('waitlistPhonePreview').textContent = '';
       document.getElementById('waitlistSubmitBtn').disabled = false;
 
-      // Pre-llenar teléfono si está logueado (mostrar solo los 10 dígitos locales)
+      // [ESPERA-SEGURA] El teléfono de la lista es el de la cuenta, y se muestra como texto, no como campo
+      // (DISEÑADOR: "una caja que no deja escribir parece rota"). El input queda en el DOM, oculto.
       var phoneInput = document.getElementById('waitlistPhone');
-      if (currentUser && currentUser.telefono) {
-        var tel = currentUser.telefono;
-        // Si tiene 549 al inicio, quitar para mostrar solo la parte local
-        if (tel.substring(0, 3) === '549') tel = tel.substring(3);
-        else if (tel.substring(0, 2) === '54') tel = tel.substring(2);
-        phoneInput.value = tel;
-        previewWaitlistPhone();
-      } else {
-        phoneInput.value = '';
-      }
+      var tel = String(currentUser.telefono || '');
+      if (tel.substring(0, 3) === '549') tel = tel.substring(3);
+      else if (tel.substring(0, 2) === '54') tel = tel.substring(2);
+      phoneInput.value = tel;
+      var wrap = document.querySelector('#waitlistOverlay .waitlist-input-wrap');
+      if (wrap) wrap.style.display = 'none';
+      document.getElementById('waitlistPhonePreview').innerHTML = 'Te avisamos al <strong>' + escapeHTML(formatPhoneDisplay(tel)) + '</strong> \u00b7 el de tu cuenta';
 
       document.getElementById('waitlistOverlay').classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -4285,7 +4301,9 @@
 
     async function submitWaitlist() {
       var slug = document.getElementById('waitlistSlug').value;
-      var rawPhone = document.getElementById('waitlistPhone').value.trim();
+      // [ESPERA-SEGURA] El teléfono es el de la cuenta, no el del input (ahora oculto). Las validaciones de
+      // abajo quedan como defensa.
+      var rawPhone = String((currentUser && currentUser.telefono) || '').trim();
       var msgEl = document.getElementById('waitlistMsg');
       var btn = document.getElementById('waitlistSubmitBtn');
       msgEl.textContent = '';
@@ -4298,7 +4316,9 @@
         msgEl.textContent = 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
         return;
       }
-      var phone = cleanPhone(rawPhone);
+      // Ya viene canónico (549 + 10 dígitos: los 99 clientes). cleanPhone sobre eso le borra un "15" legítimo
+      // del medio a 2 de ellos y no podrían anotarse; sólo se limpia si no tiene esa forma.
+      var phone = /^549\d{10}$/.test(rawPhone) ? rawPhone : cleanPhone(rawPhone);
       if (phone.length !== 13) {
         msgEl.style.color = '#e74c3c';
         msgEl.textContent = 'El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)';
@@ -4360,6 +4380,7 @@
     }
 
     function markWaitlistSlug(slug) {
+      if (waitlistMarcadosDurante) waitlistMarcadosDurante.push(slug);   // hay una sincronización en vuelo
       if (waitlistSlugs.indexOf(slug) === -1) {
         waitlistSlugs.push(slug);
         localStorage.setItem('st_waitlist', JSON.stringify(waitlistSlugs));
