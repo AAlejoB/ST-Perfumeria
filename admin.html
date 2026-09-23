@@ -1580,8 +1580,8 @@
     .log-accion { flex: 0 0 auto; font-size: .66rem; color: var(--gris); white-space: nowrap; }
     .log-item.log-deposito .log-accion { color: var(--stat-tinta-perfumes); }
     .log-cambio { flex: 0 0 auto; font-size: .68rem; white-space: nowrap; }
-    .log-old { color: var(--stat-tinta-out); text-decoration: line-through; }
-    .log-new { color: var(--stat-tinta-inv); font-weight: 700; }
+    .log-old { color: var(--gris); text-decoration: line-through; }   /* decisión 41: la fila no opina */
+    .log-new { font-weight: 700; }                                      /* hereda el texto del tema */
     .log-corona { flex: 0 0 auto; font-size: .8rem; }
     .log-vacio, .log-pie { font-size: .68rem; color: var(--gris); text-align: center; padding: 1.2rem .6rem; }
     .log-pie { padding: .8rem .6rem 0; }
@@ -9553,6 +9553,11 @@
 
     function auditValueLabel(k, v) {
       if (v === null || v === undefined || v === '') return 'vacío';
+      // [LOG-PRECIO-PESOS] Un precio se lee en pesos: '$' + punto de miles. formatPriceAdmin también
+      // entiende el '85,000.00' del seed. Si el valor no es numérico, sigue como siempre.
+      if ((k === 'price' || k === 'promo' || k === 'Precio' || k === 'Promo') && !isNaN(parseFloat(String(v).replace(/,/g, '')))) {
+        return '$' + formatPriceAdmin(v);
+      }
       var mapa = AUDIT_VALUE_LABELS[k];
       if (mapa && mapa[v] != null) return mapa[v];
       return String(v);
@@ -9697,19 +9702,28 @@
     function logCambio(e) {
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
+      function esPar(v) { return v && typeof v === 'object' && 'old' in v && 'new' in v; }
+      function par(campo, v) { return '<span class="log-old">' + escHtml(auditValueLabel(campo, v.old)) + '</span> → <span class="log-new">' + escHtml(auditValueLabel(campo, v.new)) + '</span>'; }
       var campo = e.action === 'deposito_update' ? 'stock_deposito' : (e.action === 'stock_update' ? 'stock_qty' : null);
       var v = campo && c[campo];
-      if (v && typeof v === 'object' && 'old' in v && 'new' in v) {
-        return '<span class="log-old">' + escHtml(auditValueLabel(campo, v.old)) + '</span> → <span class="log-new">' + escHtml(auditValueLabel(campo, v.new)) + '</span>';
+      if (esPar(v)) return par(campo, v);
+      // [LOG-PRECIO-PESOS] price_update: la acción ya dice "💰 Precio", así que no se repite la
+      // etiqueta. La promo aparece sólo si cambió (sin esto salía "Promo: vacío → vacío").
+      if (e.action === 'price_update' && esPar(c.price)) {
+        var txt = par('price', c.price);
+        if (esPar(c.promo) && String(c.promo.old) !== String(c.promo.new)) txt += ' · Promo ' + par('promo', c.promo);
+        return txt;
       }
       return auditFormatChanges(c);
     }
-    function logItem(e, idem) {
+    // modo: 'nombre' (el perfume) · 'idem' (〃: el anterior en pantalla es el mismo perfume) ·
+    // 'sin' (no se emite: en "Por perfume" el nombre ya es el encabezado del grupo — decisión 39).
+    function logItem(e, modo) {
       var label = AUDIT_ACTION_LABELS[e.action] || { icon: '•', label: String(e.action).replace(/_/g, ' ') };
       var dep = e.action === 'deposito_update' ? ' log-deposito' : '';
       return '<div class="log-item' + dep + '">'
         + '<span class="log-hora">' + escHtml(logHoraARG(e.created_at)) + '</span>'
-        + '<span class="log-nombre' + (idem ? ' log-nombre-idem' : '') + '">' + (idem ? '〃' : escHtml(logNombre(e))) + '</span>'
+        + (modo === 'sin' ? '' : '<span class="log-nombre' + (modo === 'idem' ? ' log-nombre-idem' : '') + '">' + (modo === 'idem' ? '〃' : escHtml(logNombre(e))) + '</span>')
         + '<span class="log-accion">' + label.icon + ' ' + escHtml(label.label) + '</span>'
         + '<span class="log-cambio">' + logCambio(e) + '</span>'
         + (e.actor_email === JEFE_EMAIL ? '<span class="log-corona" title="Jefe">👑</span>' : '')
@@ -9746,7 +9760,7 @@
           return cabeza + grupos.map(function(k) {
             var nombre = k === '__panel__' ? 'Panel' : (auditPerfumeName(k) || k);
             return '<div class="log-perfume-grupo">' + escHtml(nombre) + '</div>'
-                 + porSlug[k].map(function(e) { return logItem(e, true); }).join('');
+                 + porSlug[k].map(function(e) { return logItem(e, 'sin'); }).join('');
           }).join('');
         }
         // Cronológico: si el evento anterior EN PANTALLA es del mismo perfume, 〃.
@@ -9754,7 +9768,7 @@
         return cabeza + delDia.map(function(e) {
           var idem = previo !== null && e.target_slug && previo === e.target_slug;
           previo = e.target_slug || null;
-          return logItem(e, idem);
+          return logItem(e, idem ? 'idem' : 'nombre');
         }).join('');
       }).join('');
       cont.innerHTML = html;
