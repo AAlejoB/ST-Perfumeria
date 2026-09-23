@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 23, 2026 (tarde)** — **S15, S16 y S17 RESUELTOS** en v1.1.114: el dominio ya no sirve los documentos internos (`.vercelignore`), el teléfono de "Pedidos pass" se escapa y la RPC del reset valida dígitos (`[XSS-PEDIDOS-PASS]`), y `anon` ya no lee `lista_espera` (`[ESPERA-SEGURA]`). **S1:** contraseñas rotadas el 19-sep, queda sólo `ADMIN_PASS` (→ `[VERCEL-ENV-VARS]`). **S18 abierto** (`[S10-TER-XSS-COMBOS]`, 🟠, sólo escribible por el panel).
+> **Última actualización:** **Septiembre 23, 2026 (noche)** — **S5 y S19 resueltos:** la DB password de São Paulo se rotó (Alejo) y el registro de Supabase Auth quedó apagado (`disable_signup: true`). **Regla nueva:** los agujeros abiertos van con la keyword sola (§ 📏). Backup local de las fotos hecho (S8 sigue abierto). S18 queda sólo con la keyword.
+>
+> **Antes (23-sep, tarde):** — **S15, S16 y S17 RESUELTOS** en v1.1.114: el dominio ya no sirve los documentos internos (`.vercelignore`), el teléfono de "Pedidos pass" se escapa y la RPC del reset valida dígitos (`[XSS-PEDIDOS-PASS]`), y `anon` ya no lee `lista_espera` (`[ESPERA-SEGURA]`). **S1:** contraseñas rotadas el 19-sep, queda sólo `ADMIN_PASS` (→ `[VERCEL-ENV-VARS]`). **S18 abierto** (`[S10-TER-XSS-COMBOS]`, 🟠, sólo escribible por el panel).
 >
 > **Antes (20-sep-2026):** — **S10 y S10-bis RESUELTOS** (stored XSS del panel admin: Clientes `f457b89`, Lista de espera + Opiniones `033ab70`/`ce52def`, SW v1.1.104). De yapa, `[WA-LINK-549-DUPLICADO]` (no es seguridad) también resuelto. Antes: 17-sep (**S2 RESUELTO** · `[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side; token de Telegram y chat_id sacados de este doc y rotado; regla nueva de no llevar valores de credenciales; S13 nuevo). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
 > **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
@@ -14,6 +16,8 @@
 > Un doc de seguridad describe **dónde vive** una credencial (archivo, línea, función SQL, env var), **nunca su valor**. Ni "para documentar la fuga", ni entre comillas, ni parcial. El repo es público y git no olvida: lo que se pega una vez queda en el historial para siempre, y la única salida es rotar la credencial.
 >
 > Aprendido el 17-sep-2026: § S3 tenía el token real del bot de Telegram y el chat_id escritos completos desde mayo. Se enmascararon y se rotó el token. Vale para `docs/`, `memory/`, `RECOMENDACIONES_CLAUDECHAT/`, commits y chats. Si un valor hace falta para ejecutar algo, se copia **directo** de donde vive (Supabase → Vercel), no por acá. **Vale también para capturas de pantalla** (19-sep: una captura del SQL Editor mostró el token y hubo que rotarlo de nuevo): antes de mandar una imagen, tapar el valor. Y "verificado" para una credencial significa **un uso exitoso** (un mensaje entregado, un login que entra), no un hash del cuerpo de la función.
+>
+> **Agujeros abiertos (decisión de Alejo, 23-sep-2026):** mientras un agujero esté abierto, en el repo va **la keyword sola**; la descripción (dónde, cómo, archivo:línea) entra cuando se cierra. El repo de GitHub es público: describir un agujero abierto es publicar el mapa. El detalle vive fuera del repo, en `D:\workspace\_correo_agentes\`.
 
 ---
 
@@ -214,11 +218,15 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ### **S5 · DB passwords de ambos proyectos expuestas en chat**
 
+> ✅ **ESTADO: RESUELTO 23-sep-2026 (São Paulo).** Alejo rotó la DB password del proyecto activo; el sitio, el panel y la API siguieron en 200 y ningún código usa conexión directa a Postgres (0 `postgres://`/`DATABASE_URL`/pooler fuera de docs). El reset desde el dashboard no deja línea en `postgres_logs`. Oregon está pausado (`INACTIVE`): se rota o se borra con la decisión sobre ese proyecto. Los valores viejos se sacaron de este archivo el mismo día (quedan en la historia de git, ya sin valor).
+>
+> Lo que sigue abajo es el análisis original, se conserva como historia.
+
 **Severidad:** 🟡 ALTA · expuestas en chat de Claude Code de esta sesión (que va al servidor de Anthropic).
 
 **Donde están:**
-- DB password del proyecto viejo (`AxOWb4YU8YYVRLrQ`) · pegada en chat para que pueda hacer `pg_dump`
-- DB password del proyecto nuevo (`e7SHNHvN68nekCMN`) · pegada en chat para que pueda hacer `psql`
+- DB password del proyecto viejo (`<valor>` · proyecto pausado) · pegada en chat para que pueda hacer `pg_dump`
+- DB password del proyecto nuevo (`<valor>` · rotada el 23-sep-2026) · pegada en chat para que pueda hacer `psql`
 
 **Quién puede acceder:**
 - Anthropic (logs internos de las conversaciones de Claude · políticas estrictas pero técnicamente accesible)
@@ -409,11 +417,17 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 
 ---
 
-### **S18 · `[S10-TER-XSS-COMBOS]` · Los datos de `combos` se pintan sin escapar · 🟠 ABIERTO**
+### **S18 · `[S10-TER-XSS-COMBOS]` · 🟠 ABIERTO**
 
-**Severidad:** 🟠 · sólo explotable con una cuenta del panel (`combos_write_staff`: jefe y empleada; la cuenta de empleada es compartida), pero lo que se guarda se ejecuta en el panel del jefe **y en el sitio público para cualquier visitante**.
+> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
 
-> **Dónde:** en el panel, `loadCombos` (nombre, categoría, nombres y ml de los ítems, lista de ítems rotos, precio y promo vía `formatPriceAdmin`, que devuelve el valor crudo si no es número, y el slug dentro de 4 `onclick`), `renderDestacados` (corre al loguearse) y el top-10 de Estadísticas; en el sitio (`js/app.js`), `renderSets`, la hoja de detalle, Vistos recientemente, el carrito, el splash, el comparador, Selección ST y `showSimilares`. ~19 lugares en el panel y ~30 en el sitio. **Arreglo:** mecánico, `escapeHtml` en el panel, `escapeHTML` (mayúsculas, `js/app.js`) en el sitio, y `escapeHTML(JSON.stringify(x))` **sin** las comillas simples de alrededor en los `onclick` (con `escapeHTML` solo, la comilla se decodifica antes de que corra el JS). Alternativa que cambia comportamiento: que `loadCombosFromDB` no reemplace a un perfume con el mismo slug. **Hoy:** las 5 filas no tienen ningún carácter peligroso. El inventario con archivo:línea vive fuera del repo. Tanda propia con bump, cuando Alejo la ponga en la fila.
+---
+
+### **S19 · `[SIGNUP-ABIERTO]` · El registro de Supabase Auth estaba abierto · ✅ RESUELTO 23-sep-2026**
+
+**Severidad:** 🔴 mientras duró · lo encontró el repaso de Pendientes (23-sep).
+
+> ✅ **ESTADO: RESUELTO** · `GET /auth/v1/settings` daba `disable_signup: false` con el proveedor de email habilitado (confirmación por mail). Una cuenta confirmada quedaba como `authenticated` y heredaba todas las políticas que usan ese rol como si fuera staff (entre ellas, leer `clientes`). Alejo apagó *Allow new users to sign up* y se verificó `disable_signup: true`; el login por email del panel sigue andando. La tercera cuenta de `auth.users` (gmail, 20-mar-2026) es de Alejo. Queda relacionado: `[AUTH-ES-STAFF]` (inventario de las políticas que confían en el rol).
 
 ---
 
@@ -437,6 +451,8 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 ---
 
 ### **S8 · Bucket Storage `perfume-fotos` con policies muy permisivas**
+
+> 🔁 **23-sep-2026:** sigue abierto (`[S8-STORAGE-ANON]`). Backup local hecho antes de cerrarlo: 165/165 objetos, 8.689.933 bytes (igual que `storage.objects`), con sha256. El cierre lo arma el PREPARADOR.
 
 **Severidad:** 🟢 MEDIA · permite anon upload/delete.
 
@@ -488,6 +504,7 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 | `perfume_clicks_resumen()` con `EXECUTE` para `anon` (`[CLICKS-RESUMEN]`, 20-sep-2026) | ✓ A propósito — `SECURITY DEFINER`, devuelve sólo `(slug, clicks)` agregado por `GROUP BY`, nunca las filas crudas de `perfume_clicks`. Existe porque la RLS de `SELECT` de esa tabla exige `authenticated` y el catálogo público necesita el conteo agregado para ordenar "más visitados". Verificado en producción: `anon=true`, `authenticated=true`, `public=false`. Detalle en `docs/DATABASE.md`. |
 | `lista_espera_pendientes()` con `EXECUTE` para `anon` (`[ESPERA-SEGURA]`, 23-sep-2026) | ✓ A propósito — `SECURITY DEFINER`, devuelve sólo los slugs **pendientes** de un teléfono y valida `^[0-9]{8,15}$`; es lo único que el catálogo lee de `lista_espera` |
 | `.vercelignore` (`[DOCS-PUBLICOS]`, 23-sep-2026) | ✓ Docs, SQL, memoria, herramientas y `*.md` fuera del deploy — verificado con 404 |
+| Registro de Supabase Auth apagado (`[SIGNUP-ABIERTO]`, 23-sep-2026) | ✓ `disable_signup: true`; las cuentas del panel se crean a mano |
 
 ---
 
