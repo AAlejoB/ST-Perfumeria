@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 20, 2026** — **S10 y S10-bis RESUELTOS** (stored XSS del panel admin: Clientes `f457b89`, Lista de espera + Opiniones `033ab70`/`ce52def`, SW v1.1.104). De yapa, `[WA-LINK-549-DUPLICADO]` (no es seguridad) también resuelto. Antes: 17-sep (**S2 RESUELTO** · `[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side; token de Telegram y chat_id sacados de este doc y rotado; regla nueva de no llevar valores de credenciales; S13 nuevo). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
+> **Última actualización:** **Septiembre 23, 2026 (tarde)** — **S15, S16 y S17 RESUELTOS** en v1.1.114: el dominio ya no sirve los documentos internos (`.vercelignore`), el teléfono de "Pedidos pass" se escapa y la RPC del reset valida dígitos (`[XSS-PEDIDOS-PASS]`), y `anon` ya no lee `lista_espera` (`[ESPERA-SEGURA]`). **S1:** contraseñas rotadas el 19-sep, queda sólo `ADMIN_PASS` (→ `[VERCEL-ENV-VARS]`). **S18 abierto** (`[S10-TER-XSS-COMBOS]`, 🟠, sólo escribible por el panel).
+>
+> **Antes (20-sep-2026):** — **S10 y S10-bis RESUELTOS** (stored XSS del panel admin: Clientes `f457b89`, Lista de espera + Opiniones `033ab70`/`ce52def`, SW v1.1.104). De yapa, `[WA-LINK-549-DUPLICADO]` (no es seguridad) también resuelto. Antes: 17-sep (**S2 RESUELTO** · `[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side; token de Telegram y chat_id sacados de este doc y rotado; regla nueva de no llevar valores de credenciales; S13 nuevo). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
 > **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
 >
 > **Audiencia:** Alejo + Claude Code de próximas sesiones. Cuando arranque la sesión `[SECURITY-AUDIT-S1]`, **leer este archivo primero.**
@@ -18,6 +20,10 @@
 ## 🚨 Issues CRÍTICOS · fix URGENTE (1-2 días)
 
 ### **S1 · Passwords del admin HARDCODED en HTML público**
+
+> 🔁 **ESTADO 23-sep-2026 · contraseñas rotadas, queda sólo código.** Alejo rotó las dos contraseñas del panel (`jefe@` y `empleado@`, Supabase Auth) el **19-sep a las 21:11 ART**, antes de que se descubriera S15. El cambio desde el dashboard no deja evento en los logs de auth, pero sí la prueba posterior: login y logout de las dos cuentas a las 21:15-21:16; las sesiones vivas del 23-sep son todas posteriores. El 23-sep: `ADMIN_PASS_EMPLEADO` se borró de `admin.html` (`4b88e20`, código muerto) y los dos valores literales se sacaron de `.claude/commands/security-scan.md` (`db37b21`, `[SECURITY-SCAN-CMD-VALORES]`). **Queda:** `ADMIN_PASS` en `admin.html`, que usa la auth de `/api/send-notification` → se resuelve con `[VERCEL-ENV-VARS]`. Los valores viejos siguen en la historia de git (el repo es público): ya no abren nada.
+>
+> Lo que sigue abajo es el análisis original, se conserva como historia.
 
 **Severidad:** 🔴 CRÍTICA · explotable en 30 segundos por cualquiera con navegador.
 
@@ -378,6 +384,39 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 
 ---
 
+### **S15 · `[DOCS-PUBLICOS]` · El dominio servía los documentos internos del repo · ✅ RESUELTO 23-sep-2026**
+
+**Severidad:** 🔴 ALTA mientras duró · lo encontró el relevamiento de S18 (23-sep).
+
+> ✅ **ESTADO: RESUELTO** · `db37b21` + SW v1.1.114. No había `.vercelignore` y Vercel subía el repo entero: `/CLAUDE.md`, `/docs/SECURITY.md` (este archivo: el mapa de los agujeros), `/docs/HISTORIA.md`, `/docs/DATABASE.md`, `/sql/*.sql`, `/memory/preferencias_alejo.md`, `/scripts/*.js`, `/RECOMENDACIONES_CLAUDECHAT/*.md` y `/.claude/commands/security-scan.md` (con los dos valores de S1) respondían **200**. Ahora `.vercelignore` excluye `docs/`, `sql/`, `memory/`, `RECOMENDACIONES_CLAUDECHAT/`, `.claude/`, `scripts/` y `*.md`. **Verificado en producción:** 404 en las 8 rutas de la lista y 200 en `/`, `/admin.html`, `/sw.js`, `/perfumes.js`, `/js/app.js`, `/fonts/fonts.css`, `/css/styles.css`, `/manifest.json`, `/sitemap.xml` y `/robots.txt` — funciona con los deploys por Git. `content/blog/*.json` (lo lee `api/blog.js`) sigue servido a propósito.
+> **Queda:** el repo de GitHub es público, así que todo esto sigue legible ahí (por eso los docs describen dónde vive un valor, nunca el valor). **Sin verificar:** si las URLs inmutables de deployments viejos (`*.vercel.app`) siguen sirviendo esos archivos.
+
+---
+
+### **S16 · `[XSS-PEDIDOS-PASS]` · XSS almacenado desde `anon` hacia el panel ("Pedidos pass") · ✅ RESUELTO 23-sep-2026**
+
+**Severidad:** 🔴 ALTA · un visitante sin cuenta podía ejecutar código en la sesión del jefe o de la empleada.
+
+> ✅ **ESTADO: RESUELTO** · SQL Bloque 1 (Alejo) + `4b88e20` + SW v1.1.114. `cliente_reset_solicitar(p_telefono)` (`SECURITY DEFINER`, EXECUTE para `anon`) sólo pedía `length >= 8` e insertaba el texto tal cual en `password_reset_requests`; `loadResetRequests` (`admin.html`) lo pintaba crudo en `innerHTML`, en una pestaña que ven los dos roles. **Fix:** `escapeHtml(r.telefono)` en los dos lugares donde se pinta, y la RPC valida `^[0-9]{8,15}$` antes de insertar. **Verificado:** con el fixture de un pedido cuyo teléfono es un `<img onerror>`, en `main` se ejecutaba y en la rama no (se ve como texto); el link de WhatsApp (sólo dígitos) y el botón de reset siguen igual. En producción había 0 filas con caracteres que no fueran dígitos.
+
+---
+
+### **S17 · `[ESPERA-SEGURA]` · `anon` leía `lista_espera` entera · ✅ RESUELTO 23-sep-2026**
+
+**Severidad:** 🟠 ALTA · con la clave pública se descargaban 43 filas con 27 teléfonos de clientes (antes se llamó `[ESPERA-SELECT-ANON]`).
+
+> ✅ **ESTADO: RESUELTO** · SQL Bloques 1-3 (Alejo) + `fe302d1` + `41aa39a` + SW v1.1.114. El catálogo leía la tabla sólo para deduplicar antes de insertar. Ahora: inserta directo, y el índice único parcial `lista_espera_pendiente_uniq (slug, telefono) WHERE notified_at IS NULL` responde 23505 si ya estaba pendiente (Bloque 2, corrido **antes** del deploy para no dejar una ventana sin deduplicación); el "✓ Te avisamos" sale de `lista_espera_pendientes(p_telefono)` (`SECURITY DEFINER`, devuelve sólo slugs pendientes y valida dígitos); y la política de SELECT pasó a `authenticated` (Bloque 3). Además, `DELETE` en la tabla quedó sólo para el jefe (`le_delete_auth` = `is_jefe()`, decisión 45). **Verificado en producción como `anon`:** `GET /rest/v1/lista_espera` → 200 `[]` (`Content-Range: */0`) y la RPC con un teléfono inexistente o con texto → `[]`. El `INSERT` sigue abierto a `public` (el catálogo lo necesita); no se probó en producción a propósito.
+
+---
+
+### **S18 · `[S10-TER-XSS-COMBOS]` · Los datos de `combos` se pintan sin escapar · 🟠 ABIERTO**
+
+**Severidad:** 🟠 · sólo explotable con una cuenta del panel (`combos_write_staff`: jefe y empleada; la cuenta de empleada es compartida), pero lo que se guarda se ejecuta en el panel del jefe **y en el sitio público para cualquier visitante**.
+
+> **Dónde:** en el panel, `loadCombos` (nombre, categoría, nombres y ml de los ítems, lista de ítems rotos, precio y promo vía `formatPriceAdmin`, que devuelve el valor crudo si no es número, y el slug dentro de 4 `onclick`), `renderDestacados` (corre al loguearse) y el top-10 de Estadísticas; en el sitio (`js/app.js`), `renderSets`, la hoja de detalle, Vistos recientemente, el carrito, el splash, el comparador, Selección ST y `showSimilares`. ~19 lugares en el panel y ~30 en el sitio. **Arreglo:** mecánico, `escapeHtml` en el panel, `escapeHTML` (mayúsculas, `js/app.js`) en el sitio, y `escapeHTML(JSON.stringify(x))` **sin** las comillas simples de alrededor en los `onclick` (con `escapeHTML` solo, la comilla se decodifica antes de que corra el JS). Alternativa que cambia comportamiento: que `loadCombosFromDB` no reemplace a un perfume con el mismo slug. **Hoy:** las 5 filas no tienen ningún carácter peligroso. El inventario con archivo:línea vive fuera del repo. Tanda propia con bump, cuando Alejo la ponga en la fila.
+
+---
+
 ## 🟢 Issues MEDIOS · revisar pero no urgente
 
 ### **S7 · admin.html accesible públicamente · cualquiera puede llegar al login**
@@ -447,6 +486,8 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 | Storage CDN cache | ✓ 1 semana (`[CACHE-CONTROL-1W]`) |
 | Service Worker · no cachea Supabase API | ✓ Configurado (`network-only` para `*.supabase.co`) |
 | `perfume_clicks_resumen()` con `EXECUTE` para `anon` (`[CLICKS-RESUMEN]`, 20-sep-2026) | ✓ A propósito — `SECURITY DEFINER`, devuelve sólo `(slug, clicks)` agregado por `GROUP BY`, nunca las filas crudas de `perfume_clicks`. Existe porque la RLS de `SELECT` de esa tabla exige `authenticated` y el catálogo público necesita el conteo agregado para ordenar "más visitados". Verificado en producción: `anon=true`, `authenticated=true`, `public=false`. Detalle en `docs/DATABASE.md`. |
+| `lista_espera_pendientes()` con `EXECUTE` para `anon` (`[ESPERA-SEGURA]`, 23-sep-2026) | ✓ A propósito — `SECURITY DEFINER`, devuelve sólo los slugs **pendientes** de un teléfono y valida `^[0-9]{8,15}$`; es lo único que el catálogo lee de `lista_espera` |
+| `.vercelignore` (`[DOCS-PUBLICOS]`, 23-sep-2026) | ✓ Docs, SQL, memoria, herramientas y `*.md` fuera del deploy — verificado con 404 |
 
 ---
 
