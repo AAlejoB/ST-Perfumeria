@@ -54,8 +54,8 @@ https?://[^/]+:[^@/]+@
 NO marcar como issue (son falsos positivos conocidos):
 
 - `sb_publishable_*` en `admin.html` línea 2769 o `js/app.js` línea 5 · ES la anon key del frontend (pública por diseño)
-- `var ADMIN_PASS = 'SANTOMY2026'` en `admin.html` línea 2766 · YA marcado como issue conocido en `docs/SECURITY.md` § S1
-- `var ADMIN_PASS_EMPLEADO = 'CAFE_MATE_PROHIBIDO'` en `admin.html` línea 2767 · YA marcado, código muerto, ver SECURITY.md § S1
+- `var ADMIN_PASS = '<valor>'` en `admin.html` línea 2766 · YA marcado como issue conocido en `docs/SECURITY.md` § S1
+- `var ADMIN_PASS_EMPLEADO = '<valor>'` en `admin.html` línea 2767 · YA marcado, código muerto, ver SECURITY.md § S1
 - Bot Telegram token en función SQL `send_telegram` · YA marcado en SECURITY.md § S3 (pero NO está en el frontend · solo en BD)
 - Cualquier `eyJ...` en `docs/HISTORIA.md` o `docs/SECURITY.md` o `RECOMENDACIONES_CLAUDECHAT/*.md` · son ejemplos de documentación
 

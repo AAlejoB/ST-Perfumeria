@@ -1,0 +1,9 @@
+# [SECURITY-AUDIT-S1] 23-sep-2026 · lo que NO se sube a Vercel: documentación interna, SQL,
+# memoria, herramientas de medición y todo Markdown. El repo lo sigue teniendo; el dominio, no.
+docs/
+sql/
+memory/
+RECOMENDACIONES_CLAUDECHAT/
+.claude/
+scripts/
+*.md
