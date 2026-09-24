@@ -32,7 +32,10 @@ var RAIZ = path.join(__dirname, '..');
 var MINIMO = 4.5;
 var NOMBRES = { gray: '#808080', grey: '#808080', white: '#ffffff', black: '#000000', red: '#ff0000', silver: '#c0c0c0' };
 var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no frena
-  { superficie: 'catálogo', nombre: '.card-brand-st', tema: 'claro', keyword: '[JERARQUIA-CARD]' }
+  { superficie: 'catálogo', nombre: '.card-brand-st', tema: 'claro', keyword: '[JERARQUIA-CARD]' },
+  // [JUEGOS-VENTANA] lo que se mudó a la ventana tal cual: la manija es la del detalle y el título usa el dorado de claro
+  { superficie: 'catálogo', nombre: 'deslizá para cerrar .juegos-sheet .bs-handle-arrow', tema: 'oscuro', keyword: '[JUEGOS-VENTANA-PULIDO]' },
+  { superficie: 'catálogo', nombre: 'título del quiz .quiz-title', tema: 'claro', keyword: '[JUEGOS-VENTANA-PULIDO]' }
 ];
 
 // ── color ──
@@ -239,6 +242,64 @@ function efectivo(rs, target, prefijos, prop, capas) {
      ['mensaje ¡Listo!', '.waitlist-msg--ok', 'p'], ['mensaje ¡Ya estás!', '.waitlist-msg--ya', 'p'], ['mensaje de error', '.waitlist-msg--error', 'p']].forEach(function (t) {
       var fg = conEtiqueta(t[1], t[2], c) || { hex: cuerpo.hex, impone: 'heredado del body' };
       medir({ superficie: 'catálogo', tema: tema, rol: 'avisame', nombre: t[0] + ' ' + t[1], texto: fg.hex[0], fondos: caja.hex, impone: fg.impone });
+    });
+  });
+})();
+
+// ═══ VENTANA DE JUEGOS ═══ [JUEGOS-VENTANA] 23-sep-2026
+// Lo que se ve en el celu con la ventana abierta: ahí el quiz y el Desafío no tienen card propia, el fondo es el de
+// la ventana (la misma regla que el detalle). Varios colores y fondos son rgba(): se componen sobre lo que tienen
+// abajo (la ventana, o la barra de las pestañas), igual que en pantalla. Los textos <p> / <h3> compiten con la regla
+// genérica de la etiqueta, como en la ventana «Avisame».
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function crudo(v, capas, prof) {
+    prof = prof || 0; var s = String(v || '').trim(); var m = s.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([\s\S]+))?\)$/);
+    if (!m || prof > 8) return s;
+    for (var i = 0; i < capas.length; i++) if (capas[i] && capas[i][m[1]]) return crudo(capas[i][m[1]], capas, prof + 1);
+    return m[2] ? crudo(m[2], capas, prof + 1) : '';
+  }
+  function rgbaDe(v) { var m = String(v || '').match(/rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:[ ,\/]+([\d.]+))?\s*\)/); return m ? { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] } : null; }
+  function sobre(c, fondoHex) {
+    var f = [1, 3, 5].map(function (i) { return parseInt(fondoHex.substr(i, 2), 16); });
+    return '#' + [c.r, c.g, c.b].map(function (v, i) { return Math.round(v * c.a + f[i] * (1 - c.a)).toString(16).padStart(2, '0'); }).join('');
+  }
+  function aHex(valor, c, abajo) {
+    var v = crudo(valor, c.capas); if (!v || v === 'transparent' || v === 'none') return abajo;
+    var r = rgbaDe(v); if (r) return sobre(r, abajo);
+    var h = normalizarHex(v); if (h) return h;
+    var hs = resolver(valor, c.capas); return hs.length ? hs[0] : abajo;   // un gradiente: su primer color
+  }
+  function fondo(target, c, abajo) {
+    var g = [ganador(rs, target, c.pref, 'background'), ganador(rs, target, c.pref, 'background-color')].filter(Boolean).sort(orden).pop();
+    return g ? aHex(g.valor, c, abajo) : abajo;
+  }
+  function tinta(target, etiqueta, c, abajo) {
+    var g = [ganador(rs, target, c.pref, 'color'), etiqueta ? ganador(rs, etiqueta, c.pref, 'color') : null].filter(Boolean).sort(orden).pop();
+    if (!g) return null;
+    return { hex: aHex(g.valor, c, abajo), impone: path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') };
+  }
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var hoja_ = fondo('.juegos-sheet', c, '#ffffff');
+    var barra = fondo('.juegos-tabs', c, hoja_);
+    // [nombre, selector del texto, etiqueta que compite, fondo propio (selector) o null, sobre qué está]
+    [['pestaña', '.juegos-tab', null, '.juegos-tab', barra],
+     ['pestaña activa', '.juegos-tab.active', null, '.juegos-tab.active', barra],
+     ['× cerrar', '.juegos-x', null, null, hoja_],
+     ['deslizá para cerrar', '.juegos-sheet .bs-handle-arrow', null, null, hoja_],
+     ['título del quiz', '.quiz-title', 'p', null, hoja_],
+     ['subtítulo', '.quiz-subtitle', 'p', null, hoja_],
+     ['pregunta', '.quiz-question', 'p', null, hoja_],
+     ['opción', '.quiz-opt', null, '.quiz-opt', hoja_],
+     ['título del Desafío', '.misel-section .nosotros-block-title', 'h3', null, hoja_],
+     ['🔒 Iniciá sesión', '.misel-lock', null, '.misel-lock', hoja_]].forEach(function (x) {
+      var bg = x[3] ? fondo(x[3], c, x[4]) : x[4];
+      var fg = tinta(x[1], x[2], c, bg);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'juegos', nombre: x[0] + ' ' + x[1], texto: fg && fg.hex, fondos: [bg], impone: fg ? fg.impone : '' });
     });
   });
 })();
