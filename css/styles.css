@@ -1868,7 +1868,10 @@
       scroll-snap-type: x mandatory;
       padding-bottom: .5rem;
       scrollbar-width: none;
-      justify-content: center;
+      /* [SETS-CENTRADO-CORTADO] 23-sep: era center. Si las cards no entran, center reparte el sobrante a los
+         dos lados y lo de la izquierda no se puede scrollear: a 390 px el primer set quedaba en -429 px.
+         flex-start (como desktop) anda en todos los navegadores; safe center recién desde Safari 17.6. */
+      justify-content: flex-start;
     }
     .sets-grid::-webkit-scrollbar { display: none; }
 
