@@ -1579,7 +1579,9 @@
       background: var(--superficie); font-size: .72rem;
     }
     .log-hora { font-size: .66rem; color: var(--gris); white-space: nowrap; flex: 0 0 auto; }
-    .log-nombre { flex: 1 1 auto; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* [LOG-NOMBRE-CORTADO] decisión 69 · el nombre nunca se achica (flex-shrink 0) pero sigue creciendo: el que se
+       acomoda en renglones es el valor (.log-cambio, decisión 44). A ≤ 600 va en su propio renglón (ver @media abajo). */
+    .log-nombre { flex: 1 0 auto; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .log-nombre-idem { color: var(--gris); font-weight: 400; }
     .log-accion { flex: 0 0 auto; font-size: .66rem; color: var(--gris); white-space: nowrap; }
     .log-item.log-deposito .log-accion { color: var(--stat-tinta-perfumes); }
@@ -9350,9 +9352,11 @@
       var def = {
         activo: true,
         ml: 5,
+        // [DECANTS-DEFAULTS] Respaldo si la lectura de decants_config falla: los reales viven en la base. Si estos
+        // quedan viejos, un «Guardar» con la base caída los escribe. Tienen que coincidir con la base (9.500 / 9.000 / 8.500).
         precio_1: 9500,
-        precio_3: 8500,
-        precio_5: 7500,
+        precio_3: 9000,
+        precio_5: 8500,
         max_decants: 100,
         precio_frasco_max: 170000,
         aviso_conservacion: 'Guard\u00e1 tu decant en lugar fresco y seco, lejos de la luz directa y cambios bruscos de temperatura.'
@@ -9379,8 +9383,8 @@
       document.getElementById('decActivo').checked = !!cfg.activo;
       document.getElementById('decMl').value = cfg.ml != null ? cfg.ml : 5;
       document.getElementById('decPrecio1').value = cfg.precio_1 != null ? cfg.precio_1 : 9500;
-      document.getElementById('decPrecio3').value = cfg.precio_3 != null ? cfg.precio_3 : 8500;
-      document.getElementById('decPrecio5').value = cfg.precio_5 != null ? cfg.precio_5 : 7500;
+      document.getElementById('decPrecio3').value = cfg.precio_3 != null ? cfg.precio_3 : 9000;   // [DECANTS-DEFAULTS]
+      document.getElementById('decPrecio5').value = cfg.precio_5 != null ? cfg.precio_5 : 8500;   // [DECANTS-DEFAULTS]
       document.getElementById('decMax').value = cfg.max_decants != null ? cfg.max_decants : 100;
       document.getElementById('decFrascoMax').value = cfg.precio_frasco_max != null ? cfg.precio_frasco_max : 170000;
       document.getElementById('decAviso').value = cfg.aviso_conservacion || '';
@@ -9507,6 +9511,8 @@
       'decants_config_update':{ icon: '💧', label: 'Decants config' },
       'backup_create_manual':{ icon: '💾', label: 'Backup manual' },
       'backup_create_auto':  { icon: '🤖', label: 'Backup auto' },
+      // [LOG-LABEL-FALLBACK] decisión 70 · el panel lo crea si el último backup tiene 3 h o más (ver maybeAutoBackup).
+      'backup_create_fallback': { icon: '🛟', label: 'Backup de respaldo' },
       // Estas se registraban pero NO estaban acá, así que el historial
       // caía al fallback y mostraba el nombre crudo: "deposito_update".
       'deposito_update':      { icon: '📦', label: 'Depósito' },
@@ -9748,6 +9754,9 @@
     // El cambio, con el old tachado y el new resaltado. Si no es {old,new} cae al
     // render compacto de siempre (auditFormatChanges ya escapa todo).
     function logCambio(e) {
+      // [LOG-LABEL-FALLBACK] decisión 70 · en vez del tamaño, por qué existe: lo dispara el panel cuando el
+      // automático (Vercel Cron) no corrió en 3 h.
+      if (e.action === 'backup_create_fallback') return 'el automático no corrió en 3 h';
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
       function esPar(v) { return v && typeof v === 'object' && 'old' in v && 'new' in v; }

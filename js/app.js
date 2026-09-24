@@ -6543,7 +6543,7 @@
     // ============================================================
     // PACK DE DECANTS — builder interactivo
     // Tomá hasta N decants (default 5ml) con precio escalonado:
-    //   1-2 decants: $9.500 c/u · 3-4: $8.500 c/u · 5+: $7.500 c/u
+    //   1-2 decants · 3-4 · 5+, cada tramo con su precio unitario (ver [DECANTS-DEFAULTS] abajo).
     // Config editable desde admin (tabla decants_config en Supabase).
     // Al confirmar, manda la lista por WhatsApp al mismo número del carrito.
     // Tope alto (100) porque a veces compran para revender, el stock real
@@ -6553,9 +6553,12 @@
     var DECANTS_CONFIG = {
       activo: true,
       ml: 5,
+      // [DECANTS-DEFAULTS] Los precios reales viven en decants_config (Supabase) y pisan estos al cargar.
+      // Estos son el respaldo si la base no responde: tienen que ser los mismos que la base (9.500 / 9.000 /
+      // 8.500 desde el 10-ago-2026). Hasta el 23-sep decían 8.500 / 7.500.
       precio_1: 9500,
-      precio_3: 8500,
-      precio_5: 7500,
+      precio_3: 9000,
+      precio_5: 8500,
       max_decants: 100,
       // [DECANT-TOPE] Tope de precio de frasco (normalizado a 100 ml) para que un
       // perfume entre al armador con la escalera. Si el frasco vale más que esto,
