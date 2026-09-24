@@ -197,6 +197,8 @@ Modales que ya existen: `modalPrice`, `modalStock`, `modalAuth`, `modalEditPerfu
 
 ## 🛒 Decant builder
 
+> **La promo 3× (`[PROMO-DECANTS]`, 24-sep-2026):** la cuenta del pack es UNA (`precioPackDecants`, `app.js`) para la pantalla, el pie y el WhatsApp; la lista (`decantEnListaArmador`) y quién lleva «3×» (`promoDecantEntra`) también viven en `app.js` y `extras.js` las llama. El aviso «Sumá 1 más con 3×» y el tope van en líneas propias del pie (`#decantPromoAviso`, `#decantPromoTope`): `#decantLadder` no se ve en pantallas de hasta 900 px de alto. En la card, la etiqueta va en la pila `.card-etiquetas` (máximo dos contando la cinta; «Sin stock» y «Próximamente» tapan todas) y un reloj por minuto la repinta y la saca cuando termina.
+
 Modal full-screen con grid de cards (cada card = 1 perfume).
 
 **Layout:**

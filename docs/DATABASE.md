@@ -54,6 +54,8 @@
 | `puntos_config` | 1 sola fila con conversiones globales | |
 | `puntos_log` | Auditoría de movimientos de puntos | Inmutable |
 | `decants_custom` | Perfumes "estrella" del armador no en catálogo | |
+| `promos_decants` | `[PROMO-DECANTS]` la promo de decants: **1 sola fila** (`id = 1`) | `anon` sólo la lee prendida y vigente · la escribe `is_jefe()` |
+| `promos_decants_perfumes` | `[PROMO-DECANTS]` perfumes sumados (`incluir`) o sacados (`excluir`) a mano | `anon` sólo la lee con la promo vigente · la escriben las dos cuentas (email) |
 | `favoritos` | `(user_id, slug)` | |
 | `lista_espera` | "Avisame cuando vuelva" | |
 | `password_reset_requests` | `[FORGOT-PASS-A]` pedidos de reset de contraseña de clientes | INSERT anon (cliente no logueado), SELECT/UPDATE/DELETE solo authenticated. Creada 27-jun-2026 vía MCP. Ver detalle abajo |
@@ -368,6 +370,16 @@ created_at      TIMESTAMPTZ DEFAULT NOW()
 Retención: 15 días o 200 snapshots, lo que ocurra antes. Cleanup en `cron/backup.js` y en `loadBackups()` del admin.
 
 ---
+
+### `promos_decants` + `promos_decants_perfumes` · `[PROMO-DECANTS]` (24-sep-2026)
+
+La promo de decants («3 decants por $18.000»), con precio cerrado y fechas; nunca como porcentaje. Las creó Alejo con el SQL del PREPARADOR (`_correo_agentes`); se verificaron con SELECT.
+
+- `promos_decants` — una sola fila (`id smallint primary key default 1 check (id = 1)`), como `decants_config`: `activa boolean` · `n smallint` 2 a 10 · `precio_pack integer > 0` · `max_packs smallint > 0` (vacío = sin tope) · `desde timestamptz default now()` · `hasta timestamptz` · `updated_at`. Checks: `hasta is null or hasta > desde` y **`not activa or hasta is not null`** (no se prende sin «hasta»).
+- `promos_decants_perfumes` — `slug text primary key` · `modo` `'incluir'` / `'excluir'` · `updated_at`.
+- **RLS:** `anon` lee la promo sólo si `activa and now() >= desde and now() < hasta`, y los perfumes sólo con esa promo vigente; las dos cuentas del panel leen todo (por email); la promo la escribe `is_jefe()`, los perfumes las dos cuentas.
+- **Sin fila, no hay promo.** El sitio igual mira la vigencia en el cliente cada vez (la página puede quedar abierta cuando termina) y, si la lectura falla, cobra la escalera.
+- La regla de quién entra y la cuenta del pack viven en `js/app.js` (`promoDecantEntra`, `precioPackDecants`); el panel tiene una copia SINCRO de la regla (NO ROMPER #16 de `CLAUDE.md`).
 
 ## 🛠️ Cómo agregar una tabla nueva
 

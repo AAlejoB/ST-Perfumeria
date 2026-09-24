@@ -2713,6 +2713,34 @@ Prompts `_u` (**M**: decisiones 99-103 del DISEÑADOR y `[OVERRIDE-ML]` del PREP
 
 ---
 
+### Sesión 24-sep-2026 · `_w` + `_x` · **parte N: la promo de decants (`[PROMO-DECANTS]`, con la Sirenita)**
+
+Prompt `_w` (decisiones 31 y 105-115 del DISEÑADOR, «La promo de decants» v4). Rama `promo-decants` desde `2a588ea`, un commit por parte y un bump (SW **v1.1.131**). **Toca plata: merge no pre-aprobado.** La rama se pusheó y esperó; el PREPARADOR leyó el diff entero y corrió `precioPackDecants` en Node con los datos reales (162 de 171 y los 8 casos exactos) y aprobó en el `_x`: fast-forward `2a588ea..b94e0f9`. Stat: `admin.html`, `index.html`, `css/styles.css`, `js/app.js`, `js/extras.js`, `sw.js`, `scripts/contraste.js`. Las tablas las creó Alejo con el SQL del PREPARADOR y se verificaron con SELECT (checks, políticas y grants tal cual; 0 filas). Todas las pruebas con fixture.
+
+#### Qué se hizo
+
+- **N1 · una sola regla y una sola cuenta** (`df1d671`) — `loadPromoDecants` lee las dos tablas al cargar (si falla, no hay promo); `promoVigente` mira `desde ≤ ahora < hasta` en el cliente cada vez y un reloj por minuto la termina sin recargar. `promoDecantEntra`: en la lista del armador (`decantEnListaArmador`: sin sets, ocultos, pausados, excluidos —que incluye lo que no es perfume— ni duplicados de diseñador), con escalera (sin precio manual ni «a consultar») y, salvo los cambiados a mano, frasco (100 ml) ≤ (precio_pack / n) × 20: **162 de 171** con 3 × 18.000. `precioPackDecants`: precio fijo aparte; escalera por la cantidad de escalera (con 3× y sin 3×); desde n, todas las 3× a min(escalera, precio_pack / n), con tope. Los 8 casos de la tabla, exactos y con la pantalla, el pie y el WhatsApp iguales: 27.000 · 27.000 · 36.000 · 44.500 · 24.000 · 18.000 + diseñador · 42.500 (la escalera es menor: sin rótulo) · apagada, vencida y programada = `main`. **`[DECANT-WA-TOTAL]`**: el WhatsApp no separaba los de precio manual y los cobraba con la escalera (con uno inventado: pantalla $31.000, WhatsApp $27.000; ahora los dos $31.000).
+- **N2 · el armador** (`35eaa38`) — chip «3×» adelante del nombre (11,29; tres clases para ganarle a `body:not(.dark-mode) .decant-builder * { color: inherit }`); «Sumá 1 más con 3×» y «Máximo N packs de promo por pedido» en líneas propias del pie (`#decantLadder` no se ve en pantallas de hasta 900 px de alto); «1 decant»; **`[DECANT-TOPE-CONTADOR]`**: el número de la pestaña «Catálogo» usa el filtro de la lista (193 → 184); «Precio a consultar» #9a3412 en claro y sin opacidad (3,27 → 7,31; oscuro 6,45 → 9,03); nombre, marca, foto y alt escapados en `cardHTML`.
+- **N3 · la etiqueta de la card** (`9ea992f`) — «🧪 3 decants por $18.000 · hasta el mar 29» y, en las últimas 24 h, «… · termina en 5h 12min» (cada minuto, sin segundos; desaparece sola). Máximo dos etiquetas: cinta → promo → «Último» → «Nuevo»; «Sin stock» y «Próximamente» tapan todas, también la cinta; si la cinta dice lo mismo que una automática, la automática no sale. Apiladas arriba del lado de la foto (en escritorio, en las `.mirror`, a la derecha); «Nuevo» deja de ir al lado del corazón. Con la promo apagada, las 186 cards tienen el mismo precio y el mismo texto que `main`; cambian sólo las etiquetas de la 111 (2 cintas y 6 «Nuevo» tapados por «Sin stock», 1 «Nuevo» que no entra con cinta + «Último»). **El ancho:** «termina en 23h 59min» mide 242,4 px: 25,3 px del corazón a 390, **−4,8 a 360** → `[PROMO-ANCHO-360]`.
+- **N4 · el panel** (`8dca8be`) — en la pestaña Decants: el estado (apagada / programada / prendida / terminada, con los textos y colores de la 113: 4,90 a 9,33) y el interruptor; el aviso de costo; N, precio del pack («$X cada uno»; si no se divide justo entre N, no guarda y lo dice), máximo de packs; desde / hasta en hora argentina (no deja prenderla sin «hasta»); «entran solos: 162 de 171» con una copia SINCRO de la regla; el buscador para sumar, sacar o volver a automático (las dos cuentas); las filas a mano con su costo («PINNACE · sumado a mano · costo $6.250 · pierde $250»). a-d y la escalera, con candado para la empleada; nunca el error crudo de la base. Log: `promo_decants_update` y `promo_decants_perfume` con 🧪; la chip, 💰 Precios si cambia el precio o N. Los perfumes nuevos del panel traen `precio_decant` y `decant_excluido`, como el sitio.
+- **N5 · controles** (`858bbd3`) — `contraste.js`: el chip, la etiqueta, el pie del armador, «Precio a consultar» y los estados del panel en los dos temas: 0 fallas + 1 token pisado, 217 mediciones.
+- **Capturas** (`capturas-espera\`, claro y oscuro, fixture: 3 × 18.000, tope 2, Pinnace sumado, asad sacado): `catalogo-v1.1.131-{tema}-40-card-promo`, `-41-card-24h`, `-42-khadlaj`, `-43-sin-stock`, `-44-cinta-nuevo`, `-45-armador`, `-46-armador-suma1`, `-47-1280-mirror`, `panel-v1.1.131-{tema}-11-promo-{apagada, programada, prendida, terminada}`, `-12-promo-empleada`, `-13-escalera-empleada` y `whatsapp-8-casos-v1.1.131.txt`.
+- **La promo no se prende hasta cerrar `[PROMO-ANCHO-360]`.** Después del deploy, `curl` como `anon` a las dos tablas: `[]`.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[PROMO-DECANTS]` (con `[SIRENITA]`) | La promo de decants: regla, cuenta, armador, card y panel | decisiones 31, 105-115 · `df1d671` … `b94e0f9` |
+| `[DECANT-TOPE-CONTADOR]` | El número de la pestaña «Catálogo» = lo que muestra la lista | N2 |
+| `[DECANT-WA-TOTAL]` | El WhatsApp con la misma cuenta que la pantalla | N1 |
+
+**Pendientes nuevos:** `[PROMO-ANCHO-360]` 🟡 (espera al DISEÑADOR; bloquea prender la promo) · `[NUEVO-EN-111]` 🟢.
+
+---
+
+**Última actualización:** **Septiembre 24, 2026 (parte N)** — N (`_w` + `_x`) en producción, SW **v1.1.131**: `[PROMO-DECANTS]` (con `[SIRENITA]`), `[DECANT-TOPE-CONTADOR]` y `[DECANT-WA-TOTAL]` cerrados. La promo sigue sin filas en la base hasta cerrar `[PROMO-ANCHO-360]` 🟡. Nuevo: `[NUEVO-EN-111]` 🟢.
+
 **Última actualización:** **Septiembre 24, 2026 (parte M)** — M (`_u` + `_v`) en producción, SW **v1.1.130**: `[PILDORA-ANILLO]`, `[QUITAR-ETIQUETA-CONTRASTE]`, `[FINAL-COMPARANDO]`, `[ESTADO-MINUSCULA]`, `[OVERRIDE-ML]` y `[DECANT-SOLO-PERFUMES]` cerrados. `[DECANT-TOPE-CONTADOR]` suma el número de la pestaña «Catálogo» (193 contra 184).
 
 **Última actualización:** **Septiembre 24, 2026 (después de la J)** — K (`_s`, SW **v1.1.128**) y L (`_t`, SW **v1.1.129**) en producción: `[BOTONES-CONTRASTE]`, `[CINTA-TINTA]`, `[ESTADO-LOCAL]`, `[RELOAD-CON-LOGIN]`, `[FINAL-FLOTANTES]` e `[INVITACION-BAJO-BANNER]` cerrados. **Pendientes nuevos:** `[RELOAD-NUNCA]` 🟡 · `[FINAL-COMPARANDO]` 🟢 · `[QUITAR-ETIQUETA-CONTRASTE]` 🟢.
@@ -2821,6 +2849,11 @@ Prompts `_u` (**M**: decisiones 99-103 del DISEÑADOR y `[OVERRIDE-ML]` del PREP
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 24-sep-2026 (`_w` + `_x`):**
+
+- ✅ ~~**`[SIRENITA]`**~~ (decidido por Alejo el 23-sep · 🟡) — **fusionado con las promos de decants**: una pantalla del panel para prender y apagar promos con precio y fechas (Hot Sale, Black Friday) sin tocar código. Espera el costo por decant de los jefes. Meta: Black Friday. → **RESUELTO el 24-sep** (parte N, `[PROMO-DECANTS]`): la pantalla del panel para prender y apagar la promo de decants con precio cerrado y fechas. El Hot Sale / Black Friday de perfumes sigue siendo otra cosa (`descuento_pct` no se tocó).
+- ✅ ~~**`[DECANT-TOPE-CONTADOR]`**~~ — el contador de perfumes "a consultar" del armador infla (7 mostrados, 6 reales): restar los que tienen decant custom. Además (24-sep, medido en M): el número de la pestaña «Catálogo» del armador (`updateDecantHeader`, `extras.js` ~L146) cuenta los no ocultos ni pausados más los de diseñador y no mira `decantExcluido` ni los duplicados: dice **193** con **184** tarjetas (177 perfumes + 7 de diseñador). → **RESUELTO el 24-sep** (parte N, N2): el número de la pestaña «Catálogo» usa el filtro de la lista (184).
 
 **Movidos el 24-sep-2026 (`_u` + `_v`):**
 
