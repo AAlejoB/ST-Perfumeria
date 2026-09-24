@@ -59,8 +59,8 @@ Antes de empezar, abrí un archivo de texto temporal `D:\tmp\plan-b-credentials.
 
 ```
 === PROYECTO VIEJO (Oregon · us-west-2) ===
-Project ref:           rtgjzzkjrwbkdhkslxix
-Project URL:           https://rtgjzzkjrwbkdhkslxix.supabase.co
+Project ref:           <ref: ver [S4-OREGON], detalle fuera del repo>
+Project URL:           https://<ref: ver [S4-OREGON], detalle fuera del repo>.supabase.co
 DB connection string:  postgresql://postgres.<ref>:<password>@aws-0-us-west-2.pooler.supabase.com:5432/postgres
 Anon key:              <copiar de Settings → API>
 Service role key:      <copiar de Settings → API · NO COMPARTIR NUNCA>
@@ -119,7 +119,7 @@ $env:PGPASSWORD = "<PASS-DEL-PROYECTO-VIEJO>"
 pg_dump `
   --host=aws-0-us-west-2.pooler.supabase.com `
   --port=5432 `
-  --username=postgres.rtgjzzkjrwbkdhkslxix `
+  --username=postgres.<ref: ver [S4-OREGON], detalle fuera del repo> `
   --dbname=postgres `
   --no-owner --no-privileges `
   --schema=public --schema=auth --schema=storage `
@@ -224,7 +224,7 @@ $env:PGPASSWORD = "<PASS-VIEJO>"
 pg_dump `
   --host=aws-0-us-west-2.pooler.supabase.com `
   --port=5432 `
-  --username=postgres.rtgjzzkjrwbkdhkslxix `
+  --username=postgres.<ref: ver [S4-OREGON], detalle fuera del repo> `
   --dbname=postgres `
   --schema-only --no-owner --no-privileges `
   --schema=public --schema=auth --schema=storage `
@@ -292,7 +292,7 @@ $env:PGPASSWORD = "<PASS-VIEJO>"
 pg_dump `
   --host=aws-0-us-west-2.pooler.supabase.com `
   --port=5432 `
-  --username=postgres.rtgjzzkjrwbkdhkslxix `
+  --username=postgres.<ref: ver [S4-OREGON], detalle fuera del repo> `
   --dbname=postgres `
   --data-only --no-owner --no-privileges `
   --schema=public `
@@ -324,7 +324,7 @@ psql `
 $tables = @("clientes", "perfume_overrides", "perfumes_nuevos", "ventas", "combos", "destacados", "favoritos", "puntos_log", "opiniones", "audit_log", "analytics_events")
 
 foreach ($t in $tables) {
-  $oldCount = psql --host=aws-0-us-west-2.pooler.supabase.com --port=5432 --username=postgres.rtgjzzkjrwbkdhkslxix --dbname=postgres -tA -c "SELECT count(*) FROM public.$t;"
+  $oldCount = psql --host=aws-0-us-west-2.pooler.supabase.com --port=5432 --username=postgres.<ref: ver [S4-OREGON], detalle fuera del repo> --dbname=postgres -tA -c "SELECT count(*) FROM public.$t;"
   $newCount = psql --host=aws-0-sa-east-1.pooler.supabase.com --port=5432 --username=postgres.<NEW-REF> --dbname=postgres -tA -c "SELECT count(*) FROM public.$t;"
   Write-Host "$t : viejo=$oldCount  nuevo=$newCount  match=$($oldCount -eq $newCount)"
 }
@@ -351,7 +351,7 @@ $env:PGPASSWORD = "<PASS-VIEJO>"
 pg_dump `
   --host=aws-0-us-west-2.pooler.supabase.com `
   --port=5432 `
-  --username=postgres.rtgjzzkjrwbkdhkslxix `
+  --username=postgres.<ref: ver [S4-OREGON], detalle fuera del repo> `
   --dbname=postgres `
   --data-only --no-owner --no-privileges `
   --table=auth.users `
@@ -442,10 +442,10 @@ Si las funciones viven solo en el dashboard de Supabase, perdés código si Supa
 ```powershell
 cd D:\workspace\ST_Perfumeria
 mkdir -Force supabase\functions
-npx supabase functions list --project-ref rtgjzzkjrwbkdhkslxix
+npx supabase functions list --project-ref <ref: ver [S4-OREGON], detalle fuera del repo>
 
 # Para cada función listada, descargar el código:
-npx supabase functions download send_telegram --project-ref rtgjzzkjrwbkdhkslxix
+npx supabase functions download send_telegram --project-ref <ref: ver [S4-OREGON], detalle fuera del repo>
 # El código queda en supabase/functions/send_telegram/index.ts
 
 # Repetir con cada función
@@ -481,7 +481,7 @@ npx supabase functions deploy send-push
 
 ```powershell
 # Listar secrets del proyecto viejo (NO muestra los valores, solo nombres)
-npx supabase secrets list --project-ref rtgjzzkjrwbkdhkslxix
+npx supabase secrets list --project-ref <ref: ver [S4-OREGON], detalle fuera del repo>
 
 # Para cada secret, setearlo en el nuevo · necesitás los valores reales
 # (los tenés en algún sitio · TELEGRAM_BOT_TOKEN, VAPID_PUBLIC_KEY, etc.)
@@ -531,7 +531,7 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 
 const OLD = createClient(
-  'https://rtgjzzkjrwbkdhkslxix.supabase.co',
+  'https://<ref: ver [S4-OREGON], detalle fuera del repo>.supabase.co',
   '<SERVICE-ROLE-KEY-VIEJA>'  // service role necesaria para listar
 );
 const NEW = createClient(
@@ -593,7 +593,7 @@ Espera ~10-15 min para ~150 fotos.
 ```javascript
 // D:\tmp\verify-storage.js
 const { createClient } = require('@supabase/supabase-js');
-const OLD = createClient('https://rtgjzzkjrwbkdhkslxix.supabase.co', '<SR-VIEJO>');
+const OLD = createClient('https://<ref: ver [S4-OREGON], detalle fuera del repo>.supabase.co', '<SR-VIEJO>');
 const NEW = createClient('https://<NEW-PROJECT-REF>.supabase.co', '<SR-NUEVO>');
 
 (async () => {
@@ -684,7 +684,7 @@ https.get('https://www.stperfumeria.com/?cb=' + Date.now(), (res) => {
   res.on('data', (c) => body += c);
   res.on('end', () => {
     const hasNew = body.includes('<NEW-PROJECT-REF>');
-    const hasOld = body.includes('rtgjzzkjrwbkdhkslxix');
+    const hasOld = body.includes('<ref: ver [S4-OREGON], detalle fuera del repo>');
     console.log('HTML referencia proyecto nuevo:', hasNew);
     console.log('HTML referencia proyecto viejo (debe ser FALSE):', hasOld);
   });
@@ -783,7 +783,7 @@ Producción está con el proyecto nuevo y hay un problema.
 cd D:\workspace\ST_Perfumeria
 vercel env rm SUPABASE_URL production
 vercel env rm SUPABASE_ANON_KEY production
-echo "https://rtgjzzkjrwbkdhkslxix.supabase.co" | vercel env add SUPABASE_URL production
+echo "https://<ref: ver [S4-OREGON], detalle fuera del repo>.supabase.co" | vercel env add SUPABASE_URL production
 echo "<ANON-KEY-VIEJA>" | vercel env add SUPABASE_ANON_KEY production
 vercel --prod
 ```

@@ -2613,6 +2613,36 @@ Prompt `_q` del PREPARADOR (reemplazó al `_p`, que no se había arrancado): las
 
 ---
 
+### Sesión 24-sep-2026 (noche) · `_r` · **la barra de abajo del celu (J)**
+
+Prompt `_r` del PREPARADOR: la parte I verificada y J, la barra de abajo del celu (referencia: «Barra inferior del catálogo» v4 del DISEÑADOR, decisiones 61, 62, 68 y 86-93). Una rama (`feat-barra`), un bump (SW **v1.1.127**), merge ff `7476e07..bc40472`. Stat: `index.html`, `css/styles.css`, `js/app.js`, `scripts/contraste.js` y `sw.js` (`extras.js` no se tocó). Medido con fixture y datos inventados; en producción, sólo `curl`.
+
+#### Qué se hizo
+
+- **J1 · la barra** — `#barraCelu`, sólo a < 768: `#0b0b0d` en los dos temas, borde `rgba(232,184,0,.18)`, 60 px + safe-area, `z-index: 9990`. Cinco botones de **78 × 60** a 390 (`medir_targets` los mide de 75 por la barra de scroll del headless), SVG de línea de 22 px con trazo 1,8. Etiquetas 11,5 px / 600 / `.04em`: `#bbbbbb` **10,24**, la activa `#E8B800` **10,57**; «CATÁLOGO» mide **66,7** de 78 y entra sin achicar. Números `#b8342a` con blanco, **5,89**, de los mismos contadores que las flotantes. Es un `<div role="navigation">`: la regla `nav { … }` de `styles.css` le pondría el alto y el fondo del nav de arriba.
+- **J2 · qué hace cada uno** — **Catálogo:** va a `#catalogo` (los filtros quedan en 105); si ya estás en el catálogo (`.catalogo-scope` arriba de 110 y ocupando más de media pantalla), vuelve a `scrollY` 0. **Buscar:** `focus({ preventScroll: true })` y después el scroll suave; `document.activeElement === searchInput` en el mismo toque y 1,8 s después, con los filtros en 105. **Decants:** `openDecantBuilder()`. **Carrito:** `openCartPanel()`. **Cuenta:** sin sesión, `openAuth()`; con sesión, la hoja «Hola, <nombre>» (`textContent`) con tres filas de 48 (♥ Mis favoritos con el número, 🌙 Cambiar tema, Cerrar sesión: **16,17** y **6,80**). Se cierra tocando afuera y con «atrás» (`pushState` + `popstate`, como la ventana de juegos). Cambiar tema deja la hoja abierta; favoritos la cierra y filtra.
+  - **El doble `openDecantBuilder`** no son dos versiones: el de `app.js` es el stub de `[JS-CHUNK]` (carga `extras.js` y llama a la real) y `extras.js` define la real y reemplaza `window.openDecantBuilder`. El stub corre sólo si se toca antes de que llegue el chunk. Quedan las dos.
+- **J3 · lo que se abre encima** — con el login (2000), el menú (200/199) y el armador, la barra se esconde (`body:has(…) .barra-celu { display: none }`): no cambia el orden de hoy entre esas capas. El carrito, los juegos y el detalle ya estaban arriba: la barra queda bajo el velo y no se puede tocar. La hoja de Cuenta va en 9993.
+- **J4 · los flotantes** — las 5 reglas. Invitaciones arriba (top 66 + safe-area) **y de a una**: con las dos a la vez se pisaban 358 × 55, así que la de instalar espera a que se vaya la de notificaciones. Comparar se apoya sobre la barra, y WhatsApp y el estado suben 49 mientras está. `.cart-float`, `.decant-float`, `.scroll-top` y `.dark-float` fuera del celu. Con todo prendido a 390, se ven 5 (barra, WhatsApp, estado, comparar, notificaciones) y **0 pares pisados**. El pie termina en 783,7 y la barra empieza en 784; el © queda 24,3 px arriba de la barra.
+  - El `padding-bottom` va en `html body`: el CSS crítico inline de `index.html` (`html, body { padding: 0 }`) va después de `styles.css` y con `body` a secas ganaba por orden (medía 0).
+- **J5 · safe-area** — `viewport-fit=cover` en `index.html` L6, la barra con `env(safe-area-inset-bottom)` y los costados, `html body` con los insets de los costados y el nav de escritorio con `max(2rem, env(…))`. **Acá no hay WebKit: falta probarlo en un iPhone** (vertical, horizontal y la app instalada; lo prueba Alejo). En Chromium los `env()` valen 0 y todo mide como antes.
+- **1280** — geometría y `scrollHeight` idénticos a `main`.
+- **`contraste.js`** — sección nueva de la barra (etiquetas, números y la hoja): 0 fallas + 1 token pisado, 148 mediciones.
+- **Oregon (I9 del `_q`)** — el ref sale de los 3 archivos de `RECOMENDACIONES_CLAUDECHAT/` (17 apariciones: Plan B ×14, el prompt de S1 ×2, el prompt general ×1); en comandos y URLs queda `<ref: ver [S4-OREGON], detalle fuera del repo>`. `git grep` del ref: 0.
+- **Capturas** (`capturas-espera\`, claro y oscuro, 390 × 844 con fixture): `catalogo-v1.1.127-{tema}-20-barra`, `-21-numeros`, `-22-comparando`, `-23-invitacion`, `-24-hola`, `-25-login`, `-26-menu`, `-27-armador`, `-28-final` y `-29-1280`.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[BARRA-CELU]` | La barra de abajo del celu | decisiones 61, 62, 68 y 86-93 · `12dd1cf` + bump `bc40472` |
+
+**Pendientes nuevos:** `[NAV-REPITE-BARRA]` 🟢 (del DISEÑADOR, para después) · `[RELOAD-CON-LOGIN]` 🟢 (propuesta de Claude Code).
+
+---
+
+**Última actualización:** **Septiembre 24, 2026 (noche)** — J (`_r`) en producción, SW **v1.1.127**: `[BARRA-CELU]` cerrado; el ref de Oregon, fuera de `RECOMENDACIONES_CLAUDECHAT/`. **Pendientes nuevos:** `[NAV-REPITE-BARRA]` 🟢 · `[RELOAD-CON-LOGIN]` 🟢.
+
 **Última actualización:** **Septiembre 24, 2026 (tarde)** — la parte I (`_q`) en producción, SW **v1.1.126**: `[AMARILLO-CATALOGO-CLARO]`, `[HOTSALE-CLARO]`, `[CERRADO-HERO]`, `[PEDIDOS-PASS-CLARO]`, `[SALTO-CARD-CENTRO]`, `[ANILLO-1PX]`, `[EFECTIVO-UN-RENGLON]` y `[HORARIO-DOS-FUENTES]` cerrados; el ref de Oregon fuera de los docs. **Pendiente nuevo:** `[BOTONES-CONTRASTE]` 🟢.
 
 **Última actualización:** **Septiembre 24, 2026** — D (v1.1.121), E (v1.1.122), F (v1.1.123), G (v1.1.124) y H (v1.1.125) en producción: `[AMARILLO-TINTA-CLARO]`, `[ACTION-BTN-BASE]`, `[JERARQUIA-CARD]`, `[TAP-44]` (catálogo), `[CLARO-CATALOGO-2]`, `[PANEL-CLARO-CAJAS]`, `[FILTROS-SOLO-CATALOGO]`, `[CARD-ESCRITORIO-BANNER]` y `[JUEGOS-VENTANA-PULIDO]` cerrados. **Pendientes nuevos:** `[AMARILLO-CATALOGO-CLARO]` 🟡 · `[PEDIDOS-PASS-CLARO]` 🟡 · `[HOTSALE-DETALLE-CLARO]` 🟡 · `[GUIA-DESACTUALIZADA]` 🟢 (`[INVENTARIO-ARCHIVOS]` se cerró el mismo día) · `[SALTO-CARD-CENTRO]` 🟢 · `[CERRADO-HERO]` 🟢. Oregon recortado.

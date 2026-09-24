@@ -142,8 +142,8 @@ Diseñá el `Prompt_para_ClaudeCode_SECURITY_AUDIT_S1.md` final con esta estruct
 - Anon key: formato `sb_publishable_*` (nuevo formato post-2024)
 
 **Proyecto Supabase legacy (rollback hasta 28-may):**
-- Ref: `rtgjzzkjrwbkdhkslxix`
-- URL: `https://rtgjzzkjrwbkdhkslxix.supabase.co`
+- Ref: `<ref: ver [S4-OREGON], detalle fuera del repo>`
+- URL: `https://<ref: ver [S4-OREGON], detalle fuera del repo>.supabase.co`
 - Región: us-west-2 Oregon
 - Plan: Pro · será pausado el 28-may
 

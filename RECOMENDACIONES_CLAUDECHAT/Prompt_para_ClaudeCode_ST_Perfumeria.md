@@ -10,7 +10,7 @@
 - **Frontend:** alojado en **Vercel**.
 - **Backend:** **Supabase** (plan pago). Base de datos Postgres, autenticación propia (usuario y contraseña, sin Google/Facebook), Storage para fotos y realtime para actualizaciones en vivo.
 - **Datos técnicos de referencia:**
-  - Supabase project ref: `rtgjzzkjrwbkdhkslxix`
+  - Supabase project ref: `<ref: ver [S4-OREGON], detalle fuera del repo>`
   - Región actual de la base: `us-west-2` (Oregon, EE.UU.)
   - El negocio opera desde Chubut, Argentina.
   - Bucket de fotos: `perfume-fotos`
