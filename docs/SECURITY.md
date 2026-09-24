@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 23, 2026 (noche, `_j`)** — **S1 y S4 pasan a keyword sola** (§ 📏): los dos describen agujeros abiertos — S1 mientras `[VERCEL-ENV-VARS]` no cierre, S4 hasta que Alejo decida. S4 estrena keyword: **`[S4-OREGON]`**. El detalle vive fuera del repo; la historia de git conserva las versiones anteriores de las dos secciones.
+> **Última actualización:** **Septiembre 23, 2026 (noche, `_l`)** — **S11 recortado** (§ 📏): queda qué era, que se arregló (falla cerrado) y que se re-testea al cerrar `[VERCEL-ENV-VARS]`; salen «Cuándo se vuelve peligroso» y la línea que lo ataba a S1. La historia de git conserva la versión anterior.
+>
+> **Antes (23-sep, noche, `_j`):** — **S1 y S4 pasan a keyword sola** (§ 📏): los dos describen agujeros abiertos — S1 mientras `[VERCEL-ENV-VARS]` no cierre, S4 hasta que Alejo decida. S4 estrena keyword: **`[S4-OREGON]`**. El detalle vive fuera del repo; la historia de git conserva las versiones anteriores de las dos secciones.
 >
 > **Antes (23-sep, noche, cierre):** — **S8 resuelto:** el bucket de fotos quedó sólo para las dos cuentas del panel (3 políticas por email; `anon` ya no lista ni escribe) y las fotos se siguen sirviendo por su URL pública. **S3 y S13** pasan a keyword sola: la regla de § 📏 vale también para lo de mayo (el repo es público).
 >
@@ -211,35 +213,9 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Severidad:** 🟠 ALTA en potencia · nunca llegó a ser explotable. **Hallado y arreglado el mismo día (12-ago-2026).**
 
-> ✅ **ESTADO: RESUELTO** · commit `ef1507d`. La condición ahora es `if (!ADMIN_PASS || adminPass !== ADMIN_PASS)` → **falla cerrado**: sin la variable configurada, se rechaza todo. Verificado **la lógica** con los 5 casos posibles en Node (sin variable + sin `adminPass` → 401 · sin variable + pass falsa → 401 · con variable + vacía/falsa → 401 · con variable + correcta → permite). ⚠️ **El `401` no se puede observar en producción todavía** porque la función muere al cargar (ver abajo) → **re-testear al hacer `[VERCEL-ENV-VARS]`**. **No requirió bump de SW** (las funciones de `api/` son código de servidor, el SW no las cachea). Se deja documentado abajo el análisis original porque el **patrón** es el aprendizaje, no el caso puntual.
+> ✅ **ESTADO: RESUELTO** · commit `ef1507d`. **Qué era:** la comparación del secreto del endpoint no verificaba que la variable de entorno existiera, así que sin la variable un pedido que omitía el campo pasaba. **Arreglo:** la condición **falla cerrado** (sin la variable configurada se rechaza todo); la lógica se verificó en Node con los 5 casos posibles. **Pendiente:** el `401` todavía no se puede observar en producción, porque la función no arranca sin las variables de Vercel → **re-testear al cerrar `[VERCEL-ENV-VARS]`**: con las variables puestas, un POST sin el campo tiene que dar `401`. El detalle vive fuera del repo; la historia de git conserva la versión anterior de esta sección.
 
-**Dónde está:**
-- `api/send-notification.js` L11 y L35:
-  ```js
-  const ADMIN_PASS = process.env.ADMIN_PASS;   // hoy = undefined
-  ...
-  if (adminPass !== ADMIN_PASS) {              // undefined !== undefined → false
-    return res.status(401).json({ error: 'No autorizado' });
-  }
-  ```
-
-**El problema:** la comparación **no verifica que `ADMIN_PASS` exista**. Si la variable no está configurada, una petición que simplemente **omita** el campo `adminPass` pasa la validación (`undefined !== undefined` es `false`).
-
-**Por qué hoy no se puede explotar (verificado en producción 12-ago):** la función **ni siquiera arranca**. En `api/send-notification.js` L16-20, `webpush.setVapidDetails(...)` se ejecuta **a nivel de módulo** (fuera del handler) con `VAPID_PUBLIC`/`VAPID_PRIVATE` en `undefined` → `web-push` tira error al cargar el archivo → **todo request devuelve 500 antes de correr una sola línea del handler**. Comprobado con un POST de body vacío contra producción: `500`, no `401` ni `400`. O sea que el agujero **nunca fue alcanzable**; se activaba sólo al reponer las variables.
-
-⚠️ **Consecuencia para la verificación:** mientras no existan las env vars, **el `401` del fix NO se puede observar en producción** (el módulo muere antes). Lo verificado es (a) la lógica de la condición en Node con los 5 casos y (b) que el código está desplegado. **Al ejecutar `[VERCEL-ENV-VARS]`, re-testear este endpoint**: con las variables puestas, un POST sin `adminPass` tiene que dar `401`.
-
-**Cuándo se vuelve peligroso:** el día que se repongan `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` + `VAPID_*` **y se olvide `ADMIN_PASS`**. Ahí el endpoint queda como pasarela abierta: cualquiera puede mandar notificaciones push a **todos los suscriptores** en nombre de ST Perfumería (con un techo de 5 envíos por día por el rate limit).
-
-**Fix aplicado (una línea · fallar cerrado):**
-```js
-if (!ADMIN_PASS || adminPass !== ADMIN_PASS) {
-  return res.status(401).json({ error: 'No autorizado' });
-}
-```
-Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente, aprovechar y cambiar la auth del endpoint a **sesión de Supabase validada server-side** (eso además cierra S1, porque `ADMIN_PASS` deja de existir en el JS público).
-
-**Patrón a revisar en el resto de las funciones:** cualquier comparación contra una variable de entorno que pueda ser `undefined`. `api/cron/backup.js` **sí lo hace bien** (`const validAuth = CRON_SECRET && auth === 'Bearer ' + CRON_SECRET` · el `&&` lo salva).
+**Patrón a revisar en el resto de las funciones:** cualquier comparación contra una variable de entorno que pueda ser `undefined`. `api/cron/backup.js` **sí lo hace bien** (el `&&` lo salva).
 
 ---
 
