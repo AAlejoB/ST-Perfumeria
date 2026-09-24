@@ -1,10 +1,12 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 23, 2026 (noche, cierre)** — **S8 resuelto:** el bucket de fotos quedó sólo para las dos cuentas del panel (3 políticas por email; `anon` ya no lista ni escribe) y las fotos se siguen sirviendo por su URL pública. **S3 y S13** pasan a keyword sola: la regla de § 📏 vale también para lo de mayo (el repo es público).
+> **Última actualización:** **Septiembre 23, 2026 (noche, `_j`)** — **S1 y S4 pasan a keyword sola** (§ 📏): los dos describen agujeros abiertos — S1 mientras `[VERCEL-ENV-VARS]` no cierre, S4 hasta que Alejo decida. S4 estrena keyword: **`[S4-OREGON]`**. El detalle vive fuera del repo; la historia de git conserva las versiones anteriores de las dos secciones.
+>
+> **Antes (23-sep, noche, cierre):** — **S8 resuelto:** el bucket de fotos quedó sólo para las dos cuentas del panel (3 políticas por email; `anon` ya no lista ni escribe) y las fotos se siguen sirviendo por su URL pública. **S3 y S13** pasan a keyword sola: la regla de § 📏 vale también para lo de mayo (el repo es público).
 >
 > **Antes (23-sep, noche):** — **S5 y S19 resueltos:** la DB password de São Paulo se rotó (Alejo) y el registro de Supabase Auth quedó apagado (`disable_signup: true`). **Regla nueva:** los agujeros abiertos van con la keyword sola (§ 📏). Backup local de las fotos hecho (S8 sigue abierto). S18 queda sólo con la keyword.
 >
-> **Antes (23-sep, tarde):** — **S15, S16 y S17 RESUELTOS** en v1.1.114: el dominio ya no sirve los documentos internos (`.vercelignore`), el teléfono de "Pedidos pass" se escapa y la RPC del reset valida dígitos (`[XSS-PEDIDOS-PASS]`), y `anon` ya no lee `lista_espera` (`[ESPERA-SEGURA]`). **S1:** contraseñas rotadas el 19-sep, queda sólo `ADMIN_PASS` (→ `[VERCEL-ENV-VARS]`). **S18 abierto** (`[S10-TER-XSS-COMBOS]`, 🟠, sólo escribible por el panel).
+> **Antes (23-sep, tarde):** — **S15, S16 y S17 RESUELTOS** en v1.1.114: el dominio ya no sirve los documentos internos (`.vercelignore`), el teléfono de "Pedidos pass" se escapa y la RPC del reset valida dígitos (`[XSS-PEDIDOS-PASS]`), y `anon` ya no lee `lista_espera` (`[ESPERA-SEGURA]`). **S1:** contraseñas rotadas el 19-sep; lo que queda va con la keyword sola. **S18 abierto** (`[S10-TER-XSS-COMBOS]`, 🟠, sólo escribible por el panel).
 >
 > **Antes (20-sep-2026):** — **S10 y S10-bis RESUELTOS** (stored XSS del panel admin: Clientes `f457b89`, Lista de espera + Opiniones `033ab70`/`ce52def`, SW v1.1.104). De yapa, `[WA-LINK-549-DUPLICADO]` (no es seguridad) también resuelto. Antes: 17-sep (**S2 RESUELTO** · `[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side; token de Telegram y chat_id sacados de este doc y rotado; regla nueva de no llevar valores de credenciales; S13 nuevo). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
 > **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
@@ -25,59 +27,9 @@
 
 ## 🚨 Issues CRÍTICOS · fix URGENTE (1-2 días)
 
-### **S1 · Passwords del admin HARDCODED en HTML público**
+### **S1 · `[SECURITY-AUDIT-S1]` · 🟠 ABIERTO (parcial)**
 
-> 🔁 **ESTADO 23-sep-2026 · contraseñas rotadas, queda sólo código.** Alejo rotó las dos contraseñas del panel (`jefe@` y `empleado@`, Supabase Auth) el **19-sep a las 21:11 ART**, antes de que se descubriera S15. El cambio desde el dashboard no deja evento en los logs de auth, pero sí la prueba posterior: login y logout de las dos cuentas a las 21:15-21:16; las sesiones vivas del 23-sep son todas posteriores. El 23-sep: `ADMIN_PASS_EMPLEADO` se borró de `admin.html` (`4b88e20`, código muerto) y los dos valores literales se sacaron de `.claude/commands/security-scan.md` (`db37b21`, `[SECURITY-SCAN-CMD-VALORES]`). **Queda:** `ADMIN_PASS` en `admin.html`, que usa la auth de `/api/send-notification` → se resuelve con `[VERCEL-ENV-VARS]`. Los valores viejos siguen en la historia de git (el repo es público): ya no abren nada.
->
-> Lo que sigue abajo es el análisis original, se conserva como historia.
-
-**Severidad:** 🔴 CRÍTICA · explotable en 30 segundos por cualquiera con navegador.
-
-**Archivos / líneas exactas:**
-- `admin.html` línea **2766:** `var ADMIN_PASS = '<ADMIN_PASS · ver admin.html · S1>';`
-- `admin.html` línea **2767:** `var ADMIN_PASS_EMPLEADO = '<ADMIN_PASS_EMPLEADO · ver admin.html · S1>';`
-
-**Cómo explotarlo (esto debe poderse hacer hoy mismo · es trivial):**
-1. Cualquiera navega a `https://www.stperfumeria.com/admin.html`
-2. Click derecho → "Ver código fuente" (Ctrl+U)
-3. Ctrl+F · busca `ADMIN_PASS`
-4. Lee los strings en plano
-5. Va al login del admin con esa password · entra como jefe o empleado
-6. Puede borrar ventas, cambiar stocks, ver datos de clientes, hacer cualquier cosa que las chicas pueden
-
-**Impacto si se explota:**
-- Acceso total al panel admin
-- Cambiar precios / stock / fotos
-- Ver datos de los 38 clientes (teléfonos, historial, puntos)
-- Borrar registros de ventas
-- Mandar push notifications spam a todos los suscriptores
-- Subir fotos arbitrarias al bucket Storage
-
-**Por qué se hizo así originalmente (probable):**
-Antes que existiera Supabase Auth, el admin se protegía con un check JS simple (`if (pass === ADMIN_PASS)`). Cuando se migró a Supabase Auth, las constantes quedaron olvidadas. **Hoy las usa el flow nuevo? Hay que verificar:** mirar referencias a `ADMIN_PASS` en el código y ver si todavía se compara con el input del usuario.
-
-**✅ Verificado 27-jun-2026 (durante el test de `[FORGOT-PASS-A]`):**
-- Las líneas reales hoy son **L2778-2779** (no L2766-2767 · el archivo creció).
-- **El login del admin YA NO usa estas constantes** · autentica contra Supabase Auth (`sb.auth.signInWithPassword`). El comentario en `admin.html` L2775-2777 lo confirma → **no es un login-bypass.**
-- **`ADMIN_PASS_EMPLEADO` es código MUERTO** · sólo se declara, nunca se referencia → se puede borrar sin riesgo.
-- **`ADMIN_PASS` SIGUE VIVO** · se usa como secreto compartido para llamar a `/api/send-notification` (`admin.html` L7229, validado server-side en Vercel). Al estar en JS público, cualquiera lo lee y puede mandar **push spam a todos los suscriptores**. Borrarlo NO es one-liner: hay que cambiar la auth del endpoint (validar la sesión de Supabase server-side en lugar del string estático) + rotar el secreto en Vercel.
-- **Re-scoping de S1:** ya no es "robo de login del panel"; es (a) borrar la var muerta + (b) reemplazar el secreto del push por auth de sesión. Severidad efectiva 🔴→🟠, pero sigue siendo real.
-
-**Fix recomendado (sin tirar pelota nueva):**
-1. Eliminar completamente las constantes `ADMIN_PASS` y `ADMIN_PASS_EMPLEADO` del HTML
-2. Verificar que el login flow YA usa solo Supabase Auth (`sb.auth.signInWithPassword`) · si depende de las constantes, ahí hay otro bug
-3. **Después de eliminar las constantes**, las passwords del admin viven SOLO en `auth.users.encrypted_password` (hash bcrypt) del proyecto Supabase nuevo · NO en el HTML
-4. Si las chicas necesitan resetear su password, vamos a darles el flow de "olvidé contraseña" (que también está pendiente · `[FORGOT-PASS-A]`)
-
-**Acción inmediata recomendada por Alejo (antes del audit completo):**
-- ⚠️ Considerar **cambiar las passwords del jefe y la empleada YA** (las que están en `auth.users` del proyecto nuevo de São Paulo) porque están expuestas en el HTML público.
-- Pasos:
-  1. Generar 2 passwords nuevas seguras
-  2. Login a Supabase Dashboard del proyecto nuevo
-  3. Authentication → Users → seleccionar `jefe@stperfumeria.local` → "Send password recovery" o cambiar directamente
-  4. Mismo para `empleado@stperfumeria.local`
-  5. Avisar a las chicas las passwords nuevas (por canal privado · NO chat ni email del cliente)
-- Una vez hecho · las passwords del HTML (`<ADMIN_PASS · ver admin.html · S1>` y `<ADMIN_PASS_EMPLEADO · ver admin.html · S1>`) ya no abren el admin · gano tiempo para el fix completo.
+> Las dos contraseñas del panel **se rotaron** el 19-sep (Alejo, 21:11 ART; verificado por login y logout de las dos cuentas a las 21:15-21:16), la constante muerta se borró el 23-sep (`4b88e20`) y `.claude/commands/security-scan.md` quedó sin valores (`db37b21`). Lo que queda abierto va con **la keyword sola** por la regla de § 📏 (23-sep); el detalle vive fuera del repo. Se cierra junto con `[VERCEL-ENV-VARS]`. La historia de git conserva la versión anterior de esta sección.
 
 ---
 
@@ -167,24 +119,9 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S4 · Anon key del proyecto viejo sigue activa**
+### **S4 · `[S4-OREGON]` · 🟡 ABIERTO**
 
-**Severidad:** 🟡 ALTA · mientras el proyecto viejo de Oregon esté activo (hasta el 28-may como rollback), su anon key sigue funcionando.
-
-**Donde estaba:**
-- En `admin.html` y `js/app.js` antes del commit `f532525` · JWT que arranca con `eyJhbGciOiJIUzI1NiIs...`
-- Cualquiera que tenga el HTML de versiones anteriores (cacheado en su browser, archivado, etc.) puede usar esa key para leer del proyecto viejo
-
-**Riesgo real:**
-- Lectura del catálogo (lo que ya es público)
-- ⚠️ Lectura de `clientes` (incluyendo passwords en plano · ver S2)
-- Posiblemente otras tablas según RLS policies del viejo
-
-**Fix recomendado:**
-- A partir del **28-may-2026** (cuando se baje el proyecto viejo): pausar/borrar el proyecto en Supabase Dashboard. Esto invalida la anon key automáticamente.
-- Antes de bajar: regenerar la anon key del viejo en Settings → API → Reset anon key (esto invalida la vieja inmediatamente · pero también rompe el rollback fácil)
-
-**Decisión actual:** mantener anon key activa del viejo por safety net 7 días · aceptar el riesgo limitado (RLS protege la mayoría · clientes.password es el único dato leakeable critically).
+> Agujero abierto: va con **la keyword sola** por la regla de § 📏 (23-sep); el detalle vive fuera del repo. Decide Alejo. La historia de git conserva la versión anterior de esta sección.
 
 ---
 
