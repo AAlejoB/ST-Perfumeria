@@ -501,54 +501,13 @@
     });
     var qty = validPack.length;
     if (qty < 1) return;
-    var counts = {};
-    validPack.forEach(function(s) { counts[s] = (counts[s]||0) + 1; });
 
-    // Separar customs con precio fijo de los regulares
-    var fixedTotal = 0;
-    var ladderCount = 0;
-    validPack.forEach(function(s) {
-      if (s.indexOf('custom-') === 0) {
-        var cid = parseInt(s.replace('custom-', ''), 10);
-        var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
-        if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
-          fixedTotal += parseFloat(c.precio_unit);
-          return;
-        }
-      }
-      ladderCount++;
-    });
-    var unit = getDecantUnitPrice(ladderCount);
-    var total = (ladderCount * unit) + fixedTotal;
-
-    var lines = Object.keys(counts).map(function(slug) {
-      var name, priceNote = '';
-      if (slug.indexOf('custom-') === 0) {
-        var cid = parseInt(slug.replace('custom-', ''), 10);
-        var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
-        name = c ? (c.nombre + (c.marca ? ' (' + c.marca + ')' : '') + ' ⭐') : slug;
-        if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
-          priceNote = ' — $' + Math.round(parseFloat(c.precio_unit)).toLocaleString('es-AR') + ' c/u';
-        }
-      } else {
-        var p = PERFUMES.find(function(x) { return x.slug === slug; });
-        name = p ? p.name : slug;
-      }
-      var n = counts[slug];
-      return '• ' + name + (n > 1 ? ' (x' + n + ')' : '') + priceNote;
-    });
-
-    var resumen;
-    if (fixedTotal > 0 && ladderCount > 0) {
-      resumen = '💰 ' + ladderCount + ' x $' + unit.toLocaleString('es-AR') + ' + de diseñador = *$' + Math.round(total).toLocaleString('es-AR') + '*';
-    } else if (fixedTotal > 0 && ladderCount === 0) {
-      resumen = '💰 Total: *$' + Math.round(total).toLocaleString('es-AR') + '*';
-    } else {
-      resumen = '💰 ' + qty + ' x $' + unit.toLocaleString('es-AR') + ' = *$' + Math.round(total).toLocaleString('es-AR') + '*';
-    }
+    // [PROMO-DECANTS] [DECANT-WA-TOTAL] La misma cuenta que la pantalla (precioPackDecants, app.js): hasta v1.1.130 el
+    // WhatsApp no separaba los perfumes con precio de decant cargado a mano y los cobraba con la escalera.
+    var cuenta = precioPackDecants(validPack);
     var msg = 'Hola! 👋 Quiero armar un pack de ' + qty + ' decants de ' + DECANTS_CONFIG.ml + 'ml 🧪\n\n'
-      + lines.join('\n') + '\n\n'
-      + resumen + '\n\n'
+      + cuenta.lineas.join('\n') + '\n\n'
+      + cuenta.resumen + '\n\n'
       + '¿Confirmás stock? 🙏';
     var url = 'https://wa.me/5492975416017?text=' + encodeURIComponent(msg);
     window.open(url, '_blank');

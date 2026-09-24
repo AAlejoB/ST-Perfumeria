@@ -6873,6 +6873,165 @@
       return !!(p && (p._decantExcluido || detectProductType(p)));
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // [PROMO-DECANTS] N1 · la promo de decants («3 decants por $18.000»): una sola regla y una sola cuenta.
+    // La promo vive en promos_decants (una fila, id = 1) y los perfumes sumados o sacados a mano en
+    // promos_decants_perfumes. Para anon, la base sólo devuelve la promo prendida y vigente; igual se
+    // mira acá cada vez (desde ≤ ahora < hasta), porque la página puede quedar abierta cuando termina.
+    // Si la lectura falla, no hay promo: mejor la escalera que una promo vencida.
+    // ══════════════════════════════════════════════════════════════
+    var PROMO_DECANTS = null;          // { n, precio_pack, max_packs, desde, hasta } (ms) o null
+    var PROMO_DECANTS_MODOS = {};      // slug → 'incluir' | 'excluir'
+
+    async function loadPromoDecants() {
+      var promo = null, modos = {};
+      try {
+        var r = await withTimeout(sb.from('promos_decants').select('*').eq('id', 1), 3000, 'promos_decants');
+        var fila = (r && !r.error && Array.isArray(r.data) && r.data.length) ? r.data[0] : null;
+        if (fila && fila.activa) {
+          var n = parseInt(fila.n, 10), pp = parseInt(fila.precio_pack, 10), mp = parseInt(fila.max_packs, 10);
+          var desde = Date.parse(fila.desde), hasta = Date.parse(fila.hasta);
+          if (n >= 2 && n <= 10 && pp > 0 && isFinite(desde) && isFinite(hasta) && hasta > desde) {
+            var r2 = await withTimeout(sb.from('promos_decants_perfumes').select('slug,modo'), 3000, 'promos_decants_perfumes');
+            if (r2 && !r2.error && Array.isArray(r2.data)) {
+              r2.data.forEach(function(x) { if (x && x.slug && (x.modo === 'incluir' || x.modo === 'excluir')) modos[x.slug] = x.modo; });
+              promo = { n: n, precio_pack: pp, max_packs: mp > 0 ? mp : null, desde: desde, hasta: hasta };
+            }
+          }
+        }
+      } catch (e) { promo = null; modos = {}; }
+      PROMO_DECANTS = promo;
+      PROMO_DECANTS_MODOS = modos;
+      promoRefrescar();
+      iniciarRelojPromo();
+    }
+
+    // La promo si está vigente AHORA (en el reloj del cliente), o null.
+    function promoVigente() {
+      var P = PROMO_DECANTS;
+      if (!P) return null;
+      var ahora = Date.now();
+      return (ahora >= P.desde && ahora < P.hasta) ? P : null;
+    }
+
+    // Lo que muestra la lista del armador (extras.js la usa también): sin sets, ocultos, pausados, excluidos (que
+    // incluye lo que no es perfume) ni duplicados de un decant de diseñador.
+    function decantEnListaArmador(p, customs) {
+      if (!p || p.esSet || p._oculto || p._pausado) return false;
+      if (decantExcluido(p)) return false;
+      customs = customs || decantCustomNombres();
+      return !customs[decantNombreNorm(p.name)];
+    }
+
+    // true → el perfume lleva «3×»: está en la lista, tiene precio de escalera (sin precio manual y sin «a consultar»)
+    // y, salvo que lo hayan sumado o sacado a mano, su frasco (equivalente 100 ml) cuesta hasta (precio_pack / n) × 20.
+    function promoDecantEntra(p, promo, customs) {
+      promo = promo || promoVigente();
+      if (!promo || !p) return false;
+      if (!decantEnListaArmador(p, customs)) return false;
+      if (decantPrecioManual(p) > 0 || decantAConsultar(p)) return false;
+      var modo = PROMO_DECANTS_MODOS[p.slug];
+      if (modo === 'excluir') return false;
+      if (modo === 'incluir') return true;
+      return decantPrecioFrasco100(p) <= (promo.precio_pack / promo.n) * 20;
+    }
+
+    function precioAR(v) { return '$' + Math.round(v).toLocaleString('es-AR'); }
+
+    // La cuenta del pack: la usan la pantalla del armador (updateDecantUI), el pie y el WhatsApp (sendDecantPackToWA),
+    // así dan siempre el mismo total.
+    //  · Precio fijo (diseñador con precio_unit y precio manual): su precio; no cuentan para la escalera ni para n.
+    //  · Escalera: el precio por unidad sale de la cantidad de escalera, con 3× y sin 3×.
+    //  · 3× (promo vigente y al menos n en el pack): todas las unidades 3× (o max_packs × n si hay tope) a
+    //    min(escalera, precio_pack / n); las que pasan el tope van con la escalera.
+    function precioPackDecants(pack) {
+      var promo = promoVigente();
+      var customs = decantCustomNombres();
+      var items = (pack || []).filter(function(s) { return s != null && typeof s === 'string' && s.trim().length > 0; });
+      var fijos = 0, fijoTotal = 0, escalera = 0, con3x = 0, lineas = [], cuenta = {}, orden = [];
+      items.forEach(function(s) {
+        if (!cuenta[s]) { cuenta[s] = 0; orden.push(s); }
+        cuenta[s]++;
+        if (s.indexOf('custom-') === 0) {
+          var cid = parseInt(s.replace('custom-', ''), 10);
+          var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
+          if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) { fijos++; fijoTotal += parseFloat(c.precio_unit); return; }
+          escalera++;
+          return;
+        }
+        var pf = PERFUMES.find(function(x) { return x.slug === s; });
+        var manual = decantPrecioManual(pf);
+        if (manual > 0) { fijos++; fijoTotal += manual; return; }
+        escalera++;
+        if (promo && promoDecantEntra(pf, promo, customs)) con3x++;
+      });
+      var unidad = getDecantUnitPrice(escalera);
+      var unidadPromo = 0, promoUnidades = 0;
+      if (promo && con3x >= promo.n) {
+        unidadPromo = Math.min(unidad, promo.precio_pack / promo.n);
+        if (unidadPromo < unidad) promoUnidades = promo.max_packs ? Math.min(con3x, promo.max_packs * promo.n) : con3x;
+      }
+      var total = fijoTotal + promoUnidades * unidadPromo + (escalera - promoUnidades) * unidad;
+      // Las líneas del WhatsApp (el nombre, la cantidad y, si tiene, su precio fijo).
+      orden.forEach(function(slug) {
+        var name, nota = '';
+        if (slug.indexOf('custom-') === 0) {
+          var cid = parseInt(slug.replace('custom-', ''), 10);
+          var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
+          name = c ? (c.nombre + (c.marca ? ' (' + c.marca + ')' : '') + ' ⭐') : slug;
+          if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) nota = ' — ' + precioAR(parseFloat(c.precio_unit)) + ' c/u';
+        } else {
+          var p = PERFUMES.find(function(x) { return x.slug === slug; });
+          name = p ? p.name : slug;
+          var m = decantPrecioManual(p);
+          if (m > 0) nota = ' — ' + precioAR(m) + ' c/u';   // [DECANT-WA-TOTAL] su precio, como los de diseñador
+        }
+        lineas.push('• ' + name + (cuenta[slug] > 1 ? ' (x' + cuenta[slug] + ')' : '') + nota);
+      });
+      var resumen;
+      if (promoUnidades > 0) {
+        var partes = [promoUnidades + ' × ' + precioAR(unidadPromo) + ' (promo ' + promo.n + '×)'];
+        if (escalera - promoUnidades > 0) partes.push((escalera - promoUnidades) + ' × ' + precioAR(unidad));
+        if (fijos > 0) partes.push('de diseñador');
+        resumen = '💰 ' + partes.join(' + ') + ' = *' + precioAR(total) + '*';
+      } else if (fijos > 0 && escalera > 0) {
+        resumen = '💰 ' + escalera + ' x ' + precioAR(unidad) + ' + de diseñador = *' + precioAR(total) + '*';
+      } else if (fijos > 0) {
+        resumen = '💰 Total: *' + precioAR(total) + '*';
+      } else {
+        resumen = '💰 ' + escalera + ' x ' + precioAR(unidad) + ' = *' + precioAR(total) + '*';
+      }
+      var faltan = (promo && con3x >= 1 && con3x < promo.n) ? promo.n - con3x : 0;
+      return {
+        qty: items.length, total: total, lineas: lineas, resumen: resumen,
+        fijos: fijos, fijoTotal: fijoTotal, escalera: escalera, unidad: unidad,
+        con3x: con3x, promoUnidades: promoUnidades, unidadPromo: unidadPromo,
+        faltan: faltan, topeAlcanzado: !!(promo && promo.max_packs && con3x >= promo.max_packs * promo.n), promo: promo
+      };
+    }
+
+    // Después de cargar la promo, o cuando empieza o termina: el armador y las etiquetas de las cards.
+    var promoEstabaVigente = false;
+    function promoRefrescar() {
+      promoEstabaVigente = !!promoVigente();
+      if (typeof refrescarEtiquetasCards === 'function') refrescarEtiquetasCards();
+      updateDecantUI();
+      if (document.querySelector('#decantBuilderOverlay.active') && typeof window.renderDecantGrid === 'function' && window.__extrasLoaded) window.renderDecantGrid();
+    }
+    // El reloj: cada minuto (en el cambio de minuto) repinta las etiquetas; si la promo empezó o terminó, el armador.
+    var promoRelojTimer = null;
+    function iniciarRelojPromo() {
+      if (promoRelojTimer) { clearTimeout(promoRelojTimer); promoRelojTimer = null; }
+      if (!PROMO_DECANTS) return;
+      var tick = function() {
+        promoRelojTimer = null;
+        if (!!promoVigente() !== promoEstabaVigente) promoRefrescar();
+        else if (typeof refrescarEtiquetasCards === 'function') refrescarEtiquetasCards();
+        if (PROMO_DECANTS && Date.now() < PROMO_DECANTS.hasta + 60000) promoRelojTimer = setTimeout(tick, 60000 - (Date.now() % 60000) + 50);
+      };
+      promoRelojTimer = setTimeout(tick, 60000 - (Date.now() % 60000) + 50);
+    }
+
     // true → la card se muestra como "Precio a consultar" (no se puede agregar).
     // Sólo pasa si el frasco supera el tope Y nadie cargó precio de decant.
     function decantAConsultar(p) {
@@ -7035,33 +7194,13 @@
       //    customs con precio_unit Y los perfumes del catálogo con
       //    precio_decant cargado a mano desde el admin.
       //  - "ladder": el resto
-      var fixedCount = 0;
-      var fixedTotal = 0;
-      var ladderCount = 0;
-      decantsPack.forEach(function(s) {
-        if (typeof s === 'string' && s.indexOf('custom-') === 0) {
-          var cid = parseInt(s.replace('custom-', ''), 10);
-          var c = DECANTS_CUSTOM_LIST.find(function(x) { return x.id === cid; });
-          if (c && c.precio_unit != null && isFinite(parseFloat(c.precio_unit))) {
-            fixedCount++;
-            fixedTotal += parseFloat(c.precio_unit);
-            return;
-          }
-        } else if (typeof s === 'string') {
-          // [DECANT-PRECIO-MANUAL] Perfume del catálogo con precio de decant
-          // cargado por el empleado: se cobra ese precio, no la escalera.
-          var pf = PERFUMES.find(function(x) { return x.slug === s; });
-          var manual = decantPrecioManual(pf);
-          if (manual > 0) {
-            fixedCount++;
-            fixedTotal += manual;
-            return;
-          }
-        }
-        ladderCount++;
-      });
-      var unit = getDecantUnitPrice(ladderCount);          // tier según los que SÍ usan escalera
-      var total = (ladderCount * unit) + fixedTotal;
+      // [PROMO-DECANTS] La cuenta sale de precioPackDecants, la misma que usa el WhatsApp. Precio fijo = los de
+      // diseñador con precio_unit y los del catálogo con precio de decant cargado a mano ([DECANT-PRECIO-MANUAL]).
+      var cuenta = precioPackDecants(decantsPack);
+      var fixedCount = cuenta.fijos;
+      var ladderCount = cuenta.escalera;
+      var unit = cuenta.unidad;                            // tier según los que SÍ usan escalera (con 3× y sin 3×)
+      var total = cuenta.total;
 
       setTxt('decantQty', qty);
       setTxt('decantMax', DECANTS_CONFIG.max_decants);
@@ -7070,7 +7209,9 @@
       setTxt('decantTotal', '$' + Math.round(total).toLocaleString('es-AR'));
       // "c/u" del header: si hay items con precio fijo y otros con escalera,
       // mostramos el de escalera con nota. Sino el normal.
-      if (fixedCount > 0 && ladderCount > 0) {
+      if (cuenta.promoUnidades > 0 && cuenta.promoUnidades === qty) {
+        setTxt('decantUnit', precioAR(cuenta.unidadPromo) + ' c/u (promo ' + cuenta.promo.n + '×)');
+      } else if (cuenta.promoUnidades > 0 || (fixedCount > 0 && ladderCount > 0)) {
         setTxt('decantUnit', '$' + unit.toLocaleString('es-AR') + ' c/u (mixto)');
       } else if (fixedCount > 0 && ladderCount === 0) {
         setTxt('decantUnit', 'Precio fijo');
@@ -7105,6 +7246,13 @@
         ladder = '🔥 Sumá ' + falta2 + ' más y cada uno pasa a $' + p5.toLocaleString('es-AR') + ' (ahorrás $' + ahorro2.toLocaleString('es-AR') + ')';
       } else {
         ladder = '✨ Precio óptimo: $' + p5.toLocaleString('es-AR') + ' c/u';
+      }
+      // [PROMO-DECANTS] Con la promo vigente y de 1 a n−1 con 3× en el pack: «Sumá 1 más con 3×» (también con precio
+      // fijo en el pack, donde la escalera no se muestra). Con la promo aplicada, qué se cobró a precio de promo.
+      if (cuenta.faltan > 0) {
+        ladder = 'Sumá ' + cuenta.faltan + ' más con ' + cuenta.promo.n + '×';
+      } else if (cuenta.promoUnidades > 0) {
+        ladder = '🧪 Promo ' + cuenta.promo.n + '×: ' + cuenta.promoUnidades + ' × ' + precioAR(cuenta.unidadPromo);
       }
       setTxt('decantLadder', ladder);
       var ladderEl = document.getElementById('decantLadder');
@@ -7213,8 +7361,7 @@
           // único botón es «+ AGREGAR». Sin stock sigue afuera, como antes.
           var qpCustoms = decantCustomNombres();
           var topElegibles = PERFUMES.filter(function(p) {
-            return p && p.slug && !p.esSet && !p._oculto && !p._pausado && (p._stockStatus !== 'out')
-              && !decantExcluido(p) && !decantAConsultar(p) && !qpCustoms[decantNombreNorm(p.name)];
+            return p && p.slug && (p._stockStatus !== 'out') && decantEnListaArmador(p, qpCustoms) && !decantAConsultar(p);
           });
           topElegibles.sort(function(a, b) {
             var va = perfumeViews[a.slug] || 0;
@@ -7452,6 +7599,7 @@
 
     // Cargar config al inicio (no bloquea, con defaults)
     loadDecantsConfig();
+    loadPromoDecants();   // [PROMO-DECANTS] N1
 
     // [JS-CHUNK] Preload de extras.js en idle time post-TTI.
     // Si el cliente abre decants/quiz/etc DESPUÉS de este preload, la función
