@@ -4911,6 +4911,22 @@
     .waitlist-msg {
       font-size: .7rem; margin-top: .6rem; min-height: 1rem;
     }
+    /* [ESPERA-CLARO] 23-sep · el color del mensaje va por estado (antes, inline desde submitWaitlist). En oscuro, los mismos de siempre. */
+    .waitlist-msg--ok { color: #27ae60; }
+    .waitlist-msg--ya { color: var(--amarillo); }
+    .waitlist-msg--error { color: #e74c3c; }
+    /* [ESPERA-CLARO] decisión 53 · la ventana «Avisame» en claro. .waitlist-box era #111 en los dos temas y
+       body:not(.dark-mode) p (0,1,2) le ganaba a los textos de la caja (0,1,0): quedaban #2a2a2d sobre #111 = 1,32.
+       Estas son (0,2,1): le ganan sin !important. En oscuro no cambia nada (el oscuro es la base). */
+    body:not(.dark-mode) .waitlist-box { background: #fff; border-color: rgba(120,90,0,.28); }
+    body:not(.dark-mode) .waitlist-title { color: #1a1a1d; }
+    body:not(.dark-mode) .waitlist-perfume-name { color: #8a6d00; }
+    body:not(.dark-mode) .waitlist-desc { color: #5e564a; }
+    body:not(.dark-mode) .waitlist-close { color: #5e564a; }
+    body:not(.dark-mode) .waitlist-close:hover { color: #1a1a1d; }   /* en táctil el hover queda pegado: blanco desaparecía */
+    body:not(.dark-mode) .waitlist-msg--ok { color: #1b5e20; }
+    body:not(.dark-mode) .waitlist-msg--ya { color: #8a6d00; }
+    body:not(.dark-mode) .waitlist-msg--error { color: #b8342a; }
     .badge-proximamente {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-8deg); z-index: 20;
       background: rgba(0,0,0,.85); color: var(--amarillo);

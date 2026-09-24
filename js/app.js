@@ -4259,7 +4259,7 @@
       document.getElementById('waitlistSlug').value = slug;
       document.getElementById('waitlistPerfumeName').textContent = p.name;
       document.getElementById('waitlistMsg').textContent = '';
-      document.getElementById('waitlistMsg').style.color = '';
+      document.getElementById('waitlistMsg').className = 'waitlist-msg';   // [ESPERA-CLARO] el color va por clase
       document.getElementById('waitlistPhonePreview').textContent = '';
       document.getElementById('waitlistSubmitBtn').disabled = false;
 
@@ -4312,7 +4312,7 @@
       var successShown = false;
 
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.className = 'waitlist-msg waitlist-msg--error';
         msgEl.textContent = 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
         return;
       }
@@ -4320,7 +4320,7 @@
       // del medio a 2 de ellos y no podrían anotarse; sólo se limpia si no tiene esa forma.
       var phone = /^549\d{10}$/.test(rawPhone) ? rawPhone : cleanPhone(rawPhone);
       if (phone.length !== 13) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.className = 'waitlist-msg waitlist-msg--error';
         msgEl.textContent = 'El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)';
         return;
       }
@@ -4341,7 +4341,7 @@
         });
 
         if (res.error && res.error.code === '23505') {
-          msgEl.style.color = 'var(--amarillo)';
+          msgEl.className = 'waitlist-msg waitlist-msg--ya';
           msgEl.textContent = '\u00a1Ya est\u00e1s en la lista! Te avisamos cuando vuelva.';
           markWaitlistSlug(slug);
           setTimeout(function() { closeWaitlist(); }, 1800);
@@ -4349,7 +4349,7 @@
           return;
         }
         if (res.error) {
-          msgEl.style.color = '#e74c3c';
+          msgEl.className = 'waitlist-msg waitlist-msg--error';
           msgEl.textContent = 'Error: ' + res.error.message;
           btn.disabled = false;
           return;
@@ -4359,7 +4359,7 @@
         // Así si markWaitlistSlug explota, el usuario no ve "Error de conexión"
         // después del "¡Listo!".
         successShown = true;
-        msgEl.style.color = '#27ae60';
+        msgEl.className = 'waitlist-msg waitlist-msg--ok';
         msgEl.textContent = '\u00a1Listo! Te avisamos por WhatsApp cuando vuelva.';
         setTimeout(function() { closeWaitlist(); }, 2000);
 
@@ -4372,7 +4372,7 @@
         // Si el success ya se mostró, NO pisamos con un error — el guardado funcionó,
         // el error probablemente vino de algún side-effect irrelevante.
         if (!successShown) {
-          msgEl.style.color = '#e74c3c';
+          msgEl.className = 'waitlist-msg waitlist-msg--error';
           msgEl.textContent = 'Error: ' + (e.message || 'conexión fallida');
         }
       }
