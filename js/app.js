@@ -1755,6 +1755,50 @@
       });
     }, 5 * 60 * 1000); // cada 5 minutos
 
+    // ══════════════════════════════════════════════════════════════
+    // [PROMO-DECANTS] N3 · las etiquetas de la card (decisiones 111 y 112).
+    //  · Máximo dos. Orden: la cinta del jefe → la promo → «Último» → «Nuevo»; entran las dos primeras que tenga la card.
+    //  · «Sin stock» y «Próximamente» tapan todas, también la cinta.
+    //  · Si la cinta dice lo mismo que una automática (sin acentos ni mayúsculas: NUEVO ↔ «Nuevo», ÚLTIMAS UNIDADES
+    //    ↔ «Último»), la automática no sale y no ocupa lugar.
+    //  · Van apiladas arriba, del lado de la foto (.card-etiquetas); la cinta sigue siendo la franja de arriba.
+    // La de la promo: «🧪 3 decants por $18.000 · hasta el lun 29» y, en las últimas 24 h, «… · termina en 5h 12min».
+    // El reloj de la promo (iniciarRelojPromo) la repinta cada minuto y, cuando termina, desaparece sola.
+    // ══════════════════════════════════════════════════════════════
+    var CINTA_IGUAL_ULTIMO = ['ultimo', 'ultimas unidades'];
+    var DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+    function normCinta(s) { return stripAccents(String(s == null ? '' : s)).toLowerCase().replace(/\s+/g, ' ').trim(); }
+    // El día en hora argentina (UTC−3 fijo, sin horario de verano): «lun 29».
+    function diaCortoART(ms) { var d = new Date(ms - 3 * 3600e3); return DIAS_CORTOS[d.getUTCDay()] + ' ' + d.getUTCDate(); }
+    function textoEtiquetaPromo(promo) {
+      var base = '🧪 ' + promo.n + ' decants por ' + precioAR(promo.precio_pack);
+      var falta = promo.hasta - Date.now();
+      if (falta > 24 * 3600e3) return base + ' · hasta el ' + diaCortoART(promo.hasta - 1);   // −1 ms: un «hasta» a las 00:00 es el día anterior
+      var mins = Math.max(1, Math.ceil(falta / 60000)), hs = Math.floor(mins / 60), m = mins % 60;
+      return base + ' · termina en ' + (hs > 0 ? hs + 'h ' + (m > 0 ? m + 'min' : '') : m + 'min').trim();   // el formato de la flotante
+    }
+    function etiquetasCard(p, stockStatus) {
+      if (stockStatus === 'out' || stockStatus === 'pausado') return '';
+      var cinta = p.etiqueta ? normCinta(p.etiqueta) : '';
+      var items = [];
+      var promo = promoVigente();
+      if (promo && promoDecantEntra(p, promo)) items.push('<span class="badge-promo">' + escapeHTML(textoEtiquetaPromo(promo)) + '</span>');
+      if (stockStatus === 'low' && CINTA_IGUAL_ULTIMO.indexOf(cinta) === -1) items.push('<span class="badge-ultimo">Último</span>');
+      if (p._isNew && cinta !== 'nuevo') items.push('<span class="badge-nuevo">Nuevo</span>');
+      return items.slice(0, cinta ? 1 : 2).join('');
+    }
+    // Repinta las etiquetas de las cards ya dibujadas (cuando llega la promo, y cada minuto con el reloj).
+    function refrescarEtiquetasCards() {
+      var porSlug = {};
+      PERFUMES.forEach(function(p) { porSlug[p.slug] = p; });
+      document.querySelectorAll('.product-card[data-slug] > .card-etiquetas').forEach(function(el) {
+        var p = porSlug[el.parentElement.getAttribute('data-slug')];
+        if (!p) return;
+        var html = etiquetasCard(p, p._stockStatus || 'ok');
+        if (el.innerHTML !== html) el.innerHTML = html;
+      });
+    }
+
     function buildCard(p) {
       delete p._precioOriginal; // limpiar entre renders
       var letter = p.name.charAt(0).toUpperCase();
@@ -1848,13 +1892,10 @@
       var badgeExtraAttrs = noteForState
         ? ' has-note" onclick="event.stopPropagation();showStockNote(\'' + p.slug + '\',\'' + stockStatus + '\')"'
         : '"';
-      if (stockStatus === 'low') stockBadge = '<span class="badge-ultimo">Último</span>';
+      // [PROMO-DECANTS] N3 · «Último» y «Nuevo» van en la pila de etiquetas (etiquetasCard).
       if (stockStatus === 'out') stockBadge = '<span class="badge-sin-stock' + badgeExtraAttrs + '>Sin stock</span>';
       if (isPaused)             stockBadge = '<span class="badge-proximamente' + badgeExtraAttrs + '>Próximamente</span>';
 
-      // Nuevo badge (últimos 10 del array = recién agregados)
-      var nuevoBadge = '';
-      if (p._isNew) nuevoBadge = '<span class="badge-nuevo">Nuevo</span>';
 
       // Tipo de producto (campo explícito del admin, fallback a keyword en nombre)
       var prodType = detectProductType(p);
@@ -1862,7 +1903,7 @@
 
       // Cinta de etiqueta personalizada (se configura desde el admin)
       var ribbonHTML = '';
-      if (p.etiqueta) {
+      if (p.etiqueta && stockStatus !== 'out' && !isPaused) {   // [PROMO-DECANTS] N3 · «Sin stock» y «Próximamente» tapan también la cinta
         // [CINTA-TINTA] el texto escapado, el color validado y la letra según el color (antes, blanca siempre y sin escapar)
         var ribbonColor = colorCinta(p.etiqueta_color);
         ribbonHTML = '<div class="card-ribbon" style="background:' + ribbonColor + ';color:' + letraSobre(ribbonColor) + ';">' + escapeHTML(p.etiqueta) + '</div>';
@@ -1941,7 +1982,7 @@
         : parseFloat(String(p.price || '').replace(/[^0-9.\-]/g, '')) || 0;
 
       return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
-        + ribbonHTML + stockBadge + nuevoBadge + discountHTML + discountTimerHTML
+        + ribbonHTML + stockBadge + '<div class="card-etiquetas">' + etiquetasCard(p, stockStatus) + '</div>' + discountHTML + discountTimerHTML
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar con otros perfumes"><span class="compare-icon">&#9878;</span><span class="compare-label">COMPARAR</span></button>'
         + '<div class="card-image">' + imageHTML + '</div>'

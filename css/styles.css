@@ -3113,6 +3113,12 @@
         right: auto;
         left: 40px;
       }
+      /* [PROMO-DECANTS] N3 · la pila de etiquetas, del lado de la foto (como «Último» y «Sin stock»). */
+      .product-card.mirror .card-etiquetas {
+        left: auto;
+        right: 8px;
+        align-items: flex-end;
+      }
       .product-card.mirror .card-discount-timer {
         right: auto;
         left: 8px;
@@ -5083,6 +5089,23 @@
     }
     .product-card:has(.card-ribbon) .fav-heart {
       top: 30px;
+    }
+
+    /* [PROMO-DECANTS] N3 · decisión 111: las etiquetas (promo, «Último», «Nuevo»; máximo dos contando la cinta) apiladas
+       arriba, del lado de la foto: arriba a la izquierda, y en escritorio, en las cards .mirror, a la derecha. «Nuevo» ya
+       no va al lado del corazón. Con cinta, debajo de la cinta. La de la promo (112): amarilla, letra #000 (11,29), del
+       tamaño de las otras. */
+    .card-etiquetas {
+      position: absolute; top: 8px; left: 8px; z-index: 3;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+      pointer-events: none;
+    }
+    .card-etiquetas:empty { display: none; }
+    .card-etiquetas > span { position: static; }
+    .product-card:has(.card-ribbon) .card-etiquetas { top: 30px; }
+    .badge-promo {
+      font-size: .55rem; font-weight: 700; letter-spacing: .06em;
+      background: #E8B800; color: #000; padding: 2px 7px; border-radius: 3px; white-space: nowrap;
     }
     .product-card:has(.card-ribbon) .compare-btn {
       top: 68px; /* corazon(30) + heart-height(32) + gap(6) */
