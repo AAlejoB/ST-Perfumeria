@@ -275,6 +275,63 @@ function efectivo(rs, target, prefijos, prop, capas) {
   });
 })();
 
+// ═══ PÍLDORA «CERRADO», CONTADOR DE CATEGORÍAS Y «VER CATÁLOGO» ═══ [CLARO-CATALOGO-2] 24-sep-2026
+// La píldora flota (position: fixed) sobre cualquier sección: se mide contra la página y contra la card. «Ver
+// catálogo» hereda la letra del banner en claro (`.price-banner-wrap--big .price-banner *` → inherit): se resuelve
+// ese inherit con el color del banner. Mismos ayudantes que la sección de la card.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function crudo(v, capas, prof) {
+    prof = prof || 0; var t = String(v || '').trim(); var m = t.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([\s\S]+))?\)$/);
+    if (!m || prof > 8) return t;
+    for (var i = 0; i < capas.length; i++) if (capas[i] && capas[i][m[1]]) return crudo(capas[i][m[1]], capas, prof + 1);
+    return m[2] ? crudo(m[2], capas, prof + 1) : '';
+  }
+  function sobre(c, fondoHex) {
+    var fo = [1, 3, 5].map(function (i) { return parseInt(fondoHex.substr(i, 2), 16); });
+    return '#' + [c.r, c.g, c.b].map(function (v, i) { return Math.round(v * c.a + fo[i] * (1 - c.a)).toString(16).padStart(2, '0'); }).join('');
+  }
+  function colores(valor, c, abajo) {
+    var v = crudo(valor, c.capas); if (!v || v === 'transparent' || v === 'none') return [abajo];
+    var re = /rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:[ ,\/]+([\d.]+))?\s*\)|var\(\s*--[\w-]+[^)]*\)|#[0-9a-fA-F]{3,6}\b/g, m, out = [];
+    while ((m = re.exec(v))) {
+      if (m[1] !== undefined) out.push(sobre({ r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] }, abajo));
+      else if (m[0][0] === 'v') out = out.concat(colores(m[0], c, abajo));
+      else { var h = normalizarHex(m[0]); if (h) out.push(h); }
+    }
+    return out.length ? out : [abajo];
+  }
+  function gana(selectores, c, props) {
+    var g = [];
+    selectores.forEach(function (t) { props.forEach(function (p) { var x = ganador(rs, t, c.pref, p); if (x) g.push(x); }); });
+    return g.sort(orden).pop() || null;
+  }
+  function fondoDe(selectores, c, abajo) { var g = gana(selectores, c, ['background', 'background-color']); return g ? colores(g.valor, c, abajo) : [abajo]; }
+  function donde(g) { return g ? path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') : ''; }
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var pagina = fondoDe(['body'], c, '#ffffff')[0];
+    var card = fondoDe(['.product-card'], c, pagina)[0];
+    // «Cerrado» flotante: su fondo compuesto sobre la página y sobre la card; se toma el peor.
+    var gCerr = gana(['.wa-status--closed'], c, ['color']);
+    var fCerr = [pagina, card].map(function (b) { return fondoDe(['.wa-status--closed'], c, b)[0]; });
+    medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: '«Cerrado» flotante .wa-status--closed', texto: gCerr && colores(gCerr.valor, c, fCerr[0])[0], fondos: fCerr, impone: donde(gCerr) });
+    // El contador de cada categoría, sobre su card.
+    var cat = fondoDe(['.cat-card', '.section-cats .cat-card', '.cat-grid .cat-card'], c, pagina)[0];
+    var gCnt = gana(['.cat-count', '.cat-card .cat-count'], c, ['color']);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: 'contador de categoría .cat-count', texto: gCnt && colores(gCnt.valor, c, cat)[0], fondos: [cat], impone: donde(gCnt) });
+    // «Ver catálogo»: la píldora sobre el banner «Explorá», el banner sobre la página.
+    var banner = fondoDe(['.price-banner', '.price-banner--big', '.price-banner-wrap--big .price-banner'], c, pagina)[0];
+    var fCta = fondoDe(['.price-banner-cta', '.price-banner--big .price-banner-cta'], c, banner);
+    var gCta = gana(['.price-banner-cta', '.price-banner--big .price-banner-cta', '.price-banner-wrap--big .price-banner *'], c, ['color']);
+    if (gCta && gCta.valor === 'inherit') gCta = gana(['.price-banner', '.price-banner--big', '.price-banner-wrap--big .price-banner'], c, ['color']);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: '«Ver catálogo» .price-banner--big .price-banner-cta', texto: gCta && colores(gCta.valor, c, fCta[0])[0], fondos: fCta, impone: donde(gCta) });
+  });
+})();
+
 // ═══ VENTANA «AVISAME» ═══ [ESPERA-CLARO] 23-sep-2026
 // Todos sus textos son <p> (menos el ×): en claro compiten con `body:not(.dark-mode) p` (0,1,2), que le gana a una
 // clase sola (0,1,0). Así quedaban #2a2a2d sobre la caja #111 = 1,32 hasta v1.1.115, y este script no lo veía porque

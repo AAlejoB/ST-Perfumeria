@@ -4862,6 +4862,11 @@
       border: 1px solid rgba(192,57,43,.3);
     }
     body.dark-mode .wa-status--closed { color: #ff7466; border-color: rgba(255,116,102,.35); }
+    /* [CLARO-CATALOGO-2] en claro «Cerrado» tiene fondo propio y opaco: la píldora flota sobre cualquier sección
+       (con el rojo al 12 % daba 3,23 sobre la página y 4,55 sobre las cards). Blanco sobre #b8342a = 5,89
+       sobre cualquier fondo. «Abierto» y «Feriado» no cambian. */
+    body:not(.dark-mode) .wa-status--closed { background: #b8342a; color: #fff; font-size: .7rem; }
+    body:not(.dark-mode) .wa-status--closed .wa-status-dot { background: #fff; }
     .wa-status--special {
       background: rgba(241,196,15,.12);
       color: #f1c40f;
@@ -5975,6 +5980,18 @@
       body:not(.dark-mode) .quiz-cta-banner:hover .quiz-cta-cta {
         transform: scale(1.06);
         box-shadow: 0 0 0 4px rgba(232,184,0,.55), 0 10px 32px rgba(232,184,0,.6) !important;
+      }
+    }
+    /* [CLARO-CATALOGO-2] decisión 57: en el celu, en claro, «Ver catálogo» también lleva la píldora dorada de
+       [LIGHT-CTA-POP] (se veía la píldora negra con la letra #1a1a1d: ≈ 1,1), sin el pulso. Sólo la del banner
+       «Explorá» (.price-banner--big): el «Consultar» de decants y «Jugar» no entran. Sin !important: gana por
+       especificidad, y la letra ya la pone #1a1a1d la regla del banner (`.price-banner *`). */
+    @media (max-width: 767px) {
+      body:not(.dark-mode) .price-banner--big .price-banner-cta {
+        background: linear-gradient(135deg, #ffd700, #E8B800);
+        font-weight: 900;
+        letter-spacing: .12em;
+        box-shadow: 0 0 0 2px rgba(232,184,0,.45), 0 6px 18px rgba(232,184,0,.4);
       }
     }
     @keyframes ctaLightPulse {
@@ -7656,7 +7673,6 @@
       box-shadow: 0 2px 8px rgba(120,90,0,.08);
     }
     body:not(.dark-mode) .cat-card * { color: inherit !important; }
-    body:not(.dark-mode) .cat-card .cat-count { color: #8a6d00 !important; }
 
     /* Banner "EXPLORÁ NUESTRO CATÁLOGO": cream sutil con border dorado */
     body:not(.dark-mode) .price-banner-wrap--big .price-banner,
@@ -8368,7 +8384,7 @@
        Ahora text/name dark sobre cream + num/count dorado-marrón. ── */
     body:not(.dark-mode) .cat-card .cat-num { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .cat-card .cat-name { color: #1a1a1d !important; }
-    body:not(.dark-mode) .cat-card .cat-count { color: #8a6d00 !important; }
+    body:not(.dark-mode) .cat-card .cat-count { color: #2a2622 !important; }   /* [CLARO-CATALOGO-2] 11,62 sobre #ede2c2 (era #8a6d00: 3,81); había una copia idéntica más arriba */
     /* ── [LIGHT-TITLES-DORADO] Titles de secciones a dorado-marrón para
        mejor contraste sobre cream (eran amarillo #E8B800 que se diluía) ── */
     body:not(.dark-mode) .seleccion-st-title,
