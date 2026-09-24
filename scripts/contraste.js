@@ -33,9 +33,9 @@ var MINIMO = 4.5;
 var NOMBRES = { gray: '#808080', grey: '#808080', white: '#ffffff', black: '#000000', red: '#ff0000', silver: '#c0c0c0' };
 var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no frena
   { superficie: 'catálogo', nombre: '.card-brand-st', tema: 'claro', keyword: '[JERARQUIA-CARD]' },
-  // [JUEGOS-VENTANA] lo que se mudó a la ventana tal cual: la manija es la del detalle y el título usa el dorado de claro
-  { superficie: 'catálogo', nombre: 'deslizá para cerrar .juegos-sheet .bs-handle-arrow', tema: 'oscuro', keyword: '[JUEGOS-VENTANA-PULIDO]' },
-  { superficie: 'catálogo', nombre: 'título del quiz .quiz-title', tema: 'claro', keyword: '[JUEGOS-VENTANA-PULIDO]' }
+  // [JUEGOS-VENTANA] lo que se mudó a la ventana tal cual: la manija es la del detalle
+  { superficie: 'catálogo', nombre: 'deslizá para cerrar .juegos-sheet .bs-handle-arrow', tema: 'oscuro', keyword: '[JUEGOS-VENTANA-PULIDO]' }
+  // [AMARILLO-TINTA-CLARO] el título del quiz en claro salió de acá: con #6b5500 da 6,25 sobre #f5efde
 ];
 
 // ── color ──

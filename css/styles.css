@@ -37,6 +37,7 @@
       --negro-card:     #1a1a1d;       /* fondo de tarjetas/cards */
       --negro-hover:    #222225;       /* fondo cuando pasás el mouse */
       --amarillo:       #E8B800;       /* color principal de la marca ST */
+      --amarillo-tinta: #E8B800;       /* [AMARILLO-TINTA-CLARO] decisión 66 · la tinta dorada de TEXTO (en claro #6b5500) */
       --amarillo-claro: #F5CD3D;       /* versión más clara para hovers */
       --blanco:         #f0ede8;       /* texto principal (no es blanco puro, es más cálido) */
       --gris:           #888888;       /* texto secundario/apagado · [TEMA-CLARO] decisión 28: era #777777 (3,89 sobre #1a1a1a); alineado al panel */
@@ -3022,7 +3023,7 @@
     }
     body:not(.dark-mode) .price-cuotas-chip {
       background: rgba(138,109,0,.18);
-      color: #8a6d00;
+      color: var(--amarillo-tinta);
     }
 
     /* REVEAL LATERAL — sobre el área de imagen (30%), precio queda visible */
@@ -3991,20 +3992,20 @@
     body:not(.dark-mode) .similar-rec { color: #6a6058; }
     body:not(.dark-mode) .sim-ring-bg-arc { stroke: rgba(120,90,0,.18); }
     body:not(.dark-mode) .sim-ring-fg-arc.score-mid { stroke: #8a6d00; }
-    body:not(.dark-mode) .sim-ring-text { color: #8a6d00; }
+    body:not(.dark-mode) .sim-ring-text { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .sim-ring-text.score-low { color: #8a4a18; }
     body:not(.dark-mode) .sim-btn-comparar {
       background: rgba(184,140,0,.1);
-      color: #8a6d00;
+      color: var(--amarillo-tinta);
       border-color: rgba(184,140,0,.4);
     }
     body:not(.dark-mode) .sim-btn-comparar:hover {
       background: #8a6d00; color: #fff;
     }
-    body:not(.dark-mode) .sim-razon-label { color: #8a6d00; }
+    body:not(.dark-mode) .sim-razon-label { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .sim-razon-chip {
       background: rgba(184,140,0,.12);
-      color: #8a6d00;
+      color: var(--amarillo-tinta);
       border-color: rgba(184,140,0,.32);
     }
     /* Badges en light mantienen sus gradients que se ven bien sobre crema */
@@ -4672,7 +4673,7 @@
     /* Light mode: paleta dorada-marrón */
     body:not(.dark-mode) .photo-coming-letter { color: rgba(138,109,0,.45); }
     body:not(.dark-mode) .photo-coming-name   { color: rgba(26,26,29,.55); }
-    body:not(.dark-mode) .photo-coming-label  { color: #8a6d00; opacity: .75; }
+    body:not(.dark-mode) .photo-coming-label  { color: var(--amarillo-tinta); opacity: 1; }   /* [AMARILLO-TINTA-CLARO] sin la opacidad: .75 lo bajaba a 2,98 */
 
     /* Card entrance animation */
     .product-card.card-animate {
@@ -5000,12 +5001,12 @@
        Estas son (0,2,1): le ganan sin !important. En oscuro no cambia nada (el oscuro es la base). */
     body:not(.dark-mode) .waitlist-box { background: #fff; border-color: rgba(120,90,0,.28); }
     body:not(.dark-mode) .waitlist-title { color: #1a1a1d; }
-    body:not(.dark-mode) .waitlist-perfume-name { color: #8a6d00; }
+    body:not(.dark-mode) .waitlist-perfume-name { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .waitlist-desc { color: #5e564a; }
     body:not(.dark-mode) .waitlist-close { color: #5e564a; }
     body:not(.dark-mode) .waitlist-close:hover { color: #1a1a1d; }   /* en táctil el hover queda pegado: blanco desaparecía */
     body:not(.dark-mode) .waitlist-msg--ok { color: #1b5e20; }
-    body:not(.dark-mode) .waitlist-msg--ya { color: #8a6d00; }
+    body:not(.dark-mode) .waitlist-msg--ya { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .waitlist-msg--error { color: #b8342a; }
     .badge-proximamente {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-8deg); z-index: 20;
@@ -7477,6 +7478,7 @@
          crema-arena con más cuerpo. */
       --negro:        #e3d6b3;   /* fondo principal — beige arena más cálido */
       --negro-card:   #ede2c2;   /* cards — un toque más claro pero NO blanco */
+      --amarillo-tinta: #6b5500; /* [AMARILLO-TINTA-CLARO] decisión 66 · 4,97 sobre #e3d6b3 (el peor fondo) · 6,25 sobre #f5efde · 7,18 sobre blanco */
       --negro-hover:  #d8caa3;
       --blanco:       #1a1a1d;   /* texto principal */
       --gris:         #5e564a;
@@ -7525,7 +7527,7 @@
     body:not(.dark-mode) .section-title,
     body:not(.dark-mode) h1, body:not(.dark-mode) h2, body:not(.dark-mode) h3 { color: #1a1a1d; }
     /* Eyebrows en dorado-marrón para mantener la calidez de la paleta */
-    body:not(.dark-mode) .section-eyebrow { color: #8a6d00; }
+    body:not(.dark-mode) .section-eyebrow { color: var(--amarillo-tinta); }
     body:not(.dark-mode) p, body:not(.dark-mode) li { color: #2a2a2d; }
     body:not(.dark-mode) .home-slider-viewport { background: #e8e4d8; border-color: rgba(0,0,0,.08); }
     body:not(.dark-mode) .home-top-banner { background: #1a1a1d; color: #fff; }
@@ -7647,7 +7649,7 @@
     }
     body:not(.dark-mode) .price-banner-wrap--big .price-banner * { color: inherit !important; }
     body:not(.dark-mode) .price-banner-wrap--big .price-banner strong,
-    body:not(.dark-mode) .price-banner-wrap--big .price-banner em { color: #8a6d00 !important; }
+    body:not(.dark-mode) .price-banner-wrap--big .price-banner em { color: var(--amarillo-tinta) !important; }
 
     body:not(.dark-mode) .puntos-context-banner {
       background: linear-gradient(135deg, #f5efde, #ede5d2) !important;
@@ -7655,7 +7657,7 @@
       border-color: rgba(120,90,0,.4) !important;
     }
     body:not(.dark-mode) .puntos-context-banner * { color: inherit !important; }
-    body:not(.dark-mode) .puntos-context-banner strong { color: #8a6d00 !important; }
+    body:not(.dark-mode) .puntos-context-banner strong { color: var(--amarillo-tinta) !important; }
 
     /* [LIGHT-MODE-CONTAINER-FIX] Mayo 16 2026: el jefe pidió que el FONDO de
        estas secciones contenedoras herede el cream del body (algunas tenían
@@ -7677,7 +7679,7 @@
        para que pase a dorado-marrón en light. El radial-gradient absoluto
        interno también se ajusta para que no se vea negro sobre cream. */
     body:not(.dark-mode) #contacto h2 { color: #1a1a1d !important; }
-    body:not(.dark-mode) #contacto h2 em { color: #8a6d00 !important; }
+    body:not(.dark-mode) #contacto h2 em { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) #contacto > div[style*="radial-gradient"] {
       background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(232,184,0,.08) 0%, transparent 70%) !important;
     }
@@ -7693,7 +7695,7 @@
     }
     body:not(.dark-mode) .quiz-cta-banner * { color: inherit; }
     body:not(.dark-mode) .quiz-cta-banner .quiz-cta-eyebrow,
-    body:not(.dark-mode) .quiz-cta-banner .quiz-cta-cta { color: #8a6d00 !important; }
+    body:not(.dark-mode) .quiz-cta-banner .quiz-cta-cta { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .quiz-cta-banner .quiz-cta-title { color: #1a1a1d !important; }
     body:not(.dark-mode) .quiz-cta-banner .quiz-cta-sub { color: #5e564a !important; }
 
@@ -7777,16 +7779,16 @@
 
     /* BUG 5 · Dónde encontrarnos */
     body:not(.dark-mode) .map-section { background: transparent; color: #1a1a1d; }
-    body:not(.dark-mode) .map-section-eyebrow { color: #8a6d00 !important; }
+    body:not(.dark-mode) .map-section-eyebrow { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .map-section-title { color: #1a1a1d !important; }
     body:not(.dark-mode) .map-info-row {
       background: #f5efde !important;
       border-color: rgba(120,90,0,.2) !important;
     }
-    body:not(.dark-mode) .map-info-label { color: #8a6d00 !important; }
+    body:not(.dark-mode) .map-info-label { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .map-info-text,
     body:not(.dark-mode) .map-info-text strong { color: #1a1a1d !important; }
-    body:not(.dark-mode) .map-info-link { color: #8a6d00 !important; }
+    body:not(.dark-mode) .map-info-link { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .map-info-link:hover { color: #5a4500 !important; }
     body:not(.dark-mode) .map-embed-wrap { border-color: rgba(120,90,0,.25); }
 
@@ -7970,10 +7972,10 @@
       text-shadow: none;
     }
     body:not(.dark-mode) .map-section-eyebrow {
-      color: #8a6d00 !important;
+      color: var(--amarillo-tinta) !important;
       letter-spacing: .25em;
     }
-    body:not(.dark-mode) .map-info-nota { color: #8a6d00 !important; }
+    body:not(.dark-mode) .map-info-nota { color: var(--amarillo-tinta) !important; }
     /* CTA Cómo llegar mantiene el dorado */
     body:not(.dark-mode) .map-cta { background: var(--amarillo) !important; color: #1a1a1d !important; }
 
@@ -8054,7 +8056,7 @@
       background: linear-gradient(135deg, rgba(232,184,0,.10), rgba(232,184,0,.03) 60%);
       border-color: rgba(120,90,0,.45);
     }
-    body:not(.dark-mode) .voto-empty-title { color: #8a6d00; }
+    body:not(.dark-mode) .voto-empty-title { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .voto-empty-sub { color: #5e564a; }
 
     /* ════════════════════════════════════════════════════════════════
@@ -8072,7 +8074,7 @@
       color: #1a1a1d !important;
     }
     body:not(.dark-mode) .note-label {
-      color: #8a6d00 !important;
+      color: var(--amarillo-tinta) !important;
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -8090,8 +8092,8 @@
     body:not(.dark-mode) .card-reveal .reveal-name,
     body:not(.dark-mode) .card-reveal .reveal-brand { color: #1a1a1d !important; }
     body:not(.dark-mode) .card-reveal .scent-note strong { color: #000 !important; }
-    body:not(.dark-mode) .card-reveal .note-label { color: #8a6d00 !important; }
-    body:not(.dark-mode) .card-reveal .ver-similares-btn { color: #8a6d00 !important; }
+    body:not(.dark-mode) .card-reveal .note-label { color: var(--amarillo-tinta) !important; }
+    body:not(.dark-mode) .card-reveal .ver-similares-btn { color: var(--amarillo-tinta) !important; }
 
     /* ════════════════════════════════════════════════════════════════
        DECANT BUILDER · botón − global en el contador
@@ -8133,7 +8135,7 @@
     }
     body:not(.dark-mode) .decant-counter-minus {
       border-color: #b48c00;
-      color: #8a6d00;
+      color: var(--amarillo-tinta);
       background: rgba(180,140,0,.08);
     }
     body:not(.dark-mode) .decant-counter-minus:hover:not(:disabled) {
@@ -8155,10 +8157,10 @@
     }
     body:not(.dark-mode) .bottom-sheet .bs-name { color: #1a1a1d !important; }
     body:not(.dark-mode) .bottom-sheet .bs-brand { color: #5e564a !important; }
-    body:not(.dark-mode) .bottom-sheet .bs-brand-st { color: #8a6d00 !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-brand-st { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .bottom-sheet .bs-note { color: #2a2622 !important; }
     body:not(.dark-mode) .bottom-sheet .bs-note strong { color: #1a1a1d !important; }
-    body:not(.dark-mode) .bottom-sheet .bs-note .note-label { color: #8a6d00 !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-note .note-label { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .bottom-sheet .bs-divider {
       background: linear-gradient(90deg, #b48c00, transparent) !important;
     }
@@ -8175,7 +8177,7 @@
     }
     body:not(.dark-mode) .bottom-sheet .bs-btn-secondary {
       background: #ffffff !important;
-      color: #8a6d00 !important;
+      color: var(--amarillo-tinta) !important;
       border-color: rgba(120,90,0,.4) !important;
     }
     body:not(.dark-mode) .bottom-sheet .bs-btn-secondary:hover {
@@ -8258,7 +8260,7 @@
     body:not(.dark-mode) .sets-eyebrow,
     body:not(.dark-mode) .quiz-title,
     body:not(.dark-mode) .seleccion-st-title,
-    body:not(.dark-mode) .nosotros-block-title { color: #8a6d00 !important; }
+    body:not(.dark-mode) .nosotros-block-title { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .price-cash { color: #1b5e20 !important; }
 
     /* ── Cards del catálogo: nombres + precios ── */
@@ -8348,20 +8350,20 @@
     /* ── [LIGHT-CAT-CARDS-CREAM] Categorías ahora son CREAM (Opción B) ·
        refactor del bloque que estaba para cards oscuras (color #f0ede8).
        Ahora text/name dark sobre cream + num/count dorado-marrón. ── */
-    body:not(.dark-mode) .cat-card .cat-num { color: #8a6d00 !important; }
+    body:not(.dark-mode) .cat-card .cat-num { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .cat-card .cat-name { color: #1a1a1d !important; }
     body:not(.dark-mode) .cat-card .cat-count { color: #8a6d00 !important; }
     /* ── [LIGHT-TITLES-DORADO] Titles de secciones a dorado-marrón para
        mejor contraste sobre cream (eran amarillo #E8B800 que se diluía) ── */
     body:not(.dark-mode) .seleccion-st-title,
-    body:not(.dark-mode) .sets-title { color: #8a6d00 !important; }
+    body:not(.dark-mode) .sets-title { color: var(--amarillo-tinta) !important; }
 
     /* ── Sets/Packs ── */
     body:not(.dark-mode) .set-card { background: #f5efde !important; color: #1a1a1d !important; }
     body:not(.dark-mode) .set-name,
     body:not(.dark-mode) .set-price,
     body:not(.dark-mode) .set-sub { color: #1a1a1d !important; }
-    body:not(.dark-mode) .set-eyebrow { color: #8a6d00 !important; }
+    body:not(.dark-mode) .set-eyebrow { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .set-cta {
       background: #ffffff !important;
       color: #1a1a1d !important;
@@ -8415,13 +8417,13 @@
     /* ── "3 CUOTAS SIN INTERÉS" — dorado-marrón + más grande
        (antes #bbb, casi invisible). Ahora resalta con paleta ST. ── */
     body:not(.dark-mode) .price-label {
-      color: #8a6d00 !important;
+      color: var(--amarillo-tinta) !important;
       font-size: .68rem !important;
       font-weight: 700 !important;
       letter-spacing: .08em !important;
     }
     body:not(.dark-mode) .reveal-pricing .price-label {
-      color: #8a6d00 !important;
+      color: var(--amarillo-tinta) !important;
       font-size: .5rem !important;
     }
 
@@ -8532,7 +8534,7 @@
       text-align: center;
     }
     body:not(.dark-mode) .decant-grid-section-title {
-      color: #8a6d00;
+      color: var(--amarillo-tinta);
       border-bottom-color: rgba(120,90,0,.3);
     }
 
@@ -8635,7 +8637,7 @@
     body:not(.dark-mode) .decant-mis-empty-cta {
       background: rgba(138,109,0,.12);
       border-color: rgba(138,109,0,.4);
-      color: #8a6d00;
+      color: var(--amarillo-tinta);
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -8730,7 +8732,7 @@
       background: #8a6d00;
       color: #fff;
     }
-    body:not(.dark-mode) .decant-combo-label { color: #8a6d00; }
+    body:not(.dark-mode) .decant-combo-label { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .decant-combo-name { color: #1a1a1d; }
     body:not(.dark-mode) .decant-combo-reason { color: #6a5a30; }
     body:not(.dark-mode) .decant-combo-btn {
@@ -9007,7 +9009,7 @@
       margin-top: 2px;
       letter-spacing: .03em;
     }
-    body:not(.dark-mode) .decant-card-price { color: #8a6d00 !important; }
+    body:not(.dark-mode) .decant-card-price { color: var(--amarillo-tinta) !important; }
 
     /* [DC-PRECIO-GUARD] Card de decant custom SIN precio cargado todavía
        por el admin. Se ve atenuada + badge "Precio pendiente" en lugar
@@ -9557,7 +9559,7 @@
       border-color: rgba(120,90,0,.5);
     }
     body:not(.dark-mode) .recent-view-name { color: #1a1a1d; }
-    body:not(.dark-mode) .recent-view-price { color: #8a6d00; }
+    body:not(.dark-mode) .recent-view-price { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .recent-view-img { background: rgba(0,0,0,.04); }
 
     /* ════════════════════════════════════════════════════════════════

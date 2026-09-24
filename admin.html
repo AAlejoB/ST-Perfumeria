@@ -22,7 +22,10 @@
       --rojo-tinta: #e74c3c;
       --stat-fondo: linear-gradient(180deg, #131316 0%, #101013 100%);
       --stat-borde: var(--borde);
-      --stat-tinta: var(--amarillo);
+      /* [AMARILLO-TINTA-CLARO] decisión 66 · la tinta dorada de TEXTO, la misma en las dos apps: oscuro #E8B800,
+         claro #6b5500 (4,97 sobre #e3d6b3 · 6,48 sobre #f5f3ee · 7,18 sobre blanco). Reemplaza a --stat-tinta.
+         Bordes, accent-color y fondos siguen en --amarillo (regla 22). */
+      --amarillo-tinta: var(--amarillo);
       --stat-tinta-out: var(--rojo-tinta);
       --stat-tinta-perfumes: #5dade2;
       --stat-tinta-inv: #2ecc71;
@@ -235,7 +238,7 @@
       background: #111; border: 1px solid var(--borde); border-radius: 8px;
       padding: 2.5rem; max-width: 380px; width: 100%; text-align: center;
     }
-    .login-logo { font-size: 1.5rem; font-weight: 700; color: var(--amarillo); margin-bottom: .5rem; }
+    .login-logo { font-size: 1.5rem; font-weight: 700; color: var(--amarillo-tinta); margin-bottom: .5rem; }
     .login-sub { font-size: .75rem; color: var(--gris); margin-bottom: 1.5rem; letter-spacing: .1em; text-transform: uppercase; }
     .login-input {
       width: 100%; padding: .8rem 1rem; font-family: inherit; font-size: .85rem;
@@ -265,7 +268,7 @@
       display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid var(--borde); padding-bottom: 1rem; margin-bottom: 1.5rem;
     }
-    .panel-title { font-size: 1.2rem; font-weight: 700; color: var(--amarillo); }
+    .panel-title { font-size: 1.2rem; font-weight: 700; color: var(--amarillo-tinta); }
     .panel-logout {
       font-family: inherit; font-size: .7rem; font-weight: 600; letter-spacing: .1em;
       text-transform: uppercase; color: var(--gris); background: none; border: 1px solid var(--gris);
@@ -396,7 +399,7 @@
       align-items: center;
       background: transparent;
       border: 1px solid var(--borde);
-      color: var(--amarillo);
+      color: var(--amarillo-tinta);
       font-size: 1rem;
       padding: .35rem .55rem;
       border-radius: 4px;
@@ -566,7 +569,7 @@
     body.light .sidebar .tab-btn { color: #444; }
     body.light .sidebar .tab-btn:hover { background: rgba(0,0,0,.05); color: #000; }
     body.light .sidebar .tab-btn.active { background: var(--amarillo); color: #1a1a1d; border-color: var(--amarillo); }
-    body.light .sidebar-hamburger { color: #8a6d00; border-color: rgba(0,0,0,.15); }
+    body.light .sidebar-hamburger { color: var(--amarillo-tinta); border-color: rgba(0,0,0,.15); }
     @media (max-width: 700px) {
       body.light .sidebar { background: #fdf8e8; }
     }
@@ -628,7 +631,7 @@
     .admin-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
     .admin-table th {
       text-align: left; padding: .6rem .8rem; font-size: .65rem; font-weight: 600;
-      letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo);
+      letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo-tinta);
       border-bottom: 1px solid var(--amarillo);
     }
     .admin-table td {
@@ -636,7 +639,7 @@
     }
     .admin-table tr:hover td { background: rgba(255,255,255,.03); }
     .td-name { font-weight: 600; max-width: 200px; }
-    .td-price { color: var(--amarillo); font-weight: 600; }
+    .td-price { color: var(--amarillo-tinta); font-weight: 600; }
     .td-stock { text-align: center; }
 
     /* BADGES */
@@ -664,12 +667,41 @@
       padding: .35rem .7rem; border-radius: 4px; cursor: pointer; transition: all .2s;
       border: none; margin-right: .3rem;
     }
+    /* [ACTION-BTN-BASE] decisiones 40 y 49 · un .action-btn SIN modificador caía al botón por defecto del navegador
+       (gris, sin tema): ahora es la base de .log-chip, con radio --r-md (la píldora es para los filtros). Los
+       modificadores (.btn-*) conservan su fondo y su color. */
+    .action-btn:not([class*="btn-"]) {
+      background: var(--superficie); border: 1px solid var(--borde); color: inherit;
+      min-height: var(--tap-min); border-radius: var(--r-md);
+    }
     .btn-price { background: var(--amarillo); color: #000; }
     .btn-price:hover { background: #ffd633; }
     .btn-stock { background: #3498db; color: #fff; }
     .btn-stock:hover { background: #5dade2; }
     .btn-hide { background: var(--rojo-fondo); color: #fff; }   /* 3,82 → 5,89 */
     .btn-hide:hover { background: #f1948a; }
+    /* [ACTION-BTN-BASE] los que tenían el color inline, en clases (decisión 49). Mismo fondo y color que antes en los
+       dos temas: en claro repiten lo que les hacían los parches por atributo (body.light [style*=…]). */
+    .btn-etq-nuevo { background: #2ecc71; color: #fff; }
+    .btn-etq-mes { background: var(--amarillo); color: #000; }
+    .btn-etq-vendido { background: #e67e22; color: #fff; }
+    .btn-etq-ultimas { background: #e74c3c; color: #fff; }
+    .btn-etq-exclusivo { background: #8e44ad; color: #fff; }
+    .btn-etq-limitada { background: #c0392b; color: #fff; }
+    .btn-etq-recomendado { background: #3498db; color: #fff; }
+    .btn-etq-quitar { background: #333; color: #e74c3c; border: 1px solid #e74c3c; }
+    .btn-principal { background: #E8B800; color: #121214; font-weight: 700; }
+    .btn-whatsapp { background: #25D366; color: #fff; text-decoration: none; }
+    .btn-gris { background: #555; color: #fff; }
+    .btn-reavisar { background: rgba(255,255,255,.06); color: #ccc; border: 1px solid var(--borde); text-decoration: none; }
+    .btn-quitar-espera { background: rgba(231,76,60,.15); color: #e74c3c; border: 1px solid rgba(231,76,60,.3); }
+    .btn-modo-sumar { background: #0a0a0c; color: #9bd28b; font-weight: 700; border: 1px solid var(--borde); }
+    .btn-modo-sumar.activo { background: #1a4a1a; border-color: #9bd28b; }
+    .btn-modo-restar { background: #0a0a0c; color: #ff9b9b; font-weight: 700; border: 1px solid var(--borde); }
+    .btn-modo-restar.activo { background: #4a1a1a; border-color: #ff9b9b; }
+    body.light .btn-etq-nuevo, body.light .btn-etq-vendido, body.light .btn-etq-ultimas, body.light .btn-etq-exclusivo,
+    body.light .btn-etq-limitada, body.light .btn-etq-recomendado, body.light .btn-whatsapp, body.light .btn-gris { color: #1a1a1a; }
+    body.light .btn-reavisar { background: rgba(0,0,0,.05); color: #333; }
 
     /* MODAL */
     .modal-overlay {
@@ -689,7 +721,7 @@
     .modal-close:hover { color: #fff; }
     .modal-title {
       font-size: .8rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
-      color: var(--amarillo); margin-bottom: 1rem; text-align: center;
+      color: var(--amarillo-tinta); margin-bottom: 1rem; text-align: center;
     }
     .modal-label {
       font-size: .7rem; color: var(--gris-claro); margin-bottom: .3rem; display: block;
@@ -741,7 +773,7 @@
     .combo-items-list { font-size: .7rem; color: var(--gris-claro); margin-top: .4rem; padding-left: 1.2rem; }
     .combo-items-list li { margin-bottom: .15rem; }
     .combo-pricing { margin-top: .4rem; font-size: .8rem; }
-    .combo-pricing-promo { color: var(--amarillo); font-weight: 700; }
+    .combo-pricing-promo { color: var(--amarillo-tinta); font-weight: 700; }
     .combo-pricing-original { color: var(--gris); text-decoration: line-through; font-size: .7rem; margin-left: .4rem; }
     .combo-actions { display: flex; gap: .4rem; margin-top: .6rem; padding-top: .5rem; border-top: 1px solid var(--borde); }
     .combo-item-row {
@@ -766,7 +798,7 @@
       color: #fff; outline: none; cursor: text;
     }
     .perfume-picker-input:focus { border-color: var(--amarillo); }
-    .perfume-picker-input.has-value { color: var(--amarillo); font-weight: 600; }
+    .perfume-picker-input.has-value { color: var(--amarillo-tinta); font-weight: 600; }
     .perfume-picker-clear {
       position: absolute; right: .4rem; top: 50%; transform: translateY(-50%);
       background: none; border: none; color: #666; font-size: .8rem; cursor: pointer;
@@ -789,7 +821,7 @@
     .perfume-picker-option:hover, .perfume-picker-option.active { background: #2a2a2a; color: #fff; }
     .perfume-picker-option .pick-name { font-weight: 500; }
     .perfume-picker-option .pick-brand { font-size: .6rem; color: #777; }
-    .perfume-picker-option .pick-custom { color: var(--amarillo); font-style: italic; }
+    .perfume-picker-option .pick-custom { color: var(--amarillo-tinta); font-style: italic; }
     .perfume-picker-option mark { background: var(--amarillo); color: #000; border-radius: 2px; padding: 0 1px; }
     .perfume-picker-empty { padding: .6rem .7rem; font-size: .7rem; color: #666; text-align: center; }
 
@@ -821,7 +853,7 @@
       opacity: .85;
     }
     .dc-label-strong {
-      color: var(--amarillo);
+      color: var(--amarillo-tinta);
       opacity: 1;
       font-size: .65rem;
       font-weight: 800;
@@ -840,7 +872,7 @@
     .dc-cell-precio .dc-precio {
       font-size: 1rem !important;
       font-weight: 800 !important;
-      color: var(--amarillo) !important;
+      color: var(--amarillo-tinta) !important;
       background: rgba(0,0,0,.3) !important;
       border-color: rgba(232,184,0,.5) !important;
     }
@@ -950,7 +982,7 @@
     .client-name-icon {
       width: 28px; height: 28px; border-radius: 50%; background: rgba(232,184,0,.12);
       display: flex; align-items: center; justify-content: center;
-      font-size: .7rem; color: var(--amarillo); font-weight: 700; flex-shrink: 0;
+      font-size: .7rem; color: var(--amarillo-tinta); font-weight: 700; flex-shrink: 0;
     }
     .client-date { font-size: .6rem; color: var(--gris); letter-spacing: .08em; }
     .client-details {
@@ -987,8 +1019,8 @@
       border: 1px solid var(--borde); background: none; color: var(--gris);
       cursor: pointer; transition: all .2s;
     }
-    .client-filter-btn:hover { border-color: var(--amarillo); color: var(--amarillo); }
-    .client-filter-btn.active { border-color: var(--amarillo); color: var(--amarillo); background: rgba(232,184,0,.1); }
+    .client-filter-btn:hover { border-color: var(--amarillo); color: var(--amarillo-tinta); }
+    .client-filter-btn.active { border-color: var(--amarillo); color: var(--amarillo-tinta); background: rgba(232,184,0,.1); }
 
     /* STATS */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
@@ -996,7 +1028,7 @@
       background: #111; border: 1px solid var(--borde); border-radius: 6px; padding: 1.2rem;
     }
     .stat-label { font-size: .65rem; color: var(--gris); letter-spacing: .1em; text-transform: uppercase; }
-    .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--amarillo); margin-top: .3rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--amarillo-tinta); margin-top: .3rem; }
     .stat-sub { font-size: .7rem; color: var(--gris-claro); margin-top: .2rem; }
 
     /* DESTACADOS */
@@ -1006,7 +1038,7 @@
       padding: .6rem .8rem;
     }
     .dest-num {
-      font-size: 1.1rem; font-weight: 700; color: var(--amarillo); min-width: 24px; text-align: center;
+      font-size: 1.1rem; font-weight: 700; color: var(--amarillo-tinta); min-width: 24px; text-align: center;
     }
     .dest-img {
       width: 40px; height: 50px; border-radius: 4px; object-fit: cover; background: #1a1a1a;
@@ -1054,7 +1086,7 @@
       padding: .4rem .8rem; border-radius: 4px; border: 1px dashed var(--gris);
       background: none; color: var(--gris); cursor: pointer; transition: all .2s; width: 100%;
     }
-    .push-preset-save:hover { border-color: var(--amarillo); color: var(--amarillo); }
+    .push-preset-save:hover { border-color: var(--amarillo); color: var(--amarillo-tinta); }
 
     /* ================================================
        RESPONSIVE — Admin mobile-friendly
@@ -1206,7 +1238,7 @@
          de abajo, menos aire que el rojo tinta. Plano además es un solo valor = un token. */
       --stat-fondo: #fffaf0;
       --stat-borde: rgba(184,140,0,.35);
-      --stat-tinta: #8a6d00;
+      --amarillo-tinta: #6b5500;   /* [AMARILLO-TINTA-CLARO] era --stat-tinta #8a6d00 */
       --stat-tinta-out: #b8342a;
       --stat-tinta-perfumes: #1c699d;
       --stat-tinta-inv: #1e5b3a;
@@ -1315,7 +1347,7 @@
        amarillo sobre fondo un poco más marcado para que se lea. */
     body.light [style*="color:var(--amarillo)"][style*="rgba(232,184,0,.12)"] {
       background: rgba(232,184,0,.25) !important;
-      color: #8a6a00 !important;
+      color: var(--amarillo-tinta) !important;   /* [AMARILLO-TINTA-CLARO] era #8a6a00 */
     }
 
     /* Banners / cards con background:#111 o rgba(255,255,255,...) hardcodeado.
@@ -1395,7 +1427,7 @@
     .stat-value {
       font-family: var(--font-display, inherit);
       font-size: 1.4rem; font-weight: 700;
-      color: var(--stat-tinta);
+      color: var(--amarillo-tinta);
       letter-spacing: -.5px;
       line-height: 1.1;
       margin-bottom: .15rem;
@@ -1433,7 +1465,7 @@
     }
     .field-icon-wrap input.modal-input.with-icon:focus + .field-icon,
     .field-icon-wrap:focus-within .field-icon {
-      color: var(--amarillo);
+      color: var(--amarillo-tinta);
     }
 
     /* Form de nuevo cliente: borde sutil + glow al abrir */
@@ -1502,7 +1534,7 @@
       display: inline-flex; align-items: center; gap: .4rem;
       padding: .25rem .6rem; border-radius: 999px;
       background: rgba(232,184,0,.08); border: 1px solid rgba(232,184,0,.2);
-      color: var(--amarillo) !important; font-weight: 600;
+      color: var(--amarillo-tinta) !important; font-weight: 600;
     }
     .client-count::before {
       content: ''; width: 6px; height: 6px; border-radius: 50%;
@@ -1524,7 +1556,7 @@
     body.light .client-count {
       background: rgba(184,140,0,.1);
       border-color: rgba(184,140,0,.3);
-      color: #8a6a00 !important;
+      color: var(--amarillo-tinta) !important;   /* [AMARILLO-TINTA-CLARO] era #8a6a00 */
     }
     /* ══════════════════════════════════════════════════════════
        [LOG-EMPLEADA] 22-sep-2026 · La pestaña Log, para las dos.
@@ -1570,7 +1602,7 @@
     .log-vista button.active { background: var(--amarillo); color: #000; }
     .log-dia {
       font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-      color: var(--stat-tinta);   /* el dorado de cada tema: claro #8a6d00 (4,92 sobre blanco); var(--amarillo) daba 1,86 */ padding: .6rem .2rem .3rem;
+      color: var(--amarillo-tinta);   /* el dorado de cada tema: claro #6b5500 (7,18 sobre blanco); var(--amarillo) daba 1,86 */ padding: .6rem .2rem .3rem;
     }
     .log-perfume-grupo { font-size: .7rem; font-weight: 700; padding: .5rem .2rem .2rem; }
     .log-item {
@@ -1788,7 +1820,7 @@
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.25rem;margin-bottom:1rem;">
         <h2 style="margin:0 0 .4rem;font-size:1.1rem;">📦 Stock en depósito</h2>
         <p style="color:#bbb;font-size:.82rem;margin:0;line-height:1.5;">Lo que hay <strong>guardado en el depósito</strong>, separado de lo que está en el local.<br>
-        Este número <strong style="color:var(--amarillo);">no se muestra en la web</strong> — el cliente sigue viendo sólo el stock del local.</p>
+        Este número <strong style="color:var(--amarillo-tinta);">no se muestra en la web</strong> — el cliente sigue viendo sólo el stock del local.</p>
       </div>
 
       <div class="stock-stats" style="grid-template-columns:repeat(3,1fr);">
@@ -1874,10 +1906,10 @@
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
           <div style="flex:1;min-width:220px;">
-            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Editar perfume existente</p>
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Editar perfume existente</p>
           </div>
           <button onclick="migrarTipos()" title="Asigna tipo (Desodorante, Crema, etc.) a productos viejos basado en keywords del nombre. Correr 1 sola vez."
-            style="background:transparent;border:1px solid rgba(232,184,0,.3);color:var(--amarillo);font-size:.6rem;padding:.4rem .7rem;border-radius:4px;cursor:pointer;white-space:nowrap;letter-spacing:.05em;">
+            style="background:transparent;border:1px solid rgba(232,184,0,.3);color:var(--amarillo-tinta);font-size:.6rem;padding:.4rem .7rem;border-radius:4px;cursor:pointer;white-space:nowrap;letter-spacing:.05em;">
             🔧 Migrar tipos (1 vez)
           </button>
         </div>
@@ -1887,14 +1919,14 @@
 
       <!-- HISTORIAL DE EDICIONES -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.5rem;">
-        <p style="font-size:.7rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#128221; &Uacute;ltimas ediciones</p>
+        <p style="font-size:.7rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#128221; &Uacute;ltimas ediciones</p>
         <div id="editLogList" style="font-size:.72rem;color:var(--gris-claro);">
           <p style="color:var(--gris);">Cargando...</p>
         </div>
       </div>
 
       <div id="editFormWrap" style="display:none;">
-        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Editando: <span id="editingName"></span></p>
+        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Editando: <span id="editingName"></span></p>
         <input type="hidden" id="editSlug"/>
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
@@ -1953,7 +1985,7 @@
             </div>
             <!-- [DECANT-PRECIO-MANUAL] Precio de decant, libre para quien edita el perfume -->
             <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
-              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">💧 Decants</p>
+              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo-tinta);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">💧 Decants</p>
               <label class="modal-label">Precio del decant (opcional)</label>
               <input type="number" class="modal-input" id="editPrecioDecant" placeholder="Vacío = precio general de decants" oninput="decantHintAdmin('edit')" style="margin-bottom:.45rem;"/>
               <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:#e4e4e4;cursor:pointer;margin:.2rem 0;">
@@ -1963,7 +1995,7 @@
               <p id="editDecantHint" style="font-size:.66rem;margin:.35rem 0 0;line-height:1.5;"></p>
             </div>
             <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
-              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">⏰ Descuento temporal</p>
+              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo-tinta);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">⏰ Descuento temporal</p>
               <div class="admin-form-grid" style="grid-template-columns:1fr 1fr;gap:.6rem;">
                 <div>
                   <label class="modal-label">% Descuento</label>
@@ -2007,14 +2039,14 @@
             <div style="grid-column:1/-1;">
               <label class="modal-label">🏷️ Etiqueta de cinta (aparece arriba de la card)</label>
               <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem;">
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#2ecc71;color:#fff;" onclick="setEtiqueta('NUEVO','#2ecc71')">NUEVO</button>
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:var(--amarillo);color:#000;" onclick="setEtiqueta('PERFUME DEL MES','#E8B800')">PERFUME DEL MES</button>
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#e67e22;color:#fff;" onclick="setEtiqueta('MÁS VENDIDO','#e67e22')">MÁS VENDIDO</button>
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#e74c3c;color:#fff;" onclick="setEtiqueta('ÚLTIMAS UNIDADES','#e74c3c')">ÚLTIMAS UNIDADES</button>
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#8e44ad;color:#fff;" onclick="setEtiqueta('EXCLUSIVO ST','#8e44ad')">EXCLUSIVO ST</button>
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#c0392b;color:#fff;" onclick="setEtiqueta('EDICIÓN LIMITADA','#c0392b')">ED. LIMITADA</button>
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#3498db;color:#fff;" onclick="setEtiqueta('RECOMENDADO','#3498db')">RECOMENDADO</button>
-                <button type="button" class="action-btn" style="font-size:.6rem;padding:.25rem .5rem;background:#333;color:#e74c3c;border:1px solid #e74c3c;" onclick="setEtiqueta('','')">✕ QUITAR</button>
+                <button type="button" class="action-btn btn-etq-nuevo" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('NUEVO','#2ecc71')">NUEVO</button>
+                <button type="button" class="action-btn btn-etq-mes" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('PERFUME DEL MES','#E8B800')">PERFUME DEL MES</button>
+                <button type="button" class="action-btn btn-etq-vendido" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('MÁS VENDIDO','#e67e22')">MÁS VENDIDO</button>
+                <button type="button" class="action-btn btn-etq-ultimas" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('ÚLTIMAS UNIDADES','#e74c3c')">ÚLTIMAS UNIDADES</button>
+                <button type="button" class="action-btn btn-etq-exclusivo" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('EXCLUSIVO ST','#8e44ad')">EXCLUSIVO ST</button>
+                <button type="button" class="action-btn btn-etq-limitada" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('EDICIÓN LIMITADA','#c0392b')">ED. LIMITADA</button>
+                <button type="button" class="action-btn btn-etq-recomendado" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('RECOMENDADO','#3498db')">RECOMENDADO</button>
+                <button type="button" class="action-btn btn-etq-quitar" style="font-size:.6rem;padding:.25rem .5rem;" onclick="setEtiqueta('','')">✕ QUITAR</button>
               </div>
               <div style="display:flex;gap:.4rem;">
                 <input type="text" class="modal-input" id="editEtiqueta" placeholder="O escribí un texto libre..." style="margin-bottom:0;flex:1;" maxlength="25"/>
@@ -2037,7 +2069,7 @@
 
             <!-- SIMILARES MANUALES — override humano sobre el algoritmo -->
             <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
-              <label class="modal-label" style="color:var(--amarillo);">💬 Similares — Override manual del equipo</label>
+              <label class="modal-label" style="color:var(--amarillo-tinta);">💬 Similares — Override manual del equipo</label>
               <p style="font-size:.6rem;color:var(--gris);margin-top:-.3rem;margin-bottom:.5rem;line-height:1.4;">
                 Cuando el algoritmo de "Ver similares" no encuentra matches fuertes, el equipo puede
                 <strong style="color:#ccc;">escribir una nota</strong> y <strong style="color:#ccc;">recomendar hasta 5 perfumes</strong> que olfativamente
@@ -2056,7 +2088,7 @@
 
             <!-- QUOTE DEL JEFE — aparece SOLO en Selección ST top 6 (clase .collectible-quote) -->
             <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
-              <label class="modal-label" style="color:var(--amarillo);">💬 Quote del jefe — Solo en Selección ST</label>
+              <label class="modal-label" style="color:var(--amarillo-tinta);">💬 Quote del jefe — Solo en Selección ST</label>
               <p style="font-size:.6rem;color:var(--gris);margin-top:-.3rem;margin-bottom:.7rem;line-height:1.4;">
                 Mensaje corto en cursiva que aparece bajo el nombre <strong style="color:#ccc;">solo si este perfume está en la "Selección ST" (top 6) de la home</strong>. Pensalo como una mini-reseña personal ("Mi favorito para verano", "Si te gustó X, lo amás", etc.). Si queda vacío, no se muestra nada.
               </p>
@@ -2068,7 +2100,7 @@
 
             <!-- NOTAS DE STOCK — aparecen en el modal al tocar la badge correspondiente -->
             <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
-              <label class="modal-label" style="color:var(--amarillo);">📦 Notas de stock — Mensajes al cliente</label>
+              <label class="modal-label" style="color:var(--amarillo-tinta);">📦 Notas de stock — Mensajes al cliente</label>
               <p style="font-size:.6rem;color:var(--gris);margin-top:-.3rem;margin-bottom:.7rem;line-height:1.4;">
                 Escribí textos que <strong style="color:#ccc;">justifiquen o expliquen</strong> el estado del stock.
                 Cuando un cliente toque la badge en el catálogo, se abre un modal con el mensaje + botón de WhatsApp.
@@ -2081,7 +2113,7 @@
                 placeholder="Ej: Este perfume se agotó. Dejanos tu WhatsApp y te avisamos apenas vuelva."
                 style="margin-bottom:.7rem;resize:vertical;font-family:var(--font-body);"></textarea>
 
-              <label class="modal-label" style="margin-top:.4rem;color:var(--amarillo);">🟡 Nota para "Próximamente"</label>
+              <label class="modal-label" style="margin-top:.4rem;color:var(--amarillo-tinta);">🟡 Nota para "Próximamente"</label>
               <textarea class="modal-input" id="editNotaProximamente" rows="2"
                 placeholder="Ej: Esperamos la reposición para el 15/05. Podés reservarlo con seña."
                 style="margin-bottom:.2rem;resize:vertical;font-family:var(--font-body);"></textarea>
@@ -2113,7 +2145,7 @@
       <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
         <!-- FORMULARIO -->
         <div style="flex:1;min-width:300px;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
-          <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;" id="formNuevoTitle">Agregar perfume</p>
+          <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;" id="formNuevoTitle">Agregar perfume</p>
           <input type="hidden" id="nuevoEditId" value=""/>
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
@@ -2171,7 +2203,7 @@
             </div>
             <!-- [DECANT-PRECIO-MANUAL] Precio de decant, libre para quien carga el perfume -->
             <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
-              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">💧 Decants</p>
+              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo-tinta);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">💧 Decants</p>
               <label class="modal-label">Precio del decant (opcional)</label>
               <input type="number" class="modal-input" id="nuevoPrecioDecant" placeholder="Vacío = precio general de decants" oninput="decantHintAdmin('nuevo')" style="margin-bottom:.45rem;"/>
               <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:#e4e4e4;cursor:pointer;margin:.2rem 0;">
@@ -2221,7 +2253,7 @@
 
         <!-- LISTA DE PERFUMES AGREGADOS -->
         <div style="flex:1;min-width:300px;">
-          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Perfumes agregados desde admin (<span id="nuevosCount">0</span>)</p>
+          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Perfumes agregados desde admin (<span id="nuevosCount">0</span>)</p>
           <input type="text" class="admin-search" id="searchNuevos" placeholder="Buscar en agregados..." oninput="renderNuevos()" style="margin-bottom:.6rem;"/>
           <table class="admin-table">
             <thead><tr><th>Perfume</th><th>Marca</th><th>Precio</th><th>Acciones</th></tr></thead>
@@ -2229,7 +2261,7 @@
           </table>
           <div id="nuevosFooter" style="display:none;margin-top:.8rem;text-align:center;">
             <button id="nuevosVerMasBtn" onclick="verMasNuevos()"
-              style="background:transparent;border:1px solid var(--amarillo);color:var(--amarillo);font-family:inherit;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.55rem 1.2rem;border-radius:4px;cursor:pointer;transition:all .2s;">
+              style="background:transparent;border:1px solid var(--amarillo);color:var(--amarillo-tinta);font-family:inherit;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.55rem 1.2rem;border-radius:4px;cursor:pointer;transition:all .2s;">
               Ver más
             </button>
             <button onclick="verTodosNuevos()"
@@ -2247,7 +2279,7 @@
            Tabla Supabase: seleccion_st_config (single-row, id=1). Default "TOP VENTAS".
            Útil para cambiarlo en campañas: HOT SALE / NUEVO / OFERTA / 50% OFF / BLACK FRIDAY. -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">🏷️ Texto del banner amarillo (badge)</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">🏷️ Texto del banner amarillo (badge)</p>
         <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;margin-bottom:.8rem;max-width:560px;">El texto que aparece como pequeña etiqueta amarilla en cada card de Selección ST. Cambialo para campañas — ej: <strong>TOP VENTAS</strong>, <strong>HOT SALE</strong>, <strong>NUEVO</strong>, <strong>OFERTA</strong>, <strong>50% OFF</strong>, <strong>BLACK FRIDAY</strong>.</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:200px;">
@@ -2260,7 +2292,7 @@
       </div>
 
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Selección ST</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Selección ST</p>
         <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Los perfumes que aparecen en la sección destacada del inicio. Máximo 7, recomendado 5.</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:200px;">
@@ -2271,7 +2303,7 @@
         </div>
       </div>
 
-      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Destacados actuales (<span id="destacadosCount">0</span>/7)</p>
+      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Destacados actuales (<span id="destacadosCount">0</span>/7)</p>
       <div id="destacadosList" style="display:flex;flex-direction:column;gap:.5rem;"></div>
       <p class="modal-success" id="destacadoMsg" style="margin-top:.8rem;"></p>
     </div>
@@ -2279,7 +2311,7 @@
     <!-- TAB: BENEFICIOS (TrustBadges) — 4 cuadros editables que se muestran en el index -->
     <div class="tab-content" id="tab-badges">
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Beneficios destacados (TrustBadges)</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Beneficios destacados (TrustBadges)</p>
         <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Los 4 cuadros negro+dorado del inicio. Editá ícono, t&iacute;tulo, bajada y opcionalmente un link (#seccion para scroll suave o /ruta para navegar). Si dejás un campo vac&iacute;o, se usan los valores por defecto.</p>
         <div id="badgesList" style="display:flex;flex-direction:column;gap:.8rem;"></div>
         <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap;">
@@ -2298,7 +2330,7 @@
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem;">
           <div>
-            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Banner superior B/N (carrusel)</p>
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Banner superior B/N (carrusel)</p>
             <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Los mensajes en blanco/negro que aparecen arriba de todo, debajo del nav. Si cargás varios, rotan automáticamente cada 4.5 segundos. Si solo querés uno, dejá uno solo activo.</p>
           </div>
           <button class="modal-btn" onclick="addHomeBannerMessage()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar mensaje</button>
@@ -2317,7 +2349,7 @@
     <!-- TAB: HORARIO -->
     <div class="tab-content" id="tab-horario">
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Cerrar un día</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Cerrar un día</p>
         <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Si el local no abre uno o varios d&iacute;as (mudanza, inventario, vacaciones, etc.), agregalos ac&aacute; y los clientes ven el motivo en la web autom&aacute;ticamente. Para un solo d&iacute;a, pon&eacute; la misma fecha en ambos campos.</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:130px;">
@@ -2337,7 +2369,7 @@
         <p class="modal-success" id="cierreMsg"></p>
       </div>
 
-      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Días cerrados programados</p>
+      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Días cerrados programados</p>
       <table class="admin-table">
         <thead><tr><th>Fecha</th><th>Motivo</th><th>Accion</th></tr></thead>
         <tbody id="tbodyCierres"></tbody>
@@ -2345,11 +2377,11 @@
 
       <!-- HORARIO TEMPORAL -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-top:1.5rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cambiar horario del local</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cambiar horario del local</p>
         <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Pon&eacute; el horario nuevo que va a tener el local. Pod&eacute;s dejarlo permanente o ponerle fecha de inicio y fin. Los clientes ven el cambio autom&aacute;ticamente.</p>
 
         <div id="ajusteActivo" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.25);border-radius:6px;padding:1rem;margin-bottom:1rem;">
-          <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.4rem;">&#128338; Horario modificado</p>
+          <p style="font-size:.72rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.4rem;">&#128338; Horario modificado</p>
           <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.6;" id="ajusteActivoText"></p>
           <button class="action-btn btn-hide" onclick="removeAjuste()" style="margin-top:.6rem;font-size:.65rem;">Volver al horario normal</button>
         </div>
@@ -2439,32 +2471,32 @@
 
       <!-- Gráfico de barras: Top 10 más vistos -->
       <div style="margin-bottom:2rem;">
-        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">🏆 Top 10 más vistos</h3>
+        <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">🏆 Top 10 más vistos</h3>
         <div id="statsBarChart" style="display:flex;flex-direction:column;gap:.4rem;"></div>
       </div>
 
       <!-- Perfumes sin visitas (los olvidados) -->
       <div style="margin-bottom:2rem;">
-        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">👻 Los olvidados (0 visitas)</h3>
+        <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">👻 Los olvidados (0 visitas)</h3>
         <p style="font-size:.62rem;color:var(--gris);margin-bottom:.8rem;">Estos perfumes no recibieron ni un clic. Considerá destacarlos o mejorar su foto/nombre.</p>
         <div id="statsZeroVisits" style="display:flex;flex-wrap:wrap;gap:.4rem;"></div>
       </div>
 
       <!-- Métricas de catálogo -->
       <div style="margin-bottom:2rem;">
-        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📊 Métricas del catálogo</h3>
+        <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📊 Métricas del catálogo</h3>
         <div class="stats-grid" id="statsCatalogGrid"></div>
       </div>
 
       <!-- Distribución por categoría -->
       <div style="margin-bottom:2rem;">
-        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📦 Distribución por categoría</h3>
+        <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📦 Distribución por categoría</h3>
         <div id="statsCatDistrib" style="display:flex;flex-direction:column;gap:.4rem;"></div>
       </div>
 
       <!-- Rango de precios -->
       <div>
-        <h3 style="font-size:.8rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">💰 Rango de precios</h3>
+        <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">💰 Rango de precios</h3>
         <div id="statsPriceRange" style="display:flex;flex-direction:column;gap:.4rem;"></div>
       </div>
     </div>
@@ -2493,7 +2525,7 @@
 
       <!-- FORMULARIO NUEVO CLIENTE (AE) -->
       <div id="newClientForm" style="display:none;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1rem;">
-        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Registrar nuevo cliente</p>
+        <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Registrar nuevo cliente</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:140px;">
             <label class="modal-label">Nombre / Apodo</label>
@@ -2539,7 +2571,7 @@
 
       <!-- SUMAR PUNTO RÁPIDO -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;margin-bottom:1rem;">
-        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#11088; Sumar punto por compra</p>
+        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#11088; Sumar punto por compra</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:200px;">
             <input type="text" class="modal-input" id="puntoQuery" placeholder="Nombre o tel&eacute;fono del cliente" style="margin-bottom:0;"/>
@@ -2562,7 +2594,7 @@
 
       <!-- Formulario crear/editar combo -->
       <div id="comboForm" style="display:none;background:#111;border:1px solid var(--amarillo);border-radius:8px;padding:1.5rem;margin-top:1rem;">
-        <p style="font-size:.8rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--amarillo);margin-bottom:1rem;text-align:center;" id="comboFormTitle">Nuevo combo</p>
+        <p style="font-size:.8rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--amarillo-tinta);margin-bottom:1rem;text-align:center;" id="comboFormTitle">Nuevo combo</p>
         <label class="modal-label">Nombre del combo</label>
         <input type="text" class="modal-input" id="comboName" placeholder="Ej: SET YARA MINI x4"/>
         <div style="display:flex;gap:.5rem;">
@@ -2606,16 +2638,16 @@
       <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Configur&#225; los candidatos para la votaci&#243;n del perfume del mes. Se cierra autom&#225;ticamente el 1ro del mes siguiente.</p>
       <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
         <div style="flex:1;min-width:200px;">
-          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">MES ACTUAL</p>
+          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.5rem;letter-spacing:.1em;">MES ACTUAL</p>
           <p id="votacionMesActual" style="font-size:.85rem;color:#fff;"></p>
         </div>
         <div style="flex:1;min-width:200px;">
-          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.1em;">ESTADO</p>
+          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.5rem;letter-spacing:.1em;">ESTADO</p>
           <p id="votacionEstado" style="font-size:.85rem;"></p>
         </div>
       </div>
       <div id="votacionGanadorPrev" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
-        <p style="font-size:.7rem;color:var(--amarillo);font-weight:600;letter-spacing:.1em;margin-bottom:.5rem;">&#127942; GANADOR MES ANTERIOR</p>
+        <p style="font-size:.7rem;color:var(--amarillo-tinta);font-weight:600;letter-spacing:.1em;margin-bottom:.5rem;">&#127942; GANADOR MES ANTERIOR</p>
         <p id="ganadorPrevText" style="font-size:.8rem;color:#fff;"></p>
       </div>
       <p style="font-size:.75rem;font-weight:600;color:#fff;margin-bottom:.5rem;letter-spacing:.08em;">CANDIDATOS MASCULINOS (4)</p>
@@ -2639,19 +2671,19 @@
     <!-- TAB: PUSH NOTIFICATIONS -->
     <div class="tab-content" id="tab-push">
       <div style="background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.3rem;">📊 Suscriptores</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.3rem;">📊 Suscriptores</p>
         <p style="font-size:2rem;font-weight:700;" id="pushSubCount">—</p>
         <p style="font-size:.7rem;color:var(--gris);">usuarios aceptaron recibir notificaciones</p>
       </div>
 
       <!-- MENSAJES PREDETERMINADOS (hasta 3) -->
-      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">📋 Mensajes predeterminados</p>
+      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">📋 Mensajes predeterminados</p>
       <p style="font-size:.65rem;color:var(--gris);margin-bottom:.6rem;">Guardá hasta 3 mensajes para reutilizar rápido. Clic en "Usar" para cargar el mensaje.</p>
       <div class="push-presets" id="pushPresets"></div>
       <button class="push-preset-save" id="pushPresetSaveBtn" onclick="savePushPreset()">＋ Guardar mensaje actual como predeterminado</button>
       <div style="height:1.2rem;margin-bottom:.8rem;"><p id="pushPresetMsg" style="font-size:.65rem;text-align:center;"></p></div>
 
-      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);margin-bottom:.8rem;letter-spacing:.08em;text-transform:uppercase;">Enviar notificación</p>
+      <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.8rem;letter-spacing:.08em;text-transform:uppercase;">Enviar notificación</p>
 
       <label class="modal-label">Título</label>
       <input type="text" class="modal-input" id="pushTitle" placeholder="Ej: ¡Nuevos perfumes!" maxlength="60"/>
@@ -2680,7 +2712,7 @@
       <p class="modal-success" id="pushMsg" style="margin-top:.5rem;"></p>
 
       <div style="margin-top:1.5rem;border-top:1px solid var(--borde);padding-top:1rem;">
-        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">Historial de envíos</p>
+        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.5rem;letter-spacing:.08em;text-transform:uppercase;">Historial de envíos</p>
         <div id="pushHistory" style="font-size:.72rem;color:var(--gris);">Sin envíos registrados</div>
       </div>
     </div>
@@ -2689,7 +2721,7 @@
     <div class="tab-content" id="tab-espera">
       <div style="display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;">
         <div style="flex:1;min-width:140px;background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;text-align:center;">
-          <p style="font-size:.7rem;color:var(--amarillo);font-weight:600;margin-bottom:.3rem;">ESPERANDO</p>
+          <p style="font-size:.7rem;color:var(--amarillo-tinta);font-weight:600;margin-bottom:.3rem;">ESPERANDO</p>
           <p style="font-size:1.8rem;font-weight:700;" id="esperaTotal">0</p>
           <p style="font-size:.6rem;color:var(--gris);">personas en lista</p>
         </div>
@@ -2720,7 +2752,7 @@
       <div id="doctorHealthBar" style="margin-bottom:1.5rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
           <span style="font-size:.7rem;font-weight:600;color:var(--gris-claro);letter-spacing:.08em;text-transform:uppercase;">Salud del catálogo</span>
-          <span id="doctorHealthPct" style="font-size:1.1rem;font-weight:700;color:var(--amarillo);">--</span>
+          <span id="doctorHealthPct" style="font-size:1.1rem;font-weight:700;color:var(--amarillo-tinta);">--</span>
         </div>
         <div style="background:rgba(255,255,255,.08);border-radius:8px;height:10px;overflow:hidden;">
           <div id="doctorHealthFill" style="height:100%;border-radius:8px;background:var(--amarillo);width:0%;transition:width .8s ease;"></div>
@@ -2732,10 +2764,10 @@
 
       <!-- Filtros -->
       <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
-        <button class="action-btn" onclick="filterDoctor('all')" id="docFilterAll" style="font-size:.65rem;padding:.35rem .7rem;background:var(--amarillo);color:#000;">Todos</button>
-        <button class="action-btn" onclick="filterDoctor('critical')" id="docFilterCrit" style="font-size:.65rem;padding:.35rem .7rem;">🔴 Críticos</button>
-        <button class="action-btn" onclick="filterDoctor('warning')" id="docFilterWarn" style="font-size:.65rem;padding:.35rem .7rem;">🟡 Avisos</button>
-        <button class="action-btn" onclick="filterDoctor('ok')" id="docFilterOk" style="font-size:.65rem;padding:.35rem .7rem;">🟢 Sanos</button>
+        <button type="button" class="log-chip active" onclick="filterDoctor('all')" id="docFilterAll">Todos</button>
+        <button type="button" class="log-chip" onclick="filterDoctor('critical')" id="docFilterCrit">🔴 Críticos</button>
+        <button type="button" class="log-chip" onclick="filterDoctor('warning')" id="docFilterWarn">🟡 Avisos</button>
+        <button type="button" class="log-chip" onclick="filterDoctor('ok')" id="docFilterOk">🟢 Sanos</button>
       </div>
 
       <!-- Lista de resultados -->
@@ -2761,7 +2793,7 @@
 
       <!-- Precios y tamaño -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Precios escalonados</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Precios escalonados</p>
         <p style="font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Tipear sin puntos ni comas (ej: 9500, no 9.500).</p>
 
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem;">
@@ -2800,7 +2832,7 @@
             Evita vender bajo costo (un frasco de $430.000 deja el decant de 5 ml en $21.500 de costo).
             <strong>0 = desactivado.</strong>
           </p>
-          <p id="decFrascoMaxHint" style="font-size:.66rem;color:var(--amarillo);margin:.4rem 0 0;"></p>
+          <p id="decFrascoMaxHint" style="font-size:.66rem;color:var(--amarillo-tinta);margin:.4rem 0 0;"></p>
         </div>
       </div>
 
@@ -2821,7 +2853,7 @@
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-top:1.5rem;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem;">
           <div>
-            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">💎 Decants de diseñador</p>
+            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">💎 Decants de diseñador</p>
             <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Para <strong>decants de diseñador</strong> (Jean Paul Gaultier, Creed, Dior, etc.) que <strong>NO están cargados al stock regular</strong> pero querés ofrecerlos en el armador. Aparecen 💎 <strong>primero</strong> en el grid del armador.</p>
           </div>
           <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
@@ -2893,7 +2925,7 @@
       <!-- Cards de totales -->
       <div id="analyticsTotals" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.5rem;">
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
-          <div style="font-size:1.4rem;font-weight:700;color:var(--amarillo);" id="totViews">—</div>
+          <div style="font-size:1.4rem;font-weight:700;color:var(--amarillo-tinta);" id="totViews">—</div>
           <div style="font-size:.65rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;">Vistas</div>
         </div>
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:.8rem;text-align:center;">
@@ -2999,7 +3031,7 @@
       </div>
 
       <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-        <button class="action-btn" onclick="createManualBackup()" id="btnCreateBackup" style="padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Crear backup ahora</button>
+        <button class="action-btn btn-principal" onclick="createManualBackup()" id="btnCreateBackup" style="padding:.5rem 1rem;">💾 Crear backup ahora</button>
         <button class="action-btn" onclick="loadBackups()" style="padding:.5rem 1rem;">↺ Refrescar</button>
         <span id="backupsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
       </div>
@@ -3058,7 +3090,7 @@
         </div>
         <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje promo (cuando cliente está a 1 del threshold)</label>
         <input type="text" id="cfgMensajePromo" class="modal-input" style="margin:0;"/>
-        <button class="action-btn" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;background:#E8B800;color:#121214;font-weight:700;">💾 Guardar config</button>
+        <button class="action-btn btn-principal" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;">💾 Guardar config</button>
         <span id="cfgPuntosMsg" style="font-size:.7rem;color:#9bd28b;margin-left:.6rem;"></span>
       </div>
 
@@ -3116,8 +3148,8 @@
       <p id="modalPuntosActual" style="text-align:center;font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;"></p>
 
       <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
-        <button type="button" class="action-btn" id="modalPuntosTabSumar" onclick="setPuntosModalMode('sumar')" style="flex:1;padding:.5rem;background:#1a4a1a;color:#9bd28b;font-weight:700;border:1px solid #9bd28b;">＋ Sumar</button>
-        <button type="button" class="action-btn" id="modalPuntosTabRestar" onclick="setPuntosModalMode('restar')" style="flex:1;padding:.5rem;background:#0a0a0c;color:#ff9b9b;font-weight:700;border:1px solid var(--borde);">− Restar</button>
+        <button type="button" class="action-btn btn-modo-sumar activo" id="modalPuntosTabSumar" onclick="setPuntosModalMode('sumar')" style="flex:1;padding:.5rem;">＋ Sumar</button>
+        <button type="button" class="action-btn btn-modo-restar" id="modalPuntosTabRestar" onclick="setPuntosModalMode('restar')" style="flex:1;padding:.5rem;">− Restar</button>
       </div>
 
       <label class="modal-label">Cantidad</label>
@@ -3152,7 +3184,7 @@
       <button class="modal-btn modal-btn-price" id="modalPriceBtn" onclick="savePrice()">✓ OK, actualizar precio</button>
       <p class="modal-success" id="modalPriceMsg"></p>
       <div id="priceHistoryBox" style="margin-top:1.2rem;display:none;">
-        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">📊 Historial de cambios</p>
+        <p style="font-size:.72rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">📊 Historial de cambios</p>
         <div id="priceHistoryList" style="max-height:160px;overflow-y:auto;font-size:.75rem;color:var(--gris-claro);display:flex;flex-direction:column;gap:.35rem;"></div>
       </div>
     </div>
@@ -3192,7 +3224,7 @@
     <div class="modal-box" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal('modalClientEdit')">&times;</button>
       <p class="modal-title">Editar cliente</p>
-      <p id="modalClientHeader" style="text-align:center;font-weight:600;margin-bottom:1rem;color:var(--amarillo);"></p>
+      <p id="modalClientHeader" style="text-align:center;font-weight:600;margin-bottom:1rem;color:var(--amarillo-tinta);"></p>
       <label class="modal-label">Nombre / Apodo</label>
       <input type="text" class="modal-input" id="modalClientNombre" placeholder="Nombre del cliente" maxlength="60"/>
       <label class="modal-label">Tel&eacute;fono</label>
@@ -3216,7 +3248,7 @@
     <div class="modal-box" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal('modalClientPuntosLog')">&times;</button>
       <p class="modal-title">Historial de puntos</p>
-      <p id="modalPuntosLogHeader" style="text-align:center;font-weight:600;margin-bottom:.4rem;color:var(--amarillo);"></p>
+      <p id="modalPuntosLogHeader" style="text-align:center;font-weight:600;margin-bottom:.4rem;color:var(--amarillo-tinta);"></p>
       <p style="text-align:center;font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Ultimas 5 subidas/ajustes</p>
       <div id="modalPuntosLogList" style="display:flex;flex-direction:column;gap:.5rem;max-height:50vh;overflow-y:auto;"></div>
     </div>
@@ -3616,7 +3648,7 @@
         badge.style.display = 'inline-block';
         badge.textContent = 'Jefe';
         badge.style.background = 'rgba(232,184,0,.15)';
-        badge.style.color = 'var(--amarillo)';
+        badge.style.color = 'var(--amarillo-tinta)';
         badge.style.border = '1px solid var(--amarillo)';
         return;
       }
@@ -3703,9 +3735,9 @@
             '<div>' + ident +
               '<br><span style="color:#888;font-size:.75rem;">Pedido: ' + fecha + '</span></div>' +
             '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
-              '<a class="action-btn" style="background:#25D366;color:#fff;text-decoration:none;" href="' + wa + '" target="_blank">💬 WhatsApp</a>' +
+              '<a class="action-btn btn-whatsapp" href="' + wa + '" target="_blank">💬 WhatsApp</a>' +
               resetBtn +
-              '<button class="action-btn" style="background:#555;color:#fff;" onclick="rejectResetRequest(\'' + r.id + '\')">✖ Descartar</button>' +
+              '<button class="action-btn btn-gris" onclick="rejectResetRequest(\'' + r.id + '\')">✖ Descartar</button>' +
             '</div>' +
           '</div>';
       }).join('');
@@ -3738,8 +3770,8 @@
           '<div style="background:#0f3d24;border:1px solid #1e7e45;border-radius:8px;padding:1rem;margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;">' +
             '<div style="color:#d6f5e3;font-size:.9rem;">✓ Contraseña de <strong>' + tel + '</strong> reseteada. Avisale cómo volver a entrar:</div>' +
             '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
-              '<a class="action-btn" style="background:#25D366;color:#fff;text-decoration:none;font-weight:600;" href="' + waUrl + '" target="_blank" rel="noopener">💬 Avisar al cliente</a>' +
-              '<button class="action-btn" style="background:#555;color:#fff;" onclick="document.getElementById(\'resetSuccessBanner\').innerHTML=\'\'">✖ Cerrar</button>' +
+              '<a class="action-btn btn-whatsapp" style="font-weight:600;" href="' + waUrl + '" target="_blank" rel="noopener">💬 Avisar al cliente</a>' +
+              '<button class="action-btn btn-gris" onclick="document.getElementById(\'resetSuccessBanner\').innerHTML=\'\'">✖ Cerrar</button>' +
             '</div>' +
           '</div>';
         banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -4574,7 +4606,7 @@
             + '<div style="flex:1;min-width:0;">'
               + '<div style="display:flex;justify-content:space-between;margin-bottom:2px;">'
                 + '<span style="font-size:.62rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</span>'
-                + '<span style="font-size:.6rem;color:var(--amarillo);font-weight:700;flex-shrink:0;margin-left:.3rem;">' + counts[slug] + '</span>'
+                + '<span style="font-size:.6rem;color:var(--amarillo-tinta);font-weight:700;flex-shrink:0;margin-left:.3rem;">' + counts[slug] + '</span>'
               + '</div>'
               + '<div style="background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden;">'
                 + '<div style="height:100%;background:var(--amarillo);border-radius:4px;width:' + pct + '%;transition:width .5s;"></div>'
@@ -4762,7 +4794,7 @@
 
         // Sistema de puntos (AA)
         var puntos = c.puntos || 0;
-        var puntosHTML = '<span style="background:rgba(232,184,0,.12);color:var(--amarillo);font-size:.6rem;font-weight:700;padding:.2rem .5rem;border-radius:3px;letter-spacing:.05em;">⭐ ' + puntos + ' pt' + (puntos !== 1 ? 's' : '') + '</span>';
+        var puntosHTML = '<span style="background:rgba(232,184,0,.12);color:var(--amarillo-tinta);font-size:.6rem;font-weight:700;padding:.2rem .5rem;border-radius:3px;letter-spacing:.05em;">⭐ ' + puntos + ' pt' + (puntos !== 1 ? 's' : '') + '</span>';
 
         // Tag COMPRÓ / NO COMPRÓ (AF)
         var compro = c.compro === true || puntos > 0;
@@ -4789,7 +4821,7 @@
           + notaHTML
           + '<div class="client-actions">'
             + waBtn
-            + '<button class="client-btn" style="background:rgba(232,184,0,.12);color:var(--amarillo);" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
+            + '<button class="client-btn" style="background:rgba(232,184,0,.12);color:var(--amarillo-tinta);" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
             + '<button class="client-btn" style="background:rgba(120,120,120,.15);color:#ccc;" onclick="openClientPuntoLog(\'' + c.id + '\')">📜 Historial</button>'
             + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar</button>'
             + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
@@ -5242,7 +5274,7 @@
           var promoStr = h.promo ? ' (promo: $' + Number(h.promo).toLocaleString('es-AR') + ')' : '';
           return '<div style="padding:.35rem .5rem;background:rgba(255,255,255,.04);border-radius:4px;border-left:2px solid var(--amarillo);">'
             + '<span style="color:var(--gris);">' + fecha + '</span><br>'
-            + fromStr + ' → <span style="color:var(--amarillo);font-weight:600;">' + toStr + '</span>' + promoStr
+            + fromStr + ' → <span style="color:var(--amarillo-tinta);font-weight:600;">' + toStr + '</span>' + promoStr
             + '</div>';
         }).join('');
       } else {
@@ -5441,7 +5473,7 @@
                 ' <span style="color:#8fae9c;font-size:.72rem;">' + tel + '</span></span>' +
               '<span style="display:flex;gap:.5rem;align-items:center;">' +
                 '<span data-estado style="font-size:.7rem;color:#8fae9c;"></span>' +
-                '<a class="action-btn" style="background:#25D366;color:#fff;text-decoration:none;font-weight:600;" ' +
+                '<a class="action-btn btn-whatsapp" style="font-weight:600;" ' +
                   'target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + msgEnc + '" ' +
                   'onclick="marcarAvisadoWaitlist(\'' + e.id + '\', this)">💬 Avisar</a>' +
               '</span>' +
@@ -5453,7 +5485,7 @@
             '<div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;">' +
               '<strong style="color:#d6f5e3;font-size:.95rem;">📬 ' + pending.length + ' persona' + (pending.length !== 1 ? 's' : '') +
                 ' esperaba' + (pending.length !== 1 ? 'n' : '') + ' ' + escapeHtml(nombrePerfume) + '</strong>' +
-              '<button class="action-btn" style="background:#555;color:#fff;" onclick="document.getElementById(\'waitlistBanner\').innerHTML=\'\'">✖ Cerrar</button>' +
+              '<button class="action-btn btn-gris" onclick="document.getElementById(\'waitlistBanner\').innerHTML=\'\'">✖ Cerrar</button>' +
             '</div>' +
             '<p style="color:#a8c9b6;font-size:.72rem;margin:.45rem 0 .1rem;line-height:1.5;">Tocá <strong>Avisar</strong> en cada uno: se abre el WhatsApp con el mensaje ya escrito. Recién ahí queda marcado como avisado.</p>' +
             filas +
@@ -5556,7 +5588,7 @@
         var notified = await autoNotifyWaitlist(slugForNotify);
         if (notified.length > 0) {
           msgEl.innerHTML = '\u2713 Stock actualizado<br>' +
-            '<span style="color:var(--amarillo);font-weight:600;">\ud83d\udcec ' + notified.length + ' persona' + (notified.length !== 1 ? 's' : '') +
+            '<span style="color:var(--amarillo-tinta);font-weight:600;">\ud83d\udcec ' + notified.length + ' persona' + (notified.length !== 1 ? 's' : '') +
             ' esperando el aviso \u2014 avisales con los botones de abajo</span>';
           msgEl.style.color = '#2ecc71';
           notifyTelegram('\ud83d\udcec Waitlist PENDIENTE de aviso\n\ud83c\udf36 ' + p.name + '\n\ud83d\udc65 ' + notified.length + ' persona(s)');
@@ -5767,7 +5799,7 @@
           + '<span style="color:var(--gris);font-size:.6rem;white-space:nowrap;min-width:70px;">' + fecha + '</span>'
           + '<div style="flex:1;line-height:1.5;">'
             + '<span style="color:#fff;font-weight:600;">' + (log.nombre || log.slug) + '</span> '
-            + '<span style="color:var(--amarillo);font-size:.65rem;">' + log.campo + '</span> '
+            + '<span style="color:var(--amarillo-tinta);font-size:.65rem;">' + log.campo + '</span> '
             + (log.valor_anterior ? '<span style="color:#e74c3c;text-decoration:line-through;font-size:.65rem;">' + truncateLog(log.valor_anterior) + '</span> \u2192 ' : '')
             + '<span style="color:#2ecc71;font-size:.65rem;">' + truncateLog(log.valor_nuevo) + '</span>'
             + ' <span style="font-size:.55rem;">' + rolIcon + '</span>'
@@ -7384,7 +7416,7 @@
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         if (!p) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-        var imgHTML = fotoSrc ? '<img class="dest-img" src="' + fotoSrc + '" alt="' + p.name + '">' : '<div class="dest-img" style="display:flex;align-items:center;justify-content:center;color:var(--amarillo);font-weight:700;">' + p.name.charAt(0) + '</div>';
+        var imgHTML = fotoSrc ? '<img class="dest-img" src="' + fotoSrc + '" alt="' + p.name + '">' : '<div class="dest-img" style="display:flex;align-items:center;justify-content:center;color:var(--amarillo-tinta);font-weight:700;">' + p.name.charAt(0) + '</div>';
         html += '<div class="dest-item">'
           + '<span class="dest-num">' + (i + 1) + '</span>'
           + imgHTML
@@ -7465,7 +7497,7 @@
           var already = slugs.indexOf(p.slug) !== -1;
           html += '<div class="dest-search-item" onclick="addDestacado(\'' + p.slug + '\')" style="' + (already ? 'opacity:.4;' : '') + '">'
             + p.name + ' <span style="color:var(--gris);font-size:.65rem;">' + (p.marca_real || p.marca) + '</span>'
-            + (already ? ' <span style="color:var(--amarillo);font-size:.6rem;">✦ ya destacado</span>' : '')
+            + (already ? ' <span style="color:var(--amarillo-tinta);font-size:.6rem;">✦ ya destacado</span>' : '')
           + '</div>';
         });
         results.innerHTML = html;
@@ -7590,7 +7622,7 @@
 
       textEl.innerHTML = horarioStr + '<br>'
         + '<span style="font-size:.65rem;">' + fechaStr + '</span>'
-        + (a.motivo && a.mostrar_nota ? '<br><em style="color:var(--amarillo);font-size:.65rem;">' + a.motivo + '</em>' : '');
+        + (a.motivo && a.mostrar_nota ? '<br><em style="color:var(--amarillo-tinta);font-size:.65rem;">' + a.motivo + '</em>' : '');
       panel.style.display = 'block';
       panel.dataset.id = a.id;
     }
@@ -8231,7 +8263,7 @@
             + '<span style="color:var(--gris);">' + fecha + '</span> — '
             + '<strong style="color:#fff;">' + escapeHtml(h.title) + '</strong><br>'
             + '<span>' + escapeHtml(h.body) + '</span><br>'
-            + '<span style="color:var(--amarillo);">✅ ' + h.sent + ' enviadas, ❌ ' + h.failed + ' fallidas</span>'
+            + '<span style="color:var(--amarillo-tinta);">✅ ' + h.sent + ' enviadas, ❌ ' + h.failed + ' fallidas</span>'
             + '</div>';
         }).join('');
       }
@@ -8916,7 +8948,7 @@
           var diff = fecha - ahora;
           var dias = Math.floor(diff / 86400000);
           var horas = Math.floor((diff % 86400000) / 3600000);
-          preview.innerHTML = '✅ <strong style="color:var(--amarillo);">' + pct + '% OFF</strong> — vence en <strong>' + dias + 'd ' + horas + 'h</strong>';
+          preview.innerHTML = '✅ <strong style="color:var(--amarillo-tinta);">' + pct + '% OFF</strong> — vence en <strong>' + dias + 'd ' + horas + 'h</strong>';
         } else {
           preview.innerHTML = '⚠️ <span style="color:#e74c3c;">Esta fecha ya venció</span>';
         }
@@ -9045,7 +9077,7 @@
         html += '<div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;' + (isHistory ? 'opacity:.75;' : '') + '">';
         html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.3rem;">';
         html += '<div><p style="font-size:.8rem;font-weight:700;color:#fff;">' + escapeHtml(group.name) + '</p>' + statusBadge + '</div>';
-        html += '<span style="font-size:.65rem;color:var(--amarillo);font-weight:600;">' + group.items.length + (isHistory ? ' avisad' + (group.items.length !== 1 ? 'os' : 'o') : ' esperando') + '</span>';
+        html += '<span style="font-size:.65rem;color:var(--amarillo-tinta);font-weight:600;">' + group.items.length + (isHistory ? ' avisad' + (group.items.length !== 1 ? 'os' : 'o') : ' esperando') + '</span>';
         html += '</div>';
 
         group.items.forEach(function(item) {
@@ -9068,11 +9100,11 @@
           // En pendientes: bot\u00f3n "Avisar" marca como notificado al click.
           // En historial: bot\u00f3n "Re-avisar" NO marca nada nuevo, solo abre WA.
           if (isHistory) {
-            html += '<a href="' + waLink + '" target="_blank" class="action-btn" style="font-size:.58rem;padding:.3rem .5rem;text-decoration:none;background:rgba(255,255,255,.06);color:#ccc;border:1px solid var(--borde);">Re-avisar</a>';
+            html += '<a href="' + waLink + '" target="_blank" class="action-btn btn-reavisar" style="font-size:.58rem;padding:.3rem .5rem;">Re-avisar</a>';
           } else {
             html += '<a href="' + waLink + '" target="_blank" class="action-btn btn-price" style="font-size:.58rem;padding:.3rem .5rem;text-decoration:none;" onclick="markEsperaNotified(' + item.id + ')">Avisar</a>';
           }
-          html += '<button class="action-btn" style="font-size:.58rem;padding:.3rem .5rem;background:rgba(231,76,60,.15);color:#e74c3c;border:1px solid rgba(231,76,60,.3);" onclick="removeEspera(' + item.id + ',this)">Quitar</button>';
+          html += '<button class="action-btn btn-quitar-espera" style="font-size:.58rem;padding:.3rem .5rem;" onclick="removeEspera(' + item.id + ',this)">Quitar</button>';
           html += '</div></div>';
         });
 
@@ -9137,10 +9169,7 @@
       // Actualizar botones activos
       ['all', 'critical', 'warning', 'ok'].forEach(function(f) {
         var btn = document.getElementById('docFilter' + (f === 'all' ? 'All' : (f === 'critical' ? 'Crit' : (f === 'warning' ? 'Warn' : 'Ok'))));
-        if (btn) {
-          btn.style.background = (f === filter) ? 'var(--amarillo)' : '';
-          btn.style.color = (f === filter) ? '#000' : '';
-        }
+        if (btn) btn.classList.toggle('active', f === filter);   // [ACTION-BTN-BASE] los filtros del Doctor son .log-chip
       });
       renderDoctorResults();
     }
@@ -10018,7 +10047,7 @@
             return '<tr>'
               + '<td style="color:var(--gris);">' + (i+1) + '</td>'
               + '<td>' + escHtml(nameFn(x.k)) + '</td>'
-              + '<td style="text-align:right;font-weight:700;color:var(--amarillo);">' + x.v + '</td>'
+              + '<td style="text-align:right;font-weight:700;color:var(--amarillo-tinta);">' + x.v + '</td>'
             + '</tr>';
           }).join('');
         }
@@ -10056,7 +10085,7 @@
             var pct = tot > 0 ? Math.round(x.v / tot * 100) : 0;
             return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;gap:.5rem;">'
               + '<span style="color:#fff;">' + escHtml(x.k) + '</span>'
-              + '<span style="color:var(--gris);font-size:.72rem;">' + x.v + ' <span style="color:var(--amarillo);">(' + pct + '%)</span></span>'
+              + '<span style="color:var(--gris);font-size:.72rem;">' + x.v + ' <span style="color:var(--amarillo-tinta);">(' + pct + '%)</span></span>'
             + '</div>';
           }).join('');
         }
@@ -10300,7 +10329,7 @@
           + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ escapeHtml(c.telefono||'—') +'</td>'
           + '<td style="text-align:right;font-weight:700;color:#E8B800;">'+ pts +'</td>'
           + '<td>'
-            + '<button class="action-btn" onclick="openPuntosModal(\''+ c.id +'\')" style="padding:.3rem .7rem;font-size:.72rem;background:#E8B800;color:#121214;font-weight:700;">Ajustar</button>'
+            + '<button class="action-btn btn-principal" onclick="openPuntosModal(\''+ c.id +'\')" style="padding:.3rem .7rem;font-size:.72rem;">Ajustar</button>'
           + '</td>'
         + '</tr>';
       }
@@ -10330,13 +10359,9 @@
       _puntosModalMode = mode;
       var s = document.getElementById('modalPuntosTabSumar');
       var r = document.getElementById('modalPuntosTabRestar');
-      if (mode === 'sumar') {
-        s.style.background = '#1a4a1a'; s.style.color = '#9bd28b'; s.style.border = '1px solid #9bd28b';
-        r.style.background = '#0a0a0c'; r.style.color = '#ff9b9b'; r.style.border = '1px solid var(--borde)';
-      } else {
-        r.style.background = '#4a1a1a'; r.style.color = '#ff9b9b'; r.style.border = '1px solid #ff9b9b';
-        s.style.background = '#0a0a0c'; s.style.color = '#9bd28b'; s.style.border = '1px solid var(--borde)';
-      }
+      // [ACTION-BTN-BASE] los colores viven en .btn-modo-sumar / .btn-modo-restar; acá sólo se marca el activo
+      s.classList.toggle('activo', mode === 'sumar');
+      r.classList.toggle('activo', mode !== 'sumar');
     }
     async function confirmPuntosModal() {
       var c = _puntosModalCliente;
@@ -10448,7 +10473,7 @@
           return '<tr>'
             + '<td style="font-size:.7rem;color:var(--gris-claro);white-space:nowrap;">' + escHtml(backupFormatTime(b.created_at)) + '<br><span style="font-size:.6rem;color:var(--gris);">' + escHtml(actor) + '</span></td>'
             + '<td style="font-size:.72rem;">' + origen + '</td>'
-            + '<td style="font-size:.72rem;color:var(--amarillo);">' + formatBytes(b.size_bytes) + '</td>'
+            + '<td style="font-size:.72rem;color:var(--amarillo-tinta);">' + formatBytes(b.size_bytes) + '</td>'
             + '<td style="font-size:.68rem;color:var(--gris-claro);">' + filas.toLocaleString('es-AR') + ' filas</td>'
             + '<td><button class="action-btn" onclick="downloadBackup(\'' + b.id + '\')" style="padding:.35rem .7rem;font-size:.7rem;">📥 JSON</button></td>'
           + '</tr>';
