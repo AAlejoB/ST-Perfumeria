@@ -798,7 +798,7 @@
           + '<p class="quiz-result-name">'+p.name+'</p>'
           + '<p class="quiz-result-marca">'+p.marca+'</p>'
           + (notasPreview ? '<p class="quiz-result-notas">'+notasPreview+'</p>' : '')
-          + '<button class="quiz-result-cta" onclick="scrollToPerfume(\'' + p.slug + '\')">Ver en catálogo &#8594;</button>'
+          + '<button class="quiz-result-cta" onclick="openBottomSheet(\'' + p.slug + '\')">Ver el perfume &#8594;</button>'
           + '</div></div>';
       });
 
@@ -1029,6 +1029,7 @@
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
+        if (link.toLowerCase() === '#quizsection') { openJuegos(); return; }   // [JUEGOS-VENTANA] decisión 65
         var el = document.querySelector(link);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
@@ -1187,6 +1188,7 @@
     function trustBadgeGo(link) {
       if (!link) return;
       if (link.charAt(0) === '#') {
+        if (link.toLowerCase() === '#quizsection') { openJuegos(); return; }   // [JUEGOS-VENTANA] decisión 65
         var el = document.querySelector(link);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
@@ -2183,6 +2185,9 @@
     renderSeleccionST();
 
     function scrollToPerfume(slug) {
+      // [JUEGOS-VENTANA] Con la ventana de juegos abierta la página de atrás no se mueve: el perfume se ve en
+      // su detalle, encima de la ventana (pasa desde «Similares» de un detalle abierto desde un resultado).
+      if (juegosAbierto) { openBottomSheet(slug); return; }
       trackEvent('view_product', { slug: slug, meta: { source: 'scrollTo' } });
       // Limpiar TODOS los filtros para que la card sea visible
       currentFilter = 'all';
@@ -5790,7 +5795,7 @@
         overlay.style.opacity = '';
         sheet.style.transform = '';
         sheet.style.transition = '';
-        document.body.style.overflow = '';
+        document.body.style.overflow = juegosAbierto ? 'hidden' : '';   // [JUEGOS-VENTANA] la ventana sigue abajo
         currentBsSlug = null;
       }, 260);
 
@@ -5831,7 +5836,7 @@
             bs.style.opacity = '';
             sheet.style.transform = '';
             sheet.style.transition = '';
-            document.body.style.overflow = '';
+            document.body.style.overflow = juegosAbierto ? 'hidden' : '';   // [JUEGOS-VENTANA]
             currentBsSlug = null;
           }, 260);
         }
@@ -5870,6 +5875,132 @@
           sheet.style.transition = 'transform .2s ease';
           sheet.style.transform = '';
         }
+      }, { passive: true });
+    })();
+
+    // ============================================================
+    // [JUEGOS-VENTANA] 23-sep-2026 · decisiones 60, 65 y 72 del DISEÑADOR
+    //
+    // «Jugar» abría la sección #quizSection, debajo del catálogo: con el scroll infinito no se llegaba nunca
+    // ([JUGAR-NO-LLEGA]). Ahora el quiz y el Desafío viven en una ventana que sube desde abajo, como el
+    // detalle de un perfume, y no hay que ir a ningún lado.
+    //  · Historial: abrirla empuja una entrada ({ juegos: true }), así el «atrás» de Android la cierra y no
+    //    saca del sitio. Un «Ver» de un resultado abre el detalle ENCIMA (decisión 72): su entrada va después
+    //    de la de la ventana, y al cerrarlo se ve la ventana con los mismos resultados.
+    //  · Con la ventana abierta la página no scrollea (overflow del body, igual que el detalle).
+    //  · #quizSection sigue siendo un destino válido (decisión 65): al cargar, en hashchange y al tocar
+    //    CUALQUIER link con ese ancla (aunque el hash ya sea #quizSection: ahí no hay hashchange).
+    // ============================================================
+    var juegosAbierto = false;
+    function juegosEsAncla(hash) { return String(hash || '').toLowerCase() === '#quizsection'; }
+    function juegosUrlLimpia() {
+      return location.pathname + location.search + (juegosEsAncla(location.hash) ? '' : location.hash);
+    }
+    function juegosTab(cual) {
+      var body = document.getElementById('juegosBody');
+      if (!body) return;
+      body.setAttribute('data-juego', cual);
+      document.querySelectorAll('.juegos-tab').forEach(function(b) {
+        var on = b.getAttribute('data-juego') === cual;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      body.scrollTop = 0;
+    }
+    function juegosMostrar() {
+      var ov = document.getElementById('juegosOverlay');
+      if (!ov) return;
+      juegosAbierto = true;
+      document.body.classList.add('juegos-open');
+      document.body.style.overflow = 'hidden';
+      ov.classList.add('active');
+      ov.setAttribute('aria-hidden', 'false');
+    }
+    function juegosOcultar() {
+      var ov = document.getElementById('juegosOverlay'), sheet = document.getElementById('juegosSheet');
+      if (!ov || !juegosAbierto) return;
+      juegosAbierto = false;
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        sheet.style.transition = 'transform .25s ease';
+        sheet.style.transform = 'translateY(100%)';
+      }
+      ov.style.transition = 'opacity .25s ease';
+      ov.style.opacity = '0';
+      setTimeout(function() {
+        ov.classList.remove('active');
+        ov.setAttribute('aria-hidden', 'true');
+        ov.style.opacity = ''; ov.style.transition = '';
+        sheet.style.transform = ''; sheet.style.transition = '';
+        document.body.classList.remove('juegos-open');
+        // si mientras tanto quedó un detalle abierto, él decide el scroll
+        var bs = document.getElementById('bsOverlay');
+        document.body.style.overflow = (bs && bs.classList.contains('active')) ? 'hidden' : '';
+      }, 260);
+    }
+    function openJuegos(tab) {
+      juegosTab(tab || 'quiz');
+      if (juegosAbierto) return;
+      try {
+        // el ancla no queda en la URL: al cerrar, el próximo toque a un link #quizSection vuelve a abrir
+        if (juegosEsAncla(location.hash)) history.replaceState(history.state, '', juegosUrlLimpia());
+        history.pushState({ juegos: true }, '', juegosUrlLimpia());
+      } catch (e) { /* silent */ }
+      juegosMostrar();
+    }
+    function closeJuegos() {
+      if (!juegosAbierto) return;
+      // si la entrada de la ventana es la actual, «atrás» la consume y el popstate la cierra
+      if (history.state && history.state.juegos) { history.back(); return; }
+      juegosOcultar();
+      try { if (juegosEsAncla(location.hash)) history.replaceState(history.state, '', juegosUrlLimpia()); } catch (e) {}
+    }
+    window.addEventListener('popstate', function(e) {
+      var st = e.state || {};
+      if (st.juegos) { if (!juegosAbierto) juegosMostrar(); return; }   // volver del detalle, o «adelante»
+      if (juegosAbierto && !st.bottomSheet) juegosOcultar();
+    });
+    window.addEventListener('hashchange', function() { if (juegosEsAncla(location.hash)) openJuegos(); });
+    // Cualquier link a #quizSection de esta página (menú, avisos, textos): se delega el clic porque si el hash
+    // ya es #quizSection el navegador no dispara hashchange.
+    document.addEventListener('click', function(e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      var i = href.toLowerCase().indexOf('#quizsection');
+      if (i === -1) return;
+      if (i > 0) {
+        try { var u = new URL(href.slice(0, i), location.href); if (u.origin !== location.origin || u.pathname !== location.pathname) return; } catch (err) { return; }
+      }
+      e.preventDefault();
+      openJuegos();
+    });
+    if (juegosEsAncla(location.hash)) {
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { openJuegos(); });
+      else openJuegos();
+    }
+    // Deslizar para cerrar, como el detalle (sólo en el celu: en escritorio la ventana va centrada)
+    (function() {
+      var startY = 0, currentY = 0, isDragging = false;
+      var sheet = document.getElementById('juegosSheet'), body = document.getElementById('juegosBody');
+      if (!sheet) return;
+      sheet.addEventListener('touchstart', function(e) {
+        if (!window.matchMedia('(max-width: 767px)').matches) return;
+        if (body.scrollTop > 5 && !e.target.closest('.bs-handle-zone')) return;
+        startY = currentY = e.touches[0].clientY;
+        isDragging = true;
+        sheet.style.transition = 'none';
+      }, { passive: true });
+      sheet.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        var diff = currentY - startY;
+        if (diff > 0) sheet.style.transform = 'translateY(' + diff + 'px)';
+      }, { passive: true });
+      sheet.addEventListener('touchend', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (currentY - startY > 80) { closeJuegos(); }
+        else { sheet.style.transition = 'transform .2s ease'; sheet.style.transform = ''; }
       }, { passive: true });
     })();
 
@@ -6283,7 +6414,8 @@
 
       // Configurar botones
       document.getElementById('btnVerLocal').onclick = function() {
-        scrollToPerfume(p.slug);
+        // [JUEGOS-VENTANA] decisión 72 · el detalle se abre ENCIMA de la ventana: al cerrarlo, la carta sigue ahí.
+        openBottomSheet(p.slug);
       };
       var tel = '5492974564545';
       var msg = encodeURIComponent('Hola ST! Me interesa un decant de 5ml de *' + p.name + '* (' + brand + '). \u00bfTienen disponible?');

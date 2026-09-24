@@ -3418,8 +3418,10 @@
       animation: fadeIn .2s ease;
     }
     .bottom-sheet-overlay.active { display: flex; }
+    /* [JUEGOS-VENTANA] la ventana de juegos usa el MISMO fondo que el detalle, en los dos temas */
+    .bottom-sheet, .juegos-sheet { background: #111; }
     .bottom-sheet {
-      background: #111; width: 100%; max-width: 500px;
+      width: 100%; max-width: 500px;
       max-height: 85vh; overflow-y: auto;
       border-radius: 20px 20px 0 0;
       padding: 0 1.2rem 1.5rem;
@@ -3457,6 +3459,75 @@
       /* En desktop el handle (manija superior) no tiene sentido, lo ocultamos */
       .bottom-sheet .bs-handle-zone { display: none; }
     }
+    /* ════════════════════════════════════════════════════════════════
+       [JUEGOS-VENTANA] 23-sep-2026 · decisiones 60 y 65 del DISEÑADOR
+       «Jugar» abre una ventana desde abajo, como el detalle (#bsOverlay): 94 % del alto, la misma manija
+       y el mismo «deslizá para cerrar», una × de 44 y dos pestañas de 44. En escritorio (≥ 768) va
+       centrada y los dos juegos lado a lado, como en .cultura-misel-row. Fondo: la regla del detalle.
+       z-index 9995: arriba de los flotantes (9990) y abajo del detalle (10000), que se abre encima.
+       ──────────────────────────────────────────────────────────────── */
+    .juegos-overlay {
+      position: fixed; inset: 0; z-index: 9995;
+      background: rgba(0,0,0,.7);
+      display: none; align-items: flex-end; justify-content: center;
+      animation: fadeIn .2s ease;
+    }
+    .juegos-overlay.active { display: flex; }
+    .juegos-sheet {
+      position: relative; width: 100%; max-width: 640px; height: 94%;
+      display: flex; flex-direction: column;
+      border-radius: 20px 20px 0 0;
+      animation: slideUp .3s cubic-bezier(.25,.46,.45,.94);
+      overflow: hidden;
+    }
+    .juegos-sheet .bs-handle-zone { flex-shrink: 0; }
+    .juegos-x {
+      position: absolute; top: 4px; right: 8px; z-index: 2;
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border: 0; background: transparent; color: var(--gris);
+      font-size: 1.6rem; line-height: 1; cursor: pointer;
+    }
+    .juegos-tabs {
+      flex-shrink: 0; display: flex; gap: 3px; padding: 3px;
+      margin: .15rem 14px .35rem; border-radius: 10px;
+      background: rgba(255,255,255,.05);
+    }
+    .juegos-tab {
+      flex: 1; min-height: 44px; border: 0; border-radius: 8px; cursor: pointer;
+      background: transparent; color: #bbb;
+      font-family: var(--font-body); font-size: .78rem; font-weight: 700; letter-spacing: .02em;
+    }
+    .juegos-tab.active { background: var(--amarillo); color: #000; }
+    body:not(.dark-mode) .juegos-tabs { background: rgba(0,0,0,.05); }
+    body:not(.dark-mode) .juegos-tab { color: #5e564a; }
+    body:not(.dark-mode) .juegos-tab.active { background: #1a1a1d; color: #fff; }
+    .juegos-body {
+      flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch; padding: .4rem 1.1rem 1.5rem;
+    }
+    /* el login (z-index 2000) se abre encima de la ventana, sólo mientras está abierta */
+    body.juegos-open .auth-overlay { z-index: 10005; }
+    @media (max-width: 767px) {
+      /* una pestaña a la vez */
+      .juegos-body[data-juego="quiz"] .misel-section { display: none; }
+      .juegos-body[data-juego="desafio"] .quiz-box { display: none; }
+      /* la ventana ya es la card: adentro, sin marco ni fondo propio (la del Desafío traía estilo inline) */
+      .juegos-sheet .quiz-box,
+      .juegos-sheet .misel-section {
+        background: transparent !important; border: 0 !important; border-radius: 0 !important;
+        box-shadow: none !important; padding: .4rem 0 1rem !important;
+      }
+    }
+    @media (min-width: 768px) {
+      .juegos-overlay { align-items: center; }
+      .juegos-sheet {
+        width: min(1040px, 94vw); max-width: none; height: auto; max-height: 90vh;
+        border-radius: 18px; box-shadow: 0 24px 64px rgba(0,0,0,.5);
+      }
+      .juegos-sheet .bs-handle-zone, .juegos-tabs { display: none; }
+      .juegos-body { padding: 3.2rem 1.5rem 1.5rem; }
+    }
+
     @keyframes slideInRight {
       from { transform: translateX(100%); }
       to   { transform: translateX(0); }
@@ -7733,13 +7804,17 @@
 
     /* BUG 7 · Juegos ST — distinguir las dos cards con un tinte
        diferente para que se note la división claramente. */
-    body:not(.dark-mode) .quiz-section .quiz-box {
-      background: linear-gradient(135deg, #f5efde 0%, #f0e8d0 100%) !important;
-      border-color: rgba(232,184,0,.4) !important;
-    }
-    body:not(.dark-mode) .quiz-section .misel-section {
-      background: linear-gradient(135deg, #ede5d2 0%, #e3d9bd 100%) !important;
-      border-color: rgba(120,90,0,.4) !important;
+    /* [JUEGOS-VENTANA] eran .quiz-section .quiz-box / .misel-section: la sección se fue y las cards viven en la
+       ventana. En escritorio siguen siendo dos cards lado a lado; en el celu no hay card (ver JUEGOS-VENTANA). */
+    @media (min-width: 768px) {
+      body:not(.dark-mode) .juegos-sheet .quiz-box {
+        background: linear-gradient(135deg, #f5efde 0%, #f0e8d0 100%) !important;
+        border-color: rgba(232,184,0,.4) !important;
+      }
+      body:not(.dark-mode) .juegos-sheet .misel-section {
+        background: linear-gradient(135deg, #ede5d2 0%, #e3d9bd 100%) !important;
+        border-color: rgba(120,90,0,.4) !important;
+      }
     }
 
     /* BUG 8 · Selección ST — collectible cards */
@@ -8072,7 +8147,8 @@
        washed-out. Ahora: bg crema con bordes dorados y textos en
        carbón.
        ──────────────────────────────────────────────────────────────── */
-    body:not(.dark-mode) .bottom-sheet {
+    body:not(.dark-mode) .bottom-sheet,
+    body:not(.dark-mode) .juegos-sheet {
       background: #f5efde !important;
       color: #1a1a1d !important;
       border: 1px solid rgba(120,90,0,.2) !important;
@@ -8089,8 +8165,10 @@
     body:not(.dark-mode) .bottom-sheet .price-promo,
     body:not(.dark-mode) .bottom-sheet .price-original { color: #1a1a1d !important; }
     body:not(.dark-mode) .bottom-sheet .price-cash { color: var(--tinta-efectivo); }
-    body:not(.dark-mode) .bottom-sheet .bs-handle-arrow { color: #5e564a !important; }
-    body:not(.dark-mode) .bottom-sheet .bs-handle { background: rgba(120,90,0,.4) !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-handle-arrow,
+    body:not(.dark-mode) .juegos-sheet .bs-handle-arrow { color: #5e564a !important; }
+    body:not(.dark-mode) .bottom-sheet .bs-handle,
+    body:not(.dark-mode) .juegos-sheet .bs-handle { background: rgba(120,90,0,.4) !important; }
     body:not(.dark-mode) .bottom-sheet .bs-img-placeholder {
       background: #ede5d2 !important;
       color: rgba(120,90,0,.4) !important;
