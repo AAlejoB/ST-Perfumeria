@@ -1659,6 +1659,52 @@
       .log-item { flex-wrap: wrap; }
       .log-nombre { flex: 1 1 100%; order: -1; }
     }
+
+    /* ══ [PROMO-DECANTS] N4 · la promo de decants en la pestaña Decants (decisiones 106, 113 y 114) ══ */
+    .promo-caja { background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; padding: 1.2rem; margin-top: 1.5rem; }
+    .promo-titulo { font-size: .8rem; font-weight: 600; color: var(--amarillo-tinta); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 .8rem; }
+    .promo-subtitulo { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--amarillo-tinta); margin: 1.1rem 0 .4rem; }
+    .lock-jefe { font-size: .68rem; font-weight: 700; letter-spacing: .02em; text-transform: none; color: var(--gris); margin-left: .5rem; }
+    .promo-estado-fila { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
+    /* 113 · cada estado con punto, palabra y color; oscuro por defecto, claro con body.light (todos ≥ 4,9) */
+    .promo-estado { display: flex; align-items: center; gap: .5rem; font-size: .8rem; font-weight: 700; margin: 0; }
+    .promo-estado::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .promo-estado-2 { font-size: .72rem; font-weight: 500; margin: .3rem 0 0 1.05rem; }
+    .promo-estado--apagada { color: #888; }
+    .promo-estado--programada { color: #E8B800; }
+    .promo-estado--prendida { color: #2ecc71; }
+    .promo-estado--terminada, .promo-estado-2 { color: #ff6b6b; }
+    body.light .promo-estado--apagada { color: #5e564a; }
+    body.light .promo-estado--programada { color: #6b5500; }
+    body.light .promo-estado--prendida { color: #1b5e20; }
+    body.light .promo-estado--terminada, body.light .promo-estado-2 { color: #b8342a; }
+    /* el interruptor (44 px de toque) */
+    .promo-switch { position: relative; display: inline-flex; align-items: center; gap: .55rem; min-height: var(--tap-min); cursor: pointer; font-size: .8rem; font-weight: 600; }
+    .promo-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .promo-switch-pista { position: relative; width: 44px; height: 24px; border-radius: 12px; background: #555; flex-shrink: 0; transition: background .2s; }
+    .promo-switch-pista::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
+    .promo-switch input:checked + .promo-switch-pista { background: #1b5e20; }
+    .promo-switch input:checked + .promo-switch-pista::after { transform: translateX(20px); }
+    .promo-switch input:focus-visible + .promo-switch-pista { outline: 2px solid var(--amarillo); outline-offset: 2px; }
+    .promo-switch input:disabled + .promo-switch-pista { opacity: .5; }
+    .promo-switch input:disabled ~ span { cursor: not-allowed; }
+    .promo-aviso-costo { font-size: .74rem; font-weight: 700; color: #ff6b6b; margin: .7rem 0 0; }
+    body.light .promo-aviso-costo { color: #b8342a; }
+    .promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .6rem; margin-top: .9rem; }
+    .promo-grid .modal-input { margin-bottom: 0; min-height: var(--tap-min); }
+    .promo-cada-uno { font-size: .7rem; color: var(--gris); margin: .3rem 0 0; }
+    .promo-nota { font-size: .72rem; color: var(--gris); margin: .8rem 0 0; }
+    /* los campos del jefe, para la empleada: grises, con 🔒 en la etiqueta */
+    .campo-bloqueado { opacity: .55; cursor: not-allowed; filter: grayscale(1); }
+    .promo-resumen { font-size: .8rem; font-weight: 600; margin: 0 0 .5rem; }
+    .promo-lista { display: flex; flex-direction: column; gap: .35rem; margin-top: .45rem; }
+    .promo-fila { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .35rem .5rem; border: 1px solid var(--borde); border-radius: 6px; min-height: var(--tap-min); }
+    .promo-fila-nombre { font-size: .76rem; font-weight: 700; flex: 1 1 160px; min-width: 0; }
+    .promo-fila-nota { font-size: .7rem; color: var(--gris); flex: 1 1 160px; }
+    .promo-fila-nota--pierde { color: #ff6b6b; font-weight: 700; }
+    body.light .promo-fila-nota--pierde { color: #b8342a; }
+    .promo-fila .action-btn { margin: 0; }
+    .promo-vacio { font-size: .72rem; color: var(--gris); margin: 0; }
   </style>
 </head>
 <body>
@@ -2825,7 +2871,7 @@
 
       <!-- Precios y tamaño -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;">
-        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Precios escalonados</p>
+        <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">Precios escalonados <span class="lock-jefe" data-solo-empleada style="display:none;">🔒 Sólo el jefe</span></p>
         <p style="font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Tipear sin puntos ni comas (ej: 9500, no 9.500).</p>
 
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem;">
@@ -2876,10 +2922,65 @@
 
       <!-- Acción -->
       <div style="display:flex;gap:.5rem;align-items:center;">
-        <button class="modal-btn modal-btn-price" onclick="saveDecantsAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;">Guardar configuración</button>
+        <button class="modal-btn modal-btn-price" onclick="saveDecantsAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;" data-solo-jefe>Guardar configuración</button>
         <button class="action-btn" onclick="loadDecantsAdmin()" style="padding:.5rem 1rem;">↺ Recargar</button>
       </div>
+      <p class="promo-nota" data-solo-empleada style="display:none;">Si ves un precio mal, avisale al jefe.</p>
       <p class="modal-success" id="decMsg"></p>
+
+      <!-- ─── [PROMO-DECANTS] N4 · la promo de decants (106, 113, 114): a-d las toca el jefe; «Quiénes entran», las dos ─── -->
+      <div class="promo-caja" id="promoCaja">
+        <p class="promo-titulo">🧪 Promo de decants <span class="lock-jefe" data-solo-empleada style="display:none;">🔒 Sólo el jefe</span></p>
+        <!-- a · estado + interruptor -->
+        <div class="promo-estado-fila">
+          <div>
+            <p class="promo-estado promo-estado--apagada" id="promoEstado">Apagada · no se ve en el sitio</p>
+            <p class="promo-estado-2" id="promoEstado2" hidden>Para repetirla, cambiá las fechas. Si no, apagala.</p>
+          </div>
+          <label class="promo-switch"><input type="checkbox" id="promoActiva" data-campo-jefe /><span class="promo-switch-pista" aria-hidden="true"></span><span>Prendida</span></label>
+        </div>
+        <!-- b · aviso de costo -->
+        <p class="promo-aviso-costo" id="promoAvisoCosto" hidden></p>
+        <!-- c · la oferta · d · desde / hasta -->
+        <div class="promo-grid">
+          <div>
+            <label class="modal-label" for="promoN">Decants por pack (N)</label>
+            <select class="modal-input" id="promoN" data-campo-jefe oninput="promoFormCambio()">
+              <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+            </select>
+          </div>
+          <div>
+            <label class="modal-label" for="promoPrecio">Precio del pack ($)</label>
+            <input type="number" class="modal-input" id="promoPrecio" min="1" step="1" placeholder="Ej: 18000" title="Sin puntos ni comas" data-campo-jefe oninput="promoFormCambio()" />
+            <p class="promo-cada-uno" id="promoCadaUno"></p>
+          </div>
+          <div>
+            <label class="modal-label" for="promoMax">Máximo de packs por pedido</label>
+            <input type="number" class="modal-input" id="promoMax" min="1" step="1" placeholder="vacío = sin tope" data-campo-jefe oninput="promoFormCambio()" />
+          </div>
+          <div>
+            <label class="modal-label" for="promoDesde">Desde (hora argentina)</label>
+            <input type="datetime-local" class="modal-input" id="promoDesde" data-campo-jefe />
+          </div>
+          <div>
+            <label class="modal-label" for="promoHasta">Hasta (hora argentina)</label>
+            <input type="datetime-local" class="modal-input" id="promoHasta" data-campo-jefe />
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;margin-top:1rem;" data-solo-jefe>
+          <button class="modal-btn modal-btn-price" onclick="savePromoAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;">Guardar promo</button>
+        </div>
+        <p class="promo-nota" data-solo-empleada style="display:none;">Si ves un precio mal, avisale al jefe.</p>
+        <p class="modal-success" id="promoMsg"></p>
+        <!-- e · quiénes entran (también las chicas) -->
+        <p class="promo-subtitulo">Quiénes entran</p>
+        <p class="promo-resumen" id="promoResumen">—</p>
+        <input type="text" class="admin-search" id="promoBuscar" placeholder="🔍 Buscar un perfume para sumarlo o sacarlo…" oninput="renderPromoBusqueda()" autocomplete="off" />
+        <div class="promo-lista" id="promoBusqueda"></div>
+        <p class="promo-subtitulo">Cambiados a mano</p>
+        <div class="promo-lista" id="promoManuales"><p class="promo-vacio">Ninguno.</p></div>
+        <p class="modal-success" id="promoPerfMsg"></p>
+      </div>
 
       <!-- ─── Perfumes personalizados (NO están en stock) ─── -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-top:1.5rem;">
@@ -5690,6 +5791,9 @@
             notas_salida: p.notas_salida || '',
             notas_corazon: p.notas_corazon || '',
             notas_base: p.notas_base || '',
+            // [PROMO-DECANTS] como el sitio (js/app.js ~L4586): la promo y el armador los miran
+            _precioDecant: (p.precio_decant != null ? p.precio_decant : undefined),
+            _decantExcluido: !!p.decant_excluido,
             _isNew: true,
             _fromDB: true   // marca para saber que vino de Supabase, no del .js
           });
@@ -9425,7 +9529,7 @@
 
     async function loadDecantsAdmin() {
       // Cargar también la lista de custom al abrir el tab.
-      loadDecantsCustom();
+      var cargaCustom = loadDecantsCustom();   // [PROMO-DECANTS] la promo la espera (los duplicados de diseñador no entran)
       var msg = document.getElementById('decMsg');
       if (msg) { msg.textContent = ''; msg.style.color = ''; }
       var def = {
@@ -9468,7 +9572,251 @@
       document.getElementById('decFrascoMax').value = cfg.precio_frasco_max != null ? cfg.precio_frasco_max : 170000;
       document.getElementById('decAviso').value = cfg.aviso_conservacion || '';
       updateFrascoMaxHint();
+      aplicarCandadoDecants();   // [PROMO-DECANTS] 114 · la escalera con candado para la empleada
+      try { await cargaCustom; } catch (e) {}
+      loadPromoAdmin();          // [PROMO-DECANTS] N4
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // [PROMO-DECANTS] N4 · la promo de decants en el panel (decisiones 106, 113 y 114).
+    //  · a (estado + interruptor), b (aviso de costo), c (la oferta) y d (desde / hasta): sólo el jefe; la empleada las
+    //    ve con candado. La base igual lo exige (pd_write_jefe).
+    //  · e (quiénes entran): las dos cuentas; escribe en promos_decants_perfumes.
+    //  · «entran solos: X de Y» usa LA MISMA REGLA que el sitio (promoDecantEntra, js/app.js): SINCRO con esa función.
+    //  · Las fechas se muestran y se cargan en hora argentina (UTC−3 fijo), aunque el equipo esté en otra zona.
+    // ══════════════════════════════════════════════════════════════
+    var PROMO_ADMIN = null;          // la fila guardada (id = 1) o null
+    var PROMO_ADMIN_MODOS = {};      // slug → 'incluir' | 'excluir'
+    var PROMO_DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+    var ART_MS = 3 * 3600e3;
+    function promoPesos(v) { return '$' + Math.round(v).toLocaleString('es-AR'); }
+    function promoFechaART(ms) {   // «jue 25/9 a las 10:00»
+      var d = new Date(ms - ART_MS);
+      return PROMO_DIAS[d.getUTCDay()] + ' ' + d.getUTCDate() + '/' + (d.getUTCMonth() + 1) + ' a las '
+        + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+    }
+    function promoAInput(iso) { var ms = Date.parse(iso); return isFinite(ms) ? new Date(ms - ART_MS).toISOString().slice(0, 16) : ''; }
+    function promoDeInput(v) { if (!v) return null; var ms = Date.parse(v + ':00-03:00'); return isFinite(ms) ? ms : null; }
+    function promoNorm(s) { return String(s == null ? '' : s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]/g, ''); }
+    function promoNum(v) { var n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; }
+    // Las mismas piezas que el sitio (js/app.js): tipo de producto (detectProductType), la lista del armador
+    // (decantEnListaArmador), el precio manual, «a consultar» y el frasco equivalente a 100 ml.
+    var PROMO_TIPOS = ['desodorante', 'body spray', 'body splash', 'crema', 'aceite', 'locion', 'jabon'];
+    function promoNoEsPerfume(p) {
+      if (p.tipo) return true;
+      var n = String(p.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return PROMO_TIPOS.some(function(k) { return n.indexOf(k) !== -1; });
+    }
+    function promoFrasco100(p) { var precio = promoNum(p.price); if (precio <= 0) return 0; var ml = promoNum(p.ml); if (ml <= 0) ml = 100; return precio / ml * 100; }
+    function promoTope() { var t = parseFloat((document.getElementById('decFrascoMax') || {}).value); return isFinite(t) ? t : DECANTS_ADMIN_TOPE; }
+    function promoEnLista(p, customs) {
+      if (!p || p.esSet || p._oculto || p._stockStatus === 'pausado' || p._decantExcluido) return false;
+      if (promoNoEsPerfume(p)) return false;
+      return !customs[promoNorm(p.name)];
+    }
+    function promoConEscalera(p) {
+      if (promoNum(p._precioDecant) > 0) return false;
+      var tope = promoTope();
+      return !(tope > 0 && promoFrasco100(p) > tope);
+    }
+    function promoCustoms() { var m = {}; (DECANTS_CUSTOM_CACHE || []).forEach(function(c) { if (c && c.activo !== false && c.nombre) m[promoNorm(c.nombre)] = true; }); return m; }
+    // La oferta que se está mirando: la del formulario si es válida; si no, la guardada.
+    function promoOfertaForm() {
+      var n = parseInt((document.getElementById('promoN') || {}).value, 10), pp = parseInt((document.getElementById('promoPrecio') || {}).value, 10);
+      if (n >= 2 && n <= 10 && pp > 0) return { n: n, precio_pack: pp };
+      if (PROMO_ADMIN) return { n: PROMO_ADMIN.n, precio_pack: PROMO_ADMIN.precio_pack };
+      return null;
+    }
+    function promoMlDecant() { var v = parseInt((document.getElementById('decMl') || {}).value, 10); return v > 0 ? v : 5; }
+
+    async function loadPromoAdmin() {
+      var msg = document.getElementById('promoMsg'); if (msg) { msg.textContent = ''; msg.style.color = ''; }
+      try {
+        var r = await sb.from('promos_decants').select('*').eq('id', 1);
+        PROMO_ADMIN = (r && !r.error && Array.isArray(r.data) && r.data.length) ? r.data[0] : null;
+        var r2 = await sb.from('promos_decants_perfumes').select('*');
+        PROMO_ADMIN_MODOS = {};
+        if (r2 && !r2.error && Array.isArray(r2.data)) r2.data.forEach(function(x) { if (x && x.slug) PROMO_ADMIN_MODOS[x.slug] = x.modo; });
+      } catch (e) {
+        console.warn('[promo-admin] load:', e);
+        if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'No se pudo leer la promo. Probá con ↺ Recargar.'; }
+      }
+      var P = PROMO_ADMIN;
+      document.getElementById('promoActiva').checked = !!(P && P.activa);
+      document.getElementById('promoN').value = String(P ? P.n : 3);
+      document.getElementById('promoPrecio').value = P ? P.precio_pack : '';
+      document.getElementById('promoMax').value = (P && P.max_packs) ? P.max_packs : '';
+      document.getElementById('promoDesde').value = P ? promoAInput(P.desde) : '';
+      document.getElementById('promoHasta').value = P ? promoAInput(P.hasta) : '';
+      aplicarCandadoDecants();
+      renderPromoEstado();
+      promoFormCambio();
+    }
+
+    // a · el estado de la fila GUARDADA: apagada, programada, prendida o terminada (prendida con «hasta» pasado).
+    function renderPromoEstado() {
+      var el = document.getElementById('promoEstado'), el2 = document.getElementById('promoEstado2');
+      if (!el) return;
+      var P = PROMO_ADMIN, ahora = Date.now(), estado = 'apagada', txt = 'Apagada · no se ve en el sitio';
+      if (P && P.activa) {
+        var desde = Date.parse(P.desde), hasta = Date.parse(P.hasta);
+        if (ahora < desde) { estado = 'programada'; txt = 'Programada · arranca el ' + promoFechaART(desde); }
+        else if (ahora < hasta) { estado = 'prendida'; txt = 'Prendida · termina el ' + promoFechaART(hasta); }
+        else { estado = 'terminada'; txt = 'Terminó el ' + promoFechaART(hasta) + ' · ya no se ve en el sitio'; }
+      }
+      el.className = 'promo-estado promo-estado--' + estado;
+      el.textContent = txt;
+      if (el2) el2.hidden = estado !== 'terminada';
+    }
+    setInterval(function() { if (document.getElementById('tab-decants') && document.getElementById('tab-decants').classList.contains('active')) renderPromoEstado(); }, 60000);
+
+    // c + b + e · al tocar la oferta: «$X cada uno», el aviso de costo, el resumen y las filas.
+    function promoFormCambio() {
+      var o = promoOfertaForm(), cada = document.getElementById('promoCadaUno');
+      if (cada) {
+        if (!o) cada.textContent = '';
+        else if (o.precio_pack % o.n !== 0) cada.textContent = promoPesos(o.precio_pack) + ' ÷ ' + o.n + ' no da justo: elegí un precio que se divida por ' + o.n + '.';
+        else cada.textContent = promoPesos(o.precio_pack / o.n) + ' cada uno';
+      }
+      renderPromoQuienes();
+    }
+
+    // e · «entran solos: X de Y» + las filas cambiadas a mano (con su costo) + el aviso de costo (b).
+    function renderPromoQuienes() {
+      var o = promoOfertaForm(), customs = promoCustoms();
+      var base = PERFUMES.filter(function(p) { return promoEnLista(p, customs) && promoConEscalera(p); });
+      var res = document.getElementById('promoResumen');
+      if (res) {
+        if (!o) res.textContent = 'Cargá la oferta para ver quiénes entran.';
+        else {
+          var solos = base.filter(function(p) { return promoFrasco100(p) <= (o.precio_pack / o.n) * 20; }).length;
+          res.textContent = 'entran solos: ' + solos + ' de ' + base.length;
+        }
+      }
+      var cont = document.getElementById('promoManuales'), bajoCosto = 0;
+      if (cont) {
+        var slugs = Object.keys(PROMO_ADMIN_MODOS).sort();
+        if (!slugs.length) cont.innerHTML = '<p class="promo-vacio">Ninguno.</p>';
+        else cont.innerHTML = slugs.map(function(s) {
+          var p = PERFUMES.find(function(x) { return x.slug === s; });
+          var nombre = p ? p.name : s, modo = PROMO_ADMIN_MODOS[s], nota, pierde = false;
+          if (modo === 'incluir') {
+            var costo = p ? Math.round(promoNum(p.price) / (promoNum(p.ml) || 100) * promoMlDecant()) : 0;
+            var unidad = o ? o.precio_pack / o.n : 0, dif = costo - unidad;
+            if (o && dif > 0) { bajoCosto++; pierde = true; nota = 'sumado a mano · costo ' + promoPesos(costo) + ' · pierde ' + promoPesos(dif); }
+            else nota = 'sumado a mano' + (costo ? ' · costo ' + promoPesos(costo) : '');
+          } else nota = 'sacado a mano';
+          return '<div class="promo-fila"><span class="promo-fila-nombre">' + escapeHtml(nombre) + '</span>'
+            + '<span class="promo-fila-nota' + (pierde ? ' promo-fila-nota--pierde' : '') + '">' + escapeHtml(nota) + '</span>'
+            + '<button class="action-btn" onclick="promoCambiarModo(' + escapeHtml(JSON.stringify(s)) + ', \'auto\')">Volver a automático</button></div>';
+        }).join('');
+      }
+      var aviso = document.getElementById('promoAvisoCosto');
+      if (aviso) {
+        aviso.textContent = bajoCosto === 1 ? '1 sumado a mano queda por debajo del costo' : bajoCosto + ' sumados a mano quedan por debajo del costo';
+        aviso.hidden = bajoCosto === 0;
+      }
+      renderPromoBusqueda();
+    }
+
+    // e · el buscador: sumar o sacar a mano (los que no pueden entrar dicen por qué).
+    function renderPromoBusqueda() {
+      var cont = document.getElementById('promoBusqueda'), inp = document.getElementById('promoBuscar');
+      if (!cont || !inp) return;
+      var q = promoNorm(inp.value);
+      if (q.length < 2) { cont.innerHTML = ''; return; }
+      var o = promoOfertaForm(), customs = promoCustoms();
+      var hits = PERFUMES.filter(function(p) { return p && !p.esSet && !p._oculto && promoNorm([p.name, p.marca, p.marca_real, p.alias].join(' ')).indexOf(q) !== -1; }).slice(0, 8);
+      if (!hits.length) { cont.innerHTML = '<p class="promo-vacio">Sin resultados.</p>'; return; }
+      cont.innerHTML = hits.map(function(p) {
+        var modo = PROMO_ADMIN_MODOS[p.slug], nota, boton = '';
+        var js = escapeHtml(JSON.stringify(p.slug));
+        if (!promoEnLista(p, customs)) nota = p._stockStatus === 'pausado' ? 'pausado: no está en el armador' : 'no se ofrece en decants';
+        else if (!promoConEscalera(p)) nota = promoNum(p._precioDecant) > 0 ? 'tiene precio de decant propio' : 'precio a consultar';
+        else if (modo === 'incluir') { nota = 'sumado a mano'; boton = '<button class="action-btn" onclick="promoCambiarModo(' + js + ', \'auto\')">Volver a automático</button>'; }
+        else if (modo === 'excluir') { nota = 'sacado a mano'; boton = '<button class="action-btn" onclick="promoCambiarModo(' + js + ', \'auto\')">Volver a automático</button>'; }
+        else if (o && promoFrasco100(p) <= (o.precio_pack / o.n) * 20) { nota = 'entra solo'; boton = '<button class="action-btn" onclick="promoCambiarModo(' + js + ', \'excluir\')">Sacar</button>'; }
+        else { nota = 'no entra solo · frasco ' + promoPesos(promoFrasco100(p)) + ' cada 100 ml'; boton = '<button class="action-btn" onclick="promoCambiarModo(' + js + ', \'incluir\')">Sumar</button>'; }
+        return '<div class="promo-fila"><span class="promo-fila-nombre">' + escapeHtml(p.name) + '</span><span class="promo-fila-nota">' + escapeHtml(nota) + '</span>' + boton + '</div>';
+      }).join('');
+    }
+
+    function promoModoTexto(m) { return m === 'incluir' ? 'sumado a mano' : m === 'excluir' ? 'sacado a mano' : 'automático'; }
+    // e · sumar, sacar o volver a automático (las dos cuentas).
+    async function promoCambiarModo(slug, modo) {
+      var msg = document.getElementById('promoPerfMsg'); if (msg) { msg.textContent = ''; msg.style.color = ''; }
+      var antes = PROMO_ADMIN_MODOS[slug];
+      try {
+        var r = modo === 'auto'
+          ? await sb.from('promos_decants_perfumes').delete().eq('slug', slug)
+          : await sb.from('promos_decants_perfumes').upsert({ slug: slug, modo: modo, updated_at: new Date().toISOString() }, { onConflict: 'slug' });
+        if (r && r.error) throw r.error;
+        if (modo === 'auto') delete PROMO_ADMIN_MODOS[slug]; else PROMO_ADMIN_MODOS[slug] = modo;
+        logAdminAction('promo_decants_perfume', slug, { modo: { old: promoModoTexto(antes), new: promoModoTexto(modo === 'auto' ? null : modo) } });
+        renderPromoQuienes();
+      } catch (e) {
+        console.warn('[promo-admin] perfume:', e);
+        if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'No se pudo guardar el cambio. Revisá la conexión y probá de nuevo.'; }
+      }
+    }
+
+    // a-d · guardar la promo (sólo el jefe).
+    async function savePromoAdmin() {
+      var msg = document.getElementById('promoMsg'); msg.textContent = ''; msg.style.color = '';
+      var mal = function(t) { msg.style.color = '#e74c3c'; msg.textContent = t; };
+      if (currentRole !== 'jefe') return mal('Sólo el jefe puede cambiar la promo.');
+      var activa = document.getElementById('promoActiva').checked;
+      var n = parseInt(document.getElementById('promoN').value, 10);
+      var pp = parseInt(document.getElementById('promoPrecio').value, 10);
+      var mxTxt = (document.getElementById('promoMax').value || '').trim(), mx = mxTxt ? parseInt(mxTxt, 10) : null;
+      var desde = promoDeInput(document.getElementById('promoDesde').value), hasta = promoDeInput(document.getElementById('promoHasta').value);
+      if (!(n >= 2 && n <= 10)) return mal('N tiene que ir de 2 a 10.');
+      if (!(pp > 0)) return mal('Falta el precio del pack.');
+      if (pp % n !== 0) return mal('El precio del pack tiene que dividirse justo entre ' + n + ': ' + promoPesos(pp) + ' ÷ ' + n + ' no da exacto.');
+      if (mxTxt && !(mx >= 1)) return mal('El máximo de packs tiene que ser 1 o más (o vacío, sin tope).');
+      if (desde == null) desde = Date.now();
+      if (activa && hasta == null) return mal('Para prenderla falta «Hasta».');
+      if (hasta != null && hasta <= desde) return mal('«Hasta» tiene que ser después de «Desde».');
+      var fila = { id: 1, activa: activa, n: n, precio_pack: pp, max_packs: mx, desde: new Date(desde).toISOString(), hasta: hasta != null ? new Date(hasta).toISOString() : null, updated_at: new Date().toISOString() };
+      try {
+        var r = await sb.from('promos_decants').upsert(fila, { onConflict: 'id' });
+        if (r && r.error) throw r.error;
+      } catch (e) {
+        console.warn('[promo-admin] save:', e);
+        var permiso = e && (e.code === '42501' || /row-level security|permission/i.test(e.message || ''));
+        return mal(permiso ? 'No se pudo guardar: sólo el jefe puede cambiar la promo.' : 'No se pudo guardar la promo. Revisá la conexión y probá de nuevo.');
+      }
+      // Log: sólo lo que cambió, legible (fechas en hora argentina).
+      var A = PROMO_ADMIN || {}, cambios = {};
+      var fmt = function(k, v) { if (k === 'desde' || k === 'hasta') return v ? promoFechaART(Date.parse(v)) : 'vacío'; if (k === 'precio_pack') return promoPesos(v); if (k === 'activa') return v ? 'sí' : 'no'; if (k === 'max_packs') return v ? String(v) : 'sin tope'; return String(v); };
+      ['activa', 'n', 'precio_pack', 'max_packs', 'desde', 'hasta'].forEach(function(k) {
+        var viejo = PROMO_ADMIN ? fmt(k, A[k]) : 'vacío', nuevo = fmt(k, fila[k]);
+        if (viejo !== nuevo) cambios[k] = { old: viejo, new: nuevo };
+      });
+      if (Object.keys(cambios).length) logAdminAction('promo_decants_update', null, cambios);
+      msg.style.color = '#27ae60'; msg.textContent = '✓ Promo guardada.';
+      PROMO_ADMIN = fila;
+      renderPromoEstado();
+      promoFormCambio();
+    }
+
+    // 114 · la escalera y la promo: para la empleada, campos grises con 🔒, «🔒 Sólo el jefe» y sin «Guardar».
+    function aplicarCandadoDecants() {
+      var jefe = currentRole === 'jefe';
+      var ids = ['decActivo', 'decMl', 'decPrecio1', 'decPrecio3', 'decPrecio5', 'decMax', 'decFrascoMax', 'decAviso',
+                 'promoActiva', 'promoN', 'promoPrecio', 'promoMax', 'promoDesde', 'promoHasta'];
+      ids.forEach(function(id) {
+        var el = document.getElementById(id); if (!el) return;
+        el.disabled = !jefe;
+        el.classList.toggle('campo-bloqueado', !jefe);
+        var lab = el.id ? document.querySelector('label[for="' + el.id + '"]') : null;
+        if (!lab && el.previousElementSibling && el.previousElementSibling.classList.contains('modal-label')) lab = el.previousElementSibling;
+        if (lab && !jefe && !lab.getAttribute('data-candado')) { lab.setAttribute('data-candado', '1'); lab.textContent = '🔒 ' + lab.textContent; }
+      });
+      document.querySelectorAll('#tab-decants [data-solo-jefe]').forEach(function(el) { el.style.display = jefe ? '' : 'none'; });
+      document.querySelectorAll('#tab-decants [data-solo-empleada]').forEach(function(el) { el.style.display = jefe ? 'none' : ''; });
+    }
+
 
     // [DECANT-TOPE] Muestra cuántos perfumes del catálogo quedarían "a consultar"
     // con el tope que el admin está escribiendo, antes de guardar.
@@ -9557,7 +9905,9 @@
       } catch (e) {
         console.error('[decants-admin] save error:', e);
         msg.style.color = '#e74c3c';
-        msg.textContent = 'Error al guardar: ' + (e.message || e);
+        // [PROMO-DECANTS] 114 · nunca el error crudo de la base: un mensaje en castellano.
+        var sinPermiso = e && (e.code === '42501' || /row-level security|permission/i.test(e.message || ''));
+        msg.textContent = sinPermiso ? 'No se pudo guardar: sólo el jefe puede cambiar la escalera.' : 'No se pudo guardar la configuración. Revisá la conexión y probá de nuevo.';
       }
     }
 
@@ -9588,6 +9938,9 @@
       'combo_stock_toggle':   { icon: '⏸', label: 'Combo stock' },
       'votacion_update':      { icon: '🗳️', label: 'Votación' },
       'decants_config_update':{ icon: '💧', label: 'Decants config' },
+      // [PROMO-DECANTS] N4
+      'promo_decants_update':  { icon: '🧪', label: 'Promo de decants' },
+      'promo_decants_perfume': { icon: '🧪', label: 'Promo de decants · perfume' },
       'backup_create_manual':{ icon: '💾', label: 'Backup manual' },
       'backup_create_auto':  { icon: '🤖', label: 'Backup auto' },
       // [LOG-LABEL-FALLBACK] decisión 70 · el panel lo crea si el último backup tiene 3 h o más (ver maybeAutoBackup).
@@ -9618,6 +9971,7 @@
       badge_text: 'Texto del badge', items_count: 'Productos', count: 'Cantidad',
       slugs: 'Perfumes', from: 'Antes', to: 'Ahora',
       desde: 'Desde', hasta: 'Hasta', dias: 'Días', motivo: 'Motivo',
+      activa: 'Prendida', n: 'Decants por pack', precio_pack: 'Precio del pack', max_packs: 'Máximo de packs', modo: 'En la promo',
       mes: 'Mes', masc_count: 'Masculinos', fem_count: 'Femeninos',
       size_bytes: 'Tamaño', row_counts: 'Filas por tabla', rows: 'Filas'
     };
@@ -9777,6 +10131,8 @@
       // [LOG-SISTEMA-CHIP] Un filtro cuyo trabajo es sacar ruido no puede tener adentro
       // "login 09:02" entre dos ediciones de catálogo: login/logout y los backups van a Sistema.
       if (action === 'login_success' || action === 'logout' || action === 'backup_create_manual' || action === 'backup_create_auto' || action === 'backup_create_fallback') return ['sistema'];
+      // [PROMO-DECANTS] 36b · si cambia el precio (del pack o N, que cambia el precio de cada decant), Precios; si no, Catálogo.
+      if (action === 'promo_decants_update') { var cp = e.changes; return (cp && typeof cp === 'object' && (cp.precio_pack || cp.n)) ? ['precios'] : ['catalogo']; }
       var c = e.changes, fam = [];
       if (action === 'perfume_edit' && c && typeof c === 'object' && !Array.isArray(c)) {
         var claves = Object.keys(c);
