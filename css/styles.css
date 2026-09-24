@@ -965,7 +965,7 @@
       margin-bottom: .5rem;
       opacity: 0; animation: fadeUp .8s ease .3s forwards;
     }
-    .hero-title em { font-style: italic; color: var(--amarillo); }
+    .hero-title em { font-style: italic; color: var(--amarillo-tinta); }   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
     .hero-sub {
       font-size: clamp(.68rem, 1.3vw, .85rem); font-weight: 300; color: var(--gris-claro);
       line-height: 1.7; max-width: 300px; margin: 0 auto;
@@ -1984,7 +1984,7 @@
     }
     .set-items-list li::before {
       content: '\25C6';
-      color: var(--amarillo);
+      color: var(--amarillo-tinta);   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
       font-size: .3rem;
     }
     .set-pricing {
@@ -1995,7 +1995,7 @@
     .set-price-promo {
       font-size: .95rem;
       font-weight: 700;
-      color: var(--amarillo);
+      color: var(--amarillo-tinta);   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
     }
     .set-price-original {
       font-size: .7rem;
@@ -2138,13 +2138,13 @@
       justify-content: center;
       margin-bottom: 1.2rem;
     }
-    /* [JUEGOS-VENTANA-PULIDO] decisión 77: los que faltan son un anillo de 1,5 px en --gris sin relleno (5,33 oscuro,
+    /* [JUEGOS-VENTANA-PULIDO] decisión 77: los que faltan son un anillo en --gris sin relleno (5,33 oscuro,
        6,29 claro); el hecho, el dorado de cada tema (oscuro --amarillo 10,15 · claro #6b5500 6,25). Eran 1,02 y 1,62 en claro. */
     .quiz-dot {
       width: 8px; height: 8px;
       border-radius: 50%;
       background: transparent;
-      border: 1.5px solid var(--gris);
+      border: 1px solid var(--gris);   /* [ANILLO-1PX] decisión 84: 1,5 px Chromium lo dibujaba de 1: el código dice lo que se ve */
       transition: background .3s, border-color .3s;
     }
     .quiz-dot.filled { background: var(--amarillo-tinta); border-color: var(--amarillo-tinta); }
@@ -2995,11 +2995,13 @@
     /* [JERARQUIA-CARD] En claro el texto salía verde (y en el detalle, rojo el borde y verde la letra):
        `body:not(.dark-mode) .price-cash` (#1b5e20 !important, más abajo) pesaba lo mismo que esta regla y
        venía después. Con .price-cash.price-cash--hotsale pesa más y ya no depende del orden; el !important
-       es el que estaba. La franja baja de 12 % a 6 %: con 12 % el texto daba 4,35 al principio; con 6 %, 4,76. */
+       es el que estaba. La franja al 6 %. [HOTSALE-CLARO] decisión 80: un solo naranja para claro, #9a3412, en la card y
+       en el detalle (texto, borde y franja): card 6,65 · detalle 5,82 al principio de la franja (con #c2410c el detalle
+       daba 4,17). No es el rojo de «Sin stock»: el rojo dice «bloqueado». */
     body:not(.dark-mode) .price-cash.price-cash--hotsale {
-      color: #c2410c !important;
-      border-left-color: #c2410c;
-      background: linear-gradient(90deg, rgba(194,65,12,.06), rgba(194,65,12,0));
+      color: #9a3412 !important;
+      border-left-color: #9a3412;
+      background: linear-gradient(90deg, rgba(154,52,18,.06), rgba(154,52,18,0));
     }
     /* [1] Línea de cuotas con chip + monto destacado */
     .price-cuotas-line {
@@ -4041,7 +4043,7 @@
     .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.2rem; padding-top: 2.5rem; border-top: 1px solid var(--borde-sutil); }
     .section-eyebrow { font-size: .65rem; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: var(--amarillo); margin-bottom: .3rem; }
     .section-title { font-family: var(--font-display); font-size: 1.8rem; font-weight: 300; color: var(--blanco); }
-    .section-title em { font-style: italic; color: var(--amarillo); }
+    .section-title em { font-style: italic; color: var(--amarillo-tinta); }   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
     .section-link { font-size: .7rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--gris-claro); text-decoration: none; display: flex; align-items: center; gap: .4rem; transition: color .3s; }
     .section-link::after { content: '\2192'; transition: transform .3s; }
     @media (hover: hover) {
@@ -5182,7 +5184,7 @@
       font-family: var(--font-body); font-size: .65rem; font-weight: 600;
       color: var(--gris); letter-spacing: .03em;
     }
-    .occasion-title { font-size: .5rem; letter-spacing: .15em; color: var(--amarillo); font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    .occasion-title { font-size: .5rem; letter-spacing: .15em; color: var(--amarillo-tinta); font-weight: 700; text-transform: uppercase; white-space: nowrap; }   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
     .occasion-label { white-space: nowrap; cursor: default; }
     .occasion-label.active { color: #333; }
     body.dark-mode .occasion-label.active { color: #fff; }
@@ -5519,7 +5521,7 @@
     .cart-item-info { flex: 1; }
     .cart-item-name { font-size: .75rem; font-weight: 600; }
     .cart-item-brand { font-size: .6rem; color: var(--gris); }
-    .cart-item-price { font-size: .75rem; font-weight: 700; color: var(--amarillo); white-space: nowrap; }
+    .cart-item-price { font-size: .75rem; font-weight: 700; color: var(--amarillo-tinta); white-space: nowrap; }   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
     .cart-item-remove {
       background: none; border: none; color: #e74c3c; font-size: 1rem;
       cursor: pointer; padding: .3rem; opacity: .6; transition: opacity .2s;
@@ -5531,7 +5533,7 @@
       border-top: 2px solid var(--amarillo);
       font-size: .85rem; font-weight: 700;
     }
-    .cart-total-amount { color: var(--amarillo); font-size: 1.1rem; }
+    .cart-total-amount { color: var(--amarillo-tinta); font-size: 1.1rem; }   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
     .cart-cash {
       text-align: right; font-size: .7rem; color: #2ecc71; font-weight: 600; margin-top: .2rem;
     }
@@ -5742,7 +5744,7 @@
       font-weight: 600;
       letter-spacing: .08em;
       text-transform: uppercase;
-      color: var(--amarillo) !important;
+      color: var(--amarillo-tinta) !important;   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
       transition: transform .2s ease;
       display: inline-block;
     }
@@ -6317,7 +6319,7 @@
     }
     .nosotros-intro em {
       font-style: italic;
-      color: var(--amarillo);
+      color: var(--amarillo-tinta);   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
       font-weight: 400;
     }
     @media (min-width: 768px) {
@@ -6389,7 +6391,7 @@
        de iOS Safari que pintan los <a> de azul brillante. */
     a.nosotros-link,
     .nosotros-link {
-      color: var(--amarillo) !important;
+      color: var(--amarillo-tinta) !important;   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
       text-decoration: none !important;
       border-bottom: 1px dotted rgba(232,184,0,.45);
       transition: border-color .2s ease, color .2s ease;
@@ -6421,7 +6423,7 @@
 
     .nosotros-list li::before {
       content: '\25CF';
-      color: var(--amarillo);
+      color: var(--amarillo-tinta);   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
       font-size: .5rem;
       position: absolute;
       left: 0;
@@ -6794,8 +6796,12 @@
     }
     .store-status.open { background: rgba(46,204,113,.12); color: #2ecc71; }
     .store-status.open .dot { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
-    .store-status.closed { background: rgba(231,76,60,.1); color: #e74c3c; }
-    .store-status.closed .dot { background: #e74c3c; }
+    /* [CERRADO-HERO] decisión 81: cambian sólo la letra y el punto; el fondo, no. Oscuro #ff6b6b (era #e74c3c: 4,47);
+       claro #b8342a sobre el #fff de la píldora (5,89; era 3,82). */
+    .store-status.closed { background: rgba(231,76,60,.1); color: #ff6b6b; }
+    .store-status.closed .dot { background: #ff6b6b; }
+    body:not(.dark-mode) .store-status.closed { color: #b8342a; }
+    body:not(.dark-mode) .store-status.closed .dot { background: #b8342a; }
     .store-status.holiday { background: rgba(241,196,15,.12); color: #f1c40f; }
     .store-status.holiday .dot { background: #f1c40f; }
 

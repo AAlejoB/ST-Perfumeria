@@ -1385,6 +1385,15 @@
        (era color:#2ecc71 inline: 2,1 sobre blanco). */
     .td-price.td-efectivo { color: #2ecc71; }
     body.light .td-price.td-efectivo { color: #1b5e20; }
+    /* [PEDIDOS-PASS-CLARO] decisión 82: cada pedido de «Pedidos pass» era una caja #1a1a1a inline (desde JS) con la
+       letra heredada: en claro, #1a1a1a sobre #1a1a1a = 1,0. El mismo arreglo que las cajas de arriba: oscuro igual
+       que hoy; claro con la superficie y el borde del tema (la letra hereda la del tema). */
+    .caja-pedido { background: #1a1a1a; border: 1px solid #333; }
+    body.light .caja-pedido { background: var(--superficie); border-color: var(--borde); }
+    .no-registrado { color: #e67e22; }
+    body.light .no-registrado { color: #9a3412; }             /* 7,31 sobre blanco */
+    .aviso-verificar { color: #f1c40f; }
+    body.light .aviso-verificar { color: var(--amarillo-tinta); }   /* era #f1c40f en los dos temas: 1,69 sobre blanco */
 
     /* Sistema de roles: cualquier elemento con data-role="jefe" se oculta
        cuando el body tiene la clase role-empleado. La regla incluye :not
@@ -1913,10 +1922,10 @@
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
         <h2 style="margin:0 0 .4rem;font-size:1.1rem;">🔑 Pedidos de recuperación de contraseña</h2>
         <p style="color:#bbb;font-size:.82rem;margin:0;line-height:1.5;">Cuando un cliente toca <em>"¿Olvidaste tu contraseña?"</em> en la web, su pedido aparece acá.<br>
-        ⚠️ <strong style="color:#f1c40f;">Verificá su identidad por WhatsApp ANTES de resetear</strong> — preguntale algo que solo el cliente real sepa (qué compró, cuándo vino, etc).</p>
+        ⚠️ <strong class="aviso-verificar">Verificá su identidad por WhatsApp ANTES de resetear</strong> — preguntale algo que solo el cliente real sepa (qué compró, cuándo vino, etc).</p>
       </div>
       <div id="resetSuccessBanner"></div>
-      <div id="resetRequestsList"><p style="color:#888;">Cargando…</p></div>
+      <div id="resetRequestsList"><p style="color:var(--gris);">Cargando…</p></div>
     </div>
 
     <!-- TAB: EDITAR PERFUME EXISTENTE -->
@@ -3728,20 +3737,20 @@
       // [FORGOT-PASS-A] limpiar el banner de éxito al refrescar / reentrar a la tab
       var sBanner = document.getElementById('resetSuccessBanner');
       if (sBanner) sBanner.innerHTML = '';
-      cont.innerHTML = '<p style="color:#888;">Cargando…</p>';
+      cont.innerHTML = '<p style="color:var(--gris);">Cargando…</p>';
       var res = await sb.from('password_reset_requests')
         .select('*, clientes(nombre)').eq('status', 'pending').order('created_at', { ascending: false });
       if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">Error: ' + res.error.message + '</p>'; return; }
       var data = res.data || [];
       if (data.length === 0) {
-        cont.innerHTML = '<p style="color:#888;padding:1rem 0;">No hay pedidos pendientes. 🎉</p>';
+        cont.innerHTML = '<p style="color:var(--gris);padding:1rem 0;">No hay pedidos pendientes. 🎉</p>';
         return;
       }
       cont.innerHTML = data.map(function(r) {
         var tel = (r.telefono || '').replace(/[^0-9]/g, '');
         var wa = 'https://wa.me/' + tel;
         var fecha = new Date(r.created_at).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
-        var noReg = r.cliente_id ? '' : ' <span style="color:#e67e22;font-size:.75rem;">(número no registrado)</span>';
+        var noReg = r.cliente_id ? '' : ' <span class="no-registrado" style="font-size:.75rem;">(número no registrado)</span>';
         var nombre = (r.clientes && r.clientes.nombre) ? escapeHtml(r.clientes.nombre) : '';
         var ident = nombre
           ? '<strong style="font-size:1rem;">👤 ' + nombre + '</strong>' + noReg + '<br><span style="color:#bbb;font-size:.85rem;">📞 ' + escapeHtml(r.telefono) + '</span>'
@@ -3749,9 +3758,9 @@
         var resetBtn = r.cliente_id
           ? '<button class="action-btn btn-price" onclick="resetClientePass(\'' + r.id + '\',\'' + r.cliente_id + '\',\'' + tel + '\')">🔓 Resetear contraseña</button>'
           : '';
-        return '<div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:1rem;margin-bottom:.75rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;">' +
+        return '<div class="caja-pedido" style="border-radius:8px;padding:1rem;margin-bottom:.75rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;">' +
             '<div>' + ident +
-              '<br><span style="color:#888;font-size:.75rem;">Pedido: ' + fecha + '</span></div>' +
+              '<br><span style="color:var(--gris);font-size:.75rem;">Pedido: ' + fecha + '</span></div>' +
             '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
               '<a class="action-btn btn-whatsapp" href="' + wa + '" target="_blank">💬 WhatsApp</a>' +
               resetBtn +

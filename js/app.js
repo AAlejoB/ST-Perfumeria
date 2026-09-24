@@ -1801,7 +1801,7 @@
       } else {
         pricingHTML = '<span class="price-promo">' + listaFormatted + '</span>'
           + '<span class="price-cuotas-line"><span class="price-cuotas-chip">3 cuotas</span><strong>' + cuotaFormatted + '</strong> sin interés</span>'
-          + '<span class="price-cash">' + cashFormatted + ' descuento efectivo/transf.</span>';
+          + '<span class="price-cash">' + cashFormatted + ' efectivo/transf.</span>';   // [EFECTIVO-UN-RENGLON] decisión 85: sin «descuento» entra en un renglón a 360
       }
 
       var searchText = stripAccents([p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || '', p.alias || '', p.tipo || '', getGamaAlias(p)].join(' ').toLowerCase());
@@ -2221,7 +2221,24 @@
       var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
       if (card) {
         setTimeout(function() {
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // [SALTO-CARD-CENTRO] decisión 83: en el celu la card (614-660 px) más su scroll-margin de 243 no entra
+          // centrada y quedaba tapada 5-6 px; con 'start' arranca 6 px debajo de la barra. En escritorio, 'center'.
+          var bloque = window.matchMedia('(max-width: 767px)').matches ? 'start' : 'center';
+          card.scrollIntoView({ behavior: 'smooth', block: bloque });
+          // Mientras baja, las cards que se van mostrando cambian de alto y el destino que el navegador fijó al arrancar
+          // queda corrido (12-13 px medidos a 390, en los dos sentidos según el alto de la card). Cuando el scroll se
+          // queda quieto, se vuelve a apuntar sin animación, salvo que la persona haya tocado, scrolleado o usado el teclado.
+          var tocado = false, marcar = function() { tocado = true; }, gestos = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+          gestos.forEach(function(t) { window.addEventListener(t, marcar, { passive: true, capture: true }); });
+          var ultimo = -1, quieto = 0, pasos = 0;
+          var reapuntar = setInterval(function() {
+            var y = Math.round(window.pageYOffset);
+            quieto = y === ultimo ? quieto + 1 : 0; ultimo = y; pasos++;
+            if (quieto < 2 && pasos <= 40) return;
+            clearInterval(reapuntar);
+            gestos.forEach(function(t) { window.removeEventListener(t, marcar, { capture: true }); });
+            if (!tocado) card.scrollIntoView({ behavior: 'instant', block: bloque });
+          }, 100);
           card.style.boxShadow = '0 0 0 3px var(--amarillo), 0 8px 30px rgba(232,184,0,.3)';
           card.style.transition = 'box-shadow .3s';
           setTimeout(function() { card.style.boxShadow = ''; }, 3000);
@@ -4641,66 +4658,12 @@
       }
     });
     renderCategories();
-    // Diferidas: votación y horario del local no son above-the-fold
+    // Diferida: la votación no es above-the-fold. El horario (las dos píldoras) sale de la IIFE de HORARIOS, más abajo.
     deferTask(loadVotacionFromDB);
-    deferTask(checkStoreStatus);
 
-    // ============================================================
-    // HORARIO DEL LOCAL
-    // ============================================================
-    async function checkStoreStatus() {
-      var el = document.getElementById('waStatus');
-      if (!el) return;
-
-      // Hora Argentina (UTC-3)
-      var now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
-      var day = now.getDay(); // 0=dom
-      var hour = now.getHours();
-      var min = now.getMinutes();
-      var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-
-      // Verificar cierre especial
-      try {
-        var { data: cierres } = await sb.from('cierres_especiales').select('motivo').eq('fecha', todayStr);
-        if (cierres && cierres.length > 0) {
-          el.className = 'wa-status wa-status--special';
-          el.innerHTML = '<span class="wa-status-dot"></span>' + cierres[0].motivo;
-          return;
-        }
-      } catch(e) {}
-
-      // Domingo cerrado
-      if (day === 0) {
-        el.className = 'wa-status wa-status--closed';
-        el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos lunes 10hs';
-        return;
-      }
-
-      // Lunes a sábado: 10:00 a 20:00
-      var currentMin = hour * 60 + min;
-      var openMin = 10 * 60;   // 10:00
-      var closeMin = 20 * 60;  // 20:00
-
-      if (currentMin >= openMin && currentMin < closeMin) {
-        var remainHrs = Math.floor((closeMin - currentMin) / 60);
-        var remainMin = (closeMin - currentMin) % 60;
-        var remainText = remainHrs > 0 ? remainHrs + 'h ' + (remainMin > 0 ? remainMin + 'min' : '') : remainMin + 'min';
-        el.className = 'wa-status wa-status--open';
-        el.innerHTML = '<span class="wa-status-dot"></span>Abierto · Cierra en ' + remainText.trim();
-      } else if (currentMin < openMin) {
-        el.className = 'wa-status wa-status--closed';
-        el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos hoy 10hs';
-      } else {
-        // Ya cerró
-        if (day === 6) {
-          el.className = 'wa-status wa-status--closed';
-          el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos lunes 10hs';
-        } else {
-          el.className = 'wa-status wa-status--closed';
-          el.innerHTML = '<span class="wa-status-dot"></span>Cerrado · Abrimos mañana 10hs';
-        }
-      }
-    }
+    // [HORARIO-DOS-FUENTES] La píldora flotante del horario (#waStatus) ya no se calcula acá: tenía el horario
+    // escrito a mano (lunes a sábado de 10 a 20) y no miraba feriados ni el ajuste del panel, así que podía decir
+    // otra cosa que la del hero. Las dos salen de la misma cuenta, en la IIFE de HORARIOS (más abajo).
 
     // ============================================================
     // SCROLL TO TOP — mostrar/ocultar
@@ -5019,70 +4982,83 @@
         0: null                        // Domingo cerrado
       };
 
-      function updateStatus(feriados, cierres) {
+      // [HORARIO-DOS-FUENTES] decisión del PREPARADOR (24-sep): una sola cuenta para las dos píldoras — la del hero
+      // (#storeStatus) y la flotante de WhatsApp (#waStatus) —, con HORARIOS (y el ajuste del panel), los feriados y
+      // los cierres especiales. Cada una escribe su texto como siempre; lo que se unifica es de dónde salen el día y
+      // la hora. El próximo día que abre saltea los feriados y los cierres especiales.
+      var DIAS_SEMANA = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+      function isoDe(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+      function feriadoDe(d, feriados) {
+        for (var i = 0; feriados && i < feriados.length; i++) if (feriados[i].mes === d.getMonth() + 1 && feriados[i].dia === d.getDate()) return feriados[i];
+        return null;
+      }
+      function cierreDe(d, cierres) {
+        var iso = isoDe(d);
+        for (var i = 0; cierres && i < cierres.length; i++) if (cierres[i].fecha === iso) return cierres[i];
+        return null;
+      }
+      function calcularEstadoHorario(feriados, cierres) {
+        var now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+        var cierre = cierreDe(now, cierres);
+        if (cierre) return { tipo: 'especial', motivo: cierre.motivo };
+        var feriado = feriadoDe(now, feriados);
+        if (feriado) return { tipo: 'feriado', motivo: feriado.motivo || 'Feriado' };
+        var horario = HORARIOS[now.getDay()];
+        var minutos = now.getHours() * 60 + now.getMinutes();
+        if (horario && minutos >= horario.open * 60 && minutos < horario.close * 60) {
+          return { tipo: 'abierto', cierra: horario.close, faltanMin: horario.close * 60 - minutos };
+        }
+        if (horario && minutos < horario.open * 60) return { tipo: 'cerrado', abreEn: 0, abreDia: now.getDay(), abreHora: horario.open };
+        for (var i = 1; i <= 7; i++) {
+          var d = new Date(now); d.setDate(d.getDate() + i);
+          var h = HORARIOS[d.getDay()];
+          if (h && !feriadoDe(d, feriados) && !cierreDe(d, cierres)) return { tipo: 'cerrado', abreEn: i, abreDia: d.getDay(), abreHora: h.open };
+        }
+        return { tipo: 'cerrado', abreEn: null };
+      }
+
+      // La del hero: «Cierra a las 20hs», «Abrimos hoy a las 10hs», «Abrimos lunes 10hs» (los textos de siempre).
+      function updateStatus(estado) {
         var el = document.getElementById('storeStatus');
         var textEl = document.getElementById('storeStatusText');
         if (!el || !textEl) return;
-
-        var now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
-        var dia = now.getDay();
-        var hora = now.getHours();
-        var mes = now.getMonth() + 1;
-        var diaNum = now.getDate();
-        var hoyISO = now.getFullYear() + '-' + String(mes).padStart(2,'0') + '-' + String(diaNum).padStart(2,'0');
-
-        // 1) Verificar cierre especial del admin
-        if (cierres && cierres.length) {
-          for (var i = 0; i < cierres.length; i++) {
-            if (cierres[i].fecha === hoyISO) {
-              el.className = 'store-status holiday';
-              textEl.textContent = cierres[i].motivo;
-              el.style.display = 'inline-flex';
-              return;
-            }
-          }
-        }
-
-        // 2) Verificar feriado nacional
-        if (feriados && feriados.length) {
-          for (var i = 0; i < feriados.length; i++) {
-            if (feriados[i].mes === mes && feriados[i].dia === diaNum) {
-              el.className = 'store-status holiday';
-              textEl.textContent = 'Hoy feriado · ' + (feriados[i].motivo || 'Feriado');
-              el.style.display = 'inline-flex';
-              return;
-            }
-          }
-        }
-
-        // 3) Horario normal
-        var horario = HORARIOS[dia];
-        if (!horario) {
-          el.className = 'store-status closed';
-          textEl.textContent = 'Cerrado · Abrimos lunes 10hs';
-          el.style.display = 'inline-flex';
-          return;
-        }
-
-        if (hora >= horario.open && hora < horario.close) {
-          var restante = horario.close - hora;
+        if (estado.tipo === 'especial' || estado.tipo === 'feriado') {
+          el.className = 'store-status holiday';
+          textEl.textContent = estado.tipo === 'feriado' ? 'Hoy feriado · ' + estado.motivo : estado.motivo;
+        } else if (estado.tipo === 'abierto') {
           el.className = 'store-status open';
-          textEl.textContent = 'Abierto · Cierra a las ' + horario.close + 'hs' + (restante <= 1 ? ' · ¡Última hora!' : '');
-        } else if (hora < horario.open) {
-          el.className = 'store-status closed';
-          textEl.textContent = 'Cerrado · Abrimos hoy a las ' + horario.open + 'hs';
+          textEl.textContent = 'Abierto · Cierra a las ' + estado.cierra + 'hs' + (estado.faltanMin <= 60 ? ' · ¡Última hora!' : '');
         } else {
-          var manana = (dia + 1) % 7;
-          var diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-          if (HORARIOS[manana]) {
-            el.className = 'store-status closed';
-            textEl.textContent = 'Cerrado · Abrimos ' + diasSemana[manana] + ' ' + HORARIOS[manana].open + 'hs';
-          } else {
-            el.className = 'store-status closed';
-            textEl.textContent = 'Cerrado · Abrimos lunes 10hs';
-          }
+          el.className = 'store-status closed';
+          textEl.textContent = estado.abreEn === 0 ? 'Cerrado · Abrimos hoy a las ' + estado.abreHora + 'hs'
+            : estado.abreEn ? 'Cerrado · Abrimos ' + DIAS_SEMANA[estado.abreDia] + ' ' + estado.abreHora + 'hs'
+            : 'Cerrado';
         }
         el.style.display = 'inline-flex';
+      }
+
+      // La flotante: «Cierra en 2h 30min», «Abrimos hoy 10hs», «Abrimos mañana 10hs» (los textos de siempre). Nueva: el
+      // feriado, con el mismo texto que el hero (antes no los miraba).
+      function pintarWaStatus(estado) {
+        var el = document.getElementById('waStatus');
+        if (!el) return;
+        var clase = 'wa-status--closed', texto;
+        if (estado.tipo === 'especial' || estado.tipo === 'feriado') {
+          clase = 'wa-status--special';
+          texto = estado.tipo === 'feriado' ? 'Hoy feriado · ' + estado.motivo : estado.motivo;
+        } else if (estado.tipo === 'abierto') {
+          var hs = Math.floor(estado.faltanMin / 60), mins = estado.faltanMin % 60;
+          clase = 'wa-status--open';
+          texto = 'Abierto · Cierra en ' + (hs > 0 ? hs + 'h ' + (mins > 0 ? mins + 'min' : '') : mins + 'min').trim();
+        } else {
+          texto = estado.abreEn === 0 ? 'Cerrado · Abrimos hoy ' + estado.abreHora + 'hs'
+            : estado.abreEn === 1 && estado.abreDia !== 1 ? 'Cerrado · Abrimos mañana ' + estado.abreHora + 'hs'   // como antes: «lunes» si abre el lunes
+            : estado.abreEn ? 'Cerrado · Abrimos ' + DIAS_SEMANA[estado.abreDia] + ' ' + estado.abreHora + 'hs'
+            : 'Cerrado';
+        }
+        el.className = 'wa-status ' + clase;
+        el.innerHTML = '<span class="wa-status-dot"></span>';
+        el.appendChild(document.createTextNode(texto));
       }
 
       // Cargar feriados + cierres + ajuste horario en paralelo
@@ -5154,7 +5130,9 @@
             mapNota.style.display = 'block';
           }
         }
-        updateStatus(results[0], results[1]);
+        var estado = calcularEstadoHorario(results[0], results[1]);
+        updateStatus(estado);
+        pintarWaStatus(estado);
       });
     })();
 
@@ -5698,7 +5676,7 @@
       } else {
         priceHTML = '<span class="price-promo">' + bsListaFormatted + '</span>'
           + '<span class="price-cuotas-line"><span class="price-cuotas-chip">3 cuotas</span><strong>' + bsCuotaFormatted + '</strong> sin interés</span>'
-          + '<span class="price-cash">' + bsCashFormatted + ' descuento efectivo/transf.</span>';
+          + '<span class="price-cash">' + bsCashFormatted + ' efectivo/transf.</span>';   // [EFECTIVO-UN-RENGLON] decisión 85: sin «descuento» entra en un renglón a 360
       }
       document.getElementById('bsPrice').innerHTML = priceHTML;
 

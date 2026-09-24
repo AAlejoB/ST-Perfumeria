@@ -34,9 +34,7 @@ var NOMBRES = { gray: '#808080', grey: '#808080', white: '#ffffff', black: '#000
 var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no frena
   // [JUEGOS-VENTANA] lo que se mudó a la ventana tal cual: la manija es la del detalle
   // [JUEGOS-VENTANA-PULIDO] «deslizá para cerrar» salió de acá: en oscuro --gris da 5,33 sobre la ventana
-  // [JERARQUIA-CARD] el Hot Sale del detalle en claro es #c2410c (un solo color, como pidió el DISEÑADOR) pero el detalle
-  // es crema (#f5efde), no blanco: 4,16 al principio de la franja al 6 %, 4,51 sin franja. Lo decide el DISEÑADOR.
-  { superficie: 'catálogo', nombre: 'Hot Sale (detalle) .bottom-sheet .price-cash--hotsale', tema: 'claro', keyword: '[HOTSALE-DETALLE-CLARO]' }
+  // [HOTSALE-CLARO] el Hot Sale del detalle en claro salió de acá: con #9a3412 da 5,82 al principio de la franja
   // [AMARILLO-TINTA-CLARO] el título del quiz en claro salió de acá: con #6b5500 da 6,25 sobre #f5efde
 ];
 
@@ -216,6 +214,17 @@ function efectivo(rs, target, prefijos, prop, capas) {
     if (!tabla.length) tabla = efectivo(rs, 'body', [], 'background', c.capas).hex;
     var ef = efectivo(rs, '.td-price.td-efectivo', c.pref, 'color', c.capas);
     medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: 'efectivo de Precios .td-efectivo', texto: ef.hex[0], fondos: tabla, impone: ef.impone });
+    // [PEDIDOS-PASS-CLARO] cada pedido: la letra heredada, «(número no registrado)» y «Pedido: …» (--gris) sobre la caja.
+    var pedido = efectivo(rs, '.caja-pedido', c.pref, 'background', c.capas).hex;
+    var heredadoP = tema === 'claro' ? (efectivo(rs, 'body.light', [], 'color', c.capas).hex[0] || '#1a1a1a') : '#ffffff';
+    medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: 'pedido de «Pedidos pass» (texto · hereda)', texto: heredadoP, fondos: pedido, impone: 'heredado del body' });
+    var noReg = efectivo(rs, '.no-registrado', c.pref, 'color', c.capas);
+    medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: '(número no registrado) .no-registrado', texto: noReg.hex[0], fondos: pedido, impone: noReg.impone });
+    medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: '«Pedido: …» (--gris)', texto: resolver('var(--gris)', c.capas)[0], fondos: pedido, impone: 'token' });
+    // «Verificá su identidad…» va sobre la caja de arriba de la pestaña: #111 inline, que en claro el parche por
+    // atributo pasa a #fff (este script no lee atributos: el fondo va escrito).
+    var aviso = efectivo(rs, '.aviso-verificar', c.pref, 'color', c.capas);
+    medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: '«Verificá su identidad…» .aviso-verificar', texto: aviso.hex[0], fondos: [tema === 'claro' ? '#ffffff' : '#111111'], impone: aviso.impone });
   });
 })();
 
@@ -348,6 +357,18 @@ function efectivo(rs, target, prefijos, prop, capas) {
     var gCta = gana(['.price-banner-cta', '.price-banner--big .price-banner-cta', '.price-banner-wrap--big .price-banner *'], c, ['color']);
     if (gCta && gCta.valor === 'inherit') gCta = gana(['.price-banner', '.price-banner--big', '.price-banner-wrap--big .price-banner'], c, ['color']);
     medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: '«Ver catálogo» .price-banner--big .price-banner-cta', texto: gCta && colores(gCta.valor, c, fCta[0])[0], fondos: fCta, impone: donde(gCta) });
+    // [CERRADO-HERO] «Cerrado» del hero: su fondo (en claro, el #fff !important de mayo) sobre el hero.
+    var hero = fondoDe(['.hero'], c, pagina)[0];
+    var fHero = fondoDe(['.store-status', '.store-status.closed'], c, hero);
+    var gHero = gana(['.store-status.closed'], c, ['color']);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: '«Cerrado» del hero .store-status.closed', texto: gHero && colores(gHero.valor, c, fHero[0])[0], fondos: fHero, impone: donde(gHero) });
+    // [AMARILLO-CATALOGO-CLARO] los textos dorados que en claro seguían en #E8B800: contra la página (en claro #e3d6b3,
+    // el fondo más oscuro donde aparecen) y contra la card. El DOM los mide uno por uno sobre su fondo real.
+    ['.hero-title em', '.section-title em', '.nosotros-intro em', '.set-items-list li::before', '.set-price-promo', '.seo-hub-card .seo-hub-cta',
+     '.nosotros-link', '.nosotros-list li::before', '.cart-item-price', '.cart-total-amount', '.occasion-title'].forEach(function (sel) {
+      var g = gana([sel], c, ['color']);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: sel, texto: g && colores(g.valor, c, pagina)[0], fondos: [pagina, card], impone: donde(g) });
+    });
   });
 })();
 
