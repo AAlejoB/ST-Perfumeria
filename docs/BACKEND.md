@@ -332,7 +332,7 @@ Versiones recientes:
 
 ```js
 // HTML → network-first con fallback a cache + offline
-// CSS/JS/fuentes → stale-while-revalidate
+// CSS/JS/fuentes → network-first con fallback a cache (desde 3cee019, 12-may-2026; antes stale-while-revalidate)
 // Imágenes → cache-first
 // Supabase / WhatsApp / Telegram → network-only (no cachear)
 ```
