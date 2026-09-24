@@ -4234,6 +4234,61 @@
     }
 
     // ============================================================
+    // [BARRA-CELU] La barra de abajo del celu (decisiones 61, 62, 68 y 86-93 del DISEÑADOR, réplica v4).
+    // Carrito y Decants llaman directo a openCartPanel / openDecantBuilder desde el HTML.
+    // ============================================================
+    // Catálogo: va al catálogo; si ya estás adentro, vuelve arriba de todo (lo que hacía .scroll-top, regla 3 de la v3).
+    // «Adentro» = la parte de arriba del catálogo ya llegó a donde frena el salto (105) y todavía queda catálogo a la vista.
+    function barraCatalogo() {
+      var cat = document.getElementById('catalogo');
+      if (!cat) return;
+      var zona = (document.querySelector('.catalogo-scope') || cat).getBoundingClientRect();
+      if (zona.top <= 110 && zona.bottom > window.innerHeight / 2) window.scrollTo({ top: 0, behavior: 'smooth' });
+      else cat.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Buscar: el foco va en el mismo toque (en iPhone, si va después del scroll suave, no sale el teclado) y sin que el
+    // navegador salte; después se acomoda la barra de filtros arriba.
+    function barraBuscar() {
+      var input = document.getElementById('searchInput');
+      if (!input) return;
+      try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+      var cat = document.getElementById('catalogo');
+      if (cat) cat.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Cuenta: sin sesión, el login de siempre; con sesión, la hoja «Hola, <nombre>».
+    function barraCuenta() {
+      if (!currentUser) { openAuth(); return; }
+      var ov = document.getElementById('cuentaHojaOverlay');
+      if (!ov) return;
+      var nombre = String(currentUser.nombre || '').trim().split(/\s+/)[0];
+      document.getElementById('cuentaHojaTitulo').textContent = nombre ? 'Hola, ' + nombre : 'Hola';   // dato del cliente: textContent
+      document.getElementById('cuentaHojaFavs').textContent = favs.length;
+      ov.classList.add('open');
+      try { history.pushState({ cuentaHoja: true }, ''); } catch (e) {}
+    }
+    // Cerrar la hoja; si se abrió con su entrada de historial, «atrás» la cierra y lo que sigue corre después, cuando la
+    // página ya volvió (así un scroll de «Mis favoritos» no lo pisa la restauración del historial).
+    var cuentaHojaDespues = null;
+    function cerrarCuentaHoja(despues) {
+      var ov = document.getElementById('cuentaHojaOverlay');
+      var sigue = typeof despues === 'function' ? despues : null;
+      if (!ov || !ov.classList.contains('open')) { if (sigue) sigue(); return; }
+      if (history.state && history.state.cuentaHoja) { cuentaHojaDespues = sigue; history.back(); return; }
+      ov.classList.remove('open');
+      if (sigue) sigue();
+    }
+    window.addEventListener('popstate', function() {
+      var ov = document.getElementById('cuentaHojaOverlay');
+      if (!ov || !ov.classList.contains('open')) return;
+      ov.classList.remove('open');
+      var sigue = cuentaHojaDespues; cuentaHojaDespues = null;
+      if (sigue) setTimeout(sigue, 60);
+    });
+    function cuentaFavoritos() {
+      cerrarCuentaHoja(function() { showFavorites({ preventDefault: function() {} }); });
+    }
+
+    // ============================================================
     // LISTA DE ESPERA — Sin stock / Pausados
     // ============================================================
     // [ESPERA-SEGURA] Sin cliente no hay ✓: la caché puede ser de alguien que salió antes de v1.1.114 (el
@@ -4790,6 +4845,7 @@
         '.auth-overlay.active',
         '.quiz-results[style*="block"]',
         '.compare-modal',
+        '.cuenta-hoja-overlay.open',   // [BARRA-CELU] la hoja «Hola, <nombre>»
       ].join(', ');
 
       function isUserBusy() {
@@ -5153,6 +5209,9 @@
       var navBtn = document.getElementById('navCartBtn');
       if (navBadge) navBadge.textContent = cart.length;
       if (navBtn) navBtn.classList.toggle('has-items', cart.length > 0);
+      // [BARRA-CELU] el número del carrito en la barra del celu (el mismo contador que .cart-float)
+      var barraNum = document.getElementById('barraNumCarrito');
+      if (barraNum) { barraNum.textContent = cart.length; barraNum.hidden = cart.length === 0; }
       sessionStorage.setItem('st_cart', JSON.stringify(cart));
     }
 
@@ -7144,6 +7203,9 @@
       // Contador del botón flotante
       var floatCount = document.getElementById('decantFloatCount');
       if (floatCount) floatCount.textContent = qty;
+      // [BARRA-CELU] el número del pack en la barra del celu (el mismo contador que .decant-float)
+      var barraDec = document.getElementById('barraNumDecants');
+      if (barraDec) { barraDec.textContent = qty; barraDec.hidden = !(qty > 0 && DECANTS_CONFIG.activo); }
       var floatBtn = document.getElementById('decantFloat');
       if (floatBtn && DECANTS_CONFIG.activo) {
         if (qty > 0) floatBtn.classList.add('visible');

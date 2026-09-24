@@ -552,7 +552,7 @@
 
     /* En tablet/desktop el nav crece un poco */
     @media (min-width: 768px) {
-      nav { padding: 0 2rem; height: 64px; }
+      nav { padding: 0 max(2rem, env(safe-area-inset-right)) 0 max(2rem, env(safe-area-inset-left)); height: 64px; }   /* [BARRA-CELU] safe-area */
     }
 
     .nav-hamburger {
@@ -9872,3 +9872,82 @@
        HTML (app.js:1666), así que el browser reserva espacio sin necesitar
        este hack CSS.
        ──────────────────────────────────────────────────────────────── */
+
+    /* ════════════════════════════════════════════════════════════════
+       [BARRA-CELU] La barra de abajo del celu (< 768) · decisiones 61, 62, 68 y 86-93 del DISEÑADOR (réplica v4).
+       Va al final del archivo a propósito: les gana por orden, sin !important, a las reglas de los flotantes.
+       ──────────────────────────────────────────────────────────────── */
+    /* [BARRA-CELU] safe-area (viewport-fit=cover en index.html): el contenido no se mete abajo del notch en horizontal.
+       Donde no hay notch, env() vale 0 y no cambia nada. */
+    /* html body: el CSS crítico inline de index.html (html, body { padding: 0 }) va después de este archivo y con la misma
+       especificidad ganaba por orden. */
+    html body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+    .barra-celu, .cuenta-hoja-overlay { display: none; }
+    @media (max-width: 767px) {
+      /* Fija abajo, 60 + safe-area, #0b0b0d en los dos temas (como el nav y el banner, que ya son oscuros en claro). */
+      .barra-celu {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9990;
+        height: calc(60px + env(safe-area-inset-bottom)); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        background: #0b0b0d; border-top: 1px solid rgba(232,184,0,.18);
+      }
+      /* Cinco destinos, un quinto cada uno (78 px a 390) y los 60 de alto. Etiqueta 11,5 · 600 · .04em: apagada #bbbbbb
+         (10,24 sobre #0b0b0d), activa #E8B800 (10,57). El activo es sólo «Catálogo», siempre: color + barra de 3 px. */
+      .barra-btn {
+        flex: 1 1 0; min-width: 0; height: 60px; position: relative; padding: 0; margin: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+        background: transparent; border: 0; color: #bbbbbb; cursor: pointer; -webkit-tap-highlight-color: transparent;
+        font-family: var(--font-body); font-size: 11.5px; font-weight: 600; line-height: 1; letter-spacing: .04em; text-transform: uppercase;
+      }
+      .barra-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+      .barra-btn.activo { color: #E8B800; }
+      .barra-btn.activo::before { content: ''; position: absolute; top: 0; left: 24%; right: 24%; height: 3px; background: #E8B800; border-radius: 0 0 3px 3px; }
+      .barra-btn:focus-visible { outline: 2px solid #E8B800; outline-offset: -3px; }
+      .barra-etq { white-space: nowrap; }
+      /* Decants (los del pack) y Carrito (los ítems): blanco sobre #b8342a (5,89). */
+      .barra-num {
+        position: absolute; top: 6px; left: 54%; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+        background: #b8342a; color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; letter-spacing: 0; text-align: center;
+      }
+      .barra-num[hidden] { display: none; }
+      /* Lo que se abre encima tapa la barra (87, 93). El carrito, el armador, los juegos y el detalle ya están más arriba
+         (9995-10000); el login (2000) y el menú (200) no: con ellos abiertos la barra se esconde. Con el armador, también
+         (62): el armador es una hoja desde abajo y la barra no tiene que asomar. */
+      body:has(.auth-overlay.open) .barra-celu,
+      body:has(.nav-drawer.open) .barra-celu,
+      body:has(.decant-builder-overlay.active) .barra-celu { display: none; }
+      /* Los flotantes (las 5 reglas de la v3). 3 · la barra se come el carrito, el pack y «volver arriba»;
+         4 · el tema va al menú (ya tiene «Cambiar tema»). */
+      .cart-float, .cart-float.visible, .decant-float, .decant-float.visible, .scroll-top, .scroll-top.visible, .dark-float { display: none; }
+      /* WhatsApp y el estado del local, abajo a la derecha, arriba de la barra. */
+      .wa-float { bottom: calc(76px + env(safe-area-inset-bottom)); }
+      .wa-status { bottom: calc(92px + env(safe-area-inset-bottom)); }
+      /* 2 · una sola cosa ancha arriba de la barra: comparar se apoya en la barra y WhatsApp y el estado suben 49 px. */
+      .compare-bar { bottom: calc(60px + env(safe-area-inset-bottom)); }
+      body:has(.compare-bar.visible) .wa-float { bottom: calc(125px + env(safe-area-inset-bottom)); }
+      body:has(.compare-bar.visible) .wa-status { bottom: calc(141px + env(safe-area-inset-bottom)); }
+      /* 1 · las invitaciones arriba, debajo del nav. */
+      .push-banner { top: calc(66px + env(safe-area-inset-top)); bottom: auto; left: 12px; right: 12px; width: auto; max-width: none; }
+      #pwaInstallBanner { top: calc(66px + env(safe-area-inset-top)); bottom: auto; opacity: 0; transform: translate(-50%, -12px); transition: transform .3s ease, opacity .3s ease; }
+      #pwaInstallBanner.visible { opacity: 1; transform: translate(-50%, 0); }
+      /* Una invitación a la vez: las dos van al mismo lugar y se pisaban (358×55). Mientras está la de notificaciones
+         (display: block, desde JS), la de instalar espera escondida y aparece cuando la otra se cierra. */
+      body:has(.push-banner[style*="block"]) #pwaInstallBanner.visible { opacity: 0; transform: translate(-50%, -12px); pointer-events: none; }
+      /* 5 · el final de la página se reserva: el pie entero queda arriba de la barra. */
+      html body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+      /* La hoja «Hola, <nombre>»: el estilo de la hoja del carrito (#111, borde dorado arriba), filas de 48, encima de
+         la barra. */
+      .cuenta-hoja-overlay { position: fixed; inset: 0; z-index: 9993; background: rgba(0,0,0,.6); align-items: flex-end; justify-content: center; }
+      .cuenta-hoja-overlay.open { display: flex; }
+      .cuenta-hoja {
+        width: 100%; background: #111; color: #f0ede8; border-top: 3px solid var(--amarillo); border-radius: 16px 16px 0 0;
+        padding: 18px 18px calc(26px + env(safe-area-inset-bottom)); animation: slideUp .3s ease;
+      }
+      .cuenta-hoja-titulo { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #f0ede8; margin: 0 0 12px; }
+      .cuenta-hoja-fila {
+        display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 48px; padding: 0; margin: 0;
+        background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.08); color: #f0ede8; cursor: pointer; text-align: left;
+        font-family: var(--font-body); font-size: 13.5px; font-weight: 400;
+      }
+      .cuenta-hoja-fila b { font-weight: 700; }
+      .cuenta-hoja-salir { color: #ff6b6b; border-bottom: 0; }
+    }

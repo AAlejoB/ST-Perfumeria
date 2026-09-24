@@ -372,6 +372,30 @@ function efectivo(rs, target, prefijos, prop, capas) {
   });
 })();
 
+// ═══ BARRA DE ABAJO DEL CELU ═══ [BARRA-CELU] 24-sep-2026
+// La barra es #0b0b0d en los dos temas: las etiquetas (apagada y activa), los números del carrito y del pack, y la hoja
+// «Hola, <nombre>» (#111). Las reglas viven en un @media (max-width: 767px): este script las lee igual.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var barra = efectivo(rs, '.barra-celu', c.pref, 'background', c.capas).hex;
+    [['etiqueta apagada', '.barra-btn', barra], ['etiqueta activa («Catálogo»)', '.barra-btn.activo', barra]].forEach(function (x) {
+      var fg = efectivo(rs, x[1], c.pref, 'color', c.capas);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'barra', nombre: x[0] + ' ' + x[1], texto: fg.hex[0], fondos: x[2], impone: fg.impone });
+    });
+    var num = efectivo(rs, '.barra-num', c.pref, 'color', c.capas), numFondo = efectivo(rs, '.barra-num', c.pref, 'background', c.capas);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'barra', nombre: 'número del carrito y del pack .barra-num', texto: num.hex[0], fondos: numFondo.hex, impone: num.impone });
+    var hoja = efectivo(rs, '.cuenta-hoja', c.pref, 'background', c.capas).hex;
+    [['título «Hola, …»', '.cuenta-hoja-titulo'], ['fila', '.cuenta-hoja-fila'], ['«Cerrar sesión»', '.cuenta-hoja-salir']].forEach(function (x) {
+      var fg = efectivo(rs, x[1], c.pref, 'color', c.capas);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'barra', nombre: x[0] + ' ' + x[1], texto: fg.hex[0], fondos: hoja, impone: fg.impone });
+    });
+  });
+})();
+
 // ═══ VENTANA «AVISAME» ═══ [ESPERA-CLARO] 23-sep-2026
 // Todos sus textos son <p> (menos el ×): en claro compiten con `body:not(.dark-mode) p` (0,1,2), que le gana a una
 // clase sola (0,1,0). Así quedaban #2a2a2d sobre la caja #111 = 1,32 hasta v1.1.115, y este script no lo veía porque

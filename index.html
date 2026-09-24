@@ -3,7 +3,7 @@
 <html lang="es-AR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1"/>
   <meta name="google-site-verification" content="_A1SQnpDqjAfzc2XlIJR9PjBsqavsImXLCkIjA7LCrs" />
   <meta name="description" content="Comprá perfumes importados originales en Comodoro Rivadavia. +150 fragancias árabes de larga duración con 3 cuotas sin interés y envíos a todo el país. 10% off en efectivo o transferencia. Lattafa, Afnan, Armaf, Maison Alhambra. San Martín 570, Local N8."/>
@@ -1662,6 +1662,44 @@
   <a href="https://wa.me/5492975416017?text=Hola!%20Quiero%20consultar%20por%20un%20perfume" target="_blank" class="wa-float" aria-label="WhatsApp">
     <svg viewBox="0 0 32 32" width="28" height="28"><path fill="#fff" d="M16.01 2.93A13.07 13.07 0 0 0 2.93 16a12.94 12.94 0 0 0 1.74 6.51L2.93 29.07l6.73-1.74A13.06 13.06 0 1 0 16.01 2.93Zm0 23.9a10.8 10.8 0 0 1-5.52-1.5l-.4-.24-4.12 1.08 1.1-4.03-.26-.41a10.83 10.83 0 1 1 9.2 5.1Zm5.93-8.1c-.33-.16-1.93-.95-2.23-1.06-.3-.11-.52-.16-.74.17-.22.32-.85 1.06-1.04 1.28-.2.22-.39.24-.72.08-.33-.16-1.38-.51-2.63-1.62-.97-.87-1.63-1.94-1.82-2.27-.19-.33-.02-.5.14-.67.15-.15.33-.39.5-.59.16-.2.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.17-.73-1.77-1-2.42-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.72 0 1.6 1.17 3.15 1.33 3.37.17.22 2.3 3.51 5.57 4.92.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.1 1.93-.79 2.2-1.55.28-.76.28-1.41.2-1.55-.09-.14-.31-.22-.64-.38Z"/></svg>
   </a>
+
+  <!-- [BARRA-CELU] La barra de abajo del celu (< 768): Catálogo · Buscar · Decants · Carrito · Cuenta. Decisiones 61,
+       62, 68 y 86-93 del DISEÑADOR (réplica v4). Es un <div role="navigation"> y no un <nav>: la regla `nav { … }`
+       del nav de arriba (sticky, 58 px) se le aplicaría. En escritorio no se muestra. -->
+  <div class="barra-celu" id="barraCelu" role="navigation" aria-label="Navegación del celular">
+    <button type="button" class="barra-btn activo" onclick="barraCatalogo()" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="barra-etq">Catálogo</span>
+    </button>
+    <button type="button" class="barra-btn" onclick="barraBuscar()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <span class="barra-etq">Buscar</span>
+    </button>
+    <button type="button" class="barra-btn" onclick="openDecantBuilder()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.5 4.2 6 7.4 6 10.5A6 6 0 0 1 6 13.5C6 10.4 8.5 7.2 12 3z"/></svg>
+      <span class="barra-etq">Decants</span>
+      <span class="barra-num" id="barraNumDecants" hidden>0</span>
+    </button>
+    <button type="button" class="barra-btn" onclick="openCartPanel()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+      <span class="barra-etq">Carrito</span>
+      <span class="barra-num" id="barraNumCarrito" hidden>0</span>
+    </button>
+    <button type="button" class="barra-btn" onclick="barraCuenta()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><g transform="translate(3.5 0)"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></g></svg>
+      <span class="barra-etq">Cuenta</span>
+    </button>
+  </div>
+  <!-- [BARRA-CELU] «Hola, <nombre>»: la hoja de Cuenta con sesión (decisión 90). No es una pantalla de cuenta: tres
+       filas con lo que ya existe. Se cierra tocando afuera o con «atrás». -->
+  <div class="cuenta-hoja-overlay" id="cuentaHojaOverlay" onclick="if(event.target===this)cerrarCuentaHoja()">
+    <div class="cuenta-hoja" role="dialog" aria-modal="true" aria-labelledby="cuentaHojaTitulo">
+      <div class="cuenta-hoja-titulo" id="cuentaHojaTitulo">Hola</div>
+      <button type="button" class="cuenta-hoja-fila" onclick="cuentaFavoritos()"><span>&#9829; Mis favoritos</span><b id="cuentaHojaFavs">0</b></button>
+      <button type="button" class="cuenta-hoja-fila" onclick="toggleDarkMode()"><span>&#127769; Cambiar tema</span><span aria-hidden="true">&#8250;</span></button>
+      <button type="button" class="cuenta-hoja-fila cuenta-hoja-salir" onclick="cerrarCuentaHoja(logout)"><span>Cerrar sesi&oacute;n</span><span aria-hidden="true">&#8250;</span></button>
+    </div>
+  </div>
 
   <!-- Banner de bienvenida -->
   <div class="welcome-overlay" id="welcomeOverlay" style="display:none;" onclick="closeWelcome()">
