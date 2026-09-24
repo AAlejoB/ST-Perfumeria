@@ -513,7 +513,7 @@
     // [PROMO-DECANTS] [DECANT-WA-TOTAL] La misma cuenta que la pantalla (precioPackDecants, app.js): hasta v1.1.130 el
     // WhatsApp no separaba los perfumes con precio de decant cargado a mano y los cobraba con la escalera.
     var cuenta = precioPackDecants(validPack);
-    var msg = 'Hola! 👋 Quiero armar un pack de ' + qty + ' decants de ' + DECANTS_CONFIG.ml + 'ml 🧪\n\n'
+    var msg = 'Hola! 👋 Quiero armar un pack de ' + qty + (qty === 1 ? ' decant de ' : ' decants de ') + DECANTS_CONFIG.ml + 'ml 🧪\n\n'   // «1 decant»
       + cuenta.lineas.join('\n') + '\n\n'
       + cuenta.resumen + '\n\n'
       + '¿Confirmás stock? 🙏';

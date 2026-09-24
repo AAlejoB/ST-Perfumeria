@@ -485,7 +485,9 @@ function efectivo(rs, target, prefijos, prop, capas) {
     });
     var pie = gana(['.decant-builder-footer', '.decant-builder-footer.has-items'], c, ['background', 'background-color']);
     var linea = gana(['.decant-builder .decant-builder-footer .decant-builder-promo', '.decant-builder-promo'], c, ['color']);
-    medir({ superficie: 'catálogo', tema: tema, rol: 'promo', nombre: '«Sumá 1 más con 3×» (pie del armador)', texto: hexDe(linea, c), fondos: [hexDe(pie, c)].filter(Boolean), impone: donde(linea) });
+    medir({ superficie: 'catálogo', tema: tema, rol: 'promo', nombre: '«Sumá 2 más con 3× y cada uno te sale $6.000» (pie del armador)', texto: hexDe(linea, c), fondos: [hexDe(pie, c)].filter(Boolean), impone: donde(linea) });
+    var lineaTope = gana(['.decant-builder .decant-builder-footer .decant-builder-promo--tope', '.decant-builder .decant-builder-footer .decant-builder-promo'], c, ['color']);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'promo', nombre: '«Máximo de la promo: …» (pie del armador)', texto: hexDe(lineaTope, c), fondos: [hexDe(pie, c)].filter(Boolean), impone: donde(lineaTope) });
     var card = gana(['.decant-card', '.decant-builder-grid > *'], c, ['background', 'background-color']);
     var pend = gana(['.decant-card-price-pending'], c, ['color']);
     medir({ superficie: 'catálogo', tema: tema, rol: 'promo', nombre: '«Precio a consultar» .decant-card-price-pending', texto: hexDe(pend, c), fondos: [hexDe(card, c)].filter(Boolean), impone: donde(pend) });

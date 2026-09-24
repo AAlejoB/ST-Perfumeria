@@ -1697,6 +1697,7 @@
     /* los campos del jefe, para la empleada: grises, con 🔒 en la etiqueta */
     .campo-bloqueado { opacity: .55; cursor: not-allowed; filter: grayscale(1); }
     .promo-resumen { font-size: .8rem; font-weight: 600; margin: 0 0 .5rem; }
+    .promo-caja .admin-search-wrap { display: flex; width: 100%; }   /* el panel envuelve cada .admin-search en un inline-flex que se achica al contenido */
     .promo-caja .admin-search { width: 100%; max-width: none; box-sizing: border-box; }
     .promo-lista { display: flex; flex-direction: column; gap: .35rem; margin-top: .45rem; }
     .promo-fila { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .35rem .5rem; border: 1px solid var(--borde); border-radius: 6px; min-height: var(--tap-min); }
@@ -2938,7 +2939,7 @@
             <p class="promo-estado promo-estado--apagada" id="promoEstado">Apagada · no se ve en el sitio</p>
             <p class="promo-estado-2" id="promoEstado2" hidden>Para repetirla, cambiá las fechas. Si no, apagala.</p>
           </div>
-          <label class="promo-switch"><input type="checkbox" id="promoActiva" data-campo-jefe /><span class="promo-switch-pista" aria-hidden="true"></span><span>Prendida</span></label>
+          <label class="promo-switch"><input type="checkbox" id="promoActiva" data-campo-jefe onchange="promoSwitchTexto()" /><span class="promo-switch-pista" aria-hidden="true"></span><span id="promoActivaTexto">Apagada</span></label>
         </div>
         <!-- b · aviso de costo -->
         <p class="promo-aviso-costo" id="promoAvisoCosto" hidden></p>
@@ -9644,6 +9645,7 @@
       }
       var P = PROMO_ADMIN;
       document.getElementById('promoActiva').checked = !!(P && P.activa);
+      promoSwitchTexto();
       document.getElementById('promoN').value = String(P ? P.n : 3);
       document.getElementById('promoPrecio').value = P ? P.precio_pack : '';
       document.getElementById('promoMax').value = (P && P.max_packs) ? P.max_packs : '';
@@ -9652,6 +9654,13 @@
       aplicarCandadoDecants();
       renderPromoEstado();
       promoFormCambio();
+    }
+
+    // [PROMO-ANCHO-360] N-bis · la palabra al lado del interruptor sigue al interruptor: «Apagada» o «Prendida» (en
+    // «Terminó…» sigue prendido: el texto rojo del estado explica por qué no se ve).
+    function promoSwitchTexto() {
+      var sw = document.getElementById('promoActiva'), t = document.getElementById('promoActivaTexto');
+      if (sw && t) t.textContent = sw.checked ? 'Prendida' : 'Apagada';
     }
 
     // a · el estado de la fila GUARDADA: apagada, programada, prendida o terminada (prendida con «hasta» pasado).

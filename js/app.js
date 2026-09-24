@@ -1762,20 +1762,22 @@
     //  · Si la cinta dice lo mismo que una automática (sin acentos ni mayúsculas: NUEVO ↔ «Nuevo», ÚLTIMAS UNIDADES
     //    ↔ «Último»), la automática no sale y no ocupa lugar.
     //  · Van apiladas arriba, del lado de la foto (.card-etiquetas); la cinta sigue siendo la franja de arriba.
-    // La de la promo: «🧪 3 decants por $18.000 · hasta el lun 29» y, en las últimas 24 h, «… · termina en 5h 12min».
-    // El reloj de la promo (iniciarRelojPromo) la repinta cada minuto y, cuando termina, desaparece sola.
+    // La de la promo: «🧪 3 decants por $18.000 · hasta el lun 29» y, en las últimas 24 h, «… · termina mañana» o «… ·
+    // termina hoy» ([PROMO-ANCHO-360], decisión 117: sin reloj, que a 360 pisaba el corazón). El reloj de la promo
+    // (iniciarRelojPromo) la repinta cada minuto: el texto cambia a las 24 h y a la medianoche; cuando termina, desaparece.
     // ══════════════════════════════════════════════════════════════
     var CINTA_IGUAL_ULTIMO = ['ultimo', 'ultimas unidades'];
     var DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
     function normCinta(s) { return stripAccents(String(s == null ? '' : s)).toLowerCase().replace(/\s+/g, ' ').trim(); }
     // El día en hora argentina (UTC−3 fijo, sin horario de verano): «lun 29».
     function diaCortoART(ms) { var d = new Date(ms - 3 * 3600e3); return DIAS_CORTOS[d.getUTCDay()] + ' ' + d.getUTCDate(); }
+    // El número de día en hora argentina (la misma cuenta que diaCortoART: UTC−3 fijo).
+    function diaART(ms) { return Math.floor((ms - 3 * 3600e3) / 86400e3); }
     function textoEtiquetaPromo(promo) {
       var base = '🧪 ' + promo.n + ' decants por ' + precioAR(promo.precio_pack);
       var falta = promo.hasta - Date.now();
       if (falta > 24 * 3600e3) return base + ' · hasta el ' + diaCortoART(promo.hasta - 1);   // −1 ms: un «hasta» a las 00:00 es el día anterior
-      var mins = Math.max(1, Math.ceil(falta / 60000)), hs = Math.floor(mins / 60), m = mins % 60;
-      return base + ' · termina en ' + (hs > 0 ? hs + 'h ' + (m > 0 ? m + 'min' : '') : m + 'min').trim();   // el formato de la flotante
+      return base + (diaART(promo.hasta - 1) === diaART(Date.now()) ? ' · termina hoy' : ' · termina mañana');
     }
     function etiquetasCard(p, stockStatus) {
       if (stockStatus === 'out' || stockStatus === 'pausado') return '';
@@ -7292,18 +7294,24 @@
       // [PROMO-DECANTS] N2 · Con la promo vigente y de 1 a n−1 con 3× en el pack: «Sumá 1 más con 3×» (también con precio
       // fijo en el pack, donde la escalera no se muestra); con la promo aplicada, qué se cobra a precio de promo. Y el
       // tope, si hay. Tienen su propia línea: #decantLadder no se ve en pantallas de hasta 900 px de alto.
+      // [PROMO-ANCHO-360] N-bis (119) · el aviso dice cuánto sale cada uno, y sale sólo si la promo le baja el precio:
+      // precio_pack / n contra la escalera con los que tendría el pack al sumar los que faltan (si no, la promo no le
+      // cambia nada). El tope, sólo al llegar al tope.
       var avisoPromo = document.getElementById('decantPromoAviso');
       if (avisoPromo) {
-        var txtPromo = cuenta.faltan > 0 ? 'Sumá ' + cuenta.faltan + ' más con ' + cuenta.promo.n + '×'
-          : cuenta.promoUnidades > 0 ? '🧪 Promo ' + cuenta.promo.n + '×: ' + cuenta.promoUnidades + ' × ' + precioAR(cuenta.unidadPromo)
-          : '';
+        var txtPromo = '';
+        if (cuenta.faltan > 0) {
+          var cadaUno = cuenta.promo.precio_pack / cuenta.promo.n;
+          if (cadaUno < getDecantUnitPrice(cuenta.escalera + cuenta.faltan)) txtPromo = 'Sumá ' + cuenta.faltan + ' más con ' + cuenta.promo.n + '× y cada uno te sale ' + precioAR(cadaUno);
+        } else if (cuenta.promoUnidades > 0) {
+          txtPromo = '🧪 Promo ' + cuenta.promo.n + '×: ' + cuenta.promoUnidades + ' × ' + precioAR(cuenta.unidadPromo);
+        }
         avisoPromo.textContent = txtPromo;
         avisoPromo.hidden = !txtPromo;
       }
       var topePromo = document.getElementById('decantPromoTope');
       if (topePromo) {
-        var pv = promoVigente();
-        var txtTope = (pv && pv.max_packs) ? 'Máximo ' + pv.max_packs + (pv.max_packs === 1 ? ' pack' : ' packs') + ' de promo por pedido' : '';
+        var txtTope = cuenta.topeAlcanzado ? 'Máximo de la promo: los que sumes van a precio normal' : '';
         topePromo.textContent = txtTope;
         topePromo.hidden = !txtTope;
       }
