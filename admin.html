@@ -1553,11 +1553,15 @@
     .log-chips { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-bottom: .6rem; }
     .log-chip {
       font-family: inherit; font-size: .66rem; font-weight: 700; letter-spacing: .04em;
-      padding: 0 .8rem; min-height: var(--tap-min); border-radius: var(--r-full);
+      padding: 0 .7rem; min-height: var(--tap-min); border-radius: var(--r-full);   /* [LOG-PULIDO-2] .7rem, lo mismo que el toggle */
       background: var(--superficie); color: inherit; border: 1px solid var(--borde);
       cursor: pointer; display: inline-flex; align-items: center; gap: .3rem;
     }
     .log-chip.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    /* [LOG-PULIDO-2] decisión 43 · el jefe tiene dos filas a cualquier ancho: 1 = familias, 2 = 👑 + toggle.
+       Cada fila es un envoltorio de ancho 100 % dentro de .log-chips, así la separación entre filas es UNA
+       (el gap de .log-chips). Un separador de alto 0 con flex-basis 100 % armaba una línea más y la duplicaba. */
+    .log-chips-fila { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; width: 100%; }
     .log-vista { display: inline-flex; border: 1px solid var(--borde); border-radius: var(--r-md); overflow: hidden; margin-left: auto; }
     .log-vista button {
       font-family: inherit; font-size: .64rem; font-weight: 700; padding: 0 .7rem;
@@ -1579,7 +1583,7 @@
     .log-nombre-idem { color: var(--gris); font-weight: 400; }
     .log-accion { flex: 0 0 auto; font-size: .66rem; color: var(--gris); white-space: nowrap; }
     .log-item.log-deposito .log-accion { color: var(--stat-tinta-perfumes); }
-    .log-cambio { flex: 0 0 auto; font-size: .68rem; white-space: nowrap; }
+    .log-cambio { flex: 0 1 auto; min-width: 0; font-size: .68rem; white-space: normal; overflow-wrap: anywhere; }   /* [LOG-PULIDO-2] se parte, sin elipsis: antes un valor largo empujaba la fila */
     .log-old { color: var(--gris); text-decoration: line-through; }   /* decisión 41: la fila no opina */
     .log-new { font-weight: 700; }                                      /* hereda el texto del tema */
     .log-corona { flex: 0 0 auto; font-size: .8rem; }
@@ -9576,6 +9580,28 @@
       } catch(e) { return iso; }
     }
 
+    // [LOG-PULIDO-2] decisión 44 · Las fotos se dicen con palabras: la ruta no le dice nada a nadie y
+    // estiraba la fila. Foto / url ("Imagen"): agregada · quitada · cambiada. Fotos extra: cuántas,
+    // N → M, contadas como el catálogo (coma, trim, sin vacíos). Devuelve null si la clave no es de foto.
+    var LOG_CLAVES_FOTO = ['Foto', 'Fotos extra', 'url'];
+    function logFotoEnPalabras(k, v) {
+      if (LOG_CLAVES_FOTO.indexOf(k) === -1) return null;
+      function vacio(x) { return x === null || x === undefined || String(x).trim() === ''; }
+      function contar(x) { return vacio(x) ? 0 : String(x).split(',').map(function(u) { return u.trim(); }).filter(Boolean).length; }
+      function palabra(p) { return '<span class="log-new">' + p + '</span>'; }
+      var plural = k === 'Fotos extra';
+      // Valor plano (home_slide_add trae la url suelta): es un alta.
+      if (!(v && typeof v === 'object' && 'old' in v && 'new' in v)) return palabra(plural ? 'agregadas' : 'agregada');
+      if (plural) {
+        var n = contar(v.old), m = contar(v.new);
+        if (n === m) return palabra('cambiadas');
+        return '<span class="log-old">' + n + '</span> → <span class="log-new">' + m + '</span>';
+      }
+      if (vacio(v.old)) return palabra('agregada');
+      if (vacio(v.new)) return palabra('quitada');
+      return palabra('cambiada');
+    }
+
     function auditFormatChanges(changes) {
       if (!changes) return '—';
       try {
@@ -9586,7 +9612,10 @@
           // escHtml sobre la etiqueta también: la clave sale de un JSON de
           // la base, no de una constante nuestra.
           var etiqueta = '<b>' + escHtml(auditFieldLabel(k)) + ':</b> ';
-          if (v && typeof v === 'object' && 'old' in v && 'new' in v) {
+          var foto = logFotoEnPalabras(k, v);
+          if (foto) {
+            parts.push('<b>📷 ' + escHtml(auditFieldLabel(k)) + ':</b> ' + foto);
+          } else if (v && typeof v === 'object' && 'old' in v && 'new' in v) {
             parts.push(etiqueta + escHtml(auditValueLabel(k, v.old)) + ' → ' + escHtml(auditValueLabel(k, v.new)));
           } else if (v && typeof v === 'object') {
             parts.push(etiqueta + escHtml(JSON.stringify(v)));
@@ -9648,16 +9677,29 @@
     function logNormalizar(t) {
       return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
-    // Familias de acción. "Catálogo" sigue siendo "todo lo demás" (decisión 36), pero desde
+    // Familias de un evento. "Catálogo" sigue siendo "todo lo demás" (decisión 36), pero desde
     // [LOG-SISTEMA-CHIP] login/logout y los backups salieron a su propia chip: ver abajo.
-    function logFamilia(action) {
-      if (action === 'stock_update') return 'stock';
-      if (action === 'deposito_update') return 'deposito';
-      if (action === 'price_update') return 'precios';
+    // [LOG-PULIDO-2] decisión 36b · Devuelve un ARRAY: 💰 Precios filtra por lo que cambió, no por la
+    // acción. Un perfume_edit que tocó Precio/Promo está en Precios y, si tocó otra cosa, también en
+    // Catálogo. Un alta (nuevo_create / nuevo_update) es Catálogo aunque traiga precio. Ningún evento
+    // queda sin familia: la suma de las chips es ≥ Todo (antes, =).
+    var LOG_CLAVES_PRECIO = ['Precio', 'Promo', 'price', 'promo'];
+    function logFamilias(e) {
+      var action = e.action;
+      if (action === 'stock_update') return ['stock'];
+      if (action === 'deposito_update') return ['deposito'];
+      if (action === 'price_update') return ['precios'];
       // [LOG-SISTEMA-CHIP] Un filtro cuyo trabajo es sacar ruido no puede tener adentro
       // "login 09:02" entre dos ediciones de catálogo: login/logout y los backups van a Sistema.
-      if (action === 'login_success' || action === 'logout' || action === 'backup_create_manual' || action === 'backup_create_auto') return 'sistema';
-      return 'catalogo';
+      if (action === 'login_success' || action === 'logout' || action === 'backup_create_manual' || action === 'backup_create_auto' || action === 'backup_create_fallback') return ['sistema'];
+      var c = e.changes, fam = [];
+      if (action === 'perfume_edit' && c && typeof c === 'object' && !Array.isArray(c)) {
+        var claves = Object.keys(c);
+        var esPrecio = function(k) { return LOG_CLAVES_PRECIO.indexOf(k) !== -1; };
+        if (claves.some(function(k) { var v = c[k]; return esPrecio(k) && v && typeof v === 'object' && 'old' in v && 'new' in v; })) fam.push('precios');
+        if (claves.some(function(k) { return !esPrecio(k); })) fam.push('catalogo');
+      }
+      return fam.length ? fam : ['catalogo'];
     }
     var LOG_CHIPS_JEFE = [
       { id: 'todo', label: 'Todo' }, { id: 'stock', label: '📦 Stock' }, { id: 'deposito', label: '📦 Depósito' },
@@ -9675,10 +9717,17 @@
       var chips = (esJefe ? LOG_CHIPS_JEFE : LOG_CHIPS_EMPLEADA).map(function(c) {
         return '<button type="button" class="log-chip' + (logChipActiva === c.id ? ' active' : '') + '" data-chip="' + c.id + '">' + escHtml(c.label) + '</button>';
       });
+      var vista = '<span class="log-vista"><button type="button" data-vista="crono" class="' + (logVista === 'crono' ? 'active' : '') + '">Cronológico</button>'
+               + '<button type="button" data-vista="perfume" class="' + (logVista === 'perfume' ? 'active' : '') + '">Por perfume</button></span>';
       // 👑 Jefe es chip sólo para el jefe; para la empleada es tag y nada más (decisión 37).
-      if (esJefe) chips.push('<button type="button" class="log-chip' + (logSoloJefe ? ' active' : '') + '" data-chip="jefe">👑 Jefe</button>');
-      chips.push('<span class="log-vista"><button type="button" data-vista="crono" class="' + (logVista === 'crono' ? 'active' : '') + '">Cronológico</button>'
-               + '<button type="button" data-vista="perfume" class="' + (logVista === 'perfume' ? 'active' : '') + '">Por perfume</button></span>');
+      // [LOG-PULIDO-2] decisión 43 · El jefe, a cualquier ancho: fila 1 = familias; fila 2 = 👑 a la
+      // izquierda y el toggle a la derecha (margin-left: auto). La empleada, igual que antes: una fila.
+      if (esJefe) {
+        cont.innerHTML = '<div class="log-chips-fila">' + chips.join('') + '</div>'
+          + '<div class="log-chips-fila"><button type="button" class="log-chip' + (logSoloJefe ? ' active' : '') + '" data-chip="jefe">👑 Jefe</button>' + vista + '</div>';
+        return;
+      }
+      chips.push(vista);
       cont.innerHTML = chips.join('');
     }
 
@@ -9687,7 +9736,7 @@
     function logVisibles() {
       var out = logEventos.slice();
       if (currentRole === 'empleado') out = out.filter(function(e) { return e.action === 'stock_update' || e.action === 'deposito_update'; });
-      if (logChipActiva !== 'todo') out = out.filter(function(e) { return logFamilia(e.action) === logChipActiva; });
+      if (logChipActiva !== 'todo') out = out.filter(function(e) { return logFamilias(e).indexOf(logChipActiva) !== -1; });
       if (logSoloJefe) out = out.filter(function(e) { return e.actor_email === JEFE_EMAIL; });
       return out;
     }
