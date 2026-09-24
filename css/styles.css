@@ -9915,15 +9915,17 @@
       .compare-bar { bottom: calc(60px + env(safe-area-inset-bottom)); }
       body:has(.compare-bar.visible) .wa-float { bottom: calc(125px + env(safe-area-inset-bottom)); }
       body:has(.compare-bar.visible) .wa-status { bottom: calc(141px + env(safe-area-inset-bottom)); }
-      /* 1 · las invitaciones arriba, debajo del nav. */
-      .push-banner { top: calc(66px + env(safe-area-inset-top)); bottom: auto; left: 12px; right: 12px; width: auto; max-width: none; }
-      #pwaInstallBanner { top: calc(66px + env(safe-area-inset-top)); bottom: auto; opacity: 0; transform: translate(-50%, -12px); transition: transform .3s ease, opacity .3s ease; }
+      /* 1 · las invitaciones arriba, debajo del banner blanco y negro ([INVITACION-BAJO-BANNER], decisión 98): top 105 =
+         nav 58 + banner 39 + 8. Mientras está, tapa el buscador y los filtros (aceptado: el banner, siempre a la vista). */
+      .push-banner { top: calc(105px + env(safe-area-inset-top)); bottom: auto; left: 12px; right: 12px; width: auto; max-width: none; }
+      #pwaInstallBanner { top: calc(105px + env(safe-area-inset-top)); bottom: auto; opacity: 0; transform: translate(-50%, -12px); transition: transform .3s ease, opacity .3s ease; }
       #pwaInstallBanner.visible { opacity: 1; transform: translate(-50%, 0); }
       /* Una invitación a la vez: las dos van al mismo lugar y se pisaban (358×55). Mientras está la de notificaciones
          (display: block, desde JS), la de instalar espera escondida y aparece cuando la otra se cierra. */
       body:has(.push-banner[style*="block"]) #pwaInstallBanner.visible { opacity: 0; transform: translate(-50%, -12px); pointer-events: none; }
-      /* 5 · el final de la página se reserva: el pie entero queda arriba de la barra. */
-      html body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+      /* 5 · el final de la página se reserva ([FINAL-FLOTANTES], decisión 97): barra 60 + 16 + WhatsApp 56 + 8 de aire =
+         140, así el © termina arriba de WhatsApp y de «Cerrado» (con 60 quedaban encima de la línea del ©). */
+      html body { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
       /* La hoja «Hola, <nombre>»: el estilo de la hoja del carrito (#111, borde dorado arriba), filas de 48, encima de
          la barra. */
       .cuenta-hoja-overlay { position: fixed; inset: 0; z-index: 9993; background: rgba(0,0,0,.6); align-items: flex-end; justify-content: center; }
