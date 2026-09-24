@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 23, 2026 (noche)** — **S5 y S19 resueltos:** la DB password de São Paulo se rotó (Alejo) y el registro de Supabase Auth quedó apagado (`disable_signup: true`). **Regla nueva:** los agujeros abiertos van con la keyword sola (§ 📏). Backup local de las fotos hecho (S8 sigue abierto). S18 queda sólo con la keyword.
+> **Última actualización:** **Septiembre 23, 2026 (noche, cierre)** — **S8 resuelto:** el bucket de fotos quedó sólo para las dos cuentas del panel (3 políticas por email; `anon` ya no lista ni escribe) y las fotos se siguen sirviendo por su URL pública. **S3 y S13** pasan a keyword sola: la regla de § 📏 vale también para lo de mayo (el repo es público).
+>
+> **Antes (23-sep, noche):** — **S5 y S19 resueltos:** la DB password de São Paulo se rotó (Alejo) y el registro de Supabase Auth quedó apagado (`disable_signup: true`). **Regla nueva:** los agujeros abiertos van con la keyword sola (§ 📏). Backup local de las fotos hecho (S8 sigue abierto). S18 queda sólo con la keyword.
 >
 > **Antes (23-sep, tarde):** — **S15, S16 y S17 RESUELTOS** en v1.1.114: el dominio ya no sirve los documentos internos (`.vercelignore`), el teléfono de "Pedidos pass" se escapa y la RPC del reset valida dígitos (`[XSS-PEDIDOS-PASS]`), y `anon` ya no lee `lista_espera` (`[ESPERA-SEGURA]`). **S1:** contraseñas rotadas el 19-sep, queda sólo `ADMIN_PASS` (→ `[VERCEL-ENV-VARS]`). **S18 abierto** (`[S10-TER-XSS-COMBOS]`, 🟠, sólo escribible por el panel).
 >
@@ -159,39 +161,9 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ## 🟡 Issues ALTOS · fix en 1-2 semanas
 
-### **S3 · Bot token de Telegram + chat_id visibles en función SQL · 🔁 ROTADO 17-sep-2026 · parcialmente abierto por S14**
+### **S3 · `[S3-VAULT]` · 🟡 ABIERTO (parcial)**
 
-**Severidad:** 🟡 ALTA · el bot token permite a un atacante mandar mensajes en nombre del bot a cualquier chat al que tenga acceso.
-
-> 🔁 **17-sep-2026 · rotado · 19-sep-2026 · rotado OTRA VEZ y esta vez verificado de verdad.** El token y el chat_id que estaban escritos acá se **enmascararon** el 17-sep (el repo es público y el valor quedó en el historial). Alejo rotó el token en BotFather ese día, pero **el valor quedó mal pegado en `public.send_telegram`**: al copiarlo se arrastró la hora del mensaje de BotFather (`…:54`), 4 caracteres de más → Telegram respondía **404** a todo. **Ningún aviso ni el resumen diario se entregó entre el 18-sep 21:05 y el 19-sep 04:02.** La "verificación por md5 de `prosrc`" sólo probaba que el cuerpo había cambiado, no que el token sirviera: **lo único que verifica un token es un mensaje entregado (`status_code = 200` en `net._http_response`)**. Corregido el 19-sep con un `DO` que valida el formato (`^[0-9]{8,11}:[A-Za-z0-9_-]{35}$`) antes de tocar la función; y como el valor apareció en una captura de pantalla durante el arreglo, **se rotó de nuevo** y se recargó con el mismo `DO`. El vigente vive **sólo** en `public.send_telegram` (y en Vercel cuando se repongan las env vars): no se copia en docs, chats **ni capturas**. `anon` ya no puede invocarla (S14 ✅). Queda el paso a Vault.
-
-**Donde está:**
-- Función `public.send_telegram(msg text)` del schema `public` (en BOTH proyectos viejo y nuevo)
-- Body de la función:
-  ```sql
-  bot_token TEXT := '<REVOCADO — ver historial>';   -- el valor real vive SÓLO en public.send_telegram (Supabase) y en Vercel
-  chat_id TEXT := '<REVOCADO — ver historial>';
-  ```
-
-**Quién puede ver esto:**
-- Cualquier user de Supabase con permiso `pg_get_functiondef` (que por default es bastante amplio · incluye el rol `anon` en algunos casos)
-- Los usuarios admin (jefe + empleada) si saben SQL
-- Cualquiera que tenga el dump pre-migración del paso 0
-
-**Riesgo real:**
-- Un atacante puede mandar mensajes spam o phishing al chat_id `<REVOCADO — ver historial>` (Alejo)
-- NO puede leer mensajes (Telegram bot API no permite eso al token-poseedor)
-- NO puede acceder a otros chats donde el bot no esté
-
-**Fix recomendado:**
-1. Mover bot_token y chat_id a **Vault de Supabase** (`vault.secrets`) en el proyecto nuevo
-2. Cambiar la función `send_telegram` para que lea de `vault` en lugar de constantes
-3. Regenerar el bot_token actual (BotFather → `/revoke` → nuevo token) por las dudas
-4. Actualizar el vault con el nuevo token
-
-**Acción inmediata recomendada:**
-- ⚠️ Revocar el bot token actual (al pegado en chat varias veces hoy) usando `/revoke` en BotFather de Telegram. Generar uno nuevo.
-- Cambiar la función SQL `send_telegram` con el token nuevo.
+> El token del bot de Telegram **se rotó** el 17-sep y otra vez el 19-sep (verificado por entrega en `pg_net`). Lo que queda abierto va con **la keyword sola** por la regla de § 📏 (23-sep, aplicada también a lo de mayo); el detalle vive fuera del repo. La historia de git conserva la versión anterior de esta sección.
 
 ---
 
@@ -356,15 +328,9 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 
 ---
 
-### **S13 · `favoritos`, `votos` y `opiniones` se escriben como `anon` a nombre de cualquier cliente (S2-bis)**
+### **S13 · `[S13-ESCRITURAS-ANON]` · 🟠 ABIERTO**
 
-**Severidad:** 🟠 MEDIA-ALTA · hallado el 16-sep-2026 al relevar S2. **Pendiente.**
-
-**Dónde está:** `js/app.js` — `favoritos` (`insert`/`delete` con `user_id: currentUser.id`), `votos` (`upsert`) y `opiniones` (`insert`) corren con la anon key y el `id` que vive en `localStorage.st_cliente`. No hay sesión del lado del servidor: el "login" del cliente es un objeto en localStorage.
-
-**Riesgo real:** cualquiera con la anon key puede escribir favoritos, votos u opiniones **a nombre de otro cliente** si conoce (o adivina) su `id`. Ahora que `clientes` no es legible, los `id` (uuid) ya no se listan — baja mucho la explotabilidad, pero el agujero sigue.
-
-**Fix recomendado:** se resuelve de verdad con el escalón 3 de S2 (Supabase Auth: `auth.uid()` en las policies). Mientras tanto no empeora con S2: las RPC de S2 no devuelven nada que antes no se viera.
+> Agujero abierto: **la keyword sola** por la regla de § 📏 (23-sep). Se resuelve de verdad con `[SUPABASE-AUTH]`. El detalle vive fuera del repo; la historia de git conserva la versión anterior de esta sección.
 
 ---
 
@@ -450,9 +416,12 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 
 ---
 
-### **S8 · Bucket Storage `perfume-fotos` con policies muy permisivas**
+### **S8 · Bucket Storage `perfume-fotos` con policies muy permisivas · ✅ RESUELTO 23-sep-2026**
 
-> 🔁 **23-sep-2026:** sigue abierto (`[S8-STORAGE-ANON]`). Backup local hecho antes de cerrarlo: 165/165 objetos, 8.689.933 bytes (igual que `storage.objects`), con sha256. El cierre lo arma el PREPARADOR.
+> ✅ **ESTADO: RESUELTO 23-sep-2026** (`[S8-STORAGE-ANON]`). **Qué era:** con la clave pública cualquiera podía subir, pisar, borrar y listar las fotos del bucket, que no tenía copia. **Cómo se cerró:** primero el backup local (165/165 objetos, 8.689.933 bytes, sha256 en `manifest.json`); después el SQL de Alejo, que deja **sólo a las dos cuentas del panel, por email**, leer el listado, subir y actualizar, y **a nadie borrar** (el panel no borra del storage). El bucket sigue público: las fotos se sirven por su URL sin pasar por las políticas.
+> **Verificado:** en `storage.objects` quedan exactamente 3 políticas (`fotos_staff_select`, `fotos_staff_insert`, `fotos_staff_update`), las tres `{authenticated}` con el filtro por email, y ninguna otra; listar como `anon` → `[]`; 3 fotos al azar por URL pública → 200; Alejo subió una foto desde el panel y anduvo.
+>
+> Lo que sigue abajo es el análisis original de mayo, ya cerrado.
 
 **Severidad:** 🟢 MEDIA · permite anon upload/delete.
 
@@ -505,6 +474,7 @@ Se aplicó **antes** de `[VERCEL-ENV-VARS]`, que era el orden seguro. Idealmente
 | `lista_espera_pendientes()` con `EXECUTE` para `anon` (`[ESPERA-SEGURA]`, 23-sep-2026) | ✓ A propósito — `SECURITY DEFINER`, devuelve sólo los slugs **pendientes** de un teléfono y valida `^[0-9]{8,15}$`; es lo único que el catálogo lee de `lista_espera` |
 | `.vercelignore` (`[DOCS-PUBLICOS]`, 23-sep-2026) | ✓ Docs, SQL, memoria, herramientas y `*.md` fuera del deploy — verificado con 404 |
 | Registro de Supabase Auth apagado (`[SIGNUP-ABIERTO]`, 23-sep-2026) | ✓ `disable_signup: true`; las cuentas del panel se crean a mano |
+| Bucket `perfume-fotos` (`[S8-STORAGE-ANON]`, 23-sep-2026) | ✓ Escriben y listan sólo las dos cuentas del panel (por email); nadie borra; las fotos se sirven por URL pública |
 
 ---
 
