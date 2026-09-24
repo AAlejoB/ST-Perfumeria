@@ -121,7 +121,7 @@ Esto llena el espacio cuando la botella es alta y angosta (object-fit:contain de
 
 Sólo a < 768 (`#barraCelu`, fija abajo, 60 px + `env(safe-area-inset-bottom)`, `z-index: 9990`, `#0b0b0d` en los dos temas). Cinco destinos: Catálogo · Buscar · Decants · Carrito · Cuenta.
 - **Todo lo que se abre encima la tapa:** va arriba de 9990 o esconde la barra con `body:has(.x.open) .barra-celu { display: none }` (así el login, el menú y el armador).
-- **Los flotantes del celu se apoyan arriba de la barra:** comparar en 60 + safe-area; WhatsApp y el estado 49 px más arriba mientras está comparar; las invitaciones (notificaciones, instalar) arriba, debajo del nav, de a una. `.cart-float`, `.decant-float`, `.scroll-top` y `.dark-float` no se muestran.
+- **Los flotantes del celu se apoyan arriba de la barra:** comparar en 60 + safe-area; WhatsApp y el estado 49 px más arriba mientras está comparar; las invitaciones (notificaciones, instalar) arriba, en top 105 (debajo del banner blanco y negro, decisión 98), de a una. El final de la página reserva 140 + safe-area (barra + WhatsApp + aire, decisión 97). `.cart-float`, `.decant-float`, `.scroll-top` y `.dark-float` no se muestran.
 - **Buscar:** el `focus()` va en el mismo toque, antes del scroll (en iPhone, si va después del scroll suave, no sale el teclado).
 - **Cuenta con sesión:** la hoja «Hola, <nombre>» (el nombre con `textContent`), cerrable tocando afuera y con «atrás» (`pushState`).
 - `<div role="navigation">`, no `<nav>` (la regla `nav { … }` la pisaría); `html body` para el `padding-bottom` (el CSS crítico inline gana a `body` por orden).

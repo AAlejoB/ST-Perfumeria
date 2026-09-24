@@ -2641,6 +2641,49 @@ Prompt `_r` del PREPARADOR: la parte I verificada y J, la barra de abajo del cel
 
 ---
 
+### Sesión 24-sep-2026 · `_s` + `_t` · **partes K y L**
+
+Prompts `_s` (**K**: decisiones 94-96 del DISEÑADOR —«la letra la decide el fondo, no el tema»— y `[RELOAD-CON-LOGIN]`) y `_t` (**L**: decisiones 97 y 98 de Alejo). El DISEÑADOR llamaba «J» a la K: J ya era la barra. Dos ramas, dos bumps: **K** (`claro-k`, SW **v1.1.128**, merge ff `0e3ec75..cfa4717`, stat `admin.html`, `css/styles.css`, `js/app.js`, `scripts/contraste.js`, `sw.js`) y **L** (`celu-l`, SW **v1.1.129**, merge ff `cfa4717..f976a64`, stat `css/styles.css` y `sw.js`). Medido con fixture, reloj fijo y datos inventados; en producción, sólo `curl`.
+
+#### K · qué se hizo
+
+- **`[BOTONES-CONTRASTE]`** (94) — `.btn-whatsapp` letra `#1a1a1a` (8,78) y `.btn-gris` `#fff` (7,46) en los dos temas; sale la línea `body.light` que les ponía `#1a1a1a` a todos. Antes: WhatsApp 1,98 en oscuro, «✖ Descartar» 2,33 en claro. Ningún fondo cambia.
+- **`[CINTA-TINTA]`** (95) — la cinta de la card (`buildCard`, `app.js`): la letra es `#fff` o `#000`, la que dé más contraste con el color (`letraSobre`, por luminancia: sirve para cualquier color nuevo), y sale el `text-shadow`. Con los 7 colores del panel: NUEVO 9,99 · PERFUME DEL MES 11,29 · MÁS VENDIDO 7,37 · ÚLTIMAS 5,50 · RECOMENDADO 6,66 (negra) · EXCLUSIVO 5,87 · **EDICIÓN LIMITADA 5,44** (blanca); con los dos de la base que no son del panel (`#ff3a30` y `#b51a00`, los «HOT SALE🔥»), 5,90 y 6,75. Antes, blanca siempre: 1,86 a 5,87.
+  - **El texto y el color entraban al HTML sin escapar.** Con datos inventados en el fixture, en `main` un texto con `<img onerror>` y un color que cerraba el atributo corrían código; en la rama, el texto se ve escrito tal cual y el color cae al dorado. Ahora: `escapeHTML(p.etiqueta)` y `colorCinta` (sólo `#rgb`, `#rrggbb` o `rgb()` válido).
+  - **Los 7 botones de etiqueta del panel**, fijos por clase y en los dos temas: negra en nuevo, mes, vendido, últimas y recomendado; blanca en exclusivo y limitada (mínimo 5,44; antes 2,97 en claro y 2,10 en oscuro). **La vista previa de Editar** usa la misma cuenta (`letraSobreColor`) y pinta por `style.*`: escrita en el atributo, el parche `body.light [style*="color:#fff"]` la pasaba a `#1a1a1a`.
+- **`[ESTADO-LOCAL]`** (96) — el hero en claro (letra y punto sobre el `#fff` de mayo): abierto `#1b5e20` (2,10 → **7,87**), feriado la tinta `#6b5500` (1,66 → **7,18**); en oscuro, igual que antes. La flotante, **opaca en los tres estados y los dos temas**, letra y punto blancos a `.7rem`: abierto `#1b5e20` (7,87) · cerrado `#b8342a` (5,89) · feriado `#6b5500` (7,18). En `main`, sobre el banner violeta del juego en oscuro, daba 2,35 cerrado, 3,28 abierto y 3,38 feriado; en claro, «Abierto» 1,28 sobre la página. En feriado la flotante dice **«Feriado · abrimos mañana 10hs»** (o el día: «abrimos martes 10hs» si el lunes también es feriado), con `proximaApertura`, la misma cuenta que «Cerrado» (NO ROMPER #14); el nombre del feriado queda en el hero. En `main` decía «Hoy feriado · Día del Respeto a la Diversidad Cultural»: 303,8 px a 390, se salía por la izquierda; ahora 211,7. Un cierre especial sigue mostrando su motivo. Con reloj fijo, 5 casos × 2 temas: el hero en oscuro, idéntico a `main`.
+- **`[RELOAD-CON-LOGIN]`** — `BUSY_MODAL_SELECTORS`: `.auth-overlay.open` (decía `.active`) + `.juegos-overlay.active` + `.waitlist-overlay.active`. Con cualquiera de las tres abierta, la lista da "ocupado" (medido con la lista leída del archivo).
+  - **La medición destapó `[RELOAD-NUNCA]`:** con nada abierto la lista **también** da "ocupado", en `main` y en la rama. El único selector que coincide es `.compare-modal`, un elemento fijo de `index.html` (desde el 26-mar, antes de `[PWA-AUTO-RELOAD]`). La recarga automática del sitio no se dispara nunca. No se tocó: decide Alejo.
+- **`contraste.js`** — 192 mediciones: los 9 botones del panel con la regla 19, las cintas (lee `colorCinta` y `letraSobre` de `app.js` y los colores de los `setEtiqueta` de `admin.html`, más un color inválido y un intento de romper el atributo: los dos caen al dorado) y los estados (hero y flotante, sobre la página, la card y las paradas del banner violeta). Sobre el `main` anterior, las filas nuevas dan **17 fallas**.
+- **Foto de colores** (`main` contra la rama, 3593 elementos del catálogo y 2667 del panel por tema): el catálogo en oscuro cambia 1 (la flotante), en claro 0; el panel, 0 y 0. Lo demás que cambia (cintas, botones de etiqueta, Pedidos pass, estados) no está en ese fixture y lo miden las sondas.
+- Con la píldora a `.7rem`, a 390 y 360 y en los dos temas: 0 flotantes pisados.
+
+#### L · qué se hizo
+
+- **`[FINAL-FLOTANTES]`** (97) — `html body { padding-bottom: calc(140px + env(safe-area-inset-bottom)) }` (barra 60 + 16 + WhatsApp 56 + 8). Al final de la página, el © termina **32,3 px** arriba del borde de arriba de WhatsApp a 390 y **31,5** a 360, en los dos temas (en `main`, WhatsApp lo tapaba 47,7), y 46,7 arriba de «Cerrado». El pie queda 80,3 px arriba de la barra.
+  - Con «comparar» prendido, WhatsApp sube 49 y vuelve a tapar el ©: 16,7 px a 390 y 17,5 a 360 → `[FINAL-COMPARANDO]`.
+- **`[INVITACION-BAJO-BANNER]`** (98) — `.push-banner` y `#pwaInstallBanner` en `top: calc(105px + env(safe-area-inset-top))` (nav 58 + banner 39 + 8): las dos en 105, con 8 px de aire bajo el banner (en `main`, 66: tapaban el texto del banner). Mientras están, tapan el buscador (aceptado).
+- **1280** — geometría, `scrollHeight` y padding del body idénticos a `main` (la única diferencia es la opacidad de `.cart-float` a mitad de su animación).
+
+- **Capturas** (`capturas-espera\`, claro y oscuro, fixture): `catalogo-v1.1.128-{tema}-30-estado-{abierto, cerrado, feriado}`, `-31-violeta-{abierto, cerrado, feriado}`, `-32-cintas`, `panel-v1.1.128-{tema}-9-pedidos-pass`, `-10-etiquetas`, y `catalogo-v1.1.129-{tema}-28-final` y `-23-invitacion`.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[BOTONES-CONTRASTE]` | WhatsApp y gris legibles en los dos temas | decisión 94 · `b80e8a3` + bump `cfa4717` |
+| `[CINTA-TINTA]` | La letra de la cinta según su color, el texto escapado | decisión 95 |
+| `[ESTADO-LOCAL]` | El hero en claro y la flotante opaca | decisión 96 |
+| `[RELOAD-CON-LOGIN]` | El login, los juegos y «Avisame» cuentan como ocupado | del PREPARADOR |
+| `[FINAL-FLOTANTES]` | El © arriba de WhatsApp | decisión 97 · `celu-l` + bump `f976a64` |
+| `[INVITACION-BAJO-BANNER]` | Las invitaciones debajo del banner | decisión 98 |
+
+**Pendientes nuevos:** `[RELOAD-NUNCA]` 🟡 (decide Alejo) · `[FINAL-COMPARANDO]` 🟢 · `[QUITAR-ETIQUETA-CONTRASTE]` 🟢 (propuestas de Claude Code; las dos últimas, del DISEÑADOR).
+
+---
+
+**Última actualización:** **Septiembre 24, 2026 (después de la J)** — K (`_s`, SW **v1.1.128**) y L (`_t`, SW **v1.1.129**) en producción: `[BOTONES-CONTRASTE]`, `[CINTA-TINTA]`, `[ESTADO-LOCAL]`, `[RELOAD-CON-LOGIN]`, `[FINAL-FLOTANTES]` e `[INVITACION-BAJO-BANNER]` cerrados. **Pendientes nuevos:** `[RELOAD-NUNCA]` 🟡 · `[FINAL-COMPARANDO]` 🟢 · `[QUITAR-ETIQUETA-CONTRASTE]` 🟢.
+
 **Última actualización:** **Septiembre 24, 2026 (noche)** — J (`_r`) en producción, SW **v1.1.127**: `[BARRA-CELU]` cerrado; el ref de Oregon, fuera de `RECOMENDACIONES_CLAUDECHAT/`. **Pendientes nuevos:** `[NAV-REPITE-BARRA]` 🟢 · `[RELOAD-CON-LOGIN]` 🟢.
 
 **Última actualización:** **Septiembre 24, 2026 (tarde)** — la parte I (`_q`) en producción, SW **v1.1.126**: `[AMARILLO-CATALOGO-CLARO]`, `[HOTSALE-CLARO]`, `[CERRADO-HERO]`, `[PEDIDOS-PASS-CLARO]`, `[SALTO-CARD-CENTRO]`, `[ANILLO-1PX]`, `[EFECTIVO-UN-RENGLON]` y `[HORARIO-DOS-FUENTES]` cerrados; el ref de Oregon fuera de los docs. **Pendiente nuevo:** `[BOTONES-CONTRASTE]` 🟢.
@@ -2745,6 +2788,11 @@ Prompt `_r` del PREPARADOR: la parte I verificada y J, la barra de abajo del cel
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 24-sep-2026 (`_s` + `_t`):**
+
+- ✅ ~~**`[BOTONES-CONTRASTE]`**~~ (24-sep, salió de la parte I · 🟢 propuesta) — dos modificadores de `.action-btn` que no pasan: `.btn-gris` en claro (`#1a1a1a` sobre `#555`: **2,33**; es «✖ Descartar» de Pedidos pass, entre otros) y `.btn-whatsapp` en oscuro (blanco sobre `#25D366`: **1,98**). Así estaban desde antes de D (D sólo los pasó de inline a clase). Del DISEÑADOR. → **RESUELTO el 24-sep** (parte K, decisión 94): WhatsApp `#1a1a1a` (8,78) y gris `#fff` (7,46) en los dos temas.
+- ✅ ~~**`[RELOAD-CON-LOGIN]`**~~ (24-sep, salió de J · 🟢 propuesta) — `BUSY_MODAL_SELECTORS` (`app.js`, `[PWA-AUTO-RELOAD]`) busca `.auth-overlay.active`, pero el login se abre con `.open`: con el login abierto y sin un campo con foco, la recarga automática no lo cuenta como ocupado y puede recargar. Ya pasaba antes de J. No se tocó. → **RESUELTO el 24-sep** (parte K): `.auth-overlay.open` + juegos + «Avisame». Corrección a este texto: no "puede recargar": la recarga automática no se dispara nunca porque `.compare-modal` siempre coincide → `[RELOAD-NUNCA]`.
 
 **Movidos el 24-sep-2026 (tarde, `_q`):**
 
