@@ -2682,6 +2682,39 @@ Prompts `_s` (**K**: decisiones 94-96 del DISEÑADOR —«la letra la decide el 
 
 ---
 
+### Sesión 24-sep-2026 · `_u` + `_v` · **parte M**
+
+Prompts `_u` (**M**: decisiones 99-103 del DISEÑADOR y `[OVERRIDE-ML]` del PREPARADOR) y `_v` (**M6**, decisión de Alejo), en la misma rama (`celu-m`, desde `7f5fda5`) y un bump: SW **v1.1.130**, merge ff `7f5fda5..b9fc4e8`, stat `admin.html`, `css/styles.css`, `js/app.js`, `scripts/contraste.js`, `sw.js`. Medido con fixture; para M5 y M6, con las tablas públicas del catálogo leídas con GET (overrides, perfumes nuevos, decants de diseñador y el resumen de clicks) y la config de decants comprobada con SELECT (tope 170.000, escalera 9.500 / 9.000 / 8.500, igual que el código).
+
+#### Qué se hizo
+
+- **`[PILDORA-ANILLO]`** (99) — `.wa-status`: `box-shadow: 0 0 0 1.5px #fff, 0 2px 10px rgba(0,0,0,.4)`, los tres estados, los dos temas, todos los anchos. En oscuro, sobre el banner violeta: **6,30** (`#b71c5c`) · **9,39** (`#6a1b9a`) · **11,86** (`#4a148c`); el borde de la píldora daba 1,07-1,51. En claro, sobre el crema del banner, 1,15-1,25: no cuenta (ahí separa el fondo de la píldora, ≥ 5,89).
+- **`[QUITAR-ETIQUETA-CONTRASTE]`** (100) — «✕ QUITAR» (`.btn-etq-quitar`): letra y borde `#ff8a80` sobre `#333`, **5,53** en los dos temas (era 3,31); ningún parche de claro la pisa (medido en el DOM).
+- **`[FINAL-COMPARANDO]`** (101) — la reserva de abajo del celu pasa de `html body` al **`footer`**: `padding-bottom: calc(1.5rem + 140px + env(safe-area-inset-bottom))`, y `+189` con `body:has(.compare-bar.visible)`. En los 8 casos (con y sin comparar × 390 y 360 × dos temas) el © queda **31,5 a 32,3 px** arriba de WhatsApp (en `main`, con comparar, WhatsApp lo tapaba 16,7-17,5) y el pie llega al final del documento (en `main` sobraban ~140 px: la franja crema en claro).
+- **`[ESTADO-MINUSCULA]`** (103) — minúscula después del «·» en `updateStatus` y `pintarWaStatus`: «Abierto · cierra en 5h», «Cerrado · abrimos lunes 10hs», «· ¡última hora!». En el hero el texto cambia pero no se ve: `.store-status` va en mayúsculas. «Hoy feriado · <nombre>» no se tocó; (102) el feriado largo en dos renglones queda así.
+- **`[OVERRIDE-ML]`** — `applyOverrideToPerfume` copiaba todo menos `ml` (el panel sí lo aplica). Ahora `if (o.ml) p.ml = o.ml;`, que vale para el cache y para Supabase (las dos llamadas usan la misma función). **16 perfumes** cambian de ml (15 visibles + `cdn-milestone`, pausado): la card y el detalle muestran el del panel. **El único que cambia de estado en el armador es `cdn-precieux`** (100 → 55 ml: 125.000 cada 55 ml son 227.273 cada 100, pasa el tope y queda «a consultar»; hasta hoy se vendía en la escalera con un decant que costaba 11.364). Un pack guardado con `cdn-precieux` lo pierde al cargar (`khamrah` queda).
+- **`[DECANT-SOLO-PERFUMES]`** (`_v`, decisión de Alejo) — `decantExcluido` devuelve `true` también cuando `detectProductType` devuelve algo: salen del armador `bare-vanilla`, `velvet-petals`, `coconut-passion`, `pure-seduction` (Body Splash) y `love-spell` (Body Spray). El armador pasa de **182 a 177 perfumes** (171 en la escalera y 6 «a consultar», con M5). Los 5 caen por el «Tipo de producto» del panel; **por el nombre, 0**; en la base no hay ningún tipo «Perfume» escrito (sólo vacío, nulo, «Body Splash» y «Body Spray»). `victoria-secret` tiene un override «Body Splash» pero no existe como perfume (ni en `perfumes.js` ni en `perfumes_nuevos`). Un pack guardado con `bare-vanilla` la pierde; la card del body splash sigue igual (etiqueta «Body Splash», se vende el frasco).
+  - **El quick-pick** (el armador vacío, los 6 más vistos) usa el filtro de la lista (sin pausados, excluidos ni duplicados de diseñador), saca los «a consultar» (su único botón es «+ AGREGAR») y sigue sin los sin stock. Con los clicks reales muestra los mismos 6; con clicks forzados, en `main` salían un pausado (`khanjar`), un body splash (`velvet-petals`), uno «a consultar» (`le-beau-le-parfum`) y `cdn-precieux`, y en la rama ninguno. El nombre va con `escapeHTML` (en `main`, uno de mentira metía un `<img>`).
+- **`contraste.js`** — el anillo (no es texto: mínimo 3, en oscuro, contra la página, la card y las paradas del violeta) y «✕ QUITAR»; la regla 19 de los botones compara la letra con su propio fondo (con el corte fijo en 0,5, el `#ff8a80` contaba como oscuro). 0 fallas + 1 token pisado, 195 mediciones.
+- **Foto de colores** (`main` contra la rama): 0 cambios en el catálogo y el panel, en los dos temas (el anillo es sombra y la foto no la mide). **1280:** idéntico salvo el ancho de la flotante (192,5 → 190,8: la minúscula) y la opacidad de las flotantes a mitad de su animación.
+- **Capturas** (`capturas-espera\`, claro y oscuro, fixture): `catalogo-v1.1.130-{tema}-31-violeta-{abierto, cerrado, feriado}`, `-28-final`, `-28-final-comparando`, `-33-precieux-card`, `-34-precieux-armador`, `-35-quickpick` y `panel-v1.1.130-{tema}-10-etiquetas`.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[PILDORA-ANILLO]` | El anillo de la flotante | decisión 99 · `5f92573` + bump `b9fc4e8` |
+| `[QUITAR-ETIQUETA-CONTRASTE]` | «✕ QUITAR» legible | decisión 100 |
+| `[FINAL-COMPARANDO]` | La reserva en el pie, también comparando | decisión 101 |
+| (102) | El feriado largo en dos renglones | queda así |
+| `[ESTADO-MINUSCULA]` | Minúscula después del «·» | decisión 103 |
+| `[OVERRIDE-ML]` | El ml del override en el sitio | del PREPARADOR |
+| `[DECANT-SOLO-PERFUMES]` | Lo que no es perfume, fuera de los decants | decisión de Alejo |
+
+---
+
+**Última actualización:** **Septiembre 24, 2026 (parte M)** — M (`_u` + `_v`) en producción, SW **v1.1.130**: `[PILDORA-ANILLO]`, `[QUITAR-ETIQUETA-CONTRASTE]`, `[FINAL-COMPARANDO]`, `[ESTADO-MINUSCULA]`, `[OVERRIDE-ML]` y `[DECANT-SOLO-PERFUMES]` cerrados. `[DECANT-TOPE-CONTADOR]` suma el número de la pestaña «Catálogo» (193 contra 184).
+
 **Última actualización:** **Septiembre 24, 2026 (después de la J)** — K (`_s`, SW **v1.1.128**) y L (`_t`, SW **v1.1.129**) en producción: `[BOTONES-CONTRASTE]`, `[CINTA-TINTA]`, `[ESTADO-LOCAL]`, `[RELOAD-CON-LOGIN]`, `[FINAL-FLOTANTES]` e `[INVITACION-BAJO-BANNER]` cerrados. **Pendientes nuevos:** `[RELOAD-NUNCA]` 🟡 · `[FINAL-COMPARANDO]` 🟢 · `[QUITAR-ETIQUETA-CONTRASTE]` 🟢.
 
 **Última actualización:** **Septiembre 24, 2026 (noche)** — J (`_r`) en producción, SW **v1.1.127**: `[BARRA-CELU]` cerrado; el ref de Oregon, fuera de `RECOMENDACIONES_CLAUDECHAT/`. **Pendientes nuevos:** `[NAV-REPITE-BARRA]` 🟢 · `[RELOAD-CON-LOGIN]` 🟢.
@@ -2788,6 +2821,11 @@ Prompts `_s` (**K**: decisiones 94-96 del DISEÑADOR —«la letra la decide el 
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 24-sep-2026 (`_u` + `_v`):**
+
+- ✅ ~~**`[FINAL-COMPARANDO]`**~~ (24-sep, salió de L · 🟢 propuesta) — con «comparar» prendido, WhatsApp sube 49 y al final de la página vuelve a tapar el ©: 16,7 px a 390, 17,5 a 360 (la reserva de 140 cuenta sin comparar). Y debajo del pie quedan ~80 px del fondo de la página (en claro, una franja crema bajo el pie oscuro). Del DISEÑADOR. → **RESUELTO el 24-sep** (parte M, decisión 101): la reserva va en el pie (+49 con comparar); el © queda 31,5 px o más arriba de WhatsApp y abajo del pie no queda otro color.
+- ✅ ~~**`[QUITAR-ETIQUETA-CONTRASTE]`**~~ (24-sep, salió de K · 🟢 propuesta) — «✕ QUITAR» de la etiqueta (`.btn-etq-quitar`, `admin.html`): `#e74c3c` sobre `#333` = **3,31** en los dos temas. No estaba en la K. Del DISEÑADOR. → **RESUELTO el 24-sep** (parte M, decisión 100): `#ff8a80` sobre `#333`, 5,53.
 
 **Movidos el 24-sep-2026 (`_s` + `_t`):**
 
