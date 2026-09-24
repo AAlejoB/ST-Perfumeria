@@ -683,16 +683,21 @@
     .btn-hide:hover { background: #f1948a; }
     /* [ACTION-BTN-BASE] los que tenían el color inline, en clases (decisión 49). Mismo fondo y color que antes en los
        dos temas: en claro repiten lo que les hacían los parches por atributo (body.light [style*=…]). */
-    .btn-etq-nuevo { background: #2ecc71; color: #fff; }
+    /* [CINTA-TINTA] + [BOTONES-CONTRASTE] decisiones 94 y 95 · la letra la decide el fondo, no el tema: fija por clase en
+       los dos temas, la que dé más contraste (la misma regla que la cinta de la card). Negra: nuevo 9,99 · mes 11,29 ·
+       vendido 7,37 · últimas 5,50 · recomendado 6,66 · WhatsApp 8,78 (#1a1a1a). Blanca: exclusivo 5,87 · limitada 5,44 ·
+       gris 7,46. Ningún fondo cambia. Hasta v1.1.127 la línea body.light les ponía #1a1a1a a todos en claro (limitada
+       3,20, gris 2,33) y en oscuro iban blancas (nuevo 2,10, WhatsApp 1,98). */
+    .btn-etq-nuevo { background: #2ecc71; color: #000; }
     .btn-etq-mes { background: var(--amarillo); color: #000; }
-    .btn-etq-vendido { background: #e67e22; color: #fff; }
-    .btn-etq-ultimas { background: #e74c3c; color: #fff; }
+    .btn-etq-vendido { background: #e67e22; color: #000; }
+    .btn-etq-ultimas { background: #e74c3c; color: #000; }
     .btn-etq-exclusivo { background: #8e44ad; color: #fff; }
     .btn-etq-limitada { background: #c0392b; color: #fff; }
-    .btn-etq-recomendado { background: #3498db; color: #fff; }
+    .btn-etq-recomendado { background: #3498db; color: #000; }
     .btn-etq-quitar { background: #333; color: #e74c3c; border: 1px solid #e74c3c; }
     .btn-principal { background: #E8B800; color: #121214; font-weight: 700; }
-    .btn-whatsapp { background: #25D366; color: #fff; text-decoration: none; }
+    .btn-whatsapp { background: #25D366; color: #1a1a1a; text-decoration: none; }
     .btn-gris { background: #555; color: #fff; }
     .btn-reavisar { background: rgba(255,255,255,.06); color: #ccc; border: 1px solid var(--borde); text-decoration: none; }
     .btn-quitar-espera { background: rgba(231,76,60,.15); color: #e74c3c; border: 1px solid rgba(231,76,60,.3); }
@@ -700,8 +705,6 @@
     .btn-modo-sumar.activo { background: #1a4a1a; border-color: #9bd28b; }
     .btn-modo-restar { background: #0a0a0c; color: #ff9b9b; font-weight: 700; border: 1px solid var(--borde); }
     .btn-modo-restar.activo { background: #4a1a1a; border-color: #ff9b9b; }
-    body.light .btn-etq-nuevo, body.light .btn-etq-vendido, body.light .btn-etq-ultimas, body.light .btn-etq-exclusivo,
-    body.light .btn-etq-limitada, body.light .btn-etq-recomendado, body.light .btn-whatsapp, body.light .btn-gris { color: #1a1a1a; }
     body.light .btn-reavisar { background: rgba(0,0,0,.05); color: #333; }
 
     /* MODAL */
@@ -6461,6 +6464,16 @@
       updateEtiquetaPreview();
     }
 
+    // [CINTA-TINTA] decisión 95 · la misma cuenta que la cinta de la card (letraSobre, js/app.js): #fff o #000, la que dé
+    // más contraste con el color. El selector de color siempre entrega #rrggbb.
+    function letraSobreColor(hex) {
+      const m = String(hex || '').match(/^#([0-9a-f]{6})$/i);
+      if (!m) return '#000';
+      const l = [0, 2, 4].map(i => { const v = parseInt(m[1].substr(i, 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+      const lum = 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2];
+      return 1.05 / (lum + 0.05) >= (lum + 0.05) / 0.05 ? '#fff' : '#000';
+    }
+
     // updateEtiquetaPreview: muestra cómo va a quedar la cinta
     function updateEtiquetaPreview() {
       var text = document.getElementById('editEtiqueta').value.trim();
@@ -6470,7 +6483,15 @@
         preview.innerHTML = '<span style="font-size:.6rem;color:var(--gris);">Sin etiqueta</span>';
         return;
       }
-      preview.innerHTML = '<div style="display:inline-block;background:' + color + ';color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .8rem;border-radius:3px;">' + escapeHtml(text) + '</div>';
+      // El fondo y la letra van por style.* y no escritos en el atributo: en claro, el parche body.light [style*="color:#fff"]
+      // le pondría #1a1a1a a la letra blanca.
+      const cinta = document.createElement('div');
+      cinta.style.cssText = 'display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .8rem;border-radius:3px;';
+      cinta.style.background = color;
+      cinta.style.color = letraSobreColor(color);
+      cinta.textContent = text;
+      preview.innerHTML = '';
+      preview.appendChild(cinta);
     }
 
     // Preview en tiempo real al escribir

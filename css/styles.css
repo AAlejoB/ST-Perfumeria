@@ -4853,7 +4853,7 @@
       right: 88px;
       z-index: 999;
       font-family: 'Inter', sans-serif;
-      font-size: .62rem;
+      font-size: .7rem;
       font-weight: 600;
       letter-spacing: .04em;
       padding: .3rem .6rem;
@@ -4862,39 +4862,23 @@
       box-shadow: 0 2px 10px rgba(0,0,0,.4);
       animation: waStatusIn .5s ease .8s both;
     }
-    .wa-status--open {
-      background: rgba(37,211,102,.15);
-      color: #25D366;
-      border: 1px solid rgba(37,211,102,.3);
-    }
-    .wa-status--closed {
-      background: rgba(192,57,43,.12);
-      color: #c0392b;
-      border: 1px solid rgba(192,57,43,.3);
-    }
-    body.dark-mode .wa-status--closed { color: #ff7466; border-color: rgba(255,116,102,.35); }
-    /* [CLARO-CATALOGO-2] en claro «Cerrado» tiene fondo propio y opaco: la píldora flota sobre cualquier sección
-       (con el rojo al 12 % daba 3,23 sobre la página y 4,55 sobre las cards). Blanco sobre #b8342a = 5,89
-       sobre cualquier fondo. «Abierto» y «Feriado» no cambian. */
-    body:not(.dark-mode) .wa-status--closed { background: #b8342a; color: #fff; font-size: .7rem; }
-    body:not(.dark-mode) .wa-status--closed .wa-status-dot { background: #fff; }
-    .wa-status--special {
-      background: rgba(241,196,15,.12);
-      color: #f1c40f;
-      border: 1px solid rgba(241,196,15,.25);
-    }
+    /* [ESTADO-LOCAL] decisión 96 · la letra la decide el fondo, no el tema: la píldora flota sobre cualquier sección (el
+       banner violeta del juego, las cards, el pie), así que es opaca en los tres estados y en los dos temas, con letra y
+       punto blancos a .7rem: abierto #1b5e20 (7,87) · cerrado #b8342a (5,89) · feriado #6b5500 (7,18). Es lo que la F
+       ([CLARO-CATALOGO-2]) había hecho con «Cerrado» en claro; con el color al 12-15 % la letra dependía de lo de abajo. */
+    .wa-status--open { background: #1b5e20; color: #fff; border: 1px solid #1b5e20; }
+    .wa-status--closed { background: #b8342a; color: #fff; border: 1px solid #b8342a; }
+    .wa-status--special { background: #6b5500; color: #fff; border: 1px solid #6b5500; }
     .wa-status-dot {
       display: inline-block;
       width: 6px; height: 6px;
       border-radius: 50%;
       margin-right: 4px;
       vertical-align: middle;
+      background: #fff;
     }
-    .wa-status--open .wa-status-dot { background: #25D366; }
-    .wa-status--closed .wa-status-dot { background: #e74c3c; }
-    .wa-status--special .wa-status-dot { background: #f1c40f; }
     @keyframes waStatusIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @media (min-width: 768px) { .wa-status { bottom: 40px; right: 100px; font-size: .65rem; } }
+    @media (min-width: 768px) { .wa-status { bottom: 40px; right: 100px; } }
 
     /* Badge "Último disponible" en card */
     .badge-ultimo {
@@ -5074,11 +5058,10 @@
       letter-spacing: .1em;
       text-transform: uppercase;
       text-align: center;
-      color: #fff;
+      color: #fff;   /* [CINTA-TINTA] la pisa app.js: #fff o #000 según el color de la cinta. Sin text-shadow. */
       padding: 4px 8px;
       pointer-events: none;
       line-height: 1.3;
-      text-shadow: 0 1px 2px rgba(0,0,0,.3);
     }
 
     /*
@@ -6804,6 +6787,13 @@
     body:not(.dark-mode) .store-status.closed .dot { background: #b8342a; }
     .store-status.holiday { background: rgba(241,196,15,.12); color: #f1c40f; }
     .store-status.holiday .dot { background: #f1c40f; }
+    /* [ESTADO-LOCAL] decisión 96 · en claro la píldora del hero es #fff (el !important de mayo): letra y punto oscuros.
+       Abierto #1b5e20 (7,87; era #2ecc71, 2,10) · feriado la tinta dorada #6b5500 (7,18; era #f1c40f, 1,66) · cerrado ya
+       estaba (#b8342a, 5,89). El brillo del punto de «Abierto», del mismo verde. En oscuro, sin cambio. */
+    body:not(.dark-mode) .store-status.open { color: #1b5e20; }
+    body:not(.dark-mode) .store-status.open .dot { background: #1b5e20; box-shadow: 0 0 6px #1b5e20; }
+    body:not(.dark-mode) .store-status.holiday { color: var(--amarillo-tinta); }
+    body:not(.dark-mode) .store-status.holiday .dot { background: var(--amarillo-tinta); }
 
     /* ================================================
        DVD BOUNCER — perfume rebotando por la pantalla

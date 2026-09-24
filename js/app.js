@@ -1168,6 +1168,32 @@
       });
     }
 
+    // [CINTA-TINTA] decisión 95 · la letra de la cinta la decide su fondo, no el tema: #fff o #000, la que dé más
+    // contraste con el color que eligió el jefe (anda con cualquier color nuevo). El color entra al HTML sólo si es un
+    // hex (#rgb / #rrggbb) o un rgb() válido; si no, el dorado de siempre. scripts/contraste.js lee este bloque.
+    var CINTA_COLOR_DEFAULT = '#E8B800';
+    function rgbDeColor(v) {
+      var s = String(v == null ? '' : v).trim(), m;
+      if ((m = s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i))) {
+        var h = m[1].length === 3 ? m[1].replace(/./g, '$&$&') : m[1];
+        return [0, 2, 4].map(function(i) { return parseInt(h.substr(i, 2), 16); });
+      }
+      if ((m = s.match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i))) {
+        var c = [+m[1], +m[2], +m[3]];
+        return (c[0] <= 255 && c[1] <= 255 && c[2] <= 255) ? c : null;
+      }
+      return null;
+    }
+    function colorCinta(v) { return rgbDeColor(v) ? String(v).trim() : CINTA_COLOR_DEFAULT; }
+    function letraSobre(color) {
+      var l = (rgbDeColor(color) || rgbDeColor(CINTA_COLOR_DEFAULT)).map(function(x) {
+        x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+      });
+      var lum = 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2];
+      // blanco da 1,05 / (L + 0,05); negro, (L + 0,05) / 0,05: gana el más alto
+      return 1.05 / (lum + 0.05) >= (lum + 0.05) / 0.05 ? '#fff' : '#000';
+    }
+
     function renderTrustBadges(items) {
       var grid = document.getElementById('trustBadgesGrid');
       if (!grid) return;
@@ -1837,8 +1863,9 @@
       // Cinta de etiqueta personalizada (se configura desde el admin)
       var ribbonHTML = '';
       if (p.etiqueta) {
-        var ribbonColor = p.etiqueta_color || '#E8B800';
-        ribbonHTML = '<div class="card-ribbon" style="background:' + ribbonColor + ';">' + p.etiqueta + '</div>';
+        // [CINTA-TINTA] el texto escapado, el color validado y la letra según el color (antes, blanca siempre y sin escapar)
+        var ribbonColor = colorCinta(p.etiqueta_color);
+        ribbonHTML = '<div class="card-ribbon" style="background:' + ribbonColor + ';color:' + letraSobre(ribbonColor) + ';">' + escapeHTML(p.etiqueta) + '</div>';
       }
 
       // [HOTSALE] Descuento temporal (descuento_pct + descuento_hasta) sacado del front.
@@ -4842,7 +4869,9 @@
         '.decant-builder-overlay.active',
         '.cart-panel-overlay.active',
         '.bottom-sheet-overlay.active',
-        '.auth-overlay.active',
+        '.auth-overlay.open',          // [RELOAD-CON-LOGIN] el login se abre con .open (decía .active y nunca coincidía)
+        '.juegos-overlay.active',      // [RELOAD-CON-LOGIN] la ventana de juegos
+        '.waitlist-overlay.active',    // [RELOAD-CON-LOGIN] la ventana «Avisame»
         '.quiz-results[style*="block"]',
         '.compare-modal',
         '.cuenta-hoja-overlay.open',   // [BARRA-CELU] la hoja «Hola, <nombre>»
@@ -5058,19 +5087,27 @@
         var cierre = cierreDe(now, cierres);
         if (cierre) return { tipo: 'especial', motivo: cierre.motivo };
         var feriado = feriadoDe(now, feriados);
-        if (feriado) return { tipo: 'feriado', motivo: feriado.motivo || 'Feriado' };
+        if (feriado) {   // [ESTADO-LOCAL] la flotante dice cuándo abrimos: la misma cuenta que «Cerrado»
+          var pf = proximaApertura(now, feriados, cierres);
+          return { tipo: 'feriado', motivo: feriado.motivo || 'Feriado', abreEn: pf.abreEn, abreDia: pf.abreDia, abreHora: pf.abreHora };
+        }
         var horario = HORARIOS[now.getDay()];
         var minutos = now.getHours() * 60 + now.getMinutes();
         if (horario && minutos >= horario.open * 60 && minutos < horario.close * 60) {
           return { tipo: 'abierto', cierra: horario.close, faltanMin: horario.close * 60 - minutos };
         }
         if (horario && minutos < horario.open * 60) return { tipo: 'cerrado', abreEn: 0, abreDia: now.getDay(), abreHora: horario.open };
+        var p = proximaApertura(now, feriados, cierres);
+        return { tipo: 'cerrado', abreEn: p.abreEn, abreDia: p.abreDia, abreHora: p.abreHora };
+      }
+      // El próximo día que abre, desde mañana: saltea los feriados y los cierres especiales.
+      function proximaApertura(now, feriados, cierres) {
         for (var i = 1; i <= 7; i++) {
           var d = new Date(now); d.setDate(d.getDate() + i);
           var h = HORARIOS[d.getDay()];
-          if (h && !feriadoDe(d, feriados) && !cierreDe(d, cierres)) return { tipo: 'cerrado', abreEn: i, abreDia: d.getDay(), abreHora: h.open };
+          if (h && !feriadoDe(d, feriados) && !cierreDe(d, cierres)) return { abreEn: i, abreDia: d.getDay(), abreHora: h.open };
         }
-        return { tipo: 'cerrado', abreEn: null };
+        return { abreEn: null };
       }
 
       // La del hero: «Cierra a las 20hs», «Abrimos hoy a las 10hs», «Abrimos lunes 10hs» (los textos de siempre).
@@ -5093,15 +5130,21 @@
         el.style.display = 'inline-flex';
       }
 
-      // La flotante: «Cierra en 2h 30min», «Abrimos hoy 10hs», «Abrimos mañana 10hs» (los textos de siempre). Nueva: el
-      // feriado, con el mismo texto que el hero (antes no los miraba).
+      // La flotante: «Cierra en 2h 30min», «Abrimos hoy 10hs», «Abrimos mañana 10hs» (los textos de siempre). El feriado,
+      // corto y con el patrón de «Cerrado»: «Feriado · abrimos mañana 10hs» ([ESTADO-LOCAL], decisión 96; el nombre del
+      // feriado queda sólo en el hero). Un cierre especial muestra su motivo, como antes.
       function pintarWaStatus(estado) {
         var el = document.getElementById('waStatus');
         if (!el) return;
         var clase = 'wa-status--closed', texto;
-        if (estado.tipo === 'especial' || estado.tipo === 'feriado') {
+        if (estado.tipo === 'feriado') {
           clase = 'wa-status--special';
-          texto = estado.tipo === 'feriado' ? 'Hoy feriado · ' + estado.motivo : estado.motivo;
+          texto = 'Feriado' + (estado.abreEn === 1 && estado.abreDia !== 1 ? ' · abrimos mañana ' + estado.abreHora + 'hs'
+            : estado.abreEn ? ' · abrimos ' + DIAS_SEMANA[estado.abreDia] + ' ' + estado.abreHora + 'hs'
+            : '');
+        } else if (estado.tipo === 'especial') {
+          clase = 'wa-status--special';
+          texto = estado.motivo;
         } else if (estado.tipo === 'abierto') {
           var hs = Math.floor(estado.faltanMin / 60), mins = estado.faltanMin % 60;
           clase = 'wa-status--open';

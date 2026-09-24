@@ -343,10 +343,14 @@ function efectivo(rs, target, prefijos, prop, capas) {
     var c = cfg[tema];
     var pagina = fondoDe(['body'], c, '#ffffff')[0];
     var card = fondoDe(['.product-card'], c, pagina)[0];
-    // «Cerrado» flotante: su fondo compuesto sobre la página y sobre la card; se toma el peor.
-    var gCerr = gana(['.wa-status--closed'], c, ['color']);
-    var fCerr = [pagina, card].map(function (b) { return fondoDe(['.wa-status--closed'], c, b)[0]; });
-    medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: '«Cerrado» flotante .wa-status--closed', texto: gCerr && colores(gCerr.valor, c, fCerr[0])[0], fondos: fCerr, impone: donde(gCerr) });
+    // La flotante, en sus tres estados: su fondo compuesto sobre la página, la card y el banner violeta del juego (sus
+    // paradas); se toma el peor. [ESTADO-LOCAL] desde K las tres son opacas: el número es el mismo sobre cualquier cosa.
+    var violeta = fondoDe(['.quiz-cta-banner'], c, pagina);
+    [['«Cerrado» flotante', '.wa-status--closed'], ['«Abierto» flotante', '.wa-status--open'], ['«Feriado» flotante', '.wa-status--special']].forEach(function (x) {
+      var g = gana([x[1]], c, ['color']);
+      var f = [pagina, card].concat(violeta).map(function (b) { return fondoDe([x[1]], c, b)[0]; });
+      medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: x[0] + ' ' + x[1], texto: g && colores(g.valor, c, f[0])[0], fondos: f, impone: donde(g) });
+    });
     // El contador de cada categoría, sobre su card.
     var cat = fondoDe(['.cat-card', '.section-cats .cat-card', '.cat-grid .cat-card'], c, pagina)[0];
     var gCnt = gana(['.cat-count', '.cat-card .cat-count'], c, ['color']);
@@ -362,6 +366,11 @@ function efectivo(rs, target, prefijos, prop, capas) {
     var fHero = fondoDe(['.store-status', '.store-status.closed'], c, hero);
     var gHero = gana(['.store-status.closed'], c, ['color']);
     medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: '«Cerrado» del hero .store-status.closed', texto: gHero && colores(gHero.valor, c, fHero[0])[0], fondos: fHero, impone: donde(gHero) });
+    // [ESTADO-LOCAL] «Abierto» y «Feriado» del hero: en claro sobre el mismo #fff; en oscuro sobre su propio rgba.
+    [['«Abierto» del hero', '.store-status.open'], ['«Feriado» del hero', '.store-status.holiday']].forEach(function (x) {
+      var f = fondoDe(['.store-status', x[1]], c, hero), g = gana([x[1]], c, ['color']);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: x[0] + ' ' + x[1], texto: g && colores(g.valor, c, f[0])[0], fondos: f, impone: donde(g) });
+    });
     // [AMARILLO-CATALOGO-CLARO] los textos dorados que en claro seguían en #E8B800: contra la página (en claro #e3d6b3,
     // el fondo más oscuro donde aparecen) y contra la card. El DOM los mide uno por uno sobre su fondo real.
     ['.hero-title em', '.section-title em', '.nosotros-intro em', '.set-items-list li::before', '.set-price-promo', '.seo-hub-card .seo-hub-cta',
@@ -392,6 +401,55 @@ function efectivo(rs, target, prefijos, prop, capas) {
     [['título «Hola, …»', '.cuenta-hoja-titulo'], ['fila', '.cuenta-hoja-fila'], ['«Cerrar sesión»', '.cuenta-hoja-salir']].forEach(function (x) {
       var fg = efectivo(rs, x[1], c.pref, 'color', c.capas);
       medir({ superficie: 'catálogo', tema: tema, rol: 'barra', nombre: x[0] + ' ' + x[1], texto: fg.hex[0], fondos: hoja, impone: fg.impone });
+    });
+  });
+})();
+
+// ═══ LA LETRA LA DECIDE EL FONDO ═══ [BOTONES-CONTRASTE] [CINTA-TINTA] 24-sep-2026 (parte K, decisiones 94 y 95)
+// Los botones del panel con fondo de color propio (WhatsApp, gris y los 7 de etiqueta) y la cinta de la card: la letra
+// es la misma en los dos temas y la elige el fondo (regla 19: si el fondo pide letra oscura y va clara, falla aunque el
+// número pase). La cinta la pinta js/app.js: se lee su bloque (colorCinta + letraSobre) y se prueba con los colores que
+// ofrece el panel (los setEtiqueta de admin.html) y con dos que no tienen que entrar al HTML (caen al dorado).
+(function () {
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz] }, claro: { pref: ['body.light'], capas: [luz, raiz] } };
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    ['.btn-whatsapp', '.btn-gris', '.btn-etq-nuevo', '.btn-etq-mes', '.btn-etq-vendido', '.btn-etq-ultimas', '.btn-etq-exclusivo',
+     '.btn-etq-limitada', '.btn-etq-recomendado'].forEach(function (t) {
+      var bg = efectivo(rs, t, c.pref, 'background', c.capas), fg = efectivo(rs, t, c.pref, 'color', c.capas);
+      var extra = '', fallo = false;
+      if (bg.hex[0] && fg.hex[0]) {
+        var manda = contraste(bg.hex[0], '#000000') > contraste(bg.hex[0], '#ffffff') ? 'oscuro' : 'claro';
+        var es = luminancia(fg.hex[0]) < 0.5 ? 'oscuro' : 'claro';
+        fallo = es !== manda; extra = fallo ? 'regla 19 ❌ (el fondo pide letra ' + manda + ')' : 'regla 19 ✅';
+      }
+      medir({ superficie: 'panel', tema: tema, rol: 'botón', nombre: t, texto: fg.hex[0], fondos: bg.hex, extra: extra, falloRegla: fallo, impone: fg.impone });
+    });
+  });
+})();
+(function () {
+  var src = fs.readFileSync(path.join(RAIZ, 'js/app.js'), 'utf8');
+  var ini = src.indexOf('var CINTA_COLOR_DEFAULT'), fn = src.indexOf('function letraSobre', ini);
+  var cinta = null;
+  if (ini >= 0 && fn > ini) {
+    var fin = src.indexOf('{', fn), prof = 0;
+    for (; fin < src.length; fin++) { if (src[fin] === '{') prof++; else if (src[fin] === '}' && --prof === 0) break; }
+    cinta = new Function(src.slice(ini, fin + 1) + '\nreturn { colorCinta: colorCinta, letraSobre: letraSobre };')();
+  }
+  var panel = fs.readFileSync(path.join(RAIZ, 'admin.html'), 'utf8');
+  var lista = [], re = /setEtiqueta\('([^']+)','(#[0-9a-fA-F]{3,6})'\)/g, m;
+  while ((m = re.exec(panel))) lista.push({ nombre: m[1], color: m[2], valido: true });
+  lista.push({ nombre: '(color inválido)', color: 'red', valido: false }, { nombre: '(intento de romper el atributo)', color: '#fff" onmouseover="x', valido: false });
+  ['oscuro', 'claro'].forEach(function (tema) {
+    if (!cinta) { medir({ superficie: 'catálogo', tema: tema, rol: 'cinta', nombre: 'cinta (no encontré colorCinta / letraSobre en js/app.js)', texto: null, fondos: [] }); return; }
+    lista.forEach(function (x) {
+      var fondo = cinta.colorCinta(x.color), letra = cinta.letraSobre(fondo);
+      var entra = fondo === x.color;
+      var fallo = entra !== x.valido || (!x.valido && fondo !== '#E8B800');
+      var extra = x.valido ? (entra ? 'entra tal cual' : '❌ un color válido no entró') : (entra ? '❌ entró al HTML' : 'no entra: cae al dorado ' + fondo);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'cinta', nombre: 'cinta «' + x.nombre + '» ' + x.color, texto: normalizarHex(letra), fondos: [normalizarHex(fondo)], extra: extra, falloRegla: fallo, impone: 'app.js letraSobre' });
     });
   });
 })();
