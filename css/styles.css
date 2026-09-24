@@ -60,7 +60,8 @@
        Ahora las secciones usan sólo su scroll-margin-top, y el 76 / 240 queda en la card y en la grilla,
        que son las que tienen que quedar debajo de la barra de filtros (sticky sólo en mobile). */
     html { scroll-behavior: smooth; }
-    .product-card, .catalog-grid { scroll-margin-top: 76px; }
+    /* [CARD-ESCRITORIO-BANNER] decisión 78: 115 = nav 64 + banner 45 + 6 (era 76: la card quedaba 33 px tapada). */
+    .product-card, .catalog-grid { scroll-margin-top: 115px; }
     body {
       background: var(--negro);
       color: var(--blanco);
@@ -1138,6 +1139,8 @@
     /* ================================================
        FILTROS — 3 ZONAS: izq (filtros) | centro (buscar) | der (ordenar)
     ================================================ */
+    /* [FILTROS-SOLO-CATALOGO] decisión 76: en el celu la barra se pega sólo dentro de .catalogo-scope (index.html:
+       la barra + el anuncio + la sección del catálogo). Debajo del catálogo sólo quedan pegados el nav y el banner. */
     .filter-bar {
       position: sticky;
       top: 58px;
@@ -2114,6 +2117,7 @@
       background: rgba(255,255,255,.05);
       border: 1px solid var(--borde-sutil);
       padding: .8rem .5rem;
+      min-height: 52px;   /* [JUEGOS-VENTANA-PULIDO] medía 42,6 */
       border-radius: 5px;
       cursor: pointer;
       transition: all .25s;
@@ -2134,13 +2138,16 @@
       justify-content: center;
       margin-bottom: 1.2rem;
     }
+    /* [JUEGOS-VENTANA-PULIDO] decisión 77: los que faltan son un anillo de 1,5 px en --gris sin relleno (5,33 oscuro,
+       6,29 claro); el hecho, el dorado de cada tema (oscuro --amarillo 10,15 · claro #6b5500 6,25). Eran 1,02 y 1,62 en claro. */
     .quiz-dot {
       width: 8px; height: 8px;
       border-radius: 50%;
-      background: rgba(255,255,255,.15);
-      transition: background .3s;
+      background: transparent;
+      border: 1.5px solid var(--gris);
+      transition: background .3s, border-color .3s;
     }
-    .quiz-dot.filled { background: var(--amarillo); }
+    .quiz-dot.filled { background: var(--amarillo-tinta); border-color: var(--amarillo-tinta); }
     .quiz-results {
       display: none;
       flex-direction: column;
@@ -3276,7 +3283,7 @@
          destino quedaba escondido abajo de la barra sticky de filtros.
          Con scroll-margin-top el navegador frena antes. [VER-MAS] Antes era el
          scroll-padding-top del html y frenaba 240 px también los saltos a secciones. */
-      .product-card, .catalog-grid { scroll-margin-top: 240px; }
+      .product-card, .catalog-grid { scroll-margin-top: 243px; }   /* [CARD-ESCRITORIO-BANNER] 236,8 pegado + 6 (era 240) */
     }
     /* DESKTOP: card muestra tags, oculta notas preview. Reveal lateral normal */
     @media (min-width: 768px) {
@@ -3553,13 +3560,15 @@
       width: 40px; height: 4px; background: rgba(255,255,255,.3);
       border-radius: 2px;
     }
+    /* [JUEGOS-VENTANA-PULIDO] decisión 77: en oscuro «deslizá para cerrar» pasa a --gris (5,33; era blanco al 35 %: 3,19).
+       La flecha sigue al texto (currentColor): en claro toma el #5e564a del texto, antes era blanca al 40 % sobre crema. */
     .bs-handle-arrow {
-      font-size: .55rem; color: rgba(255,255,255,.35); letter-spacing: .1em;
+      font-size: .55rem; color: var(--gris); letter-spacing: .1em;
       text-transform: uppercase; font-weight: 600;
       display: flex; align-items: center; gap: .3rem;
     }
     .bs-handle-arrow svg {
-      width: 12px; height: 12px; stroke: rgba(255,255,255,.4); fill: none; stroke-width: 2;
+      width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2;
     }
     .bs-header {
       display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;
@@ -6262,7 +6271,12 @@
     .misel-empty-msg {
       font-size: .75rem; color: var(--gris); text-align: center; padding: 2rem 0;
     }
-    .misel-lock { text-align: center; padding: .6rem; cursor: pointer; font-size: .72rem; color: var(--gris); border-top: 1px solid var(--borde-sutil); margin-top: auto; }
+    /* [JUEGOS-VENTANA-PULIDO] decisión 77: en oscuro, la misma caja punteada que en claro (era una línea arriba y texto
+       --gris), y 52 de alto en los dos temas (medía 35,2 en oscuro y 49 en claro). */
+    .misel-lock {
+      text-align: center; padding: 1rem; cursor: pointer; font-size: .72rem; color: var(--amarillo); margin-top: auto;
+      border: 1px dashed rgba(232,184,0,.45); background: rgba(232,184,0,.06); border-radius: 8px; min-height: 52px;
+    }
     .misel-lock:hover { color: var(--amarillo); }
     .misel-global-stat { font-size: .62rem; color: var(--gris); text-align: center; margin-top: .5rem; }
 
@@ -9639,14 +9653,8 @@
       #nosotros, #faq, #quizSection, #tuSector, #dondeEncontrarnos {
         scroll-margin-top: 105px;  /* nav 58 + banner 39 = 97 (medido 23-sep) + 8 px de aire */
       }
-      /* [VER-MAS] Debajo del catálogo la barra de filtros SIGUE pegada: #catalogo es hija del body y es
-         sticky hasta el pie. Ahí lo pegado arriba mide 236,8 (nav + banner + filtros, medido 23-sep): estas
-         secciones frenan 6 px más abajo. Las de arriba del catálogo siguen en 105. */
-      .section-cats, .sets-section, .section-seo-hub, .quiz-section, .section-nosotros, .section-faq,
-      .recent-views, .tu-sector, .map-section, #contacto,
-      #categorias, #setsSection, #explorar, #quizSection, #nosotros, #faq, #recentViewsSection, #tuSector, #dondeEncontrarnos {
-        scroll-margin-top: 243px;
-      }
+      /* [FILTROS-SOLO-CATALOGO] Hasta el 24-sep las secciones de debajo del catálogo frenaban en 243: la barra de
+         filtros seguía pegada hasta el pie. Ahora se va con el catálogo y ahí lo pegado es nav + banner = 97. */
     }
 
     /* ════════════════════════════════════════════════════════════════

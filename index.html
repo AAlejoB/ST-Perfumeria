@@ -774,6 +774,10 @@
     FILTROS: ahora usan .filter-group para que los botones
     queden centrados en mobile y alineados a la izquierda en desktop
   -->
+  <!-- [FILTROS-SOLO-CATALOGO] La barra de filtros se pega sólo mientras estás en el catálogo: su sticky termina
+       donde termina este contenedor (con la sección del catálogo). Antes era hija del body y quedaba pegada
+       hasta el pie. Sin estilos propios. id="catalogo" sigue siendo el destino de «Ver catálogo» y de la URL. -->
+  <div class="catalogo-scope">
   <div class="filter-bar" id="catalogo">
     <div class="filter-zone filter-zone--left" id="filterDeck">
       <div class="deck-label" id="deckLabel">
@@ -877,6 +881,7 @@
       <button class="cta-register-btn" onclick="openAuth()">Iniciar sesi&oacute;n</button>
     </div>
   </section>
+  </div><!-- /.catalogo-scope -->
 
   <section class="section-cats" id="categorias">
     <div class="section-header">

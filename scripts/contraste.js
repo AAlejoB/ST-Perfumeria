@@ -33,7 +33,7 @@ var MINIMO = 4.5;
 var NOMBRES = { gray: '#808080', grey: '#808080', white: '#ffffff', black: '#000000', red: '#ff0000', silver: '#c0c0c0' };
 var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no frena
   // [JUEGOS-VENTANA] lo que se mudó a la ventana tal cual: la manija es la del detalle
-  { superficie: 'catálogo', nombre: 'deslizá para cerrar .juegos-sheet .bs-handle-arrow', tema: 'oscuro', keyword: '[JUEGOS-VENTANA-PULIDO]' },
+  // [JUEGOS-VENTANA-PULIDO] «deslizá para cerrar» salió de acá: en oscuro --gris da 5,33 sobre la ventana
   // [JERARQUIA-CARD] el Hot Sale del detalle en claro es #c2410c (un solo color, como pidió el DISEÑADOR) pero el detalle
   // es crema (#f5efde), no blanco: 4,16 al principio de la franja al 6 %, 4,51 sin franja. Lo decide el DISEÑADOR.
   { superficie: 'catálogo', nombre: 'Hot Sale (detalle) .bottom-sheet .price-cash--hotsale', tema: 'claro', keyword: '[HOTSALE-DETALLE-CLARO]' }
@@ -434,6 +434,13 @@ function efectivo(rs, target, prefijos, prop, capas) {
       var fg = tinta(x[1], x[2], c, bg);
       medir({ superficie: 'catálogo', tema: tema, rol: 'juegos', nombre: x[0] + ' ' + x[1], texto: fg && fg.hex, fondos: [bg], impone: fg ? fg.impone : '' });
     });
+    // [JUEGOS-VENTANA-PULIDO] los puntos del quiz no son texto, pero son lo único que dice cuánto falta: el anillo de los
+    // que faltan (el color de su borde) y el relleno del hecho, contra la ventana, con el mismo piso.
+    var colorDe = function (v) { var m = String(v || '').match(/var\([^)]*\)|#[0-9a-fA-F]{3,6}\b|rgba?\([^)]*\)/); return m ? aHex(m[0], c, hoja_) : null; };
+    var donde = function (g) { return g ? path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') : ''; };
+    var anillo = ganador(rs, '.quiz-dot', c.pref, 'border'), hecho = ganador(rs, '.quiz-dot.filled', c.pref, 'background');
+    medir({ superficie: 'catálogo', tema: tema, rol: 'juegos', nombre: 'punto que falta .quiz-dot (anillo)', texto: anillo && colorDe(anillo.valor), fondos: [hoja_], impone: donde(anillo) });
+    medir({ superficie: 'catálogo', tema: tema, rol: 'juegos', nombre: 'punto hecho .quiz-dot.filled', texto: hecho && colorDe(hecho.valor), fondos: [hoja_], impone: donde(hecho) });
   });
 })();
 
