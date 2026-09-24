@@ -1921,7 +1921,6 @@
         + '<div class="card-info">'
           + galleryNavOnInfo
           + '<p class="card-name">' + p.name + '</p>'
-          + '<p class="card-brand-st">ST PERFUMER\u00cdA</p>'
           + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
           + '<div class="card-tags">'
             + '<span class="card-tag tag-cat">' + pCat + '</span>'

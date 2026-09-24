@@ -45,7 +45,7 @@
       /* [TEMA-CLARO] Tintas que cambian con el tema. Acá el valor de OSCURO; el de claro
          está en body:not(.dark-mode). Ojo: el panel usa body.light, éste usa
          body:not(.dark-mode) — un token declarado bajo uno NO llega al otro. */
-      --tinta-precio:   #ffcc00;       /* .price-promo — 11,51 sobre la card oscura */
+      --tinta-precio:   #E8B800;       /* .price-promo — [JERARQUIA-CARD] decisión 51: el amarillo de la marca, 9,35 sobre la card oscura (era #ffcc00) */
       --tinta-efectivo: #4caf50;       /* .price-cash — 6,26 sobre la card oscura */
       --borde:          rgba(232, 184, 0, 0.18);  /* bordes dorados sutiles */
       --borde-sutil:    rgba(255,255,255,0.06);    /* bordes casi invisibles */
@@ -2492,13 +2492,6 @@
       .bottle-placeholder { width: 80px; height: 110px; }
     }
 
-    .card-brand-st {
-      font-size: .7rem;
-      color: var(--amarillo);
-      font-weight: 600;
-      letter-spacing: .08em;
-      margin-bottom: 2px;
-    }
     .card-brand {
       font-size: 1rem;
       color: var(--gris);   /* [TEMA-CLARO] era gray (#808080): 3,95 sobre la card blanca */
@@ -2615,11 +2608,10 @@
     body.dark-mode .product-card { background: #1a1a1a; border-color: #2a2a2a; }
     @media (hover: hover) { body.dark-mode .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); } }
     body.dark-mode .card-name { color: #f0f0f0; }
-    body.dark-mode .card-brand-st { color: var(--amarillo); }
     /* [TEMA-CLARO] Acá vivían cinco overrides de oscuro (.card-brand, .price-promo,
        .price-cash, .card-views y su svg) que repetían literales. Las bases usan tokens,
        así que el override sobraba y además le ganaba al token en oscuro. .card-brand-st
-       se queda: su color se decide entero en [JERARQUIA-CARD]. */
+       se fue con la marca ST de la card ([JERARQUIA-CARD], 24-sep-2026). */
     body.dark-mode .price-original { color: #666; }
     body.dark-mode .price-label { color: #777; }
     body.dark-mode .fav-heart { background: rgba(40,40,40,.85); color: #555; }
@@ -2993,10 +2985,14 @@
       margin-top: 4px;
       box-sizing: border-box;
     }
-    body:not(.dark-mode) .price-cash--hotsale {
+    /* [JERARQUIA-CARD] En claro el texto salía verde (y en el detalle, rojo el borde y verde la letra):
+       `body:not(.dark-mode) .price-cash` (#1b5e20 !important, más abajo) pesaba lo mismo que esta regla y
+       venía después. Con .price-cash.price-cash--hotsale pesa más y ya no depende del orden; el !important
+       es el que estaba. La franja baja de 12 % a 6 %: con 12 % el texto daba 4,35 al principio; con 6 %, 4,76. */
+    body:not(.dark-mode) .price-cash.price-cash--hotsale {
       color: #c2410c !important;
       border-left-color: #c2410c;
-      background: linear-gradient(90deg, rgba(194,65,12,.12), rgba(194,65,12,0));
+      background: linear-gradient(90deg, rgba(194,65,12,.06), rgba(194,65,12,0));
     }
     /* [1] Línea de cuotas con chip + monto destacado */
     .price-cuotas-line {
@@ -3219,6 +3215,21 @@
       /* Los 30px fijos abajo de la marca ya sobraban en el layout viejo;
          en el vertical parten la card al medio. */
       .card-brand { margin-bottom: 8px; }
+      /* [JERARQUIA-CARD] réplica v2 del DISEÑADOR: en el celu el texto de la card va al 120 % y el nombre
+         mide el doble que la marca (28,8 ÷ 14,4). Sale la línea «ST PERFUMERÍA». En escritorio los tamaños
+         no cambian. Todo va bajo .card-info: el detalle usa las mismas clases y tiene sus propios tamaños. */
+      .card-info .card-name { font-size: 1.8rem; }                  /* 28,8 px (era 1,3rem: 20,8) */
+      .card-info .card-brand { font-size: .9rem; letter-spacing: .14em; }   /* 14,4 px (era 1rem) */
+      .card-info .card-tag { font-size: .72rem; }                   /* 11,5 px (era .6rem) */
+      .card-info .price-promo { font-size: 1.68rem; }               /* 26,9 px (era 1,4rem) */
+      .card-info .price-cuotas-line { font-size: .864rem; }         /* 13,8 px (era .72rem) */
+      .card-info .price-cuotas-chip { font-size: .66rem; }          /* 10,6 px (era .55rem) */
+      .card-info .price-cash { font-size: 1.02rem; }                /* 16,3 px, también el Hot Sale (era .85rem) */
+      /* [TAP-44] «Consultar» a 44 (medía 34) y la letra a 12,5 px (era .65rem). */
+      .card-cta-mobile {
+        display: flex; align-items: center; justify-content: center;
+        min-height: 44px; font-size: .78rem;
+      }
 
       /* ── Skeleton: mismo layout vertical ──
          Si el skeleton sigue siendo horizontal de 230px y la card real
@@ -3567,7 +3578,6 @@
       font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
       color: #fff; text-transform: uppercase; line-height: 1.2; margin-bottom: .25rem;
     }
-    .bs-brand-st { font-size: .6rem; color: var(--amarillo); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
     .bs-brand { font-size: .8rem; color: var(--gris); text-transform: uppercase; margin-bottom: .6rem; }
     .bs-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: .6rem; }
     .bs-price-wrap { margin-bottom: .2rem; }
@@ -4910,15 +4920,18 @@
       display: block; width: 100%; padding: .55rem .8rem;
       font-family: inherit; font-size: .65rem; font-weight: 700;
       letter-spacing: .1em; text-transform: uppercase; text-align: center;
-      background: transparent; color: var(--amarillo);
-      border: 1.5px solid var(--amarillo); border-radius: 6px;
+      background: transparent; color: var(--amarillo-tinta);   /* [JERARQUIA-CARD] 🔔 y 🔒: en claro #6b5500 (7,18); era --amarillo, 1,86 */
+      border: 1.5px solid var(--amarillo-tinta); border-radius: 6px;
       cursor: pointer; transition: all .25s; margin-top: .5rem;
     }
     .waitlist-btn:hover { background: var(--amarillo); color: #000; }
+    /* [JERARQUIA-CARD] el ✓ con el verde de efectivo de cada tema (la tinta de .price-cash): oscuro #4caf50
+       (era #27ae60), claro #1b5e20 con su fondo al 10 %. Un verde por tema en la card. */
     .waitlist-btn.subscribed {
-      background: rgba(39,174,96,.15); color: #27ae60;
-      border-color: #27ae60; pointer-events: none;
+      background: rgba(76,175,80,.15); color: var(--tinta-efectivo);
+      border-color: var(--tinta-efectivo); pointer-events: none;
     }
+    body:not(.dark-mode) .waitlist-btn.subscribed { background: rgba(27,94,32,.10); }
     /* Iconos y labels del boton: por default guest (lock) oculto y logueado (bell)
        visible. body.is-guest invierte eso para usuarios sin sesion. */
     .waitlist-btn .waitlist-ico,
@@ -4931,6 +4944,11 @@
     body.is-guest .waitlist-btn:not(.subscribed) .waitlist-label--guest { display: inline; }
     /* Leve diferencial visual para que el guest entienda que esta gateado */
     body.is-guest .waitlist-btn:not(.subscribed) { border-style: dashed; }
+    /* [TAP-44] en el celu el botón mide 44 en los tres estados (medía 33,6) y la letra va al 120 % de la card
+       ([JERARQUIA-CARD]): 12,5 px. En escritorio no cambia. */
+    @media (max-width: 767px) {
+      .waitlist-btn { min-height: 44px; font-size: .78rem; }
+    }
 
     /* OVERLAY LISTA DE ESPERA */
     .waitlist-overlay {
@@ -8157,7 +8175,6 @@
     }
     body:not(.dark-mode) .bottom-sheet .bs-name { color: #1a1a1d !important; }
     body:not(.dark-mode) .bottom-sheet .bs-brand { color: #5e564a !important; }
-    body:not(.dark-mode) .bottom-sheet .bs-brand-st { color: var(--amarillo-tinta) !important; }
     body:not(.dark-mode) .bottom-sheet .bs-note { color: #2a2622 !important; }
     body:not(.dark-mode) .bottom-sheet .bs-note strong { color: #1a1a1d !important; }
     body:not(.dark-mode) .bottom-sheet .bs-note .note-label { color: var(--amarillo-tinta) !important; }
@@ -8253,7 +8270,6 @@
 
     /* ── Labels y eyebrows (acento dorado consistente) ── */
     body:not(.dark-mode) .note-label,
-    body:not(.dark-mode) .bs-brand-st,
     body:not(.dark-mode) .map-info-label,
     body:not(.dark-mode) .map-section-eyebrow,
     body:not(.dark-mode) .seo-hub-eyebrow,

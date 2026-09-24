@@ -32,9 +32,11 @@ var RAIZ = path.join(__dirname, '..');
 var MINIMO = 4.5;
 var NOMBRES = { gray: '#808080', grey: '#808080', white: '#ffffff', black: '#000000', red: '#ff0000', silver: '#c0c0c0' };
 var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no frena
-  { superficie: 'catálogo', nombre: '.card-brand-st', tema: 'claro', keyword: '[JERARQUIA-CARD]' },
   // [JUEGOS-VENTANA] lo que se mudó a la ventana tal cual: la manija es la del detalle
-  { superficie: 'catálogo', nombre: 'deslizá para cerrar .juegos-sheet .bs-handle-arrow', tema: 'oscuro', keyword: '[JUEGOS-VENTANA-PULIDO]' }
+  { superficie: 'catálogo', nombre: 'deslizá para cerrar .juegos-sheet .bs-handle-arrow', tema: 'oscuro', keyword: '[JUEGOS-VENTANA-PULIDO]' },
+  // [JERARQUIA-CARD] el Hot Sale del detalle en claro es #c2410c (un solo color, como pidió el DISEÑADOR) pero el detalle
+  // es crema (#f5efde), no blanco: 4,16 al principio de la franja al 6 %, 4,51 sin franja. Lo decide el DISEÑADOR.
+  { superficie: 'catálogo', nombre: 'Hot Sale (detalle) .bottom-sheet .price-cash--hotsale', tema: 'claro', keyword: '[HOTSALE-DETALLE-CLARO]' }
   // [AMARILLO-TINTA-CLARO] el título del quiz en claro salió de acá: con #6b5500 da 6,25 sobre #f5efde
 ];
 
@@ -206,7 +208,7 @@ function efectivo(rs, target, prefijos, prop, capas) {
   ['oscuro', 'claro'].forEach(function (tema) {
     var c = cfg[tema];
     var card = efectivo(rs, '.product-card', c.pref, 'background', c.capas);
-    ['.price-promo', '.price-cash', '.card-brand', '.card-brand-st'].forEach(function (t) {
+    ['.price-promo', '.price-cash', '.card-brand'].forEach(function (t) {   // [JERARQUIA-CARD] .card-brand-st ya no existe
       var fg = efectivo(rs, t, c.pref, 'color', c.capas);
       medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: t, texto: fg.hex[0], fondos: card.hex, impone: fg.impone, pisado: fg.pisado });
     });
@@ -215,6 +217,61 @@ function efectivo(rs, target, prefijos, prop, capas) {
     var bs = efectivo(rs, '.bottom-sheet', c.pref, 'background', c.capas);
     var bsCash = efectivo(rs, '.bottom-sheet .price-cash', c.pref, 'color', c.capas);
     if (bs.hex.length && bsCash.hex.length) medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '.bottom-sheet .price-cash', texto: bsCash.hex[0], fondos: bs.hex, impone: bsCash.impone, pisado: bsCash.pisado });
+  });
+})();
+
+// ═══ CARD DEL CATÁLOGO ═══ [JERARQUIA-CARD] 24-sep-2026
+// Los botones y el Hot Sale de la card, sobre la card. Varios fondos son rgba() o un gradiente: se componen sobre
+// la card y, si es un gradiente, se mide contra cada parada (el peor caso). Un elemento con varias clases recibe
+// las reglas de cada una (el Hot Sale es .price-cash Y .price-cash--hotsale): el ganador sale de todas, como en el
+// navegador — así se veía que en claro `body:not(.dark-mode) .price-cash` le ganaba al Hot Sale y lo pintaba verde.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function crudo(v, capas, prof) {
+    prof = prof || 0; var t = String(v || '').trim(); var m = t.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([\s\S]+))?\)$/);
+    if (!m || prof > 8) return t;
+    for (var i = 0; i < capas.length; i++) if (capas[i] && capas[i][m[1]]) return crudo(capas[i][m[1]], capas, prof + 1);
+    return m[2] ? crudo(m[2], capas, prof + 1) : '';
+  }
+  function sobre(c, fondoHex) {
+    var fo = [1, 3, 5].map(function (i) { return parseInt(fondoHex.substr(i, 2), 16); });
+    return '#' + [c.r, c.g, c.b].map(function (v, i) { return Math.round(v * c.a + fo[i] * (1 - c.a)).toString(16).padStart(2, '0'); }).join('');
+  }
+  // Cada color del valor (uno, o las paradas de un gradiente), compuesto sobre lo de abajo.
+  function colores(valor, c, abajo) {
+    var v = crudo(valor, c.capas); if (!v || v === 'transparent' || v === 'none') return [abajo];
+    var re = /rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:[ ,\/]+([\d.]+))?\s*\)|var\(\s*--[\w-]+[^)]*\)|#[0-9a-fA-F]{3,6}\b/g, m, out = [];
+    while ((m = re.exec(v))) {
+      if (m[1] !== undefined) out.push(sobre({ r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] }, abajo));
+      else if (m[0][0] === 'v') out = out.concat(colores(m[0], c, abajo));
+      else { var h = normalizarHex(m[0]); if (h) out.push(h); }
+    }
+    return out.length ? out : [abajo];
+  }
+  function gana(selectores, c, props) {
+    var g = [];
+    selectores.forEach(function (t) { props.forEach(function (p) { var x = ganador(rs, t, c.pref, p); if (x) g.push(x); }); });
+    return g.sort(orden).pop() || null;
+  }
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var card = colores(gana(['.product-card'], c, ['background', 'background-color']).valor, c, '#ffffff')[0];
+    // [nombre, selectores que aplican al texto, selectores que aplican al fondo]
+    [['🔔 / 🔒 botón de espera', ['.waitlist-btn'], ['.waitlist-btn']],
+     ['✓ anotada', ['.waitlist-btn', '.waitlist-btn.subscribed'], ['.waitlist-btn', '.waitlist-btn.subscribed']],
+     ['Hot Sale', ['.price-cash', '.price-cash--hotsale', '.price-cash.price-cash--hotsale'], ['.price-cash--hotsale', '.price-cash.price-cash--hotsale']],
+     ['«Consultar»', ['.card-cta-mobile'], ['.card-cta-mobile']],
+     ['Hot Sale (detalle)', ['.bottom-sheet .price-cash', '.price-cash--hotsale', '.price-cash.price-cash--hotsale'], ['.price-cash--hotsale', '.price-cash.price-cash--hotsale'], '.bottom-sheet']].forEach(function (x) {
+      var abajo = x[3] ? colores(gana([x[3]], c, ['background', 'background-color']).valor, c, '#ffffff')[0] : card;
+      var gf = gana(x[2], c, ['background', 'background-color']);
+      var bg = gf ? colores(gf.valor, c, abajo) : [abajo];
+      var gt = gana(x[1], c, ['color']);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'card', nombre: x[0] + ' ' + (x[3] ? x[3] + ' .price-cash--hotsale' : x[1][x[1].length - 1]), texto: gt && colores(gt.valor, c, bg[0])[0], fondos: bg,
+        impone: gt ? path.basename(gt.archivo) + ':' + gt.linea + (gt.important ? ' !important' : '') : '' });
+    });
   });
 })();
 
