@@ -695,7 +695,9 @@
     .btn-etq-exclusivo { background: #8e44ad; color: #fff; }
     .btn-etq-limitada { background: #c0392b; color: #fff; }
     .btn-etq-recomendado { background: #3498db; color: #000; }
-    .btn-etq-quitar { background: #333; color: #e74c3c; border: 1px solid #e74c3c; }
+    /* [QUITAR-ETIQUETA-CONTRASTE] decisión 100 · letra y borde #ff8a80 sobre el #333 de siempre, en los dos temas: 5,53
+       (con #e74c3c, 3,31). No va rojo lleno: se confundiría con «ÚLTIMAS UNIDADES». */
+    .btn-etq-quitar { background: #333; color: #ff8a80; border: 1px solid #ff8a80; }
     .btn-principal { background: #E8B800; color: #121214; font-weight: 700; }
     .btn-whatsapp { background: #25D366; color: #1a1a1a; text-decoration: none; }
     .btn-gris { background: #555; color: #fff; }

@@ -4632,6 +4632,9 @@
       if (o.descuento_hasta) p.descuento_hasta = o.descuento_hasta;
       if (o.tipo !== undefined && o.tipo !== null) p.tipo = o.tipo;
       if (o.alias !== undefined && o.alias !== null) p.alias = o.alias;
+      // [OVERRIDE-ML] el ml que carga el jefe en Editar (el panel ya lo aplicaba): la card, el detalle y el tope de
+      // decants (decantPrecioFrasco100) lo usan. Faltaba acá, y el sitio mostraba el ml de perfumes.js.
+      if (o.ml) p.ml = o.ml;
       if (o.similares_manuales !== undefined && o.similares_manuales !== null) p.similares_manuales = o.similares_manuales;
       if (o.similares_nota !== undefined && o.similares_nota !== null) p.similares_nota = o.similares_nota;
       if (o.nota_ultimo !== undefined && o.nota_ultimo !== null) p.nota_ultimo = o.nota_ultimo;
@@ -5110,7 +5113,8 @@
         return { abreEn: null };
       }
 
-      // La del hero: «Cierra a las 20hs», «Abrimos hoy a las 10hs», «Abrimos lunes 10hs» (los textos de siempre).
+      // La del hero: «cierra a las 20hs», «abrimos hoy a las 10hs», «abrimos lunes 10hs». [ESTADO-MINUSCULA] decisión 103:
+      // después del «·», minúscula, acá y en la flotante (en el hero no se nota: .store-status va en mayúsculas).
       function updateStatus(estado) {
         var el = document.getElementById('storeStatus');
         var textEl = document.getElementById('storeStatusText');
@@ -5120,17 +5124,17 @@
           textEl.textContent = estado.tipo === 'feriado' ? 'Hoy feriado · ' + estado.motivo : estado.motivo;
         } else if (estado.tipo === 'abierto') {
           el.className = 'store-status open';
-          textEl.textContent = 'Abierto · Cierra a las ' + estado.cierra + 'hs' + (estado.faltanMin <= 60 ? ' · ¡Última hora!' : '');
+          textEl.textContent = 'Abierto · cierra a las ' + estado.cierra + 'hs' + (estado.faltanMin <= 60 ? ' · ¡última hora!' : '');
         } else {
           el.className = 'store-status closed';
-          textEl.textContent = estado.abreEn === 0 ? 'Cerrado · Abrimos hoy a las ' + estado.abreHora + 'hs'
-            : estado.abreEn ? 'Cerrado · Abrimos ' + DIAS_SEMANA[estado.abreDia] + ' ' + estado.abreHora + 'hs'
+          textEl.textContent = estado.abreEn === 0 ? 'Cerrado · abrimos hoy a las ' + estado.abreHora + 'hs'
+            : estado.abreEn ? 'Cerrado · abrimos ' + DIAS_SEMANA[estado.abreDia] + ' ' + estado.abreHora + 'hs'
             : 'Cerrado';
         }
         el.style.display = 'inline-flex';
       }
 
-      // La flotante: «Cierra en 2h 30min», «Abrimos hoy 10hs», «Abrimos mañana 10hs» (los textos de siempre). El feriado,
+      // La flotante: «cierra en 2h 30min», «abrimos hoy 10hs», «abrimos mañana 10hs» (minúscula después del «·»). El feriado,
       // corto y con el patrón de «Cerrado»: «Feriado · abrimos mañana 10hs» ([ESTADO-LOCAL], decisión 96; el nombre del
       // feriado queda sólo en el hero). Un cierre especial muestra su motivo, como antes.
       function pintarWaStatus(estado) {
@@ -5148,11 +5152,11 @@
         } else if (estado.tipo === 'abierto') {
           var hs = Math.floor(estado.faltanMin / 60), mins = estado.faltanMin % 60;
           clase = 'wa-status--open';
-          texto = 'Abierto · Cierra en ' + (hs > 0 ? hs + 'h ' + (mins > 0 ? mins + 'min' : '') : mins + 'min').trim();
+          texto = 'Abierto · cierra en ' + (hs > 0 ? hs + 'h ' + (mins > 0 ? mins + 'min' : '') : mins + 'min').trim();
         } else {
-          texto = estado.abreEn === 0 ? 'Cerrado · Abrimos hoy ' + estado.abreHora + 'hs'
-            : estado.abreEn === 1 && estado.abreDia !== 1 ? 'Cerrado · Abrimos mañana ' + estado.abreHora + 'hs'   // como antes: «lunes» si abre el lunes
-            : estado.abreEn ? 'Cerrado · Abrimos ' + DIAS_SEMANA[estado.abreDia] + ' ' + estado.abreHora + 'hs'
+          texto = estado.abreEn === 0 ? 'Cerrado · abrimos hoy ' + estado.abreHora + 'hs'
+            : estado.abreEn === 1 && estado.abreDia !== 1 ? 'Cerrado · abrimos mañana ' + estado.abreHora + 'hs'   // como antes: «lunes» si abre el lunes
+            : estado.abreEn ? 'Cerrado · abrimos ' + DIAS_SEMANA[estado.abreDia] + ' ' + estado.abreHora + 'hs'
             : 'Cerrado';
         }
         el.className = 'wa-status ' + clase;
@@ -6861,9 +6865,12 @@
       return (isFinite(v) && v > 0) ? v : 0;
     }
 
-    // El perfume no se ofrece en decants (casilla "No ofrecer en decants").
+    // El perfume no se ofrece en decants: la casilla "No ofrecer en decants" del panel, o [DECANT-SOLO-PERFUMES] (decisión
+    // de Alejo, 24-sep) no es perfume —body splash, body spray, desodorante, crema…—, con la misma regla que pone la
+    // etiqueta de tipo en la card (detectProductType: el «Tipo de producto» del panel y, si está vacío, el nombre). Lo
+    // toman la lista del armador (extras.js), addDecant y sanitizeDecantsPack (saca estos de los packs guardados).
     function decantExcluido(p) {
-      return !!(p && p._decantExcluido);
+      return !!(p && (p._decantExcluido || detectProductType(p)));
     }
 
     // true → la card se muestra como "Precio a consultar" (no se puede agregar).
@@ -7201,8 +7208,13 @@
       if (heroEl) {
         if (qty === 0) {
           // Top 6 perfumes por views/clicks (data real) — fallback: primeros 6 elegibles
+          // [DECANT-SOLO-PERFUMES] el mismo filtro que la lista del armador (extras.js): ni pausados, ni excluidos
+          // (que incluye lo que no es perfume), ni duplicados de un decant de diseñador. Y ni «a consultar»: acá el
+          // único botón es «+ AGREGAR». Sin stock sigue afuera, como antes.
+          var qpCustoms = decantCustomNombres();
           var topElegibles = PERFUMES.filter(function(p) {
-            return p && p.slug && !p.esSet && !p._oculto && (p._stockStatus !== 'out');
+            return p && p.slug && !p.esSet && !p._oculto && !p._pausado && (p._stockStatus !== 'out')
+              && !decantExcluido(p) && !decantAConsultar(p) && !qpCustoms[decantNombreNorm(p.name)];
           });
           topElegibles.sort(function(a, b) {
             var va = perfumeViews[a.slug] || 0;
@@ -7215,11 +7227,11 @@
             qpGrid.innerHTML = top6.map(function(p) {
               var foto = p.foto ? p.foto.replace(/ /g, '%20') : '';
               var imgHTML = foto
-                ? '<img src="' + foto + '" alt="' + p.name + '" loading="lazy">'
-                : (p.name.charAt(0) || '•');
+                ? '<img src="' + foto + '" alt="' + escapeHTML(p.name) + '" loading="lazy">'
+                : escapeHTML(p.name.charAt(0) || '•');
               return '<div class="decant-quickpick-card" onclick="addDecant(\'' + p.slug + '\')">'
                 + '<div class="decant-quickpick-img">' + imgHTML + '</div>'
-                + '<p class="decant-quickpick-name">' + p.name + '</p>'
+                + '<p class="decant-quickpick-name">' + escapeHTML(p.name) + '</p>'
                 + '<button type="button" class="decant-quickpick-add" onclick="event.stopPropagation();addDecant(\'' + p.slug + '\')">+ AGREGAR</button>'
                 + '</div>';
             }).join('');

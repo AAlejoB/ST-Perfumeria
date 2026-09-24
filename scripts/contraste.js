@@ -141,7 +141,7 @@ function medir(o) {
   var conocida = CONOCIDAS.filter(function (c) { return c.superficie === o.superficie && c.nombre === o.nombre && c.tema === o.tema; })[0];
   if (!o.texto || !o.fondos.length) { filas.push({ superficie: o.superficie, tema: o.tema, rol: o.rol, nombre: o.nombre, error: !o.texto ? 'no pude resolver el texto' : 'no pude resolver el fondo' }); fallas++; return; }
   var r = Math.min.apply(null, o.fondos.map(function (f) { return contraste(o.texto, f); }));
-  var ok = r >= MINIMO && !o.falloRegla;
+  var ok = r >= (o.minimo || MINIMO) && !o.falloRegla;
   var notas = [];
   if (o.pisado) { pisados++; notas.push('⚠️ token pisado por !important (' + o.impone + ') · ver [LIGHT-MAYO-56]'); }
   if (o.extra) notas.push(o.extra);
@@ -351,6 +351,14 @@ function efectivo(rs, target, prefijos, prop, capas) {
       var f = [pagina, card].concat(violeta).map(function (b) { return fondoDe([x[1]], c, b)[0]; });
       medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: x[0] + ' ' + x[1], texto: g && colores(g.valor, c, f[0])[0], fondos: f, impone: donde(g) });
     });
+    // [PILDORA-ANILLO] el anillo (el color de la primera sombra de .wa-status) contra lo que la píldora tiene abajo, en
+    // oscuro: la página, la card y las paradas del banner violeta. No es texto: mínimo 3. En claro no se cuenta (sobre
+    // blanco o crema separa el fondo de la píldora, que ya da 5,89 o más).
+    if (tema === 'oscuro') {
+      var gAni = gana(['.wa-status'], c, ['box-shadow']);
+      var ani = gAni && (String(gAni.valor).match(/#[0-9a-fA-F]{3,6}\b/) || [])[0];
+      medir({ superficie: 'catálogo', tema: tema, rol: 'píldora', nombre: 'anillo de la flotante .wa-status (no es texto)', texto: ani ? normalizarHex(ani) : null, fondos: [pagina, card].concat(violeta), minimo: 3, extra: 'mínimo 3', impone: donde(gAni) });
+    }
     // El contador de cada categoría, sobre su card.
     var cat = fondoDe(['.cat-card', '.section-cats .cat-card', '.cat-grid .cat-card'], c, pagina)[0];
     var gCnt = gana(['.cat-count', '.cat-card .cat-count'], c, ['color']);
@@ -417,12 +425,14 @@ function efectivo(rs, target, prefijos, prop, capas) {
   ['oscuro', 'claro'].forEach(function (tema) {
     var c = cfg[tema];
     ['.btn-whatsapp', '.btn-gris', '.btn-etq-nuevo', '.btn-etq-mes', '.btn-etq-vendido', '.btn-etq-ultimas', '.btn-etq-exclusivo',
-     '.btn-etq-limitada', '.btn-etq-recomendado'].forEach(function (t) {
+     '.btn-etq-limitada', '.btn-etq-recomendado', '.btn-etq-quitar'].forEach(function (t) {
       var bg = efectivo(rs, t, c.pref, 'background', c.capas), fg = efectivo(rs, t, c.pref, 'color', c.capas);
       var extra = '', fallo = false;
       if (bg.hex[0] && fg.hex[0]) {
         var manda = contraste(bg.hex[0], '#000000') > contraste(bg.hex[0], '#ffffff') ? 'oscuro' : 'claro';
-        var es = luminancia(fg.hex[0]) < 0.5 ? 'oscuro' : 'claro';
+        // [QUITAR-ETIQUETA-CONTRASTE] clara u oscura RESPECTO DE SU FONDO (con un corte fijo en 0,5, el #ff8a80 de «✕
+        // QUITAR» —luminancia 0,41— contaba como oscuro sobre #333).
+        var es = luminancia(fg.hex[0]) < luminancia(bg.hex[0]) ? 'oscuro' : 'claro';
         fallo = es !== manda; extra = fallo ? 'regla 19 ❌ (el fondo pide letra ' + manda + ')' : 'regla 19 ✅';
       }
       medir({ superficie: 'panel', tema: tema, rol: 'botón', nombre: t, texto: fg.hex[0], fondos: bg.hex, extra: extra, falloRegla: fallo, impone: fg.impone });

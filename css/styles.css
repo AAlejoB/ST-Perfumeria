@@ -4859,7 +4859,10 @@
       padding: .3rem .6rem;
       border-radius: 20px;
       white-space: nowrap;
-      box-shadow: 0 2px 10px rgba(0,0,0,.4);
+      /* [PILDORA-ANILLO] decisión 99 · un anillo blanco de 1,5 px separa la píldora de lo que tenga abajo (sobre el
+         banner violeta del juego, en oscuro, el borde daba 1,07-1,51). En claro, sobre blanco o crema, no se ve y no
+         hace falta: ahí separa el fondo de la píldora. */
+      box-shadow: 0 0 0 1.5px #fff, 0 2px 10px rgba(0,0,0,.4);
       animation: waStatusIn .5s ease .8s both;
     }
     /* [ESTADO-LOCAL] decisión 96 · la letra la decide el fondo, no el tema: la píldora flota sobre cualquier sección (el
@@ -9924,8 +9927,11 @@
          (display: block, desde JS), la de instalar espera escondida y aparece cuando la otra se cierra. */
       body:has(.push-banner[style*="block"]) #pwaInstallBanner.visible { opacity: 0; transform: translate(-50%, -12px); pointer-events: none; }
       /* 5 · el final de la página se reserva ([FINAL-FLOTANTES], decisión 97): barra 60 + 16 + WhatsApp 56 + 8 de aire =
-         140, así el © termina arriba de WhatsApp y de «Cerrado» (con 60 quedaban encima de la línea del ©). */
-      html body { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+         140, así el © termina arriba de WhatsApp y de «Cerrado». [FINAL-COMPARANDO] decisión 101: la reserva va en el
+         pie y no en el body, así se pinta con el fondo del pie (en claro quedaba una franja crema de ~80 px), y con
+         «comparar» prendido suma los 49 que sube WhatsApp. 1.5rem es el padding de abajo que el pie ya tenía. */
+      footer { padding-bottom: calc(1.5rem + 140px + env(safe-area-inset-bottom)); }
+      body:has(.compare-bar.visible) footer { padding-bottom: calc(1.5rem + 189px + env(safe-area-inset-bottom)); }
       /* La hoja «Hola, <nombre>»: el estilo de la hoja del carrito (#111, borde dorado arriba), filas de 48, encima de
          la barra. */
       .cuenta-hoja-overlay { position: fixed; inset: 0; z-index: 9993; background: rgba(0,0,0,.6); align-items: flex-end; justify-content: center; }
