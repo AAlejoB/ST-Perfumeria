@@ -464,6 +464,48 @@ function efectivo(rs, target, prefijos, prop, capas) {
   });
 })();
 
+// ═══ PROMO DE DECANTS ═══ [PROMO-DECANTS] 24-sep-2026 (parte N)
+// Catálogo: el chip «3×» del armador y la etiqueta de la card (#000 sobre #E8B800, los dos temas), la línea de la promo en
+// el pie del armador (el pie es oscuro en los dos temas) y «Precio a consultar» sobre la card del armador (sin la opacidad
+// que tenía). Panel: los cuatro estados de la promo (decisión 113), su segundo renglón y los avisos de costo, sobre la caja.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function gana(sels, c, props) { var g = []; sels.forEach(function (t) { props.forEach(function (p) { var x = ganador(rs, t, c.pref, p); if (x) g.push(x); }); }); return g.sort(orden).pop() || null; }
+  function hexDe(g, c) { if (!g) return null; var h = resolver(g.valor, c.capas); return h[0] || null; }
+  function donde(g) { return g ? path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') : ''; }
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    [['chip «3×» del armador', ['.decant-builder .decant-card-name .decant-chip-promo', '.decant-chip-promo']],
+     ['etiqueta de la card .badge-promo', ['.badge-promo']]].forEach(function (x) {
+      var fg = gana(x[1], c, ['color']), bg = gana(x[1], c, ['background', 'background-color']);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'promo', nombre: x[0], texto: hexDe(fg, c), fondos: [hexDe(bg, c)].filter(Boolean), impone: donde(fg) });
+    });
+    var pie = gana(['.decant-builder-footer', '.decant-builder-footer.has-items'], c, ['background', 'background-color']);
+    var linea = gana(['.decant-builder .decant-builder-footer .decant-builder-promo', '.decant-builder-promo'], c, ['color']);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'promo', nombre: '«Sumá 1 más con 3×» (pie del armador)', texto: hexDe(linea, c), fondos: [hexDe(pie, c)].filter(Boolean), impone: donde(linea) });
+    var card = gana(['.decant-card', '.decant-builder-grid > *'], c, ['background', 'background-color']);
+    var pend = gana(['.decant-card-price-pending'], c, ['color']);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'promo', nombre: '«Precio a consultar» .decant-card-price-pending', texto: hexDe(pend, c), fondos: [hexDe(card, c)].filter(Boolean), impone: donde(pend) });
+  });
+})();
+(function () {
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz] }, claro: { pref: ['body.light'], capas: [luz, raiz] } };
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var caja = efectivo(rs, '.promo-caja', c.pref, 'background', c.capas).hex;
+    [['estado «Apagada»', '.promo-estado--apagada'], ['estado «Programada»', '.promo-estado--programada'], ['estado «Prendida»', '.promo-estado--prendida'],
+     ['estado «Terminó…»', '.promo-estado--terminada'], ['«Para repetirla…»', '.promo-estado-2'], ['aviso de costo', '.promo-aviso-costo'], ['fila «pierde $X»', '.promo-fila-nota--pierde']].forEach(function (x) {
+      var fg = efectivo(rs, x[1], c.pref, 'color', c.capas);
+      medir({ superficie: 'panel', tema: tema, rol: 'promo', nombre: x[0] + ' ' + x[1], texto: fg.hex[0], fondos: caja, impone: fg.impone });
+    });
+  });
+})();
+
 // ═══ VENTANA «AVISAME» ═══ [ESPERA-CLARO] 23-sep-2026
 // Todos sus textos son <p> (menos el ×): en claro compiten con `body:not(.dark-mode) p` (0,1,2), que le gana a una
 // clase sola (0,1,0). Así quedaban #2a2a2d sobre la caja #111 = 1,32 hasta v1.1.115, y este script no lo veía porque
