@@ -215,6 +215,34 @@ function efectivo(rs, target, prefijos, prop, capas) {
   });
 })();
 
+// ═══ VENTANA «AVISAME» ═══ [ESPERA-CLARO] 23-sep-2026
+// Todos sus textos son <p> (menos el ×): en claro compiten con `body:not(.dark-mode) p` (0,1,2), que le gana a una
+// clase sola (0,1,0). Así quedaban #2a2a2d sobre la caja #111 = 1,32 hasta v1.1.115, y este script no lo veía porque
+// sólo miraba las reglas de la clase. Acá el ganador se elige entre la regla de la clase y la de la etiqueta.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function conEtiqueta(target, etiqueta, c) {
+    var g = [ganador(rs, target, c.pref, 'color'), etiqueta ? ganador(rs, etiqueta, c.pref, 'color') : null].filter(Boolean).sort(orden).pop();
+    if (!g) return null;
+    return { hex: resolver(g.valor, c.capas), impone: path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') };
+  }
+  var cuerpo = efectivo(rs, 'body', [], 'color', cfg.oscuro.capas);   // lo que hereda un <p> sin regla propia
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var caja = efectivo(rs, '.waitlist-box', c.pref, 'background', c.capas);
+    [['título', '.waitlist-title', 'p'], ['perfume', '.waitlist-perfume-name', 'p'], ['descripción', '.waitlist-desc', 'p'],
+     ['× cerrar', '.waitlist-close', null], ['× cerrar (hover)', '.waitlist-close:hover', null],
+     ['línea del teléfono', '.waitlist-phone-preview', 'p'],
+     ['mensaje ¡Listo!', '.waitlist-msg--ok', 'p'], ['mensaje ¡Ya estás!', '.waitlist-msg--ya', 'p'], ['mensaje de error', '.waitlist-msg--error', 'p']].forEach(function (t) {
+      var fg = conEtiqueta(t[1], t[2], c) || { hex: cuerpo.hex, impone: 'heredado del body' };
+      medir({ superficie: 'catálogo', tema: tema, rol: 'avisame', nombre: t[0] + ' ' + t[1], texto: fg.hex[0], fondos: caja.hex, impone: fg.impone });
+    });
+  });
+})();
+
 // ═══ Salida ═══
 function tabla(titulo, lista) {
   if (!lista.length) return;
