@@ -23,7 +23,7 @@
 | **Anon key format** | `sb_publishable_*` (nuevo formato post-2024) |
 | **Connection method** | Session Pooler IPv4: `aws-1-sa-east-1.pooler.supabase.com:5432` con user `postgres.znmjhproimtprptheumy` |
 | **Direct connection** | IPv6-only (no funciona desde IPv4 argentino · solo usable con add-on IPv4 add-on $4/mes) |
-| **Project ref legacy** | `rtgjzzkjrwbkdhkslxix` (us-west-2 Oregon) · activo hasta 28-may como rollback safety net |
+| **Project ref legacy** | ver `[S4-OREGON]` (detalle fuera del repo) |
 
 ### Backup pre-migración disponible
 

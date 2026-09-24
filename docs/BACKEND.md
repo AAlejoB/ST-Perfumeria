@@ -15,7 +15,7 @@
 
 | Pieza | Herramienta | Notas |
 |---|---|---|
-| BaaS | Supabase (Postgres + Realtime + Storage) | **Pro tier $25/mes** · proyecto activo: `znmjhproimtprptheumy` en `sa-east-1` São Paulo (migrado desde us-west-2 Oregon el 21-may-2026 · `[PLAN-B-SWITCH]` commit `f532525`) · proyecto legacy `rtgjzzkjrwbkdhkslxix` se mantiene pausable a partir del 28-may como rollback safety net |
+| BaaS | Supabase (Postgres + Realtime + Storage) | **Pro tier $25/mes** · proyecto activo: `znmjhproimtprptheumy` en `sa-east-1` São Paulo (migrado desde us-west-2 Oregon el 21-may-2026 · `[PLAN-B-SWITCH]` commit `f532525`) · proyecto legacy: ver `[S4-OREGON]` (detalle fuera del repo) |
 | Auth admin | Supabase Auth (email + password) | 3 cuentas en `auth.users`: `jefe@stperfumeria.local`, `empleado@stperfumeria.local`, `alejooobello7@gmail.com` (cuenta personal de Alejo). Hashes bcrypt `$2a$10$...` preservados a través de la migración Plan B. ⚠️ **Issue de seguridad activo:** las passwords del jefe y empleada están HARDCODED en `admin.html` L2766-2767 como constantes JS (`ADMIN_PASS`/`ADMIN_PASS_EMPLEADO`) que cualquiera puede leer con "Ver código fuente" · fix pendiente en `[SECURITY-AUDIT-S1]` |
 | Auth cliente | Custom (telefono + password) **vía RPC `SECURITY DEFINER`** · bcrypt en `clientes.password` | ✅ `[BCRYPT-MIGRATION]` hecho el 17-sep-2026 · `anon` sin acceso directo a la tabla · pendiente escalón 3 (Supabase Auth) |
 | Anon key | Formato nuevo `sb_publishable_*` (post-2024) | El proyecto nuevo usa el formato nuevo · supabase-js v2 acepta ambos formatos (compat backward). En el frontend está hardcodeada en `admin.html` L2769 y `js/app.js` L5 |
@@ -257,7 +257,7 @@ checkout vía WhatsApp NO depende de Supabase en tiempo real.
      "https://znmjhproimtprptheumy.supabase.co/rest/v1/perfumes_nuevos?select=slug&limit=1" \
      -w "\nstatus: %{http_code}, time: %{time_total}s\n"
    ```
-   (URL post Plan B · 21-may-2026 · ya NO es `rtgjzzkjrwbkdhkslxix` del proyecto viejo de Oregon)
+   (URL post Plan B · 21-may-2026 · ya NO es la del proyecto viejo de Oregon: ver `[S4-OREGON]` (detalle fuera del repo))
    Si status ≠ 200 o time > 5s → degradado.
 4. **Soporte Pro:** Dashboard Supabase → Support → submit ticket (Alejo es Pro, tiene soporte directo)
 5. **Si persiste >2h:** considerar subir el timeout en `app.js` (3000 → 8000ms)

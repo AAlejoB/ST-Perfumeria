@@ -396,7 +396,7 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 | Item | Detalles |
 |---|---|
 | **Proyecto Supabase activo** | sa-east-1 São Paulo · ref `znmjhproimtprptheumy` |
-| **Proyecto Supabase legacy** | us-west-2 Oregon · ref `rtgjzzkjrwbkdhkslxix` · activo hasta 28-may como rollback |
+| **Proyecto Supabase legacy** | ver `[S4-OREGON]` (detalle fuera del repo) |
 | **Anon key activa** | `sb_publishable_Bb4Jo74f4Wh7vhz...` (nuevo formato Supabase, ~46 chars) |
 | **DB password expuesta** | ⚠️ Sí · ambas en chat de esta sesión. Reset pendiente |
 | **Bot Telegram token** | **Rotado el 19-sep-2026 y verificado por entrega (`200` en `pg_net`)** · el del 17-sep quedó mal pegado (404, nada se entregó ~31 h) y además salió en una captura → rotado de nuevo · vive sólo en `public.send_telegram` · `anon` sin EXECUTE (S14 ✅) · pendiente Vault |

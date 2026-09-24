@@ -1116,7 +1116,7 @@ Sesión nocturna · extensión natural de la sesión del 20-may. Alejo ejecutó 
 
 ```powershell
 pg_dump --host=aws-0-us-west-2.pooler.supabase.com --port=5432 \
-  --username=postgres.rtgjzzkjrwbkdhkslxix --dbname=postgres \
+  --username=postgres.<ref: ver [S4-OREGON]> --dbname=postgres \
   --no-owner --no-privileges \
   --schema=public --schema=auth --schema=storage \
   --file=/d/backups/st-perfumeria-pre-migracion-20may2026.sql
@@ -1198,7 +1198,7 @@ Después Alejo copia/paste el contenido en el SQL Editor → click Run.
 
 #### Paso 5 · Edge Functions · SKIPPED
 
-Verificación reveló 0 Edge Functions en el proyecto viejo (`https://supabase.com/dashboard/project/rtgjzzkjrwbkdhkslxix/functions` mostraba "DEPLOY YOUR FIRST EDGE FUNCTION").
+Verificación reveló 0 Edge Functions en el proyecto viejo (su panel de funciones —el ref: ver `[S4-OREGON]` (detalle fuera del repo)— mostraba "DEPLOY YOUR FIRST EDGE FUNCTION").
 
 **El `notifyTelegram()` NO usa Edge Functions** · usa una **función SQL `public.send_telegram(msg)`** con la extensión `pg_net` para hacer HTTP POST a `api.telegram.org`. Esta función SQL se migró en el paso 2 (schema) pero requiere `pg_net` habilitada en el nuevo proyecto · ver paso 6+.
 
@@ -1236,7 +1236,7 @@ VALUES ('perfume-fotos', 'perfume-fotos', true);
 4. `sw.js` · `CACHE_VERSION = 'v1.1.71'` → `'v1.1.72'`
 
 **Verificación post-push (Vercel deploy 13s):**
-- 0 referencias al ref viejo (`rtgjzzkjrwbkdhkslxix`) en HTML público
+- 0 referencias al ref viejo (ver `[S4-OREGON]` (detalle fuera del repo)) en HTML público
 - 4 referencias al ref nuevo (`znmjhproimtprptheumy`) distribuidas
 - SW v1.1.72 en producción
 - Anon key formato `sb_publishable_*` activa en producción
@@ -1484,7 +1484,7 @@ Al verificar S1 antes de tocar nada, se descubrió que **el inventario estaba de
 
 #### 🕐 Pendientes que se pudrieron con el tiempo (al 12-ago)
 
-- 💸 **Bajar el proyecto Supabase viejo de Oregon (`rtgjzzkjrwbkdhkslxix`)** · el rollback window venció el **28-may**. Si sigue activo, son **~2,5 meses de facturación doble** (2 proyectos Pro ≈ **USD 60-75 de más**). Es lo más caro de la lista y lo más barato de resolver (pausar es reversible y no toca código). ⚠️ **Verificar primero que siga activo** — en el cierre del 12-ago el MCP de Supabase estaba desconectado y no se pudo confirmar.
+- 💸 **Bajar el proyecto Supabase viejo de Oregon** (ver `[S4-OREGON]` (detalle fuera del repo)) · el rollback window venció el **28-may**. Si sigue activo, son **~2,5 meses de facturación doble** (2 proyectos Pro ≈ **USD 60-75 de más**). Es lo más caro de la lista y lo más barato de resolver (pausar es reversible y no toca código). ⚠️ **Verificar primero que siga activo** — en el cierre del 12-ago el MCP de Supabase estaba desconectado y no se pudo confirmar.
 - 🔴 Los issues de seguridad llevan **~3 meses** abiertos desde que se detectaron el 21-may.
 
 #### 💬 Mensajes meta
@@ -1500,7 +1500,7 @@ Sesión que arrancó como *"bajemos el proyecto viejo para dejar de pagar"* (el 
 
 #### `[FOTOS-OREGON]` · 97 direcciones apuntando al servidor viejo
 
-**Cómo se descubrió.** Antes de pausar Oregon se verificó qué dependía de él. El repo estaba limpio (`grep rtgjzzkjrwbkdhkslxix` sólo aparecía en `.claude/settings.local.json`, que no ejecuta nada) y Vercel no tenía ninguna variable configurada. **Pero el navegador contra producción mostró 80 `<img>` cargando desde `rtgjzzkjrwbkdhkslxix.supabase.co`.** Las URLs se guardan enteras en la BD: el Plan B de mayo copió los archivos al bucket nuevo pero **no reescribió las direcciones guardadas**.
+**Cómo se descubrió.** Antes de pausar Oregon se verificó qué dependía de él. El repo estaba limpio (el `grep` del ref —ver `[S4-OREGON]` (detalle fuera del repo)— sólo aparecía en `.claude/settings.local.json`, que no ejecuta nada) y Vercel no tenía ninguna variable configurada. **Pero el navegador contra producción mostró 80 `<img>` cargando desde el dominio del proyecto viejo (ver `[S4-OREGON]` (detalle fuera del repo)).** Las URLs se guardan enteras en la BD: el Plan B de mayo copió los archivos al bucket nuevo pero **no reescribió las direcciones guardadas**.
 
 **Por qué nadie lo notó en 3 meses:** Oregon seguía prendido y pagado, así que las fotos cargaban perfecto. El problema era invisible **hasta el momento exacto de apagarlo** — el peor tipo de bug latente.
 
@@ -2580,6 +2580,41 @@ Prompt `_n` del PREPARADOR (D, E, F y G, cada una en su rama, con su bump y su m
 
 ---
 
+### Sesión 24-sep-2026 (tarde) · `_q` · **la parte I**
+
+Prompt `_q` del PREPARADOR (reemplazó al `_p`, que no se había arrancado): las decisiones 79-85 del DISEÑADOR, el horario de las dos píldoras y el ref de Oregon. Una rama (`fix-i`), un bump (SW **v1.1.126**), merge ff `59da156..2824efb`. Medido con fixture y datos inventados; en producción, sólo `curl`.
+
+#### Qué se hizo
+
+- **`[AMARILLO-CATALOGO-CLARO]`** (79) — las 11 reglas de los 26 textos (cursiva del hero, «Comodoro.» y Nosotros, ◆ y precio de sets, «Ver perfumes →», links y ● de Nosotros, carrito, «OCASIÓN») a `var(--amarillo-tinta)`. En claro: 0 textos `#E8B800` sobre fondo claro (eran 24 / 43 apariciones con el fixture del día), mínimo **4,80** («identidad.» sobre el degradé del hero; el PREPARADOR había medido 5,87 sobre `#f1e8ce`, otro punto del mismo degradé). Oscuro: 0 cambios.
+- **`[HOTSALE-CLARO]`** (80) — un solo naranja `#9a3412` en claro (texto, borde y franja al 6 %): card **6,64** · detalle **5,81** (con `#c2410c` el detalle daba 4,17). Salió de las conocidas de `contraste.js`.
+- **`[CERRADO-HERO]`** (81) — `.store-status.closed`: letra y punto, claro `#b8342a` (3,82 → **5,89**) y oscuro `#ff6b6b` (4,47 → **6,15**). Es el único cambio del oscuro de toda la parte.
+- **`[PEDIDOS-PASS-CLARO]`** (82) — `.caja-pedido` (claro: superficie y borde del tema, 1,0 → **17,4**), `.no-registrado` (claro `#9a3412`: **7,31**), «Verificá su identidad…» a `.aviso-verificar` (era `#f1c40f`, no `#E8B800`: 1,69 → **7,18** en claro; oscuro igual) y «Pedido: …», «Cargando…» y «No hay pedidos» en `--gris` (3,54 → 5,33). Oscuro: 0 cambios en 2677.
+- **`[SALTO-CARD-CENTRO]`** (83) — `'start'` en el celu y `'center'` en escritorio. Con eso solo la card 100 seguía en −6,3: el navegador fija el destino al arrancar y, mientras baja, las cards que se van mostrando cambian de alto (12-13 px; con `'center'` pasaba lo mismo: +10,5 antes de E, −5 después). Se suma un re-apuntado sin animación cuando el scroll se queda quieto, salvo que la persona haya tocado: **5,7** debajo de la barra a 390; a 1280, centrada.
+- **`[ANILLO-1PX]`** (84) — el anillo de `.quiz-dot` en `1px`.
+- **`[EFECTIVO-UN-RENGLON]`** (85) — «$134.100 efectivo/transf.» en la card y el detalle: **un renglón** en las 19 cards a 390 y 360 (208 px de 288 / 258); antes, dos. El Hot Sale y el carrito no cambian.
+- **`[HORARIO-DOS-FUENTES]`** (del PREPARADOR) — `calcularEstadoHorario` (HORARIOS con el ajuste del panel + feriados + cierres especiales) y dos que escriben; se fue `checkStoreStatus`. Con reloj fijo y feriados inventados, 7 casos: domingo, sábado 16:00, feriado, horario ajustado (los 4 del prompt), domingo antes de un feriado, ajustado abierto y cierre especial. **Las dos dicen el mismo día y la misma hora en los 7.** En `main` la flotante se equivocaba en 4 (decía «Abierto» el sábado a las 16, el feriado y con el horario ajustado) y las dos decían «lunes» cuando el lunes era feriado. Textos como antes (la flotante dice «mañana» salvo cuando abre el lunes); lo nuevo es el feriado en la flotante («Hoy feriado · …», como el hero).
+  - **La captura del DISEÑADOR (F, 24-sep 00:32):** el hero decía «abrimos HOY a las 10hs» porque eran las 00:32 del jueves; el «LUNES 10hs» de la flotante lo escribió el script de la captura (`setup-d-pildora.js` fuerza ese texto para mostrar «Cerrado»), no el código. La diferencia de fuentes era real igual.
+- **Oregon (I9)** — el ref del proyecto sale de las **9** líneas de docs (HISTORIA ×5, BACKEND ×2, DATABASE, SECURITY): queda «ver `[S4-OREGON]` (detalle fuera del repo)». Sigue en 3 archivos de `RECOMENDACIONES_CLAUDECHAT/` (fuera de la lista del prompt; no se tocaron).
+- **Capturas** (`capturas-espera\`, claro y oscuro): `catalogo-v1.1.126-{tema}-5-set`, `-11-hub`, `-12-nosotros`, `-1-grilla`, `-1-grilla-360`, `-4-detalle`, `-13-card100-390`, `-14-horario-{1-domingo, 2-sabado-tras-cierre, 3-feriado, 4-horario-ajustado, 3b-domingo-antes-de-feriado, 4b-ajustado-abierto, 5-cierre-especial}` y `panel-v1.1.126-{tema}-8-pedidos-pass`.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[AMARILLO-CATALOGO-CLARO]` | Los dorados que quedaban en claro | decisión 79 · `7b49c6f` + bump `2824efb` |
+| `[HOTSALE-CLARO]` (ex `[HOTSALE-DETALLE-CLARO]`) | Un solo naranja en claro | decisión 80 |
+| `[CERRADO-HERO]` | «Cerrado» del hero legible | decisión 81 |
+| `[PEDIDOS-PASS-CLARO]` | Pedidos pass en claro | decisión 82 |
+| `[SALTO-CARD-CENTRO]` | La card 100 a la vista | decisión 83 |
+| `[ANILLO-1PX]` | El código dice lo que se ve | decisión 84 |
+| `[EFECTIVO-UN-RENGLON]` | El efectivo en un renglón | decisión 85 |
+| `[HORARIO-DOS-FUENTES]` | Las dos píldoras, una cuenta | del PREPARADOR |
+
+---
+
+**Última actualización:** **Septiembre 24, 2026 (tarde)** — la parte I (`_q`) en producción, SW **v1.1.126**: `[AMARILLO-CATALOGO-CLARO]`, `[HOTSALE-CLARO]`, `[CERRADO-HERO]`, `[PEDIDOS-PASS-CLARO]`, `[SALTO-CARD-CENTRO]`, `[ANILLO-1PX]`, `[EFECTIVO-UN-RENGLON]` y `[HORARIO-DOS-FUENTES]` cerrados; el ref de Oregon fuera de los docs. **Pendiente nuevo:** `[BOTONES-CONTRASTE]` 🟢.
+
 **Última actualización:** **Septiembre 24, 2026** — D (v1.1.121), E (v1.1.122), F (v1.1.123), G (v1.1.124) y H (v1.1.125) en producción: `[AMARILLO-TINTA-CLARO]`, `[ACTION-BTN-BASE]`, `[JERARQUIA-CARD]`, `[TAP-44]` (catálogo), `[CLARO-CATALOGO-2]`, `[PANEL-CLARO-CAJAS]`, `[FILTROS-SOLO-CATALOGO]`, `[CARD-ESCRITORIO-BANNER]` y `[JUEGOS-VENTANA-PULIDO]` cerrados. **Pendientes nuevos:** `[AMARILLO-CATALOGO-CLARO]` 🟡 · `[PEDIDOS-PASS-CLARO]` 🟡 · `[HOTSALE-DETALLE-CLARO]` 🟡 · `[GUIA-DESACTUALIZADA]` 🟢 (`[INVENTARIO-ARCHIVOS]` se cerró el mismo día) · `[SALTO-CARD-CENTRO]` 🟢 · `[CERRADO-HERO]` 🟢. Oregon recortado.
 
 **Última actualización:** **Septiembre 23, 2026 (noche, `_l` + `_m`)** — A (v1.1.118), B (v1.1.119) y C (v1.1.120) en producción: `[DECANTS-DEFAULTS]`, `[LOG-NOMBRE-CORTADO]`, `[LOG-LABEL-FALLBACK]`, `[VER-MAS]`, `[SET-UNICO-CENTRADO]`, `[JUEGOS-VENTANA]` y `[JUGAR-NO-LLEGA]` cerrados. **Pendientes nuevos:** `[FILTROS-STICKY-PIE]` 🟡 · `[ESPERA-ERROR-CRUDO]` 🟢 · `[CARD-ESCRITORIO-BANNER]` 🟢 · `[JUEGOS-VENTANA-PULIDO]` 🟢. **Próxima revisión cuando:** 🔴 `[VERCEL-ENV-VARS]` · 🟠 `[SECURITY-AUDIT-S1]` · `[S13-ESCRITURAS-ANON]` · `[S10-TER-XSS-COMBOS]` · 🟡 `[RESET-EXPIRES]` · `[S3-VAULT]` · `[S4-OREGON]` · `[SUPABASE-AUTH]` · `[AUTH-ES-STAFF]` · `[BCRYPT-RESTO]` · `[TELEGRAM-PANEL-401]` · `[LIGHT-MAYO-56]` · `[AMARILLO-TINTA-CLARO]` · `[COMBOS-PAUSADOS-VISIBLES]` · `[CLARO-CATALOGO-2]` · `[ESPERA-MAS]` · `[ACTION-BTN-BASE]` · `[SIRENITA]` · `[FILTROS-STICKY-PIE]` · `[ORDEN-COMPRA-SUGERIDA]` · 🟢 `[LOGIN-INTENTOS-CLEANUP]` · `[MEDIR-TEMP-SWEEP]` · `[RESET-TEMP-PASSWORD-MUERTA]` · `[DC-HEADER-600]` · `[DECANT-TOPE-CONTADOR]` · `[DEPOSITO-HISTORIAL-UNIFICADO]` · `[DEPOSITO-TRANSFERENCIA-EVENTO]` · `[ESPERA-ERROR-CRUDO]` · `[CARD-ESCRITORIO-BANNER]` · `[JUEGOS-VENTANA-PULIDO]` · `[COMBO-PROMO-NULL]` · `[SW-BANNER-SMART]` · `[MODAL-PRECIO-MUERTO]` · `[CACHE-CONTROL-1W]` · `[RESUMEN-23H]` · `[SATURACION-BADGES]` · `[VERDES]` · `[ALTA-NOMBRE-3-LINEAS]` · `[LAUTARO-MIMANODERECHA]` · `[CUENTAS-POR-EMPLEADA]` · `[AVISOS-PRIORIDAD]` · `[PERMISOS-TABS-JEFE]` · `[PUNTOS-DECANTS]` · `[UPLOADER-WEBP-AUTO]` · `[TIKTOK-SLIDE]` · `[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]` · `[JERARQUIA-CARD]` · `[TAP-44]` tanda 2. **Orden de trabajo:** `[VERCEL-ENV-VARS]` (Alejo) → la tanda de claro (prompt del PREPARADOR: el dorado nuevo `#6b5500`, decisión 66, en las dos apps) → lo que dibuje el DISEÑADOR con los números de estas tandas (`[FILTROS-STICKY-PIE]`, `[JUEGOS-VENTANA-PULIDO]`, la barra de abajo) → `[S10-TER-XSS-COMBOS]` cuando Alejo lo ponga en la fila → `[DISEÑOACORTADOR-PANELADMIN]` → `[LAUTARO-MIMANODERECHA]` → `[FACILITAR-MOBILE-EN-CATALOGO]`.
@@ -2680,6 +2715,17 @@ Prompt `_n` del PREPARADOR (D, E, F y G, cada una en su rama, con su bump y su m
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 24-sep-2026 (tarde, `_q`):**
+
+- ✅ ~~**`[AMARILLO-CATALOGO-CLARO]`**~~ (24-sep, salió de la tabla C de D · 🟡 propuesta) — en el catálogo en claro quedan **26 textos (45 apariciones) en `#E8B800`** (`--amarillo`, no `#8a6d00`: no eran de los 35 de D) sobre fondos claros, entre **1,24 y 1,97**: la `em` del hero («identidad.»), la de «Comodoro.» y la de nosotros, los ◆ y el precio de los sets, los «Ver perfumes … →» del hub, los links y los ● de nosotros, el precio del carrito y «OCASIÓN». Medido en el DOM a 390. Del DISEÑADOR: ¿van a la tinta o se quedan? → **RESUELTO el 24-sep** (decisión 79, parte I, SW v1.1.126, `2824efb`): las 11 reglas a `--amarillo-tinta`; en claro, 0 textos `#E8B800` sobre fondo claro (mínimo 4,80, «identidad.» sobre el degradé del hero). Oscuro igual.
+- ✅ ~~**`[PEDIDOS-PASS-CLARO]`**~~ (24-sep, salió de G · 🟡 propuesta) — en claro, cada pedido de «Pedidos pass» es una caja `#1a1a1a` (inline, desde JS) con la letra heredada `#1a1a1a`: **1,0**, no se lee. No estaba en la lista de 54; mismo arreglo que las cajas de G. → **RESUELTO el 24-sep** (decisión 82, parte I): `.caja-pedido` (claro 1,0 → 17,4), `.no-registrado` (claro `#9a3412`: 7,31), `.aviso-verificar` (era `#f1c40f`: 1,69 → 7,18) y «Pedido: …» en `--gris` (3,54 → 5,33). Oscuro igual.
+- ✅ ~~**`[HOTSALE-DETALLE-CLARO]`**~~ (24-sep, salió de E · 🟡 propuesta) — en el detalle, en claro, el Hot Sale `#c2410c` va sobre el crema del detalle (`#f5efde`), no sobre blanco: **4,17** al principio de la franja al 6 %, 4,51 sin franja (la réplica medía la card: 4,76). `contraste.js` lo lista como ⚠️ conocida. Del DISEÑADOR. → **RESUELTO el 24-sep** como `[HOTSALE-CLARO]` (decisión 80, parte I): un solo naranja `#9a3412` en claro (texto, borde y franja): card 6,64 · detalle 5,81. Salió de las conocidas de `contraste.js`.
+- ✅ ~~**`[SALTO-CARD-CENTRO]`**~~ (24-sep, salió de H · 🟢 propuesta) — `scrollToPerfume` centra la card (`block: 'center'`); desde E la card del celu (614-660 px) más su margen de 243 no entra en 844, y al saltar a la card 100 queda **5-6 px debajo de la barra**. Ya pasa en `main` desde E. Candidato: `'start'` en el celu. Decide el PREPARADOR con el DISEÑADOR. → **RESUELTO el 24-sep** (decisión 83, parte I): `'start'` en el celu, `'center'` en escritorio, y un re-apuntado sin animación cuando el scroll se queda quieto (el destino se corría 12-13 px). Card 100 a 390: 5,7 debajo de la barra.
+- ✅ ~~**`[CERRADO-HERO]`**~~ (24-sep, salió de F · 🟢 propuesta) — la píldora «Cerrado» del hero (`.store-status.closed`, `#e74c3c`) da **3,82** en claro (sobre el `#fff !important` de mayo) y **4,47** en oscuro. F cambió la flotante (`.wa-status--closed`). Del DISEÑADOR. → **RESUELTO el 24-sep** (decisión 81, parte I): letra y punto claro `#b8342a` (5,89) y oscuro `#ff6b6b` (6,15); el fondo no cambia.
+- ✅ ~~**`[ANILLO-1PX]`**~~ (decisión 84, salió de la parte H) — el anillo de 1,5 px Chromium lo dibuja de 1. → **RESUELTO el 24-sep** (parte I): se escribe `1px`.
+- ✅ ~~**`[EFECTIVO-UN-RENGLON]`**~~ (decisión 85, salió de E) — a 16,3 px el efectivo se partía en dos renglones a 390. → **RESUELTO el 24-sep** (parte I): sin «descuento», un renglón a 390 y 360.
+- ✅ ~~**`[HORARIO-DOS-FUENTES]`**~~ (del PREPARADOR) — la píldora flotante calculaba el horario aparte (lunes a sábado 10 a 20 escrito a mano, sin feriados ni ajuste). → **RESUELTO el 24-sep** (parte I): una sola cuenta, `calcularEstadoHorario`; NO ROMPER #14.
 
 **Movidos el 24-sep-2026 (`_n` + `_o`):**
 
