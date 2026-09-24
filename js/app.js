@@ -2205,8 +2205,13 @@
       if (labelNoche) labelNoche.classList.remove('active');
       updatePriceExpandBtn();
 
-      // Mostrar todas las cards
-      cardsShown = PERFUMES.length;
+      // [VER-MAS] decisión 73 · Mostrar las cards HASTA la buscada (su posición con los filtros ya
+      // limpios), no las 146: sin scroll infinito, eso volvía a alargar la grilla y dejaba el pie lejos.
+      // «Ver más» sigue desde ahí. Nunca achica lo que ya estaba a la vista.
+      var enOrden = Array.prototype.filter.call(document.querySelectorAll('.product-card'), function(c) { return matchesCat(c.dataset.cat, 'all'); });
+      var pos = -1;
+      for (var i = 0; i < enOrden.length; i++) { if (enOrden[i].dataset.slug === slug) { pos = i; break; } }
+      if (pos + 1 > cardsShown) cardsShown = pos + 1;
       applyCardVisibility();
 
       var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
@@ -3494,38 +3499,43 @@
       applyCardVisibility();
     }
 
-    // ⬇️ INFINITE SCROLL — cargar más cards automáticamente al llegar al final
-    // El botón "Ver más" se mantiene como fallback / control manual visible.
-    // Pero también, IntersectionObserver sobre el loadMoreWrap dispara
-    // loadMore() apenas se ve. Throttled para no spamear.
-    var _infiniteScrollObs = null;
-    var _infiniteScrollThrottle = 0;
-    function initInfiniteScroll() {
-      var wrap = document.getElementById('loadMoreWrap');
-      if (!wrap) return;
-      if (!('IntersectionObserver' in window)) return;
-      if (_infiniteScrollObs) return;  // ya inicializado
+    // [VER-MAS] 23-sep-2026 · decisión 67 (la eligió Alejo): sin scroll infinito. Cargaba 15 cards cada
+    // vez que uno se acercaba al final, así que todo lo que está debajo del catálogo (categorías, juegos,
+    // nosotros, FAQ, mapa y el pie) se alejaba cada vez, y un salto desde el menú o desde «Jugar» terminaba
+    // en medio del catálogo. El botón «Ver más fragancias» (#loadMoreBtn) es el único modo.
 
-      _infiniteScrollObs = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (!entry.isIntersecting) return;
-          // Throttle 300ms para no disparar múltiples loadMore seguidos
-          var now = Date.now();
-          if (now - _infiniteScrollThrottle < 300) return;
-          _infiniteScrollThrottle = now;
-          // Solo si el botón "Ver más" es visible (todavía hay más para cargar)
-          if (!wrap.classList.contains('hidden')) {
-            loadMore();
-          }
-        });
-      }, { rootMargin: '400px 0px' });  // 400px antes de llegar al wrap
-
-      _infiniteScrollObs.observe(wrap);
-    }
-    // Auto-init después de un pequeño delay (cuando el DOM ya está estable)
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(initInfiniteScroll, 800);
-    });
+    // [VER-MAS] Un link con ancla (/#faq, el de una notificación o un banner) salta al cargar, pero lo que se
+    // pinta después arriba del destino (la grilla, la Selección ST, los banners) lo corría 30 a 160 px.
+    // Mientras la página se asienta (8 s desde el load), cada vez que cambia de alto se vuelve a apuntar al
+    // ancla, salvo que la persona ya haya tocado, scrolleado o usado el teclado.
+    (function() {
+      var ancla = location.hash;
+      if (!ancla || ancla.length < 2) return;
+      var tocado = false;
+      ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function(t) {
+        window.addEventListener(t, function() { tocado = true; }, { passive: true, capture: true });
+      });
+      function reanclar() {
+        if (tocado || location.hash !== ancla) return;
+        var el = null;
+        try { el = document.querySelector(ancla); } catch (e) { return; }
+        if (!el) return;
+        // Su lugar en la página, no donde está pegado: #catalogo es la barra de filtros, que es sticky, y si ya
+        // estaba pegada el navegador la daba por «a la vista» y no la acomodaba.
+        var cs = getComputedStyle(el), antes = el.style.position;
+        if (cs.position === 'sticky') el.style.position = 'static';
+        var top = el.getBoundingClientRect().top + window.pageYOffset - (parseFloat(cs.scrollMarginTop) || 0);
+        el.style.position = antes;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+      }
+      window.addEventListener('load', function() {
+        reanclar();
+        if (!('ResizeObserver' in window)) { setTimeout(reanclar, 1500); return; }
+        var ro = new ResizeObserver(function() { reanclar(); });
+        ro.observe(document.body);
+        setTimeout(function() { ro.disconnect(); }, 8000);
+      });
+    })();
 
     // ============================================================
     // FILTROS ACTIVOS — chips removibles
@@ -4040,13 +4050,14 @@
         // [CARD-VERTICAL] dejaba la card tapada por la barra sticky.
         //
         // Cuánto hay que frenar antes lo define UN solo lugar: el
-        // scroll-padding-top del <html> (76px en desktop, 240px en mobile,
+        // scroll-margin-top de la card y de la grilla (76px en desktop, 240px en mobile,
         // donde el nav Y el filter-bar quedan pegados arriba). Lo leemos del
         // CSS en vez de hardcodear un número que envejece cada vez que
-        // cambia el alto de la barra.
+        // cambia el alto de la barra. [VER-MAS] Hasta el 23-sep era el scroll-padding-top
+        // del <html>, que también frenaba 240 px cualquier salto a una sección.
         var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
         var destino = card || document.getElementById('catalogGrid');
-        var pad = parseFloat(window.getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+        var pad = parseFloat(window.getComputedStyle(destino).scrollMarginTop) || 0;
         // behavior:'instant' EXPLÍCITO. La forma corta scrollTo(x, y) hereda
         // el scroll-behavior:smooth del <html>, así que el "scroll instantáneo"
         // que prometía el comentario original nunca lo fue: animaba ~1s desde

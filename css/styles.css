@@ -53,11 +53,13 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    /* scroll-padding-top: cuando el navegador scrollea a un destino (un #hash
-       o un scrollIntoView), frena ANTES para no dejarlo abajo del nav sticky.
-       En mobile el valor sube porque ahí el filter-bar también queda pegado
-       (ver [CARD-VERTICAL]). */
-    html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+    /* [VER-MAS] 23-sep-2026 · Cuánto frena un salto lo dice el DESTINO, no el <html>. Hasta hoy el html
+       tenía scroll-padding-top (76 / 240 en mobile) y se SUMABA al scroll-margin-top de cada sección
+       (115 / 105, ver SCROLL-MARGIN): una sección caía a 345 px del techo en el celu y a 191 en escritorio.
+       Ahora las secciones usan sólo su scroll-margin-top, y el 76 / 240 queda en la card y en la grilla,
+       que son las que tienen que quedar debajo de la barra de filtros (sticky sólo en mobile). */
+    html { scroll-behavior: smooth; }
+    .product-card, .catalog-grid { scroll-margin-top: 76px; }
     body {
       background: var(--negro);
       color: var(--blanco);
@@ -1874,6 +1876,12 @@
       justify-content: flex-start;
     }
     .sets-grid::-webkit-scrollbar { display: none; }
+    /* [SET-UNICO-CENTRADO] decisión 63 · en el celu un solo set va centrado: a la izquierda dejaba ~75 px
+       vacíos a la derecha y parecía un error. Con dos o más, arrancan a la izquierda (flex-start) y
+       scrollean. :only-child alcanza porque renderSets no deja cards ocultas: las pausadas se pintan. */
+    @media (max-width: 767px) {
+      .sets-grid > .set-card:only-child { margin-left: auto; margin-right: auto; }
+    }
 
     .set-card {
       flex: 0 0 340px;
@@ -3254,8 +3262,9 @@
 
       /* Al saltar a una card (sugerencia del buscador, link con #hash) el
          destino quedaba escondido abajo de la barra sticky de filtros.
-         Con scroll-padding-top el navegador frena antes. */
-      html { scroll-padding-top: 240px; }
+         Con scroll-margin-top el navegador frena antes. [VER-MAS] Antes era el
+         scroll-padding-top del html y frenaba 240 px también los saltos a secciones. */
+      .product-card, .catalog-grid { scroll-margin-top: 240px; }
     }
     /* DESKTOP: card muestra tags, oculta notas preview. Reveal lateral normal */
     @media (min-width: 768px) {
@@ -9506,7 +9515,7 @@
     #quizSection,
     #tuSector,
     #dondeEncontrarnos {
-      scroll-margin-top: 115px;   /* nav 64px + banner B/N ~38px + 13px aire */
+      scroll-margin-top: 115px;   /* nav 64 + banner B/N 45 = 109 (medido 23-sep) + 6 px de aire */
     }
     @media (max-width: 767px) {
       .hero, .trust-badges, .seleccion-st, .decant-banner,
@@ -9516,7 +9525,15 @@
       .tu-sector, .map-section, #contacto,
       #decants, #catalogo, #destacados, #categorias, #explorar,
       #nosotros, #faq, #quizSection, #tuSector, #dondeEncontrarnos {
-        scroll-margin-top: 105px;  /* nav 58 + banner 38 + 9px aire */
+        scroll-margin-top: 105px;  /* nav 58 + banner 39 = 97 (medido 23-sep) + 8 px de aire */
+      }
+      /* [VER-MAS] Debajo del catálogo la barra de filtros SIGUE pegada: #catalogo es hija del body y es
+         sticky hasta el pie. Ahí lo pegado arriba mide 236,8 (nav + banner + filtros, medido 23-sep): estas
+         secciones frenan 6 px más abajo. Las de arriba del catálogo siguen en 105. */
+      .section-cats, .sets-section, .section-seo-hub, .quiz-section, .section-nosotros, .section-faq,
+      .recent-views, .tu-sector, .map-section, #contacto,
+      #categorias, #setsSection, #explorar, #quizSection, #nosotros, #faq, #recentViewsSection, #tuSector, #dondeEncontrarnos {
+        scroll-margin-top: 243px;
       }
     }
 
