@@ -6990,6 +6990,18 @@
       margin: 0; padding: .4rem 0; line-height: 1.4;
       transition: color .3s;
     }
+    /* [PROMO-DECANTS] N2 · la línea de la promo en el pie del armador (el pie es oscuro en los dos temas) y el chip «3×»
+       de cada fila que entra: #000 sobre #E8B800 (11,29), en los dos temas. Los selectores van con tres clases para ganarle
+       a body:not(.dark-mode) .decant-builder * { color: inherit } (0,2,1), que en claro les pisaba el color. */
+    .decant-builder .decant-builder-footer .decant-builder-promo {
+      font-size: .72rem; font-weight: 700; text-align: center; color: #E8B800;
+      margin: .25rem 0 0; line-height: 1.35;
+    }
+    .decant-builder .decant-builder-footer .decant-builder-promo--tope { font-weight: 500; font-size: .66rem; }
+    .decant-builder .decant-card-name .decant-chip-promo {
+      display: inline-block; background: #E8B800; color: #000; font-size: .6rem; font-weight: 800;
+      line-height: 1; padding: 2px 5px 3px; border-radius: 3px; margin-right: 5px; vertical-align: 1px;
+    }
     /* Cartel verde de ahorro — aparece al llegar al pack de 3 (sobrio)
        y se potencia en el pack de 5 (destacado con % OFF y resplandor). */
     .decant-builder-savings {
@@ -9074,7 +9086,9 @@
       font-size: .62rem !important;
       font-style: italic;
     }
-    body:not(.dark-mode) .decant-card-price-pending { color: #c25a00 !important; }
+    /* [PROMO-DECANTS] N2 · en claro #9a3412 (el de Hot Sale; con #c25a00 y la opacidad de .decant-card-consultar
+       daba 3,37). Vale para «Precio a consultar» y para «Precio pendiente» de los de diseñador. */
+    body:not(.dark-mode) .decant-card-price-pending { color: #9a3412 !important; }
     .decant-card-custom.is-precio-pendiente .decant-ctrl-plus:disabled {
       opacity: .4;
       cursor: not-allowed;
@@ -9083,10 +9097,7 @@
     /* [DECANT-TOPE] Perfume cuyo frasco supera el tope configurado: a precio de
        escalera el decant saldría bajo costo, así que no se puede sumar al pack.
        En vez del +/− mostramos un botón "Consultar" que abre WhatsApp. */
-    .decant-card-consultar {
-      opacity: .82;
-    }
-    .decant-card-consultar:hover { opacity: 1; }
+    /* [PROMO-DECANTS] N2 · sin opacidad: le bajaba el contraste a «Precio a consultar» (3,37 en claro). */
     .decant-ctrl-consultar {
       background: transparent;
       border: 1px solid var(--amarillo, #E8B800);

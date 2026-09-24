@@ -143,7 +143,10 @@
     // Total de items "del catálogo regular" — el número del badge debería
     // reflejar lo que el cliente ve si toca "Catálogo". Customs especiales
     // los contamos también porque aparecen en esa tab.
-    var totalCatalog = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto && !p._pausado; }).length
+    // [PROMO-DECANTS] N2 · con el mismo filtro que la lista (decantEnListaArmador, app.js): hasta v1.1.130 contaba
+    // los body splash y los duplicados de diseñador (193 con 184 tarjetas).
+    var customsHdr = (typeof decantCustomNombres === 'function') ? decantCustomNombres() : {};
+    var totalCatalog = PERFUMES.filter(function(p) { return decantEnListaArmador(p, customsHdr); }).length
                      + (Array.isArray(DECANTS_CUSTOM_LIST) ? DECANTS_CUSTOM_LIST.length : 0);
 
     // ─── Tabs ─────────────────────────────────────────────────
@@ -234,10 +237,10 @@
     var normName = (typeof decantNombreNorm === 'function') ? decantNombreNorm : function(s){ return s; };
 
     var list = PERFUMES.filter(function(p) {
-      if (p.esSet || p._oculto || p._pausado) return false;
-      // [DECANT-PRECIO-MANUAL] Marcado "No ofrecer en decants" desde el admin.
-      if (typeof decantExcluido === 'function' && decantExcluido(p)) return false;
-      if (customNames[normName(p.name)]) return false;   // ya existe como decant de diseñador
+      // [PROMO-DECANTS] N2 · la regla de la lista vive en app.js (decantEnListaArmador): sin sets, ocultos ni pausados,
+      // ni excluidos ([DECANT-PRECIO-MANUAL] «No ofrecer en decants» y lo que no es perfume), ni los que ya existen
+      // como decant de diseñador. La usan también el contador de la pestaña, el quick-pick y la promo.
+      if (!decantEnListaArmador(p, customNames)) return false;
       if (!qNorm) return true;
       var hay = stripAccents([p.name, p.marca, p.marca_real||'', p.alias||'', (typeof getGamaAlias==='function'?getGamaAlias(p):'')].join(' ').toLowerCase());
       return hay.indexOf(qNorm) !== -1;
@@ -307,6 +310,7 @@
     }
 
     // Helper para HTML de un perfume regular
+    var promoLista = (typeof promoVigente === 'function') ? promoVigente() : null;   // [PROMO-DECANTS] una vez por render
     function cardHTML(p) {
       var qty = counts[p.slug] || 0;
       var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
@@ -314,9 +318,12 @@
         var gama = getGamaFotos(p);
         if (gama.length > 0) fotoSrc = gama[0].replace(/ /g, '%20');
       }
+      // [PROMO-DECANTS] N2 · nombre, marca, foto y alt escapados (entraban crudos al HTML).
+      var nombreHTML = escapeHTML(p.name);
+      var marcaHTML = escapeHTML(p.marca_real || p.marca || '');
       var img = fotoSrc
-        ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy">'
-        : '<div class="decant-card-img-ph">' + (p.name.charAt(0) || '•') + '</div>';
+        ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + nombreHTML + '" loading="lazy">'
+        : '<div class="decant-card-img-ph">' + escapeHTML(p.name.charAt(0) || '•') + '</div>';
 
       // [DECANT-TOPE] Perfume cuyo frasco supera el tope: a este precio el decant
       // saldría bajo costo. No se puede sumar al pack — se cotiza por WhatsApp.
@@ -325,8 +332,8 @@
         return '<div class="decant-card decant-card-consultar">'
           + '<div class="decant-card-img">' + img + '</div>'
           + '<div class="decant-card-info">'
-            + '<p class="decant-card-name">' + p.name + '</p>'
-            + '<p class="decant-card-brand">' + (p.marca_real || p.marca || '') + '</p>'
+            + '<p class="decant-card-name">' + nombreHTML + '</p>'
+            + '<p class="decant-card-brand">' + marcaHTML + '</p>'
             + '<p class="decant-card-price decant-card-price-pending">💬 Precio a consultar</p>'
           + '</div>'
           + '<div class="decant-card-ctrl">'
@@ -345,8 +352,9 @@
       return '<div class="decant-card' + (qty > 0 ? ' has-qty' : '') + '">'
         + '<div class="decant-card-img">' + img + '</div>'
         + '<div class="decant-card-info">'
-          + '<p class="decant-card-name">' + p.name + '</p>'
-          + '<p class="decant-card-brand">' + (p.marca_real || p.marca || '') + '</p>'
+          // [PROMO-DECANTS] N2 · el chip «3×» (n×) adelante del nombre: el nombre se corta con «…» y el chip, no.
+          + '<p class="decant-card-name">' + ((promoLista && promoDecantEntra(p, promoLista, customNames)) ? '<span class="decant-chip-promo">' + promoLista.n + '×</span>' : '') + nombreHTML + '</p>'
+          + '<p class="decant-card-brand">' + marcaHTML + '</p>'
           + precioTag
         + '</div>'
         + '<div class="decant-card-ctrl">'

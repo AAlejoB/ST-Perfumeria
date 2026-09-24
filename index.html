@@ -1359,10 +1359,14 @@
         <!-- [#3 BOTTOM-SHEET] Resumen visible cuando hay items en el pack -->
         <div class="decant-builder-footer-summary">
           <div class="decant-bs-info">
-            <p class="decant-bs-qty"><strong id="decantBsQty">0</strong> decants</p>
+            <p class="decant-bs-qty"><strong id="decantBsQty">0</strong> <span id="decantBsQtyPalabra">decants</span></p>
             <p class="decant-bs-total" id="decantBsTotal">$0</p>
           </div>
         </div>
+        <!-- [PROMO-DECANTS] N2 · el aviso de la promo («Sumá 1 más con 3×») y su tope. Van acá y no en la escalera
+             (#decantLadder), que en pantallas de hasta 900 px de alto no se muestra. -->
+        <p class="decant-builder-promo" id="decantPromoAviso" hidden></p>
+        <p class="decant-builder-promo decant-builder-promo--tope" id="decantPromoTope" hidden></p>
         <p class="decant-builder-aviso" id="decantAviso"></p>
         <div class="decant-builder-actions">
           <button class="decant-builder-clear" onclick="clearDecantsPack()">Vaciar</button>

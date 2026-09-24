@@ -7247,14 +7247,25 @@
       } else {
         ladder = '✨ Precio óptimo: $' + p5.toLocaleString('es-AR') + ' c/u';
       }
-      // [PROMO-DECANTS] Con la promo vigente y de 1 a n−1 con 3× en el pack: «Sumá 1 más con 3×» (también con precio
-      // fijo en el pack, donde la escalera no se muestra). Con la promo aplicada, qué se cobró a precio de promo.
-      if (cuenta.faltan > 0) {
-        ladder = 'Sumá ' + cuenta.faltan + ' más con ' + cuenta.promo.n + '×';
-      } else if (cuenta.promoUnidades > 0) {
-        ladder = '🧪 Promo ' + cuenta.promo.n + '×: ' + cuenta.promoUnidades + ' × ' + precioAR(cuenta.unidadPromo);
-      }
       setTxt('decantLadder', ladder);
+      // [PROMO-DECANTS] N2 · Con la promo vigente y de 1 a n−1 con 3× en el pack: «Sumá 1 más con 3×» (también con precio
+      // fijo en el pack, donde la escalera no se muestra); con la promo aplicada, qué se cobra a precio de promo. Y el
+      // tope, si hay. Tienen su propia línea: #decantLadder no se ve en pantallas de hasta 900 px de alto.
+      var avisoPromo = document.getElementById('decantPromoAviso');
+      if (avisoPromo) {
+        var txtPromo = cuenta.faltan > 0 ? 'Sumá ' + cuenta.faltan + ' más con ' + cuenta.promo.n + '×'
+          : cuenta.promoUnidades > 0 ? '🧪 Promo ' + cuenta.promo.n + '×: ' + cuenta.promoUnidades + ' × ' + precioAR(cuenta.unidadPromo)
+          : '';
+        avisoPromo.textContent = txtPromo;
+        avisoPromo.hidden = !txtPromo;
+      }
+      var topePromo = document.getElementById('decantPromoTope');
+      if (topePromo) {
+        var pv = promoVigente();
+        var txtTope = (pv && pv.max_packs) ? 'Máximo ' + pv.max_packs + (pv.max_packs === 1 ? ' pack' : ' packs') + ' de promo por pedido' : '';
+        topePromo.textContent = txtTope;
+        topePromo.hidden = !txtTope;
+      }
       var ladderEl = document.getElementById('decantLadder');
       if (ladderEl) ladderEl.style.color = '';
 
@@ -7400,6 +7411,7 @@
       var footerEl = document.getElementById('decantBuilderFooter');
       if (footerEl) footerEl.classList.toggle('has-items', qty > 0);
       setTxt('decantBsQty', qty);
+      setTxt('decantBsQtyPalabra', qty === 1 ? 'decant' : 'decants');   // [PROMO-DECANTS] N2 · «1 decant», no «1 decants»
       setTxt('decantBsTotal', '$' + Math.round(total).toLocaleString('es-AR'));
 
       // Contador del botón flotante
