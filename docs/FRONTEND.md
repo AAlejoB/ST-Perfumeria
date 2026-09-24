@@ -197,7 +197,7 @@ Modales que ya existen: `modalPrice`, `modalStock`, `modalAuth`, `modalEditPerfu
 
 ## 🛒 Decant builder
 
-> **La promo 3× (`[PROMO-DECANTS]`, 24-sep-2026):** la cuenta del pack es UNA (`precioPackDecants`, `app.js`) para la pantalla, el pie y el WhatsApp; la lista (`decantEnListaArmador`) y quién lleva «3×» (`promoDecantEntra`) también viven en `app.js` y `extras.js` las llama. El aviso «Sumá 1 más con 3×» y el tope van en líneas propias del pie (`#decantPromoAviso`, `#decantPromoTope`): `#decantLadder` no se ve en pantallas de hasta 900 px de alto. En la card, la etiqueta va en la pila `.card-etiquetas` (máximo dos contando la cinta; «Sin stock» y «Próximamente» tapan todas) y un reloj por minuto la repinta y la saca cuando termina.
+> **La promo 3× (`[PROMO-DECANTS]`, 24-sep-2026):** la cuenta del pack es UNA (`precioPackDecants`, `app.js`) para la pantalla, el pie y el WhatsApp; la lista (`decantEnListaArmador`) y quién lleva «3×» (`promoDecantEntra`) también viven en `app.js` y `extras.js` las llama. El aviso «Sumá 1 más con 3×» y el tope van en líneas propias del pie (`#decantPromoAviso`, `#decantPromoTope`): `#decantLadder` no se ve en pantallas de hasta 900 px de alto. En la card, la etiqueta va en la pila `.card-etiquetas` (máximo dos contando la cinta; «Sin stock» y «Próximamente» tapan todas): «… · hasta el mar 29» y, en las últimas 24 h, «… · termina mañana» / «… · termina hoy» (sin reloj: a 360 pisaba el corazón, `[PROMO-ANCHO-360]`); un repintado por minuto la cambia a las 24 h y a la medianoche y la saca cuando termina. El aviso del pie dice cuánto sale cada uno y sale sólo si la promo baja el precio; el tope, sólo al llegar.
 
 Modal full-screen con grid de cards (cada card = 1 perfume).
 

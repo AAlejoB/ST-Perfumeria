@@ -2739,6 +2739,31 @@ Prompt `_w` (decisiones 31 y 105-115 del DISEÑADOR, «La promo de decants» v4)
 
 ---
 
+### Sesión 24-sep-2026 · `_y` · **N-bis: `[PROMO-ANCHO-360]` y el pie del armador**
+
+Prompt `_y` (decisiones 117-120 del DISEÑADOR). Rama `promo-n-bis` desde `339405d`, un bump (SW **v1.1.132**), merge ff `339405d..b628fe1` (pre-aprobado: stat `admin.html`, `js/app.js`, `js/extras.js`, `scripts/contraste.js`, `sw.js`, y B1 con 8 px o más). Fixture; nada de filas en la base de producción.
+
+#### Qué se hizo
+
+- **B1 · `[PROMO-ANCHO-360]` sin reloj** (117, corrige la 112) — `textoEtiquetaPromo`: con más de 24 h, «… · hasta el mar 29»; en las últimas 24 h, «… · termina mañana» o «… · termina hoy» (el día de `hasta − 1 ms` contra el de hoy, en hora argentina, con `diaART`). Sin mayúsculas (118). Medido con los 7 días de la semana, «termina mañana» y «termina hoy», con 3 × $18.000 y con 10 × $90.000: el hueco con el corazón es **16,3 px o más a 360** (el peor, «🧪 10 decants por $90.000 · termina mañana», 221,3 px) y 46,3 a 390; todas en un renglón. Con el reloj era 0,8 / −4,8 a 360.
+- **B2 · el pie del armador** (119) — «Sumá 2 más con 3× y cada uno te sale $6.000», sólo si `precio_pack / n` es menor que la escalera con los que tendría el pack al sumar los que faltan (con 3 × 27.000 no sale); «Máximo de la promo: los que sumes van a precio normal» sólo al llegar al tope (3× ≥ `max_packs × n`); «🧪 Promo 3×: 6 × $6.000» igual. Un renglón a 360; 9,33 sobre el pie en los dos temas.
+- **B3** — el interruptor del panel dice «Apagada» o «Prendida» según esté (en «Terminó…», «Prendida»); el WhatsApp con uno solo, «un pack de 1 decant»; el buscador de «Quiénes entran», a lo ancho de la caja (el panel envuelve cada `.admin-search` en un `inline-flex` que se achicaba: 270 → 497 px).
+- **`[COMPARE-PISA-NOMBRE]`** — a 1280, «Comparar» se cruza con el nombre en 108 de 186 cards (espejadas y normales), **igual en v1.1.130**: no lo trajo la N y no es una línea → pendiente 🟢.
+- **Capturas** (`capturas-espera\`, 360, claro y oscuro): `catalogo-v1.1.132-{tema}-50-card-termina-manana`, `-51-card-termina-hoy`, `-52-peor-caso`, `-53-pie-aviso`, `-54-pie-tope` y `panel-v1.1.132-{tema}-14-promo-apagada`.
+- `contraste.js`: 0 fallas + 1 token pisado, 219 mediciones.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[PROMO-ANCHO-360]` | La etiqueta de la promo sin reloj, a 8 px o más del corazón a 360 | decisiones 117-119 · `92a7a7b` + bump `b628fe1` |
+
+**La promo ya se puede prender** (se cerró la condición de la parte N). **Pendiente nuevo:** `[COMPARE-PISA-NOMBRE]` 🟢.
+
+---
+
+**Última actualización:** **Septiembre 24, 2026 (N-bis)** — la N-bis (`_y`) en producción, SW **v1.1.132**: `[PROMO-ANCHO-360]` cerrado; la promo se puede prender. Nuevo: `[COMPARE-PISA-NOMBRE]` 🟢.
+
 **Última actualización:** **Septiembre 24, 2026 (parte N)** — N (`_w` + `_x`) en producción, SW **v1.1.131**: `[PROMO-DECANTS]` (con `[SIRENITA]`), `[DECANT-TOPE-CONTADOR]` y `[DECANT-WA-TOTAL]` cerrados. La promo sigue sin filas en la base hasta cerrar `[PROMO-ANCHO-360]` 🟡. Nuevo: `[NUEVO-EN-111]` 🟢.
 
 **Última actualización:** **Septiembre 24, 2026 (parte M)** — M (`_u` + `_v`) en producción, SW **v1.1.130**: `[PILDORA-ANILLO]`, `[QUITAR-ETIQUETA-CONTRASTE]`, `[FINAL-COMPARANDO]`, `[ESTADO-MINUSCULA]`, `[OVERRIDE-ML]` y `[DECANT-SOLO-PERFUMES]` cerrados. `[DECANT-TOPE-CONTADOR]` suma el número de la pestaña «Catálogo» (193 contra 184).
@@ -2849,6 +2874,10 @@ Prompt `_w` (decisiones 31 y 105-115 del DISEÑADOR, «La promo de decants» v4)
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 24-sep-2026 (`_y`):**
+
+- ✅ ~~**`[PROMO-ANCHO-360]`**~~ (24-sep, salió de N · 🟡) — la etiqueta de la promo con «termina en…» (las últimas 24 h) pisa el corazón a 360: 0,8 px con «5h 13min» y −4,8 con «23h 59min» (a 390 entra: 25,3 px; «hasta el …», 26 px a 360). Espera al DISEÑADOR (y si va en mayúsculas). **La promo no se prende hasta cerrar esto**: hoy `promos_decants` tiene 0 filas y en el sitio no aparece. Va en la N-bis, con el «un pack de 1 decants» del WhatsApp. → **RESUELTO el 24-sep** (N-bis, decisión 117): sin reloj, «termina mañana» / «termina hoy»; 16,3 px o más del corazón a 360 con todas las variantes. La promo ya se puede prender.
 
 **Movidos el 24-sep-2026 (`_w` + `_x`):**
 
