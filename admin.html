@@ -363,12 +363,13 @@
         height: 100vh;
         z-index: 9000;
         transform: translateX(-100%);
-        transition: transform .25s ease;
-        box-shadow: 8px 0 24px rgba(0,0,0,.5);
+        transition: transform .25s ease, box-shadow .25s ease;
         background: #0a0a0c;
         padding-top: 4rem;
       }
-      body.sidebar-open .sidebar { transform: translateX(0); }
+      /* [PANEL-CLARO-CAJAS] decisión 56: la sombra sólo con el menú abierto. Cerrado (translateX(-100%)) la
+         sombra de 24 px asomaba por el borde izquierdo de la pantalla, en los dos temas. */
+      body.sidebar-open .sidebar { transform: translateX(0); box-shadow: 8px 0 24px rgba(0,0,0,.5); }
     }
     .sidebar-backdrop {
       display: none;
@@ -1367,6 +1368,23 @@
     body.light [style*="color:#bbb"] { color: #444 !important; }
     body.light [style*="color:#aaa"] { color: #555 !important; }
     body.light [style*="color:var(--gris-claro)"] { color: #333 !important; }
+    /* [PANEL-CLARO-CAJAS] decisión 54: en claro ninguna caja queda oscura. Estas cajas y cabeceras tenían el fondo
+       inline (#1a1a1a / #1a1a1c) y el parche por atributo de arriba sólo cubre #111 y #0a0a0a: en claro quedaban
+       oscuras, y con la letra ya pasada a oscura por el mismo parche (los títulos de Analytics, #1a1a1a sobre
+       #1a1a1a). Oscuro: lo mismo que tenían. Claro: la superficie y el borde del tema. Sus títulos dorados
+       (#E8B800 inline) van a la tinta de cada tema. La vista previa de Badges queda oscura a propósito:
+       muestra la badge como en el catálogo. */
+    .caja-dorada { background: #1a1a1c; border: 1px solid rgba(232,184,0,.25); }
+    .cabecera-caja { background: #1a1a1a; }
+    .cabecera-caja-c { background: #1a1a1c; }
+    .tinta-dorada { color: var(--amarillo-tinta); }
+    body.light .caja-dorada { background: var(--superficie); border-color: var(--borde); }
+    body.light .cabecera-caja,
+    body.light .cabecera-caja-c { background: var(--superficie); }
+    /* [PANEL-CLARO-CAJAS] decisión 55: el efectivo de Precios & Stock, con el verde de efectivo de cada tema
+       (era color:#2ecc71 inline: 2,1 sobre blanco). */
+    .td-price.td-efectivo { color: #2ecc71; }
+    body.light .td-price.td-efectivo { color: #1b5e20; }
 
     /* Sistema de roles: cualquier elemento con data-role="jefe" se oculta
        cuando el body tiene la clase role-empleado. La regla incluye :not
@@ -2950,7 +2968,7 @@
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.5rem;">
         <!-- Top viewed -->
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <div class="cabecera-caja" style="padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
             <strong style="font-size:.8rem;color:#fff;">🔥 Más vistos</strong>
           </div>
           <table class="admin-table" style="margin:0;font-size:.75rem;">
@@ -2961,7 +2979,7 @@
 
         <!-- Top decants -->
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <div class="cabecera-caja" style="padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
             <strong style="font-size:.8rem;color:#fff;">💧 Más agregados al pack</strong>
           </div>
           <table class="admin-table" style="margin:0;font-size:.75rem;">
@@ -2972,7 +2990,7 @@
 
         <!-- Top WA -->
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <div class="cabecera-caja" style="padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
             <strong style="font-size:.8rem;color:#fff;">💬 Más consultados por WA</strong>
           </div>
           <table class="admin-table" style="margin:0;font-size:.75rem;">
@@ -2983,7 +3001,7 @@
 
         <!-- Search empty -->
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <div class="cabecera-caja" style="padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
             <strong style="font-size:.8rem;color:#fff;">🔍 Búsquedas sin resultados</strong>
             <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(lo que falta en catálogo)</span>
           </div>
@@ -2996,7 +3014,7 @@
 
       <!-- Heatmap por hora -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1rem;">
-        <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+        <div class="cabecera-caja" style="padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
           <strong style="font-size:.8rem;color:#fff;">🕐 Actividad por hora</strong>
           <span style="font-size:.65rem;color:var(--gris);margin-left:.4rem;">(todos los eventos)</span>
         </div>
@@ -3008,13 +3026,13 @@
       <!-- Device + Referrer -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <div class="cabecera-caja" style="padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
             <strong style="font-size:.8rem;color:#fff;">📱 Dispositivo</strong>
           </div>
           <div id="deviceBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
         </div>
         <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-          <div style="background:#1a1a1a;padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
+          <div class="cabecera-caja" style="padding:.6rem .8rem;border-bottom:1px solid var(--borde);">
             <strong style="font-size:.8rem;color:#fff;">🌐 De dónde vienen</strong>
           </div>
           <div id="referrerBreakdown" style="padding:.8rem;font-size:.78rem;">—</div>
@@ -3036,11 +3054,11 @@
         <span id="backupsMeta" style="font-size:.68rem;color:var(--gris);margin-left:.5rem;"></span>
       </div>
 
-      <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:.9rem;margin-bottom:1rem;font-size:.72rem;color:#ccc;line-height:1.55;">
-        <strong style="color:#E8B800;">ℹ️ Qué incluye cada backup:</strong><br>
+      <div class="caja-dorada" style="border-radius:8px;padding:.9rem;margin-bottom:1rem;font-size:.72rem;color:#ccc;line-height:1.55;">
+        <strong class="tinta-dorada">ℹ️ Qué incluye cada backup:</strong><br>
         Config: precios/stock (<code style="color:#fff;">perfume_overrides</code>), perfumes nuevos, combos, destacados, cierres, horario, votación, decants.<br>
         Datos: clientes, opiniones, lista de espera, votos.<br>
-        <strong style="color:#E8B800;">No incluye:</strong> logs, analytics, clicks, push subscriptions (son regenerables).
+        <strong class="tinta-dorada">No incluye:</strong> logs, analytics, clicks, push subscriptions (son regenerables).
       </div>
 
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
@@ -3068,8 +3086,8 @@
       </div>
 
       <!-- Config -->
-      <div style="background:#1a1a1c;border:1px solid rgba(232,184,0,.25);border-radius:8px;padding:1rem;margin-bottom:1.2rem;">
-        <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.8rem;">⚙️ Configuración global</p>
+      <div class="caja-dorada" style="border-radius:8px;padding:1rem;margin-bottom:1.2rem;">
+        <p class="tinta-dorada" style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.8rem;">⚙️ Configuración global</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;">
           <div>
             <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por perfume</label>
@@ -3096,8 +3114,8 @@
 
       <!-- Ranking -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1.2rem;">
-        <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
-          <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">🏆 Ranking de clientes</p>
+        <div class="cabecera-caja-c" style="padding:.7rem 1rem;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+          <p class="tinta-dorada" style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0;">🏆 Ranking de clientes</p>
           <input type="text" id="puntosFilterCliente" placeholder="Buscar nombre/teléfono…" oninput="renderPuntosRanking()" style="background:#0a0a0c;border:1px solid var(--borde);color:#fff;padding:.5rem .6rem;border-radius:6px;font-size:1rem;width:200px;"/>
         </div>
         <table class="admin-table" style="margin:0;">
@@ -3116,8 +3134,8 @@
 
       <!-- Historial -->
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;">
-        <div style="padding:.7rem 1rem;background:#1a1a1c;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;">
-          <p style="font-size:.78rem;font-weight:700;color:#E8B800;letter-spacing:.06em;text-transform:uppercase;margin:0;">📋 Historial de movimientos</p>
+        <div class="cabecera-caja-c" style="padding:.7rem 1rem;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;">
+          <p class="tinta-dorada" style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0;">📋 Historial de movimientos</p>
           <button class="action-btn" onclick="loadPuntosHistory()" style="padding:.3rem .7rem;font-size:.7rem;">↺</button>
         </div>
         <table class="admin-table" style="margin:0;">
@@ -4535,7 +4553,7 @@
           + '</td>'
           + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
-          + '<td class="td-price" style="color:#2ecc71;" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
+          + '<td class="td-price td-efectivo" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
           + '</tr>';
       });
       tbody.innerHTML = html;
@@ -10327,7 +10345,7 @@
           + '<td style="color:var(--gris);">'+ (i+1) +'</td>'
           + '<td style="font-weight:600;">'+ escapeHtml(c.nombre||'—') +'</td>'
           + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ escapeHtml(c.telefono||'—') +'</td>'
-          + '<td style="text-align:right;font-weight:700;color:#E8B800;">'+ pts +'</td>'
+          + '<td class="tinta-dorada" style="text-align:right;font-weight:700;">'+ pts +'</td>'
           + '<td>'
             + '<button class="action-btn btn-principal" onclick="openPuntosModal(\''+ c.id +'\')" style="padding:.3rem .7rem;font-size:.72rem;">Ajustar</button>'
           + '</td>'

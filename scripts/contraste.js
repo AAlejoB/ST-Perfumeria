@@ -200,6 +200,25 @@ function efectivo(rs, target, prefijos, prop, capas) {
   });
 })();
 
+// ═══ CAJAS DEL PANEL ═══ [PANEL-CLARO-CAJAS] 24-sep-2026
+// Las cajas que tenían fondo inline #1a1a1a / #1a1a1c pasaron a clase (en claro, la superficie del tema): sus títulos
+// dorados sobre la caja y la cabecera, y el efectivo de Precios & Stock sobre la tabla.
+(function () {
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz] }, claro: { pref: ['body.light'], capas: [luz, raiz] } };
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var fondos = ['.caja-dorada', '.cabecera-caja', '.cabecera-caja-c'].reduce(function (a, t) { return a.concat(efectivo(rs, t, c.pref, 'background', c.capas).hex); }, []);
+    var tinta = efectivo(rs, '.tinta-dorada', c.pref, 'color', c.capas);
+    medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: 'título dorado .tinta-dorada', texto: tinta.hex[0], fondos: fondos, impone: tinta.impone });
+    var tabla = efectivo(rs, '.admin-table', c.pref, 'background', c.capas).hex;
+    if (!tabla.length) tabla = efectivo(rs, 'body', [], 'background', c.capas).hex;
+    var ef = efectivo(rs, '.td-price.td-efectivo', c.pref, 'color', c.capas);
+    medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: 'efectivo de Precios .td-efectivo', texto: ef.hex[0], fondos: tabla, impone: ef.impone });
+  });
+})();
+
 // ═══ CATÁLOGO ═══
 (function () {
   var rs = reglas(hoja('css/styles.css'));
