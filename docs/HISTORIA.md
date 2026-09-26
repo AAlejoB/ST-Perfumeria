@@ -2785,10 +2785,21 @@ Pedido directo de Alejo, antes de lo planificado: *"que se muestre VALOR TOTAL d
 | Keyword | Qué | Cómo |
 |---|---|---|
 | `[VALOR-INV-DEPOSITO]` | Valor total de inventario (local + depósito) con el desglose, sólo el jefe | `f461ef3` + bump `f590ea8` |
+| `[VALOR-INV-PAUSADOS]` | El valor cuenta los pausados y dice cuánto es de ellos | `5b3ff47` + bump `44ee1d7` |
+
+#### Las respuestas de Alejo · `[VALOR-INV-PAUSADOS]` (SW v1.1.134)
+
+Alejo contestó las dos preguntas del cierre: *"Cuenta todo perfume que tenga al menos 1 unidad en STOCK. De última aclará también, como aclarás cuánto corresponde del depósito, que X cantidad son de los pausados"* y *"así exactamente quiero que sea: el precio de lista"*. Rama `valor-inv-pausados` desde `953d6b1`, merge ff `953d6b1..44ee1d7`.
+
+- `pintarValorInventario` ya no saltea los pausados (los sets siguen afuera: no están en esta pestaña) y suma aparte cuánto del total es de ellos (local + depósito).
+- Tercera línea del desglose: «⏸️ Incluye pausados» con el monto en el gris del nombre, no en el verde de los sumandos, porque es una parte del total y no un tercer sumando (`contraste.js`: 11,55 / 10,93; 0 fallas, 225 mediciones).
+- Las otras tarjetas (unidades, perfumes activos, sin stock) siguen sin contar los pausados.
+- **Layout:** con los montos reales, a 901 y 950 px la línea de pausados no entraba y se salía de la tarjeta. Las filas del desglose ahora pueden partirse: si no entran, el monto baja al renglón de abajo, pegado a la derecha. Desde ~1000 px, y en 1 y 2 columnas, cada fila entra en un renglón; sin scroll horizontal en ningún ancho.
+- **Verificación:** con el fixture, 6 de 6 exactos contra la cuenta a mano (el pausado ahora suma; al pausar uno por realtime, el total no cambia y sube la línea de pausados). Con los datos reales, la tarjeta y la cuenta de Node coinciden al peso otra vez.
 
 ---
 
-**Última actualización:** **Septiembre 26, 2026** — `[VALOR-INV-DEPOSITO]` en producción, SW **v1.1.133**: la tarjeta 💰 del jefe muestra el total (local + depósito) y el desglose.
+**Última actualización:** **Septiembre 26, 2026** — `[VALOR-INV-DEPOSITO]` y `[VALOR-INV-PAUSADOS]` en producción, SW **v1.1.134**: la tarjeta 💰 del jefe muestra el total (local + depósito, pausados incluidos) y el desglose, con cuánto es de los pausados.
 
 **Última actualización:** **Septiembre 24, 2026 (N-bis)** — la N-bis (`_y`) en producción, SW **v1.1.132**: `[PROMO-ANCHO-360]` cerrado; la promo se puede prender. Nuevo: `[COMPARE-PISA-NOMBRE]` 🟢.
 
