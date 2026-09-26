@@ -2796,10 +2796,12 @@ Alejo contestó las dos preguntas del cierre: *"Cuenta todo perfume que tenga al
 - Las otras tarjetas (unidades, perfumes activos, sin stock) siguen sin contar los pausados.
 - **Layout:** con los montos reales, a 901 y 950 px la línea de pausados no entraba y se salía de la tarjeta. Las filas del desglose ahora pueden partirse: si no entran, el monto baja al renglón de abajo, pegado a la derecha. Desde ~1000 px, y en 1 y 2 columnas, cada fila entra en un renglón; sin scroll horizontal en ningún ancho.
 - **Verificación:** con el fixture, 6 de 6 exactos contra la cuenta a mano (el pausado ahora suma; al pausar uno por realtime, el total no cambia y sube la línea de pausados). Con los datos reales, la tarjeta y la cuenta de Node coinciden al peso otra vez.
+- **Los sets quedan afuera** (decisión de Alejo, 26-sep: *"los sets que queden afuera; después, cuando tenga más tiempo, lo pienso con el diseñador"*). Sin cambio de código: ya estaban afuera.
+- **Queda abierto:** el diseño de la tarjeta (el aire de las otras tres y el gris de pausados) → `[VALOR-INV-DISEÑO]` 🟢, para Alejo con el DISEÑADOR. El bloque para el PREPARADOR quedó armado con las dos tandas en uno y **lo manda Alejo más tarde** (salió de casa).
 
 ---
 
-**Última actualización:** **Septiembre 26, 2026** — `[VALOR-INV-DEPOSITO]` y `[VALOR-INV-PAUSADOS]` en producción, SW **v1.1.134**: la tarjeta 💰 del jefe muestra el total (local + depósito, pausados incluidos) y el desglose, con cuánto es de los pausados.
+**Última actualización:** **Septiembre 26, 2026** — `[VALOR-INV-DEPOSITO]` y `[VALOR-INV-PAUSADOS]` en producción, SW **v1.1.134**: la tarjeta 💰 del jefe muestra el total (local + depósito, pausados incluidos) y el desglose, con cuánto es de los pausados. Los sets quedan afuera. Abierto: `[VALOR-INV-DISEÑO]` 🟢; el bloque para el PREPARADOR lo manda Alejo después.
 
 **Última actualización:** **Septiembre 24, 2026 (N-bis)** — la N-bis (`_y`) en producción, SW **v1.1.132**: `[PROMO-ANCHO-360]` cerrado; la promo se puede prender. Nuevo: `[COMPARE-PISA-NOMBRE]` 🟢.
 
