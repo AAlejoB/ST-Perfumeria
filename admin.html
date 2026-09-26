@@ -1482,6 +1482,18 @@
     body.light .stat-card { color: #1a1a1a; }
     body.light .stat-card .stat-label { color: #555; }
 
+    /* [VALOR-INV-DEPOSITO] 26-sep · debajo del total, cuánto está en el local y cuánto en el depósito. Los montos,
+       exactos y con la tinta verde de la tarjeta; el total de arriba sigue compacto ($12,4M). Colores por token:
+       en claro, --gris-claro es #3a3a3a y --stat-tinta-inv #1e5b3a sobre el crema #fffaf0. */
+    .stat-desglose {
+      margin-top: .45rem; padding-top: .4rem;
+      border-top: 1px solid var(--stat-borde);
+      font-size: .72rem; line-height: 1.55;
+    }
+    .stat-desglose-fila { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+    .stat-desglose-nombre { color: var(--gris-claro); white-space: nowrap; }
+    .stat-desglose-monto { color: var(--stat-tinta-inv); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
     /* ============================================================
        NUEVO CLIENTE — cosmética del form (no rompe layout existente)
        ============================================================ */
@@ -1858,10 +1870,15 @@
           <div class="stat-label">Sin stock</div>
         </div>
         <!-- [OCULTAR-VALOR-INV] solo el jefe ve cuánta plata hay en mercadería -->
+        <!-- [VALOR-INV-DEPOSITO] el total es local + depósito, y abajo cuánto es de cada uno -->
         <div class="stat-card stat-value-inv" data-role="jefe">
           <div class="stat-icon">💰</div>
           <div class="stat-value" id="statValorInv">—</div>
-          <div class="stat-label">Valor de inventario</div>
+          <div class="stat-label">Valor total de inventario</div>
+          <div class="stat-desglose">
+            <div class="stat-desglose-fila"><span class="stat-desglose-nombre">🏪 Local</span><span class="stat-desglose-monto" id="statValorLocal">—</span></div>
+            <div class="stat-desglose-fila"><span class="stat-desglose-nombre">📦 Depósito</span><span class="stat-desglose-monto" id="statValorDep">—</span></div>
+          </div>
         </div>
       </div>
 
@@ -4398,6 +4415,7 @@
       setText('statDepUnidades', unidades.toLocaleString('es-AR'));
       setText('statDepPerfumes', conDep);
       setText('statDepReponer', reponer);
+      pintarValorInventario();   // [VALOR-INV-DEPOSITO] la parte del depósito del valor total
 
       var list = soloCon ? todos.filter(function(p) { return depQty(p) > 0; }) : todos.slice();
 
@@ -4581,6 +4599,39 @@
     }
 
     // ============================================================
+    // [VALOR-INV-DEPOSITO] 26-sep-2026 · pedido de Alejo. El valor de la mercadería, en la tarjeta 💰 que sólo
+    // ve el jefe (data-role="jefe", [OCULTAR-VALOR-INV]): local (_stockQty) + depósito (_stockDeposito), a
+    // precio de venta (la promo si la hay: la misma cuenta que tenía la tarjeta para el local). Los pausados y
+    // los sets no cuentan, como en el resto de las tarjetas. Arriba el total compacto ($12,4M, para que no
+    // rompa la tarjeta); abajo cada parte exacta. La llaman renderPrecios y renderDeposito: un cambio de
+    // depósito sin «sumar al local» sólo repinta el Depósito.
+    // ============================================================
+    function pintarValorInventario() {
+      var local = 0, dep = 0;
+      PERFUMES.forEach(function(p) {
+        if (p.esSet || p._stockStatus === 'pausado') return;
+        var precio = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+        var q = (typeof p._stockQty === 'number' && p._stockQty > 0) ? p._stockQty : 0;
+        var d = depQty(p) > 0 ? depQty(p) : 0;
+        local += precio * q;
+        dep += precio * d;
+      });
+      var total = local + dep;
+      var exacto = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
+      var compacto = function(n) {
+        if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.', ',') + 'M';
+        if (n >= 1000)    return '$' + Math.round(n / 1000) + 'K';
+        return exacto(n);
+      };
+      var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+      setText('statValorInv',   compacto(total));
+      setText('statValorLocal', exacto(local));
+      setText('statValorDep',   exacto(dep));
+      var card = document.getElementById('statValorInv');
+      if (card) card.title = 'Total exacto: ' + exacto(total);
+    }
+
+    // ============================================================
     // PRECIOS & STOCK — tabla unificada
     //   Columna Estado = badge clickeable (abre modalStock)
     //   Columna Acción = botón "Editar" (abre modalPrice)
@@ -4596,12 +4647,12 @@
       list = sortPerfumes(list, sortKey);
 
       // ── Mini-dashboard de inventario ────────────────────────────
-      // Recorre la lista una vez calculando 4 métricas:
+      // Recorre la lista una vez calculando 3 métricas:
       //   1) totalUnits:  suma de _stockQty (ignora pausados y null)
       //   2) totalActive: cantidad de perfumes activos (no pausados)
       //   3) sinStock:    cantidad con qty=0 o status='out'
-      //   4) valorInv:    sum(price_efectivo × qty) — usa promo si la hay
-      var totalUnits = 0, totalActive = 0, sinStock = 0, valorInv = 0;
+      // La 4ª (el valor de inventario, local + depósito) la pinta pintarValorInventario().
+      var totalUnits = 0, totalActive = 0, sinStock = 0;
       list.forEach(function(p) {
         var status = p._stockStatus;
         var q = (typeof p._stockQty === 'number') ? p._stockQty : null;
@@ -4613,23 +4664,13 @@
         } else if (status === 'out') {
           sinStock++;
         }
-        if (q && q > 0) {
-          var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
-          valorInv += basePrice * q;
-        }
       });
       var fmt = function(n) { return Math.round(n).toLocaleString('es-AR'); };
-      var fmtMoney = function(n) {
-        // Compactar grandes: 12.450.000 → "$12,4M" para que no rompa el card
-        if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.', ',') + 'M';
-        if (n >= 1000)    return '$' + Math.round(n / 1000) + 'K';
-        return '$' + fmt(n);
-      };
       var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
       setText('statTotalUnits',    fmt(totalUnits));
       setText('statTotalPerfumes', fmt(totalActive));
       setText('statSinStock',      fmt(sinStock));
-      setText('statValorInv',      fmtMoney(valorInv));
+      pintarValorInventario();
       // ─────────────────────────────────────────────────────────────
 
       // [OCULTAR-PAUSADOS] Filtramos DESPUÉS de calcular las métricas, así los
@@ -8755,6 +8796,9 @@
       let changed = false;
       if (typeof ov.stock_qty === 'number' && p._stockQty !== ov.stock_qty) { p._stockQty = ov.stock_qty; changed = true; }
       if (ov.stock_status && p._stockStatus !== ov.stock_status)            { p._stockStatus = ov.stock_status; changed = true; }
+      // [VALOR-INV-DEPOSITO] el depósito también: si otra tablet pasa 3 del depósito al local, acá llegaba el +3
+      // del local sin el −3 del depósito y el valor total contaba esas 3 unidades dos veces hasta recargar.
+      if (typeof ov.stock_deposito === 'number' && p._stockDeposito !== ov.stock_deposito) { p._stockDeposito = ov.stock_deposito; changed = true; }
       if (ov.price && p.price !== ov.price)                                 { p.price = ov.price; changed = true; }
       if (typeof ov.promo !== 'undefined' && p.promo !== ov.promo)          { p.promo = ov.promo; changed = true; }
       return changed;
@@ -8840,7 +8884,7 @@
       opts = opts || {};
       try {
         let query = sb.from('perfume_overrides')
-          .select('slug, stock_qty, stock_status, price, promo, updated_at')
+          .select('slug, stock_qty, stock_status, stock_deposito, price, promo, updated_at')
           .order('updated_at', { ascending: true });
         if (rtLastSyncAt) query = query.gt('updated_at', rtLastSyncAt);
         const { data, error } = await query;
