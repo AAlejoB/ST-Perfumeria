@@ -2762,6 +2762,34 @@ Prompt `_y` (decisiones 117-120 del DISEÑADOR). Rama `promo-n-bis` desde `33940
 
 ---
 
+### Sesión 26-sep-2026 · **`[VALOR-INV-DEPOSITO]`** (pedido urgente de Alejo)
+
+Pedido directo de Alejo, antes de lo planificado: *"que se muestre VALOR TOTAL de inventario y aclarando cuánto corresponde al depósito y cuánto al stock del local, y únicamente para el admin del jefe"*. Rama `valor-inventario` desde `1266fcf`, un bump (SW **v1.1.133**), merge ff `1266fcf..f590ea8` (Alejo: *"si no necesitás nada más, mergeá"*).
+
+#### Qué se hizo
+
+- **La tarjeta 💰 de Precios & Stock** (la de `[OCULTAR-VALOR-INV]`, `data-role="jefe"`): arriba el total (local + depósito), compacto como antes (`$12,4M`) y exacto en el `title`; la etiqueta pasa a «Valor total de inventario»; debajo, «🏪 Local» y «📦 Depósito» con el monto exacto (`.stat-desglose`, colores por token: nombre `--gris-claro`, monto `--stat-tinta-inv`).
+- **La cuenta** sale de `renderPrecios` a `pintarValorInventario()`: la misma que tenía el local (precio de venta: la promo si la hay; sin pausados ni sets), sumando `_stockDeposito` al mismo precio. La llaman `renderPrecios` y `renderDeposito` (guardar depósito sin «sumar al local» sólo repinta el Depósito).
+- **Realtime:** `applyOverrideRowToMemory` y el resync traen también `stock_deposito`. Sin eso, si otra tablet pasaba 3 unidades del depósito al local, acá llegaba el +3 del local sin el −3 del depósito y el total contaba esas 3 dos veces hasta recargar.
+- `contraste.js` mide el desglose: nombre 11,55 (oscuro) / 10,93 (claro), monto 8,82 / 7,73. 0 fallas, 223 mediciones.
+
+#### Verificación
+
+- **Fixture a mano** (7 overrides: uno con promo, un pausado con stock y depósito, uno sin local con depósito, un set, un perfume de `perfumes_nuevos`): total, local y depósito exactos contra la cuenta a mano, y después de 5 cambios seguidos (depósito sin sumar, con sumar, dos eventos de realtime —un pase depósito→local y un pausado— y `renderDeposito`), los 5 exactos. El pausado y el set no cuentan.
+- **Datos reales** (sólo lectura, `SELECT`): la tarjeta y una cuenta hecha en Node por fuera del panel (seed + `perfumes_nuevos` + `perfume_overrides`) coinciden al peso. Los montos no van al repo (es público).
+- **Layout:** 1280, 1024, 900, 800, 600, 480, 390 y 360, claro y oscuro: cada fila del desglose en un renglón, sin desborde ni scroll horizontal; la tarjeta mide 137,1 (las otras, 86,8: en 4 y en 2 columnas la fila se estira a 137,1). Empleada a 1280, 800 y 390: la tarjeta no se ve y la grilla sigue en 3 / 3 / 1 columnas.
+- **Producción:** `sw.js` sirve v1.1.133 y `admin.html` tiene `pintarValorInventario`.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[VALOR-INV-DEPOSITO]` | Valor total de inventario (local + depósito) con el desglose, sólo el jefe | `f461ef3` + bump `f590ea8` |
+
+---
+
+**Última actualización:** **Septiembre 26, 2026** — `[VALOR-INV-DEPOSITO]` en producción, SW **v1.1.133**: la tarjeta 💰 del jefe muestra el total (local + depósito) y el desglose.
+
 **Última actualización:** **Septiembre 24, 2026 (N-bis)** — la N-bis (`_y`) en producción, SW **v1.1.132**: `[PROMO-ANCHO-360]` cerrado; la promo se puede prender. Nuevo: `[COMPARE-PISA-NOMBRE]` 🟢.
 
 **Última actualización:** **Septiembre 24, 2026 (parte N)** — N (`_w` + `_x`) en producción, SW **v1.1.131**: `[PROMO-DECANTS]` (con `[SIRENITA]`), `[DECANT-TOPE-CONTADOR]` y `[DECANT-WA-TOTAL]` cerrados. La promo sigue sin filas en la base hasta cerrar `[PROMO-ANCHO-360]` 🟡. Nuevo: `[NUEVO-EN-111]` 🟢.
