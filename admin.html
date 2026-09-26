@@ -1490,9 +1490,14 @@
       border-top: 1px solid var(--stat-borde);
       font-size: .72rem; line-height: 1.55;
     }
-    .stat-desglose-fila { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+    /* Si nombre y monto no entran en un renglón (de 901 a ~1000 px, con cuatro tarjetas angostas y los montos reales),
+       el monto baja al renglón de abajo, pegado a la derecha, en vez de salirse de la tarjeta. */
+    .stat-desglose-fila { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; column-gap: .5rem; }
     .stat-desglose-nombre { color: var(--gris-claro); white-space: nowrap; }
-    .stat-desglose-monto { color: var(--stat-tinta-inv); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .stat-desglose-monto { color: var(--stat-tinta-inv); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; margin-left: auto; }
+    /* [VALOR-INV-PAUSADOS] la de los pausados no es un tercer sumando: es una parte del total (ya está adentro de
+       local + depósito). Por eso el monto va en el gris del nombre y no en el verde de los sumandos. */
+    .stat-desglose-pausados .stat-desglose-monto { color: var(--gris-claro); font-weight: 500; }
 
     /* ============================================================
        NUEVO CLIENTE — cosmética del form (no rompe layout existente)
@@ -1878,6 +1883,7 @@
           <div class="stat-desglose">
             <div class="stat-desglose-fila"><span class="stat-desglose-nombre">🏪 Local</span><span class="stat-desglose-monto" id="statValorLocal">—</span></div>
             <div class="stat-desglose-fila"><span class="stat-desglose-nombre">📦 Depósito</span><span class="stat-desglose-monto" id="statValorDep">—</span></div>
+            <div class="stat-desglose-fila stat-desglose-pausados"><span class="stat-desglose-nombre">⏸️ Incluye pausados</span><span class="stat-desglose-monto" id="statValorPausados">—</span></div>
           </div>
         </div>
       </div>
@@ -4601,20 +4607,24 @@
     // ============================================================
     // [VALOR-INV-DEPOSITO] 26-sep-2026 · pedido de Alejo. El valor de la mercadería, en la tarjeta 💰 que sólo
     // ve el jefe (data-role="jefe", [OCULTAR-VALOR-INV]): local (_stockQty) + depósito (_stockDeposito), a
-    // precio de venta (la promo si la hay: la misma cuenta que tenía la tarjeta para el local). Los pausados y
-    // los sets no cuentan, como en el resto de las tarjetas. Arriba el total compacto ($12,4M, para que no
-    // rompa la tarjeta); abajo cada parte exacta. La llaman renderPrecios y renderDeposito: un cambio de
-    // depósito sin «sumar al local» sólo repinta el Depósito.
+    // precio de lista (la promo si la hay: la misma cuenta que tenía la tarjeta para el local). Los sets no
+    // cuentan (no están en esta pestaña). Arriba el total compacto ($12,4M, para que no rompa la tarjeta); abajo
+    // cada parte exacta. La llaman renderPrecios y renderDeposito: un cambio de depósito sin «sumar al local»
+    // sólo repinta el Depósito.
+    // [VALOR-INV-PAUSADOS] decisión de Alejo (26-sep): cuenta TODO perfume con al menos 1 unidad, los pausados
+    // también (las otras tarjetas los siguen dejando afuera), y la última línea dice cuánto del total es de
+    // ellos: es una parte de local + depósito, no un tercer sumando.
     // ============================================================
     function pintarValorInventario() {
-      var local = 0, dep = 0;
+      var local = 0, dep = 0, pausados = 0;
       PERFUMES.forEach(function(p) {
-        if (p.esSet || p._stockStatus === 'pausado') return;
+        if (p.esSet) return;
         var precio = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
         var q = (typeof p._stockQty === 'number' && p._stockQty > 0) ? p._stockQty : 0;
         var d = depQty(p) > 0 ? depQty(p) : 0;
         local += precio * q;
         dep += precio * d;
+        if (p._stockStatus === 'pausado') pausados += precio * (q + d);
       });
       var total = local + dep;
       var exacto = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
@@ -4627,6 +4637,7 @@
       setText('statValorInv',   compacto(total));
       setText('statValorLocal', exacto(local));
       setText('statValorDep',   exacto(dep));
+      setText('statValorPausados', exacto(pausados));
       var card = document.getElementById('statValorInv');
       if (card) card.title = 'Total exacto: ' + exacto(total);
     }

@@ -183,7 +183,8 @@ function efectivo(rs, target, prefijos, prop, capas) {
     [['.stat-value (default)', '.stat-value'], ['.stat-out .stat-value', '.stat-card.stat-out .stat-value'],
      ['.stat-perfumes .stat-value', '.stat-card.stat-perfumes .stat-value'], ['.stat-value-inv .stat-value', '.stat-card.stat-value-inv .stat-value'],
      // [VALOR-INV-DEPOSITO] 26-sep · el desglose local / depósito debajo del total
-     ['.stat-desglose-nombre (Local / Depósito)', '.stat-desglose-nombre'], ['.stat-desglose-monto (el monto)', '.stat-desglose-monto']].forEach(function (t) {
+     ['.stat-desglose-nombre (Local / Depósito)', '.stat-desglose-nombre'], ['.stat-desglose-monto (el monto)', '.stat-desglose-monto'],
+     ['.stat-desglose-pausados (el monto)', '.stat-desglose-pausados .stat-desglose-monto']].forEach(function (t) {
       var fg = efectivo(rs, t[1], c.pref, 'color', c.capas);
       medir({ superficie: 'panel', tema: tema, rol: 'tinta', nombre: t[0], texto: fg.hex[0], fondos: card.hex, impone: fg.impone, pisado: fg.pisado });
     });
