@@ -361,7 +361,8 @@ Retención: 60 días (cleanup manual o por trigger).
 La usa la pestaña «📌 Resumen» del panel (decisión 126). La escribió el PREPARADOR y la corrió Alejo (SQL fuera del repo).
 
 - **`SECURITY DEFINER`**, `search_path = public`. `EXECUTE`: `authenticated` sí, `anon` no. **No mira el email**: la puede llamar cualquier cuenta logueada (hoy son las dos de staff y la personal de Alejo; el registro está cerrado).
-- **`p_dia` tiene default = hoy en hora Argentina.** Para «hoy» hay que llamarla **sin** `p_dia`: un `p_dia` `null` explícito le llega como `NULL` y devuelve todo vacío (el panel la llama sin argumentos).
+- **`p_dia` tiene default = hoy en hora Argentina.** En la v1, un `p_dia` `null` explícito le llegaba como `NULL` y devolvía todo vacío; **la v2 (27-sep, ronda `_d`) lo trata como hoy**. El panel la sigue llamando sin argumentos para hoy.
+- **v2 (27-sep):** cada fila de `precios` con `tipo: "promo"` y `new: null` (promo sacada) trae `precio_lista`, el precio de lista **actual** (o `null`); las filas con `old` y `new` vacíos ya no vienen; y el `texto` de una promo sacada dice «NOMBRE $X → sin promo · vuelve a $Y».
 - **Devuelve un jsonb:** `dia`, `es_hoy`, `ahora` (HH:MI ART), `fecha_texto`, y cinco listas:
   - `stock` / `deposito`: neto por perfume en el día (último `new` − primer `old` de `stock_update` / `deposito_update`, como `resumen_stock_dia`), sólo `delta ≠ 0`;
   - `precios`: `perfume_edit` con `Precio` o `Promo` `{old,new}` (`nuevo_update` no entra); `new` `null` = promo sacada;

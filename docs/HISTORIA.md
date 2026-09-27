@@ -2890,6 +2890,40 @@ Prompt `_c` del PREPARADOR. Dependía de un SQL que corrió Alejo (`resumen_dia(
 
 ---
 
+### Sesión 27-sep-2026 · `_d` · el Resumen (126f, 126g, teléfonos, grilla) + 125 / 125b
+
+Prompt `_d` del PREPARADOR. Dependía del SQL v2 de `resumen_dia` (lo corrió Alejo); verificado en la base antes de arrancar: trae `precio_lista` (las 6 promos sacadas del 26-sep, las 6 con valor), el texto dice «vuelve a», `resumen_dia(null)` ya es hoy, `anon` sigue sin `EXECUTE`. Rama `resumen-d` desde `10b0347`, un bump (SW v1.1.138), merge pre-aprobado (`admin.html`, `api/cron/backup.js`, `sw.js` y docs).
+
+#### Qué se hizo
+
+- **126f · promo sacada con precio:** «~~$170.100~~ → sin promo · vuelve a $189.000», todo lo nuevo en `--amarillo-tinta` y negrita; sin `precio_lista`, «sin promo» como antes. «vuelve a» vive en `RESUMEN_VUELVE_A`, al lado de `RESUMEN_SIN_PROMO`. El dato del precio ahora se achica y se parte (entre montos y dentro de la frase, nunca dentro de un monto): la primera versión se salía del margen de la tarjeta a 600 (el dato era `flex: 0 0 auto` y no se partía) y, ya arreglado eso, 1,4 px a 481. Medido después de 360 a 1280: nada se sale.
+- **126g · flechas:** ▲ ▼ como texto, del color del número (`--stat-tinta-inv` / `--stat-tinta-out`): los emojis 🔺🔻 los pintaba el sistema rojos los dos. El texto de WhatsApp no cambia (sale de la función).
+- **Teléfonos:** `formatPhoneDisplay` portada de `js/app.js` con el mismo nombre y **sin `cleanPhone`**: `5492970000011` → `+54 9 2970 00-0011`; «+54 9 297 000-0022» → `+54 9 2970 00-0022`; con «15» en el medio (`5492971512345`) el panel da `+54 9 2971 51-2345` (conserva todos los dígitos), mientras la del catálogo, con `cleanPhone`, da `+54 9 29 71-2345`. El `wa.me` sigue con sólo dígitos; la pestaña Clientes no se tocó.
+- **Grilla:** `.res-grilla { align-items: start }`: «· sin cambios» mide 36,2 en vez de estirarse a 127,4.
+- **125:** la etiqueta 🛟 del Log dice «el automático no corrió» (cierra `[LOG-LABEL-26H]`).
+- **125b:** el pie de Backups dice «Automático: una vez por día, a la medianoche · Se guardan los últimos 12», con el número de `BACKUPS_QUE_SE_GUARDAN` (cambiada a 13 en la prueba, el pie dijo 13). Comentarios cruzados con `MAX_BACKUPS_TO_KEEP` y el aviso de la hora del cron en `api/cron/backup.js`; NO ROMPER #17.
+
+#### Verificación (fixture)
+
+- Capturas `resumen-d-{claro|oscuro}-{600|390}-{hoy|vacias}.png` y `resumen-d-claro-600-backups-pie.png` (`herramientas\resumen-panel\png\`). Filas ≥ 44, sin scroll horizontal, nada fuera del margen de las tarjetas (medido en 360, 390, 481, 520, 600, 700, 900 y 1280).
+- XSS: `precio_lista` y el teléfono con HTML salen escapados (`&lt;img`, sólo dígitos).
+- Sintaxis del script del panel y `node --check` de `api/cron/backup.js`: sin errores. Grep: «no corrió en 3» 0; «Retención 15 días» 0.
+
+#### Visto al pasar, no tocado
+
+- `admin_backups_cleanup()` (la función de la base que llama el panel al abrir Backups) todavía dice 15 días / 200; en la práctica no borra nada porque el cron deja 12 antes.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[LOG-LABEL-26H]` | La etiqueta del Log decía «3 h» | decisión 125 · `fd7b4cd` |
+| `[BACKUPS-PIE]` | El pie de Backups decía «cada 24h · 15 días · 200» | decisión 125b · `fd7b4cd` + bump `fc5512e` |
+
+---
+
+**Última actualización:** **Septiembre 27, 2026 (`_d`)** — la ronda `_d` del Resumen y las decisiones 125 / 125b en producción, SW v1.1.138. Cerrado `[LOG-LABEL-26H]`.
+
 **Última actualización:** **Septiembre 27, 2026 (`_c`)** — `[RESUMEN-EN-EL-PANEL]` aprobado por el PREPARADOR y en producción (SW v1.1.137). La próxima ronda (lo del DISEÑADOR + 3 detalles, un prompt y un SQL) ya la anotó el PREPARADOR.
 
 **Última actualización:** **Septiembre 27, 2026 (`_b`)** — `[BACKUP-FALLBACK-ROTO]` en producción, SW v1.1.136: el respaldo del panel guarda `'auto'` y espera 26 h. Nuevo `[LOG-LABEL-26H]` 🟢.
@@ -3010,6 +3044,10 @@ Prompt `_c` del PREPARADOR. Dependía de un SQL que corrió Alejo (`resumen_dia(
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 27-sep-2026 (`_d`):**
+
+- ✅ ~~**`[LOG-LABEL-26H]`**~~ (27-sep, salió de `[BACKUP-FALLBACK-ROTO]` · 🟢 propuesta) — la etiqueta 🛟 del Log para `backup_create_fallback` dice «el automático no corrió en 3 h» (`admin.html`, `[LOG-LABEL-FALLBACK]`, decisión 70), pero desde el 27-sep el panel lo crea recién a las 26 h: el texto quedó falso. No se tocó (texto del DISEÑADOR; el prompt pedía pausar si aparecía otra cosa): lo deciden el PREPARADOR y el DISEÑADOR («26 h», o sin número). → **RESUELTO el 27-sep** (decisión 125, `fd7b4cd`): «el automático no corrió», sin número.
 
 **Movidos el 27-sep-2026 (`_b`):**
 
