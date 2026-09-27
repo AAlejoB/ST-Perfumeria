@@ -2851,7 +2851,7 @@ Alejo arrancó `[VERCEL-ENV-VARS]` («hago eso mientras los otros laburan en lo 
 
 ### Sesión 27-sep-2026 · `_c` · **`[RESUMEN-EN-EL-PANEL]`** (decisión 126 del DISEÑADOR)
 
-Prompt `_c` del PREPARADOR. Dependía de un SQL que corrió Alejo (`resumen_dia(p_dia)`, fuera del repo): la primera consulta de Claude Code todavía no la encontraba; con la luz verde del PREPARADOR se volvió a mirar y ya estaba (`SECURITY DEFINER`, `authenticated` sí, `anon` no). Rama `resumen-panel` desde `8fa3abd`, un bump (SW v1.1.137). **Merge no pre-aprobado:** lo revisa el PREPARADOR.
+Prompt `_c` del PREPARADOR. Dependía de un SQL que corrió Alejo (`resumen_dia(p_dia)`, fuera del repo): la primera consulta de Claude Code todavía no la encontraba; con la luz verde del PREPARADOR se volvió a mirar y ya estaba (`SECURITY DEFINER`, `authenticated` sí, `anon` no). Rama `resumen-panel` desde `8fa3abd`, un bump (SW v1.1.137). **Merge:** el PREPARADOR revisó la rama en GitHub y la aprobó tal cual; fast-forward `8fa3abd..7eee6d6`, en producción (SW v1.1.137, `admin.html` con la pestaña y sin el bloque viejo).
 
 #### Qué se hizo
 
@@ -2876,15 +2876,21 @@ Prompt `_c` del PREPARADOR. Dependía de un SQL que corrió Alejo (`resumen_dia(
 - Los emojis 🔺 y 🔻 son rojos los dos (los dibuja el sistema), así que «+1» verde va al lado de un triángulo rojo.
 - Si alguna vez `Precio`/`Promo` trae `old` y `new` vacíos, la tarjeta no lo muestra y el texto sí (`$— -> $—`), y el número del título difiere del texto.
 
+#### Con los datos reales (sólo lectura, cantidades)
+
+- Hoy (domingo 27, sin `p_dia`): las 5 secciones vacías, texto de 94 caracteres. Ayer (sábado 26): stock 36, depósito 51, precios 6, clientes 0, puntos 0; texto de 2.114 caracteres y el link de WhatsApp de 4.282 (no se probó en un teléfono).
+- Los 6 precios de ayer son **promo sacada** (`$X -> $—`): el caso que el DISEÑADOR no había dibujado es el común.
+- `resumen_dia(null)` explícito: `dia`, `es_hoy`, `fecha_texto` y `texto` en `null`, todo vacío (confirma que «hoy» va sin `p_dia`).
+
 #### Keywords cerrados
 
 | Keyword | Qué | Cómo |
 |---|---|---|
-| `[RESUMEN-EN-EL-PANEL]` | Pestaña «📌 Resumen» + renglón en el Log + WhatsApp (decisión 126) | `812ad56` + bump `11be3a9` (rama `resumen-panel`, espera la revisión) |
+| `[RESUMEN-EN-EL-PANEL]` | Pestaña «📌 Resumen» + renglón en el Log + WhatsApp (decisión 126) | `812ad56` + bump `11be3a9` + docs `7eee6d6` |
 
 ---
 
-**Última actualización:** **Septiembre 27, 2026 (`_c`)** — `[RESUMEN-EN-EL-PANEL]` en la rama `resumen-panel` (SW v1.1.137), esperando la revisión del PREPARADOR.
+**Última actualización:** **Septiembre 27, 2026 (`_c`)** — `[RESUMEN-EN-EL-PANEL]` aprobado por el PREPARADOR y en producción (SW v1.1.137). La próxima ronda (lo del DISEÑADOR + 3 detalles, un prompt y un SQL) ya la anotó el PREPARADOR.
 
 **Última actualización:** **Septiembre 27, 2026 (`_b`)** — `[BACKUP-FALLBACK-ROTO]` en producción, SW v1.1.136: el respaldo del panel guarda `'auto'` y espera 26 h. Nuevo `[LOG-LABEL-26H]` 🟢.
 
