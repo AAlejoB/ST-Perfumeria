@@ -642,6 +642,41 @@
     .td-name { font-weight: 600; max-width: 200px; }
     .td-price { color: var(--amarillo-tinta); font-weight: 600; }
     .td-stock { text-align: center; }
+    /* ══ [PRECIOS-EN-UN-LUGAR] decisión 123 · Precios & Stock muestra también los precios de decants (sólo se miran) ══
+       La línea gris de debajo del nombre (la marca y las excepciones) era un style inline: ahora es .td-sub, con los
+       mismos valores. El DECANT (123f) es contorno de 1 px y letra --gris-claro, sin relleno, con el alto y el texto
+       de las otras badges de la columna. El «—» del efectivo y el «a consultar», en --gris: en claro, la regla
+       body.light .admin-table tbody td (0,2,3) pisa el color de la celda, por eso .td-sin lleva (0,3,1). */
+    .td-sub { display: block; font-size: .58rem; color: var(--gris); font-weight: 400; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; }
+    .td-sub.td-excepcion { white-space: normal; }   /* en el celu .td-name no parte renglones: la marca termina en «…», la excepción nunca se corta */
+    .td-stock .badge-stock.badge-decant { background: transparent; color: var(--gris-claro); border: 1px solid var(--gris-claro); cursor: default; }
+    .admin-table td.td-price.td-sin, .td-consultar { color: var(--gris); font-weight: 400; }
+    .precios-tira {
+      font-size: .7rem; line-height: 1.6; color: var(--gris-claro);
+      background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-lg);
+      padding: .5rem .8rem; margin: 0 0 .6rem;
+    }
+    .precios-tira-nota { color: var(--gris); }
+    .precios-filtro { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin: 0 0 .6rem; }
+    .fila-grupo td {
+      font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--amarillo-tinta); padding: .7rem .4rem .3rem;
+    }
+    body.light .admin-table tbody .fila-grupo td { color: var(--amarillo-tinta); }   /* la misma (0,2,3) de arriba le pondría #1a1a1a */
+    /* 123e · el editor de marcas de diseñador (pestaña Decants): chips; la empleada las ve grises, sin sacar ni guardar */
+    .marcas-lista { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 .6rem; }
+    .marca-chip {
+      display: inline-flex; align-items: center; gap: .3rem; min-height: var(--tap-min); padding: 0 .3rem 0 .7rem;
+      font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+      background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-full);
+    }
+    .marca-chip.sin-quitar { padding-right: .7rem; }
+    .marca-quitar {
+      width: var(--tap-min); height: var(--tap-min); margin: 0; padding: 0; border: none; background: transparent;
+      color: inherit; font: inherit; cursor: pointer;
+    }
+    .marcas-agregar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .marcas-agregar .admin-search { flex: 1 1 200px; margin-bottom: 0; }
 
     /* BADGES */
     .badge-stock {
@@ -1953,6 +1988,14 @@
         </label>
       </div>
       <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
+      <!-- [PRECIOS-EN-UN-LUGAR] 123a + 123d · la escalera de decants (y la promo si está vigente) y el filtro. Sólo se mira:
+           los precios se cambian en Editar y en Decants. -->
+      <div class="precios-tira" id="preciosTira" hidden></div>
+      <div class="precios-filtro" id="preciosFiltro">
+        <button type="button" class="log-chip active" data-filtro="todo" onclick="preciosFiltrar('todo')">Todo</button>
+        <button type="button" class="log-chip" data-filtro="frascos" onclick="preciosFiltrar('frascos')">Frascos</button>
+        <button type="button" class="log-chip" data-filtro="disenador" onclick="preciosFiltrar('disenador')">💎 Diseñador</button>
+      </div>
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
@@ -3076,6 +3119,20 @@
         </div>
         <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
       </div>
+
+      <!-- [PRECIOS-EN-UN-LUGAR] 123e · las marcas de diseñador (el filtro «💎 Diseñador» de Precios & Stock). Sólo el jefe
+           las edita (candado 114, y en la base dc_update_jefe); la empleada las ve grises. -->
+      <div class="promo-caja" id="marcasCaja">
+        <p class="promo-titulo">💎 Marcas de diseñador <span class="lock-jefe" data-solo-empleada style="display:none;">🔒 Sólo el jefe</span></p>
+        <p class="promo-nota" style="margin:0 0 .6rem;">Los frascos de estas marcas salen en «💎 Diseñador» de Precios &amp; Stock.</p>
+        <div class="marcas-lista" id="marcasLista"><p class="promo-vacio">Cargando…</p></div>
+        <div class="marcas-agregar" data-solo-jefe>
+          <input type="text" class="admin-search" id="marcaNueva" placeholder="Agregar marca (ej.: DIOR)" autocomplete="off" onkeydown="if (event.key === 'Enter') { event.preventDefault(); marcasAgregar(); }" />
+          <button type="button" class="action-btn" onclick="marcasAgregar()">+ Agregar</button>
+          <button type="button" class="modal-btn modal-btn-price" onclick="marcasGuardar()" style="width:auto;padding:.7rem 1.4rem;margin-top:0;">Guardar</button>
+        </div>
+        <p class="promo-nota" id="marcasMsg"></p>
+      </div>
     </div>
 
     <!-- TAB: RESUMEN DEL DÍA · [RESUMEN-EN-EL-PANEL] decisión 126 · las dos cuentas -->
@@ -3607,6 +3664,7 @@
       // Es la causa del bug historico "edite un combo y no aparece en admin".
       await loadCombosFromDB();
       renderPrecios();
+      cargarDatosPrecios();   // [PRECIOS-EN-UN-LUGAR] decants, promo y escalera en paralelo; vuelve a pintar al llegar
       loadDestacados();
       loadNuevos();
       // El resto se carga lazy al cambiar de tab (opiniones, clientes, stats, horario, combos, etc.)
@@ -4693,6 +4751,91 @@
     }
 
     // ============================================================
+    // [PRECIOS-EN-UN-LUGAR] 27-sep-2026 · decisión 123 del DISEÑADOR (a–f) · prompt _e del PREPARADOR.
+    // En el mostrador preguntan el precio de un decant y nadie se acuerda: Precios & Stock (la pestaña que abre el
+    // panel) muestra también eso. SÓLO SE MIRA: los precios se siguen cambiando en Editar y en Decants.
+    // Los datos (decants de diseñador, la promo y los cambiados a mano, la escalera y las marcas de diseñador) se
+    // cargaban sólo al abrir Decants: cargarDatosPrecios() los trae al entrar, en paralelo, sin bloquear el primer
+    // render, y vuelve a pintar. Si uno falla, lo suyo no aparece (PRECIOS_DATOS) y la tabla de frascos sigue igual.
+    // ============================================================
+    var PRECIOS_CFG = null;                                       // decants_config (ml, precio_1/3/5, marcas_disenador)
+    var PRECIOS_DATOS = { customs: false, promo: false, cfg: false };
+    var PRECIOS_FILTRO = 'todo';                                  // 'todo' | 'frascos' | 'disenador'
+    var MARCAS_DISENADOR = null;                                  // la lista guardada; null = no se pudo leer / no existe
+
+    async function cargarDatosPrecios() {
+      var r = await Promise.allSettled([
+        sb.from('decants_custom').select('*').order('orden', { ascending: true }),
+        sb.from('promos_decants').select('*').eq('id', 1),
+        sb.from('promos_decants_perfumes').select('*'),
+        sb.from('decants_config').select('*').eq('id', 1)
+      ]);
+      var ok = function(x) { return x.status === 'fulfilled' && x.value && !x.value.error; };
+      if (ok(r[0]) && Array.isArray(r[0].value.data)) { DECANTS_CUSTOM_CACHE = r[0].value.data; PRECIOS_DATOS.customs = true; }
+      if (ok(r[1]) && ok(r[2])) {
+        var filas = r[1].value.data;
+        PROMO_ADMIN = Array.isArray(filas) ? (filas[0] || null) : (filas || null);
+        PROMO_ADMIN_MODOS = {};
+        (r[2].value.data || []).forEach(function(x) { if (x && x.slug) PROMO_ADMIN_MODOS[x.slug] = x.modo; });
+        PRECIOS_DATOS.promo = true;
+      }
+      if (ok(r[3])) {
+        var cfg = r[3].value.data;
+        if (Array.isArray(cfg)) cfg = cfg[0];
+        if (cfg) preciosTomarConfig(cfg);
+      }
+      try { renderPrecios(); } catch (e) { console.warn('[precios] render:', e); }
+    }
+    // La config de decants_config que usan la tira y el filtro (la llama también loadDecantsAdmin, así un
+    // «Guardar» de la escalera o de las marcas se ve en Precios & Stock sin recargar).
+    function preciosTomarConfig(cfg) {
+      PRECIOS_CFG = cfg; PRECIOS_DATOS.cfg = true;
+      MARCAS_DISENADOR = Array.isArray(cfg.marcas_disenador) ? cfg.marcas_disenador.slice() : null;
+    }
+
+    // La promo que cuenta para la tabla: la GUARDADA, prendida y vigente (desde ≤ ahora < hasta).
+    function promoVigentePanel() {
+      var P = PROMO_ADMIN;
+      if (!P || !P.activa || !(P.n >= 2) || !(promoNum(P.precio_pack) > 0)) return null;
+      var ahora = Date.now(), d = Date.parse(P.desde), h = Date.parse(P.hasta);
+      return (d <= ahora && ahora < h) ? { n: P.n, precio_pack: promoNum(P.precio_pack), hasta: h } : null;
+    }
+    // «mar 29»: el día del «hasta» − 1 ms (un «hasta» a las 00:00 es el día anterior), como la etiqueta del sitio.
+    function promoDiaCortoPanel(ms) { var d = new Date(ms - 1 - ART_MS); return PROMO_DIAS[d.getUTCDay()] + ' ' + d.getUTCDate(); }
+
+    // 123a · la tira: la escalera real y, si la promo está vigente, la promo.
+    function pintarTiraPrecios() {
+      var el = document.getElementById('preciosTira');
+      if (!el) return;
+      if (!PRECIOS_DATOS.cfg || !PRECIOS_CFG) { el.hidden = true; el.innerHTML = ''; return; }
+      var c = PRECIOS_CFG, ml = c.ml || 5;
+      var l1 = '💧 Decants árabes (' + ml + ' ml) · 1–2: ' + promoPesos(promoNum(c.precio_1)) + ' · 3–4: ' + promoPesos(promoNum(c.precio_3)) + ' · 5 o más: ' + promoPesos(promoNum(c.precio_5));
+      var P = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
+      var l2 = P ? '🧪 Promo: ' + P.n + ' × ' + promoPesos(P.precio_pack) + ' (' + promoPesos(P.precio_pack / P.n) + ' c/u) · entran todos menos los que dicen «sin promo» · hasta el ' + promoDiaCortoPanel(P.hasta) : '';
+      el.innerHTML = '<div>' + escHtml(l1) + '</div>' + (l2 ? '<div>' + escHtml(l2) + '</div>' : '')
+        + '<div class="precios-tira-nota">Abajo se marcan sólo las excepciones.</div>';
+      el.hidden = false;
+    }
+
+    // 123d · el filtro (Todo · Frascos · 💎 Diseñador). El buscador funciona sobre lo que muestra.
+    function preciosFiltrar(filtro) {
+      PRECIOS_FILTRO = filtro;
+      document.querySelectorAll('#preciosFiltro .log-chip').forEach(function(b) { b.classList.toggle('active', b.dataset.filtro === filtro); });
+      renderPrecios();
+    }
+    // 123e · con el buscador, un título de grupo no queda solo y su número cuenta lo visible.
+    function preciosAjustarGrupos() {
+      document.querySelectorAll('#tbodyPrecios .fila-grupo').forEach(function(t) {
+        var g = t.dataset.titulo, n = 0;
+        document.querySelectorAll('#tbodyPrecios tr[data-grupo="' + g + '"]').forEach(function(r) { if (r.style.display !== 'none') n++; });
+        var num = t.querySelector('.grupo-n'); if (num) num.textContent = n;
+        t.style.display = n ? '' : 'none';
+      });
+    }
+    // 123e · marca de diseñador: mayúsculas, sin apóstrofes, espacios de más recortados (los datos tienen variantes).
+    function marcaNorm(s) { return String(s == null ? '' : s).toUpperCase().replace(/['’´`]/g, '').replace(/\s+/g, ' ').trim(); }
+
+    // ============================================================
     // PRECIOS & STOCK — tabla unificada
     //   Columna Estado = badge clickeable (abre modalStock)
     //   Columna Acción = botón "Editar" (abre modalPrice)
@@ -4750,31 +4893,82 @@
           : '';
       }
 
-      var html = '';
-      list.forEach(function(p) {
+      // [PRECIOS-EN-UN-LUGAR] 123 · la tira, las excepciones debajo del nombre, los decants de diseñador como filas
+      // y el filtro. [XSS-PRECIOS-STOCK] Todo lo que viene de la base pasa por escHtml; el slug del onclick, por
+      // escHtml(JSON.stringify(…)) (escHtml solo no escapa la comilla simple).
+      pintarTiraPrecios();
+      var customs = promoCustoms();
+      var oferta = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
+      var mlDecant = (PRECIOS_CFG && PRECIOS_CFG.ml) ? PRECIOS_CFG.ml : 5;
+      var filaFrasco = function(p, grupo) {
         var info = deriveStockInfo(p);
         // Precio efectivo: 10% OFF sobre el mejor precio (usa promo si hay, sino price)
         var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
         var cashPrice = Math.round(basePrice * 0.9);
-        // data-search: nombre + marca propia + fabricante (marca_real) + apodos.
-        // As\u00ed el input "Buscar perfume..." de Precios & Stock encuentra el
-        // perfume tambi\u00e9n tipeando "alhambra", "cdn", "club nuit", etc.
-        // Escapamos comillas por las dudas (alias es texto libre del admin).
-        var searchStr = (
-          (p.name || '') + ' ' +
-          (p.marca || '') + ' ' +
-          (p.marca_real || '') + ' ' +
-          (p.alias || '')
-        ).toLowerCase().replace(/"/g, '');
-        html += '<tr data-search="' + searchStr + '">'
-          + '<td class="td-name">' + p.name
-          +   (p.marca_real ? '<span style="display:block;font-size:.58rem;color:var(--gris);font-weight:400;margin-top:2px;">' + p.marca_real + '</span>' : '')
+        // data-search: nombre + marca propia + fabricante (marca_real) + apodos (alhambra, cdn, club nuit…).
+        var searchStr = ((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).toLowerCase();
+        // 123b · sólo las excepciones llevan línea: el precio de decant a mano y, con la promo vigente, «sin promo n×»
+        // (sólo si está en el armador y va con la escalera). «A consultar» no se marca (decisión de Alejo).
+        var exc = [];
+        var fijo = promoNum(p._precioDecant);
+        if (fijo > 0) exc.push('💧 decant ' + promoPesos(fijo) + ' fijo');
+        if (oferta && PRECIOS_DATOS.customs && promoEnLista(p, customs) && promoConEscalera(p) && !promoEntraPanel(p, oferta, customs)) exc.push('sin promo ' + oferta.n + '×');
+        return '<tr data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
+          + '<td class="td-name">' + escHtml(p.name || '')
+          +   (p.marca_real ? '<span class="td-sub">' + escHtml(p.marca_real) + '</span>' : '')
+          +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('')
           + '</td>'
-          + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>'
+          + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + escHtml(info.badgeText) + '</span></td>'
           + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
           + '<td class="td-price td-efectivo" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
           + '</tr>';
-      });
+      };
+      // 123c · cada decant de diseñador activo es una fila: 💎 nombre, «DECANT» (no abre el modal de stock), $X c/u, «—».
+      var filaDecant = function(c, grupo) {
+        var precio = promoNum(c.precio_unit);
+        var searchStr = ((c.nombre || '') + ' ' + (c.marca || '') + ' decant diseñador').toLowerCase();
+        return '<tr class="fila-decant" data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
+          + '<td class="td-name">💎 ' + escHtml(c.nombre || '')
+          +   '<span class="td-sub">' + escHtml((c.marca ? c.marca + ' · ' : '') + 'decant de diseñador · ' + mlDecant + ' ml') + '</span></td>'
+          + '<td class="td-stock"><span class="badge-stock badge-decant">Decant</span></td>'
+          + '<td class="td-price">' + (precio > 0 ? escHtml(promoPesos(precio)) + ' c/u' : '<span class="td-consultar">a consultar</span>') + '</td>'
+          + '<td class="td-price td-sin" title="El armador cobra el precio por unidad, sin el 10 %">—</td>'
+          + '</tr>';
+      };
+      var decants = PRECIOS_DATOS.customs
+        ? (DECANTS_CUSTOM_CACHE || []).filter(function(c) { return c && c.activo !== false && c.nombre; })
+            .slice().sort(function(a, b) { return String(a.nombre).localeCompare(String(b.nombre)); })
+        : [];
+      if (sortKey === 'name-desc') decants.reverse();
+      var html = '';
+      if (PRECIOS_FILTRO === 'disenador') {
+        // 123e · dos grupos con título: los frascos de las marcas de diseñador y los decants de diseñador.
+        var marcas = {};
+        (MARCAS_DISENADOR || []).forEach(function(m) { var k = marcaNorm(m); if (k) marcas[k] = true; });
+        var frascosDis = list.filter(function(p) { return marcas[marcaNorm(p.marca_real)]; });
+        html += '<tr class="fila-grupo" data-titulo="frascos"><td colspan="4">Frascos · <span class="grupo-n">' + frascosDis.length + '</span></td></tr>'
+          + frascosDis.map(function(p) { return filaFrasco(p, 'frascos'); }).join('')
+          + '<tr class="fila-grupo" data-titulo="decants"><td colspan="4">Decants ' + mlDecant + ' ml · <span class="grupo-n">' + decants.length + '</span></td></tr>'
+          + decants.map(function(c) { return filaDecant(c, 'decants'); }).join('');
+      } else {
+        var filas = list.map(function(p) { return { tipo: 'frasco', nombre: String(p.name || ''), html: filaFrasco(p, null) }; });
+        if (PRECIOS_FILTRO === 'todo' && decants.length) {
+          var dFilas = decants.map(function(c) { return { tipo: 'decant', nombre: String(c.nombre || ''), html: filaDecant(c, null) }; });
+          if (sortKey === 'name-asc' || sortKey === 'name-desc') {
+            // Por nombre: mezclados; si el nombre coincide, primero el frasco. (sort estable: los frascos quedan en su orden)
+            var dir = sortKey === 'name-desc' ? -1 : 1;
+            filas = filas.concat(dFilas).map(function(x, i) { x.i = i; return x; }).sort(function(a, b) {
+              var c = a.nombre.localeCompare(b.nombre);
+              if (c !== 0) return c * dir;
+              if (a.tipo !== b.tipo) return a.tipo === 'frasco' ? -1 : 1;
+              return a.i - b.i;
+            });
+          } else {
+            filas = filas.concat(dFilas);   // con «Precio» o «Stock», los decants van todos al final
+          }
+        }
+        html = filas.map(function(x) { return x.html; }).join('');
+      }
       tbody.innerHTML = html;
       // Re-aplicar el buscador: guardar stock/precio re-dibujaba la tabla entera y
       // la chica perdía lo que había buscado.
@@ -5848,6 +6042,7 @@
         var search = row.dataset.search || '';
         row.style.display = search.indexOf(input) !== -1 ? '' : 'none';
       });
+      if (tab === 'precios') preciosAjustarGrupos();   // [PRECIOS-EN-UN-LUGAR] 123e · un título no queda solo
     }
 
     // Apply saved price changes on load
@@ -9468,6 +9663,7 @@
           .order('orden', { ascending: true });
         if (res.error) throw res.error;
         DECANTS_CUSTOM_CACHE = res.data || [];
+        PRECIOS_DATOS.customs = true;   // [PRECIOS-EN-UN-LUGAR]
         renderDecantsCustomList();
       } catch (e) {
         if (list) list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">✗ ' + (e.message || 'No se pudo cargar. ¿Creaste la tabla decants_custom?') + '</p>';
@@ -9676,6 +9872,8 @@
             .maybeSingle();
           if (res && res.data) {
             cfg = Object.assign({}, def, res.data);
+            preciosTomarConfig(res.data);   // [PRECIOS-EN-UN-LUGAR] la tira y el filtro de Precios & Stock
+            MARCAS_ESTADO = ('marcas_disenador' in res.data) ? 'ok' : 'sin-columna';
           } else if (res && res.error && msg) {
             // tabla no existe aun -> se usan defaults
             msg.style.color = 'var(--gris)';
@@ -9695,8 +9893,70 @@
       document.getElementById('decAviso').value = cfg.aviso_conservacion || '';
       updateFrascoMaxHint();
       aplicarCandadoDecants();   // [PROMO-DECANTS] 114 · la escalera con candado para la empleada
+      marcasCargarEditor();      // [PRECIOS-EN-UN-LUGAR] 123e
       try { await cargaCustom; } catch (e) {}
-      loadPromoAdmin();          // [PROMO-DECANTS] N4
+      await loadPromoAdmin();    // [PROMO-DECANTS] N4
+      try { renderPrecios(); } catch (e) {}   // [PRECIOS-EN-UN-LUGAR] lo que se guardó en Decants, también en Precios & Stock
+    }
+
+    // ── [PRECIOS-EN-UN-LUGAR] 123e · el editor de las marcas de diseñador ──
+    // La edita sólo el jefe (la empleada la ve gris, sin sacar ni «Guardar»; la base igual lo impide: dc_update_jefe).
+    // Cada marca se guarda en mayúsculas y sin espacios de más; los duplicados (normalizados) no entran. Si la columna
+    // no existe (no se corrió el SQL), el bloque lo dice y la pestaña sigue andando.
+    var MARCAS_ESTADO = 'cargando';   // 'ok' | 'sin-columna' | 'cargando'
+    var MARCAS_EDIT = [];
+    function marcasCargarEditor() {
+      MARCAS_EDIT = (MARCAS_DISENADOR || []).slice();
+      var msg = document.getElementById('marcasMsg'); if (msg) { msg.textContent = ''; msg.style.color = ''; }
+      marcasPintar();
+    }
+    function marcasPintar() {
+      var cont = document.getElementById('marcasLista');
+      if (!cont) return;
+      var jefe = currentRole === 'jefe';
+      var agregar = document.querySelector('#marcasCaja .marcas-agregar');
+      if (MARCAS_ESTADO === 'sin-columna') {
+        cont.innerHTML = '<p class="promo-vacio">Falta correr el SQL de marcas de diseñador.</p>';
+        if (agregar) agregar.style.display = 'none';
+        return;
+      }
+      if (agregar) agregar.style.display = jefe ? '' : 'none';
+      cont.classList.toggle('campo-bloqueado', !jefe);
+      if (!MARCAS_EDIT.length) { cont.innerHTML = '<p class="promo-vacio">Ninguna.</p>'; return; }
+      cont.innerHTML = MARCAS_EDIT.map(function(m, i) {
+        return '<span class="marca-chip' + (jefe ? '' : ' sin-quitar') + '">' + escHtml(m)
+          + (jefe ? '<button type="button" class="marca-quitar" aria-label="Sacar ' + escHtml(m) + '" onclick="marcasSacar(' + i + ')">✕</button>' : '')
+          + '</span>';
+      }).join('');
+    }
+    function marcasAgregar() {
+      if (currentRole !== 'jefe') return;
+      var inp = document.getElementById('marcaNueva');
+      var m = String((inp && inp.value) || '').toUpperCase().replace(/\s+/g, ' ').trim();
+      if (!m) return;
+      if (!MARCAS_EDIT.some(function(x) { return marcaNorm(x) === marcaNorm(m); })) MARCAS_EDIT.push(m);
+      if (inp) inp.value = '';
+      marcasPintar();
+    }
+    function marcasSacar(i) {
+      if (currentRole !== 'jefe') return;
+      MARCAS_EDIT.splice(i, 1);
+      marcasPintar();
+    }
+    async function marcasGuardar() {
+      if (currentRole !== 'jefe') return;
+      var msg = document.getElementById('marcasMsg');
+      var antes = (MARCAS_DISENADOR || []).slice(), nuevas = MARCAS_EDIT.slice();
+      var r = await sb.from('decants_config').update({ marcas_disenador: nuevas }).eq('id', 1);
+      if (r && r.error) {
+        if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'No se pudo guardar: ' + (r.error.message || 'error'); }
+        return;
+      }
+      MARCAS_DISENADOR = nuevas;
+      if (PRECIOS_CFG) PRECIOS_CFG.marcas_disenador = nuevas.slice();
+      logAdminAction('decants_config_update', null, { marcas_disenador: { old: antes.join(', '), new: nuevas.join(', ') } });
+      if (msg) { msg.style.color = ''; msg.textContent = '✓ Guardado'; }
+      try { renderPrecios(); } catch (e) {}
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -9741,6 +10001,19 @@
       var tope = promoTope();
       return !(tope > 0 && promoFrasco100(p) > tope);
     }
+    // [PRECIOS-EN-UN-LUGAR] ¿entra en la promo? ESPEJO EXACTO de promoDecantEntra (js/app.js) — NO ROMPER #16: si cambiás
+    // una, cambiá la otra. 1 · en la lista del armador; 2 · con escalera (sin precio manual ni «a consultar»);
+    // 3 · los cambiados a mano; 4 · la cuenta del frasco (promoEntraPorFrasco, que es lo que cuenta «entran solos»).
+    function promoEntraPorFrasco(p, oferta) { return promoFrasco100(p) <= (oferta.precio_pack / oferta.n) * 20; }
+    function promoEntraPanel(p, oferta, customs) {
+      if (!oferta || !p) return false;
+      if (!promoEnLista(p, customs)) return false;
+      if (!promoConEscalera(p)) return false;
+      var modo = PROMO_ADMIN_MODOS[p.slug];
+      if (modo === 'excluir') return false;
+      if (modo === 'incluir') return true;
+      return promoEntraPorFrasco(p, oferta);
+    }
     function promoCustoms() { var m = {}; (DECANTS_CUSTOM_CACHE || []).forEach(function(c) { if (c && c.activo !== false && c.nombre) m[promoNorm(c.nombre)] = true; }); return m; }
     // La oferta que se está mirando: la del formulario si es válida; si no, la guardada.
     function promoOfertaForm() {
@@ -9759,6 +10032,7 @@
         var r2 = await sb.from('promos_decants_perfumes').select('*');
         PROMO_ADMIN_MODOS = {};
         if (r2 && !r2.error && Array.isArray(r2.data)) r2.data.forEach(function(x) { if (x && x.slug) PROMO_ADMIN_MODOS[x.slug] = x.modo; });
+        PRECIOS_DATOS.promo = !(r && r.error) && !(r2 && r2.error);   // [PRECIOS-EN-UN-LUGAR]
       } catch (e) {
         console.warn('[promo-admin] load:', e);
         if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'No se pudo leer la promo. Probá con ↺ Recargar.'; }
@@ -9819,7 +10093,7 @@
       if (res) {
         if (!o) res.textContent = 'Cargá la oferta para ver quiénes entran.';
         else {
-          var solos = base.filter(function(p) { return promoFrasco100(p) <= (o.precio_pack / o.n) * 20; }).length;
+          var solos = base.filter(function(p) { return promoEntraPorFrasco(p, o); }).length;   // «solos»: sin los cambiados a mano
           res.textContent = 'entran solos: ' + solos + ' de ' + base.length;
         }
       }
