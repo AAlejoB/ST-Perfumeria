@@ -6,7 +6,8 @@
  *
  * Qué hace:
  *   1. Snapshot de las tablas críticas + datos de negocio.
- *   2. INSERT en `admin_backups` con trigger='cron'.
+ *   2. INSERT en `admin_backups` con trigger='auto' (la tabla sólo acepta 'manual' o 'auto':
+ *      admin_backups_trigger_check; con 'cron' la base respondía 400 y no se guardaba nada).
  *   3. Cleanup: deja solo los 12 más recientes (con el cron diario, ≈ 12 días).
  *
  * Seguridad:
@@ -89,7 +90,7 @@ async function buildSnapshot() {
 async function insertBackup(payload, sizeBytes, rowCounts) {
   const url = SUPABASE_URL + '/rest/v1/admin_backups';
   const body = {
-    trigger: 'cron',
+    trigger: 'auto',   // [CRON-TRIGGER-AUTO] 'cron' violaba admin_backups_trigger_check (sólo 'manual' | 'auto')
     actor_email: null,
     size_bytes: sizeBytes,
     row_counts: rowCounts,
