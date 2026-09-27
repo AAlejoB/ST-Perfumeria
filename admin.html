@@ -1170,6 +1170,10 @@
       .admin-table th, .admin-table td { padding: .5rem .4rem; }
       .admin-table th { font-size: .58rem; }
       .td-name { max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* [PRECIOS-EN-UN-LUGAR] 123h · en Precios & Stock el nombre ocupa hasta 2 renglones y recién ahí «…»; las demás tablas
+         siguen en uno. El clamp va en el <span> del nombre: -webkit-line-clamp no anda sobre una celda (display: table-cell).
+         La marca y las excepciones (.td-sub) no cambian: la marca sigue en un renglón con «…». */
+      #tbodyPrecios .td-nombre { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; white-space: normal; }
       /* Botones de acción en tabla: apilados */
       .admin-table .action-btn {
         display: block;
@@ -4911,10 +4915,10 @@
         // (sólo si está en el armador y va con la escalera). «A consultar» no se marca (decisión de Alejo).
         var exc = [];
         var fijo = promoNum(p._precioDecant);
-        if (fijo > 0) exc.push('💧 decant ' + promoPesos(fijo) + ' fijo');
+        if (fijo > 0) exc.push('💧 ' + promoPesos(fijo) + ' fijo');   // ronda g: sin «decant», el 💧 ya lo dice
         if (oferta && PRECIOS_DATOS.customs && promoEnLista(p, customs) && promoConEscalera(p) && !promoEntraPanel(p, oferta, customs)) exc.push('sin promo ' + oferta.n + '×');
         return '<tr data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
-          + '<td class="td-name">' + escHtml(p.name || '')
+          + '<td class="td-name"><span class="td-nombre">' + escHtml(p.name || '') + '</span>'
           +   (p.marca_real ? '<span class="td-sub">' + escHtml(p.marca_real) + '</span>' : '')
           +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('')
           + '</td>'
@@ -4928,8 +4932,8 @@
         var precio = promoNum(c.precio_unit);
         var searchStr = ((c.nombre || '') + ' ' + (c.marca || '') + ' decant diseñador').toLowerCase();
         return '<tr class="fila-decant" data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
-          + '<td class="td-name">💎 ' + escHtml(c.nombre || '')
-          +   '<span class="td-sub">' + escHtml((c.marca ? c.marca + ' · ' : '') + 'decant de diseñador · ' + mlDecant + ' ml') + '</span></td>'
+          + '<td class="td-name"><span class="td-nombre">💎 ' + escHtml(c.nombre || '') + '</span>'
+          +   '<span class="td-sub">' + escHtml((c.marca ? c.marca + ' · ' : '') + mlDecant + ' ml') + '</span></td>'   // 123g: el 💎 y el DECANT ya dicen «decant de diseñador»
           + '<td class="td-stock"><span class="badge-stock badge-decant">Decant</span></td>'
           + '<td class="td-price">' + (precio > 0 ? escHtml(promoPesos(precio)) + ' c/u' : '<span class="td-consultar">a consultar</span>') + '</td>'
           + '<td class="td-price td-sin" title="El armador cobra el precio por unidad, sin el 10 %">—</td>'
@@ -6153,13 +6157,14 @@
 
       var html = '';
       slice.forEach(function(p) {
+        // [XSS-NUEVOS] nombre y marca con escHtml; el nombre de deleteNuevo con escHtml(JSON.stringify(…)). p.id es numérico.
         html += '<tr>'
-          + '<td class="td-name">' + p.name + '</td>'
-          + '<td>' + (p.marca_real || p.marca) + '</td>'
+          + '<td class="td-name">' + escHtml(p.name || '') + '</td>'
+          + '<td>' + escHtml(p.marca_real || p.marca || '') + '</td>'
           + '<td class="td-price">$' + (p.price || 0).toLocaleString('es-AR') + '</td>'
           + '<td>'
             + '<button class="action-btn btn-price" onclick="editNuevo(' + p.id + ')">Editar</button>'
-            + '<button class="action-btn btn-hide" onclick="deleteNuevo(' + p.id + ', \'' + (p.name || '').replace(/'/g, "\\'") + '\')">Eliminar</button>'
+            + '<button class="action-btn btn-hide" onclick="deleteNuevo(' + p.id + ', ' + escHtml(JSON.stringify(p.name || '')) + ')">Eliminar</button>'
           + '</td>'
         + '</tr>';
       });
