@@ -3432,10 +3432,6 @@
     // ============================================================
     // CONFIG
     // ============================================================
-    // Pass del jefe: SOLO se usa para validar llamadas a /api/send-notification
-    // (el endpoint de Vercel la valida server-side). El login del panel ya NO
-    // compara contra este string — autentica contra Supabase Auth.
-    var ADMIN_PASS = 'SANTOMY2026';
     var SUPABASE_URL = 'https://znmjhproimtprptheumy.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_Bb4Jo74f4Wh7vhzAKz8ODg_4Upk6cvb';
     // storageKey propio para que la sesión del admin NO contamine el cliente
@@ -8511,6 +8507,21 @@
       msg.textContent = '';
 
       try {
+        // [SECURITY-AUDIT-S1] el backend valida la sesión de Supabase de quien manda (la del login del panel),
+        // no un secreto compartido escrito en este archivo. Sin sesión no se llama al backend.
+        var sessRes = await sb.auth.getSession();
+        var accessToken = (sessRes && sessRes.data && sessRes.data.session)
+          ? sessRes.data.session.access_token
+          : null;
+        if (!accessToken) {
+          msg.textContent = '❌ Error: No autorizado';
+          msg.style.color = '#e74c3c';
+          btn.disabled = false;
+          btn.textContent = '🚀 ENVIAR PUSH';
+          setTimeout(function() { msg.textContent = ''; }, 5000);
+          return;
+        }
+
         var res = await fetch('/api/send-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -8518,7 +8529,7 @@
             title: title,
             body: body,
             url: url,
-            adminPass: ADMIN_PASS
+            accessToken: accessToken
           })
         });
 

@@ -1,17 +1,22 @@
 /**
  * Vercel Serverless Function — Enviar notificaciones push
  * POST /api/send-notification
- * Body: { title, body, url, adminPass }
+ * Body: { title, body, url, accessToken }   (accessToken = la sesión de Supabase del panel)
  */
 
 const webpush = require('web-push');
 
 const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
-const ADMIN_PASS = process.env.ADMIN_PASS;
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+
+// [SECURITY-AUDIT-S1] Quién puede mandar push: las dos cuentas de staff del panel. Son los mismos emails que
+// JEFE_EMAIL / EMPLEADO_EMAIL de admin.html y que las políticas *_staff de la base (perfume_overrides, combos,
+// admin_actions, Storage); is_jefe() mira sólo el del jefe. Entran las dos a propósito: la pestaña
+// Notificaciones no es sólo del jefe. Si algún día se suma o saca una cuenta de staff, ACTUALIZAR ACÁ TAMBIÉN.
+const STAFF_EMAILS = ['jefe@stperfumeria.local', 'empleado@stperfumeria.local'];
 
 webpush.setVapidDetails(
   'mailto:st.perfumeria.cr@gmail.com',
@@ -29,15 +34,33 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { title, body, url, adminPass } = req.body || {};
+    const { title, body, url, accessToken } = req.body || {};
 
-    // Verificar contraseña admin.
-    // [S11] El `!ADMIN_PASS` es obligatorio: si la env var NO está configurada
-    // en Vercel, ADMIN_PASS queda undefined y una request que OMITA adminPass
-    // pasaba la comparación (undefined !== undefined es false) → cualquiera
-    // podía mandar push a todos los suscriptores. Sin la variable, se rechaza
-    // todo (fail closed), que es lo correcto.
-    if (!ADMIN_PASS || adminPass !== ADMIN_PASS) {
+    // [SECURITY-AUDIT-S1] Autorización: la sesión de Supabase de quien llama, validada por Supabase Auth
+    // (GET /auth/v1/user), y su email tiene que ser de staff. Reemplaza al secreto compartido que viajaba desde
+    // admin.html (se leía con "Ver código fuente"). Falla cerrado: sin token, sin respuesta 200 de Auth, sin
+    // email o con un email que no es de staff → 401. Sin token, ni siquiera se consulta a Auth.
+    if (!accessToken) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+
+    let callerEmail = null;
+    try {
+      const authRes = await fetch(SUPABASE_URL + '/auth/v1/user', {
+        headers: {
+          apikey: SUPABASE_KEY,   // la clave de servicio de arriba sirve de apikey también acá
+          Authorization: 'Bearer ' + accessToken
+        }
+      });
+      if (authRes.ok) {
+        const authUser = await authRes.json();
+        callerEmail = authUser && authUser.email;
+      }
+    } catch (e) {
+      callerEmail = null; // falla cerrado
+    }
+
+    if (!callerEmail || !STAFF_EMAILS.includes(callerEmail)) {
       return res.status(401).json({ error: 'No autorizado' });
     }
 
