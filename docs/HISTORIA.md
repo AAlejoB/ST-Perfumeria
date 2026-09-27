@@ -3040,7 +3040,7 @@ Queda sin tocar el mismo patrón que #0 en `logRenderFeed` («Por perfume», `po
 
 **Datos reales** (sólo contar): en «💎 Diseñador», Frascos · 20, 10 con su 💎, y «Sólo en decant · 3»: Born in Roma, Most Wanted EDP Intense (el frasco es «The Most Wanted EDP», otro perfume) y Valentino Donna (el frasco existe, pero con la marca vacía: no entra en la lista de diseñador). En «Todo», 11 frascos llevan su 💎 y quedan sueltos Born in Roma y Most Wanted EDP Intense. Hoy no hay un decant «Sauvage Elixir» activo.
 
-**Verificación:** 23 capturas en `herramientas\ronda-i\png\` (390 y 360, claro y oscuro: «💎 Diseñador», «Todo», «born», el menú y la Espera; el menú también a 600 y 1280). Los 10 arreglos de la revisión, uno por uno (`herramientas\espera-mas\cuerpo-revision.js`). Los flujos de la Espera de la ronda h, otra vez. `npm run contraste`: 0 fallas + 1 token pisado, 285 mediciones.
+**Verificación:** 22 capturas en `herramientas\ronda-i\png\` (390 y 360, claro y oscuro: «💎 Diseñador», «Todo», «born», el menú y la Espera; el menú también a 600 y 1280). Los 10 arreglos de la revisión, uno por uno (`herramientas\espera-mas\cuerpo-revision.js`). Los flujos de la Espera de la ronda h, otra vez. `npm run contraste`: 0 fallas + 1 token pisado, 285 mediciones.
 
 ---
 
