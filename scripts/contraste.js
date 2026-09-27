@@ -217,6 +217,11 @@ function efectivo(rs, target, prefijos, prop, capas) {
     if (!tabla.length) tabla = efectivo(rs, 'body', [], 'background', c.capas).hex;
     var ef = efectivo(rs, '.td-price.td-efectivo', c.pref, 'color', c.capas);
     medir({ superficie: 'panel', tema: tema, rol: 'cajas', nombre: 'efectivo de Precios .td-efectivo', texto: ef.hex[0], fondos: tabla, impone: ef.impone });
+    // [PRECIOS-EN-UN-LUGAR] 123 · la línea gris de debajo del nombre (marca y excepciones), el DECANT de contorno (123f) y el «—» / «a consultar».
+    [['línea gris .td-sub (marca / excepción)', '.td-sub'], ['DECANT .badge-decant (contorno, sin relleno)', '.td-stock .badge-stock.badge-decant'], ['«—» y «a consultar» .td-sin / .td-consultar', '.admin-table td.td-price.td-sin'], ['título de grupo «Frascos · N» .fila-grupo', tema === 'claro' ? '.admin-table tbody .fila-grupo td' : '.fila-grupo td']].forEach(function (t) {
+      var x = efectivo(rs, t[1], c.pref, 'color', c.capas);
+      medir({ superficie: 'panel', tema: tema, rol: 'precios', nombre: t[0], texto: x.hex[0], fondos: tabla, impone: x.impone });
+    });
     // [PEDIDOS-PASS-CLARO] cada pedido: la letra heredada, «(número no registrado)» y «Pedido: …» (--gris) sobre la caja.
     var pedido = efectivo(rs, '.caja-pedido', c.pref, 'background', c.capas).hex;
     var heredadoP = tema === 'claro' ? (efectivo(rs, 'body.light', [], 'color', c.capas).hex[0] || '#1a1a1a') : '#ffffff';
