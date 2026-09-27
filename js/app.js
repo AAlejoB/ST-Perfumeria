@@ -1971,7 +1971,7 @@
         } else {
           waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(\'' + p.slug + '\', event)">'
             + '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span>'
-            + '<span class="waitlist-ico waitlist-ico--lock">&#128274;</span>'
+            + '<span class="waitlist-ico waitlist-ico--lock">&#128274;</span> '   // [ESPERA-MAS] el espacio, como el ✓ (medía 0 px)
             + '<span class="waitlist-label">Avisame cuando vuelva</span>'
             + '<span class="waitlist-label waitlist-label--guest">Ingresá para avisarte</span>'
           + '</button>';
@@ -4522,8 +4522,9 @@
 
         // Side-effects en try/catch individuales para no romper el flujo
         try { markWaitlistSlug(slug); } catch(e) { console.error('[waitlist] markWaitlistSlug falló:', e); }
-        // [TELEGRAM-ANON-ABIERTO] El aviso lo manda el trigger
-        // trg_lista_espera_aviso, que lee la fila recien insertada.
+        // [ESPERA-MAS] Sin aviso por Telegram de cada alta: el trigger trg_lista_espera_aviso (que lo mandaba desde
+        // [TELEGRAM-ANON-ABIERTO]) quedó apagado con el SQL de [ESPERA-MAS] (decisión B de Alejo, 27-sep). Las altas
+        // se ven en la pestaña Espera del panel.
       } catch(e) {
         console.error('[waitlist] Excepción:', e);
         // Si el success ya se mostró, NO pisamos con un error — el guardado funcionó,

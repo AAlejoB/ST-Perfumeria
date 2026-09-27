@@ -737,12 +737,107 @@
     .btn-whatsapp { background: #25D366; color: #1a1a1a; text-decoration: none; }
     .btn-gris { background: #555; color: #fff; }
     .btn-reavisar { background: rgba(255,255,255,.06); color: #ccc; border: 1px solid var(--borde); text-decoration: none; }
-    .btn-quitar-espera { background: rgba(231,76,60,.15); color: #e74c3c; border: 1px solid rgba(231,76,60,.3); }
+    /* [ESPERA-MAS] «Quitar» se leía 3,86 en oscuro y 3,15 en claro: la letra, la de «✕ QUITAR» (decisión 100, #ff8a80)
+       en oscuro y la roja de tinta en claro. El fondo rojizo y el borde no cambian en oscuro. */
+    .btn-quitar-espera { background: rgba(231,76,60,.15); color: #ff8a80; border: 1px solid rgba(231,76,60,.3); }
+    body.light .btn-quitar-espera { background: rgba(184,52,42,.08); color: var(--stat-tinta-out); border-color: rgba(184,52,42,.35); }
     .btn-modo-sumar { background: #0a0a0c; color: #9bd28b; font-weight: 700; border: 1px solid var(--borde); }
     .btn-modo-sumar.activo { background: #1a4a1a; border-color: #9bd28b; }
     .btn-modo-restar { background: #0a0a0c; color: #ff9b9b; font-weight: 700; border: 1px solid var(--borde); }
     .btn-modo-restar.activo { background: #4a1a1a; border-color: #ff9b9b; }
     body.light .btn-reavisar { background: rgba(0,0,0,.05); color: #333; }
+    /* [ESPERA-MAS] decisiones 42, v3 y 124 · la pestaña Espera, para las dos cuentas y en los dos temas. Hasta el 27-sep
+       la veía sólo el jefe y tenía los colores inline para oscuro (#111, #fff): las chicas usan el claro. */
+    .espera-anotar {
+      display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--tap-min);
+      margin-bottom: 1rem; font-family: inherit; font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; background: transparent; color: var(--amarillo-tinta);
+      border: 1.5px solid var(--amarillo-tinta); border-radius: 6px; cursor: pointer; transition: all .25s;
+    }   /* el contorno de «Avisame cuando vuelva» del catálogo (.waitlist-btn): borde y letra en la tinta, sin relleno */
+    .espera-anotar:hover { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    .espera-stats { display: flex; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+    .espera-stat { flex: 1; min-width: 140px; background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; padding: 1rem; text-align: center; }
+    .espera-stat--pend { border-color: rgba(232,184,0,.35); }
+    .espera-stat-titulo { font-size: .7rem; color: var(--gris-claro); font-weight: 600; margin-bottom: .3rem; }
+    .espera-stat--pend .espera-stat-titulo { color: var(--amarillo-tinta); }
+    .espera-stat-num { font-size: 1.8rem; font-weight: 700; }
+    .espera-stat-sub { font-size: .6rem; color: var(--gris); }
+    .espera-ayuda { font-size: .7rem; color: var(--gris); margin-bottom: 1rem; line-height: 1.5; }
+    .espera-controles { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-bottom: 1rem; }
+    .espera-lista { display: flex; flex-direction: column; gap: 1rem; }
+    .espera-grupo { background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; padding: 1rem; }
+    .espera-grupo-cab { display: flex; justify-content: space-between; align-items: center; margin-bottom: .8rem; flex-wrap: wrap; gap: .3rem; }
+    .espera-perfume { font-size: .8rem; font-weight: 700; }
+    .espera-estado { font-size: .6rem; font-weight: 600; }
+    .espera-estado--ok { color: var(--stat-tinta-inv); }
+    .espera-estado--out { color: var(--stat-tinta-out); }
+    .espera-cuenta { font-size: .65rem; color: var(--amarillo-tinta); font-weight: 600; }
+    .espera-fila { display: flex; align-items: center; justify-content: space-between; padding: .5rem 0; border-top: 1px solid var(--borde); gap: .5rem; }
+    .espera-fila-datos { min-width: 0; }
+    .espera-nombre { font-size: .72rem; font-weight: 500; overflow-wrap: anywhere; }
+    .espera-sub { font-size: .62rem; color: var(--gris); }
+    .espera-tag-local {
+      display: inline-block; margin-left: .35rem; padding: 0 .4rem; font-size: .58rem; font-weight: 700;
+      border: 1px solid var(--borde); border-radius: var(--r-full); white-space: nowrap; vertical-align: 1px;
+    }
+    .espera-acciones { display: flex; gap: .3rem; flex-shrink: 0; }
+    /* v3 · «Avisar», «Re-avisar», «Quitar» y «Avisar a todos» a 44: tienen modificador (.btn-*), así que la base de
+       [ACTION-BTN-BASE] no les llega; y el padding inline .3rem .5rem que los achicaba se fue. */
+    #tab-espera .espera-btn {
+      display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap-min);
+      padding: 0 .7rem; margin-right: 0; font-size: .58rem; text-decoration: none;
+    }
+    #tab-espera .espera-btn-todos { width: 100%; margin-top: .6rem; font-size: .65rem; }
+    .espera-vacio { text-align: center; color: var(--gris); font-size: .8rem; padding: 2rem 0; }
+    /* El formulario «Anotar del mostrador» (42): copia de la ventana «Avisame» del catálogo. */
+    /* Con el teclado abierto (o muchos resultados) la ventana puede ser más alta que la pantalla: scrollea adentro, así
+       «Anotar» nunca queda afuera. (Los otros modales del panel no lo tienen.) */
+    .espera-form { text-align: left; max-height: calc(100vh - 3rem); max-height: calc(100dvh - 3rem); overflow-y: auto; }
+    .espera-form .modal-close.espera-cerrar { top: .3rem; right: .3rem; min-width: var(--tap-min); min-height: var(--tap-min); }
+    .espera-form-icono { font-size: 2rem; text-align: center; margin-bottom: .4rem; }
+    .espera-form-desc { font-size: .7rem; color: var(--gris); line-height: 1.5; text-align: center; margin-bottom: 1rem; }
+    .espera-tel {
+      display: flex; align-items: center; min-height: var(--tap-min); margin-bottom: .1rem;
+      background: rgba(255,255,255,.06); border: 1px solid var(--borde); border-radius: 4px;
+    }
+    .espera-tel:focus-within { border-color: var(--amarillo); }
+    .espera-tel-prefijo { padding-left: .8rem; font-size: 1rem; font-weight: 600; color: var(--amarillo-tinta); white-space: nowrap; user-select: none; }
+    .espera-tel input {
+      flex: 1; min-width: 0; min-height: var(--tap-min); padding: 0 .8rem 0 .4rem; font-family: inherit; font-size: 1rem;
+      background: transparent; border: none; color: inherit; outline: none;
+    }
+    .espera-tel-preview { font-size: .75rem; min-height: 1.2rem; margin: .3rem 0 .8rem; }
+    .espera-ok { color: var(--stat-tinta-inv); }
+    .espera-falta { color: var(--gris); }
+    .espera-ya { color: var(--amarillo-tinta); }
+    .espera-error { color: var(--stat-tinta-out); }
+    .espera-resultados { display: flex; flex-direction: column; gap: .25rem; margin: -.4rem 0 .6rem; max-height: 15rem; overflow-y: auto; }
+    .espera-resultado {
+      display: flex; align-items: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem; text-align: left;
+      background: var(--superficie); border: 1px solid var(--borde); border-radius: 4px; color: inherit;
+      font-family: inherit; font-size: .75rem; font-weight: 600; cursor: pointer;
+    }
+    .espera-resultado small { font-size: .65rem; font-weight: 400; color: var(--gris); }
+    .espera-sin-resultados { font-size: .7rem; color: var(--gris); padding: .3rem 0; }
+    .espera-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .6rem; }
+    .espera-chip {
+      display: inline-flex; align-items: center; max-width: 100%; padding-left: .8rem;
+      background: var(--superficie); border: 1px solid var(--borde); border-radius: 22px; font-size: .72rem; font-weight: 600;
+    }
+    .espera-chip--ya { border-color: var(--amarillo-tinta); }
+    .espera-chip--error { border-color: var(--stat-tinta-out); }
+    .espera-chip-txt { min-width: 0; overflow-wrap: anywhere; }
+    .espera-chip-estado { display: block; font-size: .64rem; font-weight: 600; }
+    .espera-chip-x {
+      flex: 0 0 auto; width: var(--tap-min); height: var(--tap-min); background: none; border: none;
+      color: inherit; font-size: .9rem; cursor: pointer; border-radius: var(--r-full);
+    }
+    .espera-form-msg { font-size: .75rem; min-height: 1.2rem; margin-top: .6rem; text-align: center; }
+    body.light .espera-tel { background: #faf8f3; border-color: #d6d1c3; }
+    /* El panel envuelve cada campo de texto en .admin-search-wrap (la ✕ para limpiar), un inline-flex que se achica al
+       contenido: a lo ancho, como en .promo-caja. Y esa ✕ mide 36: en el formulario, 44 (el campo ya mide 44). */
+    .espera-form .admin-search-wrap { display: flex; width: 100%; }
+    .espera-form .admin-search-clear { width: var(--tap-min); height: var(--tap-min); right: 0; }
 
     /* MODAL */
     .modal-overlay {
@@ -1889,7 +1984,7 @@
           <div class="sb-tab-list">
             <button class="tab-btn" data-tab="clientes" title="Clientes" onclick="switchTab('clientes',this);closeMobileSidebar()"><span class="sb-ico">&#128101;</span><span class="sb-label">Clientes</span></button>
             <button class="tab-btn" data-tab="resetpass" title="Pedidos pass" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()"><span class="sb-ico">&#128273;</span><span class="sb-label">Pedidos pass</span></button>
-            <button class="tab-btn" data-role="jefe" data-tab="espera" title="Espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()"><span class="sb-ico">&#128205;</span><span class="sb-label">Espera</span></button>
+            <button class="tab-btn" data-tab="espera" title="Espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()"><span class="sb-ico">&#128205;</span><span class="sb-label">Espera</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="opiniones" title="Opiniones" onclick="switchTab('opiniones',this);closeMobileSidebar()"><span class="sb-ico">&#128172;</span><span class="sb-label">Opiniones</span></button>
             <button class="tab-btn" data-tab="decants" title="Decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()"><span class="sb-ico">&#128167;</span><span class="sb-label">Decants</span></button>
           </div>
@@ -2911,26 +3006,25 @@
     </div>
 
     <!-- TAB: LISTA DE ESPERA -->
+    <!-- [ESPERA-MAS] 42 / v3 / 124 · para las dos cuentas; los colores, por clase (los dos temas). -->
     <div class="tab-content" id="tab-espera">
-      <div style="display:flex;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;">
-        <div style="flex:1;min-width:140px;background:rgba(232,184,0,.06);border:1px solid rgba(232,184,0,.2);border-radius:8px;padding:1rem;text-align:center;">
-          <p style="font-size:.7rem;color:var(--amarillo-tinta);font-weight:600;margin-bottom:.3rem;">ESPERANDO</p>
-          <p style="font-size:1.8rem;font-weight:700;" id="esperaTotal">0</p>
-          <p style="font-size:.6rem;color:var(--gris);">personas en lista</p>
+      <div class="espera-stats">
+        <div class="espera-stat espera-stat--pend">
+          <p class="espera-stat-titulo">ESPERANDO</p>
+          <p class="espera-stat-num" id="esperaTotal">0</p>
+          <p class="espera-stat-sub">personas en lista</p>
         </div>
-        <div style="flex:1;min-width:140px;background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:8px;padding:1rem;text-align:center;">
-          <p style="font-size:.7rem;color:var(--gris-claro);font-weight:600;margin-bottom:.3rem;">PERFUMES</p>
-          <p style="font-size:1.8rem;font-weight:700;" id="esperaPerfumes">0</p>
-          <p style="font-size:.6rem;color:var(--gris);">con gente esperando</p>
+        <div class="espera-stat">
+          <p class="espera-stat-titulo">PERFUMES</p>
+          <p class="espera-stat-num" id="esperaPerfumes">0</p>
+          <p class="espera-stat-sub">con gente esperando</p>
         </div>
       </div>
-      <p style="font-size:.7rem;color:var(--gris);margin-bottom:1rem;line-height:1.5;">Cuando cambi&#225;s el stock de un perfume de &quot;sin stock&quot; a &quot;en stock&quot;, se avisa autom&#225;ticamente por WhatsApp a los que est&#225;n esperando. Los ya notificados quedan en el <em>Historial</em>.</p>
-      <div style="display:flex;gap:.4rem;margin-bottom:1rem;">
-        <button class="action-btn" id="esperaTabPending" onclick="setEsperaView('pending')" style="flex:1;font-size:.7rem;padding:.5rem;background:var(--amarillo);color:#000;">Pendientes (<span id="esperaPendingCount">0</span>)</button>
-        <button class="action-btn" id="esperaTabHistory" onclick="setEsperaView('history')" style="flex:1;font-size:.7rem;padding:.5rem;">Historial (<span id="esperaHistoryCount">0</span>)</button>
-      </div>
-      <div id="esperaList" style="display:flex;flex-direction:column;gap:1rem;"></div>
-      <p id="esperaEmpty" style="display:none;text-align:center;color:var(--gris);font-size:.8rem;padding:2rem 0;">Nadie en lista de espera &#128522;</p>
+      <p class="espera-ayuda">Cuando cambi&#225;s el stock de un perfume de &quot;sin stock&quot; a &quot;en stock&quot;, se avisa autom&#225;ticamente por WhatsApp a los que est&#225;n esperando. Los ya notificados quedan en el <em>Historial</em>.</p>
+      <button type="button" class="espera-anotar" id="esperaAnotarAbrir" onclick="esperaAbrirAnotar()">+ Anotar del mostrador</button>
+      <div class="espera-controles" id="esperaControles"></div>
+      <div id="esperaList" class="espera-lista"></div>
+      <p id="esperaEmpty" class="espera-vacio" style="display:none;">Nadie en lista de espera &#128522;</p>
     </div>
 
     <!-- TAB: DOCTOR DE CATÁLOGO -->
@@ -3413,6 +3507,30 @@
     <!-- /app-shell -->
 
   <!-- MODAL: AJUSTAR PUNTOS -->
+  <!-- [ESPERA-MAS] 42 · «+ Anotar del mostrador»: copia de la ventana «Avisame» del catálogo. Una fila por perfume. -->
+  <div class="modal-overlay" id="modalEsperaAnotar" onclick="closeModal('modalEsperaAnotar',event)">
+    <div class="modal-box espera-form" onclick="event.stopPropagation()">
+      <button type="button" class="modal-close espera-cerrar" onclick="closeModal('modalEsperaAnotar')" aria-label="Cerrar">&times;</button>
+      <p class="espera-form-icono">&#128276;</p>
+      <p class="modal-title">Anotar del mostrador</p>
+      <p class="espera-form-desc">Le avisamos por WhatsApp apenas vuelva a estar disponible.</p>
+      <label class="modal-label" for="esperaTel">WhatsApp</label>
+      <div class="espera-tel">
+        <span class="espera-tel-prefijo">+54 9</span>
+        <input type="tel" id="esperaTel" inputmode="numeric" placeholder="2975416017" autocomplete="off" oninput="esperaTelCambio()"/>
+      </div>
+      <p class="espera-tel-preview" id="esperaTelPreview"></p>
+      <label class="modal-label" for="esperaNombre">Nombre</label>
+      <input type="text" id="esperaNombre" class="modal-input" placeholder="Nombre" autocomplete="off" oninput="esperaNombreTocado = this.value.trim() !== ''"/>
+      <label class="modal-label" for="esperaBuscarPerfume">Perfumes</label>
+      <input type="text" id="esperaBuscarPerfume" class="modal-input" placeholder="&#128269; Buscar perfume&#8230;" autocomplete="off" oninput="esperaBuscar()" onkeydown="esperaBuscarTecla(event)"/>
+      <div class="espera-resultados" id="esperaResultados"></div>
+      <div class="espera-chips" id="esperaChips"></div>
+      <button type="button" class="modal-btn modal-btn-price" id="esperaAnotarBtn" onclick="esperaAnotar()">&#128276; Anotar</button>
+      <p class="espera-form-msg" id="esperaFormMsg"></p>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modalPuntos" onclick="closeModal('modalPuntos',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal('modalPuntos')">&times;</button>
@@ -9466,6 +9584,8 @@
     // por error vuelve a ponerse stock 0.
     var esperaData = [];
     var esperaView = 'pending';
+    var esperaOrigen = 'todo';        // [ESPERA-MAS] 42 · el filtro Todo · Web · 🏪 Local
+    var esperaTieneOrigen = false;    // la columna origen existe (corrió el SQL de [ESPERA-MAS]); si no, sin filtro ni tag
 
     // Mensaje gen\u00e9rico reutilizable.
     function buildWaitlistMsg() {
@@ -9480,60 +9600,71 @@
         var { data, error } = await sb.from('lista_espera').select('*').order('created_at', { ascending: false });
         if (error) { console.error(error); return; }
         esperaData = data || [];
+        esperaTieneOrigen = esperaData.some(function(r) { return r && Object.prototype.hasOwnProperty.call(r, 'origen'); });
+        if (!esperaTieneOrigen) esperaOrigen = 'todo';
         renderListaEspera();
       } catch(e) { console.error(e); }
     }
 
-    // Toggle entre Pendientes / Historial. Actualiza estilos de los 2 botones
-    // y vuelve a renderizar.
+    // Pendientes / Historial: el toggle .log-vista, como en el Log (v3).
     function setEsperaView(view) {
       esperaView = (view === 'history') ? 'history' : 'pending';
-      var btnP = document.getElementById('esperaTabPending');
-      var btnH = document.getElementById('esperaTabHistory');
-      if (btnP && btnH) {
-        if (esperaView === 'pending') {
-          btnP.style.background = 'var(--amarillo)'; btnP.style.color = '#000';
-          btnH.style.background = ''; btnH.style.color = '';
-        } else {
-          btnH.style.background = 'var(--amarillo)'; btnH.style.color = '#000';
-          btnP.style.background = ''; btnP.style.color = '';
-        }
-      }
       renderListaEspera();
+    }
+    function esperaFiltrarOrigen(o) {
+      esperaOrigen = (o === 'web' || o === 'local') ? o : 'todo';
+      renderListaEspera();
+    }
+
+    // Los controles: el filtro de origen (sólo si existe la columna) y el toggle, con lo que hay bajo el filtro.
+    function esperaRenderControles(nP, nH) {
+      var cont = document.getElementById('esperaControles'); if (!cont) return;
+      var chips = '';
+      if (esperaTieneOrigen) {
+        chips = [['todo', 'Todo'], ['web', 'Web'], ['local', '🏪 Local']].map(function(c) {
+          return '<button type="button" class="log-chip' + (esperaOrigen === c[0] ? ' active' : '') + '" onclick="esperaFiltrarOrigen(\'' + c[0] + '\')">' + c[1] + '</button>';
+        }).join('');
+      }
+      cont.innerHTML = chips
+        + '<span class="log-vista">'
+        +   '<button type="button" class="' + (esperaView === 'pending' ? 'active' : '') + '" onclick="setEsperaView(\'pending\')">Pendientes (' + nP + ')</button>'
+        +   '<button type="button" class="' + (esperaView === 'history' ? 'active' : '') + '" onclick="setEsperaView(\'history\')">Historial (' + nH + ')</button>'
+        + '</span>';
     }
 
     function renderListaEspera() {
       var list = document.getElementById('esperaList');
       var emptyEl = document.getElementById('esperaEmpty');
+      if (!list || !emptyEl) return;
 
-      var pending = esperaData.filter(function(r) { return !r.notified_at; });
-      var history = esperaData.filter(function(r) { return !!r.notified_at; });
+      // [ESPERA-MAS] v3 · las dos tarjetas cuentan SIEMPRE a los pendientes, todos, esté la vista y el filtro que estén
+      // (en Historial, ESPERANDO mostraba a los avisados).
+      var todosPend = esperaData.filter(function(r) { return !r.notified_at; });
+      var slugsPend = {};
+      todosPend.forEach(function(r) { slugsPend[r.slug] = true; });
+      document.getElementById('esperaTotal').textContent = todosPend.length;
+      document.getElementById('esperaPerfumes').textContent = Object.keys(slugsPend).length;
 
-      // Contadores de los 2 tabs (Pendientes / Historial)
-      var cntP = document.getElementById('esperaPendingCount');
-      var cntH = document.getElementById('esperaHistoryCount');
-      if (cntP) cntP.textContent = pending.length;
-      if (cntH) cntH.textContent = history.length;
+      var filtrando = esperaTieneOrigen && esperaOrigen !== 'todo';
+      var bajoFiltro = filtrando ? esperaData.filter(function(r) { return (r.origen || 'web') === esperaOrigen; }) : esperaData;
+      var pending = bajoFiltro.filter(function(r) { return !r.notified_at; });
+      var history = bajoFiltro.filter(function(r) { return !!r.notified_at; });
+      esperaRenderControles(pending.length, history.length);
 
       var rows = (esperaView === 'history') ? history : pending;
-
-      // Stats arriba: siempre reflejan la vista activa (si estoy en historial,
-      // muestro cu\u00e1ntos ya avis\u00e9; si estoy en pendientes, cu\u00e1ntos faltan).
       var grouped = {};
       rows.forEach(function(row) {
         if (!grouped[row.slug]) grouped[row.slug] = { name: row.perfume_name || row.slug, items: [] };
         grouped[row.slug].items.push(row);
       });
       var slugs = Object.keys(grouped);
-      document.getElementById('esperaTotal').textContent = rows.length;
-      document.getElementById('esperaPerfumes').textContent = slugs.length;
 
       if (rows.length === 0) {
         list.innerHTML = '';
         emptyEl.style.display = '';
-        emptyEl.textContent = (esperaView === 'history')
-          ? 'Todav\u00eda no avisaste a nadie \ud83d\udcec'
-          : 'Nadie esperando \ud83d\ude0a';
+        emptyEl.textContent = filtrando
+          ? (esperaOrigen === 'local' ? 'Nadie anotado desde el local' : 'Nadie anotado desde la web')
+          : ((esperaView === 'history') ? 'Todav\u00eda no avisaste a nadie \ud83d\udcec' : 'Nadie esperando \ud83d\ude0a');
         return;
       }
       emptyEl.style.display = 'none';
@@ -9547,46 +9678,50 @@
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         var status = p && p._stockStatus ? p._stockStatus : 'ok';
         var statusBadge = status === 'ok'
-          ? '<span style="color:#27ae60;font-size:.6rem;font-weight:600;">EN STOCK</span>'
-          : '<span style="color:#e74c3c;font-size:.6rem;font-weight:600;">SIN STOCK</span>';
+          ? '<span class="espera-estado espera-estado--ok">EN STOCK</span>'
+          : '<span class="espera-estado espera-estado--out">SIN STOCK</span>';
 
-        html += '<div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;' + (isHistory ? 'opacity:.75;' : '') + '">';
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.3rem;">';
-        html += '<div><p style="font-size:.8rem;font-weight:700;color:#fff;">' + escapeHtml(group.name) + '</p>' + statusBadge + '</div>';
-        html += '<span style="font-size:.65rem;color:var(--amarillo-tinta);font-weight:600;">' + group.items.length + (isHistory ? ' avisad' + (group.items.length !== 1 ? 'os' : 'o') : ' esperando') + '</span>';
+        html += '<div class="espera-grupo">';
+        html += '<div class="espera-grupo-cab">';
+        html += '<div><p class="espera-perfume">' + escHtml(group.name || '') + '</p>' + statusBadge + '</div>';
+        html += '<span class="espera-cuenta">' + group.items.length + (isHistory ? ' avisad' + (group.items.length !== 1 ? 'os' : 'o') : ' esperando') + '</span>';
         html += '</div>';
 
         group.items.forEach(function(item) {
           var fecha = new Date(item.created_at);
           var fechaStr = fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
-          var subLine = '+' + escapeHtml(item.telefono || '') + ' \u00b7 ' + fechaStr;
+          // v3 · el teléfono como lo muestra el catálogo (+54 9 2970 00-0011), sin el «+» pegado a los dígitos.
+          var telVer = formatPhoneDisplay(item.telefono) || String(item.telefono || '');
+          var subLine = escHtml(telVer) + ' \u00b7 ' + fechaStr;
           if (isHistory && item.notified_at) {
             var fn = new Date(item.notified_at);
             subLine += ' \u00b7 Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
           }
+          var tag = (esperaTieneOrigen && item.origen === 'local') ? '<span class="espera-tag-local">🏪 Local</span>' : '';
+          var id = Number(item.id);
 
-          var tel = (item.telefono || '').replace(/[^0-9]/g, '');
+          var tel = String(item.telefono || '').replace(/[^0-9]/g, '');
           var waLink = 'https://wa.me/' + tel + '?text=' + msgEnc;
-          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-top:1px solid var(--borde);gap:.5rem;">';
-          html += '<div style="min-width:0;">';
-          html += '<p style="font-size:.72rem;color:#fff;font-weight:500;">' + escapeHtml(item.nombre || 'Sin nombre') + '</p>';
-          html += '<p style="font-size:.62rem;color:var(--gris);">' + subLine + '</p>';
+          html += '<div class="espera-fila">';
+          html += '<div class="espera-fila-datos">';
+          html += '<p class="espera-nombre">' + escHtml(item.nombre || 'Sin nombre') + tag + '</p>';
+          html += '<p class="espera-sub">' + subLine + '</p>';
           html += '</div>';
-          html += '<div style="display:flex;gap:.3rem;flex-shrink:0;">';
+          html += '<div class="espera-acciones">';
           // En pendientes: bot\u00f3n "Avisar" marca como notificado al click.
           // En historial: bot\u00f3n "Re-avisar" NO marca nada nuevo, solo abre WA.
           if (isHistory) {
-            html += '<a href="' + waLink + '" target="_blank" class="action-btn btn-reavisar" style="font-size:.58rem;padding:.3rem .5rem;">Re-avisar</a>';
+            html += '<a href="' + waLink + '" target="_blank" rel="noopener" class="action-btn btn-reavisar espera-btn">Re-avisar</a>';
           } else {
-            html += '<a href="' + waLink + '" target="_blank" class="action-btn btn-price" style="font-size:.58rem;padding:.3rem .5rem;text-decoration:none;" onclick="markEsperaNotified(' + item.id + ')">Avisar</a>';
+            html += '<a href="' + waLink + '" target="_blank" rel="noopener" class="action-btn btn-price espera-btn" onclick="markEsperaNotified(' + id + ')">Avisar</a>';
           }
-          html += '<button class="action-btn btn-quitar-espera" style="font-size:.58rem;padding:.3rem .5rem;" onclick="removeEspera(' + item.id + ',this)">Quitar</button>';
+          html += '<button type="button" class="action-btn btn-quitar-espera espera-btn" onclick="removeEspera(' + id + ',this)">Quitar</button>';
           html += '</div></div>';
         });
 
         // Bot\u00f3n "Avisar a todos" solo en pendientes y si hay >1
         if (!isHistory && group.items.length > 1) {
-          html += '<button class="action-btn btn-price" style="width:100%;margin-top:.6rem;font-size:.65rem;padding:.45rem;" onclick="avisarTodos(' + escapeHtml(JSON.stringify(slug)) + ')">&#128227; Avisar a todos (' + group.items.length + ')</button>';
+          html += '<button type="button" class="action-btn btn-price espera-btn espera-btn-todos" onclick="avisarTodos(' + escHtml(JSON.stringify(slug)) + ')">&#128227; Avisar a todos (' + group.items.length + ')</button>';
         }
 
         html += '</div>';
@@ -9595,12 +9730,222 @@
       list.innerHTML = html;
     }
 
+    // [ESPERA-MAS] 124 · «Quitar» para las dos cuentas. Se mira lo que contestó la base: con RLS, un DELETE que no
+    // está permitido NO da error (borra 0 filas), por eso se pide la fila borrada (.select) y sólo si volvió se saca de
+    // la pantalla. Cada «Quitar» va al Log, sin el teléfono (admin_actions lo guardaría 60 días).
     async function removeEspera(id, btn) {
       if (!confirm('\u00bfQuitar definitivamente de la lista? (esto borra el registro)')) return;
-      btn.disabled = true;
-      await sb.from('lista_espera').delete().eq('id', id);
+      var row = esperaData.find(function(r) { return r.id === id; });
+      if (btn) btn.disabled = true;
+      var ok = false;
+      try {
+        var res = await sb.from('lista_espera').delete().eq('id', id).select('id');
+        ok = !!(res && !res.error && Array.isArray(res.data) && res.data.length);
+        if (!ok) console.warn('[espera] quitar:', (res && res.error) || 'la base no borr\u00f3 la fila');
+      } catch(e) { console.warn('[espera] quitar:', e); }
+      if (!ok) {
+        if (btn) btn.disabled = false;
+        alert('No se pudo quitar. Prob\u00e1 de nuevo en un rato.');
+        return;
+      }
       esperaData = esperaData.filter(function(r) { return r.id !== id; });
       renderListaEspera();
+      logAdminAction('espera_quitar', row ? row.slug : null, {
+        nombre: row ? (row.nombre || '') : '',
+        perfume: row ? (row.perfume_name || row.slug || '') : ''
+      });
+    }
+
+    // ── [ESPERA-MAS] 42 · «+ Anotar del mostrador» ──────────────────────────────────────────────
+    // SINCRO con js/app.js (NO ROMPER #18): cleanPhone es copia EXACTA de la del catálogo. El índice único parcial
+    // lista_espera_pendiente_uniq (slug, telefono) WHERE notified_at IS NULL sólo frena un duplicado si el catálogo y
+    // el panel guardan el teléfono igual (549 + 10 dígitos). Si cambia en el catálogo, cambia acá.
+    function cleanPhone(raw) {
+      // Quitar todo menos números
+      var digits = raw.replace(/[^0-9]/g, '');
+      // Si empieza con 0, quitarlo (ej: 02975 -> 2975)
+      if (digits.charAt(0) === '0') digits = digits.substring(1);
+      // Si tiene 549 seguido de 15, quitar el 15 (formato viejo)
+      digits = digits.replace(/^549(\d{2,4})15(\d+)$/, '549$1$2');
+      // Si son 10 dígitos puros (número local), agregar 549
+      if (digits.length === 10 && digits.substring(0, 2) !== '54') {
+        digits = '549' + digits;
+      }
+      // Si empieza con 54 pero sin 9 (12 dígitos), insertar el 9
+      else if (digits.length === 12 && digits.substring(0, 2) === '54' && digits.charAt(2) !== '9') {
+        digits = '549' + digits.substring(2);
+      }
+      // Si NO empieza con 54, agregarlo
+      else if (digits.substring(0, 2) !== '54') {
+        digits = '549' + digits;
+      }
+      return digits;
+    }
+    // Como el alta del catálogo (submitWaitlist): si ya viene canónico queda tal cual (cleanPhone le borra un «15»
+    // legítimo del medio); si no, pasa por cleanPhone. Devuelve lo limpio, dé o no 13 dígitos.
+    function esperaTelLimpio(raw) {
+      var t = String(raw || '').trim();
+      return /^549\d{10}$/.test(t) ? t : cleanPhone(t);
+    }
+
+    var esperaElegidos = [];          // [{ slug, name, estado: '' | 'ok' | 'ya' | 'error' }]
+    var esperaNombreTocado = false;   // la chica escribió el nombre: la búsqueda por teléfono no lo pisa
+    var esperaNombreAuto = '';        // el último nombre que puso la búsqueda
+    var esperaNombreTel = '';         // el teléfono de esa búsqueda
+    var esperaNombrePedido = 0;       // si tipean rápido, gana la última respuesta
+    var ESPERA_CHIP_TXT = { ok: '\u2713 Anotado', ya: 'Ya est\u00e1 anotado para ese perfume', error: 'No se pudo anotar' };
+
+    function esperaAbrirAnotar() {
+      esperaElegidos = [];
+      esperaNombreTocado = false; esperaNombreAuto = ''; esperaNombreTel = ''; esperaNombrePedido++;
+      document.getElementById('esperaTel').value = '';
+      document.getElementById('esperaTelPreview').textContent = '';
+      document.getElementById('esperaNombre').value = '';
+      document.getElementById('esperaBuscarPerfume').value = '';
+      document.getElementById('esperaResultados').innerHTML = '';
+      document.getElementById('esperaAnotarBtn').disabled = false;
+      esperaMostrarX('esperaNombre'); esperaMostrarX('esperaBuscarPerfume');
+      esperaFormMsg('', '');
+      esperaRenderChips();
+      document.getElementById('modalEsperaAnotar').classList.add('active');
+      setTimeout(function() { var t = document.getElementById('esperaTel'); if (t) t.focus(); }, 50);
+    }
+
+    // La ✕ de limpiar (initCamposConX) aparece con el evento input: si el valor cambia por código, se acomoda acá.
+    function esperaMostrarX(id) {
+      var inp = document.getElementById(id), x = inp && inp.parentNode && inp.parentNode.querySelector('.admin-search-clear');
+      if (x) x.classList.toggle('visible', inp.value.length > 0);
+    }
+
+    function esperaFormMsg(txt, clase) {
+      var el = document.getElementById('esperaFormMsg'); if (!el) return;
+      el.className = 'espera-form-msg' + (clase ? ' espera-' + clase : '');
+      el.textContent = txt;
+    }
+
+    // La confirmación, como la del catálogo: «✓ +54 9 2970 00-0011», o cuántos dígitos faltan / sobran.
+    function esperaTelCambio() {
+      var raw = document.getElementById('esperaTel').value.trim();
+      var el = document.getElementById('esperaTelPreview');
+      esperaFormMsg('', '');
+      if (raw.replace(/[^0-9]/g, '').length < 6) { el.textContent = ''; esperaNombreBuscar(''); return; }
+      var t = esperaTelLimpio(raw);
+      var ver = formatPhoneDisplay(t) || t;
+      if (t.length === 13) el.innerHTML = '<span class="espera-ok">\u2713 ' + escHtml(ver) + '</span>';
+      else if (t.length > 13) el.innerHTML = '<span class="espera-error">' + escHtml(ver) + ' (demasiados d\u00edgitos)</span>';
+      else el.innerHTML = '<span class="espera-falta">' + escHtml(ver) + ' (' + (13 - t.length) + ' d\u00edgitos faltan)</span>';
+      esperaNombreBuscar(t.length === 13 ? t : '');
+    }
+
+    // Si el teléfono ya está en clientes, el nombre sale solo (y se puede editar).
+    async function esperaNombreBuscar(tel) {
+      if (tel === esperaNombreTel) return;
+      esperaNombreTel = tel;
+      var pedido = ++esperaNombrePedido;
+      var campo = document.getElementById('esperaNombre');
+      // El nombre que había puesto la búsqueda anterior se va con el teléfono; el que escribió la chica, no.
+      if (!esperaNombreTocado && esperaNombreAuto && campo.value === esperaNombreAuto) { campo.value = ''; esperaMostrarX('esperaNombre'); }
+      esperaNombreAuto = '';
+      if (!tel) return;
+      try {
+        var res = await sb.from('clientes').select('nombre').eq('telefono', tel).limit(1);
+        if (pedido !== esperaNombrePedido) return;
+        var nombre = res && !res.error && Array.isArray(res.data) && res.data[0] && res.data[0].nombre;
+        if (nombre && !esperaNombreTocado && !campo.value.trim()) { campo.value = String(nombre); esperaNombreAuto = campo.value; esperaMostrarX('esperaNombre'); }
+      } catch(e) { console.warn('[espera] nombre:', e); }
+    }
+
+    // Perfumes elegidos, no tipeados: los visibles del catálogo (sin ocultos, pausados ni sets).
+    function esperaBuscar() {
+      var q = logNormalizar(document.getElementById('esperaBuscarPerfume').value.trim());
+      var cont = document.getElementById('esperaResultados');
+      if (!q) { cont.innerHTML = ''; return; }
+      var ya = esperaElegidos.map(function(e) { return e.slug; });
+      var hits = PERFUMES.filter(function(p) {
+        return p && !p.esSet && !p._oculto && p._stockStatus !== 'pausado' && ya.indexOf(p.slug) === -1
+          && logNormalizar([p.name, p.marca_real || p.marca, p.alias].join(' ')).indexOf(q) !== -1;
+      }).slice(0, 8);
+      cont.innerHTML = hits.length
+        ? hits.map(function(p) {
+            var marca = p.marca_real || p.marca || '';
+            return '<button type="button" class="espera-resultado" onclick="esperaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
+              + escHtml(p.name || p.slug) + (marca ? ' <small>' + escHtml(marca) + '</small>' : '') + '</button>';
+          }).join('')
+        : '<p class="espera-sin-resultados">No hay perfumes con ese nombre</p>';
+    }
+    // Enter en el buscador elige el primero (y no dispara «Anotar»: [ENTER-GUARDA] escucha en document).
+    function esperaBuscarTecla(e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault(); e.stopPropagation();
+      var primero = document.querySelector('#esperaResultados .espera-resultado');
+      if (primero) primero.click();
+    }
+    function esperaElegir(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p || esperaElegidos.some(function(e) { return e.slug === slug; })) return;
+      esperaElegidos.push({ slug: p.slug, name: p.name || p.slug, estado: '' });
+      var b = document.getElementById('esperaBuscarPerfume');
+      b.value = ''; document.getElementById('esperaResultados').innerHTML = ''; esperaMostrarX('esperaBuscarPerfume');
+      esperaRenderChips();
+      b.focus();
+    }
+    function esperaSacar(slug) {
+      esperaElegidos = esperaElegidos.filter(function(e) { return e.slug !== slug; });
+      esperaRenderChips();
+    }
+    function esperaRenderChips() {
+      var cont = document.getElementById('esperaChips'); if (!cont) return;
+      cont.innerHTML = esperaElegidos.map(function(e) {
+        var estado = e.estado && ESPERA_CHIP_TXT[e.estado] ? e.estado : '';
+        return '<span class="espera-chip' + (estado ? ' espera-chip--' + estado : '') + '">'
+          + '<span class="espera-chip-txt">' + escHtml(e.name)
+          + (estado ? '<small class="espera-chip-estado espera-' + estado + '">' + ESPERA_CHIP_TXT[estado] + '</small>' : '')
+          + '</span>'
+          + '<button type="button" class="espera-chip-x" aria-label="Sacar" onclick="esperaSacar(' + escHtml(JSON.stringify(String(e.slug))) + ')">&#10005;</button>'
+          + '</span>';
+      }).join('');
+    }
+
+    // Una fila por perfume, con origen 'local'. El duplicado lo frena el índice único (23505): se dice junto a ese
+    // perfume. Ningún error crudo de Supabase en pantalla ([ESPERA-ERROR-CRUDO], en el panel): va a la consola.
+    async function esperaAnotar() {
+      var btn = document.getElementById('esperaAnotarBtn');
+      var tel = esperaTelLimpio(document.getElementById('esperaTel').value);
+      if (tel.length !== 13) { esperaFormMsg('El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)', 'error'); return; }
+      var nombre = document.getElementById('esperaNombre').value.trim();
+      var aAnotar = esperaElegidos.filter(function(e) { return e.estado !== 'ok'; });
+      if (!aAnotar.length) { esperaFormMsg('Eleg\u00ed al menos un perfume', 'error'); return; }
+      btn.disabled = true;
+      esperaFormMsg('Anotando\u2026', 'falta');
+      var anotados = [], yaEstaban = [], fallaron = [], faltaSql = false;
+      for (var i = 0; i < aAnotar.length; i++) {
+        var e = aAnotar[i];
+        var p = PERFUMES.find(function(pf) { return pf.slug === e.slug; });
+        var res;
+        try {
+          res = await sb.from('lista_espera').insert({
+            slug: e.slug, telefono: tel, nombre: nombre || null,
+            perfume_name: p ? p.name : e.name, origen: 'local'
+          });
+        } catch(err) { res = { error: err || {} }; }
+        if (res && !res.error) { e.estado = 'ok'; anotados.push(e.name); }
+        else if (res.error && res.error.code === '23505') { e.estado = 'ya'; yaEstaban.push(e.name); }
+        else {
+          e.estado = 'error'; fallaron.push(e.name);
+          if (/origen/i.test(String((res.error && res.error.message) || ''))) faltaSql = true;
+          console.warn('[espera] anotar', e.slug, res.error);
+        }
+      }
+      esperaElegidos = esperaElegidos.filter(function(x) { return x.estado !== 'ok'; });
+      esperaRenderChips();
+      var partes = [];
+      if (anotados.length) partes.push('\u2713 Anotado para ' + anotados.join(', '));
+      if (yaEstaban.length) partes.push('Ya estaba anotado para ' + yaEstaban.join(', '));
+      if (fallaron.length) partes.push(faltaSql ? 'Falta correr el SQL de la lista de espera' : 'No se pudo anotar ' + fallaron.join(', '));
+      esperaFormMsg(partes.join(' \u00b7 '), fallaron.length ? 'error' : (yaEstaban.length ? 'ya' : 'ok'));
+      btn.disabled = false;
+      if (anotados.length) loadListaEspera();
+      if (anotados.length && !yaEstaban.length && !fallaron.length) setTimeout(function() { closeModal('modalEsperaAnotar'); }, 1500);
     }
 
     // Marca UNA fila como notificada (al apretar "Avisar" individual).
@@ -10364,7 +10709,9 @@
       'home_banner_msg_delete':{ icon: '🗑️', label: 'Borrar mensaje' },
       'home_slide_add':       { icon: '🏠', label: 'Agregar slide' },
       'home_slide_update':    { icon: '✏️', label: 'Editar slide' },
-      'home_slide_delete':    { icon: '🗑️', label: 'Borrar slide' }
+      'home_slide_delete':    { icon: '🗑️', label: 'Borrar slide' },
+      // [ESPERA-MAS] 124 · el ícono de la pestaña Espera. Familia: Catálogo (lo ve el jefe; la empleada, sólo stock y depósito).
+      'espera_quitar':        { icon: '📍', label: 'Quitar de la espera' }
     };
 
     /* ── [LOG-LEGIBLE] Traducir la jerga de la base al castellano ──
@@ -10602,6 +10949,8 @@
       // automático (Vercel Cron) no corrió. Decisión 125 (27-sep): sin número — el umbral pasó de 3 h a 26 h en
       // [BACKUP-FALLBACK-ROTO] y la frase no tiene que volver a mentir si cambia.
       if (e.action === 'backup_create_fallback') return 'el automático no corrió';
+      // [ESPERA-MAS] 124 · a quién se quitó (el perfume ya es el nombre de la fila). Sin teléfono.
+      if (e.action === 'espera_quitar') return escHtml((e.changes && e.changes.nombre) || 'Sin nombre');
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
       function esPar(v) { return v && typeof v === 'object' && 'old' in v && 'new' in v; }

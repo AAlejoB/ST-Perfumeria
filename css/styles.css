@@ -5006,7 +5006,7 @@
     }
     .waitlist-input::placeholder { color: #555; }
     .waitlist-phone-preview {
-      font-size: .65rem; min-height: 1rem; margin-bottom: .8rem;
+      font-size: .75rem; min-height: 1rem; margin-bottom: .8rem;   /* [ESPERA-MAS] decisión 42: era .65rem */
     }
     .waitlist-submit {
       width: 100%; padding: .7rem; font-family: inherit; font-size: .75rem;
