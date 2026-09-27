@@ -577,7 +577,12 @@
 
     .admin-main {
       padding: 1.2rem 1.4rem;
-      overflow-x: hidden;
+      /* [GUARDAR-ABAJO] clip: recorta como hidden, pero no la vuelve contenedor de scroll (con hidden, overflow-y pasa a
+         auto y el sticky de la barra de «Guardar» se queda al final del formulario, no abajo de la pantalla). min-width 0
+         en todos los anchos (antes, sólo ≥ 701): con clip, a 390 el main se estiraba al ancho mínimo de su contenido. */
+      overflow-x: hidden;   /* respaldo: un navegador sin clip (Safari < 16) recorta como antes; ahí la barra no se pega */
+      overflow-x: clip;
+      min-width: 0;
     }
     @media (max-width: 1100px) {
       .admin-main { padding: 1rem 1rem; }
@@ -753,6 +758,30 @@
     .btn-modo-restar { background: #0a0a0c; color: #ff9b9b; font-weight: 700; border: 1px solid var(--borde); }
     .btn-modo-restar.activo { background: #4a1a1a; border-color: #ff9b9b; }
     body.light .btn-reavisar { background: rgba(0,0,0,.05); color: #333; }
+    /* [GUARDAR-ABAJO] 128 · la barra fija de «Guardar» (decisión del DISEÑADOR, aprobada por Alejo): se pega abajo de la
+       pantalla mientras se recorre el formulario y, al llegar al final, se apoya en su lugar. Los botones son los de antes
+       (mismo id, onclick y texto): el secundario a la izquierda, el principal a la derecha. z-index 50: debajo del menú
+       (expandido 55/60, abierto 8999/9000) y de los modales (9999). Ocupa el ancho de la caja: el margen negativo es el
+       padding de cada caja (--caja-pad, en .con-barra). */
+    .barra-guardar {
+      position: sticky; bottom: 0; z-index: 50;
+      display: flex; gap: .5rem;
+      background: var(--superficie); border-top: 1px solid var(--borde);
+      box-shadow: 0 -6px 16px rgba(0,0,0,.35);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      margin: 1rem calc(-1 * var(--caja-pad, 0px)) 0;
+    }
+    body.light .barra-guardar { box-shadow: 0 -4px 12px rgba(0,0,0,.08); }
+    .barra-guardar > button { min-height: 48px; margin: 0; min-width: 0; padding: .7rem 1rem; }   /* el padding lateral de los botones sueltos (1.8rem) partía «Guardar configuración» en dos renglones */
+    .barra-guardar > .barra-sec { flex: 1; }
+    .barra-guardar > .barra-prin { flex: 2.2; }
+    .con-barra { --caja-pad: 1.5rem; }
+    .promo-caja.con-barra { --caja-pad: 1.2rem; }
+    #decantsEscalera.con-barra { --caja-pad: 0px; }
+    /* e · con el teclado abierto, el campo que se escribe no queda debajo de la barra (73 px + la safe area). En el html y no
+       como scroll-margin en los campos: un <textarea> a medias detrás de la barra no subía con scroll-margin. */
+    html { scroll-padding-bottom: 88px; }
+
     /* [ESPERA-MAS] decisiones 42, v3 y 124 · la pestaña Espera, para las dos cuentas y en los dos temas. Hasta el 27-sep
        la veía sólo el jefe y tenía los colores inline para oscuro (#111, #fff): las chicas usan el claro. */
     .espera-anotar {
@@ -2228,7 +2257,7 @@
       <div id="editFormWrap" style="display:none;">
         <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Editando: <span id="editingName"></span></p>
         <input type="hidden" id="editSlug"/>
-        <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
+        <div class="con-barra" style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
               <label class="modal-label">Tipo de producto</label>
@@ -2420,9 +2449,9 @@
               <p style="font-size:.55rem;color:var(--gris);margin-top:.2rem;">Cuando haya texto, aparece un ⓘ al lado de la badge para indicar que es clickeable.</p>
             </div>
           </div>
-          <div class="admin-btn-row" style="display:flex;gap:.5rem;margin-top:1rem;">
-            <button class="modal-btn modal-btn-price" onclick="saveEditPerfume()" style="flex:3;min-width:0;">Guardar cambios</button>
-            <button class="modal-btn" onclick="cancelEdit()" style="flex:1;min-width:0;background:#333;color:#fff;">Cancelar</button>
+          <div class="barra-guardar">   <!-- [GUARDAR-ABAJO] 128 -->
+            <button class="modal-btn barra-sec" onclick="cancelEdit()" style="background:#333;color:#fff;">Cancelar</button>
+            <button class="modal-btn modal-btn-price barra-prin" onclick="saveEditPerfume()">Guardar cambios</button>
           </div>
           <!-- Zona peligrosa: eliminar perfume del catálogo -->
           <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid rgba(231,76,60,.25);">
@@ -2444,7 +2473,7 @@
     <div class="tab-content" id="tab-nuevos">
       <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
         <!-- FORMULARIO -->
-        <div style="flex:1;min-width:300px;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
+        <div class="con-barra" style="flex:1;min-width:300px;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
           <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;" id="formNuevoTitle">Agregar perfume</p>
           <input type="hidden" id="nuevoEditId" value=""/>
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
@@ -2544,9 +2573,9 @@
               <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Separá por comas. Sirven tanto para que los clientes encuentren el perfume buscando, como para que el equipo se oriente sobre qué es (familia, referencias).</p>
             </div>
           </div>
-          <div style="display:flex;gap:.5rem;margin-top:1rem;">
-            <button class="modal-btn modal-btn-price" onclick="saveNuevoPerfume()" style="flex:1;" id="btnSaveNuevo">Agregar perfume</button>
-            <button class="modal-btn" onclick="cancelEditNuevo()" style="flex:0 0 auto;background:#333;color:#fff;display:none;" id="btnCancelNuevo">Cancelar</button>
+          <div class="barra-guardar">   <!-- [GUARDAR-ABAJO] 128 · «Cancelar» sólo cuando se está editando, como antes -->
+            <button class="modal-btn barra-sec" onclick="cancelEditNuevo()" style="background:#333;color:#fff;display:none;" id="btnCancelNuevo">Cancelar</button>
+            <button class="modal-btn modal-btn-price barra-prin" onclick="saveNuevoPerfume()" id="btnSaveNuevo">Agregar perfume</button>
           </div>
           <p class="modal-success" id="nuevoMsg" style="margin-top:.5rem;"></p>
         </div>
@@ -3075,6 +3104,8 @@
 
     <!-- TAB: DECANTS CONFIG -->
     <div class="tab-content" id="tab-decants">
+      <!-- [GUARDAR-ABAJO] 128 · la caja de la escalera: el sticky necesita un contenedor (antes eran hijos sueltos de la pestaña) -->
+      <div class="con-barra" id="decantsEscalera">
       <div style="text-align:center;margin-bottom:1.5rem;">
         <p style="font-size:2rem;margin-bottom:.3rem;">💧</p>
         <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Configuración Pack de Decants</p>
@@ -3141,16 +3172,17 @@
         <textarea class="modal-input" id="decAviso" rows="3" placeholder="Ej: Guardá tu decant en lugar fresco y seco..." style="margin-bottom:0;resize:vertical;min-height:70px;"></textarea>
       </div>
 
-      <!-- Acción -->
-      <div style="display:flex;gap:.5rem;align-items:center;">
-        <button class="modal-btn modal-btn-price" onclick="saveDecantsAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;" data-solo-jefe>Guardar configuración</button>
-        <button class="action-btn" onclick="loadDecantsAdmin()" style="padding:.5rem 1rem;">↺ Recargar</button>
+      <!-- Acción · [GUARDAR-ABAJO] 128 · la barra entera es del jefe -->
+      <div class="barra-guardar" data-solo-jefe>
+        <button class="action-btn barra-sec" onclick="loadDecantsAdmin()">↺ Recargar</button>
+        <button class="modal-btn modal-btn-price barra-prin" onclick="saveDecantsAdmin()">Guardar configuración</button>
       </div>
       <p class="promo-nota" data-solo-empleada style="display:none;">Si ves un precio mal, avisale al jefe.</p>
       <p class="modal-success" id="decMsg"></p>
+      </div>
 
       <!-- ─── [PROMO-DECANTS] N4 · la promo de decants (106, 113, 114): a-d las toca el jefe; «Quiénes entran», las dos ─── -->
-      <div class="promo-caja" id="promoCaja">
+      <div class="promo-caja con-barra" id="promoCaja">
         <p class="promo-titulo">🧪 Promo de decants <span class="lock-jefe" data-solo-empleada style="display:none;">🔒 Sólo el jefe</span></p>
         <!-- a · estado + interruptor -->
         <div class="promo-estado-fila">
@@ -3188,8 +3220,8 @@
             <input type="datetime-local" class="modal-input" id="promoHasta" data-campo-jefe />
           </div>
         </div>
-        <div style="display:flex;gap:.5rem;align-items:center;margin-top:1rem;" data-solo-jefe>
-          <button class="modal-btn modal-btn-price" onclick="savePromoAdmin()" style="width:auto;padding:.7rem 1.8rem;margin-top:0;">Guardar promo</button>
+        <div class="barra-guardar" data-solo-jefe>   <!-- [GUARDAR-ABAJO] 128 -->
+          <button class="modal-btn modal-btn-price barra-prin" onclick="savePromoAdmin()">Guardar promo</button>
         </div>
         <p class="promo-nota" data-solo-empleada style="display:none;">Si ves un precio mal, avisale al jefe.</p>
         <p class="modal-success" id="promoMsg"></p>
@@ -3232,14 +3264,16 @@
 
       <!-- [PRECIOS-EN-UN-LUGAR] 123e · las marcas de diseñador (el filtro «💎 Diseñador» de Precios & Stock). Sólo el jefe
            las edita (candado 114, y en la base dc_update_jefe); la empleada las ve grises. -->
-      <div class="promo-caja" id="marcasCaja">
+      <div class="promo-caja con-barra" id="marcasCaja">
         <p class="promo-titulo">💎 Marcas de diseñador <span class="lock-jefe" data-solo-empleada style="display:none;">🔒 Sólo el jefe</span></p>
         <p class="promo-nota" style="margin:0 0 .6rem;">Los frascos de estas marcas salen en «💎 Diseñador» de Precios &amp; Stock.</p>
         <div class="marcas-lista" id="marcasLista"><p class="promo-vacio">Cargando…</p></div>
         <div class="marcas-agregar" data-solo-jefe>
           <input type="text" class="admin-search" id="marcaNueva" placeholder="Agregar marca (ej.: DIOR)" autocomplete="off" onkeydown="if (event.key === 'Enter') { event.preventDefault(); marcasAgregar(); }" />
           <button type="button" class="action-btn" onclick="marcasAgregar()">+ Agregar</button>
-          <button type="button" class="modal-btn modal-btn-price" onclick="marcasGuardar()" style="width:auto;padding:.7rem 1.4rem;margin-top:0;">Guardar</button>
+        </div>
+        <div class="barra-guardar" data-solo-jefe>   <!-- [GUARDAR-ABAJO] 128 -->
+          <button type="button" class="modal-btn modal-btn-price barra-prin" onclick="marcasGuardar()">Guardar</button>
         </div>
         <p class="promo-nota" id="marcasMsg"></p>
       </div>
