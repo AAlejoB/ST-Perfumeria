@@ -1619,12 +1619,9 @@
       background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-lg);
       padding: .7rem .9rem; margin-bottom: .8rem;
     }
-    .log-resumen-title { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gris); margin-bottom: .35rem; }
-    .log-resumen-linea { font-size: .8rem; font-weight: 700; }
-    .log-resumen-linea + .log-resumen-linea { margin-top: .25rem; font-size: .72rem; font-weight: 600; color: var(--stat-tinta-perfumes); }
-    .log-salieron { color: var(--stat-tinta-out); }
-    .log-entraron { color: var(--stat-tinta-inv); }
-    .log-neto { color: var(--gris); font-weight: 600; }
+    /* [RESUMEN-EN-EL-PANEL] decisión 126 · el bloque «Resumen de hoy» (Salieron / Entraron / Neto) pasó a ser un renglón
+       que lleva a la pestaña Resumen: dos resúmenes en dos pantallas no se pisan. */
+    .log-resumen-link { display: flex; align-items: center; min-height: var(--tap-min); font-size: .8rem; font-weight: 700; color: inherit; text-decoration: none; cursor: pointer; }
     .log-controles { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-bottom: .6rem; }
     .log-buscar { flex: 1 1 200px; min-width: 160px; min-height: var(--tap-min); }
     .log-hint { font-size: .62rem; color: var(--gris); white-space: nowrap; }
@@ -1676,6 +1673,46 @@
       .log-item { flex-wrap: wrap; }
       .log-nombre { flex: 1 1 100%; order: -1; }
     }
+
+    /* ══ [RESUMEN-EN-EL-PANEL] decisión 126 · la pestaña «📌 Resumen» (las dos cuentas) ══
+       Todo sale de UNA llamada a resumen_dia(): las tarjetas y el texto de WhatsApp no pueden decir cosas distintas.
+       Colores sólo por token, sobre --superficie (oscuro / claro): baja --stat-tinta-out 4,54 / 5,89 · sube
+       --stat-tinta-inv 8,26 / 8,04 · precio nuevo --amarillo-tinta 9,33 / 7,18 · gris 4,90 / 5,33. A 600 dos
+       columnas (stock | depósito, precios | clientes, puntos a lo ancho); a 480 o menos, una. */
+    .res-selector { display: flex; align-items: center; gap: .4rem; margin-bottom: .8rem; }
+    .res-nav {
+      flex: 0 0 auto; width: var(--tap-min); height: var(--tap-min); padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: inherit; font-size: 1.1rem; font-weight: 700; line-height: 1;
+      background: var(--superficie); color: inherit; border: 1px solid var(--borde); border-radius: var(--r-md); cursor: pointer;
+    }
+    .res-nav:disabled { opacity: .35; cursor: default; }
+    .res-dia { flex: 1 1 auto; min-width: 0; text-align: center; }
+    .res-titulo { font-size: .9rem; font-weight: 700; }
+    .res-estado { font-size: .66rem; color: var(--gris); margin-top: .1rem; }
+    .res-grilla { display: grid; grid-template-columns: 1fr; gap: .6rem; margin-bottom: .8rem; }
+    @media (min-width: 481px) {
+      .res-grilla { grid-template-columns: repeat(2, 1fr); }
+      .res-grilla .res-card-puntos, .res-grilla .res-nada { grid-column: 1 / -1; }
+    }
+    .res-card { background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-lg); padding: .6rem .8rem; min-width: 0; }
+    .res-card-titulo { font-size: .72rem; font-weight: 700; color: var(--amarillo-tinta); margin-bottom: .2rem; }
+    .res-fila { display: flex; flex-wrap: wrap; align-items: center; column-gap: .6rem; min-height: var(--tap-min); padding: .3rem 0; border-top: 1px solid var(--borde); font-size: .76rem; }
+    .res-card-titulo + .res-fila { border-top: none; }
+    .res-nombre { flex: 1 1 auto; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+    .res-sub { font-size: .66rem; font-weight: 400; color: var(--gris); }
+    .res-dato { flex: 0 0 auto; margin-left: auto; font-weight: 700; white-space: nowrap; }
+    .res-baja { color: var(--stat-tinta-out); }
+    .res-sube { color: var(--stat-tinta-inv); }
+    .res-old { color: var(--gris); text-decoration: line-through; font-weight: 400; }
+    .res-new { color: var(--amarillo-tinta); }
+    .res-sin { color: var(--gris); font-weight: 600; }
+    .res-tipo { font-size: .62rem; font-weight: 400; color: var(--gris); }
+    .res-vacio { font-size: .72rem; color: var(--gris); }   /* la sección vacía: un renglón gris, «🏬 Depósito · sin cambios» */
+    .res-nada { text-align: center; font-size: .8rem; color: var(--gris); padding: 1.2rem .8rem; }
+    .res-wa-cli { flex: 0 0 auto; margin: 0 0 0 auto; min-height: var(--tap-min); display: inline-flex; align-items: center; padding: 0 .8rem; }
+    .res-wa { display: flex; width: 100%; margin: 0; min-height: var(--tap-min); align-items: center; justify-content: center; font-size: .78rem; }
+    .res-wa[aria-disabled="true"] { opacity: .45; pointer-events: none; }
 
     /* ══ [PROMO-DECANTS] N4 · la promo de decants en la pestaña Decants (decisiones 106, 113 y 114) ══ */
     .promo-caja { background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; padding: 1.2rem; margin-top: 1.5rem; }
@@ -1830,6 +1867,7 @@
           <div class="sb-tab-list">
             <button class="tab-btn" data-tab="stats" title="Estadísticas" onclick="switchTab('stats',this);closeMobileSidebar()"><span class="sb-ico">&#128202;</span><span class="sb-label">Estadísticas</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="analytics" title="Analytics" onclick="switchTab('analytics',this);loadAnalytics();closeMobileSidebar()"><span class="sb-ico">&#128200;</span><span class="sb-label">Analytics</span></button>
+            <button class="tab-btn" data-tab="resumen" title="Resumen" onclick="switchTab('resumen',this);loadResumen();closeMobileSidebar()"><span class="sb-ico">&#128204;</span><span class="sb-label">Resumen</span></button>
             <button class="tab-btn" data-tab="auditlog" title="Log" onclick="switchTab('auditlog',this);loadAuditLog();closeMobileSidebar()"><span class="sb-ico">&#128203;</span><span class="sb-label">Log</span></button>
           </div>
         </div>
@@ -3035,6 +3073,21 @@
       </div>
     </div>
 
+    <!-- TAB: RESUMEN DEL DÍA · [RESUMEN-EN-EL-PANEL] decisión 126 · las dos cuentas -->
+    <div class="tab-content" id="tab-resumen">
+      <div class="res-selector">
+        <button type="button" class="res-nav" id="resAntes" onclick="resumenMover(-1)" aria-label="Día anterior">&#8249;</button>
+        <div class="res-dia">
+          <div class="res-titulo" id="resTitulo">Hoy</div>
+          <div class="res-estado" id="resEstado"></div>
+        </div>
+        <button type="button" class="res-nav" id="resDespues" onclick="resumenMover(1)" aria-label="Día siguiente" disabled>&#8250;</button>
+        <button type="button" class="res-nav" id="resRecargar" onclick="loadResumen()" aria-label="Recargar">&#8634;</button>
+      </div>
+      <div id="resCuerpo"><p class="log-vacio">Cargando…</p></div>
+      <a class="action-btn btn-whatsapp res-wa" id="resWa" href="#" target="_blank" rel="noopener" aria-disabled="true">📤 Mandar por WhatsApp</a>
+    </div>
+
     <!-- TAB: AUDIT LOG (solo jefe) -->
     <div class="tab-content" id="tab-auditlog">
       <div style="text-align:center;margin-bottom:1rem;">
@@ -3043,11 +3096,7 @@
         <p class="log-hint">Retención 60 días · Inmutable</p>
       </div>
 
-      <div class="log-resumen" id="logResumen">
-        <div class="log-resumen-title">📌 Resumen de hoy</div>
-        <div class="log-resumen-linea" id="logResumenLocal">—</div>
-        <div class="log-resumen-linea" id="logResumenDep" style="display:none;"></div>
-      </div>
+      <a href="#" class="log-resumen log-resumen-link" id="logResumen" onclick="event.preventDefault();switchTab('resumen',document.querySelector('.tab-btn[data-tab=resumen]'));loadResumen();">📌 Ver el resumen del día →</a>
 
       <div class="log-controles">
         <input type="text" class="admin-search log-buscar" id="logBuscar" placeholder="🔍 Buscar perfume…" autocomplete="off" />
@@ -10344,31 +10393,134 @@
 
     function logRender() { logRenderChips(); logRenderFeed(); }
 
-    // El resumen sale de resumen_stock_dia() — la MISMA función que arma el Telegram
-    // de las 23 h (decisión 34). Sin argumentos: el "hoy" lo decide el servidor en hora
-    // Argentina, así el panel y el mensaje no pueden desfasarse al cambiar el día.
-    async function logCargarResumen() {
-      var local = document.getElementById('logResumenLocal');
-      var dep = document.getElementById('logResumenDep');
-      if (!local) return;
+    // ============================================================
+    // [RESUMEN-EN-EL-PANEL] 27-sep-2026 · decisión 126 del DISEÑADOR · prompt _c del PREPARADOR.
+    // La pestaña «📌 Resumen» (las dos cuentas, 126b): qué pasó en un día, en tarjetas, y el mismo mensaje para
+    // mandar por WhatsApp. TODO sale de UNA llamada a resumen_dia() (SQL, SECURITY DEFINER): las tarjetas y el
+    // texto no pueden decir cosas distintas, así que el texto NO se arma acá. Reemplaza al bloque «Resumen de
+    // hoy» del Log (logCargarResumen / resumen_stock_dia): en el Log queda un renglón que lleva acá.
+    // «Hoy» se pide SIN p_dia: la función tiene un default (hoy en hora Argentina), pero un p_dia null explícito
+    // le llega como NULL y devuelve todo vacío.
+    // Todo lo que viene del rpc (name, nombre, telefono) pasa por escHtml; el wa.me lleva sólo dígitos.
+    // ============================================================
+    var RESUMEN_SIN_PROMO = 'sin promo';   // la palabra de la «promo sacada»: la puede cambiar el DISEÑADOR, está sólo acá
+    var RESUMEN_DIAS_ATRAS = 60;           // lo que guarda el Log (admin_actions_cleanup)
+    var resumenDia = null;                 // 'YYYY-MM-DD' del día mostrado; null = hoy, en vivo
+    var resumenData = null;                // el jsonb de la última llamada: tarjetas + texto
+    var resumenPedido = 0;                 // si se toca ‹ › rápido, gana la última respuesta
+
+    function resumenHoyART() {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    }
+    function resumenSumarDias(dia, n) {
+      var p = String(dia).split('-').map(Number);
+      return new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)).toISOString().slice(0, 10);
+    }
+    function resumenMinimo() { return resumenSumarDias(resumenHoyART(), -RESUMEN_DIAS_ATRAS); }
+
+    function resumenMover(n) {
+      var hoy = resumenHoyART();
+      var base = (resumenData && resumenData.dia) || resumenDia || hoy;
+      var nuevo = resumenSumarDias(base, n);
+      if (nuevo > hoy || nuevo < resumenMinimo()) return;
+      resumenDia = (nuevo === hoy) ? null : nuevo;
+      loadResumen();
+    }
+
+    function resumenPintarSelector(d) {
+      var tit = document.getElementById('resTitulo'), est = document.getElementById('resEstado');
+      var antes = document.getElementById('resAntes'), despues = document.getElementById('resDespues');
+      var dia = (d && d.dia) || resumenDia || resumenHoyART();
+      var esHoy = d ? !!d.es_hoy : !resumenDia;
+      if (tit) tit.textContent = d
+        ? (esHoy ? 'Hoy · ' + String(d.fecha_texto || '').split(' ').slice(0, 2).join(' ') : String(d.fecha_texto || dia))
+        : (esHoy ? 'Hoy' : dia);
+      if (est) est.textContent = d ? (esHoy ? 'en vivo · hasta las ' + String(d.ahora || '') : 'día cerrado') : '';
+      if (antes) antes.disabled = dia <= resumenMinimo();
+      if (despues) despues.disabled = esHoy || dia >= resumenHoyART();
+    }
+
+    function resumenMarca(slug) {
+      var p = (typeof PERFUMES !== 'undefined' && PERFUMES) ? PERFUMES.find(function(x) { return x.slug === slug; }) : null;
+      return p && p.marca_real ? String(p.marca_real) : '';   // el fabricante, como el renglón gris de Precios & Stock (p.marca es la de la casa)
+    }
+    function resumenFilaDelta(it) {
+      var n = Number(it.delta) || 0, marca = resumenMarca(it.slug);
+      var dato = n < 0 ? '<span class="res-dato res-baja">🔻 −' + Math.abs(n) + '</span>'
+                       : '<span class="res-dato res-sube">🔺 +' + n + '</span>';
+      return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.name || it.slug || '')
+        + (marca ? '<div class="res-sub">' + escHtml(marca) + '</div>' : '') + '</div>' + dato + '</div>';
+    }
+    function resumenFilaPrecio(it) {
+      var o = it.old, nv = it.new;
+      if (o == null && nv == null) return '';   // sin ninguno de los dos no hay nada que mostrar
+      var viejo = '<span class="res-old">' + (o == null ? '—' : escHtml('$' + formatPriceAdmin(o))) + '</span>';
+      var nuevo = nv == null
+        ? '<span class="res-sin">' + escHtml(it.tipo === 'promo' ? RESUMEN_SIN_PROMO : '—') + '</span>'
+        : '<span class="res-new">' + escHtml('$' + formatPriceAdmin(nv)) + '</span>';
+      return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.name || it.slug || '')
+        + (it.tipo === 'promo' ? ' <span class="res-tipo">· promo</span>' : '') + '</div>'
+        + '<span class="res-dato">' + viejo + ' → ' + nuevo + '</span></div>';
+    }
+    function resumenFilaCliente(it) {
+      var tel = String(it.telefono || ''), digitos = tel.replace(/[^0-9]/g, '');
+      return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.nombre || '')
+        + (tel ? '<div class="res-sub">📱 ' + escHtml(tel) + '</div>' : '') + '</div>'
+        + (digitos ? '<a class="action-btn btn-whatsapp res-wa-cli" href="https://wa.me/' + digitos + '" target="_blank" rel="noopener">WhatsApp</a>' : '')
+        + '</div>';
+    }
+    function resumenFilaPuntos(it) {
+      var n = Number(it.total) || 0;
+      return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.nombre || '') + '</div>'
+        + '<span class="res-dato ' + (n < 0 ? 'res-baja' : 'res-sube') + '">' + (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n) + ' pts</span></div>';
+    }
+
+    function resumenPintar(d) {
+      resumenPintarSelector(d);
+      var cuerpo = document.getElementById('resCuerpo');
+      if (!cuerpo) return;
+      var lista = function(x) { return Array.isArray(x) ? x : []; };
+      // El orden es el de la decisión 126c: stock → depósito → precios → clientes → puntos.
+      var secciones = [
+        { clave: 'stock',    titulo: '📦 Stock del local', filas: lista(d.stock).map(resumenFilaDelta) },
+        { clave: 'deposito', titulo: '🏬 Depósito',        filas: lista(d.deposito).map(resumenFilaDelta) },
+        { clave: 'precios',  titulo: '💰 Precios',         filas: lista(d.precios).map(resumenFilaPrecio).filter(Boolean) },
+        { clave: 'clientes', titulo: '👤 Clientes nuevos', filas: lista(d.clientes).map(resumenFilaCliente) },
+        { clave: 'puntos',   titulo: '⭐ Puntos',          filas: lista(d.puntos).map(resumenFilaPuntos) }
+      ];
+      var hay = secciones.some(function(x) { return x.filas.length > 0; });
+      cuerpo.innerHTML = '<div class="res-grilla">' + (hay
+        ? secciones.map(function(x) {
+            if (!x.filas.length) return '<section class="res-card res-card-' + x.clave + '"><div class="res-vacio">' + x.titulo + ' · sin cambios</div></section>';
+            return '<section class="res-card res-card-' + x.clave + '"><div class="res-card-titulo">' + x.titulo + ' · ' + x.filas.length + '</div>' + x.filas.join('') + '</section>';
+          }).join('')
+        : '<div class="res-card res-nada">Sin movimientos ' + (d.es_hoy ? 'hoy' : 'ese día') + ' 😴</div>') + '</div>';
+      var wa = document.getElementById('resWa');
+      if (wa) {
+        wa.href = 'https://wa.me/?text=' + encodeURIComponent(String(d.texto || ''));   // sin número: abre el selector de contacto
+        wa.removeAttribute('aria-disabled');
+      }
+    }
+
+    async function loadResumen() {
+      var cuerpo = document.getElementById('resCuerpo');
+      if (!cuerpo) return;
+      var mio = ++resumenPedido;
+      var wa = document.getElementById('resWa');
+      if (wa) { wa.setAttribute('aria-disabled', 'true'); wa.href = '#'; }
+      cuerpo.innerHTML = '<p class="log-vacio">Cargando…</p>';
+      resumenPintarSelector(null);
       try {
-        var res = await sb.rpc('resumen_stock_dia');
-        if (res.error || !res.data) throw res.error || new Error('sin datos');
-        var r = res.data;
-        var neto = Number(r.neto || 0);
-        local.innerHTML = 'Salieron <span class="log-salieron">' + escHtml(r.salieron || 0) + '</span> · '
-                        + 'Entraron <span class="log-entraron">' + escHtml(r.entraron || 0) + '</span> · '
-                        + 'Neto <span class="log-neto">' + (neto > 0 ? '+' : '') + escHtml(neto) + '</span>';
-        // La línea de depósito es del jefe (decisión 34), aunque la empleada pueda leer los eventos.
-        if (dep && currentRole === 'jefe') {
-          dep.style.display = '';
-          dep.innerHTML = 'Depósito: entraron ' + escHtml(r.dep_entraron || 0) + ' · salieron ' + escHtml(r.dep_salieron || 0);
-        } else if (dep) { dep.style.display = 'none'; }
+        var res = resumenDia ? await sb.rpc('resumen_dia', { p_dia: resumenDia }) : await sb.rpc('resumen_dia');
+        if (mio !== resumenPedido) return;
+        if (!res || res.error || !res.data) throw (res && res.error) || new Error('sin datos');
+        resumenData = res.data;
+        resumenPintar(res.data);
       } catch (e) {
-        // El resumen es secundario: si falla, el feed sigue entero. Mismo criterio que logAdminAction.
-        console.warn('[log] resumen no disponible:', e);
-        local.textContent = '—';
-        if (dep) dep.style.display = 'none';
+        if (mio !== resumenPedido) return;
+        console.warn('[resumen] no disponible:', e);
+        resumenData = null;
+        cuerpo.innerHTML = '<p class="log-vacio">No se pudo cargar el resumen. Tocá ↺ para reintentar.</p>';
       }
     }
 
@@ -10386,8 +10538,6 @@
           if (r && r.data) console.log('[audit] cleanup: ' + r.data + ' registros viejos borrados');
         }).catch(function(e) { console.warn('[audit] cleanup fallo:', e); });
       }
-
-      logCargarResumen();
 
       try {
         var q = sb.from('admin_actions').select('*');
