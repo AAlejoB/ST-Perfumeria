@@ -2837,8 +2837,19 @@ Alejo arrancó `[VERCEL-ENV-VARS]` («hago eso mientras los otros laburan en lo 
 | `[CRON-HEADER-FALSO]` | El backup aceptaba un header o user-agent falsificable | `4b50d52` |
 | `[SECURITY-AUDIT-S1]` | El secreto del push fuera de `admin.html`; el endpoint valida la sesión | `49200b7` + bump `d7496fb` |
 | `[CRON-TRIGGER-AUTO]` | El cron guardaba un `trigger` que el CHECK rechazaba (400) | `8eec233` |
+| `[BACKUP-FALLBACK-ROTO]` | El respaldo del panel guardaba `'fallback'` (rechazado) con un umbral de 3 h | `3c0c6c9` + bump `a0a595a` |
+
+#### `[BACKUP-FALLBACK-ROTO]` · prompt `_b` del PREPARADOR (camino A de Alejo) · SW v1.1.136
+
+- **Qué era:** el mismo patrón que `[CRON-TRIGGER-AUTO]`. `maybeAutoBackup()` (`admin.html`, corre 3 s después de un login con contraseña) guardaba `trigger 'fallback'`, que `admin_backups_trigger_check` rechaza (sólo `manual` | `auto`), y el error quedaba en el `catch`: fallaba en silencio. Su umbral de 3 h estaba pensado para un cron cada 2 h.
+- **Qué se cambió:** `createBackup('auto')` (el Log lo sigue distinguiendo del cron por la acción `backup_create_fallback`), el umbral a **26 h** (el cron es diario, 03:00 UTC, + margen) y los comentarios. Sin migración: el CHECK ya acepta `'auto'` (la fila del cron de hoy lo prueba).
+- **El grep:** ningún otro lugar espera `'fallback'` como `trigger` (la lista de backups muestra todo lo que no es `manual` como «🤖 Auto»). Sí aparecieron textos atados a las «3 h», **no tocados**: la etiqueta 🛟 del Log («el automático no corrió en 3 h», decisión 70) → `[LOG-LABEL-26H]` 🟢; el comentario del login («> 24h», L3681) y el texto de la pestaña Backups («Auto cada 24h · Retención 15 días · Máximo 200 snapshots»), que ya no coincidían con el código.
+- **Verificación con fixture** (el `insert` interceptado): sin backups, a 26 h 1 min y a 3 días dispara (`trigger: 'auto'`, las columnas `trigger, actor_email, size_bytes, row_counts, data`, y `backup_create_fallback` en el Log); a 1 h y a 25 h 59 min no dispara.
+- **Visto al pasar, no tocado:** corre para los dos roles, pero `admin_backups` tiene insert sólo para el jefe (`jefe_insert_backups`): en la tablet de la empleada el respaldo no puede guardar (lo rechaza la RLS y queda en el `catch`). Ya pasaba antes.
 
 ---
+
+**Última actualización:** **Septiembre 27, 2026 (`_b`)** — `[BACKUP-FALLBACK-ROTO]` en producción, SW v1.1.136: el respaldo del panel guarda `'auto'` y espera 26 h. Nuevo `[LOG-LABEL-26H]` 🟢.
 
 **Última actualización:** **Septiembre 27, 2026** — `[CRON-HEADER-FALSO]`, `[SECURITY-AUDIT-S1]` (aprobado por el PREPARADOR) y `[CRON-TRIGGER-AUTO]` en producción, `main` = `8eec233`, SW v1.1.135. El backup del cron anda (primera fila `auto` desde mayo). `[VERCEL-ENV-VARS]` a medias (falta el push); nuevo `[BACKUP-FALLBACK-ROTO]`.
 
@@ -2956,6 +2967,10 @@ Alejo arrancó `[VERCEL-ENV-VARS]` («hago eso mientras los otros laburan en lo 
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 27-sep-2026 (`_b`):**
+
+- ✅ ~~**`[BACKUP-FALLBACK-ROTO]`**~~ (27-sep, salió de `[VERCEL-ENV-VARS]` · 🟡 propuesta) — el respaldo del panel (`maybeAutoBackup`, `admin.html`) inserta `trigger: 'fallback'`, que `admin_backups_trigger_check` rechaza (sólo `manual` | `auto`): falla en silencio (`console.warn`). Además su umbral es de 3 h, pensado para un cron «cada 2 horas»; el cron real es diario (plan Hobby), así que arreglar sólo el valor haría un backup cada vez que alguien abre el panel más de 3 h después del último (y el cleanup deja 12). Decidir: `'auto'` con umbral de ~26 h, ampliar el CHECK, o sacarlo. Lo deciden Alejo y el PREPARADOR. → **RESUELTO el 27-sep** (`3c0c6c9`, camino A de Alejo): `'auto'` y umbral de 26 h.
 
 **Movidos el 27-sep-2026 (`_a`):**
 
