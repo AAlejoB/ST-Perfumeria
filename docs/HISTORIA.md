@@ -2922,6 +2922,36 @@ Prompt `_d` del PREPARADOR. Dependía del SQL v2 de `resumen_dia` (lo corrió Al
 
 ---
 
+### Sesión 27-sep-2026 · `_e` · **`[PRECIOS-EN-UN-LUGAR]`** (decisión 123 del DISEÑADOR, a–f)
+
+Prompt `_e` del PREPARADOR: en el mostrador preguntan el precio de un decant y nadie se acuerda, y Precios & Stock (la pestaña que abre el panel) pasa a mostrarlo. **Sólo se mira.** Dependía de un SQL de Alejo (`decants_config.marcas_disenador`): la columna ya estaba al empezar. Rama `precios-en-un-lugar` desde `119a091`, SW v1.1.139. **Merge no pre-aprobado.**
+
+#### Qué se hizo
+
+- **Los datos:** `cargarDatosPrecios()` trae al entrar, en paralelo y sin bloquear el primer render, los decants de diseñador, la promo y los cambiados a mano, y `decants_config`; al llegar vuelve a pintar. Si uno falla, lo suyo no aparece (`PRECIOS_DATOS`). La pestaña Decants, al abrirse, también actualiza lo de Precios (lo que se guarda ahí se ve sin recargar).
+- **123a · la tira:** «💧 Decants árabes (5 ml) · 1–2: $9.500 · 3–4: $9.000 · 5 o más: $8.500», la promo sólo si está vigente («🧪 Promo: 3 × $18.000 ($6.000 c/u) · entran todos menos los que dicen «sin promo» · hasta el mar 29») y «Abajo se marcan sólo las excepciones».
+- **123b · excepciones:** «💧 decant $X fijo» y, con la promo vigente, «sin promo n×» (sólo en el armador y con escalera). La regla es **`promoEntraPanel`**, espejo exacto de `promoDecantEntra` (NO ROMPER #16). «Entran solos» sigue contando sólo el paso 4 (`promoEntraPorFrasco`), como antes: con el mismo fixture da «141 de 149» en `main` y en la rama.
+- **123c · decants de diseñador como filas:** 💎 nombre y «marca · decant de diseñador · 5 ml», DECANT de contorno (123f; no abre el modal), «$X c/u» o «a consultar», efectivo «—». Por nombre, mezclados (empate: primero el frasco); con precio o stock, al final. No cuentan en las tarjetas.
+- **123d · filtro** Todo · Frascos · 💎 Diseñador (`.log-chip`, 44). **123e:** «💎 Diseñador» en dos grupos con título («Frascos · N», «Decants 5 ml · N»); al buscar, un título sin filas se oculta y su N cuenta lo visible. El editor de marcas en Decants: chips con ✕ de 44, «+ Agregar» y «Guardar» para el jefe; gris, con 🔒 y sin sacar ni guardar para la empleada; «Falta correr el SQL…» si la columna no existe.
+- **[XSS-PRECIOS-STOCK]:** agujero abierto hasta el merge: sólo la keyword (la descripción entra cuando esté en producción).
+- **En el celu,** la columna del nombre no parte renglones (regla previa): la línea gris de la marca y la de los decants terminan en «…» y las excepciones se parten, nunca se cortan.
+
+#### Verificación (fixture)
+
+- 32 capturas (`herramientas\precios-en-un-lugar\png\`): 390 y 360, claro y oscuro, de la tabla, «born», «💎 Diseñador», el precio fijo, «sin promo 3×» (Moscow Mule) con la promo prendida y apagada, y las marcas como jefe y como empleada. Sin scroll horizontal, los botones a 44, ninguna excepción cortada.
+- **Alto de fila (con Inter; a 390 y 360 igual):** sin excepción 49; con «sin promo 3×» 57 (+8); con «💧 decant $18.500 fijo», que se parte en dos renglones, 69 (+20).
+- **XSS:** un frasco (nombre por override) y un decant con `<img src=x onerror=…>`: se ven como texto, 0 `<img>`, no se ejecutan.
+- `npm run contraste`: 0 fallas + 1 token pisado, 233 mediciones (DECANT 12,33 / 11,37 sobre la tabla; la línea gris y el «—» 5,58 / 5,33; el título de grupo 10,64 / 7,18). Sintaxis del script del panel: sin errores.
+
+#### Con los datos reales (sólo contar)
+
+- «💧 decant fijo»: 2 filas. «sin promo»: 0 (no hay promo); con 3 × $18.000 serían 9. Filas de decant de diseñador: 13.
+- «💎 Diseñador»: **17 frascos**, no 21. Victoria's Secret tiene 5 en los datos: 2 escritos «Victoria's Secret» (entran: coinciden con «VICTORIAS SECRET») y 3 «VICTORIA SECRET» sin S (Bare Vanilla, Coconut Passion, Love Spell), que con la normalización pedida no entran. Aun contándolos serían 20.
+
+---
+
+**Última actualización:** **Septiembre 27, 2026 (`_e`)** — `[PRECIOS-EN-UN-LUGAR]` en la rama `precios-en-un-lugar` (SW v1.1.139), esperando la revisión del PREPARADOR.
+
 **Última actualización:** **Septiembre 27, 2026 (`_d`)** — la ronda `_d` del Resumen y las decisiones 125 / 125b en producción, SW v1.1.138. Cerrado `[LOG-LABEL-26H]`.
 
 **Última actualización:** **Septiembre 27, 2026 (`_c`)** — `[RESUMEN-EN-EL-PANEL]` aprobado por el PREPARADOR y en producción (SW v1.1.137). La próxima ronda (lo del DISEÑADOR + 3 detalles, un prompt y un SQL) ya la anotó el PREPARADOR.

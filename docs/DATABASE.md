@@ -356,6 +356,10 @@ created_at    TIMESTAMPTZ DEFAULT NOW()
 
 Retención: 60 días (cleanup manual o por trigger).
 
+### `decants_config.marcas_disenador` · `[PRECIOS-EN-UN-LUGAR]` (27-sep-2026)
+
+`text[]` en la fila `id = 1` de `decants_config` (la agregó el SQL del PREPARADOR que corrió Alejo, prellenada con 9 marcas). Son las marcas cuyos frascos salen en «💎 Diseñador» de Precios & Stock. La edita sólo el jefe desde la pestaña Decants (`dc_update_jefe`); se guarda en mayúsculas y sin espacios de más. El panel compara normalizando los dos lados (mayúsculas, sin apóstrofes, espacios recortados): «Victoria's Secret» coincide con «VICTORIAS SECRET», pero «VICTORIA SECRET» (sin S) no.
+
 ### `resumen_dia(p_dia date)` · `[RESUMEN-EN-EL-PANEL]` (27-sep-2026)
 
 La usa la pestaña «📌 Resumen» del panel (decisión 126). La escribió el PREPARADOR y la corrió Alejo (SQL fuera del repo).
