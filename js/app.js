@@ -164,23 +164,26 @@
 
     function cleanPhone(raw) {
       // Quitar todo menos números
-      var digits = raw.replace(/[^0-9]/g, '');
+      var digits = String(raw == null ? '' : raw).replace(/[^0-9]/g, '');
       // Si empieza con 0, quitarlo (ej: 02975 -> 2975)
       if (digits.charAt(0) === '0') digits = digits.substring(1);
-      // Si tiene 549 seguido de 15, quitar el 15 (formato viejo)
-      digits = digits.replace(/^549(\d{2,4})15(\d+)$/, '549$1$2');
+      // [TEL-15-SIN-549] Ya canónico (549 + 10 dígitos): tal cual. Un «15» adentro es del número (antes se lo borraba).
+      if (/^549\d{10}$/.test(digits)) return digits;
       // Si son 10 dígitos puros (número local), agregar 549
-      if (digits.length === 10 && digits.substring(0, 2) !== '54') {
-        digits = '549' + digits;
-      }
+      if (digits.length === 10 && digits.substring(0, 2) !== '54') return '549' + digits;
       // Si empieza con 54 pero sin 9 (12 dígitos), insertar el 9
-      else if (digits.length === 12 && digits.substring(0, 2) === '54' && digits.charAt(2) !== '9') {
-        digits = '549' + digits.substring(2);
+      if (digits.length === 12 && digits.substring(0, 2) === '54' && digits.charAt(2) !== '9') return '549' + digits.substring(2);
+      // [TEL-15-SIN-549] El «15» viejo después de la característica (2 a 4 dígitos), con o sin 54 / 549 adelante: se saca
+      // sólo si así quedan los 10 dígitos del número, y sólo si hay UNA característica posible. Con más de una no se
+      // adivina: queda sin normalizar (no llega a 13 y no se guarda). Antes se sacaba sólo con 549 adelante.
+      var resto = /^549/.test(digits) ? digits.substring(3) : (/^54/.test(digits) ? digits.substring(2) : digits);
+      if (resto.length === 12) {
+        var pos = [2, 3, 4].filter(function(k) { return resto.substr(k, 2) === '15'; });
+        if (pos.length === 1) return '549' + resto.substring(0, pos[0]) + resto.substring(pos[0] + 2);
+        if (pos.length > 1) return digits;
       }
       // Si NO empieza con 54, agregarlo
-      else if (digits.substring(0, 2) !== '54') {
-        digits = '549' + digits;
-      }
+      if (digits.substring(0, 2) !== '54') return '549' + digits;
       return digits;
     }
 
@@ -287,7 +290,7 @@
 
     // [FORGOT-PASS-A] El cliente toca "¿Olvidaste tu contraseña?" → crea un
     // pedido en password_reset_requests + avisa al admin por Telegram. El admin
-    // verifica identidad por WhatsApp y resetea desde Admin → Pedidos pass.
+    // verifica identidad por WhatsApp y resetea desde Admin → Reset contraseñas.
     // NO revelamos si el número existe o no (privacidad): mensaje genérico siempre.
     async function requestPasswordReset() {
       var errEl = document.getElementById('authError');
@@ -4473,8 +4476,8 @@
         msgEl.textContent = 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
         return;
       }
-      // Ya viene canónico (549 + 10 dígitos: los 99 clientes). cleanPhone sobre eso le borra un "15" legítimo
-      // del medio a 2 de ellos y no podrían anotarse; sólo se limpia si no tiene esa forma.
+      // Ya viene canónico (549 + 10 dígitos: los clientes). Hasta [TEL-15-SIN-549] cleanPhone le borraba un "15" legítimo del
+      // medio; ahora lo deja tal cual, y esta guarda queda por las dudas.
       var phone = /^549\d{10}$/.test(rawPhone) ? rawPhone : cleanPhone(rawPhone);
       if (phone.length !== 13) {
         msgEl.className = 'waitlist-msg waitlist-msg--error';

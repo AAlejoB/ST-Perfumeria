@@ -649,6 +649,13 @@
        body.light .admin-table tbody td (0,2,3) pisa el color de la celda, por eso .td-sin lleva (0,3,1). */
     .td-sub { display: block; font-size: .58rem; color: var(--gris); font-weight: 400; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; }
     .td-sub.td-excepcion { white-space: normal; }   /* en el celu .td-name no parte renglones: la marca termina en «…», la excepción nunca se corta */
+    /* [PRECIOS-EN-UN-LUGAR] decisión 18 · en Precios & Stock la badge llena el alto de la celda con cualquier alto de fila
+       (una tira continua): height 1px en la celda deja resolver el 100 % de la badge contra el alto real de la fila. La
+       min-height de 48 ([BADGE-48]) sigue. Sólo acá: Depósito tiene su tabla y no cambia. */
+    #tbodyPrecios td.td-stock { height: 1px; }
+    #tbodyPrecios .td-stock .badge-stock { height: 100%; }
+    /* 123j · el precio del decant de diseñador en la fila de su frasco: en la tinta dorada y en negrita. */
+    .td-decant-precio { color: var(--amarillo-tinta); font-weight: 700; }
     .td-stock .badge-stock.badge-decant { background: transparent; color: var(--gris-claro); border: 1px solid var(--gris-claro); cursor: default; }
     .admin-table td.td-price.td-sin, .td-consultar { color: var(--gris); font-weight: 400; }
     .precios-tira {
@@ -737,7 +744,7 @@
     .btn-whatsapp { background: #25D366; color: #1a1a1a; text-decoration: none; }
     .btn-gris { background: #555; color: #fff; }
     .btn-reavisar { background: rgba(255,255,255,.06); color: #ccc; border: 1px solid var(--borde); text-decoration: none; }
-    /* [ESPERA-MAS] «Quitar» se leía 3,86 en oscuro y 3,15 en claro: la letra, la de «✕ QUITAR» (decisión 100, #ff8a80)
+    /* [ESPERA-MAS] «Quitar» se leía 4,26 en oscuro (2,90 en el Historial, con su opacidad) y 3,15 en claro: la letra, la de «✕ QUITAR» (decisión 100, #ff8a80)
        en oscuro y la roja de tinta en claro. El fondo rojizo y el borde no cambian en oscuro. */
     .btn-quitar-espera { background: rgba(231,76,60,.15); color: #ff8a80; border: 1px solid rgba(231,76,60,.3); }
     body.light .btn-quitar-espera { background: rgba(184,52,42,.08); color: var(--stat-tinta-out); border-color: rgba(184,52,42,.35); }
@@ -1362,6 +1369,11 @@
       }
       .push-preset-title { font-size: .68rem; }
     }
+    /* [PRECIOS-EN-UN-LUGAR] 123i · a ≤ 360 el nombre de Precios & Stock va hasta 3 renglones (entre 361 y 600, 2): a 360
+       «BORN IN ROMA INTENSE» necesitaba 3 y se veía «BORN IN / ROMA…». Después del bloque ≤ 600, así le gana. */
+    @media (max-width: 360px) {
+      #tbodyPrecios .td-nombre { -webkit-line-clamp: 3; line-clamp: 3; }
+    }
 
     /* ============================================================
        TEMA CLARO (body.light)
@@ -1983,7 +1995,7 @@
           <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>&#128203; D&iacute;a a d&iacute;a</span><span class="sb-chev">&#9662;</span></div>
           <div class="sb-tab-list">
             <button class="tab-btn" data-tab="clientes" title="Clientes" onclick="switchTab('clientes',this);closeMobileSidebar()"><span class="sb-ico">&#128101;</span><span class="sb-label">Clientes</span></button>
-            <button class="tab-btn" data-tab="resetpass" title="Pedidos pass" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()"><span class="sb-ico">&#128273;</span><span class="sb-label">Pedidos pass</span></button>
+            <button class="tab-btn" data-tab="resetpass" title="Reset contraseñas" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()"><span class="sb-ico">&#128273;</span><span class="sb-label">Reset contraseñas</span></button>
             <button class="tab-btn" data-tab="espera" title="Espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()"><span class="sb-ico">&#128205;</span><span class="sb-label">Espera</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="opiniones" title="Opiniones" onclick="switchTab('opiniones',this);closeMobileSidebar()"><span class="sb-ico">&#128172;</span><span class="sb-label">Opiniones</span></button>
             <button class="tab-btn" data-tab="decants" title="Decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()"><span class="sb-ico">&#128167;</span><span class="sb-label">Decants</span></button>
@@ -2181,7 +2193,7 @@
     <!-- [FORGOT-PASS-A] TAB: PEDIDOS DE RESET DE CONTRASEÑA -->
     <div class="tab-content" id="tab-resetpass">
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1rem;">
-        <h2 style="margin:0 0 .4rem;font-size:1.1rem;">🔑 Pedidos de recuperación de contraseña</h2>
+        <h2 style="margin:0 0 .4rem;font-size:1.1rem;">🔑 Reset contraseñas</h2>
         <p style="color:#bbb;font-size:.82rem;margin:0;line-height:1.5;">Cuando un cliente toca <em>"¿Olvidaste tu contraseña?"</em> en la web, su pedido aparece acá.<br>
         ⚠️ <strong class="aviso-verificar">Verificá su identidad por WhatsApp ANTES de resetear</strong> — preguntale algo que solo el cliente real sepa (qué compró, cuándo vino, etc).</p>
       </div>
@@ -3020,7 +3032,7 @@
           <p class="espera-stat-sub">con gente esperando</p>
         </div>
       </div>
-      <p class="espera-ayuda">Cuando cambi&#225;s el stock de un perfume de &quot;sin stock&quot; a &quot;en stock&quot;, se avisa autom&#225;ticamente por WhatsApp a los que est&#225;n esperando. Los ya notificados quedan en el <em>Historial</em>.</p>
+      <p class="espera-ayuda">Cuando vuelve el stock, tocá «Avisar»: se abre WhatsApp con el mensaje listo. Los que ya avisaste pasan al <em>Historial</em>.</p>   <!-- [ESPERA-AYUDA-AUTOMATICO] el aviso no es automático desde [WAITLIST-AVISO-REAL] -->
       <button type="button" class="espera-anotar" id="esperaAnotarAbrir" onclick="esperaAbrirAnotar()">+ Anotar del mostrador</button>
       <div class="espera-controles" id="esperaControles"></div>
       <div id="esperaList" class="espera-lista"></div>
@@ -5022,22 +5034,29 @@
       var customs = promoCustoms();
       var oferta = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
       var mlDecant = (PRECIOS_CFG && PRECIOS_CFG.ml) ? PRECIOS_CFG.ml : 5;
+      // 123j · un renglón por perfume: el decant de diseñador que se llama igual que un frasco (promoNorm: la regla del
+      // armador para no mostrarlos dos veces) va DENTRO de la fila del frasco. Se arma más abajo, con los decants.
+      var decantDe = function(p) { return decantPorNombre[promoNorm(p.name)] || null; };
       var filaFrasco = function(p, grupo) {
         var info = deriveStockInfo(p);
+        var dec = decantDe(p);
         // Precio efectivo: 10% OFF sobre el mejor precio (usa promo si hay, sino price)
         var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
         var cashPrice = Math.round(basePrice * 0.9);
         // data-search: nombre + marca propia + fabricante (marca_real) + apodos (alhambra, cdn, club nuit…).
-        var searchStr = ((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).toLowerCase();
+        var searchStr = ((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '') + (dec ? ' ' + (dec.nombre || '') + ' decant' : '')).toLowerCase();
         // 123b · sólo las excepciones llevan línea: el precio de decant a mano y, con la promo vigente, «sin promo n×»
         // (sólo si está en el armador y va con la escalera). «A consultar» no se marca (decisión de Alejo).
         var exc = [];
         var fijo = promoNum(p._precioDecant);
-        if (fijo > 0) exc.push('💧 ' + promoPesos(fijo) + ' fijo');   // ronda g: sin «decant», el 💧 ya lo dice
+        // 123j · con decant de diseñador va sólo la línea 💎 (el armador usa ese: su dedup esconde el del catálogo).
+        if (fijo > 0 && !dec) exc.push('💧 ' + promoPesos(fijo) + ' fijo');   // ronda g: sin «decant», el 💧 ya lo dice
         if (oferta && PRECIOS_DATOS.customs && promoEnLista(p, customs) && promoConEscalera(p) && !promoEntraPanel(p, oferta, customs)) exc.push('sin promo ' + oferta.n + '×');
         return '<tr data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
           + '<td class="td-name"><span class="td-nombre">' + escHtml(p.name || '') + '</span>'
           +   (p.marca_real ? '<span class="td-sub">' + escHtml(p.marca_real) + '</span>' : '')
+          +   (dec ? '<span class="td-sub td-excepcion">💎 decant ' + escHtml(String(mlDecant)) + ' ml '
+                + (promoNum(dec.precio_unit) > 0 ? '<span class="td-decant-precio">' + escHtml(promoPesos(promoNum(dec.precio_unit))) + '</span>' : 'a consultar') + '</span>' : '')
           +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('')
           + '</td>'
           + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + escHtml(info.badgeText) + '</span></td>'
@@ -5062,20 +5081,30 @@
             .slice().sort(function(a, b) { return String(a.nombre).localeCompare(String(b.nombre)); })
         : [];
       if (sortKey === 'name-desc') decants.reverse();
+      var decantPorNombre = Object.create(null);   // promoNorm(nombre) → el decant (el primero, si se repite)
+      decants.forEach(function(c) { var k = promoNorm(c.nombre); if (k && !decantPorNombre[k]) decantPorNombre[k] = c; });
+      // Los decants que no tienen un frasco que se llame igual entre los frascos que se muestran.
+      var sinFrasco = function(frascos) {
+        var hay = Object.create(null);
+        frascos.forEach(function(p) { hay[promoNorm(p.name)] = true; });
+        return decants.filter(function(c) { return !hay[promoNorm(c.nombre)]; });
+      };
       var html = '';
       if (PRECIOS_FILTRO === 'disenador') {
         // 123e · dos grupos con título: los frascos de las marcas de diseñador y los decants de diseñador.
         var marcas = {};
         (MARCAS_DISENADOR || []).forEach(function(m) { var k = marcaNorm(m); if (k) marcas[k] = true; });
         var frascosDis = list.filter(function(p) { return marcas[marcaNorm(p.marca_real)]; });
+        var soloDecant = sinFrasco(frascosDis);   // 123j · «Sólo en decant»: los que no se juntaron con un frasco de acá
         html += '<tr class="fila-grupo" data-titulo="frascos"><td colspan="4">Frascos · <span class="grupo-n">' + frascosDis.length + '</span></td></tr>'
           + frascosDis.map(function(p) { return filaFrasco(p, 'frascos'); }).join('')
-          + '<tr class="fila-grupo" data-titulo="decants"><td colspan="4">Decants ' + mlDecant + ' ml · <span class="grupo-n">' + decants.length + '</span></td></tr>'
-          + decants.map(function(c) { return filaDecant(c, 'decants'); }).join('');
+          + '<tr class="fila-grupo" data-titulo="decants"><td colspan="4">Sólo en decant · <span class="grupo-n">' + soloDecant.length + '</span></td></tr>'
+          + soloDecant.map(function(c) { return filaDecant(c, 'decants'); }).join('');
       } else {
         var filas = list.map(function(p) { return { tipo: 'frasco', nombre: String(p.name || ''), html: filaFrasco(p, null) }; });
-        if (PRECIOS_FILTRO === 'todo' && decants.length) {
-          var dFilas = decants.map(function(c) { return { tipo: 'decant', nombre: String(c.nombre || ''), html: filaDecant(c, null) }; });
+        var sueltos = sinFrasco(list);   // 123j · en «Todo», los que se juntaron ya están en la fila de su frasco
+        if (PRECIOS_FILTRO === 'todo' && sueltos.length) {
+          var dFilas = sueltos.map(function(c) { return { tipo: 'decant', nombre: String(c.nombre || ''), html: filaDecant(c, null) }; });
           if (sortKey === 'name-asc' || sortKey === 'name-desc') {
             // Por nombre: mezclados; si el nombre coincide, primero el frasco. (sort estable: los frascos quedan en su orden)
             var dir = sortKey === 'name-desc' ? -1 : 1;
@@ -9616,6 +9645,11 @@
       renderListaEspera();
     }
 
+    // El filtro de origen: el mismo para la lista y para «Avisar a todos» (si no, el botón decía «(2)» y abría a todos).
+    function esperaPasaFiltro(r) {
+      return !(esperaTieneOrigen && esperaOrigen !== 'todo') || (r.origen || 'web') === esperaOrigen;
+    }
+
     // Los controles: el filtro de origen (sólo si existe la columna) y el toggle, con lo que hay bajo el filtro.
     function esperaRenderControles(nP, nH) {
       var cont = document.getElementById('esperaControles'); if (!cont) return;
@@ -9646,13 +9680,13 @@
       document.getElementById('esperaPerfumes').textContent = Object.keys(slugsPend).length;
 
       var filtrando = esperaTieneOrigen && esperaOrigen !== 'todo';
-      var bajoFiltro = filtrando ? esperaData.filter(function(r) { return (r.origen || 'web') === esperaOrigen; }) : esperaData;
+      var bajoFiltro = esperaData.filter(esperaPasaFiltro);
       var pending = bajoFiltro.filter(function(r) { return !r.notified_at; });
       var history = bajoFiltro.filter(function(r) { return !!r.notified_at; });
       esperaRenderControles(pending.length, history.length);
 
       var rows = (esperaView === 'history') ? history : pending;
-      var grouped = {};
+      var grouped = Object.create(null);   // sin prototipo: un slug «constructor» o «__proto__» no corta la lista
       rows.forEach(function(row) {
         if (!grouped[row.slug]) grouped[row.slug] = { name: row.perfume_name || row.slug, items: [] };
         grouped[row.slug].items.push(row);
@@ -9676,10 +9710,13 @@
       slugs.forEach(function(slug) {
         var group = grouped[slug];
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-        var status = p && p._stockStatus ? p._stockStatus : 'ok';
-        var statusBadge = status === 'ok'
-          ? '<span class="espera-estado espera-estado--ok">EN STOCK</span>'
-          : '<span class="espera-estado espera-estado--out">SIN STOCK</span>';
+        // [ESPERA-LOW-SIN-STOCK] ok y low (pocas unidades) → EN STOCK; sin stock o pausado → SIN STOCK; un slug que no está en
+        // PERFUMES → nada (no se sabe).
+        var status = p ? (p._stockStatus || 'ok') : null;
+        var statusBadge = !p ? ''
+          : (status === 'ok' || status === 'low')
+            ? '<span class="espera-estado espera-estado--ok">EN STOCK</span>'
+            : '<span class="espera-estado espera-estado--out">SIN STOCK</span>';
 
         html += '<div class="espera-grupo">';
         html += '<div class="espera-grupo-cab">';
@@ -9744,6 +9781,12 @@
         if (!ok) console.warn('[espera] quitar:', (res && res.error) || 'la base no borr\u00f3 la fila');
       } catch(e) { console.warn('[espera] quitar:', e); }
       if (!ok) {
+        // 0 filas sin error: o la RLS no dejó, o ya la había quitado otra tablet. Se vuelve a leer la lista: si la fila
+        // ya no está, no hay nada que avisar; si sigue, no se pudo.
+        if (res && !res.error) {
+          await loadListaEspera();
+          if (!esperaData.some(function(r) { return r.id === id; })) return;
+        }
         if (btn) btn.disabled = false;
         alert('No se pudo quitar. Prob\u00e1 de nuevo en un rato.');
         return;
@@ -9762,40 +9805,44 @@
     // el panel guardan el teléfono igual (549 + 10 dígitos). Si cambia en el catálogo, cambia acá.
     function cleanPhone(raw) {
       // Quitar todo menos números
-      var digits = raw.replace(/[^0-9]/g, '');
+      var digits = String(raw == null ? '' : raw).replace(/[^0-9]/g, '');
       // Si empieza con 0, quitarlo (ej: 02975 -> 2975)
       if (digits.charAt(0) === '0') digits = digits.substring(1);
-      // Si tiene 549 seguido de 15, quitar el 15 (formato viejo)
-      digits = digits.replace(/^549(\d{2,4})15(\d+)$/, '549$1$2');
+      // [TEL-15-SIN-549] Ya canónico (549 + 10 dígitos): tal cual. Un «15» adentro es del número (antes se lo borraba).
+      if (/^549\d{10}$/.test(digits)) return digits;
       // Si son 10 dígitos puros (número local), agregar 549
-      if (digits.length === 10 && digits.substring(0, 2) !== '54') {
-        digits = '549' + digits;
-      }
+      if (digits.length === 10 && digits.substring(0, 2) !== '54') return '549' + digits;
       // Si empieza con 54 pero sin 9 (12 dígitos), insertar el 9
-      else if (digits.length === 12 && digits.substring(0, 2) === '54' && digits.charAt(2) !== '9') {
-        digits = '549' + digits.substring(2);
+      if (digits.length === 12 && digits.substring(0, 2) === '54' && digits.charAt(2) !== '9') return '549' + digits.substring(2);
+      // [TEL-15-SIN-549] El «15» viejo después de la característica (2 a 4 dígitos), con o sin 54 / 549 adelante: se saca
+      // sólo si así quedan los 10 dígitos del número, y sólo si hay UNA característica posible. Con más de una no se
+      // adivina: queda sin normalizar (no llega a 13 y no se guarda). Antes se sacaba sólo con 549 adelante.
+      var resto = /^549/.test(digits) ? digits.substring(3) : (/^54/.test(digits) ? digits.substring(2) : digits);
+      if (resto.length === 12) {
+        var pos = [2, 3, 4].filter(function(k) { return resto.substr(k, 2) === '15'; });
+        if (pos.length === 1) return '549' + resto.substring(0, pos[0]) + resto.substring(pos[0] + 2);
+        if (pos.length > 1) return digits;
       }
       // Si NO empieza con 54, agregarlo
-      else if (digits.substring(0, 2) !== '54') {
-        digits = '549' + digits;
-      }
+      if (digits.substring(0, 2) !== '54') return '549' + digits;
       return digits;
     }
-    // Como el alta del catálogo (submitWaitlist): si ya viene canónico queda tal cual (cleanPhone le borra un «15»
-    // legítimo del medio); si no, pasa por cleanPhone. Devuelve lo limpio, dé o no 13 dígitos.
-    function esperaTelLimpio(raw) {
-      var t = String(raw || '').trim();
-      return /^549\d{10}$/.test(t) ? t : cleanPhone(t);
-    }
+    // Lo limpio, dé o no 13 dígitos. Desde [TEL-15-SIN-549] cleanPhone saca lo que no es dígito y deja tal cual un canónico
+    // (también pegado como «+54 9 2974 15-1234»): alcanza con ella.
+    function esperaTelLimpio(raw) { return cleanPhone(raw); }
+    // #2 · sólo se guarda 549 + 10: un «54 0297 …» da 13 dígitos pero no es un celular, y el índice único no lo cruzaría.
+    function esperaTelValido(t) { return /^549\d{10}$/.test(t); }
 
     var esperaElegidos = [];          // [{ slug, name, estado: '' | 'ok' | 'ya' | 'error' }]
     var esperaNombreTocado = false;   // la chica escribió el nombre: la búsqueda por teléfono no lo pisa
     var esperaNombreAuto = '';        // el último nombre que puso la búsqueda
     var esperaNombreTel = '';         // el teléfono de esa búsqueda
     var esperaNombrePedido = 0;       // si tipean rápido, gana la última respuesta
+    var esperaCierreTimer = null;     // el cierre solo después de anotar: se cancela si se vuelve a abrir
     var ESPERA_CHIP_TXT = { ok: '\u2713 Anotado', ya: 'Ya est\u00e1 anotado para ese perfume', error: 'No se pudo anotar' };
 
     function esperaAbrirAnotar() {
+      clearTimeout(esperaCierreTimer);
       esperaElegidos = [];
       esperaNombreTocado = false; esperaNombreAuto = ''; esperaNombreTel = ''; esperaNombrePedido++;
       document.getElementById('esperaTel').value = '';
@@ -9828,13 +9875,16 @@
       var raw = document.getElementById('esperaTel').value.trim();
       var el = document.getElementById('esperaTelPreview');
       esperaFormMsg('', '');
+      if (esperaElegidos.some(function(e) { return e.estado; })) { esperaElegidos.forEach(function(e) { e.estado = ''; }); esperaRenderChips(); }
       if (raw.replace(/[^0-9]/g, '').length < 6) { el.textContent = ''; esperaNombreBuscar(''); return; }
       var t = esperaTelLimpio(raw);
       var ver = formatPhoneDisplay(t) || t;
-      if (t.length === 13) el.innerHTML = '<span class="espera-ok">\u2713 ' + escHtml(ver) + '</span>';
+      if (esperaTelValido(t)) el.innerHTML = '<span class="espera-ok">\u2713 ' + escHtml(ver) + '</span>';
       else if (t.length > 13) el.innerHTML = '<span class="espera-error">' + escHtml(ver) + ' (demasiados d\u00edgitos)</span>';
+      else if (t.length === 13) el.innerHTML = '<span class="espera-error">+' + escHtml(t) + ' (no es un celular: 10 d\u00edgitos, sin 0 ni 15)</span>';
+      else if (t.length === 12) el.innerHTML = '<span class="espera-error">' + escHtml(t) + ' (revis\u00e1 el n\u00famero: 10 d\u00edgitos, sin 0 ni 15)</span>';   // [TEL-15-SIN-549] el «15» no se adivina
       else el.innerHTML = '<span class="espera-falta">' + escHtml(ver) + ' (' + (13 - t.length) + ' d\u00edgitos faltan)</span>';
-      esperaNombreBuscar(t.length === 13 ? t : '');
+      esperaNombreBuscar(esperaTelValido(t) ? t : '');
     }
 
     // Si el teléfono ya está en clientes, el nombre sale solo (y se puede editar).
@@ -9911,7 +9961,7 @@
     async function esperaAnotar() {
       var btn = document.getElementById('esperaAnotarBtn');
       var tel = esperaTelLimpio(document.getElementById('esperaTel').value);
-      if (tel.length !== 13) { esperaFormMsg('El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)', 'error'); return; }
+      if (!esperaTelValido(tel)) { esperaFormMsg('El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)', 'error'); return; }
       var nombre = document.getElementById('esperaNombre').value.trim();
       var aAnotar = esperaElegidos.filter(function(e) { return e.estado !== 'ok'; });
       if (!aAnotar.length) { esperaFormMsg('Eleg\u00ed al menos un perfume', 'error'); return; }
@@ -9920,6 +9970,7 @@
       var anotados = [], yaEstaban = [], fallaron = [], faltaSql = false;
       for (var i = 0; i < aAnotar.length; i++) {
         var e = aAnotar[i];
+        if (esperaElegidos.indexOf(e) === -1) continue;   // #3 · la sacaron (✕) mientras se anotaban las anteriores
         var p = PERFUMES.find(function(pf) { return pf.slug === e.slug; });
         var res;
         try {
@@ -9945,7 +9996,12 @@
       esperaFormMsg(partes.join(' \u00b7 '), fallaron.length ? 'error' : (yaEstaban.length ? 'ya' : 'ok'));
       btn.disabled = false;
       if (anotados.length) loadListaEspera();
-      if (anotados.length && !yaEstaban.length && !fallaron.length) setTimeout(function() { closeModal('modalEsperaAnotar'); }, 1500);
+      // Se cierra sola sólo si no quedó nada en pantalla (ni «ya estaba», ni errores, ni un perfume sumado mientras se
+      // anotaba). El timer se cancela al volver a abrir, y saca la clase a mano: closeModal además pone editingSlug = ''.
+      if (anotados.length && !esperaElegidos.length) {
+        clearTimeout(esperaCierreTimer);
+        esperaCierreTimer = setTimeout(function() { document.getElementById('modalEsperaAnotar').classList.remove('active'); }, 1500);
+      }
     }
 
     // Marca UNA fila como notificada (al apretar "Avisar" individual).
@@ -9967,7 +10023,7 @@
     // que el navegador permita y la marca la pone el botón individual de cada
     // fila (que sí funciona), al tocarlo.
     async function avisarTodos(slug) {
-      var group = esperaData.filter(function(r) { return r.slug === slug && !r.notified_at; });
+      var group = esperaData.filter(function(r) { return r.slug === slug && !r.notified_at && esperaPasaFiltro(r); });   // [ESPERA-MAS] los que dice el botón
       if (group.length === 0) return;
       if (group.length > 1) {
         alert('Ojo: el navegador deja abrir un WhatsApp por vez.\n\n' +
@@ -9977,7 +10033,7 @@
       var msgEnc = encodeURIComponent(buildWaitlistMsg());
       // Abrir cada WA en nueva pesta\u00f1a
       group.forEach(function(item, i) {
-        var waLink = 'https://wa.me/' + item.telefono + '?text=' + msgEnc;
+        var waLink = 'https://wa.me/' + String(item.telefono || '').replace(/[^0-9]/g, '') + '?text=' + msgEnc;   // [ESPERA-MAS] sólo dígitos, como la fila: el teléfono lo escribe anon
         setTimeout(function() { window.open(waLink, '_blank'); }, i * 800);
       });
       // [WAITLIST-AVISO-REAL] Acá antes iba una UPDATE marcando a TODO el grupo
@@ -11046,8 +11102,8 @@
 
     // [RESUMEN-EN-EL-PANEL] ronda d · el teléfono como lo muestra el catálogo: +54 9 2970 00-0011. Portada de
     // formatPhoneDisplay (js/app.js), con el mismo nombre para que la reuse [ESPERA-MAS], pero SIN cleanPhone: sólo
-    // saca lo que no es dígito. cleanPhone le borra un «15» legítimo a un teléfono que ya está bien (pasó en
-    // [ESPERA-SEGURA]). Menos de 5 dígitos → '' (el que llama muestra el crudo).
+    // saca lo que no es dígito. (Hasta [TEL-15-SIN-549], cleanPhone le borraba un «15» legítimo a un teléfono que ya estaba
+    // bien: pasó en [ESPERA-SEGURA].) Menos de 5 dígitos → '' (el que llama muestra el crudo).
     function formatPhoneDisplay(raw) {
       var d = String(raw || '').replace(/[^0-9]/g, '');
       if (d.length < 5) return '';
