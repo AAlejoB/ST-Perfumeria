@@ -3,6 +3,8 @@
  *
  * Schedule (vercel.json): "0 3 * * *" → 03:00 UTC (00:00 en Argentina). El plan Hobby de
  * Vercel permite un cron por día; el comentario viejo decía "cada 2 horas".
+ * [BACKUPS-PIE] decisión 125b: si cambia la hora del cron en vercel.json, cambiar la frase del pie de
+ * Backups en admin.html («Automático: una vez por día, a la medianoche»). vercel.json no admite comentarios.
  *
  * Qué hace:
  *   1. Snapshot de las tablas críticas + datos de negocio.
@@ -44,6 +46,8 @@ const BACKUP_TABLES = [
   'ventas'
 ];
 
+// [BACKUPS-PIE] decisión 125b · TIENE QUE SER IGUAL a BACKUPS_QUE_SE_GUARDAN de admin.html (el pie de Backups dice
+// «Se guardan los últimos N» leyendo esa constante).
 const MAX_BACKUPS_TO_KEEP = 12;
 
 async function fetchTable(tableName) {

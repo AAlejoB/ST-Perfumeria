@@ -1690,7 +1690,7 @@
     .res-dia { flex: 1 1 auto; min-width: 0; text-align: center; }
     .res-titulo { font-size: .9rem; font-weight: 700; }
     .res-estado { font-size: .66rem; color: var(--gris); margin-top: .1rem; }
-    .res-grilla { display: grid; grid-template-columns: 1fr; gap: .6rem; margin-bottom: .8rem; }
+    .res-grilla { display: grid; grid-template-columns: 1fr; gap: .6rem; margin-bottom: .8rem; align-items: start; }   /* ronda d: «· sin cambios» no se estira al alto de la vecina */
     @media (min-width: 481px) {
       .res-grilla { grid-template-columns: repeat(2, 1fr); }
       .res-grilla .res-card-puntos, .res-grilla .res-nada { grid-column: 1 / -1; }
@@ -1704,8 +1704,13 @@
     .res-dato { flex: 0 0 auto; margin-left: auto; font-weight: 700; white-space: nowrap; }
     .res-baja { color: var(--stat-tinta-out); }
     .res-sube { color: var(--stat-tinta-inv); }
-    .res-old { color: var(--gris); text-decoration: line-through; font-weight: 400; }
-    .res-new { color: var(--amarillo-tinta); }
+    .res-old { color: var(--gris); text-decoration: line-through; font-weight: 400; white-space: nowrap; }
+    .res-new { color: var(--amarillo-tinta); white-space: nowrap; }
+    /* ronda d · 126f: «~~$135.000~~ → sin promo · vuelve a $139.000» no entra en una tarjeta de 600: el dato del precio se
+       parte entre el viejo y el nuevo (cada monto entero, por el nowrap de arriba) y queda alineado a la derecha. */
+    .res-dato-precio { white-space: normal; text-align: right; flex: 0 1 auto; min-width: 0; max-width: 100%; }   /* se achica: si no, flex 0 0 auto lo deja en su ancho máximo y se sale */
+    .res-new-largo { white-space: normal; }   /* «sin promo · vuelve a» se parte si hace falta (481 px, dos columnas angostas)… */
+    .res-monto { white-space: nowrap; }       /* …pero el monto, nunca */
     .res-sin { color: var(--gris); font-weight: 600; }
     .res-tipo { font-size: .62rem; font-weight: 400; color: var(--gris); }
     .res-vacio { font-size: .72rem; color: var(--gris); }   /* la sección vacía: un renglón gris, «🏬 Depósito · sin cambios» */
@@ -3234,7 +3239,7 @@
       <div style="text-align:center;margin-bottom:1.5rem;">
         <p style="font-size:2rem;margin-bottom:.3rem;">💾</p>
         <p style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;">Backups</p>
-        <p style="font-size:.7rem;color:var(--gris);">Auto cada 24h · Retención 15 días · Máximo 200 snapshots</p>
+        <p style="font-size:.7rem;color:var(--gris);" id="backupsPie">Automático: una vez por día, a la medianoche</p>
       </div>
 
       <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
@@ -10068,7 +10073,7 @@
       'promo_decants_perfume': { icon: '🧪', label: 'Promo de decants · perfume' },
       'backup_create_manual':{ icon: '💾', label: 'Backup manual' },
       'backup_create_auto':  { icon: '🤖', label: 'Backup auto' },
-      // [LOG-LABEL-FALLBACK] decisión 70 · el panel lo crea si el último backup tiene 3 h o más (ver maybeAutoBackup).
+      // [LOG-LABEL-FALLBACK] decisión 70 · el panel lo crea si el automático no corrió (ver maybeAutoBackup: hoy, 26 h).
       'backup_create_fallback': { icon: '🛟', label: 'Backup de respaldo' },
       // Estas se registraban pero NO estaban acá, así que el historial
       // caía al fallback y mostraba el nombre crudo: "deposito_update".
@@ -10315,8 +10320,9 @@
     // render compacto de siempre (auditFormatChanges ya escapa todo).
     function logCambio(e) {
       // [LOG-LABEL-FALLBACK] decisión 70 · en vez del tamaño, por qué existe: lo dispara el panel cuando el
-      // automático (Vercel Cron) no corrió en 3 h.
-      if (e.action === 'backup_create_fallback') return 'el automático no corrió en 3 h';
+      // automático (Vercel Cron) no corrió. Decisión 125 (27-sep): sin número — el umbral pasó de 3 h a 26 h en
+      // [BACKUP-FALLBACK-ROTO] y la frase no tiene que volver a mentir si cambia.
+      if (e.action === 'backup_create_fallback') return 'el automático no corrió';
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
       function esPar(v) { return v && typeof v === 'object' && 'old' in v && 'new' in v; }
@@ -10404,10 +10410,28 @@
     // Todo lo que viene del rpc (name, nombre, telefono) pasa por escHtml; el wa.me lleva sólo dígitos.
     // ============================================================
     var RESUMEN_SIN_PROMO = 'sin promo';   // la palabra de la «promo sacada»: la puede cambiar el DISEÑADOR, está sólo acá
+    var RESUMEN_VUELVE_A = 'vuelve a';     // 126f · «sin promo · vuelve a $139.000»: también se cambia sólo acá
     var RESUMEN_DIAS_ATRAS = 60;           // lo que guarda el Log (admin_actions_cleanup)
     var resumenDia = null;                 // 'YYYY-MM-DD' del día mostrado; null = hoy, en vivo
     var resumenData = null;                // el jsonb de la última llamada: tarjetas + texto
     var resumenPedido = 0;                 // si se toca ‹ › rápido, gana la última respuesta
+
+    // [RESUMEN-EN-EL-PANEL] ronda d · el teléfono como lo muestra el catálogo: +54 9 2970 00-0011. Portada de
+    // formatPhoneDisplay (js/app.js), con el mismo nombre para que la reuse [ESPERA-MAS], pero SIN cleanPhone: sólo
+    // saca lo que no es dígito. cleanPhone le borra un «15» legítimo a un teléfono que ya está bien (pasó en
+    // [ESPERA-SEGURA]). Menos de 5 dígitos → '' (el que llama muestra el crudo).
+    function formatPhoneDisplay(raw) {
+      var d = String(raw || '').replace(/[^0-9]/g, '');
+      if (d.length < 5) return '';
+      var after549;
+      if (d.substring(0, 3) === '549') after549 = d.substring(3);
+      else if (d.substring(0, 2) === '54') after549 = d.substring(2);
+      else after549 = d;
+      if (after549.length < 6) return '+' + d;
+      var area = after549.substring(0, after549.length - 6);
+      var rest = after549.substring(after549.length - 6);
+      return '+54 9 ' + area + ' ' + rest.substring(0, 2) + '-' + rest.substring(2);
+    }
 
     function resumenHoyART() {
       return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
@@ -10446,8 +10470,9 @@
     }
     function resumenFilaDelta(it) {
       var n = Number(it.delta) || 0, marca = resumenMarca(it.slug);
-      var dato = n < 0 ? '<span class="res-dato res-baja">🔻 −' + Math.abs(n) + '</span>'
-                       : '<span class="res-dato res-sube">🔺 +' + n + '</span>';
+      // 126g · ▲ ▼ como texto (los emojis 🔺🔻 los pinta el sistema, rojos los dos): flecha, signo y color dicen lo mismo.
+      var dato = n < 0 ? '<span class="res-dato res-baja">▼ −' + Math.abs(n) + '</span>'
+                       : '<span class="res-dato res-sube">▲ +' + n + '</span>';
       return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.name || it.slug || '')
         + (marca ? '<div class="res-sub">' + escHtml(marca) + '</div>' : '') + '</div>' + dato + '</div>';
     }
@@ -10455,17 +10480,23 @@
       var o = it.old, nv = it.new;
       if (o == null && nv == null) return '';   // sin ninguno de los dos no hay nada que mostrar
       var viejo = '<span class="res-old">' + (o == null ? '—' : escHtml('$' + formatPriceAdmin(o))) + '</span>';
-      var nuevo = nv == null
-        ? '<span class="res-sin">' + escHtml(it.tipo === 'promo' ? RESUMEN_SIN_PROMO : '—') + '</span>'
-        : '<span class="res-new">' + escHtml('$' + formatPriceAdmin(nv)) + '</span>';
+      var nuevo;
+      if (nv == null && it.tipo === 'promo' && it.precio_lista != null) {
+        // 126f · la promo sacada con el precio de lista actual (lo manda la v2 de resumen_dia): todo en el estilo del precio nuevo
+        nuevo = '<span class="res-new res-new-largo">' + escHtml(RESUMEN_SIN_PROMO + ' · ' + RESUMEN_VUELVE_A) + ' <span class="res-monto">' + escHtml('$' + formatPriceAdmin(it.precio_lista)) + '</span></span>';
+      } else if (nv == null) {
+        nuevo = '<span class="res-sin">' + escHtml(it.tipo === 'promo' ? RESUMEN_SIN_PROMO : '—') + '</span>';
+      } else {
+        nuevo = '<span class="res-new">' + escHtml('$' + formatPriceAdmin(nv)) + '</span>';
+      }
       return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.name || it.slug || '')
         + (it.tipo === 'promo' ? ' <span class="res-tipo">· promo</span>' : '') + '</div>'
-        + '<span class="res-dato">' + viejo + ' → ' + nuevo + '</span></div>';
+        + '<span class="res-dato res-dato-precio">' + viejo + ' → ' + nuevo + '</span></div>';
     }
     function resumenFilaCliente(it) {
       var tel = String(it.telefono || ''), digitos = tel.replace(/[^0-9]/g, '');
       return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.nombre || '')
-        + (tel ? '<div class="res-sub">📱 ' + escHtml(tel) + '</div>' : '') + '</div>'
+        + (tel ? '<div class="res-sub">📱 ' + escHtml(formatPhoneDisplay(tel) || tel) + '</div>' : '') + '</div>'
         + (digitos ? '<a class="action-btn btn-whatsapp res-wa-cli" href="https://wa.me/' + digitos + '" target="_blank" rel="noopener">WhatsApp</a>' : '')
         + '</div>';
     }
@@ -11070,7 +11101,18 @@
       }
     }
 
+    // [BACKUPS-PIE] decisión 125b (27-sep) · el pie de la pestaña Backups dice cuántos se guardan leyendo esta constante.
+    // TIENE QUE SER IGUAL a MAX_BACKUPS_TO_KEEP de api/cron/backup.js (el cron borra los que sobran). Y la frase dice
+    // «a la medianoche» porque el cron corre a las 03:00 UTC (vercel.json): si cambia esa hora, cambiar la frase.
+    var BACKUPS_QUE_SE_GUARDAN = 12;
+    function pintarPieBackups() {
+      var el = document.getElementById('backupsPie');
+      if (el) el.textContent = 'Automático: una vez por día, a la medianoche · Se guardan los últimos ' + BACKUPS_QUE_SE_GUARDAN;
+    }
+    pintarPieBackups();
+
     async function loadBackups() {
+      pintarPieBackups();
       var tbody = document.getElementById('tbodyBackups');
       var meta = document.getElementById('backupsMeta');
       if (!tbody) return;
