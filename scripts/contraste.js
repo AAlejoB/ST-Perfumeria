@@ -236,6 +236,86 @@ function efectivo(rs, target, prefijos, prop, capas) {
   });
 })();
 
+// ═══ LA ESPERA ═══ [ESPERA-MAS] 27-sep-2026
+// La pestaña Espera pasó a las dos cuentas (las chicas usan el claro) y sus colores inline, a clases. Cada texto se
+// mide contra lo que tiene abajo: la página, la tarjeta o el grupo (--superficie), la ventana del formulario, el campo
+// del teléfono o el chip. Los fondos rgba() de los botones se componen sobre el grupo, como en pantalla. Lo que no
+// declara color (o dice inherit) hereda: del body, o de la ventana en claro (body.light .modal-box pone #1a1a1a).
+(function () {
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz] }, claro: { pref: ['body.light'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function crudo(v, capas, prof) {
+    prof = prof || 0; var t = String(v || '').trim(); var m = t.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([\s\S]+))?\)$/);
+    if (!m || prof > 8) return t;
+    for (var i = 0; i < capas.length; i++) if (capas[i] && capas[i][m[1]]) return crudo(capas[i][m[1]], capas, prof + 1);
+    return m[2] ? crudo(m[2], capas, prof + 1) : '';
+  }
+  function rgbaDe(v) { var m = String(v || '').match(/rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:[ ,\/]+([\d.]+))?\s*\)/); return m ? { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] } : null; }
+  function sobre(c, fondoHex) {
+    var fo = [1, 3, 5].map(function (i) { return parseInt(fondoHex.substr(i, 2), 16); });
+    return '#' + [c.r, c.g, c.b].map(function (v, i) { return Math.round(v * c.a + fo[i] * (1 - c.a)).toString(16).padStart(2, '0'); }).join('');
+  }
+  function aHex(valor, c, abajo) {
+    var v = crudo(valor, c.capas); if (!v || v === 'transparent' || v === 'none') return abajo;
+    var r = rgbaDe(v); if (r) return sobre(r, abajo);
+    var h = normalizarHex(v); if (h) return h;
+    var hs = resolver(valor, c.capas); return hs.length ? hs[0] : abajo;
+  }
+  function fondo(target, c, abajo) {
+    var g = [ganador(rs, target, c.pref, 'background'), ganador(rs, target, c.pref, 'background-color')].filter(Boolean).sort(orden).pop();
+    return g ? aHex(g.valor, c, abajo) : abajo;
+  }
+  function tinta(target, c, abajo, hereda) {
+    var g = target ? ganador(rs, target, c.pref, 'color') : null;
+    if (!g || /^(inherit|currentcolor)$/i.test(crudo(g.valor, c.capas))) return { hex: hereda, impone: g ? 'inherit · ' + path.basename(g.archivo) + ':' + g.linea : 'heredado' };
+    return { hex: aHex(g.valor, c, abajo), impone: path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') };
+  }
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var pagina = fondo('body', c, '#000000');
+    var cuerpo = tema === 'claro' ? (efectivo(rs, 'body.light', [], 'color', c.capas).hex[0] || '#1a1a1a') : '#ffffff';
+    var tarjeta = fondo('.espera-stat', c, pagina), grupo = fondo('.espera-grupo', c, pagina);
+    var ventana = fondo('.modal-box', c, pagina);
+    var enVentana = tinta('.modal-box', c, ventana, cuerpo).hex;
+    var campoTel = fondo('.espera-tel', c, ventana), chip = fondo('.espera-chip', c, ventana), resultado = fondo('.espera-resultado', c, ventana);
+    // [nombre, selector del texto (null = hereda), fondo propio (selector) o null, sobre qué, de quién hereda]
+    [['«+ Anotar del mostrador» .espera-anotar', '.espera-anotar', null, pagina, cuerpo],
+     ['ayuda de la pestaña .espera-ayuda', '.espera-ayuda', null, pagina, cuerpo],
+     ['ESPERANDO .espera-stat--pend', '.espera-stat--pend .espera-stat-titulo', null, tarjeta, cuerpo],
+     ['PERFUMES .espera-stat-titulo', '.espera-stat-titulo', null, tarjeta, cuerpo],
+     ['número de la tarjeta (hereda)', null, null, tarjeta, cuerpo],
+     ['«personas en lista» .espera-stat-sub', '.espera-stat-sub', null, tarjeta, cuerpo],
+     ['perfume / cliente / «🏪 Local» (hereda)', null, null, grupo, cuerpo],
+     ['EN STOCK .espera-estado--ok', '.espera-estado--ok', null, grupo, cuerpo],
+     ['SIN STOCK .espera-estado--out', '.espera-estado--out', null, grupo, cuerpo],
+     ['«2 esperando» .espera-cuenta', '.espera-cuenta', null, grupo, cuerpo],
+     ['teléfono · fecha .espera-sub', '.espera-sub', null, grupo, cuerpo],
+     ['Avisar .btn-price', '.btn-price', '.btn-price', grupo, cuerpo],
+     ['Re-avisar .btn-reavisar', '.btn-reavisar', '.btn-reavisar', grupo, cuerpo],
+     ['Quitar .btn-quitar-espera', '.btn-quitar-espera', '.btn-quitar-espera', grupo, cuerpo],
+     ['texto de la ventana (hereda)', null, null, ventana, enVentana],
+     ['descripción .espera-form-desc', '.espera-form-desc', null, ventana, enVentana],
+     ['«+54 9» .espera-tel-prefijo', '.espera-tel-prefijo', null, campoTel, enVentana],
+     ['número tipeado (hereda)', '.espera-tel input', null, campoTel, enVentana],
+     ['«✓ +54 9 …» .espera-ok', '.espera-ok', null, ventana, enVentana],
+     ['«(faltan dígitos)» .espera-falta', '.espera-falta', null, ventana, enVentana],
+     ['resultado del buscador (hereda)', '.espera-resultado', '.espera-resultado', ventana, enVentana],
+     ['marca del resultado .espera-resultado small', '.espera-resultado small', null, resultado, enVentana],
+     ['perfume elegido, en el chip (hereda)', null, null, chip, enVentana]].forEach(function (x) {
+      var bg = x[2] ? fondo(x[2], c, x[3]) : x[3];
+      var fg = tinta(x[1], c, bg, x[4]);
+      medir({ superficie: 'panel', tema: tema, rol: 'espera', nombre: x[0], texto: fg.hex, fondos: [bg], impone: fg.impone });
+    });
+    // «Ya está anotado…» y «No se pudo anotar» van en el chip y, resumidos, debajo del botón: contra los dos fondos.
+    [['«Ya está anotado…» .espera-ya', '.espera-ya'], ['«No se pudo…» .espera-error', '.espera-error']].forEach(function (x) {
+      var fg = tinta(x[1], c, chip, enVentana);
+      medir({ superficie: 'panel', tema: tema, rol: 'espera', nombre: x[0], texto: fg.hex, fondos: [chip, ventana], impone: fg.impone });
+    });
+  });
+})();
+
 // ═══ CATÁLOGO ═══
 (function () {
   var rs = reglas(hoja('css/styles.css'));
