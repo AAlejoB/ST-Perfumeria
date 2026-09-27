@@ -219,13 +219,15 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S12 · Vercel sin ninguna variable de entorno · 3 funciones caídas desde mayo**
+### **S12 · Vercel sin ninguna variable de entorno · 3 funciones caídas desde mayo · backup repuesto el 27-sep, falta el push**
 
 **Severidad:** 🟡 ALTA como problema operativo (no es una vulnerabilidad en sí, pero rompe el backup propio y habilita S11).
 
 **Estado verificado 12-ago-2026:** `Settings → Environment Variables` del proyecto `st-perfumeria` está **completamente vacío** (pestaña Project). Faltan: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET` (el 12-ago también faltaba `ADMIN_PASS`, que desde el 27-sep el código ya no usa: ver S1).
 
 **27-sep-2026, antes de reponerlas:** `[CRON-HEADER-FALSO]` (`4b50d52`) · `/api/cron/backup` aceptaba cualquier pedido con un header `x-vercel-cron-signature` o un user-agent con «vercel-cron», los dos falsificables (verificado en producción con `curl -A`: pasaba el control y frenaba recién por la falta de la clave). Con la clave cargada, cualquiera podía disparar backups y, con 12 seguidos, borrar los de verdad. Ahora sólo `Authorization: Bearer <CRON_SECRET>` (lo manda Vercel Cron cuando la variable existe); sin `CRON_SECRET`, `401` a todo. En producción, el header y el user-agent falsos dan `401`. Las `VAPID_*` van con un par nuevo (la pública también está en `js/app.js`); hay 0 suscriptores, no se pierde a nadie.
+
+**27-sep-2026, repuestas:** `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (una secret key nueva, sólo para Vercel) y `CRON_SECRET`, sólo en Production, copiadas directo (ninguna pasó por el chat). El backup del cron **anda**: la primera fila `auto` desde mayo (27-sep 02:04 UTC, las 13 tablas), después de `[CRON-TRIGGER-AUTO]` (`8eec233`: el cron insertaba `trigger 'cron'` y `admin_backups_trigger_check` sólo acepta `manual` | `auto`, así que la base respondía 400). **Falta:** un par nuevo de `VAPID_*` para `/api/send-notification` (sin ellas no carga: `500`).
 
 **Consecuencias:**
 
