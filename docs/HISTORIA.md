@@ -3051,7 +3051,7 @@ Queda sin tocar el mismo patrón que #0 en `logRenderFeed` («Por perfume», `po
 
 ---
 
-**Última actualización:** **Septiembre 27, 2026 (`_i`)** — la ronda j (el arreglo de `cleanPhone`, a1 + a2) sobre `ronda-i`, sin bump nuevo (v1.1.142); merge pre-aprobado por el PREPARADOR con este arreglo, esperando el OK de Alejo.
+**Última actualización:** **Septiembre 27, 2026 (`_i`)** — la ronda j (el arreglo de `cleanPhone`, a1 + a2) sobre `ronda-i`, sin bump nuevo; con el OK de Alejo, fast-forward `0833be1..29b925b`: **v1.1.142 en producción** (`curl`: el `cleanPhone` nuevo en el `app.js` servido, «Reset contraseñas» en el panel). Con la marca de Valentino Donna cargada, los datos reales dan «💎 Diseñador» Frascos · 21 (11 con su 💎) y Sólo en decant · 2. Cerrados `[ESPERA-LOW-SIN-STOCK]`, `[ESPERA-AYUDA-AUTOMATICO]` y `[TEL-15-SIN-549]`.
 
 **Última actualización:** **Septiembre 27, 2026 (`_h`)** — `espera-mas` en producción (v1.1.141) con el OK de Alejo; los 10 arreglos de la revisión y la ronda i en la rama `ronda-i` (v1.1.142), esperando la revisión del PREPARADOR.
 
