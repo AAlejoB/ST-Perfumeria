@@ -316,6 +316,26 @@ function efectivo(rs, target, prefijos, prop, capas) {
   });
 })();
 
+// ═══ LA BARRA DE «GUARDAR» ═══ [GUARDAR-ABAJO] 27-sep-2026
+// Los botones que se mudaron a la barra fija conservan su fondo; el secundario de Decants (.action-btn sin modificador)
+// va sobre su propio fondo (--superficie) con la letra heredada. «Cancelar» lleva #fff sobre #333 inline (este script no
+// lee atributos: va escrito).
+(function () {
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz] }, claro: { pref: ['body.light'], capas: [luz, raiz] } };
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var barra = efectivo(rs, '.barra-guardar', c.pref, 'background', c.capas).hex;
+    var cuerpo = tema === 'claro' ? (efectivo(rs, 'body.light', [], 'color', c.capas).hex[0] || '#1a1a1a') : '#ffffff';
+    var rec = efectivo(rs, '.action-btn:not([class*="btn-"])', c.pref, 'background', c.capas).hex;
+    medir({ superficie: 'panel', tema: tema, rol: 'guardar', nombre: '«↺ Recargar» .action-btn (hereda)', texto: cuerpo, fondos: rec.length ? rec : barra, impone: 'heredado del body' });
+    var pbg = efectivo(rs, '.modal-btn-price', c.pref, 'background', c.capas), pfg = efectivo(rs, '.modal-btn-price', c.pref, 'color', c.capas);
+    medir({ superficie: 'panel', tema: tema, rol: 'guardar', nombre: '«Guardar …» .modal-btn-price', texto: pfg.hex[0], fondos: pbg.hex, impone: pfg.impone });
+    medir({ superficie: 'panel', tema: tema, rol: 'guardar', nombre: '«Cancelar» (#fff sobre #333, inline)', texto: '#ffffff', fondos: ['#333333'], impone: 'inline' });
+  });
+})();
+
 // ═══ CATÁLOGO ═══
 (function () {
   var rs = reglas(hoja('css/styles.css'));
