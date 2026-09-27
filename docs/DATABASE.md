@@ -356,6 +356,20 @@ created_at    TIMESTAMPTZ DEFAULT NOW()
 
 Retención: 60 días (cleanup manual o por trigger).
 
+### `resumen_dia(p_dia date)` · `[RESUMEN-EN-EL-PANEL]` (27-sep-2026)
+
+La usa la pestaña «📌 Resumen» del panel (decisión 126). La escribió el PREPARADOR y la corrió Alejo (SQL fuera del repo).
+
+- **`SECURITY DEFINER`**, `search_path = public`. `EXECUTE`: `authenticated` sí, `anon` no. **No mira el email**: la puede llamar cualquier cuenta logueada (hoy son las dos de staff y la personal de Alejo; el registro está cerrado).
+- **`p_dia` tiene default = hoy en hora Argentina.** Para «hoy» hay que llamarla **sin** `p_dia`: un `p_dia` `null` explícito le llega como `NULL` y devuelve todo vacío (el panel la llama sin argumentos).
+- **Devuelve un jsonb:** `dia`, `es_hoy`, `ahora` (HH:MI ART), `fecha_texto`, y cinco listas:
+  - `stock` / `deposito`: neto por perfume en el día (último `new` − primer `old` de `stock_update` / `deposito_update`, como `resumen_stock_dia`), sólo `delta ≠ 0`;
+  - `precios`: `perfume_edit` con `Precio` o `Promo` `{old,new}` (`nuevo_update` no entra); `new` `null` = promo sacada;
+  - `clientes`: registrados ese día, con teléfono;
+  - `puntos`: suma de `puntos_log` por cliente, sin los que dan 0.
+  Más `texto`: el mensaje entero para WhatsApp, del mismo jsonb. El nombre sale de `perfume_overrides.name`, o `perfumes_nuevos.name`, o el slug con espacios.
+- `resumen_stock_dia()` quedó sin llamadas (ni en el panel ni en otra función de la base); no se tocó.
+
 ### `backups`
 
 ```sql

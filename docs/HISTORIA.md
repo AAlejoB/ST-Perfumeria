@@ -2849,6 +2849,43 @@ Alejo arrancó `[VERCEL-ENV-VARS]` («hago eso mientras los otros laburan en lo 
 
 ---
 
+### Sesión 27-sep-2026 · `_c` · **`[RESUMEN-EN-EL-PANEL]`** (decisión 126 del DISEÑADOR)
+
+Prompt `_c` del PREPARADOR. Dependía de un SQL que corrió Alejo (`resumen_dia(p_dia)`, fuera del repo): la primera consulta de Claude Code todavía no la encontraba; con la luz verde del PREPARADOR se volvió a mirar y ya estaba (`SECURITY DEFINER`, `authenticated` sí, `anon` no). Rama `resumen-panel` desde `8fa3abd`, un bump (SW v1.1.137). **Merge no pre-aprobado:** lo revisa el PREPARADOR.
+
+#### Qué se hizo
+
+- **La pestaña «📌 Resumen»**, arriba de Log, sin `data-role` (las dos cuentas, 126b). Selector de día: `‹`, el título («Hoy · domingo 27», o el `fecha_texto` entero para un día cerrado) con «en vivo · hasta las …» / «día cerrado», `›` y `↺`, los tres a 44×44. Tope 60 días atrás (lo que guarda el Log); `›` apagado en hoy.
+- **Una sola llamada a `resumen_dia()` por día mostrado:** las tarjetas y el texto de WhatsApp salen del mismo jsonb. **«Hoy» se pide sin `p_dia`:** la función tiene un default, pero un `p_dia` `null` explícito le llega como `NULL` y devuelve todo vacío (el contrato del prompt decía `null` = hoy).
+- **Tarjetas** en el orden de 126c: 📦 Stock del local → 🏬 Depósito → 💰 Precios → 👤 Clientes nuevos → ⭐ Puntos, con el número en el título. Stock y depósito: `🔻 −2` / `🔺 +1` con `--stat-tinta-out` / `--stat-tinta-inv`, y el fabricante (`marca_real`, como el renglón gris de Precios & Stock) debajo del nombre. Precios: `~~$135.000~~ → $139.000` con el nuevo en `--amarillo-tinta`; la promo sacada, `~~$X~~ → sin promo` (la palabra vive en `RESUMEN_SIN_PROMO`); sin `old`, `— → $Y`; sin ninguno de los dos, no se muestra. Clientes: nombre, 📱 teléfono (como la pestaña Clientes) y «WhatsApp» a 44. Puntos: `+50 pts` en verde (y `−30 pts` en rojo). Sección vacía: un renglón gris («🏬 Depósito · sin cambios»); día sin nada: una sola caja. A 600, dos columnas y Puntos a lo ancho; a 390, una.
+- **«📤 Mandar por WhatsApp»**: `https://wa.me/?text=` + `encodeURIComponent(data.texto)`, un `<a>` (sin pop-up) a lo ancho y a 44.
+- **El Log:** el bloque «📌 Resumen de hoy» (Salieron / Entraron / Neto) pasa a ser un renglón «📌 Ver el resumen del día →» (44 de alto) que abre la pestaña. `logCargarResumen()`, sus dos `<div>` y su CSS se fueron; `resumen_stock_dia` quedó sin llamadas (ni en el panel ni en otra función de la base) y no se tocó.
+- **Seguridad:** `escHtml` en `name`, `nombre` y `telefono`; el `wa.me` de cada cliente lleva sólo dígitos. Sólo tokens (sobre `--superficie`, oscuro / claro: baja 4,54 / 5,89 · sube 8,26 / 8,04 · precio nuevo 9,33 / 7,18 · gris 4,90 / 5,33), cero `!important`.
+
+#### Verificación (fixture, `resumen_dia` interceptado: responde según el día y anota los argumentos)
+
+- **Selector:** en hoy, `›` apagado; `↺` llama sin `p_dia`; 60 toques de `‹` llegan a hoy − 60 y ahí se apaga (uno más no llama); 60 toques de `›` vuelven a hoy y la última llamada va sin `p_dia`.
+- **Capturas** (`_correo_agentes\…\herramientas\resumen-panel\png\`): 600 y 390, claro y oscuro, de hoy con las 5 secciones, un día con secciones vacías, un día sin nada, la empleada (mide igual que el jefe) y el renglón del Log. Todas las filas ≥ 44, sin scroll horizontal; el texto de WhatsApp, idéntico a `data.texto` (también en `.txt`).
+- **XSS:** un cliente con `<img src=x onerror=…>` en el nombre se ve como texto, 0 `<img>` en las tarjetas, no se ejecuta.
+- `node --check` del script del panel: sin errores. Grep: `logResumenLocal` / `logResumenDep`: 0; `resumen_stock_dia` / `logCargarResumen`: sólo en un comentario.
+- **Promo sacada:** 1 en el fixture (puesta a propósito); en la base, 6 en los últimos 60 días (ninguna con el precio en `null`).
+
+#### Hechos para el PREPARADOR / DISEÑADOR (no tocados)
+
+- `resumen_dia` no mira el email (cualquier cuenta logueada). La empleada ve en el Resumen los precios y los clientes, que el Log le oculta (RLS de `admin_actions`) con el pie «Los cambios de precio y catálogo los ve el jefe»: 126b dice que el Resumen es de las dos.
+- Los emojis 🔺 y 🔻 son rojos los dos (los dibuja el sistema), así que «+1» verde va al lado de un triángulo rojo.
+- Si alguna vez `Precio`/`Promo` trae `old` y `new` vacíos, la tarjeta no lo muestra y el texto sí (`$— -> $—`), y el número del título difiere del texto.
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[RESUMEN-EN-EL-PANEL]` | Pestaña «📌 Resumen» + renglón en el Log + WhatsApp (decisión 126) | `812ad56` + bump `11be3a9` (rama `resumen-panel`, espera la revisión) |
+
+---
+
+**Última actualización:** **Septiembre 27, 2026 (`_c`)** — `[RESUMEN-EN-EL-PANEL]` en la rama `resumen-panel` (SW v1.1.137), esperando la revisión del PREPARADOR.
+
 **Última actualización:** **Septiembre 27, 2026 (`_b`)** — `[BACKUP-FALLBACK-ROTO]` en producción, SW v1.1.136: el respaldo del panel guarda `'auto'` y espera 26 h. Nuevo `[LOG-LABEL-26H]` 🟢.
 
 **Última actualización:** **Septiembre 27, 2026** — `[CRON-HEADER-FALSO]`, `[SECURITY-AUDIT-S1]` (aprobado por el PREPARADOR) y `[CRON-TRIGGER-AUTO]` en producción, `main` = `8eec233`, SW v1.1.135. El backup del cron anda (primera fila `auto` desde mayo). `[VERCEL-ENV-VARS]` a medias (falta el push); nuevo `[BACKUP-FALLBACK-ROTO]`.
