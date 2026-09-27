@@ -29,9 +29,9 @@
 
 ## 🚨 Issues CRÍTICOS · fix URGENTE (1-2 días)
 
-### **S1 · `[SECURITY-AUDIT-S1]` · 🟠 ABIERTO (parcial)**
+### **S1 · `[SECURITY-AUDIT-S1]` · ✅ RESUELTO 27-sep-2026**
 
-> Las dos contraseñas del panel **se rotaron** el 19-sep (Alejo, 21:11 ART; verificado por login y logout de las dos cuentas a las 21:15-21:16), la constante muerta se borró el 23-sep (`4b88e20`) y `.claude/commands/security-scan.md` quedó sin valores (`db37b21`). Lo que queda abierto va con **la keyword sola** por la regla de § 📏 (23-sep); el detalle vive fuera del repo. Se cierra junto con `[VERCEL-ENV-VARS]`. La historia de git conserva la versión anterior de esta sección.
+> ✅ **ESTADO: RESUELTO** · `49200b7` + bump `d7496fb` (SW v1.1.135), prompt `_a` del PREPARADOR (camino A de Alejo). Lo que se había cerrado antes: las dos contraseñas del panel se rotaron el 19-sep (Alejo, 21:11 ART; verificado por login y logout de las dos cuentas a las 21:15-21:16), la constante muerta se borró el 23-sep (`4b88e20`) y `.claude/commands/security-scan.md` quedó sin valores (`db37b21`). **Lo último:** el secreto compartido de `/api/send-notification` era una constante de `admin.html` (se leía con «Ver código fuente», sin loguearse) que viajaba en cada envío: con la variable `ADMIN_PASS` repuesta en Vercel con ese valor, cualquiera podía mandar push a todos los suscriptores. **Se sacó** de `admin.html` y del endpoint: ahora el panel manda el `access_token` de su sesión de Supabase y el endpoint lo valida contra Supabase Auth (`GET /auth/v1/user`) y exige un email de `STAFF_EMAILS` (jefe y empleada: la pestaña Notificaciones es de las dos). Falla cerrado. Ya no hace falta `ADMIN_PASS` en Vercel. ⚠️ El valor viejo sigue en la historia de git (el repo es público): no abre nada mientras nadie cargue una `ADMIN_PASS` en Vercel, y no tiene que ser la contraseña de ninguna cuenta.
 
 ---
 
@@ -213,7 +213,7 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Severidad:** 🟠 ALTA en potencia · nunca llegó a ser explotable. **Hallado y arreglado el mismo día (12-ago-2026).**
 
-> ✅ **ESTADO: RESUELTO** · commit `ef1507d`. **Qué era:** la comparación del secreto del endpoint no verificaba que la variable de entorno existiera, así que sin la variable un pedido que omitía el campo pasaba. **Arreglo:** la condición **falla cerrado** (sin la variable configurada se rechaza todo); la lógica se verificó en Node con los 5 casos posibles. **Pendiente:** el `401` todavía no se puede observar en producción, porque la función no arranca sin las variables de Vercel → **re-testear al cerrar `[VERCEL-ENV-VARS]`**: con las variables puestas, un POST sin el campo tiene que dar `401`. El detalle vive fuera del repo; la historia de git conserva la versión anterior de esta sección.
+> ✅ **ESTADO: RESUELTO** · commit `ef1507d`. **Qué era:** la comparación del secreto del endpoint no verificaba que la variable de entorno existiera, así que sin la variable un pedido que omitía el campo pasaba. **Arreglo:** la condición **falla cerrado** (sin la variable configurada se rechaza todo); la lógica se verificó en Node con los 5 casos posibles. **Desde el 27-sep (`[SECURITY-AUDIT-S1]`) el endpoint ya no compara un secreto:** valida la sesión de Supabase. Probado en Node con el módulo real (Auth y `web-push` simulados): un POST sin `accessToken`, con `null` o con el campo viejo da `401` **sin consultar a Auth**; token rechazado por Auth, error de red, respuesta sin email o email que no es de staff → `401`; jefe o empleada → `200`. **Pendiente:** verlo en producción cuando estén las `VAPID_*` (sin ellas la función no carga y todo da `500`): un POST sin `accessToken` válido tiene que dar `401`. El detalle vive fuera del repo; la historia de git conserva la versión anterior de esta sección.
 
 **Patrón a revisar en el resto de las funciones:** cualquier comparación contra una variable de entorno que pueda ser `undefined`. `api/cron/backup.js` **sí lo hace bien** (el `&&` lo salva).
 
@@ -223,7 +223,9 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Severidad:** 🟡 ALTA como problema operativo (no es una vulnerabilidad en sí, pero rompe el backup propio y habilita S11).
 
-**Estado verificado 12-ago-2026:** `Settings → Environment Variables` del proyecto `st-perfumeria` está **completamente vacío** (pestaña Project). Faltan: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ADMIN_PASS`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET`.
+**Estado verificado 12-ago-2026:** `Settings → Environment Variables` del proyecto `st-perfumeria` está **completamente vacío** (pestaña Project). Faltan: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET` (el 12-ago también faltaba `ADMIN_PASS`, que desde el 27-sep el código ya no usa: ver S1).
+
+**27-sep-2026, antes de reponerlas:** `[CRON-HEADER-FALSO]` (`4b50d52`) · `/api/cron/backup` aceptaba cualquier pedido con un header `x-vercel-cron-signature` o un user-agent con «vercel-cron», los dos falsificables (verificado en producción con `curl -A`: pasaba el control y frenaba recién por la falta de la clave). Con la clave cargada, cualquiera podía disparar backups y, con 12 seguidos, borrar los de verdad. Ahora sólo `Authorization: Bearer <CRON_SECRET>` (lo manda Vercel Cron cuando la variable existe); sin `CRON_SECRET`, `401` a todo. En producción, el header y el user-agent falsos dan `401`. Las `VAPID_*` van con un par nuevo (la pública también está en `js/app.js`); hay 0 suscriptores, no se pierde a nadie.
 
 **Consecuencias:**
 

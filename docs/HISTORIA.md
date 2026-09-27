@@ -2801,6 +2801,36 @@ Alejo contestó las dos preguntas del cierre: *"Cuenta todo perfume que tenga al
 
 ---
 
+### Sesión 27-sep-2026 · **`[CRON-HEADER-FALSO]` + `[SECURITY-AUDIT-S1]`** (mientras Alejo repone las variables de Vercel)
+
+Alejo arrancó `[VERCEL-ENV-VARS]` («hago eso mientras los otros laburan en lo suyo»). Antes de darle los pasos, dos hallazgos que cambiaban qué se podía cargar.
+
+#### `[CRON-HEADER-FALSO]` · `4b50d52` (sin bump: `api/` no lo guarda el SW)
+
+- `/api/cron/backup` aceptaba cualquier pedido con un header `x-vercel-cron-signature` o un user-agent con «vercel-cron». **Verificado en producción:** con `curl -A 'vercel-cron/1.0'` pasaba el control y frenaba recién por «SUPABASE_URL o SERVICE_KEY no configurados». Con la clave cargada, cualquiera podía disparar backups y, con 12 seguidos, borrar los de verdad (el cleanup deja 12).
+- Ahora sólo `Authorization: Bearer <CRON_SECRET>`, que Vercel Cron manda cuando la variable existe (docs de Vercel, «Securing cron jobs»); sin `CRON_SECRET`, `401` a todo. Probado con el módulo real (7 casos: sólo el Bearer correcto pasa) y en producción (header y user-agent falsos → `401`). También se corrigió el comentario («cada 2 horas» → una vez por día, 03:00 UTC; los 12 backups cubren ~12 días).
+
+#### `[SECURITY-AUDIT-S1]` · prompt `_a` del PREPARADOR (camino A de Alejo) · `49200b7` + bump `d7496fb` (SW v1.1.135)
+
+- **El hallazgo:** el push se autorizaba con una constante escrita en `admin.html` (público). Con la variable `ADMIN_PASS` repuesta en Vercel con ese valor, cualquiera podía mandar push a todos. Por eso a Alejo se le indicó **no** cargar `ADMIN_PASS` ni `VAPID_*` hasta cerrar esto.
+- **Qué cambió:** `admin.html` pierde la constante; `sendPushNotification()` manda el `access_token` de `sb.auth.getSession()` (sin sesión no llama al backend y muestra «❌ Error: No autorizado»). `/api/send-notification` valida el token contra Supabase Auth (`GET /auth/v1/user`, con la clave de servicio de apikey) y exige un email de `STAFF_EMAILS` (jefe y empleada, a propósito: la pestaña Notificaciones es de las dos). Falla cerrado. `ADMIN_PASS` ya no hace falta.
+- **Un dato que corrigió el prompt:** `is_jefe()` mira sólo el email del jefe; los dos emails juntos están en las políticas `*_staff` (`perfume_overrides`, `combos`, `admin_actions`, Storage). El comentario de `STAFF_EMAILS` lo dice así.
+- **Verificación:** 9 de 9 casos en Node con el módulo real (Auth y `web-push` simulados): jefe y empleada `200`; email ajeno, Auth `401`, error de red y respuesta sin email → `401`; sin `accessToken`, `null` o el campo viejo → `401` sin consultar a Auth. En el panel con fixture: sin sesión, 0 llamadas al backend; con sesión, el body tiene `title, body, url, accessToken` y no `adminPass`. La pestaña Notificaciones, idéntica a `main` (36 elementos, 0 diferencias a 390 y 1280, claro y oscuro). `git grep` de `ADMIN_PASS` / `adminPass` fuera de docs: 0.
+- **Docs:** SECURITY.md § S1 resuelto, § S11 (el `401` ahora es «sin `accessToken` válido») y § S12 (sin `ADMIN_PASS`; `[CRON-HEADER-FALSO]`); BACKEND.md; `.claude/commands/security-scan.md` sin las dos líneas de las constantes que ya no existen (como en `db37b21`).
+- **Merge no pre-aprobado:** lo revisa el PREPARADOR en GitHub (rama `s1-sesion-push`).
+- **Visto al pasar, no tocado:** el anuncio que publica un push (`announcements`) sólo lo puede insertar el jefe (`jefe_insert_announcements`): si manda la empleada, el push sale y el anuncio falla en silencio (ya pasaba antes).
+
+#### Keywords cerrados
+
+| Keyword | Qué | Cómo |
+|---|---|---|
+| `[CRON-HEADER-FALSO]` | El backup aceptaba un header o user-agent falsificable | `4b50d52` |
+| `[SECURITY-AUDIT-S1]` | El secreto del push fuera de `admin.html`; el endpoint valida la sesión | `49200b7` + bump `d7496fb` |
+
+---
+
+**Última actualización:** **Septiembre 27, 2026** — `[CRON-HEADER-FALSO]` (en producción) y `[SECURITY-AUDIT-S1]` (rama `s1-sesion-push`, SW v1.1.135, espera la revisión del PREPARADOR). `ADMIN_PASS` ya no hace falta en Vercel.
+
 **Última actualización:** **Septiembre 26, 2026** — `[VALOR-INV-DEPOSITO]` y `[VALOR-INV-PAUSADOS]` en producción, SW **v1.1.134**: la tarjeta 💰 del jefe muestra el total (local + depósito, pausados incluidos) y el desglose, con cuánto es de los pausados. Los sets quedan afuera. Abierto: `[VALOR-INV-DISEÑO]` 🟢; el bloque para el PREPARADOR lo manda Alejo después.
 
 **Última actualización:** **Septiembre 24, 2026 (N-bis)** — la N-bis (`_y`) en producción, SW **v1.1.132**: `[PROMO-ANCHO-360]` cerrado; la promo se puede prender. Nuevo: `[COMPARE-PISA-NOMBRE]` 🟢.
@@ -2915,6 +2945,10 @@ Alejo contestó las dos preguntas del cierre: *"Cuenta todo perfume que tenga al
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 27-sep-2026 (`_a`):**
+
+- ✅ ~~**`[SECURITY-AUDIT-S1]`**~~ (re-scoped 27-jun · 23-sep · 🟠) — agujero abierto: **sólo la keyword** (regla del 23-sep). Lo cerrado: las dos contraseñas del panel se rotaron el 19-sep (Alejo, 21:11 ART; verificado por los logs de auth), la constante muerta se borró (`4b88e20`) y `.claude/commands/security-scan.md` quedó sin valores (`db37b21`). Se cierra junto con `[VERCEL-ENV-VARS]`. Ver `docs/SECURITY.md` § S1. → **RESUELTO el 27-sep** (`49200b7`): el secreto del push salió de `admin.html`; `/api/send-notification` valida la sesión de Supabase contra `STAFF_EMAILS`. Ver SECURITY.md § S1.
 
 **Movidos el 24-sep-2026 (`_y`):**
 
