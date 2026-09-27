@@ -1,18 +1,23 @@
 /**
- * Vercel Cron Job — Backup automático cada 2 horas
+ * Vercel Cron Job — Backup automático, una vez por día
  *
- * Schedule (vercel.json): "0 *​/2 * * *" → 00:00, 02:00, 04:00, ... 22:00 UTC
+ * Schedule (vercel.json): "0 3 * * *" → 03:00 UTC (00:00 en Argentina). El plan Hobby de
+ * Vercel permite un cron por día; el comentario viejo decía "cada 2 horas".
  *
  * Qué hace:
  *   1. Snapshot de las tablas críticas + datos de negocio.
  *   2. INSERT en `admin_backups` con trigger='cron'.
- *   3. Cleanup: deja solo los 12 más recientes (≈ 24h de cobertura).
+ *   3. Cleanup: deja solo los 12 más recientes (con el cron diario, ≈ 12 días).
  *
  * Seguridad:
- *   - Vercel Cron añade automáticamente el header `x-vercel-cron-signature`
- *     y solo se puede invocar desde el cron interno de Vercel. Igual
- *     validamos el header `Authorization` con CRON_SECRET por las dudas.
- *   - Usa SUPABASE_SERVICE_KEY (service role), bypass de RLS.
+ *   - [CRON-HEADER-FALSO] 26-sep-2026 · SÓLO se acepta `Authorization: Bearer <CRON_SECRET>`, que
+ *     Vercel Cron manda solo cuando la variable CRON_SECRET existe en el proyecto (docs de Vercel,
+ *     "Securing cron jobs"). Antes también pasaba cualquier pedido con un header
+ *     `x-vercel-cron-signature` o un user-agent con "vercel-cron": los dos los puede mandar
+ *     cualquiera (curl -A). Sin la clave de servicio no hacía nada; con la clave, cualquiera podía
+ *     disparar backups y, con 12 seguidos, borrar los de verdad (el cleanup deja 12).
+ *   - Sin CRON_SECRET se rechaza todo (falla cerrado).
+ *   - Usa SUPABASE_SERVICE_KEY (service role o secret key sb_secret_…), bypass de RLS.
  */
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -139,14 +144,10 @@ async function cleanupOldBackups() {
 }
 
 module.exports = async (req, res) => {
-  // Validación de origen: aceptar solo invocaciones de Vercel Cron
-  // o requests con el secret correcto en Authorization header.
-  const isVercelCron = req.headers['x-vercel-cron-signature'] !== undefined
-    || req.headers['user-agent']?.toLowerCase().includes('vercel-cron');
+  // [CRON-HEADER-FALSO] Sólo el secreto del cron (ver arriba). Sin CRON_SECRET, 401 a todo.
   const auth = req.headers['authorization'] || '';
-  const validAuth = CRON_SECRET && auth === 'Bearer ' + CRON_SECRET;
-  if (!isVercelCron && !validAuth) {
-    res.status(401).json({ error: 'Unauthorized — solo Vercel Cron o Bearer válido' });
+  if (!CRON_SECRET || auth !== 'Bearer ' + CRON_SECRET) {
+    res.status(401).json({ error: 'Unauthorized' });
     return;
   }
 
