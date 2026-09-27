@@ -3049,7 +3049,28 @@ Queda sin tocar el mismo patrón que #0 en `logRenderFeed` («Por perfume», `po
 - la tanda de 300.000 de la ronda i: 0 cambian a otro número y 1 que daba 13 ahora falla: la basura «540183633313», que la vieja convertía en `5490183633313` (no existe: ninguna característica empieza con 0);
 - de 200.000 canónicos, ahora 0 tocados.
 
+### Sesión 27-sep-2026 · `_j` · ronda k · **128 `[GUARDAR-ABAJO]`**: la barra fija de «Guardar»
+
+Prompt `_j` del PREPARADOR (decisión del DISEÑADOR, aprobada por Alejo). Rama `guardar-abajo` desde `2b6d343`; SW v1.1.143 en commit aparte. Merge pre-aprobado por el PREPARADOR y autorizado por Alejo en el chat si daban las verificaciones 1 a 5.
+
+#### Qué se hizo
+- **a · `.admin-main`:** `overflow-x: clip` (con `hidden` antes, de respaldo) y `min-width: 0` en todos los anchos. Con `hidden`, `overflow-y` pasaba a `auto` y el `main` era un contenedor de scroll: el sticky se quedaba al final del formulario → NO ROMPER #19.
+- **b · `.barra-guardar`:** `position: sticky; bottom: 0; z-index: 50`, `--superficie`, borde arriba, sombra (más suave en claro), `padding: 12px 16px calc(12px + env(safe-area-inset-bottom))`. Ocupa el ancho de la caja con un margen negativo igual a su padding (`--caja-pad` en `.con-barra`: 1.5rem en Editar y Nuevo, 1.2rem en promo y marcas, 0 en la escalera). Botones de 48 (`padding: .7rem 1rem`: el padding de 1.8rem de los botones sueltos partía «Guardar configuración»), el secundario a la izquierda (`flex: 1`) y el principal a la derecha (`flex: 2.2`).
+- **c · dónde:** Editar (Cancelar + Guardar cambios, antes de «Eliminar»), Nuevo («Cancelar» sólo cuando se edita + «Agregar perfume»), Decants: la escalera (se envolvió en `#decantsEscalera`; «↺ Recargar» + «Guardar configuración»), la promo («Guardar promo») y las marcas («Guardar»; el campo y «+ Agregar» quedan donde estaban). En Decants las tres barras son `data-solo-jefe`. Los botones son los de antes: mismo `id`, `onclick` y texto.
+- **e · el teclado:** `html { scroll-padding-bottom: 88px }`. Con `scroll-margin-bottom` en los campos, un `<textarea>` a medias detrás de la barra no subía al hacer `focus()`.
+
+#### Verificación (fixture, Inter; 360×780, 390×844, 600×960, 960×600, 1280×800)
+1. **Se pega:** a mitad del formulario (lo que va de la caja a la barra), `barra.bottom === innerHeight` en Editar, Nuevo y la escalera en los 5 anchos (la escalera a 600 × 960 entra en la pantalla); la promo y las marcas entran en la pantalla, y entrando desde abajo la barra ya está pegada. Al final, la barra queda en su lugar y «Eliminar» debajo y fuera de ella. Alto del formulario a 390: Editar 3.335, Nuevo 1.510 (el DISEÑADOR midió ≈ 4.900), escalera 1.019, promo 620, marcas 588.
+2. **`.admin-main` mide lo mismo que en `main`** en las 23 pestañas × 5 anchos, y 0 scroll horizontal (en `main` también 0).
+3. **El menú la tapa:** abierto (≤ 700) y expandido (> 700), `elementFromPoint` sobre la barra da el menú o su fondo.
+4. **Empleada:** ninguna barra en Decants; en Nuevo, como el jefe. **Su «Editar» no abre** (`canAccessTab` encuentra primero el botón del jefe): pasa igual en `main` → `[EDITAR-EMPLEADA-MUERTO]`. Con la pestaña abierta a la fuerza, la barra de Editar sale igual que para el jefe (pegada, 48).
+5. **Botones de 48** en todas las barras, salvo la escalera a 360 y 390: «Guardar configuración» no entra en un renglón y la barra mide 52,4 / 50,4. «Guardando…» y deshabilitado: igual que antes (ninguno se deshabilita; sólo Editar escribe «Guardando...» en su mensaje) → `[GUARDAR-DOBLE-TOQUE]`. `npm run contraste`: 0 fallas + 1 token pisado, 291 mediciones (los botones de la barra en los dos temas).
+6. **El teclado:** `focus()` en el último campo de arriba de cada barra, desde arriba de todo y desde detrás de la barra: el borde de abajo queda por encima de la barra en las 5 cajas y los 5 anchos.
+7. 43 capturas en `herramientas\guardar-abajo\png\` (390, 600 y 1280, claro y oscuro: Editar arriba, en el medio y al final; Nuevo; Decants como jefe y como empleada; Editar a 960 × 600 con el menú expandido; y el menú abierto en los 5 anchos).
+
 ---
+
+**Última actualización:** **Septiembre 27, 2026 (`_j`)** — `[GUARDAR-ABAJO]` en la rama `guardar-abajo`, SW v1.1.143. Nuevos: `[EDITAR-EMPLEADA-MUERTO]` 🟡, `[GUARDAR-DOBLE-TOQUE]` y `[GUARDAR-AVISO-LEJOS]` 🟢.
 
 **Última actualización:** **Septiembre 27, 2026 (`_i`)** — la ronda j (el arreglo de `cleanPhone`, a1 + a2) sobre `ronda-i`, sin bump nuevo; con el OK de Alejo, fast-forward `0833be1..29b925b`: **v1.1.142 en producción** (`curl`: el `cleanPhone` nuevo en el `app.js` servido, «Reset contraseñas» en el panel). Con la marca de Valentino Donna cargada, los datos reales dan «💎 Diseñador» Frascos · 21 (11 con su 💎) y Sólo en decant · 2. Cerrados `[ESPERA-LOW-SIN-STOCK]`, `[ESPERA-AYUDA-AUTOMATICO]` y `[TEL-15-SIN-549]`.
 
