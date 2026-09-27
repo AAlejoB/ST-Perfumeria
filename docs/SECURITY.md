@@ -322,6 +322,14 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
+### **S21 · `[XSS-NUEVOS]` · Nombre y marca sin escapar en la pestaña de perfumes nuevos · ✅ RESUELTO 27-sep-2026**
+
+**Severidad:** 🟠 ALTA en potencia · el mismo agujero que S20, en otra pestaña: hacía falta una cuenta logueada del panel para cargar el nombre; se ejecutaba con la sesión de quien abriera el panel (el jefe incluido).
+
+> ✅ **ESTADO: RESUELTO** · `4419352` (rama `precios-g`, revisada y aprobada por el PREPARADOR; mergeada con el OK de Alejo) + SW v1.1.140, en producción el 27-sep-2026. `renderNuevos` (`admin.html`, la pestaña «Perfume», visible para las dos cuentas) metía `p.name` y `p.marca_real || p.marca` de `perfumes_nuevos` crudos en `innerHTML`, y el botón «Eliminar» armaba `onclick="deleteNuevo(id, '…')"` escapando sólo la comilla simple: dentro de un atributo con comillas dobles, un nombre con `"` cerraba el atributo y lo que seguía se ejecutaba. La lista se pinta al entrar al panel (`loadNuevos`), no sólo al abrir la pestaña. Estaba así desde abril (la forma del `onclick` es de `88863a7`, 23-abr). **Fix:** `escHtml` en el nombre y la marca; el nombre de `deleteNuevo` con `escHtml(JSON.stringify(…))` (el mismo arreglo que S10-bis y S20); `p.id` es numérico. **Verificado:** con fixture, un nuevo con HTML en el nombre y en la marca se ve como texto, 0 `<img>`, no se ejecuta; «Editar» y «Eliminar» reciben el id y el nombre exactos, también con una comilla simple en el nombre. En producción, el `admin.html` de v1.1.140 tiene la forma nueva y ya no la vieja. Mientras estuvo abierto, en el repo fue sólo la keyword; la prueba quedó descrita en `HISTORIA.md` antes del merge (la rama era pública): de ahora en más, la forma de la prueba entra recién en producción.
+
+---
+
 ## 🟢 Issues MEDIOS · revisar pero no urgente
 
 ### **S7 · admin.html accesible públicamente · cualquiera puede llegar al login**
