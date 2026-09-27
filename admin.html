@@ -10699,17 +10699,21 @@
       if (backupAutoRan) return;
       backupAutoRan = true;
       try {
-        // El backup PRINCIPAL ahora es Vercel Cron (cada 2hs, server-side).
+        // El backup PRINCIPAL es Vercel Cron (una vez por día, 03:00 UTC, server-side).
         // Esta función queda como FALLBACK: si por algún motivo el cron no
-        // corrió en >3hs (Vercel caído, deploy en progreso, etc.), creamos
-        // un backup manual desde el cliente al abrir el admin.
+        // corrió en más de ~26 h (Vercel caído, deploy en progreso, etc.), creamos
+        // un backup desde el cliente al abrir el admin.
+        // [BACKUP-FALLBACK-ROTO] 27-09: guardaba con trigger='fallback', que admin_backups_trigger_check
+        // rechaza (sólo 'manual'/'auto') — fallaba en silencio, atrapado en el catch de abajo. Ahora 'auto';
+        // se distingue del cron real por la acción 'backup_create_fallback' en el Log. El umbral era de 3 h,
+        // pensado para un cron cada 2 h: con el cron diario pasa a 26 h (un día + margen).
         var { data, error } = await sb.from('admin_backups')
           .select('created_at')
           .order('created_at', { ascending: false })
           .limit(1);
         if (error) { console.warn('[backup] auto check fallo:', error); return; }
 
-        var FALLBACK_THRESHOLD_MS = 3 * 60 * 60 * 1000; // 3 horas
+        var FALLBACK_THRESHOLD_MS = 26 * 60 * 60 * 1000; // 26 horas: el cron corre una vez por día + margen
         var needNew = false;
         if (!data || data.length === 0) {
           needNew = true;
@@ -10720,11 +10724,11 @@
 
         if (needNew) {
           console.log('[backup] fallback: creando snapshot (cron parece haber fallado)...');
-          var b = await createBackup('fallback');
+          var b = await createBackup('auto');   // el CHECK sólo acepta 'manual' | 'auto'
           logAdminAction('backup_create_fallback', null, { size_bytes: b.size_bytes });
           console.log('[backup] fallback: creado (' + formatBytes(b.size_bytes) + ')');
         } else {
-          console.log('[backup] cron OK · último backup hace <3h, skip fallback');
+          console.log('[backup] cron OK · último backup hace <26h, skip fallback');
         }
       } catch(e) {
         console.warn('[backup] auto fallo:', e);
