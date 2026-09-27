@@ -2933,7 +2933,7 @@ Prompt `_e` del PREPARADOR: en el mostrador preguntan el precio de un decant y n
 - **123b · excepciones:** «💧 decant $X fijo» y, con la promo vigente, «sin promo n×» (sólo en el armador y con escalera). La regla es **`promoEntraPanel`**, espejo exacto de `promoDecantEntra` (NO ROMPER #16). «Entran solos» sigue contando sólo el paso 4 (`promoEntraPorFrasco`), como antes: con el mismo fixture da «141 de 149» en `main` y en la rama.
 - **123c · decants de diseñador como filas:** 💎 nombre y «marca · decant de diseñador · 5 ml», DECANT de contorno (123f; no abre el modal), «$X c/u» o «a consultar», efectivo «—». Por nombre, mezclados (empate: primero el frasco); con precio o stock, al final. No cuentan en las tarjetas.
 - **123d · filtro** Todo · Frascos · 💎 Diseñador (`.log-chip`, 44). **123e:** «💎 Diseñador» en dos grupos con título («Frascos · N», «Decants 5 ml · N»); al buscar, un título sin filas se oculta y su N cuenta lo visible. El editor de marcas en Decants: chips con ✕ de 44, «+ Agregar» y «Guardar» para el jefe; gris, con 🔒 y sin sacar ni guardar para la empleada; «Falta correr el SQL…» si la columna no existe.
-- **[XSS-PRECIOS-STOCK]:** agujero abierto hasta el merge: sólo la keyword (la descripción entra cuando esté en producción).
+- **`[XSS-PRECIOS-STOCK]`** (cerrado con el merge, SECURITY.md § S20): `renderPrecios` metía el nombre y la marca crudos en `innerHTML` y el slug dentro de `onclick="openStockModal('…')"` sin escapar; un nombre con HTML se ejecutaba en Precios & Stock para las dos cuentas. Ahora `escHtml` en nombre, marca y `data-search`, y el slug con `escHtml(JSON.stringify(…))`. Mientras estuvo abierto, en el repo fue sólo la keyword.
 - **En el celu,** la columna del nombre no parte renglones (regla previa): la línea gris de la marca y la de los decants terminan en «…» y las excepciones se parten, nunca se cortan.
 
 #### Verificación (fixture)
@@ -2950,7 +2950,7 @@ Prompt `_e` del PREPARADOR: en el mostrador preguntan el precio de un decant y n
 
 ---
 
-**Última actualización:** **Septiembre 27, 2026 (`_e`)** — `[PRECIOS-EN-UN-LUGAR]` en la rama `precios-en-un-lugar` (SW v1.1.139), esperando la revisión del PREPARADOR.
+**Última actualización:** **Septiembre 27, 2026 (`_e`)** — `[PRECIOS-EN-UN-LUGAR]` revisado y aprobado por el PREPARADOR, en producción (SW v1.1.139, fast-forward `119a091..d4a5629`). Cerrado `[XSS-PRECIOS-STOCK]` (SECURITY.md § S20).
 
 **Última actualización:** **Septiembre 27, 2026 (`_d`)** — la ronda `_d` del Resumen y las decisiones 125 / 125b en producción, SW v1.1.138. Cerrado `[LOG-LABEL-26H]`.
 

@@ -314,6 +314,14 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
+### **S20 · `[XSS-PRECIOS-STOCK]` · Nombre y marca sin escapar en Precios & Stock · ✅ RESUELTO 27-sep-2026**
+
+**Severidad:** 🟠 ALTA en potencia · hacía falta una cuenta logueada del panel para cargar el nombre; se ejecutaba en la pestaña que abre el panel, con la sesión de quien la mirara (el jefe incluido).
+
+> ✅ **ESTADO: RESUELTO** · `dee6fef` (rama `precios-en-un-lugar`, revisada y aprobada por el PREPARADOR) + SW v1.1.139, en producción el 27-sep-2026. `renderPrecios` (`admin.html`) metía `p.name` y `p.marca_real` crudos en `innerHTML`, el `data-search` sólo sacaba las comillas dobles, y `p.slug` iba dentro de `onclick="openStockModal('…')"` sin escapar: un nombre o una marca con HTML (o un slug con una comilla simple) se ejecutaba en Precios & Stock, la primera pestaña del panel, para las dos cuentas. **Fix:** `escHtml` en el nombre, la marca y el `data-search`; el slug del `onclick` con `escHtml(JSON.stringify(…))` (`escHtml` solo no escapa la comilla simple), el mismo arreglo que S10-bis; y lo nuevo de `[PRECIOS-EN-UN-LUGAR]` (las filas de decants de diseñador, las marcas de diseñador) también escapado. `flashRow` sigue encontrando la fila. **Verificado:** con fixture, un frasco (el nombre por override) y un decant de diseñador con `<img src=x onerror=…>` en el nombre se ven como texto, 0 `<img>` en la tabla y no se ejecutan (tampoco en la pestaña Decants); en producción, el `admin.html` de v1.1.139 ya no tiene la forma vieja del `onclick`. Mientras estuvo abierto, en el repo fue sólo la keyword (regla de § 📏): la rama se publicó antes del merge.
+
+---
+
 ## 🟢 Issues MEDIOS · revisar pero no urgente
 
 ### **S7 · admin.html accesible públicamente · cualquiera puede llegar al login**
