@@ -3036,13 +3036,22 @@ Queda sin tocar el mismo patrón que #0 en `logRenderFeed` («Por perfume», `po
 - **127:** «Pedidos pass» → «Reset contraseñas» (el menú, el `title` y el título de la pestaña); entra en el menú sin cortarse a 360, 390, 600 y 1280.
 - **`[ESPERA-LOW-SIN-STOCK]`**, **`[ESPERA-AYUDA-AUTOMATICO]`** y **`[TEL-15-SIN-549]`**: ver CLAUDE.md § Pendientes y NO ROMPER #18.
 
-**Teléfonos** (Node, con las dos copias, idénticas): los 8 casos del PREPARADOR dan `5492970000011` y «5492971512345» queda igual. Sobre 300.000 números armados como los escribe la gente: 44.531 que fallaban ahora dan 13, **0** cambian a otro número de 13, y **286 (0,1 %) que la vieja adivinaba ahora no se guardan**: son los que tienen el «15» en dos lugares posibles (la regla «no adivines»). De 200.000 canónicos, la vieja rompía 5.905; la nueva, 0.
+**Teléfonos** (Node, con las dos copias, idénticas): los 8 casos del PREPARADOR dan `5492970000011` y «5492971512345» queda igual. Sobre 300.000 números armados como los escribe la gente: 44.531 que fallaban ahora dan 13, **0** cambian a otro número de 13, y 286 (0,1 %) que la vieja guardaba quedaban sin guardar, por la regla «con más de una característica posible, no se adivina». **Resuelto antes del merge (ronda j, prompt `_i`): dos posiciones del 15 dan siempre el mismo número** (sólo pueden ser la 2 y la 4, «xx1515…»), así que el 15 se saca siempre que deje 13. De 200.000 canónicos, la vieja rompía 5.905; la nueva, 0.
 
 **Datos reales** (sólo contar): en «💎 Diseñador», Frascos · 20, 10 con su 💎, y «Sólo en decant · 3»: Born in Roma, Most Wanted EDP Intense (el frasco es «The Most Wanted EDP», otro perfume) y Valentino Donna (el frasco existe, pero con la marca vacía: no entra en la lista de diseñador). En «Todo», 11 frascos llevan su 💎 y quedan sueltos Born in Roma y Most Wanted EDP Intense. Hoy no hay un decant «Sauvage Elixir» activo.
 
 **Verificación:** 22 capturas en `herramientas\ronda-i\png\` (390 y 360, claro y oscuro: «💎 Diseñador», «Todo», «born», el menú y la Espera; el menú también a 600 y 1280). Los 10 arreglos de la revisión, uno por uno (`herramientas\espera-mas\cuerpo-revision.js`). Los flujos de la Espera de la ronda h, otra vez. `npm run contraste`: 0 fallas + 1 token pisado, 285 mediciones.
 
+**Ronda j** (prompt `_i` del PREPARADOR: `ronda-i` aprobada con un arreglo de `cleanPhone`, las dos copias, sin bump nuevo): (a1) el 15 se saca aunque aparezca en dos lugares; (a2) el 0 de la característica después del 54 / 549 se saca (`digits.replace(/^(549?)0/, '$1')`): «+54 0297 000 0011» daba `5402970000011`, 13 dígitos, y el catálogo lo guardaba. En Node, con las dos copias idénticas:
+- los 13 casos del PREPARADOR dan lo esperado;
+- de 600.000 armados con su número conocido (característica 11, de 3 o de 4, con y sin 15, en 10 formatos), la vieja acierta 238.528, `ronda-i` 358.380 y ahora 600.000, sin ninguno de 13 equivocado ni ninguno que la vieja acertara y ahora no;
+- las dos posiciones del 15, en 1.000.000 de restos «xx1515…», dan siempre lo mismo;
+- la tanda de 300.000 de la ronda i: 0 cambian a otro número y 1 que daba 13 ahora falla: la basura «540183633313», que la vieja convertía en `5490183633313` (no existe: ninguna característica empieza con 0);
+- de 200.000 canónicos, ahora 0 tocados.
+
 ---
+
+**Última actualización:** **Septiembre 27, 2026 (`_i`)** — la ronda j (el arreglo de `cleanPhone`, a1 + a2) sobre `ronda-i`, sin bump nuevo (v1.1.142); merge pre-aprobado por el PREPARADOR con este arreglo, esperando el OK de Alejo.
 
 **Última actualización:** **Septiembre 27, 2026 (`_h`)** — `espera-mas` en producción (v1.1.141) con el OK de Alejo; los 10 arreglos de la revisión y la ronda i en la rama `ronda-i` (v1.1.142), esperando la revisión del PREPARADOR.
 

@@ -167,6 +167,7 @@
       var digits = String(raw == null ? '' : raw).replace(/[^0-9]/g, '');
       // Si empieza con 0, quitarlo (ej: 02975 -> 2975)
       if (digits.charAt(0) === '0') digits = digits.substring(1);
+      digits = digits.replace(/^(549?)0/, '$1');   // [TEL-15-SIN-549] «54 0297 …» / «549 0297 …»: el 0 de la característica
       // [TEL-15-SIN-549] Ya canónico (549 + 10 dígitos): tal cual. Un «15» adentro es del número (antes se lo borraba).
       if (/^549\d{10}$/.test(digits)) return digits;
       // Si son 10 dígitos puros (número local), agregar 549
@@ -174,13 +175,12 @@
       // Si empieza con 54 pero sin 9 (12 dígitos), insertar el 9
       if (digits.length === 12 && digits.substring(0, 2) === '54' && digits.charAt(2) !== '9') return '549' + digits.substring(2);
       // [TEL-15-SIN-549] El «15» viejo después de la característica (2 a 4 dígitos), con o sin 54 / 549 adelante: se saca
-      // sólo si así quedan los 10 dígitos del número, y sólo si hay UNA característica posible. Con más de una no se
-      // adivina: queda sin normalizar (no llega a 13 y no se guarda). Antes se sacaba sólo con 549 adelante.
+      // si así quedan los 10 dígitos del número. Antes se sacaba sólo con 549 adelante. Si no hay un 15 donde corresponde,
+      // queda sin normalizar (no llega a 13 y no se guarda).
       var resto = /^549/.test(digits) ? digits.substring(3) : (/^54/.test(digits) ? digits.substring(2) : digits);
       if (resto.length === 12) {
         var pos = [2, 3, 4].filter(function(k) { return resto.substr(k, 2) === '15'; });
-        if (pos.length === 1) return '549' + resto.substring(0, pos[0]) + resto.substring(pos[0] + 2);
-        if (pos.length > 1) return digits;
+        if (pos.length) return '549' + resto.substring(0, pos[0]) + resto.substring(pos[0] + 2);   // dos posiciones sólo pueden ser 2 y 4 («xx1515…»): las dos dan lo mismo
       }
       // Si NO empieza con 54, agregarlo
       if (digits.substring(0, 2) !== '54') return '549' + digits;
