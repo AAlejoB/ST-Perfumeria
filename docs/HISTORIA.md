@@ -2957,7 +2957,7 @@ Prompt `_f` del PREPARADOR: tres decisiones del DISEÑADOR sobre lo de `_e` y un
 - **123g:** la línea gris de los decants de diseñador dice «MARCA · 5 ml» (el 💎 y el DECANT ya dicen «decant de diseñador»). El ml sigue saliendo de `decants_config`.
 - **«💧 $X fijo»**, sin la palabra «decant» (el 💧 ya lo dice).
 - **123h:** en Precios & Stock, a ≤ 600 (entra la Tab A9), el nombre ocupa hasta 2 renglones y recién ahí «…». El clamp va en un `<span class="td-nombre">` (sobre la celda, `display: table-cell`, no anda) y sólo dentro de `#tbodyPrecios`; la regla de un renglón de las demás tablas no cambia. **No depende del alto de la fila:** `flashRow` busca la fila por la badge y el `onclick` y pinta el `tr` entero; la badge tiene `min-height` 48 y queda centrada cuando la fila crece (ya pasaba con las excepciones de `_e`).
-- **`[XSS-NUEVOS]`:** agujero abierto hasta el merge: sólo la keyword (la descripción entra cuando esté en producción).
+- **`[XSS-NUEVOS]`** (cerrado con el merge, SECURITY.md § S21): `renderNuevos` metía el nombre y la marca de `perfumes_nuevos` crudos en `innerHTML` y el nombre dentro de `onclick="deleteNuevo(id, '…')"` escapando sólo la comilla simple. Ahora `escHtml` y `escHtml(JSON.stringify(…))`. Mientras estuvo abierto, en el repo fue sólo la keyword; la prueba, en cambio, quedó descrita antes del merge (nota del PREPARADOR: con la rama pública, la prueba se describe recién en producción).
 
 #### Verificación (fixture)
 
@@ -2979,7 +2979,7 @@ Prompt `_f` del PREPARADOR: tres decisiones del DISEÑADOR sobre lo de `_e` y un
 
 ### Sesión 27-sep-2026 · `_g` · ronda h · **`[ESPERA-MAS]`** (decisiones 42, v3 y 124 del DISEÑADOR)
 
-Prompt `_g` del PREPARADOR: la pestaña Espera para las dos cuentas y anotar desde el mostrador. Rama `espera-mas`, que sale de `precios-g` (`d92150a`): el prompt pedía arrancar desde `main` después de mergear `precios-g` (aprobada por el PREPARADOR), pero el sistema de permisos de la sesión frenó ese merge («Merge Without Review») y lo decide Alejo; lo que va a ser `main` es exactamente `d92150a`. SW **v1.1.141** (bump en commit aparte). Merge **no** pre-aprobado: lo revisa el PREPARADOR en GitHub.
+Prompt `_g` del PREPARADOR: la pestaña Espera para las dos cuentas y anotar desde el mostrador. Rama `espera-mas`, que sale de `precios-g` (`d92150a`): el prompt pedía arrancar desde `main` después de mergear `precios-g` (aprobada por el PREPARADOR), pero el sistema de permisos de la sesión frenó ese merge («Merge Without Review»); lo que iba a ser `main` era exactamente `d92150a`. Después Alejo dio el OK: `precios-g` entró a `main` (fast-forward `a919314..d92150a`, v1.1.140 en producción), la descripción de `[XSS-NUEVOS]` entró en SECURITY.md § S21 (`dc6d94e`, en `main`) y `main` se mergeó en `espera-mas` (sólo SECURITY.md). A pedido de Alejo, la rama pasó por una revisión adversarial de 5 agentes (4 revisores + 1 verificador) antes de la del PREPARADOR. SW **v1.1.141** (bump en commit aparte). Merge **no** pre-aprobado: lo revisa el PREPARADOR en GitHub.
 
 **El SQL ya estaba corrido** (verificado sólo leyendo): la columna `origen` (`text not null default 'web'`, check `web` / `local`, las 42 filas en `web`), `le_insert_anon` con `with check (origen = 'web')`, `le_insert_auth`, `le_delete_staff` por email para las dos cuentas y `trg_lista_espera_aviso` apagado. Las 42 filas y los 100 clientes tienen el teléfono como `549` + 10 dígitos.
 
@@ -3013,11 +3013,42 @@ Prompt `_g` del PREPARADOR: la pestaña Espera para las dos cuentas y anotar des
 - `[ESPERA-AYUDA-AUTOMATICO]`: la ayuda de la pestaña promete un aviso automático por WhatsApp que no existe desde el 12-ago.
 - `[TEL-15-SIN-549]`: el «15» viejo sin el 549 adelante no se limpia.
 
+### Sesión 27-sep-2026 · `_h` · `espera-mas` en producción + ronda i (123i, badge, 123j, 127, la Espera y `[TEL-15-SIN-549]`)
+
+**La revisión de 5 agentes** (pedida por Alejo, antes de la del PREPARADOR; 4 revisores + 1 verificador, sólo lectura): 10 hallazgos, **los 10 confirmados**, ninguno grave. Se arreglaron en la rama `ronda-i` (el PREPARADOR había aprobado `espera-mas` tal cual, en `24fadc3`):
+- #0 un slug «constructor» o «__proto__» (anon puede escribirlo) cortaba la lista → `Object.create(null)` (de antes);
+- #1 «Avisar a todos» armaba el `wa.me` con el teléfono crudo de la base: un teléfono con `?text=…` metía otro mensaje → sólo dígitos, como la fila (de antes);
+- #2 un «54 0297 …» daba 13 dígitos y se guardaba sin ser 549 + 10 → sólo se guarda `^549\d{10}$`;
+- #3 lo que se sacaba mientras se anotaba igual se insertaba, y lo que se sumaba se perdía al cerrarse sola → se saltea lo sacado y se cierra sólo si no queda nada;
+- #4 / #9 un canónico pegado con espacios («+54 9 2974 15-1234») perdía su «15» → el canónico se mira sobre los dígitos;
+- #5 con el filtro de origen, «Avisar a todos (N)» abría a todos los pendientes → el mismo filtro;
+- #6 «Quitar» de una fila que otra tablet ya borró decía «No se pudo quitar» para siempre → se vuelve a leer la lista;
+- #7 el cierre solo de 1,5 s cerraba una ventana ya reabierta (y pisaba `editingSlug`) → timer cancelable, sin `closeModal`;
+- #8 «Quitar» daba 4,26 antes (no 3,86): corregido el número.
+Queda sin tocar el mismo patrón que #0 en `logRenderFeed` («Por perfume», `porSlug`): ahí el slug lo escribe el staff.
+
+**`espera-mas` a producción:** el PREPARADOR la aprobó; con el OK de Alejo en el chat, fast-forward de `main` a `0833be1` (`24fadc3` más la S21 que ya estaba en `main`). v1.1.141 en producción (`curl`: el formulario está, la pestaña sin `data-role`, `.waitlist-phone-preview` a `.75rem`).
+
+**Ronda i** (prompt `_h`, rama `ronda-i` desde `0833be1`; SW v1.1.142 en commit aparte; merge no pre-aprobado):
+- **123i:** a ≤ 360 el nombre de Precios & Stock va hasta 3 renglones (un `@media` después del de ≤ 600). «BORN IN ROMA INTENSE» se lee entero a 360.
+- **La badge llena el alto de la celda** (decisión 18) con cualquier alto de fila: `#tbodyPrecios td.td-stock { height: 1px }` + `height: 100%` en la badge. Medido en Chromium (0 filas sin llenar); Safari y Firefox no se midieron. Sólo en Precios & Stock.
+- **123j:** en «💎 Diseñador» y en «Todo», el decant de diseñador que se llama igual que un frasco (`promoNorm`) va en la fila del frasco: «💎 decant 5 ml $22.500» (el precio en la tinta dorada y en negrita; sin precio, «a consultar»). Con decant, el «💧 $X fijo» del frasco no sale. «Sólo en decant · N» junta los que no tienen frasco entre los que se muestran. El buscador encuentra la fila del frasco también por el nombre del decant.
+- **127:** «Pedidos pass» → «Reset contraseñas» (el menú, el `title` y el título de la pestaña); entra en el menú sin cortarse a 360, 390, 600 y 1280.
+- **`[ESPERA-LOW-SIN-STOCK]`**, **`[ESPERA-AYUDA-AUTOMATICO]`** y **`[TEL-15-SIN-549]`**: ver CLAUDE.md § Pendientes y NO ROMPER #18.
+
+**Teléfonos** (Node, con las dos copias, idénticas): los 8 casos del PREPARADOR dan `5492970000011` y «5492971512345» queda igual. Sobre 300.000 números armados como los escribe la gente: 44.531 que fallaban ahora dan 13, **0** cambian a otro número de 13, y **286 (0,1 %) que la vieja adivinaba ahora no se guardan**: son los que tienen el «15» en dos lugares posibles (la regla «no adivines»). De 200.000 canónicos, la vieja rompía 5.905; la nueva, 0.
+
+**Datos reales** (sólo contar): en «💎 Diseñador», Frascos · 20, 10 con su 💎, y «Sólo en decant · 3»: Born in Roma, Most Wanted EDP Intense (el frasco es «The Most Wanted EDP», otro perfume) y Valentino Donna (el frasco existe, pero con la marca vacía: no entra en la lista de diseñador). En «Todo», 11 frascos llevan su 💎 y quedan sueltos Born in Roma y Most Wanted EDP Intense. Hoy no hay un decant «Sauvage Elixir» activo.
+
+**Verificación:** 23 capturas en `herramientas\ronda-i\png\` (390 y 360, claro y oscuro: «💎 Diseñador», «Todo», «born», el menú y la Espera; el menú también a 600 y 1280). Los 10 arreglos de la revisión, uno por uno (`herramientas\espera-mas\cuerpo-revision.js`). Los flujos de la Espera de la ronda h, otra vez. `npm run contraste`: 0 fallas + 1 token pisado, 285 mediciones.
+
 ---
 
-**Última actualización:** **Septiembre 27, 2026 (`_g`)** — la ronda h (`[ESPERA-MAS]`) en la rama `espera-mas`, SW v1.1.141, esperando la revisión del PREPARADOR. `precios-g` sigue sin mergear (lo decide Alejo). Nuevos: `[ESPERA-LOW-SIN-STOCK]`, `[ESPERA-AYUDA-AUTOMATICO]`, `[TEL-15-SIN-549]` 🟢.
+**Última actualización:** **Septiembre 27, 2026 (`_h`)** — `espera-mas` en producción (v1.1.141) con el OK de Alejo; los 10 arreglos de la revisión y la ronda i en la rama `ronda-i` (v1.1.142), esperando la revisión del PREPARADOR.
 
-**Última actualización:** **Septiembre 27, 2026 (`_f`)** — la ronda g (123g, 123h, «fijo» y `[XSS-NUEVOS]`) en la rama `precios-g`, SW v1.1.140, esperando la revisión del PREPARADOR. Nuevo: `[NUEVO-BORRADO-HUERFANO]` 🟡.
+**Última actualización:** **Septiembre 27, 2026 (`_g`)** — la ronda h (`[ESPERA-MAS]`) en la rama `espera-mas`, SW v1.1.141, esperando la revisión del PREPARADOR. `precios-g` mergeada con el OK de Alejo (v1.1.140 en producción) y `[XSS-NUEVOS]` cerrado (§ S21). Nuevos: `[ESPERA-LOW-SIN-STOCK]`, `[ESPERA-AYUDA-AUTOMATICO]`, `[TEL-15-SIN-549]` 🟢.
+
+**Última actualización:** **Septiembre 27, 2026 (`_f`)** — la ronda g (123g, 123h, «fijo» y `[XSS-NUEVOS]`) aprobada por el PREPARADOR y mergeada con el OK de Alejo (fast-forward `a919314..d92150a`), en producción (SW v1.1.140). Cerrado `[XSS-NUEVOS]` (SECURITY.md § S21, `dc6d94e`). Nuevo: `[NUEVO-BORRADO-HUERFANO]` 🟡.
 
 **Última actualización:** **Septiembre 27, 2026 (`_e`)** — `[PRECIOS-EN-UN-LUGAR]` revisado y aprobado por el PREPARADOR, en producción (SW v1.1.139, fast-forward `119a091..d4a5629`). Cerrado `[XSS-PRECIOS-STOCK]` (SECURITY.md § S20).
 

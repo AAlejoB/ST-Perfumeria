@@ -109,7 +109,7 @@ Flujo "olvidé mi contraseña" con verificación humana (sin SMS gateway · cost
 **Flujo end-to-end:**
 1. Cliente toca "¿Olvidaste tu contraseña?" en el modal de login (link solo visible en modo login · toggle en `switchAuthMode`).
 2. `requestPasswordReset()` (app.js): busca el cliente por teléfono, INSERT en `password_reset_requests` (anon), avisa al jefe por Telegram con link `wa.me`. Mensaje genérico al cliente (NO revela si el número existe · privacidad).
-3. Admin → tab "🔑 Pedidos pass" (sin `data-role` · empleadas también). `loadResetRequests()` lista pendientes.
+3. Admin → tab "🔑 Reset contraseñas" (se llamó "Pedidos pass" hasta el 27-sep; sin `data-role` · empleadas también). `loadResetRequests()` lista pendientes.
 4. La chica toca "💬 WhatsApp" → **verifica identidad** (preguntar algo que solo el cliente real sepa).
 5. Si OK → `resetClientePass()` pone `password=NULL`, marca `status='resolved'`, abre WhatsApp con mensaje pre-armado.
 6. Cliente entra con su teléfono → escribe nueva clave → queda guardada (flujo "primer login").
