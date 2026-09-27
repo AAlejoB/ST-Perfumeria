@@ -2948,7 +2948,38 @@ Prompt `_e` del PREPARADOR: en el mostrador preguntan el precio de un decant y n
 - «💧 decant fijo»: 2 filas. «sin promo»: 0 (no hay promo); con 3 × $18.000 serían 9. Filas de decant de diseñador: 13.
 - «💎 Diseñador»: **17 frascos**, no 21. Victoria's Secret tiene 5 en los datos: 2 escritos «Victoria's Secret» (entran: coinciden con «VICTORIAS SECRET») y 3 «VICTORIA SECRET» sin S (Bare Vanilla, Coconut Passion, Love Spell), que con la normalización pedida no entran. Aun contándolos serían 20.
 
+### Sesión 27-sep-2026 · `_f` · ronda g de Precios & Stock (123g, 123h, «fijo») + `[XSS-NUEVOS]`
+
+Prompt `_f` del PREPARADOR: tres decisiones del DISEÑADOR sobre lo de `_e` y un arreglo de seguridad en la pestaña de perfumes nuevos. Sin SQL (Alejo ya había corregido «VICTORIA SECRET» en la base, decisión A). Rama `precios-g` desde `a919314`: `4419352` (`admin.html`) + `28eb97a` (bump v1.1.139 → **v1.1.140**, aparte) + docs. Merge **no** pre-aprobado: lo revisa el PREPARADOR.
+
+#### Qué se hizo
+
+- **123g:** la línea gris de los decants de diseñador dice «MARCA · 5 ml» (el 💎 y el DECANT ya dicen «decant de diseñador»). El ml sigue saliendo de `decants_config`.
+- **«💧 $X fijo»**, sin la palabra «decant» (el 💧 ya lo dice).
+- **123h:** en Precios & Stock, a ≤ 600 (entra la Tab A9), el nombre ocupa hasta 2 renglones y recién ahí «…». El clamp va en un `<span class="td-nombre">` (sobre la celda, `display: table-cell`, no anda) y sólo dentro de `#tbodyPrecios`; la regla de un renglón de las demás tablas no cambia. **No depende del alto de la fila:** `flashRow` busca la fila por la badge y el `onclick` y pinta el `tr` entero; la badge tiene `min-height` 48 y queda centrada cuando la fila crece (ya pasaba con las excepciones de `_e`).
+- **`[XSS-NUEVOS]`:** agujero abierto hasta el merge: sólo la keyword (la descripción entra cuando esté en producción).
+
+#### Verificación (fixture)
+
+- 16 capturas (`herramientas\precios-en-un-lugar\png\precios-g-*.png`): «born», «💎 Diseñador» y el precio fijo a 390 y 360, claro y oscuro; Perfumes nuevos y Depósito a 390, en los dos temas. Sin scroll horizontal.
+- **Alto de fila (con Inter; igual a 390 y a 360):** nombre en un renglón 49; nombre en dos renglones 58 (frasco) y 59 (decant, con el 💎); «💧 $18.500 fijo» entra en un renglón: fila de 58 (nombre + marca + excepción; en `_e` era 69).
+- **A 390** los cuatro «Born in Roma» (frascos y decants) se leen enteros en dos renglones. **A 360** «BORN IN ROMA INTENSE» y «💎 BORN IN ROMA INTENSE» necesitan tres: se ven «BORN IN / ROMA…» y los distingue de «BORN IN ROMA» sólo el «…».
+- **Las otras tablas:** Depósito a ≤ 600 sigue con el nombre en un renglón (`white-space: nowrap`, filas de 49).
+- **`[XSS-NUEVOS]`:** un nuevo con `"><img src=x onerror=…>` en el nombre y `"><b>…</b>` en la marca se ven como texto, 0 `<img>` y no se ejecutan; «Editar» y «Eliminar» llaman a `editNuevo(id)` y `deleteNuevo(id, nombre)` con el nombre exacto, también uno con comilla simple (`L'HOMME PRUEBA`).
+- `npm run contraste`: 0 fallas + 1 token pisado, 233 mediciones (no cambia). Sintaxis del script del panel: sin errores.
+
+#### Con los datos reales (sólo contar)
+
+- «💎 Diseñador»: **20 frascos**, no 21. En la base hay 6 «Victoria's Secret»; entran los 5 que son perfume (Bare Vanilla, Coconut Passion, Love Spell, Velvet Petals, Pure Seduction). El sexto es el override `victoria-secret` («AQUA KISS»), que no tiene perfume detrás → `[NUEVO-BORRADO-HUERFANO]`. El resto: JPG 5, Carolina Herrera 3, Valentino 2, Azzaro, Armani, Kenzo, Rabanne y Xerjoff 1.
+- «💧 fijo»: 2 filas. Filas de decant de diseñador: 13.
+
+#### Hallazgo, no tocado
+
+- **`[NUEVO-BORRADO-HUERFANO]`** 🟡 (propuesta): `deleteNuevo` borra la fila de `perfumes_nuevos` pero no saca el perfume de `PERFUMES` ni toca su override. El 21-sep a las 16:34 ART se borró el nuevo «VICTORIA SECRET» (id 90) y hasta las 16:42 el panel siguió escribiendo en `victoria-secret` (ML 100 → 250 y depósito 3 → 4 → 7 → 8, `admin_actions`). Hoy ese override tiene 2 en el local y 8 en el depósito y no se ve en ningún lado. La pestaña Nuevos muestra el nombre de `perfumes_nuevos` («VICTORIA SECRET»), no el del override («AQUA KISS»).
+
 ---
+
+**Última actualización:** **Septiembre 27, 2026 (`_f`)** — la ronda g (123g, 123h, «fijo» y `[XSS-NUEVOS]`) en la rama `precios-g`, SW v1.1.140, esperando la revisión del PREPARADOR. Nuevo: `[NUEVO-BORRADO-HUERFANO]` 🟡.
 
 **Última actualización:** **Septiembre 27, 2026 (`_e`)** — `[PRECIOS-EN-UN-LUGAR]` revisado y aprobado por el PREPARADOR, en producción (SW v1.1.139, fast-forward `119a091..d4a5629`). Cerrado `[XSS-PRECIOS-STOCK]` (SECURITY.md § S20).
 
