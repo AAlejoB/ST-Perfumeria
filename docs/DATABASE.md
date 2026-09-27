@@ -57,7 +57,7 @@
 | `promos_decants` | `[PROMO-DECANTS]` la promo de decants: **1 sola fila** (`id = 1`) | `anon` sólo la lee prendida y vigente · la escribe `is_jefe()` |
 | `promos_decants_perfumes` | `[PROMO-DECANTS]` perfumes sumados (`incluir`) o sacados (`excluir`) a mano | `anon` sólo la lee con la promo vigente · la escriben las dos cuentas (email) |
 | `favoritos` | `(user_id, slug)` | |
-| `lista_espera` | "Avisame cuando vuelva" | |
+| `lista_espera` | "Avisame cuando vuelva" | `origen` `text not null default 'web'` con check `web` / `local` (27-sep, `[ESPERA-MAS]`). Políticas: `le_select_public` (SELECT, `authenticated`), `le_update_auth`, `le_insert_anon` (INSERT, `anon`, `with check (origen = 'web')`), `le_insert_auth` (INSERT, `authenticated`), `le_delete_staff` (DELETE, por email del jefe y de la empleada). Índice único parcial `lista_espera_pendiente_uniq (slug, telefono) WHERE notified_at IS NULL`: el teléfono va siempre como `549` + 10 dígitos (NO ROMPER #18). |
 | `password_reset_requests` | `[FORGOT-PASS-A]` pedidos de reset de contraseña de clientes | INSERT anon (cliente no logueado), SELECT/UPDATE/DELETE solo authenticated. Creada 27-jun-2026 vía MCP. Ver detalle abajo |
 | `opiniones` | Mensajes en "Tu sector" | Públicos |
 | `announcements` | Pushes que aparecen en banner (últimos 7d) | |
@@ -166,6 +166,8 @@ created_at   TIMESTAMPTZ DEFAULT NOW()
 **Gotchas plpgsql que costaron un ensayo:** `returns table (…, telefono …)` convierte `telefono` en variable → `where telefono = …` y `on conflict (telefono)` son ambiguos (calificar con alias / `on conflict on constraint`). `create or replace` no puede cambiar el tipo de retorno → `drop function` previo.
 
 ### Avisos de Telegram desde el servidor · `_aviso_tg` + `trg_lista_espera_aviso` (S14, 19-sep-2026)
+
+> **Desde el 27-sep-2026 `trg_lista_espera_aviso` está apagado** (`disable trigger`, SQL de `[ESPERA-MAS]`, decisión B de Alejo): no llega un Telegram por cada alta en la lista de espera; las altas se ven en la pestaña Espera. Es reversible (`enable trigger`).
 
 Desde `sql/fase4a_telegram_avisos.sql`: `_aviso_tg(msg)` es un wrapper `SECURITY DEFINER` de `send_telegram` con `exception when others` (un Telegram caído nunca tumba la operación); **sin EXECUTE para nadie** (revoke explícito por rol). La llaman `cliente_login` (rama `activado` y al cruzar el umbral de bloqueo, una sola vez, teléfono enmascarado), `cliente_editar` (antes/después) y `cliente_reset_solicitar` (sólo si el teléfono existe). Para `lista_espera` hay un trigger **`trg_lista_espera_aviso`** `after insert for each row` (`lista_espera_aviso()`) que arma el aviso desde la fila (`perfume_name`/`slug`, `telefono`, `nombre`) — ⚠️ dispara en **todo** insert: una carga masiva mandaría un Telegram por fila.
 

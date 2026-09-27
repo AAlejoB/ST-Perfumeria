@@ -2977,7 +2977,45 @@ Prompt `_f` del PREPARADOR: tres decisiones del DISEÑADOR sobre lo de `_e` y un
 
 - **`[NUEVO-BORRADO-HUERFANO]`** 🟡 (propuesta): `deleteNuevo` borra la fila de `perfumes_nuevos` pero no saca el perfume de `PERFUMES` ni toca su override. El 21-sep a las 16:34 ART se borró el nuevo «VICTORIA SECRET» (id 90) y hasta las 16:42 el panel siguió escribiendo en `victoria-secret` (ML 100 → 250 y depósito 3 → 4 → 7 → 8, `admin_actions`). Hoy ese override tiene 2 en el local y 8 en el depósito y no se ve en ningún lado. La pestaña Nuevos muestra el nombre de `perfumes_nuevos` («VICTORIA SECRET»), no el del override («AQUA KISS»).
 
+### Sesión 27-sep-2026 · `_g` · ronda h · **`[ESPERA-MAS]`** (decisiones 42, v3 y 124 del DISEÑADOR)
+
+Prompt `_g` del PREPARADOR: la pestaña Espera para las dos cuentas y anotar desde el mostrador. Rama `espera-mas`, que sale de `precios-g` (`d92150a`): el prompt pedía arrancar desde `main` después de mergear `precios-g` (aprobada por el PREPARADOR), pero el sistema de permisos de la sesión frenó ese merge («Merge Without Review») y lo decide Alejo; lo que va a ser `main` es exactamente `d92150a`. SW **v1.1.141** (bump en commit aparte). Merge **no** pre-aprobado: lo revisa el PREPARADOR en GitHub.
+
+**El SQL ya estaba corrido** (verificado sólo leyendo): la columna `origen` (`text not null default 'web'`, check `web` / `local`, las 42 filas en `web`), `le_insert_anon` con `with check (origen = 'web')`, `le_insert_auth`, `le_delete_staff` por email para las dos cuentas y `trg_lista_espera_aviso` apagado. Las 42 filas y los 100 clientes tienen el teléfono como `549` + 10 dígitos.
+
+#### Qué se hizo
+
+- **a · para las dos cuentas (124):** el botón de la pestaña pierde `data-role="jefe"`; `canAccessTab('espera')` da `true` para la empleada y ve lo mismo que el jefe. Los colores inline oscuros (`#111`, `#fff`, el verde y el rojo del estado) pasan a clases con tokens (`--superficie`, `--borde`, las tintas del tema).
+- **b · «+ Anotar del mostrador» (42):** botón de ancho completo, 44, con el contorno de «Avisame cuando vuelva». Abre un formulario copiado de esa ventana:
+  - el teléfono con `+54 9` fijo y la misma confirmación («✓ +54 9 2970 00-0011»);
+  - la normalización del catálogo: canónico tal cual, si no `cleanPhone` (copia exacta, NO ROMPER #18), y sólo se guarda con 13 dígitos;
+  - el nombre sale solo si el teléfono es de un cliente, y se puede editar;
+  - los perfumes se eligen de un buscador (visibles, sin sets ni pausados) y quedan como chips con ✕ de 44.
+  Una fila por perfume, con `origen: 'local'`. El duplicado (23505) se dice junto al perfume («Ya está anotado para ese perfume»), y el mensaje de abajo dice cuáles entraron y cuáles no. Ningún error de la base se muestra tal cual.
+- **c · origen:** el filtro Todo · Web · 🏪 Local (`.log-chip`, 44) y la etiqueta «🏪 Local». Si la columna no existe, la pestaña anda sin filtro y «Anotar» dice «Falta correr el SQL de la lista de espera».
+- **d · v3:** Pendientes / Historial en el toggle `.log-vista`; «Avisar», «Re-avisar», «Quitar» y «Avisar a todos» a 44; el teléfono con `formatPhoneDisplay`; las dos tarjetas cuentan siempre a los pendientes (todos, sin importar vista ni filtro). La opacidad del Historial se fue: con ella el gris quedaba por debajo de 4,5 en los dos temas. En el catálogo, «Te avisamos al …» pasa de 10,4 a 12 px y el espacio entre 🔔 / 🔒 y el texto pasa de 0 a 4,7 px (el ✓ ya lo tenía).
+- **e · «Quitar» (124):** con RLS, un DELETE que la base no deja hacer no da error (borra 0 filas): se pide la fila borrada (`.select('id')`) y sólo si vuelve se saca de la pantalla; si no, «No se pudo quitar». Cada «Quitar» va al Log: `espera_quitar` con `{ nombre, perfume }`, sin teléfono, «📍 Quitar de la espera · <nombre>», familia Catálogo.
+- **f:** el comentario de `submitWaitlist` (`js/app.js`) ya no dice que el trigger manda el Telegram.
+- **El formulario scrollea adentro** si es más alto que la pantalla (teclado abierto, muchos resultados): a 390 × 500, «Anotar» se alcanza. Los otros modales del panel no lo tienen.
+- **«Quitar» a 4,5:** daba 3,86 en oscuro (de antes) y 3,15 en claro. Letra `#ff8a80` en oscuro (la de «✕ QUITAR», decisión 100): 6,45; la tinta roja del tema en claro: 5,22.
+
+#### Verificación (fixture, nunca la tabla real)
+
+- 42 capturas en `herramientas\espera-mas\png\` (600, 390 y 1280, claro y oscuro): la pestaña, el formulario vacío y con un cliente, el filtro Local, la vista de la empleada, un duplicado y el Log con un «Quitar». Stub con estado: el índice único, el DELETE con y sin permiso y el Log.
+- Todos los botones de la pestaña y del formulario miden 44 o más (los chips, 46: el ✕ de 44 más el borde). La ✕ de limpiar que el panel pone en los campos mide 44 en el formulario (en el resto del panel, 36).
+- Teléfonos: «2970000011», «02970000011» y «5492970000011» dan `5492970000011`; **«297 15 000 0011» da 15 dígitos y no se guarda** (`cleanPhone` saca el 15 sólo si ya empieza con 549; igual en el catálogo) → `[TEL-15-SIN-549]`.
+- Un nombre y un perfume con HTML se ven como texto, 0 imágenes, en la pestaña, el formulario y el Log.
+- `npm run contraste`: 0 fallas + 1 token pisado, 283 mediciones (50 nuevas de la Espera). Sintaxis del script del panel y de `app.js`: sin errores.
+
+#### Hallazgos, no tocados
+
+- `[ESPERA-LOW-SIN-STOCK]`: con pocas unidades (`low`) el grupo dice «SIN STOCK».
+- `[ESPERA-AYUDA-AUTOMATICO]`: la ayuda de la pestaña promete un aviso automático por WhatsApp que no existe desde el 12-ago.
+- `[TEL-15-SIN-549]`: el «15» viejo sin el 549 adelante no se limpia.
+
 ---
+
+**Última actualización:** **Septiembre 27, 2026 (`_g`)** — la ronda h (`[ESPERA-MAS]`) en la rama `espera-mas`, SW v1.1.141, esperando la revisión del PREPARADOR. `precios-g` sigue sin mergear (lo decide Alejo). Nuevos: `[ESPERA-LOW-SIN-STOCK]`, `[ESPERA-AYUDA-AUTOMATICO]`, `[TEL-15-SIN-549]` 🟢.
 
 **Última actualización:** **Septiembre 27, 2026 (`_f`)** — la ronda g (123g, 123h, «fijo» y `[XSS-NUEVOS]`) en la rama `precios-g`, SW v1.1.140, esperando la revisión del PREPARADOR. Nuevo: `[NUEVO-BORRADO-HUERFANO]` 🟡.
 
