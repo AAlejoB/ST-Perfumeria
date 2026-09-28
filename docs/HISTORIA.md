@@ -3187,7 +3187,32 @@ El punto 2 de los prompts `_m` y `_n` del PREPARADOR (decisiones 129c, 128e, 128
 6. `npm run contraste`: 0 fallas + 1 token pisado, 295 mediciones. Sintaxis del script del panel: sin errores.
 7. Capturas en `herramientas\tanda-l\png\ronda-n-*`, en claro y oscuro: la Espera a 360 y 390 en Pendientes y en el Historial; Nuevo con un nombre repetido y Editar sin conexión, a 390.
 
+### Sesión 28-sep-2026 · `_p` · los escapes del barrido de XSS (punto 3 del `_m`)
+
+La decisión A de Alejo: se hacen todos, en una sola tanda. Se trabajó en la rama local `xss-staff`, desde `a99fe14`, **sin subirla**: el PREPARADOR revisó el `diff.patch` en el buzón, junto con la lista contra `barrido.json`. Merge no pre-aprobado. Commits: `268f6e8` (panel), `8604f75` (catálogo y `api/`) + SW v1.1.148 (`c8bb0f7`).
+
+#### Qué se hizo
+- **Panel** (`[XSS-PANEL-STAFF]`): 49 reemplazos exactos en `admin.html`, todos los lugares del barrido. Entran también `[S10-TER-XSS-COMBOS]` en el panel (`loadCombos` y el buscador de `addComboItem`) y `loadPuntosHistory`, que hoy está latente.
+- **Catálogo** (`[XSS-CATALOGO-STAFF]`, `[XSS-NOMBRE-CLIENTE]`):
+  - dos helpers en `js/app.js`, al lado de `escapeHTML`: `jsAttr(x)`, para los 32 valores dentro de un `onclick` (27 en `app.js`, 5 en `extras.js`), y `urlSegura(u)`, que deja pasar sólo `http(s)` o relativos;
+  - 122 llamadas nuevas a `escapeHTML` en `app.js`: la card, el detalle, el carrito, comparar (también las «notas exclusivas», que el barrido no había listado), similares, la búsqueda (`highlightMatch` escapa antes de marcar), la Selección, los sets (`renderSets`, el lado público de Combos), el quiz, el Desafío, la votación y el nombre del cliente.
+- **`api/share.js` y `api/compare.js`:** el JSON-LD con `<` → `\u003c`. `api/category.js` y `api/blog.js` tienen la misma forma, pero con datos del seed: el barrido los descartó y no se tocaron.
+- **No se tocó:**
+  - los `onclick` del panel con ids (`bigint` / `uuid`), por la decisión de S10-bis;
+  - la encuesta con botones fijos de `index.html`;
+  - los textos de WhatsApp, que van con `encodeURIComponent`.
+
+#### Verificación (fixture, Inter; `main` = `a99fe14`)
+1. **Fixture envenenado:** HTML en el nombre, la marca, las notas, el perfil, la foto (`"` que cierra el atributo) y el slug (`');…;('`) de los perfumes, y en los combos, los badges (`javascript:` y el truco de `&quot;`), la votación, el anuncio (`javascript:`), las últimas ediciones, los cierres, el ajuste, `puntos_log`, el historial de puntos y el de push.
+   - **Panel** (16 pantallas y los `onclick` con el slug raro): `main` ejecuta 20 payloads distintos; **la rama, 0** (0 `<img src=x>`).
+   - **Catálogo** (la carga, «ver más», votación, badges, anuncio, detalle, carrito, comparar, similares, búsqueda, Desafío, quiz, decants y los `onclick` con el slug raro): `main` ejecuta 14 y pinta el link `javascript:` del anuncio; **la rama, 0** a 1280 y a 390. El badge con `javascript:` ya no es clickeable, y el del truco con `&quot;` queda como texto adentro del string.
+2. **Datos normales:** el HTML de 5 pantallas (la grilla entera con sets, Selección y badges; el detalle; el carrito; Depósito; Editar, con la búsqueda y los similares) es **igual** al de `main`, sin contar las comillas adentro de los `onclick` (`'slug'` contra `"slug"`). Capturas antes y después, en `herramientas\xss-staff\png\igual-*`.
+3. `vm.Script` de `admin.html`, `js/app.js` y `js/extras.js`: sin errores. `node --check` de `api/share.js` y `api/compare.js`: ok. En el JSON-LD, un nombre con `</script>` sale sin `</script>` y el JSON sigue siendo igual.
+4. `npm run contraste`: 0 fallas + 1 token pisado, 295 mediciones.
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_p`)** — los escapes del barrido de XSS, SW v1.1.148 (S24, S25 y S27 cerrados). `[S10-TER-XSS-COMBOS]` espera la confirmación del PREPARADOR.
 
 **Última actualización:** **Septiembre 28, 2026 (`_o`)** — la Espera (129b + 129c), `[MOTIVO-QUEDA]`, 128f y `[MOTIVO-EN-CRIOLLO]`, SW v1.1.147. Cerrados: `[ESPERA-NOMBRE-3-RENGLONES]`, `[MOTIVO-QUEDA]`, `[RECARGAR-360]` y `[CLICKS-SLUG-CHECK]`. S26 en parte.
 
@@ -3333,6 +3358,12 @@ El punto 2 de los prompts `_m` y `_n` del PREPARADOR (decisiones 129c, 128e, 128
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 28-sep-2026 (`_p`):**
+
+- ✅ ~~**`[XSS-PANEL-STAFF]`**~~ (28-sep, salió del barrido de XSS · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep); el detalle vive en `_correo_agentes` y entra acá cuando se cierre. Ver `docs/SECURITY.md` § S25. → **RESUELTO el 28-sep** (`268f6e8`, v1.1.148). Ver SECURITY.md § S25.
+- ✅ ~~**`[XSS-CATALOGO-STAFF]`**~~ (28-sep, salió del barrido de XSS · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep); el detalle vive en `_correo_agentes` y entra acá cuando se cierre. Ver `docs/SECURITY.md` § S24. → **RESUELTO el 28-sep** (`8604f75`, v1.1.148). Ver SECURITY.md § S24.
+- ✅ ~~**`[XSS-NOMBRE-CLIENTE]`**~~ (28-sep, salió del barrido de XSS · 🟢, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep); el detalle vive en `_correo_agentes` y entra acá cuando se cierre. Ver `docs/SECURITY.md` § S27. → **RESUELTO el 28-sep** (`8604f75`, v1.1.148). Ver SECURITY.md § S27.
 
 **Movidos el 28-sep-2026 (`_o`):**
 

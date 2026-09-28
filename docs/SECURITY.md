@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 28, 2026 (`_o`)** — **S26 en parte cerrado** (el SQL de Alejo): se borraron los avisos viejos de Telegram y el `CHECK` del slug de `perfume_clicks` está puesto. Lo que queda de S26 baja a 🟢, con la keyword sola.
+> **Última actualización:** **Septiembre 28, 2026 (`_p`)** — **S24, S25 y S27 RESUELTOS** (v1.1.148): los escapes del barrido de XSS, en el panel y en el catálogo. S18 sigue abierto hasta que el PREPARADOR lo confirme contra su inventario.
+>
+> **Antes (28-sep, `_o`):** — **S26 en parte cerrado** (el SQL de Alejo): se borraron los avisos viejos de Telegram y el `CHECK` del slug de `perfume_clicks` está puesto. Lo que queda de S26 baja a 🟢, con la keyword sola.
 >
 > **Antes (28-sep, `_n`):** — **S23 RESUELTO** (`[XSS-URL-FILTROS]`, v1.1.146): el link armado del catálogo. El barrido de XSS (10 agentes, sólo lectura) deja **cuatro abiertos, con la keyword sola**: S24 `[XSS-CATALOGO-STAFF]`, S25 `[XSS-PANEL-STAFF]`, S26 `[TELEGRAM-HTML-ANON]` y S27 `[XSS-NOMBRE-CLIENTE]`.
 >
@@ -354,15 +356,26 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S24 · `[XSS-CATALOGO-STAFF]` · 🟠 ABIERTO**
+### **S24 · `[XSS-CATALOGO-STAFF]` · Lo que carga el panel se pintaba crudo en el catálogo · ✅ RESUELTO 28-sep-2026**
 
-> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+**Severidad:** 🟠 mientras duró · hacía falta una cuenta del panel (o una sesión robada) para cargar el dato; se ejecutaba en el navegador de cada visitante.
+
+> ✅ **ESTADO: RESUELTO** · `8604f75` + SW v1.1.148. En `js/app.js`, nombres, marcas, notas, categoría, perfil, tipo, fotos y slugs de los perfumes (y de los combos, las etiquetas de la votación, los badges y el anuncio) se metían crudos en `innerHTML` y en atributos: la card, el detalle, el carrito, comparar, similares, las sugerencias de búsqueda, la Selección, los sets, el quiz, el Desafío y el armador. Además, los slugs iban dentro de `onclick="…('…')"` sin escapar, y el `link_a` de los badges y la URL del anuncio aceptaban `javascript:`. En `api/share.js` y `api/compare.js`, el JSON-LD con datos de perfumes iba dentro de `<script>` con `JSON.stringify`, que no escapa `</script>`. **Fix:** `escapeHTML` en cada dato. `jsAttr(x)` (`escapeHTML(JSON.stringify(x))`) para los 32 valores dentro de un `onclick` (27 en `app.js`, 5 en `extras.js`). `urlSegura(u)`: los links que salen de datos, sólo `http(s)` o relativos, y si no, no se pintan como link. `highlightMatch` escapa cada pedazo antes de marcar. En el JSON-LD, `<` → `\u003c`. Lo encontró el barrido de XSS del 28-sep (10 agentes, sólo lectura). Se arregló en la rama local `xss-staff`, que no se publicó antes del merge; el PREPARADOR revisó el `diff.patch`. **Verificado** con un fixture con HTML (y slugs con comilla simple) en cada lugar: en `main` (`a99fe14`) se ejecutaban 20 payloads distintos en el panel y 14 en el catálogo; en la rama, 0, a 1280 y a 390. Con datos normales, el HTML de 5 pantallas es igual al de `main` (catálogo, detalle, carrito, Depósito, Editar). Mientras estuvo abierto, en el repo fue sólo la keyword.
 
 ---
 
-### **S25 · `[XSS-PANEL-STAFF]` · 🟠 ABIERTO**
+### **S25 · `[XSS-PANEL-STAFF]` · Texto de la base pintado crudo en el panel · ✅ RESUELTO 28-sep-2026**
 
-> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+**Severidad:** 🟠 mientras duró · hacía falta una cuenta del panel para escribir el dato (el caso real: la empleada contra el jefe).
+
+> ✅ **ESTADO: RESUELTO** · `268f6e8` + SW v1.1.148. En `admin.html` iban crudos:
+> - en Depósito, el slug adentro del `onclick`;
+> - en Editar, la búsqueda, «Similares manuales» y las últimas ediciones;
+> - Destacados (la lista y el buscador) y Combos (la lista, los precios, los `onclick` y el buscador del creador);
+> - el editor de Badges (los `value`), el motivo de cierres y del ajuste de horario, las cantidades del historial de push y el Doctor;
+> - el historial de puntos del cliente (`puntos_log`, `jsonb`) y el historial de puntos (latente: la tabla no existe hoy).
+>
+> **Fix:** `escHtml` en el contenido y los atributos, `escHtml(JSON.stringify(x))` en los `onclick`, `Number()` en los números de `jsonb`, y el `highlight` del buscador de combos escapa antes de marcar. Lo encontró el barrido de XSS del 28-sep (10 agentes, sólo lectura). Se arregló en la rama local `xss-staff`, que no se publicó antes del merge; el PREPARADOR revisó el `diff.patch`. **Verificado** con un fixture con HTML (y slugs con comilla simple) en cada lugar: en `main` (`a99fe14`) se ejecutaban 20 payloads distintos en el panel y 14 en el catálogo; en la rama, 0, a 1280 y a 390. Con datos normales, el HTML de 5 pantallas es igual al de `main` (catálogo, detalle, carrito, Depósito, Editar). Mientras estuvo abierto, en el repo fue sólo la keyword.
 
 ---
 
@@ -374,9 +387,11 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S27 · `[XSS-NOMBRE-CLIENTE]` · 🟢 ABIERTO**
+### **S27 · `[XSS-NOMBRE-CLIENTE]` · El nombre del cliente, crudo en su propia barra · ✅ RESUELTO 28-sep-2026**
 
-> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+**Severidad:** 🟢 mientras duró · se pintaba sólo en el navegador de esa cuenta (salvo que el staff editara el nombre).
+
+> ✅ **ESTADO: RESUELTO** · `8604f75` + SW v1.1.148. `updateAuthUI` (`js/app.js`) metía la primera palabra de `currentUser.nombre` cruda en `innerHTML`. **Fix:** `escapeHTML(_firstName)`. Lo encontró el barrido de XSS del 28-sep (10 agentes, sólo lectura). Se arregló en la rama local `xss-staff`, que no se publicó antes del merge; el PREPARADOR revisó el `diff.patch`. **Verificado** con un fixture con HTML (y slugs con comilla simple) en cada lugar: en `main` (`a99fe14`) se ejecutaban 20 payloads distintos en el panel y 14 en el catálogo; en la rama, 0, a 1280 y a 390. Con datos normales, el HTML de 5 pantallas es igual al de `main` (catálogo, detalle, carrito, Depósito, Editar). Mientras estuvo abierto, en el repo fue sólo la keyword.
 
 ---
 
