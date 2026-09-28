@@ -3138,7 +3138,28 @@ Alejo lo puso en la fila apenas salió (ronda m). Rama `xss-estadisticas` desde 
 - `[CLICKS-SLUG-CHECK]` 🟢 (propuesta): un `CHECK` en `perfume_clicks.slug` como segunda defensa. No rompe nada con los datos de hoy.
 - `[MOTIVO-QUEDA]` 🟢: el motivo de «No se guardó» sigue en la barra al cambiar de perfume en Editar (sale de la ronda m).
 
+### Sesión 28-sep-2026 · `_n` · el barrido de XSS y `[XSS-URL-FILTROS]` (pedido de Alejo: «arreglalo ya»)
+
+**El barrido** (con el OK de Alejo, que antes preguntó para qué servía): 10 agentes en sólo lectura. 4 buscaron, cada uno en una zona: el panel en dos mitades, el catálogo, y las funciones de Vercel y de la base. 6 verificadores intentaron desmentir cada hallazgo. Resultado: 49 confirmados y 10 descartados. El detalle vive en `_correo_agentes` (`ClaudeCode_para_PREPARADOR_2026-09-28_m.md` y `herramientas\xss-estadisticas\barrido.json`). En el repo, sólo las keywords de lo abierto: `[XSS-CATALOGO-STAFF]` y `[XSS-PANEL-STAFF]` 🟠, `[TELEGRAM-HTML-ANON]` 🟡 y `[XSS-NOMBRE-CLIENTE]` 🟢 (SECURITY.md § S24-S27). Además, lo de Combos que ya se conocía (`[S10-TER-XSS-COMBOS]`).
+
+**`[XSS-URL-FILTROS]`** (el único que podía usar cualquiera, con un link): rama local `xss-url-filtros` desde `e89f9d9`, que no se publicó antes del merge. `6e5aee1` (`js/app.js`) + SW v1.1.146 (`add68cc`).
+- `applyFiltersFromURL`: `?cat=` sólo acepta `all`, `favs`, `Unisex`, `Hombre` y `Mujer`, sin distinguir mayúsculas (con `hasOwnProperty`: `?cat=constructor` no devuelve una función heredada). `?nota=` y `?ocasion=` ya estaban cubiertos: la nota tiene que coincidir con un chip que existe, y la ocasión, ser `dia` o `noche`.
+- `updateActiveFilters`: `escapeHTML` en la etiqueta y el valor del chip. El texto de `?q=` no se pinta en ningún otro lado: las sugerencias resaltan el nombre, no lo tipeado.
+
+#### Verificación (fixture, 390, `index.html` con el stub; `main` = `e89f9d9`)
+| Link | `main` | rama |
+|---|---|---|
+| `?cat=<img src=x onerror=…>` | se ejecuta | se ignora («Todos») |
+| `?q=<img src=x onerror=…>` | se ejecuta (en minúsculas) | texto en el chip |
+| `?cat=constructor` | chip «constructor», 0 perfumes | se ignora |
+| `?cat=Hombre` · `?q=lattafa` · `#filtro-mujer` · `?cat=favs` · sin filtro | andan | igual que `main` |
+| `?cat=hombre` | 0 perfumes | filtra Hombre |
+
+Sintaxis de `js/app.js`: sin errores.
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_n`)** — el barrido de XSS (49 confirmados; en el repo, sólo las keywords de lo abierto) y `[XSS-URL-FILTROS]` cerrado (SECURITY.md § S23), SW v1.1.146.
 
 **Última actualización:** **Septiembre 28, 2026 (`_m`)** — `[XSS-ESTADISTICAS]` cerrado (SECURITY.md § S22), SW v1.1.145. Nuevos: `[MOTIVO-QUEDA]` y `[CLICKS-SLUG-CHECK]` 🟢.
 

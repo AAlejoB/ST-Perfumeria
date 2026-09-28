@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 28, 2026 (`_m`)** — **S22 RESUELTO** (`[XSS-ESTADISTICAS]`, v1.1.145): los nombres de «📊 Estadísticas» (y el `slug` de `perfume_clicks`, que escribe `anon`) se escapan. Propuesta nueva: `[CLICKS-SLUG-CHECK]`.
+> **Última actualización:** **Septiembre 28, 2026 (`_n`)** — **S23 RESUELTO** (`[XSS-URL-FILTROS]`, v1.1.146): el link armado del catálogo. El barrido de XSS (10 agentes, sólo lectura) deja **cuatro abiertos, con la keyword sola**: S24 `[XSS-CATALOGO-STAFF]`, S25 `[XSS-PANEL-STAFF]`, S26 `[TELEGRAM-HTML-ANON]` y S27 `[XSS-NOMBRE-CLIENTE]`.
+>
+> **Antes (28-sep, `_m`):** — **S22 RESUELTO** (`[XSS-ESTADISTICAS]`, v1.1.145): los nombres de «📊 Estadísticas» (y el `slug` de `perfume_clicks`, que escribe `anon`) se escapan. Propuesta nueva: `[CLICKS-SLUG-CHECK]`.
 >
 > **Antes (28-sep, `_l`):** — **S22 abierto** (`[XSS-ESTADISTICAS]`, 🟠 propuesta de Claude Code): salió midiendo la ronda m y ya estaba en `main`. Por la regla de § 📏, sólo la keyword.
 >
@@ -339,6 +341,38 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 **Severidad:** 🟠 ALTA mientras duró · a diferencia de S20 / S21, **no hacía falta una cuenta del panel**: `perfume_clicks` la inserta `anon` (`pc_insert_public`, `with_check true`), sin validar el `slug`.
 
 > ✅ **ESTADO: RESUELTO** · `776834b` + SW v1.1.145 (28-sep-2026). `loadStats` (`admin.html`, pestaña «📊 Estadísticas», de las dos cuentas) metía crudos en `innerHTML` dos cosas: el nombre de cada perfume del top 10, que es el `slug` de `perfume_clicks_resumen()` cuando ese slug no está en el catálogo; y los nombres de «Perfumes sin visitas». Con clics suficientes, un slug con HTML entraba al top 10 y se ejecutaba con la sesión de quien abriera la pestaña (el jefe incluido). También corría después de cada «Guardar» de Editar, con la pestaña cerrada. Los nombres con HTML (cargados desde el panel) se ejecutaban igual. Salió en la consola durante las mediciones de la ronda m: un `ReferenceError` en mayúsculas, porque Editar pasa el nombre a mayúsculas antes de pintar. **Fix:** `escHtml` en los dos lugares, como en S20 / S21. **Verificado:** con fixture, en `main` (`fa28417`) un slug `"><img src=x onerror=…>` en el top 10 se ejecutaba (4 `<img>` con `onerror` en la pestaña), y en la rama se ve como texto: 0 `<img>`, no se ejecuta nada. En producción, 0 slugs raros: las 241.141 filas de `perfume_clicks` tienen `^[a-z0-9-]{1,120}$`. **Segunda defensa propuesta:** `[CLICKS-SLUG-CHECK]` (un `CHECK` con ese formato; lo deciden Alejo y el PREPARADOR). Mientras estuvo abierto, en el repo fue sólo la keyword, y la rama del fix no se publicó antes del merge.
+
+---
+
+### **S23 · `[XSS-URL-FILTROS]` · Un link armado ejecutaba código en el catálogo · ✅ RESUELTO 28-sep-2026**
+
+**Severidad:** 🔴 mientras duró · no hacía falta cuenta ni tocar la base: alcanzaba con que alguien abriera un link.
+
+> ✅ **ESTADO: RESUELTO** · `6e5aee1` + SW v1.1.146 (28-sep-2026). En `js/app.js`, `updateActiveFilters` pintaba el chip del filtro con `innerHTML` y dos valores que llegan por la URL, crudos: la categoría de `?cat=` (`applyFiltersFromURL` → `filterByCat` → `currentFilter`, sin validar) y la búsqueda de `?q=` (pasada a minúsculas, igual se ejecutaba). Un link `stperfumeria.com/?cat=<img src=x onerror=…>` ejecutaba código en el navegador de quien lo abriera. El panel guarda su sesión de Supabase en `localStorage` (`st-admin-auth`) en el mismo dominio: si el jefe lo abría donde había entrado al panel, el código podía leer esa sesión. **Fix, dos capas:** `?cat=` con lista blanca (`all`, `favs`, `Unisex`, `Hombre`, `Mujer`, sin distinguir mayúsculas, con `hasOwnProperty`) y `escapeHTML` en la etiqueta y el valor del chip. **Verificado** con fixture, en `main` (`e89f9d9`) y en la rama: `?cat=` con código se ejecutaba y ahora se ignora; `?q=` con código se ejecutaba y ahora se ve como texto; `?cat=Hombre`, `?q=lattafa`, `#filtro-mujer`, `?cat=favs` y sin filtro, iguales a `main`; `?cat=hombre` ahora filtra (antes, 0 perfumes). Lo encontró el barrido de XSS del 28-sep. Mientras estuvo abierto no hubo nada en el repo, y la rama del fix no se publicó antes del merge.
+
+---
+
+### **S24 · `[XSS-CATALOGO-STAFF]` · 🟠 ABIERTO**
+
+> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+
+---
+
+### **S25 · `[XSS-PANEL-STAFF]` · 🟠 ABIERTO**
+
+> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+
+---
+
+### **S26 · `[TELEGRAM-HTML-ANON]` · 🟡 ABIERTO**
+
+> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+
+---
+
+### **S27 · `[XSS-NOMBRE-CLIENTE]` · 🟢 ABIERTO**
+
+> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
 
 ---
 
