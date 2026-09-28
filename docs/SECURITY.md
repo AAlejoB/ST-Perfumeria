@@ -1,6 +1,6 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 28, 2026 (`_p`)** — **S24, S25 y S27 RESUELTOS** (v1.1.148): los escapes del barrido de XSS, en el panel y en el catálogo. S18 sigue abierto hasta que el PREPARADOR lo confirme contra su inventario.
+> **Última actualización:** **Septiembre 28, 2026 (`_p`)** — **S18, S24, S25 y S27 RESUELTOS** (v1.1.148): los escapes del barrido de XSS, en el panel y en el catálogo, cruzados contra el inventario de S18 del PREPARADOR.
 >
 > **Antes (28-sep, `_o`):** — **S26 en parte cerrado** (el SQL de Alejo): se borraron los avisos viejos de Telegram y el `CHECK` del slug de `perfume_clicks` está puesto. Lo que queda de S26 baja a 🟢, con la keyword sola.
 >
@@ -310,9 +310,18 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S18 · `[S10-TER-XSS-COMBOS]` · 🟠 ABIERTO**
+### **S18 · `[S10-TER-XSS-COMBOS]` · Los combos, pintados crudos en el panel y en el catálogo · ✅ RESUELTO 28-sep-2026**
 
-> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+**Severidad:** 🟠 mientras duró · hacía falta una cuenta del panel para escribir el combo (en el panel sólo se arman slugs `set-…`; por REST, cualquiera).
+
+> ✅ **ESTADO: RESUELTO** · `268f6e8` + `8604f75` + `ac09e2e` + SW v1.1.148.
+>
+> **Qué pasaba:**
+> - En el panel, `loadCombos` metía crudos el nombre, la categoría, los ítems (nombre y ml), los ítems rotos y el precio (si no era número, `formatPriceAdmin` lo devolvía tal cual), y el slug iba dentro de cuatro `onclick`. El buscador del creador pintaba el nombre, la marca y el slug de los perfumes, y lo tipeado, sin escapar.
+> - En el catálogo, `renderSets` pintaba la foto, el nombre y los ítems sin escapar.
+> - Si un combo tenía el mismo slug que un perfume, lo reemplazaba en `PERFUMES`, y su nombre y su foto llegaban crudos a la Selección ST, Destacados, el top 10 de Estadísticas, el detalle, el carrito, el toast, el splash, comparar y los vistos recientemente.
+>
+> **Fix:** los mismos escapes de S24 y S25. Se cruzó contra el inventario del 23-sep del PREPARADOR (2 barridos): los 50 lugares que marcaba sin escapar (20 del panel, 30 del catálogo) están cubiertos. **Verificado** con un fixture con combos envenenados, uno de ellos con el slug de un perfume y otro con una comilla en el slug: en `main` se ejecutan en el panel y en el catálogo; en la rama, 0. La colisión de slugs en sí (el perfume desaparece del catálogo) no es XSS: queda como `[COMBO-SLUG-COLISION]`. Mientras estuvo abierto, en el repo fue sólo la keyword.
 
 ---
 

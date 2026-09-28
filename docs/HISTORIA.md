@@ -3210,9 +3210,20 @@ La decisión A de Alejo: se hacen todos, en una sola tanda. Se trabajó en la ra
 3. `vm.Script` de `admin.html`, `js/app.js` y `js/extras.js`: sin errores. `node --check` de `api/share.js` y `api/compare.js`: ok. En el JSON-LD, un nombre con `</script>` sale sin `</script>` y el JSON sigue siendo igual.
 4. `npm run contraste`: 0 fallas + 1 token pisado, 295 mediciones.
 
+#### La revisión del PREPARADOR (prompt `_o`): aprobada, con un agregado chico
+- **1a:** `buildSlideHTML`, el slider eliminado (NO ROMPER #2). `escapeHTML` volvía la `'` una entidad antes del `.replace`, y el navegador la decodificaba dentro del atributo. Ahora el slide es clickeable sólo con `urlSegura`, y el `onclick` va con `jsAttr` (`ac09e2e`, sin bump).
+- **1b · S18:** se cruzó contra el inventario del PREPARADOR. De sus 3 barridos (panel, catálogo y base), los 50 lugares que marcaba sin escapar o con escapado insuficiente (20 del panel, 30 del catálogo) ya estaban en la tanda. **S18 cerrado.** La colisión de slugs combo / perfume no es XSS: pasa a `[COMBO-SLUG-COLISION]` 🟢.
+- **Otra vez, con el fixture envenenado ampliado** (un combo con el slug `yeah-man-edp`: foto que cierra el atributo, nombre, categoría, perfil, marca y precio de texto; un combo con comilla en el slug; un slide con `'` y otro con `javascript:`):
+  - **panel:** 0 ejecuciones en la rama (en `main`, la lista de combos, Destacados y los `onclick` con comilla);
+  - **catálogo:** 0 a 1280 y a 390 (en `main`, el detalle, el carrito, comparar, recientes, la Selección y el slide);
+  - el slide con `javascript:` ya no tiene `onclick`;
+  - con datos normales, las 5 pantallas, **iguales**;
+  - `vm.Script`, `node --check` y `npm run contraste`: iguales que antes.
+- Nuevos, 🟢: `[COMBO-SLUG-COLISION]`, `[ERRORES-CRUDOS-RESTO]` y `[ESCAPE-DOBLE-FUNCION]`.
+
 ---
 
-**Última actualización:** **Septiembre 28, 2026 (`_p`)** — los escapes del barrido de XSS, SW v1.1.148 (S24, S25 y S27 cerrados). `[S10-TER-XSS-COMBOS]` espera la confirmación del PREPARADOR.
+**Última actualización:** **Septiembre 28, 2026 (`_p`)** — los escapes del barrido de XSS, SW v1.1.148 (S18, S24, S25 y S27 cerrados).
 
 **Última actualización:** **Septiembre 28, 2026 (`_o`)** — la Espera (129b + 129c), `[MOTIVO-QUEDA]`, 128f y `[MOTIVO-EN-CRIOLLO]`, SW v1.1.147. Cerrados: `[ESPERA-NOMBRE-3-RENGLONES]`, `[MOTIVO-QUEDA]`, `[RECARGAR-360]` y `[CLICKS-SLUG-CHECK]`. S26 en parte.
 
@@ -3360,6 +3371,8 @@ La decisión A de Alejo: se hacen todos, en una sola tanda. Se trabajó en la ra
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
 **Movidos el 28-sep-2026 (`_p`):**
+
+- ✅ ~~**`[S10-TER-XSS-COMBOS]`**~~ (23-sep · 🟠, decidido por Alejo) — agujero abierto: por la regla del 23-sep va **sólo la keyword**; el detalle (archivo:línea y arreglo) vive en el inventario de `_correo_agentes` y entra acá cuando se cierre. Tanda propia con bump. Ver `docs/SECURITY.md` § S18. → **RESUELTO el 28-sep** (`268f6e8` + `8604f75` + `ac09e2e`, v1.1.148), cruzado contra el inventario del PREPARADOR. Ver SECURITY.md § S18.
 
 - ✅ ~~**`[XSS-PANEL-STAFF]`**~~ (28-sep, salió del barrido de XSS · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep); el detalle vive en `_correo_agentes` y entra acá cuando se cierre. Ver `docs/SECURITY.md` § S25. → **RESUELTO el 28-sep** (`268f6e8`, v1.1.148). Ver SECURITY.md § S25.
 - ✅ ~~**`[XSS-CATALOGO-STAFF]`**~~ (28-sep, salió del barrido de XSS · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep); el detalle vive en `_correo_agentes` y entra acá cuando se cierre. Ver `docs/SECURITY.md` § S24. → **RESUELTO el 28-sep** (`8604f75`, v1.1.148). Ver SECURITY.md § S24.
