@@ -3221,7 +3221,38 @@ La decisión A de Alejo: se hacen todos, en una sola tanda. Se trabajó en la ra
   - `vm.Script`, `node --check` y `npm run contraste`: iguales que antes.
 - Nuevos, 🟢: `[COMBO-SLUG-COLISION]`, `[ERRORES-CRUDOS-RESTO]` y `[ESCAPE-DOBLE-FUNCION]`.
 
+### Sesión 28-sep-2026 · `_q` · la tanda chica: 129d, 128h `[ERRORES-CRUDOS-RESTO]` y `[ESCAPE-DOBLE-FUNCION]`
+
+El prompt `_p` del PREPARADOR, con el merge autorizado por Alejo si daban las verificaciones 1 a 5. La rama `tanda-q` arrancó de `bb263d0`. `5b17edd` (`admin.html`) + SW v1.1.149 (`6a7580e`).
+
+#### Qué se hizo
+- **129d:** «Avisado dd/mm hh:mm» del Historial de la Espera va en `<span class="espera-avisado">`, con el `nowrap` de `.espera-tel-num`. La línea se sigue partiendo en los «·».
+- **128h `[ERRORES-CRUDOS-RESTO]`:** `errorEnCriollo` suma un tercer dato, `que` (lo que se intentaba hacer), y `ctx` puede ser la frase del repetido.
+  - Las cinco barras de 128g no pasan `que` y dicen lo mismo que antes («No se pudo guardar…»).
+  - Los 18 lugares, con su `que`: depósito (`cambiar el stock del depósito`), cliente nuevo (`registrar el cliente`), sumar punto (`sumar el punto`), editar cliente (`guardar el cliente`), borrar cliente, el precio del modal viejo, el stock del modal, eliminar perfume, las tres fotos (`subir la foto`), agregar el cierre, guardar el horario, guardar el combo, pausar / activar el combo, guardar la votación, cargar el ranking y cargar el historial de puntos.
+  - «Ya existe un cliente con ese teléfono.» sólo donde la base tiene el único (`clientes.telefono`): alta, sumar punto y editar cliente. Los cierres (`upsert` por `fecha`) y los combos (`upsert` por `slug`) nunca dan 23505: van al genérico.
+  - Cada texto sale donde salía: el mensaje del modal o de la caja, el `alert` de pausar un combo, la fila de la tabla en el ranking y el historial de puntos (con `escHtml`). El original va a `console.error`.
+- **`[ESCAPE-DOBLE-FUNCION]`:** `escapeHtml(str)` llama a `escHtml`, la única implementación. `null` / `undefined` dan `''` (antes `escHtml` daba «null»), un número se respeta (antes `escapeHtml(0)` daba `''`), y las dos escapan también la comilla simple (`&#39;`). No se renombró ninguna llamada.
+
+#### Verificación (fixture, Inter; `main` = `bb263d0`)
+1. **129d:** en el Historial, «Avisado 27/9 10:00» en un renglón a 360 y a 390 en todas las filas, claro y oscuro (0 partidos). El número tampoco se parte, ningún nombre de hasta 20 letras va en 3 renglones y los botones miden 44.
+   - Alto de las filas a 360: «🏪 Local» 15 letras 81, 20 letras **95** (antes 83), 29 letras 95, 31 y 34 letras 109; web 15 letras 67, 20 letras 81 (antes 81), 29 letras 81, 31 y 34 letras 95.
+   - Con 20 letras, en «🏪 Local» la línea de abajo ocupa 4 renglones («Avisado …» entero en el suyo y la etiqueta sola abajo); en la web, 3.
+   - A 390: «🏪 Local» 20 letras 69, web 61.
+2. **Los 18, forzados con el stub:** sin red en los 18, el repetido (23505) en los 3 de clientes y el genérico en los 18: **39 de 39** con el texto esperado y el error original en la consola.
+3. **Las cinco barras de 128g:** 25 / 25 (repetido, sin red, sesión, permiso y otro en cada una). Las validaciones no cambian y `[MOTIVO-QUEDA]` sigue andando.
+4. **Las dos funciones de escape**, sobre 20 valores raros (HTML, comillas, `&amp;`, saltos, emoji, `0`, `1.5`, `null`, `undefined`, `false`): en `main`, 4 diferencias (`0`, `null`, `undefined` y `false`) y ninguna escapaba `'`; en la rama, 0, y las dos escapan los cinco (`& < > " '`).
+5. `vm.Script` de `admin.html`: sin errores. `npm run contraste`: 0 fallas + 1 token pisado, 295 mediciones.
+6. Capturas a 390, claro y oscuro, del error sin red en cuatro de los 18 (stock, depósito, cliente nuevo y cierre), y de la Espera a 360 (Historial y Pendientes), en `herramientas\tanda-l\png\ronda-q-*`.
+
+#### Hechos, sin tocar
+- Hay **31 lugares más** del panel que muestran el error de la base con otras formas («✗ Error: …», «❌ …», `alert('Error al …')`). Uno va a `innerHTML` sin escapar, en «Reset contraseñas», pero es el mensaje de un `select` fijo → `[ERRORES-CRUDOS-OTROS]` 🟢.
+- `saveCombo` guarda con `upsert` por `slug` (`'set-' + nombre`): un combo nuevo con el mismo nombre que otro lo pisa sin avisar. `combos` tiene el único de `slug` dos veces → `[COMBO-PISA-COMBO]` 🟢.
+- Los textos de 128g («tocá Guardar de nuevo», «guardá de nuevo», «no puede guardar esto») quedaron tal cual también en las cargas (ranking, historial) y en los borrados: así lo pedía la regla.
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_q`)** — la tanda chica (129d, 128h y `[ESCAPE-DOBLE-FUNCION]`), SW v1.1.149. Cerrados: `[ERRORES-CRUDOS-RESTO]` y `[ESCAPE-DOBLE-FUNCION]`. Nuevos, 🟢: `[COMBO-PISA-COMBO]` y `[ERRORES-CRUDOS-OTROS]`.
 
 **Última actualización:** **Septiembre 28, 2026 (`_p`)** — los escapes del barrido de XSS, SW v1.1.148 (S18, S24, S25 y S27 cerrados).
 
@@ -3369,6 +3400,11 @@ La decisión A de Alejo: se hacen todos, en una sola tanda. Se trabajó en la ra
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 28-sep-2026 (`_q`):**
+
+- ✅ ~~**`[ERRORES-CRUDOS-RESTO]`**~~ (28-sep, salió de 128g · 🟢, del PREPARADOR) — 18 mensajes del panel siguen mostrando el error de la base tal cual («Error: …»), fuera de las cinco barras de «Guardar» que pasan por `errorEnCriollo`: stock, depósito, clientes, combos y otros. Si van por `errorEnCriollo`, lo decide el DISEÑADOR. → **RESUELTO el 28-sep** (`5b17edd`, v1.1.149, 128h): los 18 pasan por `errorEnCriollo(err, ctx, que)`. Quedan 31 con otras formas → `[ERRORES-CRUDOS-OTROS]`.
+- ✅ ~~**`[ESCAPE-DOBLE-FUNCION]`**~~ (28-sep · 🟢, del PREPARADOR) — `admin.html` tiene dos funciones de escape iguales, `escapeHtml` y `escHtml`. Hay que dejar una sola y que la otra la llame. → **RESUELTO el 28-sep** (`5b17edd`, v1.1.149): `escHtml` es la única y `escapeHtml` la llama.
 
 **Movidos el 28-sep-2026 (`_p`):**
 
