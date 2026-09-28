@@ -3119,7 +3119,28 @@ Prompt `_l` del PREPARADOR, sobre la rama `tanda-l` (revisada entera por él: si
 #### De paso, de antes
 - `[XSS-ESTADISTICAS]` 🟠: agujero abierto que ya estaba en `main`; salió en la consola durante las mediciones. Sólo la keyword (SECURITY.md § S22).
 
+### Sesión 28-sep-2026 · `_m` · `[XSS-ESTADISTICAS]` (pedido de Alejo: «ponelo ahora»)
+
+Alejo lo puso en la fila apenas salió (ronda m). Rama `xss-estadisticas` desde `fa28417`; **no se publicó antes del merge** (rama local): el agujero se podía escribir desde `anon`.
+
+#### Qué se hizo
+- `loadStats` (`admin.html`): `escHtml` en el nombre del top 10 (que es el `slug` de `perfume_clicks_resumen()` cuando el perfume no está en el catálogo) y en los de «Perfumes sin visitas». El resto de la pestaña pinta números y etiquetas fijas; Analytics ya escapaba todo. `776834b` + SW v1.1.145 (`75b7328`).
+
+#### Verificación (fixture, Inter)
+- En la base, sólo lectura: `perfume_clicks` la inserta `anon` sin validar el texto (`pc_insert_public`, `with_check true`). Hoy tiene 0 slugs con `< > " '` o espacios, y las 241.141 filas cumplen `^[a-z0-9-]{1,120}$`.
+- Con `rpc:perfume_clicks_resumen` en el fixture (un slug `"><img src=x onerror=…>` con 999 clics, más tres perfumes con HTML en el nombre):
+  - en `main` (`fa28417`): 4 `<img>` con `onerror` en la pestaña, y se ejecutan el del slug y uno del catálogo;
+  - en la rama: los 5 del top 10 se ven como texto, 0 `<img>`, nada se ejecuta.
+- Sin clics (todos en «sin visitas»): en `main`, 3 `<img>`; en la rama, 0.
+- Sintaxis del script del panel: sin errores.
+
+#### Nuevos
+- `[CLICKS-SLUG-CHECK]` 🟢 (propuesta): un `CHECK` en `perfume_clicks.slug` como segunda defensa. No rompe nada con los datos de hoy.
+- `[MOTIVO-QUEDA]` 🟢: el motivo de «No se guardó» sigue en la barra al cambiar de perfume en Editar (sale de la ronda m).
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_m`)** — `[XSS-ESTADISTICAS]` cerrado (SECURITY.md § S22), SW v1.1.145. Nuevos: `[MOTIVO-QUEDA]` y `[CLICKS-SLUG-CHECK]` 🟢.
 
 **Última actualización:** **Septiembre 28, 2026 (`_l`)** — la ronda m sobre `tanda-l` y, con la decisión B de Alejo (sin el 129b), el merge: SW v1.1.144 en producción. Cerrados `[EDITAR-EMPLEADA-MUERTO]`, `[DC-HEADER-600]`, `[DC-ELIMINAR-CORTADO]`, `[GUARDAR-DOBLE-TOQUE]` y `[GUARDAR-AVISO-LEJOS]`. Nuevos: `[XSS-ESTADISTICAS]` 🟠 y `[RECARGAR-360]` 🟢.
 
@@ -3259,6 +3280,10 @@ Prompt `_l` del PREPARADOR, sobre la rama `tanda-l` (revisada entera por él: si
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 28-sep-2026 (`_m`):**
+
+- ✅ ~~**`[XSS-ESTADISTICAS]`**~~ (28-sep, salió de la ronda m · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep); el detalle vive en `_correo_agentes` y entra acá cuando se cierre. Ya estaba en `main`: no lo trajo la ronda. Ver `docs/SECURITY.md` § S22. → **RESUELTO el 28-sep** (`776834b`, v1.1.145): `escHtml` en los nombres de «Estadísticas» (y en el slug de `perfume_clicks`, que escribe `anon`). Ver SECURITY.md § S22.
 
 **Movidos el 28-sep-2026 (`_l`):**
 

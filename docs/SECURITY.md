@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 28, 2026** — **S22 abierto** (`[XSS-ESTADISTICAS]`, 🟠 propuesta de Claude Code): salió midiendo la ronda m y ya estaba en `main`. Por la regla de § 📏, sólo la keyword.
+> **Última actualización:** **Septiembre 28, 2026 (`_m`)** — **S22 RESUELTO** (`[XSS-ESTADISTICAS]`, v1.1.145): los nombres de «📊 Estadísticas» (y el `slug` de `perfume_clicks`, que escribe `anon`) se escapan. Propuesta nueva: `[CLICKS-SLUG-CHECK]`.
+>
+> **Antes (28-sep, `_l`):** — **S22 abierto** (`[XSS-ESTADISTICAS]`, 🟠 propuesta de Claude Code): salió midiendo la ronda m y ya estaba en `main`. Por la regla de § 📏, sólo la keyword.
 >
 > **Antes (23-sep, noche, `_l`):** — **S11 recortado** (§ 📏): queda qué era, que se arregló (falla cerrado) y que se re-testea al cerrar `[VERCEL-ENV-VARS]`; salen «Cuándo se vuelve peligroso» y la línea que lo ataba a S1. La historia de git conserva la versión anterior.
 >
@@ -332,9 +334,11 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S22 · `[XSS-ESTADISTICAS]` · 🟠 ABIERTO**
+### **S22 · `[XSS-ESTADISTICAS]` · Nombres y slugs sin escapar en Estadísticas · ✅ RESUELTO 28-sep-2026**
 
-> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+**Severidad:** 🟠 ALTA mientras duró · a diferencia de S20 / S21, **no hacía falta una cuenta del panel**: `perfume_clicks` la inserta `anon` (`pc_insert_public`, `with_check true`), sin validar el `slug`.
+
+> ✅ **ESTADO: RESUELTO** · `776834b` + SW v1.1.145 (28-sep-2026). `loadStats` (`admin.html`, pestaña «📊 Estadísticas», de las dos cuentas) metía crudos en `innerHTML` dos cosas: el nombre de cada perfume del top 10, que es el `slug` de `perfume_clicks_resumen()` cuando ese slug no está en el catálogo; y los nombres de «Perfumes sin visitas». Con clics suficientes, un slug con HTML entraba al top 10 y se ejecutaba con la sesión de quien abriera la pestaña (el jefe incluido). También corría después de cada «Guardar» de Editar, con la pestaña cerrada. Los nombres con HTML (cargados desde el panel) se ejecutaban igual. Salió en la consola durante las mediciones de la ronda m: un `ReferenceError` en mayúsculas, porque Editar pasa el nombre a mayúsculas antes de pintar. **Fix:** `escHtml` en los dos lugares, como en S20 / S21. **Verificado:** con fixture, en `main` (`fa28417`) un slug `"><img src=x onerror=…>` en el top 10 se ejecutaba (4 `<img>` con `onerror` en la pestaña), y en la rama se ve como texto: 0 `<img>`, no se ejecuta nada. En producción, 0 slugs raros: las 241.141 filas de `perfume_clicks` tienen `^[a-z0-9-]{1,120}$`. **Segunda defensa propuesta:** `[CLICKS-SLUG-CHECK]` (un `CHECK` con ese formato; lo deciden Alejo y el PREPARADOR). Mientras estuvo abierto, en el repo fue sólo la keyword, y la rama del fix no se publicó antes del merge.
 
 ---
 
