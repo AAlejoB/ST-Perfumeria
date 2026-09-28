@@ -817,6 +817,7 @@
     .espera-fila-datos { min-width: 0; }
     .espera-nombre { font-size: .72rem; font-weight: 500; overflow-wrap: anywhere; }
     .espera-sub { font-size: .62rem; color: var(--gris); }
+    .espera-tel-num { white-space: nowrap; }   /* 129c: el número no se parte; la línea sí, en los «·» */
     .espera-tag-local {
       display: inline-block; margin-left: .35rem; padding: 0 .4rem; font-size: .58rem; font-weight: 700;
       border: 1px solid var(--borde); border-radius: var(--r-full); white-space: nowrap; vertical-align: 1px;
@@ -826,9 +827,9 @@
        [ACTION-BTN-BASE] no les llega; y el padding inline .3rem .5rem que los achicaba se fue. */
     #tab-espera .espera-btn {
       display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap-min);
-      padding: 0 .7rem; margin-right: 0; font-size: .58rem; text-decoration: none;
+      padding: 0 .7rem; margin-right: 0; text-decoration: none;   /* 129b: sin font-size propio, la de .action-btn (.68rem) */
     }
-    #tab-espera .espera-btn-todos { width: 100%; margin-top: .6rem; font-size: .65rem; }
+    #tab-espera .espera-btn-todos { width: 100%; margin-top: .6rem; }
     /* [DC-HEADER-CORTADO] el encabezado de columnas de «Decants de diseñador»: fijo en 7 columnas, debajo de 1100 las filas
        pasan a 3 y a 2 y cada celda muestra su .dc-label, así que el encabezado se salía de la caja. El display va acá (no
        inline) para que el @media lo pueda esconder sin !important. */
@@ -1094,6 +1095,7 @@
     /* Desktop: labels chicas no-strong ocultas (UI compacta). */
     @media (min-width: 1100px) {
       .dc-label:not(.dc-label-strong) { display: none; }
+      .dc-cell-actions { align-items: stretch; }   /* 128f: el 🗑️ al mismo alto que «💾 Guardar» */
     }
     /* Tablet vertical / mobile: stack con labels visibles. PRECIO y
        GUARDAR siempre full-width en su propia fila. */
@@ -6667,6 +6669,7 @@
       document.getElementById('editSearchResults').style.display = 'none';
       document.getElementById('editSearch').value = '';
       document.getElementById('editMsg').textContent = '';
+      barraError(document.getElementById('btnSaveEdit'), '');   // [MOTIVO-QUEDA] el motivo no sobrevive a otro perfume
     }
 
     // ============================================================
@@ -6884,7 +6887,7 @@
       }
 
       if (error) {
-        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.textContent = errorEnCriollo(error, 'perfume');
         msgEl.style.color = '#e74c3c';
         return { ok: false, error: msgEl.textContent };
       }
@@ -6966,6 +6969,7 @@
       document.getElementById('editFormWrap').style.display = 'none';
       document.getElementById('editSlug').value = '';
       document.getElementById('editMsg').textContent = '';
+      barraError(document.getElementById('btnSaveEdit'), '');   // [MOTIVO-QUEDA]
     }
 
     // ============================================================
@@ -7474,7 +7478,7 @@
       }
 
       if (result.error) {
-        msgEl.textContent = 'Error: ' + result.error.message;
+        msgEl.textContent = errorEnCriollo(result.error, 'perfume');
         msgEl.style.color = '#e74c3c';
         return { ok: false, error: msgEl.textContent };
       }
@@ -7500,6 +7504,7 @@
     async function editNuevo(id) {
       var { data } = await sb.from('perfumes_nuevos').select('*').eq('id', id).single();
       if (!data) return;
+      barraError(document.getElementById('btnSaveNuevo'), '');   // [MOTIVO-QUEDA]
 
       document.getElementById('nuevoEditId').value = data.id;
       document.getElementById('nuevoName').value = data.name;
@@ -7560,6 +7565,7 @@
 
     function clearNuevoForm() {
       rebuildPerfilesList(); // refresca sugerencias del datalist
+      barraError(document.getElementById('btnSaveNuevo'), '');   // [MOTIVO-QUEDA]
       document.getElementById('nuevoEditId').value = '';
       document.getElementById('nuevoName').value = '';
       document.getElementById('nuevoMarca').value = 'ST Perfumería';
@@ -9775,19 +9781,20 @@
           var fechaStr = fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
           // v3 · el teléfono como lo muestra el catálogo (+54 9 2970 00-0011), sin el «+» pegado a los dígitos.
           var telVer = formatPhoneDisplay(item.telefono) || String(item.telefono || '');
-          var subLine = escHtml(telVer) + ' \u00b7 ' + fechaStr;
+          var subLine = '<span class="espera-tel-num">' + escHtml(telVer) + '</span> \u00b7 ' + fechaStr;
           if (isHistory && item.notified_at) {
             var fn = new Date(item.notified_at);
-            subLine += ' \u00b7 Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            subLine += ' \u00b7 Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });   // 129c: en 24 h
           }
           var tag = (esperaTieneOrigen && item.origen === 'local') ? '<span class="espera-tag-local">🏪 Local</span>' : '';
+          subLine += tag;   // 129c: «🏪 Local» al final de la línea del teléfono (con su margin-left; si no entra, baja sola)
           var id = Number(item.id);
 
           var tel = String(item.telefono || '').replace(/[^0-9]/g, '');
           var waLink = 'https://wa.me/' + tel + '?text=' + msgEnc;
           html += '<div class="espera-fila">';
           html += '<div class="espera-fila-datos">';
-          html += '<p class="espera-nombre">' + escHtml(item.nombre || 'Sin nombre') + tag + '</p>';
+          html += '<p class="espera-nombre">' + escHtml(item.nombre || 'Sin nombre') + '</p>';
           html += '<p class="espera-sub">' + subLine + '</p>';
           html += '</div>';
           html += '<div class="espera-acciones">';
@@ -10401,7 +10408,7 @@
       var antes = (MARCAS_DISENADOR || []).slice(), nuevas = MARCAS_EDIT.slice();
       var r = await sb.from('decants_config').update({ marcas_disenador: nuevas }).eq('id', 1);
       if (r && r.error) {
-        var motivo = 'No se pudo guardar: ' + (r.error.message || 'error');
+        var motivo = errorEnCriollo(r.error, 'nombre');
         if (msg) { msg.style.color = '#e74c3c'; msg.textContent = motivo; }
         return { ok: false, error: motivo };
       }
@@ -10640,9 +10647,7 @@
         var r = await sb.from('promos_decants').upsert(fila, { onConflict: 'id' });
         if (r && r.error) throw r.error;
       } catch (e) {
-        console.warn('[promo-admin] save:', e);
-        var permiso = e && (e.code === '42501' || /row-level security|permission/i.test(e.message || ''));
-        return mal(permiso ? 'No se pudo guardar: sólo el jefe puede cambiar la promo.' : 'No se pudo guardar la promo. Revisá la conexión y probá de nuevo.');
+        return mal(errorEnCriollo(e, 'nombre'));
       }
       // Log: sólo lo que cambió, legible (fechas en hora argentina).
       var A = PROMO_ADMIN || {}, cambios = {};
@@ -10710,6 +10715,19 @@
     //    al tocar Guardar de nuevo. El mensaje del final de la caja sigue igual.
     //  · Los timers son por botón. Un toque durante los 2 s cancela el pendiente; y el timer devuelve el texto sólo si el botón
     //    sigue diciendo lo que él puso (si otra cosa lo cambió mientras tanto, o se salió de la pestaña, no pisa nada).
+    // 128g · [MOTIVO-EN-CRIOLLO] Un error de la base (o del fetch), traducido: qué pasó y qué hacer, en una frase. El mismo
+    // texto va en la barra y en el mensaje de abajo; el original, completo, a la consola. Las validaciones propias (ya en
+    // castellano) y los «⚠ Guardado SIN…» no pasan por acá. ctx: 'perfume' (Editar, Nuevo) o 'nombre' (Decants, Marcas).
+    function errorEnCriollo(err, ctx) {
+      console.error('[guardar]', err);
+      var e = err || {}, code = String(e.code || ''), status = Number(e.status || 0);
+      var txt = [e.message, e.details, e.hint, typeof err === 'string' ? err : ''].filter(Boolean).join(' ');
+      if (code === '23505' || /duplicate key/i.test(txt)) return ctx === 'perfume' ? 'Ya existe un perfume con ese nombre.' : 'Ya existe con ese nombre.';
+      if (navigator.onLine === false || e.name === 'TypeError' || /failed to fetch|load failed|networkerror|network request failed/i.test(txt)) return 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.';
+      if (code === 'PGRST301' || code === 'PGRST303' || status === 401 || /jwt/i.test(txt)) return 'Se venció la sesión. Volvé a entrar y guardá de nuevo.';
+      if (code === '42501' || /row-level security|permission denied/i.test(txt)) return 'Esta cuenta no puede guardar esto.';
+      return 'No se pudo guardar. Probá de nuevo; si sigue, avisale a Alejo.';
+    }
     var GUARDAR_AVISO = {};   // id del botón → { t: el timer, texto: el de siempre, aviso: lo que puso }
     function barraError(btn, texto) {
       var barra = btn && btn.closest('.barra-guardar');
@@ -10826,11 +10844,8 @@
         msg.textContent = '✓ Configuración guardada.';
         return { ok: true };
       } catch (e) {
-        console.error('[decants-admin] save error:', e);
         msg.style.color = '#e74c3c';
-        // [PROMO-DECANTS] 114 · nunca el error crudo de la base: un mensaje en castellano.
-        var sinPermiso = e && (e.code === '42501' || /row-level security|permission/i.test(e.message || ''));
-        msg.textContent = sinPermiso ? 'No se pudo guardar: sólo el jefe puede cambiar la escalera.' : 'No se pudo guardar la configuración. Revisá la conexión y probá de nuevo.';
+        msg.textContent = errorEnCriollo(e, 'nombre');   // [PROMO-DECANTS] 114 · nunca el error crudo de la base
         return { ok: false, error: msg.textContent };
       }
     }
