@@ -333,8 +333,26 @@ function efectivo(rs, target, prefijos, prop, capas) {
     var pbg = efectivo(rs, '.modal-btn-price', c.pref, 'background', c.capas), pfg = efectivo(rs, '.modal-btn-price', c.pref, 'color', c.capas);
     medir({ superficie: 'panel', tema: tema, rol: 'guardar', nombre: '«Guardar …» .modal-btn-price', texto: pfg.hex[0], fondos: pbg.hex, impone: pfg.impone });
     medir({ superficie: 'panel', tema: tema, rol: 'guardar', nombre: '«Cancelar» (#fff sobre #333, inline)', texto: '#ffffff', fondos: ['#333333'], impone: 'inline' });
+    // 128 · «Guardando…»: el botón deshabilitado, con la opacidad que gane entre .modal-btn:disabled (0,2,0) y
+    // .barra-guardar > button:disabled (0,2,1). El botón entero se mezcla con la barra: letra y fondo, los dos.
+    var op = [ganador(rs, '.modal-btn:disabled', c.pref, 'opacity'), ganador(rs, '.barra-guardar > button:disabled', c.pref, 'opacity')]
+      .filter(Boolean).sort(function (a, b) { return (a.important - b.important) || (a.esp - b.esp) || (a.orden - b.orden); }).pop();
+    var alfa = op ? parseFloat(op.valor) : 1;
+    if (pfg.hex[0] && pbg.hex.length && barra.length) {
+      medir({ superficie: 'panel', tema: tema, rol: 'guardar', nombre: '«Guardando…» deshabilitado (opacidad ' + String(alfa).replace('.', ',') + ')',
+        texto: mezcla(pfg.hex[0], barra[0], alfa), fondos: pbg.hex.map(function (f) { return mezcla(f, barra[0], alfa); }),
+        impone: op ? path.basename(op.archivo) + ':' + op.linea : '(sin opacidad)' });
+    }
+    // 128b · el motivo de «No se guardó», adentro de la barra.
+    var err = efectivo(rs, '.barra-error', c.pref, 'color', c.capas);
+    medir({ superficie: 'panel', tema: tema, rol: 'guardar', nombre: '«✕ …» el motivo .barra-error', texto: err.hex[0], fondos: barra, impone: err.impone, pisado: err.pisado });
   });
 })();
+// Un color con opacidad `a` sobre `fondo`: lo que se ve.
+function mezcla(hex, fondo, a) {
+  var c = function (h, i) { return parseInt(h.substr(i, 2), 16); };
+  return '#' + [1, 3, 5].map(function (i) { return ('0' + Math.round(a * c(hex, i) + (1 - a) * c(fondo, i)).toString(16)).slice(-2); }).join('');
+}
 
 // ═══ CATÁLOGO ═══
 (function () {
