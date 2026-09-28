@@ -3685,8 +3685,8 @@
       items.forEach(function(item) {
         var chip = document.createElement('span');
         chip.className = 'active-filter-chip';
-        chip.innerHTML = '<span class="chip-label">' + item.label + '</span> '
-          + item.value
+        chip.innerHTML = '<span class="chip-label">' + escapeHTML(item.label) + '</span> '   // [XSS-URL-FILTROS] la búsqueda y la categoría llegan por la URL
+          + escapeHTML(item.value)
           + ' <button class="chip-remove" data-filter="' + item.remove + '">&times;</button>';
         chip.querySelector('.chip-remove').addEventListener('click', function() {
           removeFilter(item.remove);
@@ -3842,6 +3842,11 @@
         // Categoría: hash legacy o ?cat=
         var hashCatMap = { '#filtro-hombre':'Hombre', '#filtro-mujer':'Mujer', '#filtro-unisex':'Unisex', '#filtro-todos':'all' };
         var cat = hashCatMap[hash] || params.get('cat');
+        // [XSS-URL-FILTROS] ?cat= sólo acepta las categorías del catálogo (y 'favs', que escribe el propio sitio al filtrar
+        // favoritos); cualquier otra cosa se ignora. Sin distinguir mayúsculas.
+        var CATS_URL = { all: 'all', favs: 'favs', unisex: 'Unisex', hombre: 'Hombre', mujer: 'Mujer' };
+        var catK = cat ? String(cat).toLowerCase() : '';
+        cat = Object.prototype.hasOwnProperty.call(CATS_URL, catK) ? CATS_URL[catK] : null;
         // Nota
         var nota = params.get('nota');
         // Ocasión
