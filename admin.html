@@ -817,7 +817,7 @@
     .espera-fila-datos { min-width: 0; }
     .espera-nombre { font-size: .72rem; font-weight: 500; overflow-wrap: anywhere; }
     .espera-sub { font-size: .62rem; color: var(--gris); }
-    .espera-tel-num { white-space: nowrap; }   /* 129c: el número no se parte; la línea sí, en los «·» */
+    .espera-tel-num, .espera-avisado { white-space: nowrap; }   /* 129c / 129d: el número y «Avisado dd/mm hh:mm» no se parten; la línea sí, en los «·» */
     .espera-tag-local {
       display: inline-block; margin-left: .35rem; padding: 0 .4rem; font-size: .58rem; font-weight: 700;
       border: 1px solid var(--borde); border-radius: var(--r-full); white-space: nowrap; vertical-align: 1px;
@@ -4841,7 +4841,7 @@
 
       if (res.error) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = 'Error: ' + res.error.message;
+        msgEl.textContent = errorEnCriollo(res.error, null, 'cambiar el stock del depósito');   // 128h
         return;
       }
 
@@ -5537,7 +5537,7 @@
       };
 
       var { error } = await sb.from('clientes').insert(row);
-      if (error) { msgEl.textContent = 'Error: ' + error.message; msgEl.style.color = '#e74c3c'; return; }
+      if (error) { msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'registrar el cliente'); msgEl.style.color = '#e74c3c'; return; }   // 128h
 
       msgEl.textContent = '✓ ' + nombre + ' registrado' + (compro ? ' con 1 punto' : '');
       msgEl.style.color = '#2ecc71';
@@ -5640,7 +5640,7 @@
           var retry = await sb.from('clientes').insert({
             nombre: nombre, telefono: telefono, puntos: 1, compro: true
           }).select();
-          if (retry.error) { msgEl.textContent = 'Error: ' + retry.error.message; msgEl.style.color = '#e74c3c'; return; }
+          if (retry.error) { msgEl.textContent = errorEnCriollo(retry.error, 'un cliente con ese teléfono', 'sumar el punto'); msgEl.style.color = '#e74c3c'; return; }   // 128h
           console.warn('[puntos_log] insert sin historial (columna ausente):', error.message);
         }
 
@@ -5794,7 +5794,7 @@
 
       if (error) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'guardar el cliente');   // 128h
         console.error('Edit client error:', error);
       } else if (!data || data.length === 0) {
         msgEl.style.color = '#e74c3c';
@@ -5853,7 +5853,7 @@
       var { data, error } = await sb.from('clientes').delete().eq('id', deletingClientId).select();
       if (error) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.textContent = errorEnCriollo(error, null, 'borrar el cliente');   // 128h
         console.error('Delete client error:', error);
       } else if (!data || data.length === 0) {
         msgEl.style.color = '#e74c3c';
@@ -6019,7 +6019,7 @@
       );
 
       if (result.error) {
-        msgEl.textContent = 'Error: ' + result.error.message;
+        msgEl.textContent = errorEnCriollo(result.error, null, 'cambiar el precio');   // 128h
         msgEl.style.color = '#e74c3c';
         return;
       }
@@ -6178,7 +6178,7 @@
       );
 
       if (result.error) {
-        msgEl.textContent = 'Error: ' + result.error.message;
+        msgEl.textContent = errorEnCriollo(result.error, null, 'cambiar el stock');   // 128h
         msgEl.style.color = '#e74c3c';
         return;
       }
@@ -7023,7 +7023,7 @@
         .select();
 
       if (error) {
-        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.textContent = errorEnCriollo(error, null, 'eliminar el perfume');   // 128h
         msgEl.style.color = '#e74c3c';
         return;
       }
@@ -7170,7 +7170,7 @@
         msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
         msgEl.style.color = '#2ecc71';
       } catch(e) {
-        msgEl.textContent = 'Error: ' + (e.message || e);
+        msgEl.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128h
         msgEl.style.color = '#e74c3c';
       }
       input.value = '';
@@ -7230,7 +7230,7 @@
         msgEl.style.color = '#2ecc71';
 
       } catch(e) {
-        msgEl.textContent = 'Error: ' + (e.message || e);
+        msgEl.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128h
         msgEl.style.color = '#e74c3c';
       }
 
@@ -7284,7 +7284,7 @@
         msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
         msgEl.style.color = '#2ecc71';
       } catch(e) {
-        msgEl.textContent = 'Error: ' + (e.message || e);
+        msgEl.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128h
         msgEl.style.color = '#e74c3c';
       }
       input.value = '';
@@ -8218,7 +8218,7 @@
       var rows = fechas.map(function(f) { return { fecha: f, motivo: motivo }; });
       var { error } = await sb.from('cierres_especiales').upsert(rows, { onConflict: 'fecha' });
       if (error) {
-        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.textContent = errorEnCriollo(error, null, 'agregar el cierre');   // 128h
         msgEl.style.color = '#e74c3c'; return;
       }
 
@@ -8323,7 +8323,7 @@
 
       var { error } = await sb.from('ajuste_horario').insert(row);
       if (error) {
-        msgEl.textContent = 'Error: ' + error.message;
+        msgEl.textContent = errorEnCriollo(error, null, 'guardar el horario');   // 128h
         msgEl.style.color = '#e74c3c'; return;
       }
 
@@ -8731,7 +8731,7 @@
         setTimeout(function() { cancelCombo(); }, 1200);
       } catch(e) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = 'Error: ' + (e.message || 'No se pudo guardar');
+        msgEl.textContent = errorEnCriollo(e, null, 'guardar el combo');   // 128h (upsert por slug: no hay 23505)
       }
     }
 
@@ -8764,7 +8764,7 @@
       );
 
       if (result.error) {
-        alert('Error: ' + result.error.message);
+        alert(errorEnCriollo(result.error, null, newStatus === 'pausado' ? 'pausar el combo' : 'activar el combo'));   // 128h: sigue siendo un alert
         return;
       }
 
@@ -8874,7 +8874,7 @@
       }, { onConflict: 'mes' });
       var msg = document.getElementById('votacionMsg');
       if (error) {
-        msg.textContent = 'Error: ' + error.message;
+        msg.textContent = errorEnCriollo(error, null, 'guardar la votación');   // 128h
         msg.style.color = '#e74c3c';
       } else {
         logAdminAction('votacion_update', null, { mes: adminMes, masc_count: masc.length, fem_count: fem.length });
@@ -8936,9 +8936,7 @@
       document.getElementById('pushPreviewBody').textContent = this.value || 'Tu mensaje aparece acá...';
     });
 
-    function escapeHtml(str) {
-      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+    function escapeHtml(str) { return escHtml(str); }   // [ESCAPE-DOBLE-FUNCION] una sola implementación: escHtml
 
     // sendPushNotification: envía la notificación a TODOS los suscriptores
     // Flujo: validar → confirmar → POST al backend → guardar historial → limpiar
@@ -9786,7 +9784,7 @@
           var subLine = '<span class="espera-tel-num">' + escHtml(telVer) + '</span> \u00b7 ' + fechaStr;
           if (isHistory && item.notified_at) {
             var fn = new Date(item.notified_at);
-            subLine += ' \u00b7 Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });   // 129c: en 24 h
+            subLine += ' \u00b7 <span class="espera-avisado">Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) + '</span>';   // 129c: en 24 h · 129d: de una pieza
           }
           var tag = (esperaTieneOrigen && item.origen === 'local') ? '<span class="espera-tag-local">🏪 Local</span>' : '';
           subLine += tag;   // 129c: «🏪 Local» al final de la línea del teléfono (con su margin-left; si no entra, baja sola)
@@ -10720,15 +10718,21 @@
     // 128g · [MOTIVO-EN-CRIOLLO] Un error de la base (o del fetch), traducido: qué pasó y qué hacer, en una frase. El mismo
     // texto va en la barra y en el mensaje de abajo; el original, completo, a la consola. Las validaciones propias (ya en
     // castellano) y los «⚠ Guardado SIN…» no pasan por acá. ctx: 'perfume' (Editar, Nuevo) o 'nombre' (Decants, Marcas).
-    function errorEnCriollo(err, ctx) {
-      console.error('[guardar]', err);
+    // 128h · [ERRORES-CRUDOS-RESTO] la usan también los demás lugares del panel, con dos datos más:
+    //  · ctx puede ser la frase del repetido, «un cliente con ese teléfono» → «Ya existe un cliente con ese teléfono.»
+    //    (sólo donde la base tiene un único que puede chocar; sin ctx, un 23505 cae en el genérico);
+    //  · que: lo que se intentaba hacer, «cambiar el stock» → «No se pudo cambiar el stock. Probá de nuevo; …». Por
+    //    defecto «guardar»: las cinco barras de 128g dicen lo mismo que antes.
+    function errorEnCriollo(err, ctx, que) {
+      console.error('[' + (que || 'guardar') + ']', err);
       var e = err || {}, code = String(e.code || ''), status = Number(e.status || 0);
       var txt = [e.message, e.details, e.hint, typeof err === 'string' ? err : ''].filter(Boolean).join(' ');
-      if (code === '23505' || /duplicate key/i.test(txt)) return ctx === 'perfume' ? 'Ya existe un perfume con ese nombre.' : 'Ya existe con ese nombre.';
+      var repetido = ctx === 'perfume' ? 'Ya existe un perfume con ese nombre.' : (ctx === 'nombre' ? 'Ya existe con ese nombre.' : (ctx ? 'Ya existe ' + ctx + '.' : ''));
+      if (repetido && (code === '23505' || /duplicate key/i.test(txt))) return repetido;
       if (navigator.onLine === false || e.name === 'TypeError' || /failed to fetch|load failed|networkerror|network request failed/i.test(txt)) return 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.';
       if (code === 'PGRST301' || code === 'PGRST303' || status === 401 || /jwt/i.test(txt)) return 'Se venció la sesión. Volvé a entrar y guardá de nuevo.';
       if (code === '42501' || /row-level security|permission denied/i.test(txt)) return 'Esta cuenta no puede guardar esto.';
-      return 'No se pudo guardar. Probá de nuevo; si sigue, avisale a Alejo.';
+      return 'No se pudo ' + (que || 'guardar') + '. Probá de nuevo; si sigue, avisale a Alejo.';
     }
     var GUARDAR_AVISO = {};   // id del botón → { t: el timer, texto: el de siempre, aviso: lo que puso }
     function barraError(btn, texto) {
@@ -11009,8 +11013,10 @@
       } catch(e) { return '—'; }
     }
 
+    // [ESCAPE-DOBLE-FUNCION] la única implementación (escapeHtml la llama). null / undefined → '' (antes escHtml daba «null»),
+    // un número se respeta (antes escapeHtml(0) daba ''), y escapa también la comilla simple.
     function escHtml(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
     // ============================================================
@@ -11785,7 +11791,7 @@
         _puntosRankingData = r.data || [];
         renderPuntosRanking();
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">Error: '+ (e.message||e) +'</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el ranking')) +'</td></tr>';   // 128h
       }
     }
 
@@ -11912,7 +11918,7 @@
         }
         tbody.innerHTML = html;
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">Error: '+ (e.message||e) +'</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el historial de puntos')) +'</td></tr>';   // 128h
       }
     }
 
