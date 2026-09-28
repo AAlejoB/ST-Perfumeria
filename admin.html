@@ -5231,7 +5231,7 @@
             + '<span style="font-size:.65rem;width:22px;text-align:center;flex-shrink:0;">' + medal + '</span>'
             + '<div style="flex:1;min-width:0;">'
               + '<div style="display:flex;justify-content:space-between;margin-bottom:2px;">'
-                + '<span style="font-size:.62rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</span>'
+                + '<span style="font-size:.62rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(name) + '</span>'   // [XSS-ESTADISTICAS] el nombre, o el slug de perfume_clicks (lo inserta anon)
                 + '<span style="font-size:.6rem;color:var(--amarillo-tinta);font-weight:700;flex-shrink:0;margin-left:.3rem;">' + counts[slug] + '</span>'
               + '</div>'
               + '<div style="background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden;">'
@@ -5255,7 +5255,7 @@
       } else {
         var zHTML = '';
         zeroVisits.forEach(function(p) {
-          zHTML += '<span style="font-size:.58rem;padding:.25rem .5rem;border-radius:12px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:#e74c3c;white-space:nowrap;">' + p.name + '</span>';
+          zHTML += '<span style="font-size:.58rem;padding:.25rem .5rem;border-radius:12px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:#e74c3c;white-space:nowrap;">' + escHtml(p.name) + '</span>'   // [XSS-ESTADISTICAS];
         });
         zHTML += '<p style="width:100%;font-size:.58rem;color:var(--gris);margin-top:.3rem;">' + zeroVisits.length + ' perfumes sin visitas de ' + totalPerfumes + ' totales</p>';
         zeroDiv.innerHTML = zHTML;
