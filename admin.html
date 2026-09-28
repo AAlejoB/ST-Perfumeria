@@ -5512,13 +5512,13 @@
 
     async function addNewClient() {
       var nombre = document.getElementById('newClientName').value.trim();
-      var telefono = document.getElementById('newClientPhone').value.trim();
+      var telefono = cleanPhone(document.getElementById('newClientPhone').value);   // [TEL-CANONICO-PANEL] 549 + 10, como el catálogo y la Espera
       var nota = document.getElementById('newClientNota').value.trim();
       var compro = document.getElementById('newClientCompro').checked;
       var msgEl = document.getElementById('newClientMsg');
 
       if (!nombre) { msgEl.textContent = 'Poné un nombre o apodo'; msgEl.style.color = '#e74c3c'; return; }
-      if (!telefono || telefono.length < 6) { msgEl.textContent = 'Teléfono inválido'; msgEl.style.color = '#e74c3c'; return; }
+      if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = '#e74c3c'; return; }
 
       // Ver si ya existe
       var { data: existing } = await sb.from('clientes').select('id').eq('telefono', telefono).limit(1);
@@ -5615,15 +5615,17 @@
         var esNumero = /^\d{6,}$/.test(query);
         var nombre, telefono;
         if (esNumero) {
-          telefono = query;
+          telefono = cleanPhone(query);   // [TEL-CANONICO-PANEL] se revisa antes de pedir el nombre
+          if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = '#e74c3c'; return; }
           nombre = prompt('Este teléfono no está registrado.\nIngresá nombre o apodo para registrarlo:');
           if (!nombre || !nombre.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }
           nombre = nombre.trim();
         } else {
           nombre = query;
           telefono = prompt('"' + query + '" no está registrado.\nIngresá su teléfono para registrarlo:');
-          if (!telefono || !telefono.trim() || telefono.trim().length < 6) { msgEl.textContent = 'Cancelado o teléfono inválido'; msgEl.style.color = '#e74c3c'; return; }
-          telefono = telefono.trim();
+          if (!telefono || !telefono.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }   // [TEL-CANONICO-PANEL] un número corto va abajo, con el mensaje nuevo
+          telefono = cleanPhone(telefono);   // [TEL-CANONICO-PANEL]
+          if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = '#e74c3c'; return; }
         }
 
         var firstLog = appendPuntoLog([], makePuntoLogEntry(+1, 0, 1, 'Registro inicial'));
@@ -5776,7 +5778,7 @@
     async function saveClientEdit() {
       if (!editingClientId) return;
       var nombre = document.getElementById('modalClientNombre').value.trim();
-      var telefono = document.getElementById('modalClientTel').value.trim();
+      var telefono = cleanPhone(document.getElementById('modalClientTel').value);   // [TEL-CANONICO-PANEL]
       var puntos = parseInt(document.getElementById('modalClientPuntos').value) || 0;
       var nota = document.getElementById('modalClientNota').value.trim();
       var compro = document.getElementById('modalClientCompro').value === 'true';
@@ -5784,7 +5786,7 @@
       var btn = document.getElementById('modalClientEditBtn');
 
       if (!nombre) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'El nombre no puede estar vacío'; return; }
-      if (!telefono || telefono.length < 6) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Teléfono inválido'; return; }
+      if (!esperaTelValido(telefono)) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; return; }
       if (puntos < 0) puntos = 0;
 
       btn.disabled = true; btn.textContent = 'Guardando...';
@@ -9856,6 +9858,7 @@
     // SINCRO con js/app.js (NO ROMPER #18): cleanPhone es copia EXACTA de la del catálogo. El índice único parcial
     // lista_espera_pendiente_uniq (slug, telefono) WHERE notified_at IS NULL sólo frena un duplicado si el catálogo y
     // el panel guardan el teléfono igual (549 + 10 dígitos). Si cambia en el catálogo, cambia acá.
+    // [TEL-CANONICO-PANEL] La usan también el alta, el alta desde puntos y la edición de clientes, con esperaTelValido.
     function cleanPhone(raw) {
       // Quitar todo menos números
       var digits = String(raw == null ? '' : raw).replace(/[^0-9]/g, '');
