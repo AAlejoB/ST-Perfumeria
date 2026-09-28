@@ -454,7 +454,8 @@
           // servidor. La RPC además migra el hash sola en el primer login y
           // aplica el bloqueo por intentos del lado del servidor.
           // estado: 'ok' | 'activado' | 'invalido' | 'bloqueado'
-          var rpcLogin = await sb.rpc('cliente_login', { p_telefono: phone, p_pass: pass });
+          // [SESION-CLIENTE] cliente_entrar es cliente_login tal cual, más la llave (token) cuando entró.
+          var rpcLogin = await sb.rpc('cliente_entrar', { p_telefono: phone, p_pass: pass });
           if (rpcLogin.error) { errEl.textContent = 'Error de conexión'; btn.disabled = false; return; }
           var r = (rpcLogin.data && rpcLogin.data[0]) ? rpcLogin.data[0] : null;
           var estadoLogin = r ? r.estado : 'invalido';
@@ -479,6 +480,7 @@
           }
 
           clearAuthLockout(); // login exitoso resetea
+          if (!r.token) { errEl.textContent = 'Error de conexión'; btn.disabled = false; return; }   // [SESION-CLIENTE] sin llave no hay sesión
 
           if (estadoLogin === 'activado') {
             // Cuenta creada desde admin o reseteada: la clave que acaba de
@@ -486,13 +488,13 @@
             errEl.style.color = '#2ecc71';
             errEl.textContent = '\u2713 \u00a1Listo! Tu contrase\u00f1a nueva qued\u00f3 guardada: es la que acab\u00e1s de escribir. Anotala para la pr\u00f3xima.';
             setTimeout(function() {
-              onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });
+              onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono, token: r.token }, true);
               closeAuth();
             }, 1200);
             return;
           }
 
-          onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });
+          onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono, token: r.token }, true);
           closeAuth();
         } else {
           // Register
@@ -510,8 +512,16 @@
             errEl.textContent = 'Revisá los datos e intentá de nuevo';
             btn.disabled = false; return;
           }
+          // [SESION-CLIENTE] La llave sale de entrar, con el mismo número y la misma contraseña. Si no da, la cuenta
+          // quedó creada igual y se le pide entrar (la misma salida que una sesión sin llave).
+          var re = null;
+          try {
+            var rpcEnt = await sb.rpc('cliente_entrar', { p_telefono: phone, p_pass: pass });
+            re = (!rpcEnt.error && rpcEnt.data && rpcEnt.data[0]) ? rpcEnt.data[0] : null;
+          } catch (eEnt) {}
           closeAuth();
-          onLogin({ id: rr.id, nombre: rr.nombre, telefono: rr.telefono });
+          if (re && (re.estado === 'ok' || re.estado === 'activado') && re.token) onLogin({ id: re.id, nombre: re.nombre, telefono: re.telefono, token: re.token }, true);
+          else { avisoReentrarMostrado = false; sesionSinLlave(); }   // acá el aviso sale siempre: la cuenta quedó creada y hay que entrar
         }
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;
@@ -586,23 +596,71 @@
       btn.disabled = false;
     }
 
-    function onLogin(user) {
+    // ============================================================
+    // [SESION-CLIENTE] La sesión del cliente, con llave
+    // ============================================================
+    // cliente_entrar da una llave (token) al entrar con número y contraseña. Favoritos, votos y «Mi selección» se
+    // escriben con RPC que la piden (favorito_marcar, voto_guardar, seleccion_guardar). La llave vive en st_cliente
+    // (currentUser.token), dura 180 días y un cambio de contraseña la corta.
+    var SLUG_LLAVE_OK = /^[a-z0-9-]{1,120}$/;   // los slugs que aceptan favorito_marcar y seleccion_guardar
+    var avisoReentrarMostrado = false;          // el aviso sale una vez aunque fallen varias RPC juntas
+
+    // Una sesión sin llave (de antes de este cambio) o con una que la base ya no acepta: se cierra la sesión de este
+    // dispositivo sin avisarle a la base, y se abre «Iniciá sesión» con el aviso. st_favs queda: se sube al volver a entrar.
+    function sesionSinLlave() {
+      if (currentUser) onLogout(true);
+      else { localStorage.removeItem('st_cliente'); localStorage.removeItem('st_waitlist'); }
+      if (avisoReentrarMostrado) return;
+      avisoReentrarMostrado = true;
+      openAuth();
+      var sub = document.getElementById('authSubtitle');
+      if (sub) sub.textContent = 'Por seguridad, volvé a entrar con tu número y contraseña. Tus favoritos no se pierden.';
+    }
+
+    // favorito_marcar, voto_guardar y seleccion_guardar dan false si la llave no sirve (lo demás lo valida el catálogo
+    // antes de llamar). Cuenta sólo si la llave sigue siendo la de la sesión de ahora.
+    function llaveRechazada(res, token) {
+      return !!(res && !res.error && res.data === false && currentUser && currentUser.token === token);
+    }
+
+    // Favorito sí / no en la base. Un slug que la base no acepta queda sólo en este dispositivo.
+    function marcarFavorito(slug, si) {
+      if (!currentUser || !currentUser.token || !SLUG_LLAVE_OK.test(slug)) return;
+      var token = currentUser.token;
+      sb.rpc('favorito_marcar', { p_token: token, p_slug: slug, p_si: si }).then(function(r) { if (llaveRechazada(r, token)) sesionSinLlave(); }, function() {});
+    }
+
+    // entro: la persona acaba de entrar (o de registrarse); sin él, se retoma la sesión guardada.
+    function onLogin(user, entro) {
       currentUser = user;
       localStorage.setItem('st_cliente', JSON.stringify(user));
+      if (entro) avisoReentrarMostrado = false;
       updateAuthUI();
       var bi = document.getElementById('boardInput');
       if (bi) bi.placeholder = 'Ej: El 9 AM me dura todo el día, increíble...';
-      loadFavsFromSupabase();
+      loadFavsFromSupabase(entro);
       syncWaitlistFromDB();
       unlockVoting();
       setTimeout(initMiSeleccion, 500);
     }
 
-    function onLogout() {
+    // [SESION-CLIENTE] sinRpc === true: la llave no sirve (o no hay) y no se le avisa a la base.
+    function onLogout(sinRpc) {
+      if (sinRpc !== true && currentUser && currentUser.token) {
+        // corta la llave en la base, sin esperar la respuesta
+        try { sb.rpc('cliente_salir', { p_token: currentUser.token }).then(function() {}, function() {}); } catch (e) {}
+      }
+      // [SESION-CLIENTE] Si la llave rechazada es de esta pestaña y otra ya entró de nuevo (st_cliente tiene otra
+      // llave), la sesión guardada es de la otra: no se toca.
+      var guardada = null;
+      try { guardada = JSON.parse(localStorage.getItem('st_cliente') || 'null'); } catch (e) {}
+      var deOtraPestana = sinRpc === true && currentUser && guardada && guardada.token && guardada.token !== currentUser.token;
       currentUser = null;
-      localStorage.removeItem('st_cliente');
-      // [ESPERA-SEGURA] La lista de espera es de ESTE cliente: no queda en el dispositivo al salir.
-      localStorage.removeItem('st_waitlist');
+      if (!deOtraPestana) {
+        localStorage.removeItem('st_cliente');
+        // [ESPERA-SEGURA] La lista de espera es de ESTE cliente: no queda en el dispositivo al salir.
+        localStorage.removeItem('st_waitlist');
+      }
       waitlistSlugs = [];
       favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
       updateAuthUI();
@@ -650,10 +708,15 @@
     }
 
     // Check session on load (localStorage)
+    // [SESION-CLIENTE] Una sesión de antes de la llave (sin token) se cierra una vez y se le pide volver a entrar.
     (function() {
       var saved = localStorage.getItem('st_cliente');
       if (saved) {
-        try { onLogin(JSON.parse(saved)); } catch(e) {}
+        try {
+          var guardado = JSON.parse(saved);
+          if (guardado && guardado.token) onLogin(guardado);
+          else sesionSinLlave();
+        } catch(e) {}
       }
     })();
 
@@ -1260,12 +1323,27 @@
     // ============================================================
     var favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
 
-    async function loadFavsFromSupabase() {
-      if (!currentUser) return;
+    // [SESION-CLIENTE] Los favoritos de la base salen de mis_favoritos, con la llave. entro: la persona acaba de entrar
+    // y los favoritos de este dispositivo que no están en la base se suben (queda la unión). Al retomar la sesión
+    // guardada, manda la base, como antes.
+    async function loadFavsFromSupabase(entro) {
+      if (!currentUser || !currentUser.token) return;
+      var token = currentUser.token;
       try {
-        var res = await sb.from('favoritos').select('slug').eq('user_id', currentUser.id);
-        if (res.data && res.data.length > 0) {
-          favs = res.data.map(function(f) { return f.slug; });
+        var res = await sb.rpc('mis_favoritos', { p_token: token });
+        if (res.error || !Array.isArray(res.data)) return;
+        if (!currentUser || currentUser.token !== token) return;   // salió o cambió de cuenta mientras tanto
+        var enBase = res.data.map(function(f) { return typeof f === 'string' ? f : ((f && (f.mis_favoritos || f.slug)) || ''); }).filter(Boolean);   // setof text: los slugs sueltos
+        if (entro) {
+          var faltan = favs.filter(function(s, i) { return enBase.indexOf(s) === -1 && favs.indexOf(s) === i; });
+          faltan.forEach(function(s) { marcarFavorito(s, true); });
+          var union = enBase.concat(faltan);
+          var cambio = union.length !== favs.length || union.some(function(s) { return favs.indexOf(s) === -1; });
+          favs = union;
+          localStorage.setItem('st_favs', JSON.stringify(favs));
+          if (cambio) renderCatalog();
+        } else if (enBase.length > 0) {
+          favs = enBase;
           localStorage.setItem('st_favs', JSON.stringify(favs));
           renderCatalog();
         }
@@ -1303,7 +1381,7 @@
         btn.classList.remove('liked');  // quitar estilo rojo
         btn.innerHTML = '\u2661';      // corazón vacío ♡
         if (currentUser) {
-          sb.from('favoritos').delete().eq('user_id', currentUser.id).eq('slug', slug).then(function(){});
+          marcarFavorito(slug, false);   // [SESION-CLIENTE]
         }
       } else {
         favs.push(slug);
@@ -1315,7 +1393,7 @@
         void btn.offsetWidth;  // force reflow para re-trigger animation
         btn.classList.add('heart-pop');
         if (currentUser) {
-          sb.from('favoritos').insert({ user_id: currentUser.id, slug: slug }).then(function(){});
+          marcarFavorito(slug, true);   // [SESION-CLIENTE]
         }
       }
       saveFavs();
@@ -1449,15 +1527,16 @@
       var grid = btn.closest('.voto-grid');
       // Si ya votó en esta categoría, no hacer nada
       if (grid.querySelector('.voted-opt')) return;
+      // [SESION-CLIENTE] voto_guardar también da false con un candidato vacío, de más de 120 o con un carácter de
+      // control: ése no se manda (si no, se tomaría por una llave rechazada y cerraría la sesión)
+      var slugVoto = String(slug == null ? '' : slug);
+      if (!slugVoto || slugVoto.length > 120 || /[\u0000-\u001f\u007f]/.test(slugVoto)) return;
       btn.classList.add('voted-opt');
       btn.disabled = true;
-      // Guardar en Supabase
-      await sb.from('votos').upsert({
-        user_id: currentUser.id,
-        categoria: categoria,
-        slug: slug,
-        mes: currentMes
-      }, { onConflict: 'user_id,categoria,mes' });
+      // Guardar en Supabase · [SESION-CLIENTE] con la llave del cliente
+      var tokenVoto = currentUser.token;
+      var rv = await sb.rpc('voto_guardar', { p_token: tokenVoto, p_categoria: categoria, p_slug: slug, p_mes: currentMes });
+      if (llaveRechazada(rv, tokenVoto)) { sesionSinLlave(); return; }
       // Mostrar resultados de esta categoría
       loadVotoResults(categoria, grid);
     }
@@ -1498,7 +1577,10 @@
       if (cta) cta.style.display = 'none';
       // Cargar votos previos del usuario
       if (currentUser) {
-        var res = await sb.from('votos').select('categoria, slug').eq('user_id', currentUser.id).eq('mes', currentMes);
+        // [SESION-CLIENTE] Al retomar la sesión, esto corre antes de que currentMes tenga valor (se asigna más abajo en
+        // el archivo): sin p_mes, la RPC no existe con esa firma y da error. El mes se arma acá si hace falta.
+        var mesVotos = currentMes || (new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0'));
+        var res = await sb.rpc('mis_votos', { p_token: currentUser.token, p_mes: mesVotos });
         if (res.data) {
           res.data.forEach(function(v) {
             var gridId = v.categoria === 'masculino' ? 'votoMasc' : 'votoFem';
@@ -6616,12 +6698,13 @@
     async function saveMiSeleccion() {
       var user = getCurrentUser();
       if (!user || miselSlugs.length === 0) return;
+      // [SESION-CLIENTE] con la llave: la base guarda la selección de quien la hizo (hasta 3 slugs que acepta)
+      var slugsSel = miselSlugs.slice(0, 3);
+      if (!slugsSel.every(function(s) { return SLUG_LLAVE_OK.test(s); })) return;
+      var tokenSel = user.token;
       try {
-        await sb.from('mi_seleccion').upsert({
-          user_id: user.id,
-          slugs: miselSlugs,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+        var rs = await sb.rpc('seleccion_guardar', { p_token: tokenSel, p_slugs: slugsSel });
+        if (llaveRechazada(rs, tokenSel)) sesionSinLlave();
       } catch(e) {}
     }
 
