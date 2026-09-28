@@ -4737,9 +4737,9 @@
             '<td class="td-name">' + escapeHtml(p.name) + alerta + '</td>' +
             // [DEPOSITO-LOCAL-CLICK] La badge de Local abre el MISMO modal de Precios & Stock.
             '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock local" ' +
-              'onclick="openStockModal(\'' + p.slug + '\')">' + info.badgeText + '</span></td>' +
+              'onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + info.badgeText + '</span></td>' +
             '<td class="td-stock"><span class="badge-stock ' + dep.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar" ' +
-              'onclick="openDepositoModal(\'' + p.slug + '\')">' + dep.badgeText + '</span></td>' +
+              'onclick="openDepositoModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + dep.badgeText + '</span></td>' +
           '</tr>';
       });
       tbody.innerHTML = html;
@@ -5738,7 +5738,7 @@
       } else {
         var html = '';
         list.forEach(function(e) {
-          var delta = e.delta || 0;
+          var delta = Number(e.delta) || 0;   // [XSS-PANEL-STAFF] puntos_log es jsonb: números como números
           var deltaStr = (delta > 0 ? '+' : '') + delta;
           var color = delta > 0 ? '#2ecc71' : (delta < 0 ? '#e74c3c' : 'var(--gris)');
           var fecha = '';
@@ -5746,11 +5746,11 @@
           html += '<div style="border:1px solid var(--borde);border-radius:6px;padding:.6rem .8rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;">'
             +   '<div style="display:flex;flex-direction:column;gap:.15rem;">'
             +     '<span style="font-size:.9rem;font-weight:700;color:' + color + ';">' + deltaStr + ' pts</span>'
-            +     '<span style="font-size:.65rem;color:var(--gris);">' + (e.motivo || '—') + ' · ' + (e.actor || '?') + '</span>'
+            +     '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(e.motivo || '—') + ' · ' + escHtml(e.actor || '?') + '</span>'
             +   '</div>'
             +   '<div style="text-align:right;display:flex;flex-direction:column;gap:.15rem;">'
-            +     '<span style="font-size:.65rem;color:var(--gris);">' + fecha + '</span>'
-            +     '<span style="font-size:.6rem;color:var(--gris);">' + (e.before || 0) + ' → ' + (e.after || 0) + '</span>'
+            +     '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(fecha) + '</span>'
+            +     '<span style="font-size:.6rem;color:var(--gris);">' + (Number(e.before) || 0) + ' → ' + (Number(e.after) || 0) + '</span>'
             +   '</div>'
             + '</div>';
         });
@@ -6408,8 +6408,8 @@
       } else {
         var html = '';
         matches.forEach(function(p) {
-          html += '<div class="dest-search-item" onclick="loadEditPerfume(\'' + p.slug + '\')">'
-            + p.name + ' <span style="color:var(--gris);font-size:.6rem;">' + (p.marca_real || p.marca) + '</span>'
+          html += '<div class="dest-search-item" onclick="loadEditPerfume(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
+            + escHtml(p.name) + ' <span style="color:var(--gris);font-size:.6rem;">' + escHtml(p.marca_real || p.marca || '') + '</span>'
           + '</div>';
         });
         results.innerHTML = html;
@@ -6431,10 +6431,10 @@
         html += '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid var(--borde);">'
           + '<span style="color:var(--gris);font-size:.6rem;white-space:nowrap;min-width:70px;">' + fecha + '</span>'
           + '<div style="flex:1;line-height:1.5;">'
-            + '<span style="color:#fff;font-weight:600;">' + (log.nombre || log.slug) + '</span> '
-            + '<span style="color:var(--amarillo-tinta);font-size:.65rem;">' + log.campo + '</span> '
-            + (log.valor_anterior ? '<span style="color:#e74c3c;text-decoration:line-through;font-size:.65rem;">' + truncateLog(log.valor_anterior) + '</span> \u2192 ' : '')
-            + '<span style="color:#2ecc71;font-size:.65rem;">' + truncateLog(log.valor_nuevo) + '</span>'
+            + '<span style="color:#fff;font-weight:600;">' + escHtml(log.nombre || log.slug || '') + '</span> '
+            + '<span style="color:var(--amarillo-tinta);font-size:.65rem;">' + escHtml(log.campo || '') + '</span> '
+            + (log.valor_anterior ? '<span style="color:#e74c3c;text-decoration:line-through;font-size:.65rem;">' + escHtml(truncateLog(log.valor_anterior)) + '</span> \u2192 ' : '')
+            + '<span style="color:#2ecc71;font-size:.65rem;">' + escHtml(truncateLog(log.valor_nuevo)) + '</span>'
             + ' <span style="font-size:.55rem;">' + rolIcon + '</span>'
           + '</div>'
         + '</div>';
@@ -6707,7 +6707,7 @@
           +           'style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;'
           +           (selected ? '' : 'display:none;') + '">×</button>'
           + '</div>'
-          + '<input type="hidden" class="sim-picker-slug" value="' + selected + '"/>'
+          + '<input type="hidden" class="sim-picker-slug" value="' + escHtml(selected) + '"/>'
           + '<div class="sim-picker-dropdown" hidden style="position:absolute;top:100%;left:0;right:0;z-index:50;max-height:200px;overflow-y:auto;background:#1a1a1d;border:1px solid var(--borde);border-radius:6px;margin-top:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);"></div>'
         + '</div>';
       }
@@ -6721,12 +6721,12 @@
       }
       dropdown.innerHTML = list.slice(0, 30).map(function(p) {
         var label = p.name + (p.marca_real ? ' · ' + p.marca_real : '');
-        return '<div class="sim-picker-opt" data-slug="' + p.slug + '" '
+        return '<div class="sim-picker-opt" data-slug="' + escHtml(p.slug) + '" '
           + 'onmousedown="selectSimPickerOpt(this)" '
           + 'onmouseover="this.style.background=\'rgba(232,184,0,.15)\'" '
           + 'onmouseout="this.style.background=\'\'" '
           + 'style="padding:.45rem .65rem;cursor:pointer;font-size:.72rem;color:#f0ede8;border-bottom:1px solid rgba(255,255,255,.04);">'
-          + label + '</div>';
+          + escHtml(label) + '</div>';
       }).join('');
     }
 
@@ -7714,14 +7714,14 @@
         html += '<div class="badge-row" data-i="' + i + '" style="border:1px solid var(--borde);border-radius:6px;padding:.8rem;background:#0d0d0d;">'
           + '<p style="font-size:.65rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cuadro #' + (i+1) + '</p>'
           + '<div style="display:grid;grid-template-columns:1fr 2fr;gap:.5rem;margin-bottom:.5rem;">'
-            + '<div><label class="modal-label">Ícono</label><input class="modal-input badge-icono" value="' + (b.icono || '') + '" maxlength="3" placeholder="$"/></div>'
-            + '<div><label class="modal-label">Título</label><input class="modal-input badge-titulo" value="' + (b.titulo || '') + '" maxlength="24" placeholder="10% OFF"/></div>'
+            + '<div><label class="modal-label">Ícono</label><input class="modal-input badge-icono" value="' + escHtml(b.icono || '') + '" maxlength="3" placeholder="$"/></div>'
+            + '<div><label class="modal-label">Título</label><input class="modal-input badge-titulo" value="' + escHtml(b.titulo || '') + '" maxlength="24" placeholder="10% OFF"/></div>'
           + '</div>'
           + '<label class="modal-label">Bajada</label>'
           + '<input class="modal-input badge-bajada" value="' + (b.bajada || '').replace(/"/g, '&quot;') + '" maxlength="60" placeholder="Pagando en efectivo"/>'
           + '<label class="modal-label">Link (opcional)</label>'
           + sectionPickerHTML('badge-link')
-          + '<input class="modal-input badge-link" value="' + (b.link_a || '') + '" maxlength="120" placeholder="o pegá una URL personalizada (#contacto, /blog…)"/>'
+          + '<input class="modal-input badge-link" value="' + escHtml(b.link_a || '') + '" maxlength="120" placeholder="o pegá una URL personalizada (#contacto, /blog…)"/>'
           + '<label style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--gris-claro);margin-top:.3rem;">'
             + '<input type="checkbox" class="badge-activo"' + (b.activo !== false ? ' checked' : '') + '/> Mostrar en el sitio'
           + '</label>'
@@ -8073,11 +8073,11 @@
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         if (!p) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-        var imgHTML = fotoSrc ? '<img class="dest-img" src="' + fotoSrc + '" alt="' + p.name + '">' : '<div class="dest-img" style="display:flex;align-items:center;justify-content:center;color:var(--amarillo-tinta);font-weight:700;">' + p.name.charAt(0) + '</div>';
+        var imgHTML = fotoSrc ? '<img class="dest-img" src="' + escHtml(fotoSrc) + '" alt="' + escHtml(p.name) + '">' : '<div class="dest-img" style="display:flex;align-items:center;justify-content:center;color:var(--amarillo-tinta);font-weight:700;">' + escHtml(p.name.charAt(0)) + '</div>';
         html += '<div class="dest-item">'
           + '<span class="dest-num">' + (i + 1) + '</span>'
           + imgHTML
-          + '<div class="dest-info"><p class="dest-name">' + p.name + '</p><p class="dest-brand">' + (p.marca_real || p.marca) + '</p></div>'
+          + '<div class="dest-info"><p class="dest-name">' + escHtml(p.name) + '</p><p class="dest-brand">' + escHtml(p.marca_real || p.marca || '') + '</p></div>'
           + '<div class="dest-actions">'
             + (i > 0 ? '<button class="dest-btn dest-btn-up" onclick="moveDestacado(' + i + ',-1)" title="Subir">&#9650;</button>' : '')
             + (i < slugs.length - 1 ? '<button class="dest-btn dest-btn-down" onclick="moveDestacado(' + i + ',1)" title="Bajar">&#9660;</button>' : '')
@@ -8152,8 +8152,8 @@
         var html = '';
         matches.forEach(function(p) {
           var already = slugs.indexOf(p.slug) !== -1;
-          html += '<div class="dest-search-item" onclick="addDestacado(\'' + p.slug + '\')" style="' + (already ? 'opacity:.4;' : '') + '">'
-            + p.name + ' <span style="color:var(--gris);font-size:.65rem;">' + (p.marca_real || p.marca) + '</span>'
+          html += '<div class="dest-search-item" onclick="addDestacado(' + escHtml(JSON.stringify(String(p.slug))) + ')" style="' + (already ? 'opacity:.4;' : '') + '">'
+            + escHtml(p.name) + ' <span style="color:var(--gris);font-size:.65rem;">' + escHtml(p.marca_real || p.marca || '') + '</span>'
             + (already ? ' <span style="color:var(--amarillo-tinta);font-size:.6rem;">✦ ya destacado</span>' : '')
           + '</div>';
         });
@@ -8179,7 +8179,7 @@
         var isPast = c.fecha < hoy;
         html += '<tr style="' + (isPast ? 'opacity:.4;' : '') + '">'
           + '<td style="font-weight:600;">' + fechaStr + '</td>'
-          + '<td>' + c.motivo + '</td>'
+          + '<td>' + escHtml(c.motivo || '') + '</td>'
           + '<td><button class="action-btn btn-hide" onclick="removeCierre(' + c.id + ')">Eliminar</button></td>'
           + '</tr>';
       });
@@ -8279,7 +8279,7 @@
 
       textEl.innerHTML = horarioStr + '<br>'
         + '<span style="font-size:.65rem;">' + fechaStr + '</span>'
-        + (a.motivo && a.mostrar_nota ? '<br><em style="color:var(--amarillo-tinta);font-size:.65rem;">' + a.motivo + '</em>' : '');
+        + (a.motivo && a.mostrar_nota ? '<br><em style="color:var(--amarillo-tinta);font-size:.65rem;">' + escHtml(a.motivo) + '</em>' : '');
       panel.style.display = 'block';
       panel.dataset.id = a.id;
     }
@@ -8381,7 +8381,7 @@
           if (isBroken) brokenItems.push(nombre);
           var itemStyle = isBroken ? ' style="color:#e74c3c;text-decoration:line-through;"' : '';
           var itemSuffix = isBroken ? ' <span style="color:#e74c3c;font-weight:700;font-size:.55rem;">(ELIMINADO)</span>' : '';
-          listHTML += '<li' + itemStyle + '>' + nombre + mlText + itemSuffix + '</li>';
+          listHTML += '<li' + itemStyle + '>' + escHtml(nombre) + escHtml(mlText) + itemSuffix + '</li>';   // [S10-TER-XSS-COMBOS]
         });
         var isBroken = brokenItems.length > 0;
         var brokenBadge = isBroken
@@ -8389,24 +8389,24 @@
           : '';
         var brokenWarning = isBroken
           ? '<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(231,76,60,.1);border-left:3px solid #e74c3c;border-radius:3px;font-size:.6rem;color:#e74c3c;font-weight:600;">'
-            + '⚠️ Este combo NO se muestra en el index. Editalo para reemplazar o sacar: ' + brokenItems.join(', ')
+            + '⚠️ Este combo NO se muestra en el index. Editalo para reemplazar o sacar: ' + escHtml(brokenItems.join(', '))
             + '</div>'
           : '';
 
-        var promoHTML = s.promo ? '$' + formatPriceAdmin(s.promo) : '';
-        var priceHTML = '$' + formatPriceAdmin(s.price);
+        var promoHTML = s.promo ? '$' + escHtml(formatPriceAdmin(s.promo)) : '';
+        var priceHTML = '$' + escHtml(formatPriceAdmin(s.price));
 
         var isPaused = getStockStatus(s.slug) === 'pausado';
         var pauseBtn = isPaused
-          ? '<button class="client-btn" style="background:#2ecc71;color:#fff;" onclick="toggleComboStock(\'' + s.slug + '\')">▶ Activar</button>'
-          : '<button class="client-btn" style="background:#95a5a6;color:#fff;" onclick="toggleComboStock(\'' + s.slug + '\')">⏸ Pausar</button>';
+          ? '<button class="client-btn" style="background:#2ecc71;color:#fff;" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">▶ Activar</button>'
+          : '<button class="client-btn" style="background:#95a5a6;color:#fff;" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">⏸ Pausar</button>';
         var pausedLabel = isPaused ? ' <span style="color:#95a5a6;font-size:.6rem;font-weight:600;">⏸ PAUSADO</span>' : '';
 
         var cardBorder = isBroken ? 'border:2px solid #e74c3c;' : '';
         html += '<div class="combo-card" style="' + (isPaused ? 'opacity:.5;' : '') + cardBorder + '">'
           + '<div class="combo-top">'
-            + '<span class="combo-name">' + s.name + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + brokenBadge + pausedLabel + '</span>'
-            + '<span style="font-size:.65rem;color:var(--gris);">' + s.cat + '</span>'
+            + '<span class="combo-name">' + escHtml(s.name || '') + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + brokenBadge + pausedLabel + '</span>'
+            + '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(s.cat || '') + '</span>'
           + '</div>'
           + '<ul class="combo-items-list">' + listHTML + '</ul>'
           + brokenWarning
@@ -8415,8 +8415,8 @@
           + '</div>'
           + '<div class="combo-actions">'
             + pauseBtn
-            + '<button class="client-btn client-btn-edit" onclick="editCombo(\'' + s.slug + '\')">✏️ Editar</button>'
-            + '<button class="client-btn client-btn-delete" onclick="deleteCombo(\'' + s.slug + '\')">🗑️ Eliminar</button>'
+            + '<button class="client-btn client-btn-edit" onclick="editCombo(' + escHtml(JSON.stringify(String(s.slug))) + ')">✏️ Editar</button>'
+            + '<button class="client-btn client-btn-delete" onclick="deleteCombo(' + escHtml(JSON.stringify(String(s.slug))) + ')">🗑️ Eliminar</button>'
           + '</div>'
         + '</div>';
       });
@@ -8490,9 +8490,11 @@
       var clearBtn = picker.querySelector('.perfume-picker-clear');
 
       function highlight(text, query) {
-        if (!query) return text;
+        if (!query) return escHtml(text);   // [S10-TER-XSS-COMBOS] cada pedazo, escapado antes de marcar
         var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-        return text.replace(re, '<mark>$1</mark>');
+        var out = '', desde = 0, m; text = String(text == null ? '' : text);
+        while ((m = re.exec(text))) { out += escHtml(text.slice(desde, m.index)) + '<mark>' + escHtml(m[0]) + '</mark>'; desde = m.index + m[0].length; if (!m[0].length) re.lastIndex++; }
+        return out + escHtml(text.slice(desde));
       }
 
       function renderDropdown(query) {
@@ -8503,13 +8505,13 @@
           if (q && p.name.toLowerCase().indexOf(q) === -1 && (p.marca || '').toLowerCase().indexOf(q) === -1) return;
           if (count >= 30) return;
           count++;
-          html += '<div class="perfume-picker-option" data-value="' + p.slug + '">'
+          html += '<div class="perfume-picker-option" data-value="' + escHtml(p.slug) + '">'
             + '<span class="pick-name">' + highlight(p.name, q) + '</span>'
-            + '<span class="pick-brand">' + (p.marca_real || p.marca || '') + '</span>'
+            + '<span class="pick-brand">' + escHtml(p.marca_real || p.marca || '') + '</span>'
             + '</div>';
         });
         if (count === 0 && q) {
-          html += '<div class="perfume-picker-empty">Sin resultados para &ldquo;' + q + '&rdquo;</div>';
+          html += '<div class="perfume-picker-empty">Sin resultados para &ldquo;' + escHtml(q) + '&rdquo;</div>';
         }
         dropdown.innerHTML = html;
         dropdown.classList.add('open');
@@ -8920,7 +8922,7 @@
             + '<span style="color:var(--gris);">' + fecha + '</span> — '
             + '<strong style="color:#fff;">' + escapeHtml(h.title) + '</strong><br>'
             + '<span>' + escapeHtml(h.body) + '</span><br>'
-            + '<span style="color:var(--amarillo-tinta);">✅ ' + h.sent + ' enviadas, ❌ ' + h.failed + ' fallidas</span>'
+            + '<span style="color:var(--amarillo-tinta);">✅ ' + (Number(h.sent) || 0) + ' enviadas, ❌ ' + (Number(h.failed) || 0) + ' fallidas</span>'
             + '</div>';
         }).join('');
       }
@@ -9575,21 +9577,21 @@
 
         // Imagen o placeholder
         var imgHTML = r.foto
-          ? '<img src="' + r.foto.replace(/ /g, '%20') + '" style="width:36px;height:46px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
-          : '<div style="width:36px;height:46px;border-radius:4px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:rgba(232,184,0,.3);flex-shrink:0;">' + (r.name ? r.name.charAt(0) : '?') + '</div>';
+          ? '<img src="' + escHtml(r.foto.replace(/ /g, '%20')) + '" style="width:36px;height:46px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
+          : '<div style="width:36px;height:46px;border-radius:4px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:rgba(232,184,0,.3);flex-shrink:0;">' + escHtml(r.name ? r.name.charAt(0) : '?') + '</div>';
 
         html += '<div style="background:' + statusBg + ';border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:.7rem .8rem;border-left:3px solid ' + statusColor + ';">';
         html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:' + (r.issues.length > 0 ? '.5rem' : '0') + ';">';
         html += imgHTML;
         html += '<div style="flex:1;min-width:0;">';
-        html += '<p style="font-size:.75rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + statusIcon + ' ' + r.name + '</p>';
-        html += '<p style="font-size:.6rem;color:var(--gris);">' + r.marca + '</p>';
+        html += '<p style="font-size:.75rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + statusIcon + ' ' + escHtml(r.name || '') + '</p>';
+        html += '<p style="font-size:.6rem;color:var(--gris);">' + escHtml(r.marca || '') + '</p>';
         html += '</div>';
 
         if (r.status === 'ok') {
           html += '<span style="font-size:.6rem;color:#2ecc71;font-weight:600;">✓ Completo</span>';
         } else {
-          html += '<button onclick="doctorGoEdit(\'' + r.slug + '\')" style="flex-shrink:0;background:var(--amarillo);color:#000;border:none;border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer;letter-spacing:.05em;">✏️ CORREGIR</button>';
+          html += '<button onclick="doctorGoEdit(' + escHtml(JSON.stringify(String(r.slug))) + ')" style="flex-shrink:0;background:var(--amarillo);color:#000;border:none;border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer;letter-spacing:.05em;">✏️ CORREGIR</button>';
         }
         html += '</div>';
 
@@ -11902,10 +11904,10 @@
           var sign = delta >= 0 ? '+' : '';
           html += '<tr>'
             + '<td style="font-size:.7rem;color:var(--gris-claro);">'+ fecha +'</td>'
-            + '<td>'+ (l.cliente_nombre || l.cliente_telefono || ('#'+(l.cliente_id||'?'))) +'</td>'
+            + '<td>'+ escHtml(l.cliente_nombre || l.cliente_telefono || ('#'+(l.cliente_id||'?'))) +'</td>'   // [XSS-PANEL-STAFF] latente
             + '<td style="text-align:right;font-weight:700;color:'+ color +';">'+ sign + delta.toFixed(2).replace(/\.?0+$/,'') +'</td>'
-            + '<td style="font-size:.7rem;">'+ (l.motivo||'—') +'</td>'
-            + '<td style="font-size:.7rem;color:var(--gris);">'+ (l.actor||'—') +'</td>'
+            + '<td style="font-size:.7rem;">'+ escHtml(l.motivo||'—') +'</td>'
+            + '<td style="font-size:.7rem;color:var(--gris);">'+ escHtml(l.actor||'—') +'</td>'
           + '</tr>';
         }
         tbody.innerHTML = html;
