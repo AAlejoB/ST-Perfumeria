@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 23, 2026 (noche, `_l`)** — **S11 recortado** (§ 📏): queda qué era, que se arregló (falla cerrado) y que se re-testea al cerrar `[VERCEL-ENV-VARS]`; salen «Cuándo se vuelve peligroso» y la línea que lo ataba a S1. La historia de git conserva la versión anterior.
+> **Última actualización:** **Septiembre 28, 2026** — **S22 abierto** (`[XSS-ESTADISTICAS]`, 🟠 propuesta de Claude Code): salió midiendo la ronda m y ya estaba en `main`. Por la regla de § 📏, sólo la keyword.
+>
+> **Antes (23-sep, noche, `_l`):** — **S11 recortado** (§ 📏): queda qué era, que se arregló (falla cerrado) y que se re-testea al cerrar `[VERCEL-ENV-VARS]`; salen «Cuándo se vuelve peligroso» y la línea que lo ataba a S1. La historia de git conserva la versión anterior.
 >
 > **Antes (23-sep, noche, `_j`):** — **S1 y S4 pasan a keyword sola** (§ 📏): los dos describen agujeros abiertos — S1 mientras `[VERCEL-ENV-VARS]` no cierre, S4 hasta que Alejo decida. S4 estrena keyword: **`[S4-OREGON]`**. El detalle vive fuera del repo; la historia de git conserva las versiones anteriores de las dos secciones.
 >
@@ -327,6 +329,12 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 **Severidad:** 🟠 ALTA en potencia · el mismo agujero que S20, en otra pestaña: hacía falta una cuenta logueada del panel para cargar el nombre; se ejecutaba con la sesión de quien abriera el panel (el jefe incluido).
 
 > ✅ **ESTADO: RESUELTO** · `4419352` (rama `precios-g`, revisada y aprobada por el PREPARADOR; mergeada con el OK de Alejo) + SW v1.1.140, en producción el 27-sep-2026. `renderNuevos` (`admin.html`, la pestaña «Perfume», visible para las dos cuentas) metía `p.name` y `p.marca_real || p.marca` de `perfumes_nuevos` crudos en `innerHTML`, y el botón «Eliminar» armaba `onclick="deleteNuevo(id, '…')"` escapando sólo la comilla simple: dentro de un atributo con comillas dobles, un nombre con `"` cerraba el atributo y lo que seguía se ejecutaba. La lista se pinta al entrar al panel (`loadNuevos`), no sólo al abrir la pestaña. Estaba así desde abril (la forma del `onclick` es de `88863a7`, 23-abr). **Fix:** `escHtml` en el nombre y la marca; el nombre de `deleteNuevo` con `escHtml(JSON.stringify(…))` (el mismo arreglo que S10-bis y S20); `p.id` es numérico. **Verificado:** con fixture, un nuevo con HTML en el nombre y en la marca se ve como texto, 0 `<img>`, no se ejecuta; «Editar» y «Eliminar» reciben el id y el nombre exactos, también con una comilla simple en el nombre. En producción, el `admin.html` de v1.1.140 tiene la forma nueva y ya no la vieja. Mientras estuvo abierto, en el repo fue sólo la keyword; la prueba quedó descrita en `HISTORIA.md` antes del merge (la rama era pública): de ahora en más, la forma de la prueba entra recién en producción.
+
+---
+
+### **S22 · `[XSS-ESTADISTICAS]` · 🟠 ABIERTO**
+
+> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
 
 ---
 

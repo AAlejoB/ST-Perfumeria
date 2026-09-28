@@ -3089,7 +3089,39 @@ Prompt `_k` del PREPARADOR. Alejo eligió la **A** para el «Editar» de la empl
 #### De paso, de antes
 - `[DC-ELIMINAR-CORTADO]`: en cada fila de «Decants de diseñador», a 390 el botón «Eliminar este perfume» (266 px) se sale 77,9 px de la caja y `main` lo recorta. En `main` igual.
 
+→ Siguió en la ronda m (`_l`, abajo): con la decisión B de Alejo, el 129b salió y la rama se mergeó.
+
+### Sesión 28-sep-2026 · `_l` · ronda m · «Guardar», los estados de la barra, «Guardando…», el 🗑️ y el merge de `tanda-l` (decisión B)
+
+Prompt `_l` del PREPARADOR, sobre la rama `tanda-l` (revisada entera por él: sin observaciones). Alejo eligió la **B**: sacar el 129b y mergear si daban las verificaciones 1 a 6. Sin bump nuevo (la v1.1.144 no había salido). `e5f9048` (`admin.html`) + `9a9b8de` (`scripts/contraste.js`).
+
+#### Qué se hizo
+- **128a:** la barra de la escalera dice «Guardar» (era «Guardar configuración»). «↺ RECARGAR» en mayúsculas (`text-transform` + `letter-spacing` en `.barra-sec`) **no entra**: 2 renglones a 360 y a 390 (la barra, 77,4). El prompt decía «si no entra a 360, no va»: quedó como estaba.
+- **128b · los estados:** cada `…Ahora` devuelve `{ ok: true }`, `{ ok: false, error: '<el texto de su mensaje>' }` (validación que corta o error de la base) o nada (canceló el «ST» de Editar). `conGuardando`:
+  - sale bien → «✓ Guardado» 2 s y vuelve a su texto. Si la función cambió el texto (Nuevo limpia el formulario y pone «Agregar perfume») o el botón ya no se ve, queda lo suyo, sin ✓;
+  - sale mal → «No se guardó» 2 s, habilitado, y el motivo arriba de los botones: `<p class="barra-error" role="alert">` con «✕ » + el texto, por `textContent`, en `--stat-tinta-out`, `.72rem`, 2 renglones como mucho. Se va al tocar Guardar de nuevo (y, por lo tanto, al guardar bien). El mensaje del final de la caja, igual;
+  - los timers son por botón: un toque durante los 2 s cancela el pendiente, y el timer devuelve el texto sólo si el botón sigue diciendo lo que él puso.
+  - Los caminos «⚠ Guardado SIN …» (columnas que faltan en la base, de mayo) cuentan como `{ ok: true }`: guardaron.
+  - Si la función tira una excepción, el botón vuelve a su texto como antes, sin estado (puede haber guardado antes de fallar).
+- **«Guardando…» legible:** `.barra-guardar > button:disabled { opacity: .7; cursor: progress }`, que le gana a `.modal-btn:disabled` (.3) por especificidad.
+- **`[DC-ELIMINAR-CORTADO]`:** el 🗑️ de cada fila de «Decants de diseñador» con `width: auto; min-width: 48px` (`.modal-btn` trae `width: 100%`) y **`min-height: 44px`** (medía 38: el prompt pedía 44 o más y su arreglo dejaba el 38).
+- **B:** el 129b salió: `#tab-espera .espera-btn` vuelve a `.58rem` y `.espera-btn-todos` a `.65rem`, como en `main`.
+
+#### Verificación (fixture, Inter; stub con demora y fallas a pedido)
+1. «Guardar», un renglón a 360, 390, 600 y 1280. La barra de la escalera: **73 a 390** (en `main`, 75,4), 600 y 1280; **77,4 a 360**, porque «↺ Recargar» va en 2 renglones (igual que en `main`) → `[RECARGAR-360]`. Alejo mergeó igual.
+2. **Los estados, en las 5 barras:** bien → «✓ Guardado» al terminar y a +1,7 s, su texto a +2,2 s; error de la base → «No se guardó» y el motivo con `role="alert"` arriba de los botones; al reintentar, el motivo se va en el toque y vuelve si falla otra vez; al guardar bien, se va. Validación que corta (Editar con «XX» en vez de «ST», Nuevo sin nombre ni precio, la escalera sin ml, la promo con N = 1): igual que el error, 0 escrituras. Cancelar el «ST»: nada. Nuevo: después de limpiar, «Agregar perfume» sin ✓ (también editando). Un toque durante los 2 s: otra escritura y el timer viejo no pisa el ✓ nuevo. Salir de la pestaña durante los 2 s: el texto vuelve y ningún error. Si «editar» otro nuevo cambia el texto durante los 2 s, el timer no lo pisa.
+3. **Alto de la barra a 390 y 360:** 73 sin motivo; 96 con un renglón; 110 con dos y con un motivo larguísimo (el recorte a 2 funciona). El prompt estimaba 97 / 112: el renglón es de 15 px (`line-height: normal` de Inter a `.72rem`). Los botones siguen en una fila. Un motivo con `"><img src=x onerror=…>` se ve como texto: 0 `<img>`, no se ejecuta.
+4. `npm run contraste`: «Guardando…» **6,00** en oscuro y **5,44** en claro; el motivo, 4,54 y 5,89. 0 fallas + 1 token pisado, 295 mediciones.
+5. **El 🗑️:** 48 × 44, 0 px afuera de la caja y de la fila a 360, 390, 600 y 1280, en la misma fila que «💾 Guardar» (en `main`: 236 / 266 / 476 / 130 px de ancho y +77,9 / +77,9 / +77,9 / +19,9 afuera).
+6. Doble toque: 1 escritura en las 5 barras (0 en las validaciones). `#tab-espera`: 0 diferencias con `main` (56 reglas).
+7. Capturas en `herramientas\tanda-l\png\ronda-m-*` (claro y oscuro): Editar a 390 en el medio con «Guardando…» y «✓ Guardado», Nuevo con un nombre repetido («No se guardó» y el motivo), Decants a 360 con «Guardar» y una fila de «Decants de diseñador» a 390 con el 🗑️.
+
+#### De paso, de antes
+- `[XSS-ESTADISTICAS]` 🟠: agujero abierto que ya estaba en `main`; salió en la consola durante las mediciones. Sólo la keyword (SECURITY.md § S22).
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_l`)** — la ronda m sobre `tanda-l` y, con la decisión B de Alejo (sin el 129b), el merge: SW v1.1.144 en producción. Cerrados `[EDITAR-EMPLEADA-MUERTO]`, `[DC-HEADER-600]`, `[DC-ELIMINAR-CORTADO]`, `[GUARDAR-DOBLE-TOQUE]` y `[GUARDAR-AVISO-LEJOS]`. Nuevos: `[XSS-ESTADISTICAS]` 🟠 y `[RECARGAR-360]` 🟢.
 
 **Última actualización:** **Septiembre 28, 2026 (`_k`)** — la ronda l en la rama `tanda-l` (SW v1.1.144), sin mergear: el punto 2 (ningún nombre en 3 renglones a 360) no dio → `[ESPERA-NOMBRE-3-RENGLONES]`. Nuevo, de antes: `[DC-ELIMINAR-CORTADO]`.
 
@@ -3227,6 +3259,14 @@ Prompt `_k` del PREPARADOR. Alejo eligió la **A** para el «Editar» de la empl
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 28-sep-2026 (`_l`):**
+
+- ✅ ~~**`[EDITAR-EMPLEADA-MUERTO]`**~~ (27-sep, salió de `[GUARDAR-ABAJO]` · 🟡, prioridad propuesta por Claude Code) — **la empleada no puede abrir Editar**: su botón (`data-only-empleado`) llama a `switchTab('editar')`, pero `canAccessTab` busca el **primer** `.tab-btn[data-tab="editar"]`, que es el del jefe (`data-role="jefe"`, escondido con CSS), y devuelve `false`. Pasa igual en `main` (medido con fixture: `canAccessTab('editar')` → `false`, la pestaña no se abre). **En la rama `tanda-l`** (decisión A de Alejo, 28-sep): se sacó el botón «Editar» de la empleada y su regla de CSS; `guia.html` ya no le dice que cambia precios. → **RESUELTO el 28-sep** (ronda l, `e18487a`, en producción con v1.1.144).
+- ✅ ~~**`[DC-HEADER-600]`**~~ — el mini-header de columnas del grid de decants de diseñador (`admin.html` ~L2687) asoma −43 px a 600 y no sigue el stack de `.dc-row`. **En la rama `tanda-l`** (`[DC-HEADER-CORTADO]`): el encabezado se ve sólo ≥ 1100; debajo, cada fila tiene sus etiquetas. → **RESUELTO el 28-sep** (ronda l, `e18487a`).
+- ✅ ~~**`[DC-ELIMINAR-CORTADO]`**~~ (28-sep, salió de la ronda l · 🟢, de antes: en `main` igual) — en cada fila de «Decants de diseñador», a 390 el botón «Eliminar este perfume» mide 266 px, se sale 77,9 px de la caja y `main` lo recorta (9 de 9 filas del fixture). A 1280 se sale 19,9 px de la caja pero entra en `main`. Es del DISEÑADOR. No se tocó. → **RESUELTO el 28-sep** (ronda m, `e5f9048`): `width: auto; min-width: 48px` y 44 de alto; 0 px afuera a 360, 390, 600 y 1280.
+- ✅ ~~**`[GUARDAR-DOBLE-TOQUE]`**~~ (27-sep, salió de `[GUARDAR-ABAJO]` · 🟢, prioridad propuesta) — ningún «Guardar» del panel (Editar, Nuevo, la escalera, la promo, las marcas) se deshabilita ni dice «Guardando…» mientras guarda: sólo Editar escribe «Guardando...» en su línea de mensaje. Con la barra siempre a mano, un doble toque guarda dos veces. **En la rama `tanda-l`:** el botón principal de cada barra va deshabilitado y con «Guardando…» hasta que termina (`conGuardando`), y vuelve a su texto en éxito, error y validación. → **RESUELTO el 28-sep** (ronda l, `e18487a`): 1 escritura por doble toque en las 5 barras.
+- ✅ ~~**`[GUARDAR-AVISO-LEJOS]`**~~ (27-sep, salió de `[GUARDAR-ABAJO]` · 🟢, del DISEÑADOR) — la confirmación de guardar («✓ … actualizado», `#editMsg`, `#nuevoMsg`, `#decMsg`, `#promoMsg`, `#marcasMsg`) sigue al final de cada caja: si se guarda desde la mitad del formulario con la barra (a 390, Editar mide 3.335 px), no se ve. No se tocó. → **RESUELTO el 28-sep** (ronda m, 128b, `e5f9048`): el botón dice «✓ Guardado» o «No se guardó» 2 s y el motivo queda en la barra hasta el próximo toque.
 
 **Movidos el 27-sep-2026 (`_d`):**
 
