@@ -3068,7 +3068,30 @@ Prompt `_j` del PREPARADOR (decisión del DISEÑADOR, aprobada por Alejo). Rama 
 6. **El teclado:** `focus()` en el último campo de arriba de cada barra, desde arriba de todo y desde detrás de la barra: el borde de abajo queda por encima de la barra en las 5 cajas y los 5 anchos.
 7. 43 capturas en `herramientas\guardar-abajo\png\` (390, 600 y 1280, claro y oscuro: Editar arriba, en el medio y al final; Nuevo; Decants como jefe y como empleada; Editar a 960 × 600 con el menú expandido; y el menú abierto en los 5 anchos).
 
+### Sesión 28-sep-2026 · `_k` · ronda l · tanda chica (123k, 123l, 129b, doble toque, encabezado de Decants, «Editar» de la empleada) · **sin mergear**
+
+Prompt `_k` del PREPARADOR. Alejo eligió la **A** para el «Editar» de la empleada y autorizó el merge si daban las verificaciones 1 a 5. Rama `tanda-l` desde `2a2ddd6`; SW v1.1.144 en commit aparte. **No se mergeó: el punto 2 no dio** (abajo).
+
+#### Qué se hizo
+- **123k:** la línea 💎 dice «💎 5 ml $22.500» (sin «decant»). **123l:** «a consultar» → «sin precio» en la línea 💎 y en «Sólo en decant»; sólo en Precios & Stock.
+- **129b:** los botones de la Espera ya no tienen letra propia: toman la de `.action-btn` (`.68rem`).
+- **`[GUARDAR-DOBLE-TOQUE]`:** `conGuardando(id, fn)`: el botón principal de las 5 barras (Editar, Nuevo, la escalera, la promo, las marcas) va deshabilitado y con «Guardando…» hasta que termina, y vuelve a su texto en un `finally` (salvo que la función lo haya cambiado: Nuevo pasa a «Agregar perfume» al limpiar). Las funciones pasaron a `…Ahora`; los `onclick` no cambiaron. Ids nuevos: `btnSaveEdit`, `btnSaveDecants`, `btnSavePromo`, `btnSaveMarcas`.
+- **`[DC-HEADER-CORTADO]`** (cierra `[DC-HEADER-600]`): el encabezado de columnas de «Decants de diseñador» con la clase `dc-head` (el `display: grid` pasó del inline a la clase) y oculto debajo de 1100.
+- **`[EDITAR-EMPLEADA-MUERTO]` (A):** se sacó el botón «Editar» de la empleada y su regla de CSS. En `guia.html` (sección «Precios y Stock», marcada EMPLEADO) se fueron la columna «Acción / Editar» y «Cambiar precio», que ya no existen, y el aviso de roles dice que la empleada gestiona stock y clientes.
+
+#### Verificación (fixture, Inter)
+1. Capturas en `herramientas\tanda-l\png\` (360 y 390, claro y oscuro: «💎 Diseñador», la Espera en Pendientes e Historial con nombres largos; Decants a 390, 600 y 1280; el menú como empleada y como jefe).
+2. La línea 💎 en un renglón a 360 y 390 (97 de 110 px); filas con 💎 **58 / 72 / 86** (antes 69 / 83 / 97). Los botones de la Espera, 44 o más. **Nombres: no da.** A 360, en el Historial, con la etiqueta «🏪 Local», un nombre de 20 letras va en 3 renglones (en `main`, 2); sin etiqueta, con 34 (en `main`, 2). En Pendientes, con etiqueta, 34 letras → 3 (igual que `main`). Los nombres reales llegan a 21 letras.
+3. Doble toque, con un stub que tarda 300 ms: dos `click()` seguidos = **una** escritura en los 5; durante, «Guardando…» y deshabilitado; después, su texto, en éxito, error de la base y validación que corta (Editar: cancelar el «ST»; Nuevo sin nombre; la escalera sin ml; la promo con N = 1). Nuevo editando: «Guardar cambios» → «Agregar perfume».
+4. `npm run contraste`: 0 fallas + 1 token pisado, 291 mediciones. Sintaxis del script del panel: sin errores.
+5. Empleada: el menú no tiene «Editar» (en `main` tenía uno que no abría). Jefe: igual que antes.
+
+#### De paso, de antes
+- `[DC-ELIMINAR-CORTADO]`: en cada fila de «Decants de diseñador», a 390 el botón «Eliminar este perfume» (266 px) se sale 77,9 px de la caja y `main` lo recorta. En `main` igual.
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_k`)** — la ronda l en la rama `tanda-l` (SW v1.1.144), sin mergear: el punto 2 (ningún nombre en 3 renglones a 360) no dio → `[ESPERA-NOMBRE-3-RENGLONES]`. Nuevo, de antes: `[DC-ELIMINAR-CORTADO]`.
 
 **Última actualización:** **Septiembre 27, 2026 (`_j`)** — `[GUARDAR-ABAJO]` en la rama `guardar-abajo`, SW v1.1.143. Nuevos: `[EDITAR-EMPLEADA-MUERTO]` 🟡, `[GUARDAR-DOBLE-TOQUE]` y `[GUARDAR-AVISO-LEJOS]` 🟢.
 
