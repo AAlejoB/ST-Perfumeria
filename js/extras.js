@@ -337,7 +337,7 @@
             + '<p class="decant-card-price decant-card-price-pending">💬 Precio a consultar</p>'
           + '</div>'
           + '<div class="decant-card-ctrl">'
-            + '<button class="decant-ctrl-btn decant-ctrl-consultar" onclick="consultarDecantWA(\'' + p.slug + '\')" title="Consultar por WhatsApp" aria-label="Consultar precio por WhatsApp">Consultar</button>'
+            + '<button class="decant-ctrl-btn decant-ctrl-consultar" onclick="consultarDecantWA(' + jsAttr(p.slug) + ')" title="Consultar por WhatsApp" aria-label="Consultar precio por WhatsApp">Consultar</button>'
           + '</div>'
         + '</div>';
       }
@@ -358,9 +358,9 @@
           + precioTag
         + '</div>'
         + '<div class="decant-card-ctrl">'
-          + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(\'' + p.slug + '\')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
+          + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(' + jsAttr(p.slug) + ')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
           + '<span class="decant-ctrl-qty">' + qty + '</span>'
-          + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + p.slug + '\')" aria-label="Agregar">+</button>'
+          + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(' + jsAttr(p.slug) + ')" aria-label="Agregar">+</button>'
         + '</div>'
       + '</div>';
     }
@@ -397,9 +397,9 @@
           + priceTag
         + '</div>'
         + '<div class="decant-card-ctrl">'
-          + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(\'' + slug + '\')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
+          + '<button class="decant-ctrl-btn decant-ctrl-minus" onclick="removeDecant(' + jsAttr(slug) + ')"' + (qty === 0 ? ' disabled' : '') + ' aria-label="Quitar">−</button>'
           + '<span class="decant-ctrl-qty">' + qty + '</span>'
-          + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(\'' + slug + '\')"' + plusDisabled + ' aria-label="Agregar">+</button>'
+          + '<button class="decant-ctrl-btn decant-ctrl-plus" onclick="addDecant(' + jsAttr(slug) + ')"' + plusDisabled + ' aria-label="Agregar">+</button>'
         + '</div>'
       + '</div>';
     }

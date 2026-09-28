@@ -141,8 +141,9 @@ module.exports = async (req, res) => {
   <meta name="twitter:image" content="${esc(ogImage)}"/>
 
   <link rel="icon" type="image/png" href="${BASE_URL}/img/logo-st.webp"/>
-  <script type="application/ld+json">${JSON.stringify(itemListSchema)}</script>
-  <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
+  <!-- [XSS-CATALOGO-STAFF] < → \u003c: un «</script>» en un nombre no cierra el bloque -->
+  <script type="application/ld+json">${JSON.stringify(itemListSchema).replace(/</g, '\\u003c')}</script>
+  <script type="application/ld+json">${JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')}</script>
 
   ${botRequest ? '' : `<script>
     setTimeout(function() {

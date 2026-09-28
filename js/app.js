@@ -629,7 +629,7 @@
       document.body.classList.toggle('is-guest', !currentUser);
       if (currentUser) {
         var _firstName = String(currentUser.nombre || '').trim().split(/\s+/)[0] || 'Vos';
-        regBtn.innerHTML = '<span class="auth-user-bar"><svg class="auth-user-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>' + _firstName + '</strong></span>';
+        regBtn.innerHTML = '<span class="auth-user-bar"><svg class="auth-user-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>' + escapeHTML(_firstName) + '</strong></span>';   // [XSS-NOMBRE-CLIENTE]
         regBtn.setAttribute('onclick', 'event.preventDefault();openEditProfile()');
         regBtn.setAttribute('title', 'Editar perfil');
         if (drawerAuth) { drawerAuth.textContent = '\u270f\ufe0f Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
@@ -791,17 +791,17 @@
       top3.forEach(function(item) {
         var p = item.perfume;
         var imgHtml = p.foto
-          ? '<img class="quiz-result-img" src="'+p.foto+'" alt="'+p.name+'" loading="lazy" decoding="async">'
+          ? '<img class="quiz-result-img" src="'+escapeHTML(p.foto)+'" alt="'+escapeHTML(p.name)+'" loading="lazy" decoding="async">'
           : '<div class="quiz-result-img" style="display:flex;align-items:center;justify-content:center;color:#666;font-size:.6rem">Sin foto</div>';
         var notasPreview = (p.notas_salida || p.notas_corazon || p.notas_base || '').split(',').slice(0,3).join(', ');
 
         html += '<div class="quiz-result-card">'
           + imgHtml
           + '<div class="quiz-result-info">'
-          + '<p class="quiz-result-name">'+p.name+'</p>'
-          + '<p class="quiz-result-marca">'+p.marca+'</p>'
-          + (notasPreview ? '<p class="quiz-result-notas">'+notasPreview+'</p>' : '')
-          + '<button class="quiz-result-cta" onclick="openBottomSheet(\'' + p.slug + '\')">Ver el perfume &#8594;</button>'
+          + '<p class="quiz-result-name">'+escapeHTML(p.name)+'</p>'
+          + '<p class="quiz-result-marca">'+escapeHTML(p.marca || '')+'</p>'
+          + (notasPreview ? '<p class="quiz-result-notas">'+escapeHTML(notasPreview)+'</p>' : '')
+          + '<button class="quiz-result-cta" onclick="openBottomSheet(' + jsAttr(p.slug) + ')">Ver el perfume &#8594;</button>'
           + '</div></div>';
       });
 
@@ -1170,6 +1170,17 @@
         return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
       });
     }
+    // [XSS-CATALOGO-STAFF] Un valor adentro de un onclick="…(…)" armado con texto: JSON + escapeHTML (el valor queda como
+    // un string de JS bien cerrado, y el atributo, bien escapado).
+    function jsAttr(v) { return escapeHTML(JSON.stringify(String(v == null ? '' : v))); }
+    // [XSS-CATALOGO-STAFF] Una URL que sale de datos (el link de los badges, el del anuncio): sólo http(s) o relativa.
+    // Antes de mirar el esquema se sacan los caracteres de control y espacios, como hace el navegador.
+    function urlSegura(u) {
+      var s = String(u == null ? '' : u).replace(/[\u0000-\u0020\u007f]/g, '');
+      if (!s) return false;
+      var esquema = s.match(/^([a-z][a-z0-9+.\-]*):/i);
+      return !esquema || /^https?$/i.test(esquema[1]);
+    }
 
     // [CINTA-TINTA] decisión 95 · la letra de la cinta la decide su fondo, no el tema: #fff o #000, la que dé más
     // contraste con el color que eligió el jefe (anda con cualquier color nuevo). El color entra al HTML sólo si es un
@@ -1202,9 +1213,9 @@
       if (!grid) return;
       var list = (items && items.length) ? items : TRUST_BADGES_DEFAULTS;
       grid.innerHTML = list.map(function(b) {
-        var hasLink = b.link_a && b.link_a.trim() !== '';
+        var hasLink = b.link_a && b.link_a.trim() !== '' && urlSegura(b.link_a);   // [XSS-CATALOGO-STAFF] sólo http(s) o relativa
         var cls = 'trust-badge-card' + (hasLink ? ' is-link' : '');
-        var clickAttr = hasLink ? ' onclick="trustBadgeGo(' + JSON.stringify(b.link_a).replace(/"/g,'&quot;') + ')" role="button" tabindex="0"' : '';
+        var clickAttr = hasLink ? ' onclick="trustBadgeGo(' + jsAttr(b.link_a) + ')" role="button" tabindex="0"' : '';
         return ''
           + '<div class="' + cls + '"' + clickAttr + '>'
           +   '<span class="trust-badge-icon" aria-hidden="true">' + escapeHTML(b.icono || '◆') + '</span>'
@@ -1215,7 +1226,7 @@
     }
 
     function trustBadgeGo(link) {
-      if (!link) return;
+      if (!link || !urlSegura(link)) return;
       if (link.charAt(0) === '#') {
         if (link.toLowerCase() === '#quizsection') { openJuegos(); return; }   // [JUEGOS-VENTANA] decisión 65
         var el = document.querySelector(link);
@@ -1426,10 +1437,10 @@
       var gridMasc = document.getElementById('votoMasc');
       var gridFem = document.getElementById('votoFem');
       gridMasc.innerHTML = candidatosMasc.map(function(name) {
-        return '<button class="voto-opt" data-name="' + name.replace(/"/g, '') + '" onclick="submitVoto(this,\'masculino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
+        return '<button class="voto-opt" data-name="' + escapeHTML(name) + '" onclick="submitVoto(this,\'masculino\',' + jsAttr(name) + ')" disabled>' + escapeHTML(name) + '</button>';
       }).join('');
       gridFem.innerHTML = candidatosFem.map(function(name) {
-        return '<button class="voto-opt" data-name="' + name.replace(/"/g, '') + '" onclick="submitVoto(this,\'femenino\',\'' + name.replace(/'/g, "\\'") + '\')" disabled>' + name + '</button>';
+        return '<button class="voto-opt" data-name="' + escapeHTML(name) + '" onclick="submitVoto(this,\'femenino\',' + jsAttr(name) + ')" disabled>' + escapeHTML(name) + '</button>';
       }).join('');
     }
 
@@ -1462,7 +1473,7 @@
         var name = b.getAttribute('data-name') || b.textContent.trim();
         var pct = Math.round((counts[name] || 0) / total * 100);
         b.innerHTML = '<span class="poll-bar" style="width:' + pct + '%"></span>'
-          + '<span class="poll-label">' + name + '</span>'
+          + '<span class="poll-label">' + escapeHTML(name) + '</span>'
           + '<span class="poll-pct">' + pct + '%</span>';
         b.disabled = true;
         b.classList.add('showed');
@@ -1841,7 +1852,7 @@
           // 162 imágenes de backdrop al inicio (bypasseando loading="lazy"
           // del <img>, que NO aplica a CSS background-image).
           var bgUrl = url.replace(/'/g, "%27").replace(/"/g, '&quot;');
-          return '<div class="card-gallery-slide" data-bg="' + bgUrl + '"><img src="' + url + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
+          return '<div class="card-gallery-slide" data-bg="' + bgUrl + '"><img src="' + escapeHTML(url) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" width="400" height="400"></div>';
         }).join('');
         var navInnerFilled = navInnerHTML.replace('PLACEHOLDER', fotosPool.length);
         galleryNavOnImage = '<div class="card-gallery-nav card-gallery-nav--image">' + navInnerFilled + '</div>';
@@ -1851,12 +1862,12 @@
         // Wrap en .card-gallery-slide con backdrop blur LAZY (data-bg, igual
         // que el caso multi-foto — el IntersectionObserver lo activa).
         var _bgUrl = fotosPool[0].replace(/'/g, "%27").replace(/"/g, '&quot;');
-        imageHTML = '<div class="card-gallery-slide card-gallery-slide--single" data-bg="' + _bgUrl + '"><img src="' + fotosPool[0] + '" alt="' + p.name + '" loading="lazy" decoding="async" width="400" height="400"></div>';
+        imageHTML = '<div class="card-gallery-slide card-gallery-slide--single" data-bg="' + _bgUrl + '"><img src="' + escapeHTML(fotosPool[0]) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" width="400" height="400"></div>';
       } else {
         // [3B] Placeholder elegante: tipografía display + nombre del perfume + label sutil.
         // Reemplaza el SVG-botella con cinta diagonal amarilla "Foto próximamente" que
         // parecía un badge de error. Ahora se ve como "carga en curso" en vez de bug.
-        imageHTML = '<div class="photo-coming"><span class="photo-coming-letter">' + letter + '</span><span class="photo-coming-name">' + p.name + '</span><span class="photo-coming-label">Foto próximamente</span></div>';
+        imageHTML = '<div class="photo-coming"><span class="photo-coming-letter">' + escapeHTML(letter) + '</span><span class="photo-coming-name">' + escapeHTML(p.name) + '</span><span class="photo-coming-label">Foto próximamente</span></div>';
       }
 
       // [HOTSALE] Las cuotas siempre se calculan sobre precio TARJETA (p.price).
@@ -1895,7 +1906,7 @@
       if (stockStatus === 'out') noteForState = p.nota_sin_stock || '';
       else if (isPaused)         noteForState = p.nota_proximamente || '';
       var badgeExtraAttrs = noteForState
-        ? ' has-note" onclick="event.stopPropagation();showStockNote(\'' + p.slug + '\',\'' + stockStatus + '\')"'
+        ? ' has-note" onclick="event.stopPropagation();showStockNote(' + jsAttr(p.slug) + ',' + jsAttr(stockStatus) + ')"'
         : '"';
       // [PROMO-DECANTS] N3 · «Último» y «Nuevo» van en la pila de etiquetas (etiquetasCard).
       if (stockStatus === 'out') stockBadge = '<span class="badge-sin-stock' + badgeExtraAttrs + '>Sin stock</span>';
@@ -1904,7 +1915,7 @@
 
       // Tipo de producto (campo explícito del admin, fallback a keyword en nombre)
       var prodType = detectProductType(p);
-      var tipoBadge = prodType ? '<span class="badge-tipo">' + prodType + '</span>' : '';
+      var tipoBadge = prodType ? '<span class="badge-tipo">' + escapeHTML(prodType) + '</span>' : '';
 
       // Cinta de etiqueta personalizada (se configura desde el admin)
       var ribbonHTML = '';
@@ -1953,7 +1964,7 @@
       if (viewCount > 3) {
         var liveN = computeLiveViewers(p.slug);
         if (liveN > 0) {
-          liveViewersHTML = '<div class="card-live-viewers" data-slug="' + p.slug + '"><span class="card-live-dot"></span><span class="card-live-count">' + liveN + '</span> mirando ahora</div>';
+          liveViewersHTML = '<div class="card-live-viewers" data-slug="' + escapeHTML(p.slug) + '"><span class="card-live-dot"></span><span class="card-live-count">' + liveN + '</span> mirando ahora</div>';
         }
       }
 
@@ -1967,12 +1978,12 @@
       if (isOutOfStock || isPaused) {
         var alreadyWaiting = waitlistSlugs.indexOf(p.slug) !== -1;
         if (alreadyWaiting) {
-          waitlistHTML = '<button class="waitlist-btn subscribed" onclick="openWaitlist(\'' + p.slug + '\', event)">'
+          waitlistHTML = '<button class="waitlist-btn subscribed" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
             + '<span class="waitlist-ico waitlist-ico--check">&#10003;</span> '
             + '<span class="waitlist-label">Te avisamos cuando vuelva</span>'
           + '</button>';
         } else {
-          waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(\'' + p.slug + '\', event)">'
+          waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
             + '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span>'
             + '<span class="waitlist-ico waitlist-ico--lock">&#128274;</span> '   // [ESPERA-MAS] el espacio, como el ✓ (medía 0 px)
             + '<span class="waitlist-label">Avisame cuando vuelva</span>'
@@ -1986,26 +1997,26 @@
         ? parseFloat(String(p.promo).replace(/[^0-9.\-]/g, '')) || 0
         : parseFloat(String(p.price || '').replace(/[^0-9.\-]/g, '')) || 0;
 
-      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + p.cat + '" data-slug="' + p.slug + '" data-perfil="' + (p.perfil || '') + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
+      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + escapeHTML(p.cat) + '" data-slug="' + escapeHTML(p.slug) + '" data-perfil="' + escapeHTML(p.perfil || '') + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + ribbonHTML + stockBadge + '<div class="card-etiquetas">' + etiquetasCard(p, stockStatus) + '</div>' + discountHTML + discountTimerHTML
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
-        + '<button class="compare-btn" onclick="toggleCompare(\'' + p.slug + '\', this, event)" aria-label="Comparar con otros perfumes"><span class="compare-icon">&#9878;</span><span class="compare-label">COMPARAR</span></button>'
+        + '<button class="compare-btn" onclick="toggleCompare(' + jsAttr(p.slug) + ', this, event)" aria-label="Comparar con otros perfumes"><span class="compare-icon">&#9878;</span><span class="compare-label">COMPARAR</span></button>'
         + '<div class="card-image">' + imageHTML + '</div>'
         + '<div class="card-info">'
           + galleryNavOnInfo
-          + '<p class="card-name">' + p.name + '</p>'
-          + '<p class="card-brand">' + (p.marca_real || p.marca) + '</p>'
+          + '<p class="card-name">' + escapeHTML(p.name) + '</p>'
+          + '<p class="card-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
           + '<div class="card-tags">'
-            + '<span class="card-tag tag-cat">' + pCat + '</span>'
-            + '<span class="card-tag tag-ml">' + mlText + '</span>'
-            + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+            + '<span class="card-tag tag-cat">' + escapeHTML(pCat) + '</span>'
+            + '<span class="card-tag tag-ml">' + escapeHTML(mlText) + '</span>'
+            + '<span class="card-tag tag-acorde">' + escapeHTML(p.perfil || '') + '</span>'
             + tipoBadge
           + '</div>'
           + ((p.notas_salida || p.notas_corazon || p.notas_base)
             ? '<div class="card-notes-preview">'
-              + '<p class="note-prev"><span class="note-label">SALIDA</span> ' + (p.notas_salida || '—') + '</p>'
-              + '<p class="note-prev"><span class="note-label">CORAZ\u00d3N</span> ' + (p.notas_corazon || '—') + '</p>'
-              + '<p class="note-prev"><span class="note-label">BASE</span> ' + (p.notas_base || '—') + '</p>'
+              + '<p class="note-prev"><span class="note-label">SALIDA</span> ' + escapeHTML(p.notas_salida || '—') + '</p>'
+              + '<p class="note-prev"><span class="note-label">CORAZ\u00d3N</span> ' + escapeHTML(p.notas_corazon || '—') + '</p>'
+              + '<p class="note-prev"><span class="note-label">BASE</span> ' + escapeHTML(p.notas_base || '—') + '</p>'
             + '</div>'
             : '')
           + '<div class="card-pricing">' + pricingHTML + '</div>'
@@ -2017,34 +2028,34 @@
           + waitlistHTML
         + '</div>'
         + '<div class="card-reveal">'
-          + '<p class="reveal-name">' + p.name + '</p>'
-          + '<p class="reveal-brand">' + (p.marca_real || p.marca) + '</p>'
+          + '<p class="reveal-name">' + escapeHTML(p.name) + '</p>'
+          + '<p class="reveal-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
           + '<div class="reveal-pricing">' + pricingHTML + '</div>'
           + '<div class="reveal-divider"></div>'
           + '<div class="reveal-tags">'
-            + '<span class="card-tag tag-cat">' + pCat + '</span>'
-            + '<span class="card-tag tag-ml">' + mlText + '</span>'
-            + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+            + '<span class="card-tag tag-cat">' + escapeHTML(pCat) + '</span>'
+            + '<span class="card-tag tag-ml">' + escapeHTML(mlText) + '</span>'
+            + '<span class="card-tag tag-acorde">' + escapeHTML(p.perfil || '') + '</span>'
             + tipoBadge
           + '</div>'
           + '<div class="scent-notes">'
             + (p.esSet
-              ? '<p class="scent-note set-highlight"><strong>' + p.setInfo + '</strong></p>'
-                + '<p class="scent-note">Incluye: ' + p.name + '</p>'
+              ? '<p class="scent-note set-highlight"><strong>' + escapeHTML(p.setInfo || '') + '</strong></p>'
+                + '<p class="scent-note">Incluye: ' + escapeHTML(p.name) + '</p>'
                 + '<p class="scent-note">Precio: ' + pricingHTML + '</p>'
               : (p.notas_salida || p.notas_corazon || p.notas_base)
-                ? '<p class="scent-note"><span class="note-label">SALIDA</span> ' + (p.notas_salida || '—') + '</p>'
-                  + '<p class="scent-note"><span class="note-label">CORAZ\u00d3N</span> ' + (p.notas_corazon || '—') + '</p>'
-                  + '<p class="scent-note"><span class="note-label">BASE</span> ' + (p.notas_base || '—') + '</p>'
-                : '<p class="scent-note">' + p.perfil + ' &middot; ' + pCat + '</p>'
+                ? '<p class="scent-note"><span class="note-label">SALIDA</span> ' + escapeHTML(p.notas_salida || '—') + '</p>'
+                  + '<p class="scent-note"><span class="note-label">CORAZ\u00d3N</span> ' + escapeHTML(p.notas_corazon || '—') + '</p>'
+                  + '<p class="scent-note"><span class="note-label">BASE</span> ' + escapeHTML(p.notas_base || '—') + '</p>'
+                : '<p class="scent-note">' + escapeHTML(p.perfil || '') + ' &middot; ' + escapeHTML(pCat) + '</p>'
                   + '<p class="scent-note">Precio: ' + pricingHTML + '</p>'
             )
           + '</div>'
-          + '<button onclick="goToWA(\'' + p.slug + '\', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</button>'
-          + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base || (p.similares_nota && p.similares_nota.trim()) || (Array.isArray(p.similares_manuales) && p.similares_manuales.length > 0))) ? '<button class="reveal-similares" onclick="showSimilares(\'' + p.slug + '\', event)">&#9830; Ver similares</button>' : '')
+          + '<button onclick="goToWA(' + jsAttr(p.slug) + ', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</button>'
+          + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base || (p.similares_nota && p.similares_nota.trim()) || (Array.isArray(p.similares_manuales) && p.similares_manuales.length > 0))) ? '<button class="reveal-similares" onclick="showSimilares(' + jsAttr(p.slug) + ', event)">&#9830; Ver similares</button>' : '')
           + '<div class="reveal-actions">'
-            + '<button class="cart-add-btn" onclick="addToCart(\'' + p.slug + '\', this, event)">&#128722; Agregar</button>'
-            + '<button class="reveal-share" onclick="sharePerfume(\'' + p.slug + '\', this, event)">&#128279;</button>'
+            + '<button class="cart-add-btn" onclick="addToCart(' + jsAttr(p.slug) + ', this, event)">&#128722; Agregar</button>'
+            + '<button class="reveal-share" onclick="sharePerfume(' + jsAttr(p.slug) + ', this, event)">&#128279;</button>'
           + '</div>'
         + '</div>'
       + '</div>';
@@ -2145,7 +2156,7 @@
         // Armar tarjetas apiladas (hasta 3)
         var html = visibles.map(function(ann) {
           var bodyHtml = esc(ann.body || '');
-          if (ann.url) bodyHtml += ' <a href="' + esc(ann.url) + '">Ver más →</a>';
+          if (ann.url && urlSegura(ann.url)) bodyHtml += ' <a href="' + esc(ann.url) + '">Ver más →</a>';   // [XSS-CATALOGO-STAFF] sólo http(s) o relativa
           return '<div class="pub-ann-inner" data-ann-id="' + esc(ann.id) + '">'
             + '<span class="pub-ann-ico" aria-hidden="true">📣</span>'
             + '<div class="pub-ann-body">'
@@ -2228,8 +2239,8 @@
         if (!p || p._oculto || p._pausado) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var imgHTML = p.foto
-          ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async" width="300" height="300">'
-          : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + p.name.charAt(0) + '</div>';
+          ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" width="300" height="300">'
+          : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + escapeHTML(p.name.charAt(0)) + '</div>';
         var rankNum = idx + 1;
         var rankClass = rankNum <= 3 ? ' has-rank rank-' + rankNum : '';
         var rankBadge = rankNum <= 3
@@ -2238,12 +2249,12 @@
         var quoteHTML = (p.nota_jefe && (p.nota_jefe + '').trim())
           ? '<p class="collectible-quote">&laquo;' + escapeHTML((p.nota_jefe + '').trim()) + '&raquo;</p>'
           : '';
-        html += '<div class="collectible-card' + rankClass + '" onclick="scrollToPerfume(\'' + slug + '\')">'
+        html += '<div class="collectible-card' + rankClass + '" onclick="scrollToPerfume(' + jsAttr(slug) + ')">'
           + rankBadge
           + '<div class="collectible-card-inner">'
             + '<div class="collectible-img-wrap">' + imgHTML + '</div>'
             + '<div class="collectible-info">'
-              + '<p class="collectible-name">' + p.name + '</p>'
+              + '<p class="collectible-name">' + escapeHTML(p.name) + '</p>'
               + quoteHTML
               + '<span class="collectible-badge">' + escapeHTML(SELECCION_BADGE_TEXT) + '</span>'
             + '</div>'
@@ -2363,7 +2374,7 @@
         if (hasOwnPhoto) {
           // Una sola foto grande del combo completo
           var fotoCombo = s.foto.replace(/ /g, '%20');
-          imgsHTML = '<div class="set-img-slot set-img-hero"><img src="' + fotoCombo + '" alt="' + s.name + '" loading="lazy" decoding="async"></div>';
+          imgsHTML = '<div class="set-img-slot set-img-hero"><img src="' + escapeHTML(fotoCombo) + '" alt="' + escapeHTML(s.name) + '" loading="lazy" decoding="async"></div>';
         } else {
           // Fallback: grid con la foto de cada perfume-item
           items.forEach(function(item) {
@@ -2371,9 +2382,9 @@
             var foto = ref && ref.foto ? ref.foto.replace(/ /g, '%20') : '';
             var nombre = item.nombre || (ref ? ref.name : '?');
             if (foto) {
-              imgsHTML += '<div class="set-img-slot"><img src="' + foto + '" alt="' + nombre + '" loading="lazy" decoding="async"></div>';
+              imgsHTML += '<div class="set-img-slot"><img src="' + escapeHTML(foto) + '" alt="' + escapeHTML(nombre) + '" loading="lazy" decoding="async"></div>';
             } else {
-              imgsHTML += '<div class="set-img-slot"><span class="set-img-letter">' + nombre.charAt(0) + '</span></div>';
+              imgsHTML += '<div class="set-img-slot"><span class="set-img-letter">' + escapeHTML(nombre.charAt(0)) + '</span></div>';
             }
           });
         }
@@ -2384,7 +2395,7 @@
           var ref = item.slug ? PERFUMES.find(function(pf) { return pf.slug === item.slug; }) : null;
           var nombre = item.nombre || (ref ? ref.name : '?');
           var mlText = item.ml ? ' (' + item.ml + 'ml)' : '';
-          listHTML += '<li>' + nombre + mlText + '</li>';
+          listHTML += '<li>' + escapeHTML(nombre) + escapeHTML(mlText) + '</li>';   // [S10-TER-XSS-COMBOS]
         });
 
         // Pricing
@@ -2409,7 +2420,7 @@
           + '<div class="set-images ' + itemsClass + '">' + imgsHTML + '</div>'
           + '<div class="set-info">'
             + '<span class="set-badge">' + badgeText + '</span>'
-            + '<p class="set-name">' + s.name + '</p>'
+            + '<p class="set-name">' + escapeHTML(s.name) + '</p>'
             + '<ul class="set-items-list">' + listHTML + '</ul>'
             + '<div class="set-pricing">'
               + '<span class="set-price-promo">' + promoHTML + '</span>'
@@ -2612,8 +2623,8 @@
       var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
       var letter = p.name.charAt(0);
       var imgHTML = p.foto
-        ? '<img src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">'
-        : '<div style="color:var(--amarillo);font-size:1rem;opacity:.4;">' + letter + '</div>';
+        ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async">'
+        : '<div style="color:var(--amarillo);font-size:1rem;opacity:.4;">' + escapeHTML(letter) + '</div>';
 
       // Ring SVG (circunferencia r=20 → 2*π*20 = 125.66)
       var ringHTML = '';
@@ -2641,7 +2652,7 @@
           var visible = common.slice(0, 6);
           var moreCount = common.length - visible.length;
           var chips = visible.map(function(n) {
-            return '<span class="sim-razon-chip">' + n + '</span>';
+            return '<span class="sim-razon-chip">' + escapeHTML(n) + '</span>';
           }).join('');
           if (moreCount > 0) {
             chips += '<span class="sim-razon-chip sim-razon-chip-more">+' + moreCount + ' más</span>';
@@ -2658,7 +2669,7 @@
       var compareBtnHTML = '';
       if (anchor) {
         compareBtnHTML =
-          '<button type="button" class="sim-btn-comparar" onclick="compareSimilar(\'' + anchor.slug + '\', \'' + p.slug + '\', event)" aria-label="Comparar con ' + p.name + '">'
+          '<button type="button" class="sim-btn-comparar" onclick="compareSimilar(' + jsAttr(anchor.slug) + ', ' + jsAttr(p.slug) + ', event)" aria-label="Comparar con ' + escapeHTML(p.name) + '">'
             + '<span class="sim-btn-comparar-ico" aria-hidden="true">⚖</span>'
             + '<span class="sim-btn-comparar-text">Comparar</span>'
           + '</button>';
@@ -2685,13 +2696,13 @@
       var subtitleHTML = subtitle ? '<p class="similar-rec">' + subtitle + '</p>' : '';
       var bestClass = isBest ? ' is-best' : '';
       // Onclick para navegar al perfume (en zona img + info, NO en ring/botón/badges)
-      var navOnclick = 'closeSimilares();scrollToPerfume(\'' + p.slug + '\')';
+      var navOnclick = 'closeSimilares();scrollToPerfume(' + jsAttr(p.slug) + ')';
 
-      return '<div class="similar-item sim-rich' + bestClass + '" data-slug="' + p.slug + '">'
+      return '<div class="similar-item sim-rich' + bestClass + '" data-slug="' + escapeHTML(p.slug) + '">'
         + '<div class="similar-img" onclick="' + navOnclick + '">' + imgHTML + '</div>'
         + '<div class="similar-info" onclick="' + navOnclick + '">'
-          + '<p class="similar-name">' + p.name + '</p>'
-          + '<p class="similar-brand">' + (p.marca_real || p.marca) + '</p>'
+          + '<p class="similar-name">' + escapeHTML(p.name) + '</p>'
+          + '<p class="similar-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
           + subtitleHTML
         + '</div>'
         + ringHTML
@@ -2738,7 +2749,7 @@
         content.innerHTML = '<div style="text-align:center;padding:1.5rem .5rem;">'
           + '<p style="font-size:1.8rem;margin-bottom:.6rem;">🔮</p>'
           + '<p style="color:#fff;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">¡Este perfume es único!</p>'
-          + '<p style="color:var(--gris);font-size:.72rem;line-height:1.5;">Ningún otro perfume de nuestro catálogo comparte más del 60% de sus notas con <strong style="color:var(--amarillo);">' + perfume.name + '</strong>.</p>'
+          + '<p style="color:var(--gris);font-size:.72rem;line-height:1.5;">Ningún otro perfume de nuestro catálogo comparte más del 60% de sus notas con <strong style="color:var(--amarillo);">' + escapeHTML(perfume.name) + '</strong>.</p>'
           + '<p style="color:var(--gris);font-size:.65rem;margin-top:.8rem;opacity:.7;">Estamos sumando nuevas fragancias constantemente 👀</p>'
           + '</div>';
         document.getElementById('similaresOverlay').classList.add('active');
@@ -2903,7 +2914,7 @@
       if (!wrap) return;
       var html = '';
       POPULAR_NOTES.forEach(function(note) {
-        html += '<button class="note-chip" onclick="toggleNoteFilter(\'' + note + '\', this)">' + note + '</button>';
+        html += '<button class="note-chip" onclick="toggleNoteFilter(' + jsAttr(note) + ', this)">' + note + '</button>';
       });
       wrap.innerHTML = html;
     }
@@ -3781,7 +3792,7 @@
 
       const catGrid = document.getElementById('catGrid');
       catGrid.innerHTML = ['Unisex', 'Hombre', 'Mujer'].map(cat =>
-        '<a href="#catalogo" class="cat-card" onclick="filterByCat(\'' + cat + '\')">'
+        '<a href="#catalogo" class="cat-card" onclick="filterByCat(' + jsAttr(cat) + ')">'
         + '<span class="cat-number">' + roundDown(counts[cat]) + '</span>'
         + '<p class="cat-name">' + cat + '</p>'
         + '<p class="cat-count">' + roundDown(counts[cat]) + ' fragancias</p>'
@@ -4088,18 +4099,18 @@
         var p = m.perfume;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var imgHTML = fotoSrc
-          ? '<img class="search-sug-img" src="' + fotoSrc + '" alt="' + p.name + '" loading="lazy" decoding="async">'
-          : '<div class="search-sug-img-placeholder">' + p.name.charAt(0) + '</div>';
+          ? '<img class="search-sug-img" src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async">'
+          : '<div class="search-sug-img-placeholder">' + escapeHTML(p.name.charAt(0)) + '</div>';
 
         // Resaltar la parte que coincide en el nombre
         var displayName = highlightMatch(p.name, query);
         var price = p.promo ? formatPrice(p.promo) : formatPrice(p.price);
 
-        html += '<div class="search-sug-item" data-slug="' + p.slug + '" onclick="selectSuggestion(\'' + p.slug + '\')">'
+        html += '<div class="search-sug-item" data-slug="' + escapeHTML(p.slug) + '" onclick="selectSuggestion(' + jsAttr(p.slug) + ')">'
           + imgHTML
           + '<div class="search-sug-info">'
             + '<p class="search-sug-name">' + displayName + '</p>'
-            + '<p class="search-sug-brand">' + (p.marca_real || p.marca) + '</p>'
+            + '<p class="search-sug-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
           + '</div>'
           + '<span class="search-sug-price">' + price + '</span>'
         + '</div>';
@@ -4112,10 +4123,11 @@
 
     // highlightMatch: resalta la parte del texto que coincide con la búsqueda
     function highlightMatch(text, query) {
-      if (!query) return text;
+      text = String(text == null ? '' : text);   // [XSS-CATALOGO-STAFF] cada pedazo se escapa antes de marcar
+      if (!query) return escapeHTML(text);
       var idx = text.toLowerCase().indexOf(query.toLowerCase());
-      if (idx === -1) return text;
-      return text.substring(0, idx) + '<mark>' + text.substring(idx, idx + query.length) + '</mark>' + text.substring(idx + query.length);
+      if (idx === -1) return escapeHTML(text);
+      return escapeHTML(text.substring(0, idx)) + '<mark>' + escapeHTML(text.substring(idx, idx + query.length)) + '</mark>' + escapeHTML(text.substring(idx + query.length));
     }
 
     function hideSearchSuggestions() {
@@ -5343,8 +5355,8 @@
       var nameEl = document.getElementById('cartToastName');
       var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
       imgWrap.innerHTML = fotoSrc
-        ? '<img class="cart-toast-img" src="' + fotoSrc + '" alt="' + p.name + '">'
-        : '<div class="cart-toast-img-placeholder">' + p.name.charAt(0) + '</div>';
+        ? '<img class="cart-toast-img" src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+        : '<div class="cart-toast-img-placeholder">' + escapeHTML(p.name.charAt(0)) + '</div>';
       nameEl.textContent = p.name;
       if (cartToastTimer) clearTimeout(cartToastTimer);
       toast.classList.remove('leaving');
@@ -5568,13 +5580,13 @@
           if (hasHotSale(p)) anyHotSale = true;
           var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
           var imgHTML = fotoSrc
-            ? '<img class="cart-item-img" src="' + fotoSrc + '" alt="' + p.name + '">'
-            : '<div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--amarillo);opacity:.3;">' + p.name.charAt(0) + '</div>';
+            ? '<img class="cart-item-img" src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+            : '<div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--amarillo);opacity:.3;">' + escapeHTML(p.name.charAt(0)) + '</div>';
           html += '<div class="cart-item">'
             + imgHTML
-            + '<div class="cart-item-info"><p class="cart-item-name">' + p.name + '</p><p class="cart-item-brand">' + (p.marca_real || p.marca) + '</p></div>'
+            + '<div class="cart-item-info"><p class="cart-item-name">' + escapeHTML(p.name) + '</p><p class="cart-item-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p></div>'
             + '<span class="cart-item-price">$' + Math.round(listaPrice).toLocaleString('es-AR').replace(/,/g, '.') + '</span>'
-            + '<button class="cart-item-remove" onclick="removeFromCart(\'' + slug + '\')">&times;</button>'
+            + '<button class="cart-item-remove" onclick="removeFromCart(' + jsAttr(slug) + ')">&times;</button>'
           + '</div>';
         });
         container.innerHTML = html;
@@ -5694,8 +5706,8 @@
 
       var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
       imgWrap.innerHTML = fotoSrc
-        ? '<img class="splash-img" src="' + fotoSrc + '" alt="' + p.name + '">'
-        : '<div class="splash-img-placeholder">' + p.name.charAt(0) + '</div>';
+        ? '<img class="splash-img" src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+        : '<div class="splash-img-placeholder">' + escapeHTML(p.name.charAt(0)) + '</div>';
       brandEl.textContent = p.marca_real || p.marca;
       nameEl.textContent = p.name;
 
@@ -5755,10 +5767,10 @@
         if (!p) return '';
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var img = fotoSrc
-          ? '<img src="' + fotoSrc + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async">'
+          ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async">'
           : '<div class="recent-view-letter">' + escapeHTML(p.name.charAt(0)) + '</div>';
         var price = '$' + parseInt(String(p.promo || p.price).replace(/,/g, ''), 10).toLocaleString('es-AR');
-        return '<button class="recent-view-card" onclick="scrollToPerfume(\'' + slug + '\')">'
+        return '<button class="recent-view-card" onclick="scrollToPerfume(' + jsAttr(slug) + ')">'
           + '<div class="recent-view-img">' + img + '</div>'
           + '<p class="recent-view-name">' + escapeHTML(p.name) + '</p>'
           + '<p class="recent-view-price">' + price + '</p>'
@@ -5803,8 +5815,8 @@
         if (gamaPool.length > 0) fotoSrc = gamaPool[0].replace(/ /g, '%20');
       }
       imgWrap.innerHTML = fotoSrc
-        ? '<img class="bs-img" src="' + fotoSrc + '" alt="' + p.name + '">'
-        : '<div class="bs-img-placeholder">' + p.name.charAt(0) + '</div>';
+        ? '<img class="bs-img" src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+        : '<div class="bs-img-placeholder">' + escapeHTML(p.name.charAt(0)) + '</div>';
 
       // Info
       document.getElementById('bsName').textContent = p.name;
@@ -5813,11 +5825,11 @@
       // Tags
       var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
       var prodType = detectProductType(p);
-      var tipoBadge = prodType ? '<span class="badge-tipo">' + prodType + '</span>' : '';
+      var tipoBadge = prodType ? '<span class="badge-tipo">' + escapeHTML(prodType) + '</span>' : '';
       document.getElementById('bsTags').innerHTML =
-        '<span class="card-tag tag-cat">' + pCat + '</span>'
-        + '<span class="card-tag tag-ml">' + (p.ml || 100) + ' ml</span>'
-        + '<span class="card-tag tag-acorde">' + (p.perfil || '') + '</span>'
+        '<span class="card-tag tag-cat">' + escapeHTML(pCat) + '</span>'
+        + '<span class="card-tag tag-ml">' + escapeHTML(p.ml || 100) + ' ml</span>'
+        + '<span class="card-tag tag-acorde">' + escapeHTML(p.perfil || '') + '</span>'
         + tipoBadge;
 
       // [HOTSALE][1] Precio en modal detalle: misma lógica que card + valor de cuota visible.
@@ -5841,9 +5853,9 @@
       // Notas
       var notesHTML = '';
       if (p.notas_salida || p.notas_corazon || p.notas_base) {
-        notesHTML = '<p class="bs-note"><span class="note-label">SALIDA</span> ' + (p.notas_salida || '\u2014') + '</p>'
-          + '<p class="bs-note"><span class="note-label">CORAZ\u00d3N</span> ' + (p.notas_corazon || '\u2014') + '</p>'
-          + '<p class="bs-note"><span class="note-label">BASE</span> ' + (p.notas_base || '\u2014') + '</p>';
+        notesHTML = '<p class="bs-note"><span class="note-label">SALIDA</span> ' + escapeHTML(p.notas_salida || '\u2014') + '</p>'
+          + '<p class="bs-note"><span class="note-label">CORAZ\u00d3N</span> ' + escapeHTML(p.notas_corazon || '\u2014') + '</p>'
+          + '<p class="bs-note"><span class="note-label">BASE</span> ' + escapeHTML(p.notas_base || '\u2014') + '</p>';
       }
       document.getElementById('bsNotes').innerHTML = notesHTML;
 
@@ -6195,8 +6207,8 @@
         if (!p) return;
         var shortName = p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name;
         html += '<div class="compare-bar-item">'
-          + shortName
-          + '<button class="compare-bar-remove" onclick="removeCompare(\'' + slug + '\')">&times;</button>'
+          + escapeHTML(shortName)
+          + '<button class="compare-bar-remove" onclick="removeCompare(' + jsAttr(slug) + ')">&times;</button>'
         + '</div>';
       });
       // Slots vacíos
@@ -6224,8 +6236,8 @@
         if (!p) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var imgHTML = fotoSrc
-          ? '<img class="compare-col-img" src="' + fotoSrc + '" alt="' + p.name + '">'
-          : '<div class="compare-col-placeholder">' + p.name.charAt(0) + '</div>';
+          ? '<img class="compare-col-img" src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+          : '<div class="compare-col-placeholder">' + escapeHTML(p.name.charAt(0)) + '</div>';
 
         var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
         var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
@@ -6238,21 +6250,21 @@
           + '<div class="compare-col-head">'
             + imgHTML
             + '<div class="compare-col-info">'
-              + '<p class="compare-col-name">' + p.name + '</p>'
-              + '<p class="compare-col-brand">' + (p.marca_real || p.marca) + '</p>'
+              + '<p class="compare-col-name">' + escapeHTML(p.name) + '</p>'
+              + '<p class="compare-col-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
               + '<p class="compare-col-price">$' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.') + '</p>'
             + '</div>'
           + '</div>'
           + '<div class="compare-rows">'
             // [COMPARE-2B] El bot\u00f3n Elegir este se agrega DESPU\u00c9S del cierre del compare-rows (m\u00e1s abajo).
-            + '<div class="compare-row"><p class="compare-row-label">Categor\u00eda</p><p class="compare-row-value">' + pCat + '</p></div>'
-            + '<div class="compare-row"><p class="compare-row-label">Perfil</p><p class="compare-row-value">' + (p.perfil || '\u2014') + '</p></div>'
-            + '<div class="compare-row"><p class="compare-row-label">Salida</p><p class="compare-row-value">' + (p.notas_salida || '\u2014') + '</p></div>'
-            + '<div class="compare-row"><p class="compare-row-label">Coraz\u00f3n</p><p class="compare-row-value">' + (p.notas_corazon || '\u2014') + '</p></div>'
-            + '<div class="compare-row"><p class="compare-row-label">Base</p><p class="compare-row-value">' + (p.notas_base || '\u2014') + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Categor\u00eda</p><p class="compare-row-value">' + escapeHTML(pCat) + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Perfil</p><p class="compare-row-value">' + escapeHTML(p.perfil || '\u2014') + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Salida</p><p class="compare-row-value">' + escapeHTML(p.notas_salida || '\u2014') + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Coraz\u00f3n</p><p class="compare-row-value">' + escapeHTML(p.notas_corazon || '\u2014') + '</p></div>'
+            + '<div class="compare-row"><p class="compare-row-label">Base</p><p class="compare-row-value">' + escapeHTML(p.notas_base || '\u2014') + '</p></div>'
           + '</div>'
           // [COMPARE-2B] Boton "Elegir este" \u2014 cierra el ciclo comparacion -> decision.
-          + '<button type="button" class="compare-col-cta" onclick="elegirCompare(\'' + p.slug + '\', this, event)" aria-label="Elegir este perfume">'
+          + '<button type="button" class="compare-col-cta" onclick="elegirCompare(' + jsAttr(p.slug) + ', this, event)" aria-label="Elegir este perfume">'
             + '<span class="compare-col-cta-ico" aria-hidden="true">\ud83d\udc95</span>'
             + '<span class="compare-col-cta-text">Elegir este</span>'
           + '</button>'
@@ -6303,7 +6315,7 @@
       } else {
         commonEl.style.display = 'block';
         notesEl.innerHTML = unique.map(function(n) {
-          return '<span class="compare-common-chip">' + n + '</span>';
+          return '<span class="compare-common-chip">' + escapeHTML(n) + '</span>';
         }).join('');
       }
     }
@@ -6362,7 +6374,7 @@
           ? '<span class="compare-unique-empty">— sin notas exclusivas</span>'
           : r.unique.map(function(n) {
               var cap = n.charAt(0).toUpperCase() + n.slice(1);
-              return '<span class="compare-unique-chip">' + cap + '</span>';
+              return '<span class="compare-unique-chip">' + escapeHTML(cap) + '</span>';   // [XSS-CATALOGO-STAFF]
             }).join('');
         return '<div class="compare-unique-row">'
           + '<p class="compare-unique-name">' + escapeHTML(r.name) + '</p>'
@@ -6424,9 +6436,9 @@
           if (p) {
             var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
             var imgHTML = fotoSrc
-              ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
-              : '<span class="misel-slot-num" style="color:var(--amarillo);">' + p.name.charAt(0) + '</span>';
-            html += '<div class="misel-slot filled" title="' + p.name + '">'
+              ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+              : '<span class="misel-slot-num" style="color:var(--amarillo);">' + escapeHTML(p.name.charAt(0)) + '</span>';
+            html += '<div class="misel-slot filled" title="' + escapeHTML(p.name) + '">'
               + imgHTML
               + '<button class="misel-slot-remove" onclick="removeMiselSlot(' + i + ')">&times;</button>'
               + '</div>';
@@ -6466,10 +6478,10 @@
         dropdown.innerHTML = results.map(function(p) {
           var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
           var imgHTML = fotoSrc
-            ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
-            : '<div class="misel-dd-letter">' + p.name.charAt(0) + '</div>';
-          return '<div class="misel-dropdown-item" onclick="addMiselPerfume(\'' + p.slug + '\')">'
-            + imgHTML + '<span>' + p.name + '</span></div>';
+            ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+            : '<div class="misel-dd-letter">' + escapeHTML(p.name.charAt(0)) + '</div>';
+          return '<div class="misel-dropdown-item" onclick="addMiselPerfume(' + jsAttr(p.slug) + ')">'
+            + imgHTML + '<span>' + escapeHTML(p.name) + '</span></div>';
         }).join('');
       }
       dropdown.classList.add('open');
@@ -6535,16 +6547,16 @@
       var p = desafioRecommended;
       var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
       var imgHTML = fotoSrc
-        ? '<img src="' + fotoSrc + '" alt="' + p.name + '">'
-        : '<div style="width:100%;height:60%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:2rem;color:rgba(232,184,0,.2);">' + p.name.charAt(0) + '</div>';
+        ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
+        : '<div style="width:100%;height:60%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:2rem;color:rgba(232,184,0,.2);">' + escapeHTML(p.name.charAt(0)) + '</div>';
       var brand = p.marca_real || p.marca || '';
 
       document.getElementById('desafioCardBack').innerHTML =
         '<div class="desafio-card-back-badge">' + pick.score + ' notas en com\u00fan</div>'
         + imgHTML
         + '<div class="desafio-card-back-info">'
-          + '<p class="desafio-card-back-name">' + p.name + '</p>'
-          + '<p class="desafio-card-back-brand">' + brand + '</p>'
+          + '<p class="desafio-card-back-name">' + escapeHTML(p.name) + '</p>'
+          + '<p class="desafio-card-back-brand">' + escapeHTML(brand) + '</p>'
         + '</div>';
 
       // Configurar botones
@@ -7443,12 +7455,12 @@
             qpGrid.innerHTML = top6.map(function(p) {
               var foto = p.foto ? p.foto.replace(/ /g, '%20') : '';
               var imgHTML = foto
-                ? '<img src="' + foto + '" alt="' + escapeHTML(p.name) + '" loading="lazy">'
+                ? '<img src="' + escapeHTML(foto) + '" alt="' + escapeHTML(p.name) + '" loading="lazy">'
                 : escapeHTML(p.name.charAt(0) || '•');
-              return '<div class="decant-quickpick-card" onclick="addDecant(\'' + p.slug + '\')">'
+              return '<div class="decant-quickpick-card" onclick="addDecant(' + jsAttr(p.slug) + ')">'
                 + '<div class="decant-quickpick-img">' + imgHTML + '</div>'
                 + '<p class="decant-quickpick-name">' + escapeHTML(p.name) + '</p>'
-                + '<button type="button" class="decant-quickpick-add" onclick="event.stopPropagation();addDecant(\'' + p.slug + '\')">+ AGREGAR</button>'
+                + '<button type="button" class="decant-quickpick-add" onclick="event.stopPropagation();addDecant(' + jsAttr(p.slug) + ')">+ AGREGAR</button>'
                 + '</div>';
             }).join('');
           }
