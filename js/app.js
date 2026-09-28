@@ -1003,9 +1003,9 @@
           + '<p class="home-slide-title">Próximamente — Slide N°' + (idx + 1) + '</p>'
           + '</div>';
       }
-      var clickable = !!(slide.link_a && slide.link_a.trim());
+      var clickable = !!(slide.link_a && slide.link_a.trim() && urlSegura(slide.link_a));   // [XSS-CATALOGO-STAFF] sólo http(s) o relativa
       var attrs = 'data-idx="' + idx + '"';
-      if (clickable) attrs += ' onclick="homeSlideGo(\'' + escapeHTML(slide.link_a).replace(/'/g, "\\'") + '\')" role="button" tabindex="0"';
+      if (clickable) attrs += ' onclick="homeSlideGo(' + jsAttr(slide.link_a) + ')" role="button" tabindex="0"';
       var media = '';
       // Slide #0 es above-the-fold: fetchpriority alto, sin lazy.
       // Resto: lazy + decoding async para no robar ancho de banda.
