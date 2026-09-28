@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 28, 2026 (`_n`)** — **S23 RESUELTO** (`[XSS-URL-FILTROS]`, v1.1.146): el link armado del catálogo. El barrido de XSS (10 agentes, sólo lectura) deja **cuatro abiertos, con la keyword sola**: S24 `[XSS-CATALOGO-STAFF]`, S25 `[XSS-PANEL-STAFF]`, S26 `[TELEGRAM-HTML-ANON]` y S27 `[XSS-NOMBRE-CLIENTE]`.
+> **Última actualización:** **Septiembre 28, 2026 (`_o`)** — **S26 en parte cerrado** (el SQL de Alejo): se borraron los avisos viejos de Telegram y el `CHECK` del slug de `perfume_clicks` está puesto. Lo que queda de S26 baja a 🟢, con la keyword sola.
+>
+> **Antes (28-sep, `_n`):** — **S23 RESUELTO** (`[XSS-URL-FILTROS]`, v1.1.146): el link armado del catálogo. El barrido de XSS (10 agentes, sólo lectura) deja **cuatro abiertos, con la keyword sola**: S24 `[XSS-CATALOGO-STAFF]`, S25 `[XSS-PANEL-STAFF]`, S26 `[TELEGRAM-HTML-ANON]` y S27 `[XSS-NOMBRE-CLIENTE]`.
 >
 > **Antes (28-sep, `_m`):** — **S22 RESUELTO** (`[XSS-ESTADISTICAS]`, v1.1.145): los nombres de «📊 Estadísticas» (y el `slug` de `perfume_clicks`, que escribe `anon`) se escapan. Propuesta nueva: `[CLICKS-SLUG-CHECK]`.
 >
@@ -364,9 +366,11 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S26 · `[TELEGRAM-HTML-ANON]` · 🟡 ABIERTO**
+### **S26 · `[TELEGRAM-HTML-ANON]` · 🟢 ABIERTO (en parte cerrado el 28-sep-2026)**
 
-> Agujero abierto: por la regla de § 📏 (23-sep) acá va sólo la keyword. El detalle vive en el inventario fuera del repo y entra cuando se cierre.
+> ✅ **Lo cerrado** · SQL del PREPARADOR, corrido por Alejo el 28-sep y verificado en la base (sólo lectura): los triggers `on_new_opinion` (opiniones) y `on_new_cliente` (clientes) mandaban a Telegram texto que escribe `anon` (el texto de la opinión, el nombre y el teléfono) con `parse_mode` HTML, desde `public.notify_telegram()`, que además tenía escrito un token viejo del bot. `public.report_top_perfumes()` (`SECURITY DEFINER`, `anon` con `EXECUTE`, sin cron ni uso) armaba un top 3 con los slugs de `perfume_clicks`. Se borraron los dos triggers y las dos funciones (0 en `pg_trigger` y en `pg_proc`), y `perfume_clicks` tiene `perfume_clicks_slug_formato` (`CHECK (slug ~ '^[a-z0-9-]{1,120}$')`, `[CLICKS-SLUG-CHECK]`). Los avisos que siguen (reset, perfil, primer ingreso) salen por `send_telegram`, sin `parse_mode`.
+>
+> **Lo que queda abierto:** por la regla de § 📏 (23-sep), sólo la keyword. El detalle vive en el inventario fuera del repo; es SQL del PREPARADOR, para más adelante.
 
 ---
 

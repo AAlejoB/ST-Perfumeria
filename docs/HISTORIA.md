@@ -3157,7 +3157,39 @@ Alejo lo puso en la fila apenas salió (ronda m). Rama `xss-estadisticas` desde 
 
 Sintaxis de `js/app.js`: sin errores.
 
+### Sesión 28-sep-2026 · `_o` · la Espera (129b + 129c), `[MOTIVO-QUEDA]`, 128f y 128g `[MOTIVO-EN-CRIOLLO]`
+
+El punto 2 de los prompts `_m` y `_n` del PREPARADOR (decisiones 129c, 128e, 128f y 128g del DISEÑADOR), con merge pre-aprobado y el OK de Alejo en el chat. La rama `espera-criollo` arrancó de `d17b309`. `b42fd09` (`admin.html`) + SW v1.1.147 (`c8a2b51`).
+
+#### Qué se hizo
+- **129b otra vez:** `#tab-espera .espera-btn` y `.espera-btn-todos` sin letra propia (la de `.action-btn`, `.68rem`).
+- **129c:** «🏪 Local» pasa del nombre al final de `.espera-sub` («+54 9 2970 00-0011 · 25/9 🏪 Local»). La hora del Historial va con `hour12: false` («Avisado 27/9 10:00»). El número va en `<span class="espera-tel-num">` (`white-space: nowrap`, escapado).
+- **`[MOTIVO-QUEDA]`:** `barraError(…, '')` en `loadEditPerfume`, `cancelEdit`, `clearNuevoForm` y `editNuevo`, el mismo criterio que `#editMsg`.
+- **128f:** a ≥ 1100, `.dc-cell-actions { align-items: stretch }`; debajo de 1100, sin cambios.
+- **128g `[MOTIVO-EN-CRIOLLO]`:** `errorEnCriollo(err, ctx)`, al lado de `conGuardando`, la usan las cinco `…Ahora` para los errores de la base. Los casos:
+  - `23505` o «duplicate key» → «Ya existe un perfume con ese nombre.» (`ctx = 'perfume'`: Editar y Nuevo) o «Ya existe con ese nombre.» (Decants y Marcas);
+  - `navigator.onLine === false`, `TypeError` o «Failed to fetch» / «Load failed» (el mensaje de Safari) → «No se pudo conectar…»;
+  - `PGRST301` / `PGRST303`, 401 o «JWT» → «Se venció la sesión…»;
+  - `42501` o «row-level security» / «permission denied» → «Esta cuenta no puede guardar esto.»;
+  - cualquier otro → «No se pudo guardar. Probá de nuevo; si sigue, avisale a Alejo.»
+  El mismo texto va en la barra y en el mensaje de abajo, y el error original a `console.error`. Los mensajes que ya estaban en castellano en el `catch` de la escalera y de la promo («sólo el jefe puede cambiar…», «Revisá la conexión…») pasan también por la función: el texto es el de la tabla. Las validaciones propias y los «⚠ Guardado SIN…» no se tocaron.
+
+#### Verificación (fixture, Inter; stub con fallas a pedido)
+1. **La Espera** (a 360 y 390, con nombres de 15, 20, 29, 31 y 34 letras, web y 🏪 Local, en Pendientes y en el Historial):
+   - ningún nombre de hasta 20 letras va en 3 renglones;
+   - a 360, las filas miden: Historial Local 20 letras **83** (nombre en 2), Pendientes Local **61**, Historial web 29 letras **81**. En `main`: 82, 61 y 81;
+   - el teléfono nunca se parte, 0 «a. m.» / «p. m.», y todos los botones de 44 o más (Avisar 59, Quitar 61, Re-avisar 80);
+   - a 360, «Avisado 27/9 10:00» puede partir entre la fecha y la hora: sólo el número va sin cortes, como se pidió.
+2. **128g:** 25 de 25 (5 errores × 5 barras): el texto de la tabla en la barra (con «✕ ») y abajo, y el original en la consola. También con `navigator.onLine === false`. Las 4 validaciones, con su texto de siempre y sin nada en la consola.
+3. **`[MOTIVO-QUEDA]`:** con un error en la barra, el motivo se va al cargar otro perfume, al cancelar Editar, al limpiar Nuevo y al editar otro nuevo.
+4. **128f:** a 1100 y 1280, el 🗑️ mide 48 × 49,6, lo mismo que «💾 Guardar» (en `main`, 48 × 44); a 390 y 1099, 48 × 44, igual que en `main`. 0 px afuera.
+5. **Los estados de la barra** (la prueba de la ronda m, otra vez): iguales, con los textos nuevos. Sin errores en la página.
+6. `npm run contraste`: 0 fallas + 1 token pisado, 295 mediciones. Sintaxis del script del panel: sin errores.
+7. Capturas en `herramientas\tanda-l\png\ronda-n-*`, en claro y oscuro: la Espera a 360 y 390 en Pendientes y en el Historial; Nuevo con un nombre repetido y Editar sin conexión, a 390.
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_o`)** — la Espera (129b + 129c), `[MOTIVO-QUEDA]`, 128f y `[MOTIVO-EN-CRIOLLO]`, SW v1.1.147. Cerrados: `[ESPERA-NOMBRE-3-RENGLONES]`, `[MOTIVO-QUEDA]`, `[RECARGAR-360]` y `[CLICKS-SLUG-CHECK]`. S26 en parte.
 
 **Última actualización:** **Septiembre 28, 2026 (`_n`)** — el barrido de XSS (49 confirmados; en el repo, sólo las keywords de lo abierto) y `[XSS-URL-FILTROS]` cerrado (SECURITY.md § S23), SW v1.1.146.
 
@@ -3301,6 +3333,13 @@ Sintaxis de `js/app.js`: sin errores.
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 28-sep-2026 (`_o`):**
+
+- ✅ ~~**`[ESPERA-NOMBRE-3-RENGLONES]`**~~ (28-sep, salió de la ronda l · 🟡, del DISEÑADOR) — con el 129b (los botones de la Espera con la letra de `.action-btn`, `.68rem`), a 360 el nombre tiene ~110 px en el Historial («Re-avisar» + «Quitar») y ~125 en Pendientes. Con la etiqueta «🏪 Local», un nombre de 20 letras pasa a 3 renglones en el Historial (en `main`, 2); sin etiqueta, recién con 34. Los nombres reales llegan hoy a 21 letras (mediana 7) y todas las filas son de la web. Fue el punto 2 de la ronda l, que no dio. **Con la decisión B de Alejo (28-sep) el 129b salió de `tanda-l` antes del merge**: en producción los botones de la Espera siguen en `.58rem` / `.65rem`, y el 129b vuelve junto con el arreglo de los nombres que decida el DISEÑADOR. → **RESUELTO el 28-sep** (129c, `b42fd09`): «🏪 Local» en la línea del teléfono y la hora en 24 h; a 360, ningún nombre de hasta 20 letras en 3 renglones. El 129b volvió en la misma tanda.
+- ✅ ~~**`[MOTIVO-QUEDA]`**~~ (28-sep, salió de la ronda m · 🟢, del DISEÑADOR) — el motivo de «No se guardó» (`.barra-error`) se va sólo al tocar Guardar de nuevo (así lo pidió el prompt): si Editar falla y después se abre otro perfume, o se cancela y se abre otro, el motivo del anterior sigue en la barra, mientras el mensaje de abajo (`#editMsg`) sí se borra. Si se decide limpiarlo, es un renglón en `loadEditPerfume` / `cancelEdit` / `clearNuevoForm` / `editNuevo`. No se tocó. → **RESUELTO el 28-sep** (`b42fd09`): el motivo se va en `loadEditPerfume`, `cancelEdit`, `clearNuevoForm` y `editNuevo`.
+- ✅ ~~**`[RECARGAR-360]`**~~ (28-sep, salió de la ronda m · 🟢, del DISEÑADOR) — a 360, «↺ Recargar» de la barra de la escalera (Decants) va en 2 renglones (el botón mide 93,9 px, 1 : 2,2 con «Guardar») y la barra queda en 77,4 en vez de 73 (botones de 52,4). Ya pasaba igual en `main`; a 390 la barra ya da 73. En mayúsculas (128a) no entra ni a 360 ni a 390, así que no se aplicó. Alejo mergeó igual (28-sep). → **CERRADO el 28-sep sin código** (decisión 128e del DISEÑADOR: se deja; a 360 se lee bien como botón con ícono).
+- ✅ ~~**`[CLICKS-SLUG-CHECK]`**~~ (28-sep, salió de `[XSS-ESTADISTICAS]` · 🟢, propuesta de Claude Code) — segunda defensa en la base: un `CHECK` en `perfume_clicks.slug` (por ejemplo `slug ~ '^[a-z0-9-]{1,120}$'`). `anon` inserta en esa tabla sin validar el texto (`pc_insert_public`, `with_check true`). Medido el 28-sep: las 241.141 filas cumplen ese formato (29 caracteres como mucho), así que no rompe nada. Es SQL: lo deciden Alejo y el PREPARADOR. → **RESUELTO el 28-sep** (SQL del PREPARADOR, corrido por Alejo): `perfume_clicks_slug_formato`, verificado en la base.
 
 **Movidos el 28-sep-2026 (`_m`):**
 
