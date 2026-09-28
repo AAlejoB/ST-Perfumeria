@@ -79,16 +79,17 @@ Tabla `clientes` (`id uuid`, `telefono`, `password` **bcrypt**, ver `docs/DATABA
 
 Login en `js/app.js`:
 ```js
-var rpcLogin = await sb.rpc('cliente_login', { p_telefono: phone, p_pass: pass });
-var r = rpcLogin.data && rpcLogin.data[0];   // { estado, id, nombre, telefono, espera_seg }
+var rpcLogin = await sb.rpc('cliente_entrar', { p_telefono: phone, p_pass: pass });   // [SESION-CLIENTE] (rama sesion-cliente)
+var r = rpcLogin.data && rpcLogin.data[0];   // { estado, id, nombre, telefono, espera_seg, token }
 // estado: 'ok' | 'activado' (cuenta sin clave: la primera que escribe queda fija) | 'invalido' | 'bloqueado'
-onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono });   // la sesión local NO guarda la contraseña
+onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono, token: r.token }, true);   // la sesión local NO guarda la contraseña; sí la llave
 ```
 
 - **Migración perezosa**: la función compara en plano si la clave guardada no empieza con `$2`, y si coincide la reemplaza por `crypt(pass, gen_salt('bf', 10))` en ese mismo login. Nadie tuvo que cambiar su clave. Registro y activación guardan hasheado.
 - **Rate-limit server-side**: 5 fallos → 15 min (`cliente_login_intentos`). El lockout de localStorage (`st_auth_lockout`) sigue como UX; el que protege es el del servidor.
 - **Sin filtrar información**: teléfono inexistente cuesta un hash igual (~77 ms, como un login real) y el mensaje es siempre "Teléfono o contraseña incorrectos". `bloqueado = true` (botón del panel) devuelve el mismo `invalido`.
 - **Editar perfil** (`cliente_editar`) exige la clave: antes el `update` corría como anon sin verificar nada.
+- **La llave** (`[SESION-CLIENTE]`, rama `sesion-cliente`, v1.1.150): `cliente_entrar` es `cliente_login` más un `token` que se guarda en `st_cliente`. Favoritos, votos y «Mi selección» van por RPC que lo piden (`mis_favoritos`, `favorito_marcar`, `mis_votos`, `voto_guardar`, `seleccion_guardar`; ver `docs/DATABASE.md`). El registro saca la llave entrando con los mismos datos. Salir llama a `cliente_salir` sin esperar. Al entrar, los favoritos de este dispositivo que no están en la base se suben (queda la unión); al retomar la sesión guardada manda la base. Una sesión guardada sin llave, o una RPC que contesta `false` por la llave, cierra la sesión local sin RPC y abre «Iniciá sesión» con «Por seguridad, volvé a entrar con tu número y contraseña. Tus favoritos no se pierden.» (una vez; `st_favs` queda).
 
 ### Por qué se hizo así
 
@@ -97,7 +98,7 @@ S2 en `docs/SECURITY.md`: con la anon key pública y RLS abierta, cualquiera pod
 ### Deuda que queda (escalón 3 · Supabase Auth)
 
 - No hay sesión del lado del servidor: `cliente_puntos` y `cliente_reset_solicitar` responden con sólo el teléfono (misma exposición que antes).
-- `favoritos` / `votos` / `opiniones` se escriben como anon con el `user_id` del localStorage (S13 en `SECURITY.md`).
+- `[S13-ESCRITURAS-ANON]` (ver `SECURITY.md` § S13): agujero abierto, **la keyword sola** (regla del 23-sep; hasta el 28-sep esta línea lo describía).
 - Migrar a Supabase Auth resuelve las dos: `auth.uid()` en las policies.
 
 ### `[FORGOT-PASS-A]` · recuperación de contraseña (27-jun-2026 · commit `db9d485`)

@@ -3250,7 +3250,58 @@ El prompt `_p` del PREPARADOR, con el merge autorizado por Alejo si daban las ve
 - `saveCombo` guarda con `upsert` por `slug` (`'set-' + nombre`): un combo nuevo con el mismo nombre que otro lo pisa sin avisar. `combos` tiene el único de `slug` dos veces → `[COMBO-PISA-COMBO]` 🟢.
 - Los textos de 128g («tocá Guardar de nuevo», «guardá de nuevo», «no puede guardar esto») quedaron tal cual también en las cargas (ranking, historial) y en los borrados: así lo pedía la regla.
 
+### Sesión 28-sep-2026 · `_r` · `[SESION-CLIENTE]` (el catálogo con la llave del cliente) y `[TEL-CANONICO-PANEL]` · **sin mergear**
+
+El prompt `_q` del PREPARADOR. El merge no está pre-aprobado porque toca el login de los clientes. La rama `sesion-cliente` salió de `ebad698` y se subió a GitHub (el PREPARADOR lo autorizó: describe el mecanismo, no el agujero). `443493b` (`js/app.js`) + `a3a0b72` (`admin.html`) + SW v1.1.150 (`d0de6e0`). Antes de arrancar, en la base (sólo lectura): los Bloques 1 y 2 ya estaban corridos por Alejo. Las 7 RPC (`anon` y `authenticated`), `cliente_de_token` sin EXECUTE, `cliente_sesiones` vacía y el trigger. Los slugs de `perfumes.js` (150), `perfumes_nuevos` (117), `combos` (5) y `favoritos` (97) cumplen `^[a-z0-9-]{1,120}$`. Los 100 teléfonos de `clientes` ya son `549` + 10. `cliente_login` reescribe la contraseña sólo al activar o al migrar a bcrypt, así que un login normal no corta las otras sesiones.
+
+#### Qué se hizo
+- **Entrar:** `cliente_entrar` en vez de `cliente_login`, con la llave en `st_cliente` (`currentUser.token`). Con `ok` / `activado` sin token no queda sesión («Error de conexión»). **El registro:** después de `cliente_registrar`, `cliente_entrar` con los mismos datos. Si no da, la cuenta quedó y se le pide entrar: la misma salida que una sesión sin llave. El prompt decía «que entre como hoy, sin token, y le pide entrar»; una sesión sin llave no podría escribir nada y la próxima carga la cerraría igual.
+- **Salir:** `onLogout` llama a `cliente_salir(token)` sin esperar. `onLogout(true)` no llama.
+- **Favoritos:** `mis_favoritos` y `favorito_marcar`. Al entrar (`onLogin(…, true)`), los de `st_favs` que no están en la base se suben, uno por llamada, y queda la unión. Al retomar la sesión guardada manda la base, como antes. Un slug que no cumple la regla de la base queda sólo en el dispositivo.
+- **Votos:** `voto_guardar` y `mis_votos`. Los resultados agregados siguen con `select`. Un candidato vacío, de más de 120 o con un carácter de control no se manda (si no, el `false` se tomaría por una llave rechazada).
+- **Mi selección:** `seleccion_guardar` con hasta 3 slugs. La lectura global sigue igual.
+- **Sin llave:** `sesionSinLlave()`. Una sesión guardada sin token (de antes) o una RPC que contesta `false` con la llave de ahora cierra la sesión local sin RPC. Abre «Iniciá sesión» con el aviso en el subtítulo, una vez por carga (aunque fallen varias llamadas juntas), y `st_favs` queda. Es el default hasta que decida el DISEÑADOR. Si otra pestaña ya entró de nuevo (`st_cliente` con otra llave), su sesión no se toca.
+- **El panel:** el alta, el alta desde puntos (el número se revisa antes de pedir el nombre; un prompt vacío dice «Cancelado») y la edición guardan `cleanPhone(…)` y validan con `esperaTelValido`. Si no da: «Revisá el número: 10 dígitos, sin 0 ni 15».
+
+#### Verificación (fixture `ronda-r/fx-r.json` con `rpc:*`, stub que guarda lo que se escribe; Inter; a 390)
+1. **Entrar → la llave guardada** (`tok-prueba-1`) y `cliente_entrar` con `5492970000011`. Además:
+   - `mis_favoritos` y `mis_votos` (`p_mes` `2026-09`) con la llave;
+   - favorito no / sí: 2 llamadas a `favorito_marcar`;
+   - votar: `voto_guardar`;
+   - la selección: `seleccion_guardar` con un array de 3;
+   - salir: `cliente_salir` con la llave, `st_cliente` vacío y `st_favs` intacto;
+   - **0 escrituras directas** a las tres tablas y 0 lecturas de `favoritos`. Quedan las lecturas de `votos` (mes anterior y resultados) y la global de `mi_seleccion`;
+   - `grep` de las escrituras viejas: 0.
+2. **Sesión vieja sin token:** al cargar, `st_cliente` y `st_waitlist` se borran, `st_favs` queda, no hay ninguna RPC de la llave y se abre «Iniciá sesión» con el aviso. Una segunda carga (iframe, mismo almacenamiento): sin aviso.
+3. **Favoritos locales + entrar:** con `st_favs` = `your-touch-amber`, `slug-local-nuevo`, `Con Espacio` y la base con `your-touch-amber`, `yeah-parfum`, se sube sólo `slug-local-nuevo` (`Con Espacio` no cumple la regla y queda local). La lista queda como la unión, de 4.
+4. **Llave rechazada** (`false` en `favorito_marcar`, `voto_guardar`, `seleccion_guardar`): se cierra sin `cliente_salir` y el aviso sale 1 vez aunque fallen 3 llamadas juntas. El voto no queda marcado ni se piden resultados. También dieron bien:
+   - el registro (`cliente_registrar` → `cliente_entrar`) y el registro sin llave (se abre «Iniciá sesión» con el aviso);
+   - la activación (`activado` con llave);
+   - `ok` sin token (no queda sesión);
+   - retomar (la base manda, 0 subidas, `mis_votos` con `p_mes`);
+   - dos pestañas (la sesión nueva de la otra queda);
+   - un candidato con tab o de 130 letras (no se manda, la sesión sigue).
+5. **El panel**, en los tres lugares:
+   - guardan `5492970000011`: «297 15 000 0011», «2970000011», «+54 9 297 000-0011», «0297 15 000 0011» y **«297 000 0011 x»** (`cleanPhone` saca la letra: quedan 10 dígitos, como en la Espera y el catálogo);
+   - rechazan con «Revisá el número…»: «297 000 0011 5», «12345» y vacío (en el prompt de puntos, vacío es «Cancelado»);
+   - un 23505 sigue saliendo «Ya existe un cliente con ese teléfono.».
+6. `vm.Script` y `node --check`: ok. `npm run contraste`: 0 fallas + 1 token pisado, 295 mediciones. Capturas en `herramientas\ronda-r\png`: el aviso y «Iniciá sesión», a 390, claro y oscuro. El aviso da 13,07 en claro y 4,9 en oscuro.
+
+#### La revisión adversarial (8 agentes: 4 lentes y un verificador por lente)
+Salieron 5 arreglos, ya en la rama:
+- el candidato que la base no acepta;
+- `mis_votos` sin `p_mes` al retomar la sesión (`currentMes` se asigna más abajo en el archivo: daba un error de la RPC en cada carga);
+- el registro sin llave con el aviso ya mostrado (cerraba la ventana sin decir nada);
+- la pestaña con la llave vieja que borraba la sesión nueva de otra;
+- el mensaje viejo de «Sumar punto».
+
+Quedan para el PREPARADOR: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[PUNTOS-BUSCA-TEL-CRUDO]`, `[REGISTRO-LLAVE]`, `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (los dos últimos, SQL). Del DISEÑADOR: `[LOGIN-CLARO-CONTRASTE]`. De antes: `[VOTO-RETOMAR-APAGADO]` y `[BACKUP-SIN-FAVORITOS]`.
+- `docs/BACKEND.md` describía S13 en «Deuda que queda». Pasó a la keyword sola, por la regla del 23-sep.
+
+
 ---
+
+**Última actualización:** **Septiembre 28, 2026 (`_r`)** — `[SESION-CLIENTE]` y `[TEL-CANONICO-PANEL]` en la rama `sesion-cliente` (SW v1.1.150), sin mergear. Nuevos: `[EDITAR-SIN-LIMITE]` 🟠, `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]` 🟡, `[SESION-BLOQUEADO]`, `[REGISTRO-LLAVE]`, `[LOGIN-CLARO-CONTRASTE]`, `[BACKUP-SIN-FAVORITOS]` 🟢.
 
 **Última actualización:** **Septiembre 28, 2026 (`_q`)** — la tanda chica (129d, 128h y `[ESCAPE-DOBLE-FUNCION]`), SW v1.1.149. Cerrados: `[ERRORES-CRUDOS-RESTO]` y `[ESCAPE-DOBLE-FUNCION]`. Nuevos, 🟢: `[COMBO-PISA-COMBO]` y `[ERRORES-CRUDOS-OTROS]`.
 

@@ -161,6 +161,14 @@ created_at   TIMESTAMPTZ DEFAULT NOW()
 | `cliente_editar(id, pass, nombre, telefono)` | verificación + `update` (antes sin clave) | `estado` (`ok` · `pass_incorrecta` · `duplicado` · `invalido`) |
 | `cliente_puntos(telefono)` | `select puntos, nombre` | `puntos`, `nombre` — misma exposición que antes (sin prueba de identidad) |
 | `cliente_reset_solicitar(telefono)` | lookup + `insert` en `password_reset_requests` | `nombre` (sólo para el Telegram) |
+| `cliente_entrar(telefono, pass)` · `[SESION-CLIENTE]` | `cliente_login` tal cual, más la llave | lo mismo que `cliente_login` + `token` (sólo con `ok` / `activado`; si no, `null`). Guarda el sha256 del token en `cliente_sesiones` (180 días) |
+| `cliente_salir(token)` | — | `void` · borra esa llave |
+| `mis_favoritos(token)` | `select slug from favoritos where user_id = …` | `setof text` (los slugs) |
+| `favorito_marcar(token, slug, si)` | `insert` / `delete` en `favoritos` | `boolean` · `false` si la llave no sirve o el slug no es `^[a-z0-9-]{1,120}$` |
+| `mis_votos(token, mes)` | `select categoria, slug from votos where user_id = …` | `categoria`, `slug` |
+| `voto_guardar(token, categoria, slug, mes)` | el `upsert` de `votos` | `boolean` · `false` si la llave no sirve, la categoría no es `masculino` / `femenino`, el mes no es `YYYY-MM` o el slug está vacío, tiene más de 120 o un carácter de control |
+| `seleccion_guardar(token, slugs jsonb)` | el `upsert` de `mi_seleccion` | `boolean` · `false` si la llave no sirve o no es un array de hasta 3 slugs `^[a-z0-9-]{1,120}$` |
+| `cliente_de_token(token)` | — | helper: el `cliente_id` de una llave vigente · **sin EXECUTE para nadie** |
 | `_cliente_hash(pass)` | — | helper, `crypt(pass, gen_salt('bf', 10))` · **sin EXECUTE para nadie** (revoke explícito: los *default privileges* de Supabase se lo daban a anon) |
 
 **Gotchas plpgsql que costaron un ensayo:** `returns table (…, telefono …)` convierte `telefono` en variable → `where telefono = …` y `on conflict (telefono)` son ambiguos (calificar con alias / `on conflict on constraint`). `create or replace` no puede cambiar el tipo de retorno → `drop function` previo.
@@ -186,6 +194,17 @@ Es `SECURITY DEFINER` con `EXECUTE` **a propósito** para `anon`, precisamente p
 | `public` | `false` |
 
 La usan `loadPerfumeViews()` (`js/app.js`, catálogo público) y `loadStats()` (`admin.html`, TOP 10 + "Visitas totales" + "Perfumes sin visitas"). También se verificó que `SUM(clicks)` del resumen es idéntico al `COUNT(*)` de `perfume_clicks` (230.901 = 230.901), así que `admin.html` puede derivar el total sumando el resumen en vez de pagar un `count:'exact',head:true` aparte.
+
+### `cliente_sesiones` · `[SESION-CLIENTE]` (28-sep-2026, Bloque 2 del PREPARADOR)
+
+```sql
+token_hash  TEXT PRIMARY KEY,                           -- sha256 (hex) del token: el token no se guarda
+cliente_id  UUID NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
+creada      TIMESTAMPTZ NOT NULL DEFAULT now(),
+vence       TIMESTAMPTZ NOT NULL DEFAULT now() + interval '180 days'
+```
+
+RLS prendida y `revoke all` para `anon` y `authenticated`: sólo la tocan las RPC de la tabla de arriba (`SECURITY DEFINER`). `cliente_entrar` borra las vencidas cada vez que da una llave. El trigger `trg_cliente_sesiones_limpiar` (`after update of password` en `clientes`) borra las llaves del cliente cuando cambia su contraseña: el reset del panel, la activación y la migración perezosa a bcrypt (en `cliente_login`, sólo esas dos reescriben la contraseña). Un login normal no corta las otras sesiones.
 
 ### `cliente_login_intentos`
 
