@@ -67,7 +67,7 @@
     <p>Esta guia explica como usar el panel de administracion de ST Perfumeria. Accedes en <code>/admin.html</code> o desde el boton en el footer de la web.</p>
 
     <div class="tip">
-      <p><strong>Roles:</strong> Hay dos contraseñas. <strong>Jefe</strong> <span class="badge-rol badge-jefe">JEFE</span> tiene acceso a todo (sesion de 7 horas). <strong>Empleado</strong> <span class="badge-rol badge-emp">EMPLEADO</span> puede gestionar precios, stock y clientes (sesion de 12 horas). Las pestanas que no le corresponden estan ocultas.</p>
+      <p><strong>Roles:</strong> Hay dos contraseñas. <strong>Jefe</strong> <span class="badge-rol badge-jefe">JEFE</span> tiene acceso a todo (sesion de 7 horas). <strong>Empleado</strong> <span class="badge-rol badge-emp">EMPLEADO</span> puede gestionar stock y clientes (los precios los cambia el jefe) (sesion de 12 horas). Las pestanas que no le corresponden estan ocultas.</p>
     </div>
 
     <div class="info">
@@ -125,7 +125,6 @@
       <li><strong>Estado</strong> — badge de stock con cantidad (ver colores abajo). <em>Tocable</em>.</li>
       <li><strong>Precio</strong> — el precio base cargado.</li>
       <li><strong>Efectivo</strong> — el precio con 10% OFF aplicado automaticamente (no hay que tocarlo, se calcula solo).</li>
-      <li><strong>Accion</strong> — boton <strong>Editar</strong> para cambiar precios.</li>
     </ul>
 
     <h3>Cambiar el stock</h3>
@@ -147,11 +146,8 @@
     </ul>
     <div class="tip"><p><strong>Reemplazo del Excel:</strong> Esta es la forma nueva de llevar el stock exacto. En la tablet abris la tabla, tocas la badge del perfume, ajustas con − / +, tocas OK y listo. Sin hojas de calculo, sin tipear.</p></div>
 
-    <h3>Cambiar precio</h3>
-    <div class="step"><span class="step-num">1</span><span class="step-text">Click en el boton amarillo <strong>Editar</strong> de la fila</span></div>
-    <div class="step"><span class="step-num">2</span><span class="step-text">Escribir el nuevo precio base (sin puntos ni comas, ej: <code>85000</code>)</span></div>
-    <div class="step"><span class="step-num">3</span><span class="step-text">(Opcional) Precio promo — aparece tachado el original y el promo como destacado</span></div>
-    <div class="step"><span class="step-num">4</span><span class="step-text">Tocar el boton verde <strong>✓ OK, actualizar precio</strong> <span class="badge-new">NUEVO</span></span></div>
+    <h3>Precios</h3>
+    <p>Los precios los cambia el jefe, desde la pestana <strong>✏️ Editar</strong>.</p>
     <div class="tip"><p><strong>Precio efectivo:</strong> No hay que cargarlo. Es siempre el 10% OFF del precio (o de la promo si hay). Se actualiza automaticamente.</p></div>
     <div class="info"><p><strong>Sincronizacion:</strong> Los cambios de precio ahora se guardan en Supabase, asi que los ve el jefe y el empleado al instante en cualquier dispositivo. Antes algunos cambios no cruzaban, por si notaron algo raro con eso.</p></div>
 

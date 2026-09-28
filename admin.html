@@ -560,8 +560,6 @@
     body.role-empleado .sidebar [data-role="jefe"]:not(.tab-btn-fallback) { display: none !important; }
     /* Ocultar grupos enteros si todas sus tabs son jefe y rol es empleado */
     body.role-empleado .sb-group[data-jefe-only="true"] { display: none; }
-    /* "Editar" aparece en Top para jefe Y en Productos para empleada. Esto oculta el de Productos cuando es jefe (evita duplicado) */
-    body.role-jefe .sidebar [data-only-empleado="true"] { display: none !important; }
 
     /* Light mode del sidebar */
     body.light .sidebar { background: rgba(0,0,0,.02); border-right-color: rgba(0,0,0,.12); }
@@ -821,9 +819,14 @@
        [ACTION-BTN-BASE] no les llega; y el padding inline .3rem .5rem que los achicaba se fue. */
     #tab-espera .espera-btn {
       display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap-min);
-      padding: 0 .7rem; margin-right: 0; font-size: .58rem; text-decoration: none;
+      padding: 0 .7rem; margin-right: 0; text-decoration: none;   /* 129b: sin font-size propio, la de .action-btn (.68rem) */
     }
-    #tab-espera .espera-btn-todos { width: 100%; margin-top: .6rem; font-size: .65rem; }
+    #tab-espera .espera-btn-todos { width: 100%; margin-top: .6rem; }
+    /* [DC-HEADER-CORTADO] el encabezado de columnas de «Decants de diseñador»: fijo en 7 columnas, debajo de 1100 las filas
+       pasan a 3 y a 2 y cada celda muestra su .dc-label, así que el encabezado se salía de la caja. El display va acá (no
+       inline) para que el @media lo pueda esconder sin !important. */
+    .dc-head { display: grid; }
+    @media (max-width: 1099px) { .dc-head { display: none; } }
     .espera-vacio { text-align: center; color: var(--gris); font-size: .8rem; padding: 2rem 0; }
     /* El formulario «Anotar del mostrador» (42): copia de la ventana «Avisame» del catálogo. */
     /* Con el teclado abierto (o muchos resultados) la ventana puede ser más alta que la pantalla: scrollea adentro, así
@@ -2037,7 +2040,6 @@
           <div class="sb-tab-list">
             <button class="tab-btn" data-tab="nuevos" title="Perfume" onclick="switchTab('nuevos',this);closeMobileSidebar()"><span class="sb-ico">&#10133;</span><span class="sb-label">Perfume</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="editar" title="Editar" onclick="switchTab('editar',this);closeMobileSidebar()"><span class="sb-ico">&#9999;&#65039;</span><span class="sb-label">Editar</span></button>
-            <button class="tab-btn" data-only-empleado="true" data-tab="editar" title="Editar" onclick="switchTab('editar',this);closeMobileSidebar()"><span class="sb-ico">&#9999;&#65039;</span><span class="sb-label">Editar</span></button>
           </div>
         </div>
 
@@ -2451,7 +2453,7 @@
           </div>
           <div class="barra-guardar">   <!-- [GUARDAR-ABAJO] 128 -->
             <button class="modal-btn barra-sec" onclick="cancelEdit()" style="background:#333;color:#fff;">Cancelar</button>
-            <button class="modal-btn modal-btn-price barra-prin" onclick="saveEditPerfume()">Guardar cambios</button>
+            <button class="modal-btn modal-btn-price barra-prin" onclick="saveEditPerfume()" id="btnSaveEdit">Guardar cambios</button>
           </div>
           <!-- Zona peligrosa: eliminar perfume del catálogo -->
           <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid rgba(231,76,60,.25);">
@@ -3175,7 +3177,7 @@
       <!-- Acción · [GUARDAR-ABAJO] 128 · la barra entera es del jefe -->
       <div class="barra-guardar" data-solo-jefe>
         <button class="action-btn barra-sec" onclick="loadDecantsAdmin()">↺ Recargar</button>
-        <button class="modal-btn modal-btn-price barra-prin" onclick="saveDecantsAdmin()">Guardar configuración</button>
+        <button class="modal-btn modal-btn-price barra-prin" onclick="saveDecantsAdmin()" id="btnSaveDecants">Guardar configuración</button>
       </div>
       <p class="promo-nota" data-solo-empleada style="display:none;">Si ves un precio mal, avisale al jefe.</p>
       <p class="modal-success" id="decMsg"></p>
@@ -3221,7 +3223,7 @@
           </div>
         </div>
         <div class="barra-guardar" data-solo-jefe>   <!-- [GUARDAR-ABAJO] 128 -->
-          <button class="modal-btn modal-btn-price barra-prin" onclick="savePromoAdmin()">Guardar promo</button>
+          <button class="modal-btn modal-btn-price barra-prin" onclick="savePromoAdmin()" id="btnSavePromo">Guardar promo</button>
         </div>
         <p class="promo-nota" data-solo-empleada style="display:none;">Si ves un precio mal, avisale al jefe.</p>
         <p class="modal-success" id="promoMsg"></p>
@@ -3247,7 +3249,7 @@
         <!-- Mini-header de columnas — anchos FIJOS en las últimas 2 columnas
              (checkbox + acciones) para que matcheen exactamente con las rows.
              Antes "auto auto" hacía que cada row tuviera anchos distintos. -->
-        <div style="display:grid;grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
+        <div class="dc-head" style="grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
           <span style="text-align:center;" title="Foto del perfume (opcional)">Foto</span>
           <span>Nombre</span>
           <span>Marca</span>
@@ -3273,7 +3275,7 @@
           <button type="button" class="action-btn" onclick="marcasAgregar()">+ Agregar</button>
         </div>
         <div class="barra-guardar" data-solo-jefe>   <!-- [GUARDAR-ABAJO] 128 -->
-          <button type="button" class="modal-btn modal-btn-price barra-prin" onclick="marcasGuardar()">Guardar</button>
+          <button type="button" class="modal-btn modal-btn-price barra-prin" onclick="marcasGuardar()" id="btnSaveMarcas">Guardar</button>
         </div>
         <p class="promo-nota" id="marcasMsg"></p>
       </div>
@@ -5089,8 +5091,8 @@
         return '<tr data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
           + '<td class="td-name"><span class="td-nombre">' + escHtml(p.name || '') + '</span>'
           +   (p.marca_real ? '<span class="td-sub">' + escHtml(p.marca_real) + '</span>' : '')
-          +   (dec ? '<span class="td-sub td-excepcion">💎 decant ' + escHtml(String(mlDecant)) + ' ml '
-                + (promoNum(dec.precio_unit) > 0 ? '<span class="td-decant-precio">' + escHtml(promoPesos(promoNum(dec.precio_unit))) + '</span>' : 'a consultar') + '</span>' : '')
+          +   (dec ? '<span class="td-sub td-excepcion">💎 ' + escHtml(String(mlDecant)) + ' ml '   // 123k: sin «decant» (el 💎 ya lo dice)
+                + (promoNum(dec.precio_unit) > 0 ? '<span class="td-decant-precio">' + escHtml(promoPesos(promoNum(dec.precio_unit))) + '</span>' : 'sin precio') + '</span>' : '')   // 123l
           +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('')
           + '</td>'
           + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + escHtml(info.badgeText) + '</span></td>'
@@ -5106,7 +5108,7 @@
           + '<td class="td-name"><span class="td-nombre">💎 ' + escHtml(c.nombre || '') + '</span>'
           +   '<span class="td-sub">' + escHtml((c.marca ? c.marca + ' · ' : '') + mlDecant + ' ml') + '</span></td>'   // 123g: el 💎 y el DECANT ya dicen «decant de diseñador»
           + '<td class="td-stock"><span class="badge-stock badge-decant">Decant</span></td>'
-          + '<td class="td-price">' + (precio > 0 ? escHtml(promoPesos(precio)) + ' c/u' : '<span class="td-consultar">a consultar</span>') + '</td>'
+          + '<td class="td-price">' + (precio > 0 ? escHtml(promoPesos(precio)) + ' c/u' : '<span class="td-consultar">sin precio</span>') + '</td>'
           + '<td class="td-price td-sin" title="El armador cobra el precio por unidad, sin el 10 %">—</td>'
           + '</tr>';
       };
@@ -6791,7 +6793,7 @@
       return out;
     }
 
-    async function saveEditPerfume() {
+    async function saveEditPerfumeAhora() {
       var slug = document.getElementById('editSlug').value;
       if (!slug) return;
 
@@ -7399,7 +7401,7 @@
         .replace(/^-|-$/g, '');
     }
 
-    async function saveNuevoPerfume() {
+    async function saveNuevoPerfumeAhora() {
       var editId = document.getElementById('nuevoEditId').value;
       var name = document.getElementById('nuevoName').value.trim().toUpperCase();
       var marca = 'ST Perfumería';
@@ -10383,7 +10385,7 @@
       MARCAS_EDIT.splice(i, 1);
       marcasPintar();
     }
-    async function marcasGuardar() {
+    async function marcasGuardarAhora() {
       if (currentRole !== 'jefe') return;
       var msg = document.getElementById('marcasMsg');
       var antes = (MARCAS_DISENADOR || []).slice(), nuevas = MARCAS_EDIT.slice();
@@ -10605,7 +10607,7 @@
     }
 
     // a-d · guardar la promo (sólo el jefe).
-    async function savePromoAdmin() {
+    async function savePromoAdminAhora() {
       var msg = document.getElementById('promoMsg'); msg.textContent = ''; msg.style.color = '';
       var mal = function(t) { msg.style.color = '#e74c3c'; msg.textContent = t; };
       if (currentRole !== 'jefe') return mal('Sólo el jefe puede cambiar la promo.');
@@ -10683,7 +10685,26 @@
         + (fuera.length ? ' (ej.: ' + fuera.slice(0, 3).map(function(p) { return p.name; }).join(', ') + ')' : '');
     }
 
-    async function saveDecantsAdmin() {
+    // [GUARDAR-DOBLE-TOQUE] El botón principal de cada barra de «Guardar», deshabilitado y con «Guardando…» desde que arranca
+    // hasta que termina, en todos los caminos (validación que corta, error de la base, éxito): con la barra siempre a mano, un
+    // doble toque guardaba dos veces (dos eventos en el Log; en Nuevo, el segundo insert chocaba con perfumes_nuevos_slug_key).
+    // Al terminar vuelve a SU texto de antes, salvo que la función lo haya cambiado (Nuevo pasa de «Guardar cambios» a
+    // «Agregar perfume» al limpiar el formulario). Los onclick no cambian: llaman a estos envoltorios.
+    async function conGuardando(id, fn) {
+      var btn = document.getElementById(id);
+      if (btn && btn.disabled) return;   // ya está guardando: el segundo toque no hace nada
+      var texto = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+      try { return await fn(); }
+      finally { if (btn) { btn.disabled = false; if (btn.textContent === 'Guardando…') btn.textContent = texto; } }
+    }
+    function saveEditPerfume() { return conGuardando('btnSaveEdit', saveEditPerfumeAhora); }
+    function saveNuevoPerfume() { return conGuardando('btnSaveNuevo', saveNuevoPerfumeAhora); }
+    function saveDecantsAdmin() { return conGuardando('btnSaveDecants', saveDecantsAdminAhora); }
+    function savePromoAdmin() { return conGuardando('btnSavePromo', savePromoAdminAhora); }
+    function marcasGuardar() { return conGuardando('btnSaveMarcas', marcasGuardarAhora); }
+
+    async function saveDecantsAdminAhora() {
       var msg = document.getElementById('decMsg');
       msg.textContent = '';
       msg.style.color = '';
