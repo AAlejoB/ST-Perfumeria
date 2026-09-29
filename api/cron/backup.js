@@ -43,7 +43,9 @@ const BACKUP_TABLES = [
   'opiniones',
   'lista_espera',
   'votos',
-  'ventas'
+  'ventas',
+  'favoritos',      // [BACKUP-SIN-FAVORITOS] 2.9 (A): igual que BACKUP_TABLES de admin.html
+  'mi_seleccion'
 ];
 
 // [BACKUPS-PIE] decisión 125b · TIENE QUE SER IGUAL a BACKUPS_QUE_SE_GUARDAN de admin.html (el pie de Backups dice

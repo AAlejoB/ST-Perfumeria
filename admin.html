@@ -4159,7 +4159,7 @@
       cont.innerHTML = '<p style="color:var(--gris);">Cargando…</p>';
       var res = await sb.from('password_reset_requests')
         .select('*, clientes(nombre)').eq('status', 'pending').order('created_at', { ascending: false });
-      if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">Error: ' + res.error.message + '</p>'; return; }
+      if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">' + escHtml(errorEnCriollo(res.error, null, 'cargar los pedidos')) + '</p>'; return; }   // 128j
       var data = res.data || [];
       if (data.length === 0) {
         cont.innerHTML = '<p style="color:var(--gris);padding:1rem 0;">No hay pedidos pendientes. 🎉</p>';
@@ -4192,7 +4192,7 @@
     async function resetClientePass(reqId, clienteId, tel) {
       if (!confirm('¿Ya verificaste por WhatsApp que es el cliente real?\n\nAl resetear, su contraseña queda en blanco y la PRÓXIMA que escriba al entrar a la web será su nueva contraseña.')) return;
       var upd = await sb.from('clientes').update({ password: null }).eq('id', clienteId);
-      if (upd.error) { alert('No se pudo resetear: ' + upd.error.message); return; }
+      if (upd.error) { alert(errorEnCriollo(upd.error, null, 'resetear la contraseña')); return; }   // 128j
       await sb.from('password_reset_requests').update({
         status: 'resolved', resolved_by: (currentRole || 'admin'), resolved_at: new Date().toISOString()
       }).eq('id', reqId);
@@ -5382,7 +5382,7 @@
       btn.disabled = true;
       var { error } = await sb.from('opiniones').delete().eq('id', id);
       if (error) {
-        alert('Error al eliminar: ' + error.message);
+        alert(errorEnCriollo(error, null, 'eliminar la opinión'));   // 128j
         btn.textContent = 'Eliminar';
         btn.disabled = false;
       } else {
@@ -5392,6 +5392,7 @@
     }
 
     var allClientes = [];
+    var errorClientes = '';   // 128j · el último error al cargar: buscar o filtrar no lo tapa con «Sin clientes registrados»
     var editingClientId = null;
     var deletingClientId = null;
     var deletingClientName = '';
@@ -5399,7 +5400,14 @@
     async function loadClientes() {
       var container = document.getElementById('clientsList');
       container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</p>';
-      var { data } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
+      var { data, error } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
+      if (error) {   // 128j · antes decía «Sin clientes registrados»
+        errorClientes = errorEnCriollo(error, null, 'cargar los clientes');
+        allClientes = [];
+        filterClientes();
+        return;
+      }
+      errorClientes = '';
       allClientes = data || [];
       filterClientes();
     }
@@ -5408,7 +5416,7 @@
       var container = document.getElementById('clientsList');
       document.getElementById('clientCount').textContent = list.length + ' cliente' + (list.length !== 1 ? 's' : '');
       if (!list || list.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Sin clientes registrados</p>';
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">' + (errorClientes ? escHtml(errorClientes) : 'Sin clientes registrados') + '</p>';
         return;
       }
       var html = '';
@@ -5445,7 +5453,6 @@
           + '</div>'
           + '<div class="client-details">'
             + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + escHtml(formatPhoneDisplay(c.telefono) || c.telefono) + '</span></span>'   // [CLIENTES-FECHA-TEL] como en el catálogo
-            + (c.telefono2 ? '<span class="client-detail"><span class="client-detail-icon">📞</span> <span class="client-detail-value">' + escapeHtml(c.telefono2) + '</span></span>' : '')
           + '</div>'
           + notaHTML
           + '<div class="client-actions">'
@@ -5491,9 +5498,12 @@
           return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         };
         var tokens = normalize(q).split(/\s+/).filter(Boolean);
+        // [CLIENTES-BUSCA-TEL-FORMATO] el teléfono como se ve («+54 9 2970 00-0011»): sólo si lo buscado parece un número
+        var digitos = /^[\d\s\-+().]+$/.test(q) ? q.replace(/\D/g, '') : '';
         list = list.filter(function(c) {
-          var hay = normalize((c.nombre || '') + ' ' + (c.telefono || '') + ' ' + (c.telefono2 || '') + ' ' + (c.nota || ''));
-          return tokens.every(function(t) { return hay.indexOf(t) !== -1; });
+          var hay = normalize((c.nombre || '') + ' ' + (c.telefono || '') + ' ' + (c.nota || ''));   // [TELEFONO2-MUERTO] sin telefono2
+          if (tokens.every(function(t) { return hay.indexOf(t) !== -1; })) return true;
+          return digitos.length >= 3 && String(c.telefono || '').indexOf(digitos) !== -1;
         });
       }
 
@@ -5659,7 +5669,7 @@
         var nuevosPuntos = (cliente.puntos || 0) + 1;
         var { data: updated, error } = await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', cliente.id).select();
         if (error || !updated || updated.length === 0) {
-          msgEl.textContent = 'No se pudo sumar punto. Revisá permisos en Supabase (RLS).';
+          msgEl.textContent = errorEnCriollo(error, null, 'sumar el punto');   // 128j
           msgEl.style.color = '#e74c3c'; return;
         }
         await pushPuntoLogEntry(cliente, +1, cliente.puntos || 0, nuevosPuntos, '+1 desde buscador');
@@ -5681,7 +5691,7 @@
       var nuevosPuntos = (c.puntos || 0) + 1;
       var { data, error } = await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', id).select();
       if (error || !data || data.length === 0) {
-        alert('No se pudo sumar punto. Revisá permisos en Supabase (RLS).');
+        alert(errorEnCriollo(error, null, 'sumar el punto'));   // 128j
         console.error('sumarPuntoDirecto failed:', error);
         return;
       }
@@ -5803,7 +5813,7 @@
         console.error('Edit client error:', error);
       } else if (!data || data.length === 0) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = 'No se pudo guardar. Revisá los permisos en Supabase (RLS).';
+        msgEl.textContent = errorEnCriollo(null, null, 'guardar el cliente');   // 128j · 0 filas: la base no lo dejó
         console.error('Edit client: no rows updated. Check RLS policies on clientes table.');
       } else {
         // Si cambiaron los puntos, loguear la subida/ajuste en el historial
@@ -5825,7 +5835,7 @@
       if (!c) return;
       var { data, error } = await sb.from('clientes').update({ bloqueado: block }).eq('id', id).select();
       if (error || !data || data.length === 0) {
-        alert('No se pudo ' + (block ? 'bloquear' : 'desbloquear') + '. Revisá permisos en Supabase (RLS).');
+        alert(errorEnCriollo(error, null, block ? 'bloquear al cliente' : 'desbloquear al cliente'));   // 128j
         console.error('toggleBlockClient failed:', error);
         return;
       }
@@ -5862,7 +5872,7 @@
         console.error('Delete client error:', error);
       } else if (!data || data.length === 0) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = 'No se pudo eliminar. Revisá los permisos en Supabase (RLS).';
+        msgEl.textContent = errorEnCriollo(null, null, 'borrar el cliente');   // 128j · 0 filas: la base no lo dejó
         console.error('Delete client: no rows deleted. Check RLS policies on clientes table.');
       } else {
         msgEl.style.color = '#2ecc71';
@@ -6545,7 +6555,7 @@
       var { error } = await sb.from('perfume_overrides').upsert(rows, { onConflict: 'slug' });
 
       if (error) {
-        alert('Error al guardar: ' + error.message + '\n\nVerificá que la columna "tipo" (text) exista en la tabla perfume_overrides.');
+        alert(errorEnCriollo(error, null, 'guardar los tipos'));   // 128j
         return;
       }
 
@@ -7656,7 +7666,7 @@
         // Limpiar el mensaje después de 4 segundos
         setTimeout(function() { if (msg) msg.textContent = ''; }, 4000);
       } catch (e) {
-        if (msg) { msg.textContent = '❌ Error al guardar: ' + (e.message || e); msg.style.color = '#e74c3c'; }
+        if (msg) { msg.textContent = errorEnCriollo(e, null, 'guardar la etiqueta', true); msg.style.color = '#e74c3c'; }   // 128j · «💾 Guardar badge»
       }
     }
     window.saveSeleccionBadge = saveSeleccionBadge;
@@ -7759,7 +7769,7 @@
         if (typeof logAdminAction === 'function') logAdminAction('badges_update', null, { rows: payload });
         if (msg) { msg.style.color = 'var(--verde, #4ade80)'; msg.textContent = '✓ Beneficios actualizados. Refrescá el sitio para verlos.'; }
       } catch (e) {
-        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar. ¿Creaste la tabla trust_badges en Supabase?'); }
+        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'guardar los beneficios', true); }   // 128j · «💾 Guardar cambios»
       }
     }
 
@@ -7791,7 +7801,7 @@
         HOME_BANNER_LIST = res.data || [];
         renderHomeBannerList();
       } catch (e) {
-        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo cargar. ¿Creaste la tabla home_top_banner?'); }
+        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'cargar los mensajes'); }   // 128j
       }
     }
 
@@ -7835,7 +7845,7 @@
         msg.style.color = '#4ade80'; msg.textContent = '✓ Mensaje agregado. Editá el texto.';
         await loadHomeBannerAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo agregar.');
+        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'agregar el mensaje');   // 128j
       }
     }
 
@@ -7861,7 +7871,7 @@
         await loadHomeBannerAdmin();
       } catch (e) {
         msg.style.color = '#ff6b6b';
-        msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar.');
+        msg.textContent = errorEnCriollo(e, null, 'guardar el mensaje', true);   // 128j · «💾 Guardar»
       }
     }
 
@@ -7876,7 +7886,7 @@
         msg.style.color = '#4ade80'; msg.textContent = '✓ Mensaje eliminado.';
         await loadHomeBannerAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = '✗ Error: ' + (e.message || 'no se pudo eliminar.');
+        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'eliminar el mensaje');   // 128j
       }
     }
 
@@ -7892,7 +7902,7 @@
         renderSlidesAdmin();
       } catch (e) {
         if (list) {
-          list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">✗ Error: ' + (e.message || 'no se pudo cargar. ¿Creaste la tabla home_slides?') + '</p>';
+          list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los slides')) + '</p>';   // 128j
         }
       }
     }
@@ -7961,7 +7971,7 @@
           await loadHomeSlidesAdmin();
         } catch (e) {
           msg.style.color = '#ff6b6b';
-          msg.textContent = '✗ Error: ' + (e.message || 'no se pudo agregar.');
+          msg.textContent = errorEnCriollo(e, null, 'agregar el slide');   // 128j
         } finally {
           document.body.removeChild(fileInput);
         }
@@ -7986,7 +7996,7 @@
         await loadHomeSlidesAdmin();
       } catch (e) {
         msg.style.color = '#ff6b6b';
-        msg.textContent = '✗ Error subiendo media: ' + (e.message || '');
+        msg.textContent = errorEnCriollo(e, null, 'subir el archivo');   // 128j
       } finally {
         inputEl.value = '';
       }
@@ -8029,7 +8039,7 @@
         await loadHomeSlidesAdmin();
       } catch (e) {
         msg.style.color = '#ff6b6b';
-        msg.textContent = '✗ Error: ' + (e.message || 'no se pudo guardar.');
+        msg.textContent = errorEnCriollo(e, null, 'guardar el slide', true);   // 128j · «💾 Guardar»
       }
     }
 
@@ -8044,7 +8054,7 @@
         await loadHomeSlidesAdmin();
       } catch (e) {
         msg.style.color = '#ff6b6b';
-        msg.textContent = '✗ Error: ' + (e.message || 'no se pudo eliminar.');
+        msg.textContent = errorEnCriollo(e, null, 'eliminar el slide');   // 128j
       }
     }
 
@@ -8753,7 +8763,7 @@
         notifyTelegram('🗑️ Combo eliminado: ' + s.name);
         loadCombos();
       } catch(e) {
-        alert('Error al eliminar: ' + (e.message || ''));
+        alert(errorEnCriollo(e, null, 'eliminar el combo'));   // 128j
       }
     }
 
@@ -8972,7 +8982,7 @@
           ? sessRes.data.session.access_token
           : null;
         if (!accessToken) {
-          msg.textContent = '❌ Error: No autorizado';
+          msg.textContent = errorEnCriollo({ status: 401 }, null, 'mandar la notificación');   // 128j · sin sesión
           msg.style.color = '#e74c3c';
           btn.disabled = false;
           btn.textContent = '🚀 ENVIAR PUSH';
@@ -9025,11 +9035,12 @@
 
           loadPushStats();
         } else {
-          msg.textContent = '❌ Error: ' + (data.error || 'desconocido');
+          msg.textContent = res.status === 429 && data.error ? String(data.error)   // el tope de envíos por día: su propio mensaje
+            : errorEnCriollo({ status: res.status, message: String(data.error || '') }, null, 'mandar la notificación');   // 128j
           msg.style.color = '#e74c3c';
         }
       } catch (e) {
-        msg.textContent = '❌ Error de conexión: ' + e.message;
+        msg.textContent = errorEnCriollo(e, null, 'mandar la notificación');   // 128j
         msg.style.color = '#e74c3c';
       }
 
@@ -10131,7 +10142,7 @@
         PRECIOS_DATOS.customs = true;   // [PRECIOS-EN-UN-LUGAR]
         renderDecantsCustomList();
       } catch (e) {
-        if (list) list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">✗ ' + (e.message || 'No se pudo cargar. ¿Creaste la tabla decants_custom?') + '</p>';
+        if (list) list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los decants de diseñador')) + '</p>';   // 128j
       }
     }
 
@@ -10191,7 +10202,7 @@
         msg.style.color = '#4ade80'; msg.textContent = '✓ Agregado. Editá el nombre.';
         await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = '✗ ' + (e.message || 'Error');
+        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'agregar el decant');   // 128j
       }
     }
 
@@ -10232,7 +10243,7 @@
         msg.style.color = '#4ade80'; msg.textContent = '✓ Guardado.';
         await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = '✗ ' + (e.message || 'Error');
+        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'guardar el decant', true);   // 128j · «💾 Guardar»
       }
     }
 
@@ -10245,7 +10256,7 @@
         msg.style.color = '#4ade80'; msg.textContent = '✓ Eliminado.';
         await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = '✗ ' + (e.message || 'Error');
+        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'eliminar el decant');   // 128j
       }
     }
 
@@ -10287,7 +10298,7 @@
         msg.textContent = '✓ Foto subida (' + Math.round(compressed.size / 1024) + ' KB WebP).';
       } catch (e) {
         msg.style.color = '#ff6b6b';
-        msg.textContent = '✗ Error: ' + (e.message || e);
+        msg.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128j
       }
       input.value = '';
     }
@@ -10306,7 +10317,7 @@
         msg.textContent = '✓ Foto quitada (vuelve al placeholder ⭐).';
       } catch (e) {
         msg.style.color = '#ff6b6b';
-        msg.textContent = '✗ ' + (e.message || 'Error');
+        msg.textContent = errorEnCriollo(e, null, 'sacar la foto');   // 128j
       }
     }
 
@@ -10729,8 +10740,9 @@
     //    (sólo donde la base tiene un único que puede chocar; sin ctx, un 23505 cae en el genérico);
     //  · que: lo que se intentaba hacer, «cambiar el stock» → «No se pudo cambiar el stock. Probá de nuevo; …». Por
     //    defecto «guardar»: las cinco barras de 128g dicen lo mismo que antes.
-    // 128i · tocaGuardar === true sólo en las barras de 128g cuyo botón dice «Guardar»: ahí «tocá Guardar / guardá de
-    // nuevo»; en todo lo demás, «probá de nuevo».
+    // 128i / 128j · tocaGuardar === true donde el botón que se tocó dice «Guardar» (las barras de 128g y los de 128j: la
+    // etiqueta, los beneficios, el mensaje, el slide, el decant, la config de puntos): ahí «tocá Guardar / guardá de
+    // nuevo»; en todo lo demás, «probá de nuevo». Los de 128h todavía no lo llevan.
     function errorEnCriollo(err, ctx, que, tocaGuardar) {
       console.error('[' + (que || 'guardar') + ']', err);
       var e = err || {}, code = String(e.code || ''), status = Number(e.status || 0);
@@ -11418,7 +11430,7 @@
         logRender();
       } catch (e) {
         console.error('[auditlog] load error:', e);
-        feed.innerHTML = '<p class="log-vacio">Error al cargar el log: ' + escHtml(e.message || String(e)) + '</p>';
+        feed.innerHTML = '<p class="log-vacio">' + escHtml(errorEnCriollo(e, null, 'cargar el log')) + '</p>';   // 128j
       }
     }
 
@@ -11587,7 +11599,7 @@
         if (meta) meta.textContent = data.length.toLocaleString('es-AR') + ' eventos · ' + days + 'd · actualizado ' + new Date().toLocaleTimeString('es-AR');
       } catch (e) {
         console.error('[analytics] load error:', e);
-        if (meta) meta.textContent = '❌ ' + (e.message || String(e));
+        if (meta) meta.textContent = errorEnCriollo(e, null, 'cargar las estadísticas');   // 128j
       }
     }
 
@@ -11608,7 +11620,9 @@
       { name: 'clientes',           critical: false },
       { name: 'opiniones',          critical: false },
       { name: 'lista_espera',       critical: false },
-      { name: 'votos',              critical: false }
+      { name: 'votos',              critical: false },
+      { name: 'favoritos',          critical: false },   // [BACKUP-SIN-FAVORITOS] 2.9 (A): igual que api/cron/backup.js
+      { name: 'mi_seleccion',       critical: false }
     ];
 
     var backupsCleanupRan = false;
@@ -11698,8 +11712,9 @@
         loadBackups();
       } catch (e) {
         console.error('[backup] error:', e);
-        if (meta) meta.textContent = '❌ Error: ' + (e.message || e);
-        alert('Error creando backup: ' + (e.message || e));
+        var motivoBackup = errorEnCriollo(e, null, 'crear el backup');   // 128j
+        if (meta) meta.textContent = motivoBackup;
+        alert(motivoBackup);
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = '💾 Crear backup ahora'; }
       }
@@ -11787,7 +11802,7 @@
         if (q.error) throw q.error;
         if (msg) { msg.textContent = '✓ Guardado'; setTimeout(function(){ msg.textContent=''; }, 2500); }
       } catch(e) {
-        if (msg) { msg.style.color='#ff7a7a'; msg.textContent = '✗ ' + (e.message||e); }
+        if (msg) { msg.style.color='#ff7a7a'; msg.textContent = errorEnCriollo(e, null, 'guardar la configuración', true); }   // 128j · «💾 Guardar config»
       }
     }
 
@@ -11895,7 +11910,7 @@
         setTimeout(function(){ closeModal('modalPuntos'); }, MODAL_CIERRE_MS);
       } catch(e) {
         msg.style.color = '#ff7a7a';
-        msg.textContent = '✗ ' + (e.message||e);
+        msg.textContent = errorEnCriollo(e, null, 'ajustar los puntos');   // 128j
       } finally {
         btn.disabled = false; btn.textContent = '✓ Confirmar';
       }
@@ -11990,7 +12005,7 @@
         if (meta) meta.textContent = data.length + ' backup' + (data.length === 1 ? '' : 's') + ' · actualizado ' + new Date().toLocaleTimeString('es-AR');
       } catch (e) {
         console.error('[backup] load error:', e);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">Error al cargar: ' + escHtml(e.message || String(e)) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">' + escHtml(errorEnCriollo(e, null, 'cargar los backups')) + '</td></tr>';   // 128j
       }
     }
 
@@ -12013,7 +12028,7 @@
         setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
       } catch(e) {
         console.error('[backup] download error:', e);
-        alert('Error descargando backup: ' + (e.message || e));
+        alert(errorEnCriollo(e, null, 'descargar el backup'));   // 128j
       }
     }
 
