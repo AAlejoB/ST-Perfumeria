@@ -3366,7 +3366,74 @@ El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bu
   - los botones de votar, recién con mis votos.
 - 6 pendientes nuevos, 🟢: `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]` (lo pidió el PREPARADOR), `[AVISO-TAPA-LOGIN]`, `[FAVS-MARCA-BORDES]`, `[AUTH-BAJO-DETALLE]` y `[EDITAR-BLOQUEADO]`.
 
+### Sesión 29-sep-2026 · `_t` · el merge de `sesion-cliente` (v1.1.150) y la tanda chica v1.1.151 en `pulido-login` · **sin mergear**
+
+El prompt `_s` del PREPARADOR.
+
+#### El merge de `sesion-cliente`
+- Con la revisión del PREPARADOR y el OK de Alejo en el chat: fast-forward `ebad698..5f17464` a las **01:22 (ART) del 29-sep**. Desde esa hora cuentan las 24 h para el Bloque 3.
+- Producción: `sw.js` en v1.1.150 a los 30 s. `sw.js`, `js/app.js`, `admin.html`, `index.html` y `css/styles.css` son iguales, byte a byte, a `5f17464`.
+- Prueba de humo **sin cuenta** (el navegador del panel de Claude Code):
+  - 192 cards, sin sesión, ni aviso, ni modal;
+  - 0 errores en la consola;
+  - 17 pedidos a Supabase, todos sin error (`perfume_clicks_resumen` y 16 tablas).
+
+#### La tanda chica (rama `pulido-login` desde `5f17464`)
+`e42a32e` (catálogo: `js/app.js`, `index.html`, `css/styles.css`, `scripts/contraste.js`) + `fea3057` (`admin.html`, `api/cron/backup.js`) + SW v1.1.151 (`57bfede`).
+
+**En el punto 2.9 va la opción A.** Es el default del prompt: el mensaje de Alejo traía otra vez el texto de la plantilla, sin elegir. Antes de arrancar, en la base (sólo lectura), **el Bloque 2c ya estaba corrido**:
+- `cliente_editar` devuelve `TABLE(estado text, espera_seg integer)`, mira `v_cli.bloqueado` y avisa por Telegram;
+- cierra `[EDITAR-BLOQUEADO]` (SECURITY.md § S30).
+
+- **2.1:** «Tu cuenta quedó creada. Hubo muchos intentos con este número: esperá N minutos y entrá con tu número y contraseña.»
+- **2.2:** «Editar perfil» con `bloqueado` → «Demasiados intentos. Esperá N minutos y volvé a probar.» (N de `espera_seg` con la cuenta del login; 15 si no viene).
+- **2.3 · 131 `[LOGIN-CLARO-CONTRASTE]`, sólo en claro:**
+  - «ENTRAR» / «Unirme» / «Guardar cambios» `#1a1a1d` → 9,33;
+  - «Creá una» / «Iniciá sesión» `--amarillo-tinta` → 6,25;
+  - «¿Olvidaste tu contraseña?» `#5e564a` → 6,29.
+  - Los 6 links de la ventana, más el de «Este número ya está registrado», pasan de `style` inline a `.auth-link` / `.auth-link-sec`. El oscuro, igual (10,06 · 9,33 · 9,04).
+  - La ventana entra en `npm run contraste` (10 filas).
+- **2.4 · 128j `[ERRORES-CRUDOS-OTROS]`:**
+  - los 31, `loadResetRequests` (con `escHtml`), `loadClientes` (antes decía «Sin clientes registrados»; ahora buscar o filtrar no tapa el error) y los «Revisá permisos en Supabase (RLS)» pasan por `errorEnCriollo`. Los de puntos los pidió el PREPARADOR; los otros tres (editar, bloquear y borrar cliente) son iguales;
+  - también los dos de «Enviar push»: sin sesión y el error del servidor. Pero el tope de 5 envíos por día (429) conserva su propio mensaje;
+  - se sacan los íconos «✗ Error:» / «❌» de los errores (el rojo queda);
+  - `tocaGuardar` donde el botón dice «Guardar»: la etiqueta, los beneficios, el mensaje, el slide, el decant y la config de puntos.
+- **2.5 `[CLIENTES-BUSCA-TEL-FORMATO]`:** si lo buscado parece un número (dígitos, espacios, `+`, guiones, paréntesis), también por los dígitos del teléfono.
+- **2.6 `[AUTH-BAJO-DETALLE]`:** `.auth-overlay` en `z-index` 10005 siempre (se va la regla de los juegos).
+- **2.7 `[AVISO-TAPA-LOGIN]`:** el aviso 130 se cierra solo al abrir «Iniciá sesión» o al aparecer el del carrito.
+- **2.8 `[TELEFONO2-MUERTO]`:** fuera de la tarjeta y de la búsqueda.
+- **2.9 `[BACKUP-SIN-FAVORITOS]` (A):** `favoritos` y `mi_seleccion` en las dos listas. Queda: panel 14, cron 15; la única diferencia, `ventas`, como antes.
+
+#### Verificación (fixtures y stub `ronda-t/stub-t.js`: lecturas que fallan y escrituras sin filas; 390)
+- **a:** `bloqueado` 600 s → «esperá 10 minutos»; 45 s → «1 minuto».
+- **b:** 180 s → «Esperá 3 minutos»; 40 s → «1 minuto»; sin `espera_seg` → «15 minutos»; `pass_incorrecta` sigue «Contraseña incorrecta».
+- **c:** en el DOM, los mismos números que `contraste.js`, en «Iniciá sesión», «Unite a ST» y «Recuperá tu cuenta»; 0 links con color inline.
+- **d:** el `grep` de los patrones viejos da 0, salvo dos que no son errores de la base: la validación fija «Error: esta opinión no tiene ID válido» y el «❌» del contador de pushes fallidas. Forzados:
+  - clientes sin red → «…probá de nuevo»;
+  - beneficios sin red → «…tocá Guardar de nuevo»;
+  - «Reset contraseñas» con la sesión vencida → «Se venció la sesión. Volvé a entrar y probá de nuevo.»;
+  - sumar punto con 0 filas → el genérico en su `alert`;
+  - resetear la contraseña → el genérico en su `alert`;
+  - el original en la consola, en los 5.
+- **e:** «+54 9 2970 00-0011», «2970 00-0011» y «297 000» encuentran; «Clienta», «web uno», «Clienta 297» y «Uno 0011», por nombre (y teléfono). Sin 📞.
+- **f:** la llave rechazada con el detalle abierto: «Iniciá sesión» (10005) arriba del detalle (10000); lo que se ve arriba es la ventana.
+- **g:** el aviso 130 se cierra al abrir el login y al aparecer el toast del carrito.
+- **h:** las dos listas del backup; `node --check api/cron/backup.js`.
+- `vm.Script`, `node --check` (app, extras, backup.js, contraste.js): ok. `npm run contraste`: 0 fallas + 1 token pisado, **305** mediciones. 0 `!important` nuevos.
+- 8 capturas en `herramientas\ronda-t\png`.
+
+#### La revisión adversarial (8 agentes: errores, login, clientes y backup, regresiones; cada uno verificado)
+- 5 arreglos en la rama:
+  - la búsqueda por dígitos, sólo si lo buscado parece un número;
+  - el 429 de los pushes con su mensaje;
+  - el error de carga de clientes, que no se tapa al buscar o filtrar;
+  - el comentario de `errorEnCriollo`;
+  - dos comentarios de CSS con el `z-index` 2000 viejo.
+- 4 pendientes nuevos, 🟢: `[COMBO-BORRA-SIN-MIRAR]`, `[CRIOLLO-BORDES]`, `[LOGIN-CLARO-TELEFONO]` y `[LOGIN-CAMPOS-QUEDAN]` (este último, de las capturas).
+
 ---
+
+**Última actualización:** **Septiembre 29, 2026 (`_t`)** — el merge de `sesion-cliente` (01:22, v1.1.150 en producción) y la tanda chica v1.1.151 en `pulido-login`, sin mergear. Cerrados: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[REGISTRO-LLAVE]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]` (en producción), `[EDITAR-BLOQUEADO]` (el Bloque 2c) y `[FAVS-MARCA-BORDES]` (aceptado). Nuevos, 🟢: `[COMBO-BORRA-SIN-MIRAR]`, `[CRIOLLO-BORDES]`, `[LOGIN-CLARO-TELEFONO]`, `[LOGIN-CAMPOS-QUEDAN]`.
 
 **Última actualización:** **Septiembre 29, 2026 (`_s`)** — la ronda s sobre `sesion-cliente` (sin bump, v1.1.150), sin mergear. Cerrados: `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (el Bloque 2b). En la rama: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[REGISTRO-LLAVE]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]`. Nuevos, 🟢: `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]`, `[AVISO-TAPA-LOGIN]`, `[FAVS-MARCA-BORDES]`, `[AUTH-BAJO-DETALLE]`, `[EDITAR-BLOQUEADO]`.
 
@@ -3520,6 +3587,15 @@ El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bu
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 29-sep-2026 (`_t`):**
+
+- ✅ ~~**`[FAVS-DISPOSITIVO-COMPARTIDO]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟡, prioridad propuesta por Claude Code) — al entrar se suben los favoritos de este dispositivo que no están en la base (punto 3 del prompt `_q` del PREPARADOR), pero `st_favs` no se borra al salir: en un dispositivo compartido, los del cliente anterior se suben a la cuenta del que entra después. Decide el PREPARADOR (por ejemplo, guardar de quién es `st_favs` y subir sólo lo de invitado o lo de la misma cuenta). En la rama `sesion-cliente`, sin tocar. **En la rama `sesion-cliente` (ronda s, `_s`):** marca nueva `st_favs_de` (el `id` del dueño de `st_favs`): al entrar se suben sólo si son de invitado o de la misma cuenta; si son de otra, queda lo de la base (también al retomar la sesión). «Cerrar sesión» los borra (opción A, decisión de Alejo del 29-sep); una salida forzada los deja. → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART).
+- ✅ ~~**`[REGISTRO-LLAVE]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟢) — la llave de quien se acaba de registrar sale de `cliente_entrar` con los mismos datos. Si ese teléfono venía bloqueado por intentos (`cliente_login_intentos`, 15 min), `cliente_registrar` da `ok` pero `cliente_entrar` da `bloqueado`: la persona ve «Por seguridad, volvé a entrar…» y, al entrar, «Demasiados intentos». Que `cliente_registrar` devuelva la llave lo resolvería (SQL del PREPARADOR). **En la rama `sesion-cliente` (ronda s, `_s`):** con `bloqueado`, «Tu cuenta quedó creada. Por los intentos de antes, esperá N minutos y entrá con tu número y contraseña.» (sin tocar el SQL). → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART). La frase cambia otra vez en `pulido-login` (2.1).
+- ✅ ~~**`[VOTO-RETOMAR-APAGADO]`**~~ (28-sep, de antes · 🟡, prioridad propuesta por Claude Code) — al retomar la sesión guardada, los botones de la votación quedan deshabilitados: `unlockVoting` corre desde `onLogin` antes de que `loadVotacionFromDB` (diferida) arme los botones, y `renderVotoButtons` los arma con `disabled`. Con fixture: 4 de 4 apagados, en la rama y en `main`. Se puede votar sólo saliendo y entrando. No se tocó. **En la rama `sesion-cliente` (ronda s, `_s`):** `renderVotoButtons` llama a `unlockVoting` con sesión; sin botones no se piden mis votos, y los botones se habilitan cuando ya se saben. Medido: 4 botones, la categoría votada con sus resultados y `mis_votos` una vez. → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART).
+- ✅ ~~**`[PUNTOS-BUSCA-TEL-CRUDO]`**~~ (28-sep, salió de `[TEL-CANONICO-PANEL]` · 🟡, prioridad propuesta por Claude Code) — «Sumar punto» busca al cliente con `.eq('telefono', query)` tal cual se tipeó. Como los 100 teléfonos están como `549` + 10, «2970000011» no encuentra a 5492970000011: pide el nombre y el alta choca con el único («Ya existe un cliente con ese teléfono.»; antes creaba un duplicado en silencio). Y un número con espacios en el buscador se toma como nombre (`esNumero` es `^\d{6,}$`). Arreglo propuesto: buscar también con `cleanPhone(query)` cuando da válido. Del PREPARADOR. **En la rama `sesion-cliente` (ronda s, `_s`):** se busca `cleanPhone` de lo tipeado sin espacios, `+`, guiones ni paréntesis: «2970000011», «297 15 000 0011» y «+54 9 297 000-0011» encuentran al cliente y no piden nombre. → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART).
+- ✅ ~~**`[EDITAR-BLOQUEADO]`**~~ (29-sep, salió de la ronda s · 🟢, prioridad propuesta por Claude Code) — **sólo la keyword**; el detalle vive en `_correo_agentes`. SQL del PREPARADOR. → **RESUELTO el 29-sep** (el Bloque 2c del PREPARADOR, corrido por Alejo; verificado en `pg_proc`): un cliente bloqueado desde el panel recibe `pass_incorrecta` y cuenta como un intento fallido, como en el login; al trabarse avisa por Telegram; la función devuelve también `espera_seg`. Antes, un bloqueado no podía entrar pero con su contraseña todavía cambiaba su nombre y su teléfono. Ver SECURITY.md § S30.
+- ✅ ~~**`[FAVS-MARCA-BORDES]`**~~ (29-sep, salió de la revisión de la ronda s · 🟢, prioridad propuesta por Claude Code) — tres bordes de `st_favs_de`: (1) lo que marca un invitado después de una salida forzada queda a nombre de la cuenta anterior y se pierde si entra otra (es la regla del punto 3 tal cual); (2) quien hizo «Cerrar sesión» con la v1.1.149 dejó `st_favs` sin marca, y eso se sube a la próxima cuenta que entre (no se distingue de un invitado); (3) con otra pestaña de la misma cuenta abierta, después de «Cerrar sesión» esa pestaña vuelve a escribir `st_favs` y su salida forzada lo deja (y dice «Tu sesión se cerró…»). Decide el PREPARADOR. → **CERRADO el 29-sep, aceptado así** (el PREPARADOR, `_s`): a es la regla, b es de transición y se va sola, c es un borde con dos pestañas de la misma cuenta.
 
 **Movidos el 29-sep-2026 (`_s`):**
 

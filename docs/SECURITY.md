@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 29, 2026 (`_s`)** — **S28 y S29 RESUELTOS** (el SQL del Bloque 2b del PREPARADOR, corrido por Alejo): `cliente_editar` cuenta intentos y `cliente_de_token` no sirve para clientes bloqueados. Del lado del catálogo, «Editar perfil» dice «Demasiados intentos…» (rama `sesion-cliente`). **S13 sigue con la keyword sola** hasta el Bloque 3.
+> **Última actualización:** **Septiembre 29, 2026 (`_t`)** — **S30 RESUELTO** (el Bloque 2c del PREPARADOR, corrido por Alejo): un cliente bloqueado desde el panel ya no edita su perfil. `[SESION-CLIENTE]` en producción desde el 29-sep a las 01:22 (ART, v1.1.150); **S13 sigue con la keyword sola** hasta el Bloque 3 (no antes del 30-sep a las 01:22).
+>
+> **Antes (29-sep, `_s`):** — **S28 y S29 RESUELTOS** (el SQL del Bloque 2b del PREPARADOR, corrido por Alejo): `cliente_editar` cuenta intentos y `cliente_de_token` no sirve para clientes bloqueados. Del lado del catálogo, «Editar perfil» dice «Demasiados intentos…» (rama `sesion-cliente`). **S13 sigue con la keyword sola** hasta el Bloque 3.
 >
 > **Antes (28-sep, `_p`):** — **S18, S24, S25 y S27 RESUELTOS** (v1.1.148): los escapes del barrido de XSS, en el panel y en el catálogo, cruzados contra el inventario de S18 del PREPARADOR.
 >
@@ -415,6 +417,12 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 **Severidad:** 🟢 mientras duró · salió de la revisión adversarial de `[SESION-CLIENTE]` (ronda r); era del Bloque 2.
 
 > ✅ **ESTADO: RESUELTO** · el Bloque 2b. `cliente_de_token` no miraba `clientes.bloqueado` y el trigger borra llaves sólo al cambiar la contraseña: un cliente bloqueado desde el panel seguía escribiendo favoritos, votos y «Mi selección» con su llave hasta que venciera. **Fix:** `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`. **Verificado en la base** (`pg_proc`, 29-sep).
+
+### **S30 · `[EDITAR-BLOQUEADO]` · Un cliente bloqueado todavía podía editar su perfil · ✅ RESUELTO 29-sep-2026**
+
+**Severidad:** 🟢 mientras duró · salió de la ronda s (29-sep).
+
+> ✅ **ESTADO: RESUELTO** · el Bloque 2c del PREPARADOR, corrido por Alejo. `cliente_editar` no miraba `clientes.bloqueado`: un cliente bloqueado desde el panel no podía entrar, pero con su contraseña todavía cambiaba su nombre y su teléfono. **Fix:** un bloqueado recibe `pass_incorrecta` y cuenta como un intento fallido, igual que en `cliente_login`; al trabarse avisa por Telegram, y la función devuelve también `espera_seg`. **Verificado en la base** (`pg_proc`, 29-sep): `TABLE(estado text, espera_seg integer)`, mira `v_cli.bloqueado` y usa `_aviso_tg`. El catálogo muestra los minutos («Demasiados intentos. Esperá N minutos…», rama `pulido-login`).
 
 ---
 
