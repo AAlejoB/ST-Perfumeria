@@ -3641,13 +3641,13 @@ El prompt `_w` del PREPARADOR.
 - `[FACILITAR-MOBILE-EN-CATALOGO]`, a 390 × 844: la primera tarjeta a 2.506 px (2,97 pantallas); una tarjeta mide 592 y la zona útil con lo pegado 547, así que ninguna entra entera; el mazo de género queda tapado con el catálogo pegado (`[MAZO-TAPADO]`) y «Ordenar» tapa la primera sugerencia (`[SUGERENCIAS-BAJO-ORDENAR]`).
 - El detalle, las preguntas y la tabla «hago / no hago / decide Alejo»: `_correo_agentes\ST_Perfumeria\ClaudeCode_para_PREPARADOR_2026-09-29_x2.md`; las 60 capturas, en `herramientas\ronda-x\png` (`panel-*`, `catalogo-*`).
 
-### Sesión 29-sep-2026 · `_y` · `carga-fallida` aprobada (el merge, desde las 21:00) y la tanda v1.1.156 en `no-pisar` · **sin mergear**
+### Sesión 29-sep-2026 · `_y` · el merge de `carga-fallida` (v1.1.155, 19:07 del 29-sep, por orden de Alejo) y la tanda v1.1.156 en `no-pisar` · **sin mergear**
 
 El prompt `_x` del PREPARADOR.
 
 #### 0 · `carga-fallida`
 - Revisada y aprobada por el PREPARADOR, con sus tres decisiones: «Volver al horario normal» escondido si la carga falló; el error en vez de la lista en Combos y en la Espera; los números de antes mientras recarga.
-- El merge (fast-forward a `92226c8`) va **desde las 21:00 (ART)**: un merge que toca el panel, fuera de 10-21 (las chicas usan las tablets). Después: Vercel en `92226c8` y borrar la rama.
+- **Mergeada a las 19:07:31 (ART), antes de las 21, por orden de Alejo** («mergea ahora»; la aprobación del PREPARADOR ya estaba en su prompt): fast-forward `ac74be1..92226c8`. Vercel sirvió `92226c8` a los ~30 s: los 7 archivos (`index.html`, `admin.html`, `sw.js`, `js/app.js`, `js/extras.js`, `css/styles.css`, `perfumes.js`), iguales byte a byte. Prueba de humo sin cuenta: 192 cards, sin sesión ni ventana, 17 pedidos a Supabase todos 200, 0 errores en la consola. `carga-fallida` borrada, en la compu y en GitHub. El riesgo de hacerlo en horario: las tablets del panel ven el banner «Nueva versión del panel» y no se recargan solas.
 
 #### 1 · La tanda v1.1.156 (rama `no-pisar` desde `92226c8`)
 - **1.1 · `[DESTACADOS-BORRA-SI-FALLA]`:**
@@ -3718,7 +3718,7 @@ El prompt `_x` del PREPARADOR.
   - El que queda es la vuelta de los de antes cuando se corta la red. Ahora la lista sale en la consola, y va a `[DESTACADOS-RPC]`.
   - De los descartados: «buscar…» con 42501 ahora dice «no puede ver esto». El color del ranking y los de Destacados van a `[MENSAJES-FIJOS-CLARO]`.
 - **Pendientes nuevos:**
-  - 🟡 `[QUOTE-JEFE-SE-BORRA]` (hoy 0 quotes), `[CAT-DOBLE-SE-PIERDE]` (18 de los 19 ya en «Unisex»), `[COMBO-FORM-CLARO]`.
+  - 🟡 `[QUOTE-JEFE-SE-BORRA]` (hoy 0 quotes), `[CAT-DOBLE-SE-PIERDE]` (18 de los 19 ya en «Unisex»; **Alejo decidió que se queden así**: baja a 🟢, queda el formulario), `[COMBO-FORM-CLARO]`.
   - 🟢 `[DESTACADOS-RPC]`, `[BADGES-BORRA-SI-FALLA-EL-ALTA]`, `[DESCUENTO-HASTA-UTC]` (hoy 0), `[MENSAJES-FIJOS-CLARO]`, `[BACKUP-INCOMPLETO]`, `[EDITAR-NUEVO-SIN-AVISO]`, `[PUNTOS-CARRERA-TABLETS]`.
   - Los números de la base salen de `SELECT` de sólo lectura.
 
@@ -3728,7 +3728,7 @@ El prompt `_x` del PREPARADOR.
 
 ---
 
-**Última actualización:** **Septiembre 29, 2026 (`_y`)** — `carga-fallida` aprobada por el PREPARADOR (el merge, desde las 21:00) y la tanda v1.1.156 en `no-pisar`, sin mergear: 1.1 `[DESTACADOS-BORRA-SI-FALLA]`, 1.2 `[GUARDAR-SIN-LEER]` (15 formularios; NO ROMPER #20), 1.3 «Acción», 1.4 `[HORARIO-ERROR-OSCURO]`, 1.5 `[SUGERENCIAS-BAJO-ORDENAR]`. Nuevos: `[QUOTE-JEFE-SE-BORRA]`, `[CAT-DOBLE-SE-PIERDE]` y `[COMBO-FORM-CLARO]` 🟡; `[DESTACADOS-RPC]`, `[BADGES-BORRA-SI-FALLA-EL-ALTA]`, `[DESCUENTO-HASTA-UTC]`, `[MENSAJES-FIJOS-CLARO]`, `[BACKUP-INCOMPLETO]`, `[EDITAR-NUEVO-SIN-AVISO]` y `[PUNTOS-CARRERA-TABLETS]` 🟢.
+**Última actualización:** **Septiembre 29, 2026 (`_y`)** — `carga-fallida` aprobada por el PREPARADOR y mergeada a las 19:07 por orden de Alejo (v1.1.155 en producción) y la tanda v1.1.156 en `no-pisar`, sin mergear: 1.1 `[DESTACADOS-BORRA-SI-FALLA]`, 1.2 `[GUARDAR-SIN-LEER]` (15 formularios; NO ROMPER #20), 1.3 «Acción», 1.4 `[HORARIO-ERROR-OSCURO]`, 1.5 `[SUGERENCIAS-BAJO-ORDENAR]`. Nuevos: `[QUOTE-JEFE-SE-BORRA]`, `[CAT-DOBLE-SE-PIERDE]` y `[COMBO-FORM-CLARO]` 🟡; `[DESTACADOS-RPC]`, `[BADGES-BORRA-SI-FALLA-EL-ALTA]`, `[DESCUENTO-HASTA-UTC]`, `[MENSAJES-FIJOS-CLARO]`, `[BACKUP-INCOMPLETO]`, `[EDITAR-NUEVO-SIN-AVISO]` y `[PUNTOS-CARRERA-TABLETS]` 🟢.
 
 **Última actualización:** **Septiembre 29, 2026 (`_x`)** — el merge de `pulido-clientes` (03:50 del 29-sep, v1.1.154 en producción), la tanda v1.1.155 en `carga-fallida`, sin mergear, y el relevamiento de los dos temas. Cerrado, en producción: `[PANEL-HOY-UTC]`. Nuevos: `[DESTACADOS-BORRA-SI-FALLA]` 🟠, `[PANEL-STOCK-CALLA]`, `[MAZO-TAPADO]` y `[SUGERENCIAS-BAJO-ORDENAR]` 🟡, `[CARGA-FALLIDA-SEED]` y `[HORARIO-ERROR-OSCURO]` 🟢.
 
