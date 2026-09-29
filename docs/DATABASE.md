@@ -158,7 +158,7 @@ created_at   TIMESTAMPTZ DEFAULT NOW()
 |---|---|---|
 | `cliente_login(telefono, pass)` | el `select … password` + la activación | `estado` (`ok` · `activado` · `invalido` · `bloqueado`), `id`, `nombre`, `telefono`, `espera_seg` |
 | `cliente_registrar(nombre, telefono, pass)` | chequeo de duplicado + `insert` | `estado` (`ok` · `duplicado` · `invalido`), `id`, `nombre`, `telefono` |
-| `cliente_editar(id, pass, nombre, telefono)` | verificación + `update` (antes sin clave) | `estado` (`ok` · `pass_incorrecta` · `duplicado` · `invalido`) |
+| `cliente_editar(id, pass, nombre, telefono)` | verificación + `update` (antes sin clave) | `estado` (`ok` · `pass_incorrecta` · `duplicado` · `invalido` · `bloqueado`) · desde el Bloque 2b (28-sep) cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (el mismo contador que entrar: 5 → 15 min) y devuelve `bloqueado` |
 | `cliente_puntos(telefono)` | `select puntos, nombre` | `puntos`, `nombre` — misma exposición que antes (sin prueba de identidad) |
 | `cliente_reset_solicitar(telefono)` | lookup + `insert` en `password_reset_requests` | `nombre` (sólo para el Telegram) |
 | `cliente_entrar(telefono, pass)` · `[SESION-CLIENTE]` | `cliente_login` tal cual, más la llave | lo mismo que `cliente_login` + `token` (sólo con `ok` / `activado`; si no, `null`). Guarda el sha256 del token en `cliente_sesiones` (180 días) |
@@ -168,7 +168,7 @@ created_at   TIMESTAMPTZ DEFAULT NOW()
 | `mis_votos(token, mes)` | `select categoria, slug from votos where user_id = …` | `categoria`, `slug` |
 | `voto_guardar(token, categoria, slug, mes)` | el `upsert` de `votos` | `boolean` · `false` si la llave no sirve, la categoría no es `masculino` / `femenino`, el mes no es `YYYY-MM` o el slug está vacío, tiene más de 120 o un carácter de control |
 | `seleccion_guardar(token, slugs jsonb)` | el `upsert` de `mi_seleccion` | `boolean` · `false` si la llave no sirve o no es un array de hasta 3 slugs `^[a-z0-9-]{1,120}$` |
-| `cliente_de_token(token)` | — | helper: el `cliente_id` de una llave vigente · **sin EXECUTE para nadie** |
+| `cliente_de_token(token)` | — | helper: el `cliente_id` de una llave vigente de un cliente **no bloqueado** (`join clientes`, Bloque 2b) · **sin EXECUTE para nadie** |
 | `_cliente_hash(pass)` | — | helper, `crypt(pass, gen_salt('bf', 10))` · **sin EXECUTE para nadie** (revoke explícito: los *default privileges* de Supabase se lo daban a anon) |
 
 **Gotchas plpgsql que costaron un ensayo:** `returns table (…, telefono …)` convierte `telefono` en variable → `where telefono = …` y `on conflict (telefono)` son ambiguos (calificar con alias / `on conflict on constraint`). `create or replace` no puede cambiar el tipo de retorno → `drop function` previo.

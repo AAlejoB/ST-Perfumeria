@@ -1,6 +1,8 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 28, 2026 (`_p`)** — **S18, S24, S25 y S27 RESUELTOS** (v1.1.148): los escapes del barrido de XSS, en el panel y en el catálogo, cruzados contra el inventario de S18 del PREPARADOR.
+> **Última actualización:** **Septiembre 29, 2026 (`_s`)** — **S28 y S29 RESUELTOS** (el SQL del Bloque 2b del PREPARADOR, corrido por Alejo): `cliente_editar` cuenta intentos y `cliente_de_token` no sirve para clientes bloqueados. Del lado del catálogo, «Editar perfil» dice «Demasiados intentos…» (rama `sesion-cliente`). **S13 sigue con la keyword sola** hasta el Bloque 3.
+>
+> **Antes (28-sep, `_p`):** — **S18, S24, S25 y S27 RESUELTOS** (v1.1.148): los escapes del barrido de XSS, en el panel y en el catálogo, cruzados contra el inventario de S18 del PREPARADOR.
 >
 > **Antes (28-sep, `_o`):** — **S26 en parte cerrado** (el SQL de Alejo): se borraron los avisos viejos de Telegram y el `CHECK` del slug de `perfume_clicks` está puesto. Lo que queda de S26 baja a 🟢, con la keyword sola.
 >
@@ -401,6 +403,18 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 **Severidad:** 🟢 mientras duró · se pintaba sólo en el navegador de esa cuenta (salvo que el staff editara el nombre).
 
 > ✅ **ESTADO: RESUELTO** · `8604f75` + SW v1.1.148. `updateAuthUI` (`js/app.js`) metía la primera palabra de `currentUser.nombre` cruda en `innerHTML`. **Fix:** `escapeHTML(_firstName)`. Lo encontró el barrido de XSS del 28-sep (10 agentes, sólo lectura). Se arregló en la rama local `xss-staff`, que no se publicó antes del merge; el PREPARADOR revisó el `diff.patch`. **Verificado** con un fixture con HTML (y slugs con comilla simple) en cada lugar: en `main` (`a99fe14`) se ejecutaban 20 payloads distintos en el panel y 14 en el catálogo; en la rama, 0, a 1280 y a 390. Con datos normales, el HTML de 5 pantallas es igual al de `main` (catálogo, detalle, carrito, Depósito, Editar). Mientras estuvo abierto, en el repo fue sólo la keyword.
+
+### **S28 · `[EDITAR-SIN-LIMITE]` · «Editar perfil» dejaba probar contraseñas sin límite · ✅ RESUELTO 28-sep-2026**
+
+**Severidad:** 🟠 mientras duró · ya estaba en `main`; lo encontró la revisión adversarial de `[SESION-CLIENTE]` (ronda r).
+
+> ✅ **ESTADO: RESUELTO** · el Bloque 2b del PREPARADOR, corrido por Alejo. `cliente_editar(p_id, p_pass, …)` (EXECUTE de `anon`) comparaba la clave y devolvía `pass_incorrecta` sin contar intentos: con el `uuid` de un cliente se podían probar claves sin límite y, si una daba, pisar el nombre y el teléfono (y después sacar una llave con `cliente_entrar`). **Fix:** cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (el mismo contador que entrar: 5 fallos → 15 min) y devuelve `bloqueado`. **Verificado en la base** (`pg_proc`, 29-sep): `prosrc` usa `cliente_login_intentos` y devuelve `'bloqueado'`. El catálogo lo muestra como el login («Demasiados intentos. Esperá 15 minutos y volvé a probar.», rama `sesion-cliente`).
+
+### **S29 · `[SESION-BLOQUEADO]` · Un cliente bloqueado seguía escribiendo con su llave · ✅ RESUELTO 28-sep-2026**
+
+**Severidad:** 🟢 mientras duró · salió de la revisión adversarial de `[SESION-CLIENTE]` (ronda r); era del Bloque 2.
+
+> ✅ **ESTADO: RESUELTO** · el Bloque 2b. `cliente_de_token` no miraba `clientes.bloqueado` y el trigger borra llaves sólo al cambiar la contraseña: un cliente bloqueado desde el panel seguía escribiendo favoritos, votos y «Mi selección» con su llave hasta que venciera. **Fix:** `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`. **Verificado en la base** (`pg_proc`, 29-sep).
 
 ---
 

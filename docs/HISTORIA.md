@@ -3299,7 +3299,76 @@ Quedan para el PREPARADOR: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[PUNTOS-BUSCA-TEL-C
 - `docs/BACKEND.md` describía S13 en «Deuda que queda». Pasó a la keyword sola, por la regla del 23-sep.
 
 
+### Sesión 29-sep-2026 · `_s` · la ronda s sobre `sesion-cliente`: el aviso de la sesión vieja, los motivos, de quién son los favoritos, votar al retomar, «Sumar punto», 128i y la tarjeta de cliente · **sin mergear**
+
+El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bump: la v1.1.150 nunca salió. El merge no está pre-aprobado. `e3d760e` (`js/app.js`, `index.html`, `css/styles.css`) + `8ae552f` (`admin.html`). En el punto 3 va la **opción A**: es el default del prompt, y el mensaje de Alejo traía el texto «(+ … si elegís B)» de la plantilla, sin elegir. Antes de arrancar, en la base (sólo lectura): **el Bloque 2b ya estaba corrido**.
+- `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`.
+- `cliente_editar` cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta y devuelve `bloqueado`.
+- Cierra `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (SECURITY.md § S28 y S29).
+
+#### Qué se hizo
+- **1 · la sesión vieja (decisión 130 del DISEÑADOR):** la IIFE encuentra `st_cliente` sin `token` y cierra la sesión local como antes, **sin abrir «Iniciá sesión»**. Sale el aviso chico `#avisoToast`:
+  - la caja de `.cart-toast`, sin imagen ni ✓ (el toast del carrito no se tocó);
+  - `role="status"`, con el texto exacto «Actualizamos el sitio: volvé a entrar con tu número y contraseña. Tus favoritos siguen guardados.»;
+  - dura ~6 s, o hasta que lo toquen;
+  - una vez por dispositivo (`st_aviso_reentrar`);
+  - espera a `DOMContentLoaded` si hace falta.
+  - Agregado de Claude Code: si hay `st_favs` sin marca, se marca con el `id` de esa sesión vieja (el código de antes no los marcaba). Así no se suben a otra cuenta.
+- **2 · los otros motivos:** `sesionSinLlave(motivo, esperaSeg)`.
+  - Llave rechazada → «Tu sesión se cerró: volvé a entrar con tu número y contraseña. Tus favoritos siguen guardados.» (una vez por carga).
+  - Registro sin llave → «Tu cuenta quedó creada. Entrá con tu número y contraseña.» (siempre).
+  - Registro con `bloqueado` → «…Por los intentos de antes, esperá N minutos…» (N con la cuenta del login: mínimo 1, «minuto» / «minutos»).
+  - «Por seguridad, …» ya no está en el código. `switchAuthMode` vuelve a poner el subtítulo de siempre.
+- **3 · `st_favs_de`:**
+  - `saveFavs` la escribe con el `id` de la sesión.
+  - Al entrar (`onLogin(user, true)`) se leen los favoritos del dispositivo (no los de la memoria de la pestaña). Sin marca o de la misma cuenta, se suben los que faltan y queda la unión. De otra cuenta, no se sube nada y queda lo de la base.
+  - Al retomar la sesión, si la marca es de otra cuenta, también manda la base.
+  - «Cerrar sesión» borra `st_favs` y `st_favs_de` (opción A); la salida forzada los deja.
+- **4 · «Editar perfil»:** `bloqueado` → «Demasiados intentos. Esperá 15 minutos y volvé a probar.», antes del `!== 'ok'`.
+- **5 · «Sumar punto»:** `soloDig` (sin espacios, `+`, guiones ni paréntesis), `esNumero` sobre eso, y la búsqueda con `cleanPhone` cuando da válido.
+- **6 · votar al retomar la sesión:** `renderVotoButtons` termina con `if (currentUser) unlockVoting()`. `unlockVoting` sin botones sólo oculta el candado y el CTA, y los botones se habilitan cuando ya se saben mis votos.
+- **7 · 128i:** `errorEnCriollo(err, ctx, que, tocaGuardar)`.
+  - «tocá Guardar / guardá de nuevo» sólo con `tocaGuardar`: Editar («Guardar cambios»), la escalera («Guardar»), la promo («Guardar promo»), las marcas («Guardar») y Nuevo **sólo al editar** (dice «Guardar cambios»; al agregar dice «Agregar perfume»).
+  - Todo lo demás dice «probá de nuevo».
+- **7 · `[CLIENTES-FECHA-TEL]`:** sin `created_at` (o inválida) no hay `<span>`. El 📱 muestra `formatPhoneDisplay`, y `data-tel` y el link de WhatsApp siguen crudos.
+
+#### Verificación (fixtures `ronda-s/fx-s*.json` con `rpc:*`, stub `ronda-s/stub-s.js`; 390)
+- **a · sesión vieja:**
+  - el aviso con el texto exacto y `role="status"`; `st_aviso_reentrar = '1'`; sin modal; `st_favs` intacto y `st_favs_de` con el id de esa sesión; 0 RPC de la llave;
+  - se fue a los 6,2 s del `DOMContentLoaded`, y a los 0,32 s de tocarlo;
+  - una segunda carga con otra sesión vieja (iframe): se cierra, sin aviso y sin modal.
+  - Contraste: 16,95 en oscuro y 15,12 en claro.
+- **b · llave rechazada:** 3 fallas juntas, 1 modal con «Tu sesión se cerró…», sin `cliente_salir`. Al cambiar de pestaña, al volver a «Iniciá sesión» o al reabrir, el subtítulo de siempre.
+- **c · registro sin llave:** con el aviso de b ya mostrado en la misma carga, igual sale «Tu cuenta quedó creada…». Con `bloqueado` y 600 s, «esperá 10 minutos»; con 30 s, «esperá 1 minuto».
+- **d · el dueño:**
+  - invitado + entrar: se sube sólo lo que falta;
+  - salida forzada: quedan `st_favs` y `st_favs_de`;
+  - de otra cuenta + entrar: 0 `favorito_marcar`, queda lo de la base;
+  - «Cerrar sesión»: los dos borrados, 0 corazones, el badge en 0;
+  - una pestaña con otra lista en memoria: se sube lo del dispositivo;
+  - retomar con la marca de otra cuenta y la base vacía: 0 favoritos.
+- **e · Editar perfil** con `bloqueado`: el texto.
+- **f · «Sumar punto»:** «2970000011», «297 15 000 0011» y «+54 9 297 000-0011» buscan `5492970000011`, encuentran al cliente y no piden nombre. «Juan» busca por nombre.
+- **g · 128i:**
+  - el stock y el cierre sin red, y el stock con la sesión vencida: «probá de nuevo»;
+  - Editar, la escalera y Nuevo al editar, sin red: «tocá Guardar de nuevo»;
+  - Nuevo al agregar: «probá de nuevo»;
+  - la prueba de las 5 barras de 128g da 23 de 25 iguales, y las 2 que cambian son Nuevo al agregar;
+  - `grep`: «tocá Guardar» y «guardá de nuevo» sólo en la rama con `tocaGuardar`.
+- **h · votar al retomar la sesión:** 4 botones. La categoría votada con sus resultados («3 votos»), la otra habilitada, y `mis_votos` una vez (con `p_mes`). Un invitado: 4 de 4 deshabilitados.
+- `vm.Script` y `node --check`: ok. `npm run contraste`: 0 fallas + 1 token pisado, 295 mediciones. 0 `!important` nuevos.
+- 14 capturas en `herramientas\ronda-s\png`. La regresión de la ronda r (entrar, favoritos, votar, selección, salir) da igual.
+
+#### La revisión adversarial (8 agentes: catálogo, contrato, panel y seguridad, cada uno verificado)
+- 3 arreglos en la rama:
+  - al entrar, la lista del dispositivo y no la de la memoria;
+  - al retomar, la marca de otra cuenta;
+  - los botones de votar, recién con mis votos.
+- 6 pendientes nuevos, 🟢: `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]` (lo pidió el PREPARADOR), `[AVISO-TAPA-LOGIN]`, `[FAVS-MARCA-BORDES]`, `[AUTH-BAJO-DETALLE]` y `[EDITAR-BLOQUEADO]`.
+
 ---
+
+**Última actualización:** **Septiembre 29, 2026 (`_s`)** — la ronda s sobre `sesion-cliente` (sin bump, v1.1.150), sin mergear. Cerrados: `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (el Bloque 2b). En la rama: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[REGISTRO-LLAVE]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]`. Nuevos, 🟢: `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]`, `[AVISO-TAPA-LOGIN]`, `[FAVS-MARCA-BORDES]`, `[AUTH-BAJO-DETALLE]`, `[EDITAR-BLOQUEADO]`.
 
 **Última actualización:** **Septiembre 28, 2026 (`_r`)** — `[SESION-CLIENTE]` y `[TEL-CANONICO-PANEL]` en la rama `sesion-cliente` (SW v1.1.150), sin mergear. Nuevos: `[EDITAR-SIN-LIMITE]` 🟠, `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]` 🟡, `[SESION-BLOQUEADO]`, `[REGISTRO-LLAVE]`, `[LOGIN-CLARO-CONTRASTE]`, `[BACKUP-SIN-FAVORITOS]` 🟢.
 
@@ -3451,6 +3520,11 @@ Quedan para el PREPARADOR: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[PUNTOS-BUSCA-TEL-C
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 29-sep-2026 (`_s`):**
+
+- ✅ ~~**`[EDITAR-SIN-LIMITE]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep). Ya estaba en `main`; el detalle vive en `_correo_agentes`. Es SQL del PREPARADOR. → **RESUELTO el 28-sep** (el Bloque 2b del PREPARADOR, corrido por Alejo; verificado en `pg_proc` el 29-sep): `cliente_editar` cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (5 → 15 min, el mismo contador que entrar) y devuelve `bloqueado`. Antes, con el `uuid` de un cliente se podían probar claves sin límite. Ver SECURITY.md § S28.
+- ✅ ~~**`[SESION-BLOQUEADO]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟢, prioridad propuesta por Claude Code) — **sólo la keyword**; el detalle vive en `_correo_agentes`. Es SQL del PREPARADOR (va con el Bloque 3). → **RESUELTO el 28-sep** (el Bloque 2b): `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`. Antes, un cliente bloqueado desde el panel seguía escribiendo con su llave hasta que venciera. Ver SECURITY.md § S29.
 
 **Movidos el 28-sep-2026 (`_q`):**
 
