@@ -603,7 +603,7 @@ function mezcla(hex, fondo, a) {
      ['📜 Historial .client-btn-historial', '.client-btn-historial'], ['✏️ Editar .client-btn-edit', '.client-btn-edit'],
      ['🚫 Bloquear .client-btn-block', '.client-btn-block'], ['🚫 Desbloquear .client-btn-blocked', '.client-btn-blocked'],
      ['🗑️ Eliminar .client-btn-delete', '.client-btn-delete'], ['✓ COMPRÓ .client-tag-compro', '.client-tag-compro'],
-     ['✗ NO COMPRÓ .client-tag-nocompro', '.client-tag-nocompro']].forEach(function (x) {
+     ['✗ NO COMPRÓ .client-tag-nocompro', '.client-tag-nocompro'], ['BLOQUEADO .client-blocked-badge', '.client-blocked-badge']].forEach(function (x) {
       var bg = fondo(x[1], c, tarjeta), g = ganador(rs, x[1], c.pref, 'color');
       medir({ superficie: 'panel', tema: tema, rol: 'clientes', nombre: x[0], texto: g ? aHex(g.valor, c, bg) : null, fondos: [bg],
               impone: g ? path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') : '' });

@@ -1210,8 +1210,10 @@
     .client-tag { font-size: .58rem; font-weight: 700; padding: .2rem .5rem; border-radius: 3px; letter-spacing: .05em; }
     .client-tag-compro { background: rgba(46,204,113,.15); color: #2ecc71; }
     .client-tag-nocompro { background: rgba(231,76,60,.12); color: #ff8a80; }   /* [CLIENTES-OSCURO-ROJO] 7,39 en oscuro */
+    /* [CLIENTES-BLOQUEADO-BADGE] 132d · blanco sobre --rojo-fondo (#b8342a, el de .modal-btn-danger) → 5,89, en los dos
+       temas; sobre #e74c3c daba 3,82. */
     .client-blocked-badge {
-      font-size: .55rem; font-weight: 700; background: #e74c3c; color: #fff;
+      font-size: .55rem; font-weight: 700; background: var(--rojo-fondo); color: #fff;
       padding: .15rem .5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .06em;
     }
     .client-filter-btn {
@@ -8207,12 +8209,16 @@
     // ============================================================
     async function loadCierres() {
       var tbody = document.getElementById('tbodyCierres');
-      var { data } = await sb.from('cierres_especiales').select('*').order('fecha', { ascending: true });
+      var { data, error } = await sb.from('cierres_especiales').select('*').order('fecha', { ascending: true });
+      if (error) {   // [PANEL-HOY-UTC] antes un error se veía como «No hay cierres programados»
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--stat-tinta-out);">' + escHtml(errorEnCriollo(error, null, 'cargar los cierres', 'recargar')) + '</td></tr>';
+        return;
+      }
       if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gris);">No hay cierres programados</td></tr>';
         return;
       }
-      var hoy = new Date().toISOString().split('T')[0];
+      var hoy = resumenHoyART();   // [PANEL-HOY-UTC] la fecha de Argentina: con toISOString (UTC), de 21 a 24 el cierre de hoy salía como pasado
       var html = '';
       data.forEach(function(c) {
         var fechaStr = new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -8298,8 +8304,9 @@
       if (!data || data.length === 0) { panel.style.display = 'none'; return; }
       var a = data[0];
 
-      // Chequear si sigue vigente
-      var hoy = new Date().toISOString().split('T')[0];
+      // Chequear si sigue vigente · [PANEL-HOY-UTC] la fecha de Argentina: con toISOString (UTC), de 21 a 24 del último día
+      // el ajuste se escondía aunque el catálogo lo seguía aplicando
+      var hoy = resumenHoyART();
       if (a.hasta && a.hasta < hoy) { panel.style.display = 'none'; return; }
 
       var horarioStr = '<strong>' + a.hora_abre + ':00 a ' + a.hora_cierra + ':00</strong>';
@@ -10820,6 +10827,9 @@
     //    el historial de puntos y, para el jefe, Decants); 'recargar' (o nada) si no: «recargá la página». La sesión
     //    vencida dice «Volvé a entrar.» y el 42501, «Esta cuenta no puede ver esto.», como antes. Guardar, borrar, sumar y
     //    «descargar el backup» (se hace con un botón) siguen igual.
+    // 2.3 · «No se pudo» / «No se pudieron»: plural cuando lo que sigue al verbo empieza con «los» o «las»
+    // («cargar los clientes» → «No se pudieron cargar los clientes»; «cargar el log» → «No se pudo cargar el log»).
+    function noSePudo(que) { return (/^\S+ (los|las) /.test(que) ? 'No se pudieron ' : 'No se pudo ') + que; }
     function errorPropio(texto) { var e = new Error(texto); e.propio = true; return e; }
     function errorEnCriollo(err, ctx, que, tocaGuardar) {
       console.error('[' + (que || 'guardar') + ']', err);
@@ -10838,8 +10848,8 @@
         return tocaGuardar === true ? 'Se venció la sesión. Volvé a entrar y guardá de nuevo.' : 'Se venció la sesión. Volvé a entrar y probá de nuevo.';
       }
       if (code === '42501' || /row-level security|permission denied/i.test(txt)) return /^(des)?cargar/.test(que || '') ? 'Esta cuenta no puede ver esto.' : 'Esta cuenta no puede guardar esto.';
-      if (carga) return 'No se pudo ' + que + '. ' + (conBoton ? 'Tocá ↺' : 'Recargá la página') + '; si sigue, avisale a Alejo.';
-      return 'No se pudo ' + (que || 'guardar') + '. Probá de nuevo; si sigue, avisale a Alejo.';
+      if (carga) return noSePudo(que) + '. ' + (conBoton ? 'Tocá ↺' : 'Recargá la página') + '; si sigue, avisale a Alejo.';
+      return noSePudo(que || 'guardar') + '. Probá de nuevo; si sigue, avisale a Alejo.';
     }
     var GUARDAR_AVISO = {};   // id del botón → { t: el timer, texto: el de siempre, aviso: lo que puso }
     function barraError(btn, texto) {
