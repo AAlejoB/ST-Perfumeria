@@ -3871,6 +3871,8 @@
       // Es la causa del bug historico "edite un combo y no aparece en admin".
       await loadCombosFromDB();
       renderPrecios();
+      // [CARGA-FALLIDA-CERO] si se abrió Depósito durante las cargas, sus totales quedaban en «—»
+      if (document.getElementById('tab-deposito').classList.contains('active')) renderDeposito();
       cargarDatosPrecios();   // [PRECIOS-EN-UN-LUGAR] decants, promo y escalera en paralelo; vuelve a pintar al llegar
       loadDestacados();
       loadNuevos();
@@ -9522,11 +9524,11 @@
     async function resyncFromDB(opts) {
       opts = opts || {};
       try {
-        const completo = !rtLastSyncAt;   // sin rtLastSyncAt trae todas las filas
+        const completo = !rtLastSyncAt || !stockCargado;   // trae todas las filas: la primera vez, y mientras el stock no cargó
         let query = sb.from('perfume_overrides')
           .select('slug, stock_qty, stock_status, stock_deposito, price, promo, updated_at')
           .order('updated_at', { ascending: true });
-        if (rtLastSyncAt) query = query.gt('updated_at', rtLastSyncAt);
+        if (!completo) query = query.gt('updated_at', rtLastSyncAt);
         const { data, error } = await query;
         if (error) { console.warn('[resync] error:', error.message); return; }
         // [CARGA-FALLIDA-CERO] si la lectura del login falló, el primer resync completo trae el stock: los totales dejan el «—»
@@ -9837,6 +9839,7 @@
     var esperaOrigen = 'todo';        // [ESPERA-MAS] 42 · el filtro Todo · Web · 🏪 Local
     var esperaTieneOrigen = false;    // la columna origen existe (corrió el SQL de [ESPERA-MAS]); si no, sin filtro ni tag
     var esperaError = '';             // [CARGA-FALLIDA-CERO] 128m · la última carga falló: «—» en las tarjetas y el error en la lista
+    var esperaCargaN = 0;             // sólo pinta la última carga pedida
 
     // Mensaje gen\u00e9rico reutilizable.
     function buildWaitlistMsg() {
@@ -9847,10 +9850,13 @@
     }
 
     async function loadListaEspera() {
+      var n = ++esperaCargaN;
       try {
         var { data, error } = await sb.from('lista_espera').select('*').order('created_at', { ascending: false });
+        if (n !== esperaCargaN) return;
         if (error) throw error;
       } catch (e) {   // [CARGA-FALLIDA-CERO] 128m · antes sólo iba a la consola: quedaban «0» y «0» (o los números de antes), sin aviso
+        if (n !== esperaCargaN) return;
         esperaError = errorEnCriollo(e, null, 'cargar la lista de espera', 'recargar');
         esperaData = [];
         try { renderListaEspera(); } catch (e2) { console.error(e2); }
@@ -10017,7 +10023,7 @@
         // ya no está, no hay nada que avisar; si sigue, no se pudo.
         if (res && !res.error) {
           await loadListaEspera();
-          if (!esperaData.some(function(r) { return r.id === id; })) return;
+          if (!esperaError && !esperaData.some(function(r) { return r.id === id; })) return;   // si la relectura falló, no se sabe
         }
         if (btn) btn.disabled = false;
         alert('No se pudo quitar. Prob\u00e1 de nuevo en un rato.');
@@ -11675,6 +11681,15 @@
       var referrerDiv = document.getElementById('referrerBreakdown');
 
       if (meta) meta.textContent = 'Cargando…';
+      // [CARGA-FALLIDA-CERO] 128m · mientras carga y si falla, todo en «—»: lo que había era de la consulta anterior
+      function enBlanco() {
+        [totViews, totDecants, totWA, totEmpty, totSessions].forEach(function(el) { if (el) el.textContent = '—'; });
+        [tbTopViewed, tbTopDecants, tbTopWA, tbEmpty].forEach(function(tb) { if (tb) tb.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr>'; });
+        if (heatmapDiv) heatmapDiv.innerHTML = '<div style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">—</div>';
+        if (deviceDiv) deviceDiv.textContent = '—';
+        if (referrerDiv) referrerDiv.textContent = '—';
+      }
+      enBlanco();
 
       // Cleanup 60 días (una vez por sesión)
       if (!analyticsCleanupRan) {
@@ -11787,12 +11802,7 @@
       } catch (e) {
         console.error('[analytics] load error:', e);
         if (meta) meta.textContent = errorEnCriollo(e, null, 'cargar las estadísticas', '↺');   // 128j
-        // [CARGA-FALLIDA-CERO] 128m · quedaba lo de la carga anterior (quizás de otro rango): todo vuelve a «—»
-        [totViews, totDecants, totWA, totEmpty, totSessions].forEach(function(el) { if (el) el.textContent = '—'; });
-        [tbTopViewed, tbTopDecants, tbTopWA, tbEmpty].forEach(function(tb) { if (tb) tb.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr>'; });
-        if (heatmapDiv) heatmapDiv.innerHTML = '<div style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">—</div>';
-        if (deviceDiv) deviceDiv.textContent = '—';
-        if (referrerDiv) referrerDiv.textContent = '—';
+        enBlanco();
       }
     }
 
@@ -12156,7 +12166,6 @@
       var meta = document.getElementById('backupsMeta');
       if (!tbody) return;
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>';
-      if (meta) meta.textContent = '— backups';   // [CARGA-FALLIDA-CERO] 128m · quedaba «N backups · actualizado …» de antes
 
       // Cleanup una vez por sesión
       if (!backupsCleanupRan) {
@@ -12202,7 +12211,7 @@
       } catch (e) {
         console.error('[backup] load error:', e);
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">' + escHtml(errorEnCriollo(e, null, 'cargar los backups', '↺')) + '</td></tr>';   // 128j
-        if (meta) meta.textContent = '— backups';   // [CARGA-FALLIDA-CERO] 128m
+        if (meta) meta.textContent = '— backups';   // [CARGA-FALLIDA-CERO] 128m · quedaba «N backups · actualizado …» de antes
       }
     }
 
