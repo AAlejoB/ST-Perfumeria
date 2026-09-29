@@ -3641,7 +3641,94 @@ El prompt `_w` del PREPARADOR.
 - `[FACILITAR-MOBILE-EN-CATALOGO]`, a 390 × 844: la primera tarjeta a 2.506 px (2,97 pantallas); una tarjeta mide 592 y la zona útil con lo pegado 547, así que ninguna entra entera; el mazo de género queda tapado con el catálogo pegado (`[MAZO-TAPADO]`) y «Ordenar» tapa la primera sugerencia (`[SUGERENCIAS-BAJO-ORDENAR]`).
 - El detalle, las preguntas y la tabla «hago / no hago / decide Alejo»: `_correo_agentes\ST_Perfumeria\ClaudeCode_para_PREPARADOR_2026-09-29_x2.md`; las 60 capturas, en `herramientas\ronda-x\png` (`panel-*`, `catalogo-*`).
 
+### Sesión 29-sep-2026 · `_y` · `carga-fallida` aprobada (el merge, desde las 21:00) y la tanda v1.1.156 en `no-pisar` · **sin mergear**
+
+El prompt `_x` del PREPARADOR.
+
+#### 0 · `carga-fallida`
+- Revisada y aprobada por el PREPARADOR, con sus tres decisiones: «Volver al horario normal» escondido si la carga falló; el error en vez de la lista en Combos y en la Espera; los números de antes mientras recarga.
+- El merge (fast-forward a `92226c8`) va **desde las 21:00 (ART)**: un merge que toca el panel, fuera de 10-21 (las chicas usan las tablets). Después: Vercel en `92226c8` y borrar la rama.
+
+#### 1 · La tanda v1.1.156 (rama `no-pisar` desde `92226c8`)
+- **1.1 · `[DESTACADOS-BORRA-SI-FALLA]`:**
+  - Sin la lista de la base, agregar, quitar y mover no escriben y lo dicen en `#destacadoMsg` (`--stat-tinta-out`). La lista falta cuando la carga falló o, desde la revisión, cuando todavía no llegó: «Todavía se están cargando los destacados. Esperá un momento.».
+  - `syncDestacadosToDB` mira el error del borrado (si falla, no cambió nada) y el del alta (si falla, vuelve a escribir los de antes y relee la base).
+  - La lista, el Log y la pantalla cambian sólo con el alta buena, y «agregado» / «eliminado» salen después de guardar.
+  - Desde la revisión: un guardado por vez; los resultados se esconden antes de guardar, como antes; una lectura que salió antes de un guardado bueno no lo pisa.
+- **1.2 · `[GUARDAR-SIN-LEER]`** (NO ROMPER #20):
+  - Helpers: `SIN_LEER`, `sinLeer`, `leido(clave, el)`, `avisoLectura`, `faltaLeer`, `faltaStock`, `faltaOverrides`.
+  - Con la lectura fallida, el formulario queda vacío y con el error, y «Guardar» no escribe. Con la tabla vacía de verdad, como antes. El barrido (3 agentes buscando por lecturas, por escrituras y por botones, más un cruce) dio esta lista:
+
+| Formulario | Con la lectura fallida, antes | Ahora |
+|---|---|---|
+| Beneficios | Los 4 de fábrica, sin aviso; «Guardar» borraba todo e insertaba esos | El error en vez de la lista; ni «Guardar» ni «Restaurar» escriben |
+| Votación | «Sin configurar» con los candidatos vacíos (o los de antes); «Guardar» pisaba el mes | El error en el estado, los campos vacíos, no escribe |
+| Puntos · configuración | 1 / 0,10 / 2 / 5 sin el id: «Guardar» creaba **otra fila** (el catálogo lee una cualquiera) | El error, los campos vacíos, no escribe |
+| Decants · escalera | Los de fábrica con «No se encontró configuración guardada…»; «Guardar» escribía la fila entera | El error, los campos vacíos, no escribe |
+| Decants · marcas de diseñador | «Ninguna.»; «Guardar» dejaba sólo lo agregado | El error en vez de la lista, sin «Agregar», no escribe |
+| Decants · promo | «Apagada» y N = 3; «Guardar» pisaba la promo (una vigente se apagaba) | El error en el estado, N vacío, no escribe |
+| Decants · perfumes de la promo | Todos «automáticos»; «Sumar» / «Sacar» escribían sobre lo de la base | El error; no escriben (si falla sólo la promo, estos siguen andando) |
+| Editar perfume | Lo de `perfumes.js` (unos 25 campos); «Guardar cambios» pisaba la fila | El error arriba y en la barra; no escribe, tampoco mientras cargan; si llegan con el formulario abierto, se vuelve a llenar |
+| Modal de stock | 5 u. y «Pausado» destildado; «Guardar» escribía 5 (y despausaba) | El error; no escribe; si el stock llega con el modal abierto, se vuelve a abrir con lo de la base |
+| Modal de depósito | 0 y «En el local: sin dato»; «Guardar» escribía encima de lo real | Ídem |
+| Migrar tipos | Los que tienen tipo en la base contaban «sin tipo» y se les pisaba | Un aviso con el error; no escribe |
+| Etiqueta de la Selección | «TOP VENTAS» aunque el sitio dijera otra; «Guardar» lo escribía | El campo vacío y el error; no escribe |
+| Editar combo (con un perfume nuevo, si falló `perfumes_nuevos`) | El ítem quedaba vacío y «Guardar» lo sacaba del combo | El error; no escribe (los combos sin nuevos, como siempre) |
+| «Sumar punto» | La búsqueda fallida era «no está registrado» y ofrecía registrarlo | «No se pudo buscar el cliente…»; no ofrece nada |
+| Ranking de puntos | El buscador volvía a pintar la lista vieja con «Ajustar», que pisaba los puntos | El error queda aunque se busque; «Ajustar» no escribe |
+
+  - **Ya estaban bien:**
+    - Decants de diseñador, Home (la cinta B/N), Horario (cierres y horario modificado), Clientes (editar, bloquear, alta), Reset contraseñas, la Espera, Combos (lista, crear, borrar), Nuevos (la lista), Notificaciones, y Resumen, Log, Estadísticas y Analítica (sólo leen).
+    - Opiniones y Backup no escriben mal: van a `[CARGA-FALLIDA-SEED]` y `[BACKUP-INCOMPLETO]`.
+    - Combos ⏸/▶ sólo puede pausar uno ya pausado, o pausar a pedido. El modal de precio es código muerto.
+  - **El stock se lee después de los nuevos.** Antes, los ~117 nuevos quedaban sin stock aunque `stockCargado` dijera que estaba todo. Si los nuevos llegan tarde (al guardar un Nuevo), se vuelven a leer los overrides.
+- **1.3 · `[ACCION-TILDE]`:** «Acción» en las tablas de cierres y de opiniones.
+- **1.4 · `[HORARIO-ERROR-OSCURO]`:** `.ajuste-error` en `#ff8a80` en oscuro (7,29), `--stat-tinta-out` en claro (5,60).
+- **1.5 · `[SUGERENCIAS-BAJO-ORDENAR]`:**
+  - `.filter-zone--center:has(.search-suggestions.active) { z-index: 101 }`: `.sort-wrapper` arma su contexto en 100.
+  - Desde la revisión, `.filter-bar` lleva `isolation: isolate` a partir de 768. En Safari ≤ 17 (sin `backdrop-filter` sin prefijo) el 101 y el 100 quedaban encima del nav.
+- **1.6:** el bump, aparte (`1dad3ea`).
+
+#### Verificación (fixtures, stub `ronda-y/stub-y.js`; contra `main` = `92226c8`)
+- **a · Destacados:**
+  - Carga fallida: rama 0 escrituras y el error; `main` 3, «agregado».
+  - Borrado bueno y alta fallida: rama borra, falla el alta y reescribe los 3, que quedan en 3; `main` dice «agregado» y 4.
+  - Borrado fallido: rama nada.
+  - Todo bien: como hoy.
+- **Revisión (e1):**
+  - Cargando: rama 0; `main` borra y escribe 1.
+  - Dos toques: rama 1 guardado; `main` 2 borrados y 2 altas.
+  - Lectura vieja: rama queda lo guardado; `main` vuelve a la lista de antes.
+- **b · por formulario, lectura fallida / buena / vacía:** en la rama, 0 escrituras con la fallida en los 15, y como hoy con la buena y la vacía. En `main`, la fallida escribía en todos (Puntos, con un `insert` nuevo).
+- **Revisión (e2 a e4):**
+  - El stock que llega con el modal abierto: rama lo vuelve a abrir con 7 y, al guardar de nuevo, escribe 7; `main` escribía 5, o movía 4 al local.
+  - Editar mientras cargan: rama 0 escrituras; cuando llegan, «Llegaron los datos…» y 99,000; `main` escribía 68000.
+  - Combo sin nuevos: guarda. Combo con un nuevo: no guarda.
+  - El merge tardío: el nuevo con su stock (9 / 3); `main` sin stock.
+- **c:** `npm run contraste`: **0 fallas** + 1 token pisado, **343** mediciones. El error del horario en oscuro, 7,29.
+- **d:** con «LA VOI», a 390 y 360, en los dos temas, `elementFromPoint` en el centro de la primera sugerencia y en 4 puntos más da la sugerencia; en `main`, «Ordenar». A 1280, igual que `main` (las sugerencias, el menú de Ordenar y el nav).
+- Pasada por las 23 pestañas (jefe) y las 15 (empleada): 0 errores de página. El script del panel compila (`vm.Script`) y `node --check` pasa.
+- Contraste de cada error nuevo, medido en la página (el cuadro, en el informe al DISEÑADOR): en claro 5,32 a 5,89; en oscuro 4,54 a 5,18. Editar combo va en `#e74c3c` (4,94), porque su caja es oscura también en claro.
+- 6 capturas en `herramientas\ronda-y\png` (`ronda-y-*`).
+
+#### El barrido y la revisión (ultracode)
+- **Barrido de 1.2:** 4 agentes (lecturas, escrituras, botones y el cruce).
+- **Revisión adversarial:** 10 agentes (destacados, guardas que frenan de más, guardas que faltan, stock y depósito, CSS y textos, con un verificador para cada uno). Dieron 17 hallazgos: 11 reales y 6 descartados.
+  - De los 11 reales, 10 se arreglaron en la rama (`03afbfb`): destacados cargando, dos toques y lectura vieja; los modales con el stock que llega tarde; Editar y Migrar tipos mientras cargan; el stock de los nuevos; el merge tardío; Editar combo, que frenaba de más; Safari ≤ 17.
+  - El que queda es la vuelta de los de antes cuando se corta la red. Ahora la lista sale en la consola, y va a `[DESTACADOS-RPC]`.
+  - De los descartados: «buscar…» con 42501 ahora dice «no puede ver esto». El color del ranking y los de Destacados van a `[MENSAJES-FIJOS-CLARO]`.
+- **Pendientes nuevos:**
+  - 🟡 `[QUOTE-JEFE-SE-BORRA]` (hoy 0 quotes), `[CAT-DOBLE-SE-PIERDE]` (18 de los 19 ya en «Unisex»), `[COMBO-FORM-CLARO]`.
+  - 🟢 `[DESTACADOS-RPC]`, `[BADGES-BORRA-SI-FALLA-EL-ALTA]`, `[DESCUENTO-HASTA-UTC]` (hoy 0), `[MENSAJES-FIJOS-CLARO]`, `[BACKUP-INCOMPLETO]`, `[EDITAR-NUEVO-SIN-AVISO]`, `[PUNTOS-CARRERA-TABLETS]`.
+  - Los números de la base salen de `SELECT` de sólo lectura.
+
+#### Los temas
+- `[DISEÑOACORTADOR-PANELADMIN]`: Alejo eligió «menos pestañas a la vista», más una pantalla de inicio (Precios & Stock · Depósito · Log · Espera + «Ver todas»), igual para el jefe y la empleada. Lo dibuja el DISEÑADOR.
+- `[FACILITAR-MOBILE-EN-CATALOGO]`: sólo medido (en `_x`).
+
 ---
+
+**Última actualización:** **Septiembre 29, 2026 (`_y`)** — `carga-fallida` aprobada por el PREPARADOR (el merge, desde las 21:00) y la tanda v1.1.156 en `no-pisar`, sin mergear: 1.1 `[DESTACADOS-BORRA-SI-FALLA]`, 1.2 `[GUARDAR-SIN-LEER]` (15 formularios; NO ROMPER #20), 1.3 «Acción», 1.4 `[HORARIO-ERROR-OSCURO]`, 1.5 `[SUGERENCIAS-BAJO-ORDENAR]`. Nuevos: `[QUOTE-JEFE-SE-BORRA]`, `[CAT-DOBLE-SE-PIERDE]` y `[COMBO-FORM-CLARO]` 🟡; `[DESTACADOS-RPC]`, `[BADGES-BORRA-SI-FALLA-EL-ALTA]`, `[DESCUENTO-HASTA-UTC]`, `[MENSAJES-FIJOS-CLARO]`, `[BACKUP-INCOMPLETO]`, `[EDITAR-NUEVO-SIN-AVISO]` y `[PUNTOS-CARRERA-TABLETS]` 🟢.
 
 **Última actualización:** **Septiembre 29, 2026 (`_x`)** — el merge de `pulido-clientes` (03:50 del 29-sep, v1.1.154 en producción), la tanda v1.1.155 en `carga-fallida`, sin mergear, y el relevamiento de los dos temas. Cerrado, en producción: `[PANEL-HOY-UTC]`. Nuevos: `[DESTACADOS-BORRA-SI-FALLA]` 🟠, `[PANEL-STOCK-CALLA]`, `[MAZO-TAPADO]` y `[SUGERENCIAS-BAJO-ORDENAR]` 🟡, `[CARGA-FALLIDA-SEED]` y `[HORARIO-ERROR-OSCURO]` 🟢.
 
