@@ -1187,13 +1187,22 @@
       text-transform: uppercase; padding: .35rem .7rem; border-radius: 4px;
       border: none; cursor: pointer; transition: all .2s;
     }
-    .client-btn-edit { background: #3498db; color: #fff; }
+    /* [CLIENTES-CLARO-CONTRASTE] 132 · en los dos temas: blanco sobre #2170b0, 5,24 (sobre #3498db daba 3,15) */
+    .client-btn-edit { background: #2170b0; color: #fff; }
     .client-btn-edit:hover { background: #5dade2; }
     .client-btn-block { background: rgba(243,156,18,.15); color: #f39c12; }
     .client-btn-block:hover { background: rgba(243,156,18,.3); }
     .client-btn-blocked { background: #f39c12; color: #000; }
     .client-btn-delete { background: rgba(231,76,60,.15); color: #e74c3c; }
     .client-btn-delete:hover { background: rgba(231,76,60,.3); }
+    /* [CLIENTES-CLARO-CONTRASTE] 132 · lo que iba en el style de cada botón y etiqueta de la tarjeta de Clientes, por clase
+       (en claro, cada una con su letra, más abajo). En oscuro, los mismos colores que tenían inline. */
+    .client-btn-wa { background: rgba(37,211,102,.15); color: #25D366; text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; }
+    .client-btn-punto { background: rgba(232,184,0,.12); color: var(--amarillo-tinta); }
+    .client-btn-historial { background: rgba(120,120,120,.15); color: #ccc; }
+    .client-tag { font-size: .58rem; font-weight: 700; padding: .2rem .5rem; border-radius: 3px; letter-spacing: .05em; }
+    .client-tag-compro { background: rgba(46,204,113,.15); color: #2ecc71; }
+    .client-tag-nocompro { background: rgba(231,76,60,.12); color: #e74c3c; }
     .client-blocked-badge {
       font-size: .55rem; font-weight: 700; background: #e74c3c; color: #fff;
       padding: .15rem .5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .06em;
@@ -1537,6 +1546,15 @@
     body.light .client-detail-value { color: #1a1a1a; }
     body.light .client-detail { color: #555; }
     body.light .client-name-icon { background: rgba(232,184,0,.22); color: #a8820a; }
+    /* [CLIENTES-CLARO-CONTRASTE] 132 · sólo en claro cambia la letra; los fondos quedan (sobre la tarjeta blanca):
+       WhatsApp #1e7a3c (4,80) · Bloquear #9a5a00 (4,87) · Eliminar y ✗ NO COMPRÓ --stat-tinta-out (4,86) ·
+       ✓ COMPRÓ --stat-tinta-inv (7,14). «📜 Historial» #333: lo que le ponía el parche por atributo de color:#ccc. */
+    body.light .client-btn-wa { color: #1e7a3c; }
+    body.light .client-btn-block { color: #9a5a00; }
+    body.light .client-btn-delete,
+    body.light .client-tag-nocompro { color: var(--stat-tinta-out); }
+    body.light .client-tag-compro { color: var(--stat-tinta-inv); }
+    body.light .client-btn-historial { color: #333; }
     /* Badge de puntos (inline): pasa de amarillo sobre amarillo clarito a
        amarillo sobre fondo un poco más marcado para que se lea. */
     body.light [style*="color:var(--amarillo)"][style*="rgba(232,184,0,.12)"] {
@@ -2967,7 +2985,7 @@
         <div id="comboItems" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem;"></div>
         <button class="action-btn btn-stock" onclick="addComboItem()" style="margin-bottom:1rem;font-size:.68rem;">+ Agregar perfume</button>
         <div style="display:flex;gap:.5rem;">
-          <button class="modal-btn modal-btn-price" onclick="saveCombo()" style="flex:1;">Guardar combo</button>
+          <button class="modal-btn modal-btn-price" id="btnSaveCombo" onclick="saveCombo()" style="flex:1;">Guardar combo</button>
           <button class="modal-btn" onclick="cancelCombo()" style="flex:.4;background:rgba(255,255,255,.1);color:var(--gris-claro);">Cancelar</button>
         </div>
         <p class="modal-success" id="comboMsg"></p>
@@ -4841,7 +4859,7 @@
 
       if (res.error) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = errorEnCriollo(res.error, null, 'cambiar el stock del depósito');   // 128h
+        msgEl.textContent = errorEnCriollo(res.error, null, 'cambiar el stock del depósito', true);   // 128h · «Guardar»
         return;
       }
 
@@ -5436,13 +5454,13 @@
         // Tag COMPRÓ / NO COMPRÓ (AF)
         var compro = c.compro === true || puntos > 0;
         var comproTag = compro
-          ? '<span style="background:rgba(46,204,113,.15);color:#2ecc71;font-size:.58rem;font-weight:700;padding:.2rem .5rem;border-radius:3px;letter-spacing:.05em;">✓ COMPRÓ</span>'
-          : '<span style="background:rgba(231,76,60,.12);color:#e74c3c;font-size:.58rem;font-weight:700;padding:.2rem .5rem;border-radius:3px;letter-spacing:.05em;">✗ NO COMPRÓ</span>';
+          ? '<span class="client-tag client-tag-compro">✓ COMPRÓ</span>'   // [CLIENTES-CLARO-CONTRASTE] por clase
+          : '<span class="client-tag client-tag-nocompro">✗ NO COMPRÓ</span>';
 
         // WhatsApp link (AD)
         var tel = (c.telefono || '').replace(/[^0-9]/g, '');
         var waLink = 'https://wa.me/' + tel;
-        var waBtn = '<a href="' + waLink + '" target="_blank" class="client-btn" style="background:rgba(37,211,102,.15);color:#25D366;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;" title="Enviar WhatsApp">💬 WhatsApp</a>';
+        var waBtn = '<a href="' + waLink + '" target="_blank" class="client-btn client-btn-wa" title="Enviar WhatsApp">💬 WhatsApp</a>';
 
         var notaHTML = c.nota ? '<div style="margin-top:.4rem;font-size:.65rem;color:var(--gris-claro);font-style:italic;line-height:1.4;">📝 ' + escapeHtml(c.nota) + '</div>' : '';
 
@@ -5457,8 +5475,8 @@
           + notaHTML
           + '<div class="client-actions">'
             + waBtn
-            + '<button class="client-btn" style="background:rgba(232,184,0,.12);color:var(--amarillo-tinta);" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
-            + '<button class="client-btn" style="background:rgba(120,120,120,.15);color:#ccc;" onclick="openClientPuntoLog(\'' + c.id + '\')">📜 Historial</button>'
+            + '<button class="client-btn client-btn-punto" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
+            + '<button class="client-btn client-btn-historial" onclick="openClientPuntoLog(\'' + c.id + '\')">📜 Historial</button>'
             + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar</button>'
             + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
             + '<button class="client-btn client-btn-delete" onclick="openClientDeleteModal(\'' + c.id + '\')">🗑️ Eliminar</button>'
@@ -5809,11 +5827,11 @@
 
       if (error) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'guardar el cliente');   // 128h
+        msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'guardar el cliente', true);   // 128h · «Guardar cambios»
         console.error('Edit client error:', error);
       } else if (!data || data.length === 0) {
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = errorEnCriollo(null, null, 'guardar el cliente');   // 128j · 0 filas: la base no lo dejó
+        msgEl.textContent = errorEnCriollo(null, null, 'guardar el cliente', true);   // 128j · 0 filas: la base no lo dejó
         console.error('Edit client: no rows updated. Check RLS policies on clientes table.');
       } else {
         // Si cambiaron los puntos, loguear la subida/ajuste en el historial
@@ -7354,13 +7372,13 @@
 
             canvas.toBlob(function(blob) {
               if (blob) resolve(blob);
-              else reject(new Error('No se pudo comprimir'));
+              else reject(errorPropio('No se pudo comprimir'));   // [CRIOLLO-BORDES] tal cual
             }, 'image/webp', quality);
           };
-          img.onerror = function() { reject(new Error('Imagen inválida')); };
+          img.onerror = function() { reject(errorPropio('Imagen inválida')); };
           img.src = e.target.result;
         };
-        reader.onerror = function() { reject(new Error('No se pudo leer')); };
+        reader.onerror = function() { reject(errorPropio('No se pudo leer')); };
         reader.readAsDataURL(file);
       });
     }
@@ -8338,7 +8356,7 @@
 
       var { error } = await sb.from('ajuste_horario').insert(row);
       if (error) {
-        msgEl.textContent = errorEnCriollo(error, null, 'guardar el horario');   // 128h
+        msgEl.textContent = errorEnCriollo(error, null, 'guardar el horario', true);   // 128h · «Guardar horario»
         msgEl.style.color = '#e74c3c'; return;
       }
 
@@ -8691,7 +8709,15 @@
         return;
       }
 
+      var creando = !editingComboSlug;   // [COMBO-PISA-COMBO]
       var slug = editingComboSlug || 'set-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+      // [COMBO-PISA-COMBO] Al crear, un nombre que da el slug de algo que ya está (un combo de la base o de perfumes.js)
+      // no pisa al otro. Lo que otra tablet creó después de cargar lo frena la base: al crear va insert (23505).
+      if (creando && PERFUMES.some(function(p) { return p.slug === slug; })) {
+        msgEl.style.color = '#e74c3c';
+        msgEl.textContent = 'Ya existe un combo con ese nombre.';
+        return;
+      }
       var priceFormatted = parseFloat(price).toLocaleString('en-US', { minimumFractionDigits: 2 });
       var promoFormatted = promo ? parseFloat(promo).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '';
 
@@ -8711,15 +8737,18 @@
         items: items
       };
 
-      // Save to Supabase (upsert para que funcione tanto con combos nuevos como hardcodeados).
-      // Pedimos .select().single() para que Supabase nos DEVUELVA la fila tal
+      // Save to Supabase. Al editar, upsert por slug (sirve también para los combos que vienen de perfumes.js); al crear,
+      // insert, así un slug repetido no pisa al otro ([COMBO-PISA-COMBO]). Pedimos .select().single() para que Supabase nos DEVUELVA la fila tal
       // como quedó en la base. Así actualizamos PERFUMES con ese dato exacto
       // sin depender de un segundo GET (que a veces volvía cacheado y
       // hacía parecer que el cambio no se había guardado, aunque sí lo había).
+      // [COMBO-PISA-COMBO] Con insert, un segundo toque sobre un alta que salió bien diría «Ya existe…»: el botón queda
+      // apagado desde acá hasta que cancelCombo cierra el formulario (o hasta un error).
+      var btnCombo = document.getElementById('btnSaveCombo');
+      if (btnCombo) btnCombo.disabled = true;
       try {
-        var { data: savedRow, error: upErr } = await sb
-          .from('combos')
-          .upsert(comboData, { onConflict: 'slug' })
+        var qCombo = sb.from('combos');
+        var { data: savedRow, error: upErr } = await (creando ? qCombo.insert(comboData) : qCombo.upsert(comboData, { onConflict: 'slug' }))
           .select()
           .single();
         if (upErr) throw upErr;
@@ -8745,8 +8774,11 @@
         loadCombos();
         setTimeout(function() { cancelCombo(); }, 1200);
       } catch(e) {
+        if (btnCombo) btnCombo.disabled = false;
         msgEl.style.color = '#e74c3c';
-        msgEl.textContent = errorEnCriollo(e, null, 'guardar el combo');   // 128h (upsert por slug: no hay 23505)
+        msgEl.textContent = errorEnCriollo(e, creando ? 'un combo con ese nombre' : null, 'guardar el combo', true);   // 128h · «Guardar combo» · al crear, un 23505 es el nombre repetido
+        // 4 · el que ya existe (de otra tablet, o de un alta cuya respuesta se perdió) aparece en la lista para editarlo
+        if (creando && String((e && e.code) || '') === '23505') loadCombosFromDB().then(loadCombos).catch(function() {});
       }
     }
 
@@ -8755,7 +8787,11 @@
       if (!s) return;
       if (!confirm('¿Eliminar el combo "' + s.name + '"?')) return;
       try {
-        await sb.from('combos').delete().eq('slug', slug);
+        // [COMBO-BORRA-SIN-MIRAR] Si la base no lo borró, sigue en la lista y no va al Log ni al Telegram. Con RLS, un
+        // DELETE que no está permitido no da error: borra 0 filas. Por eso se pide la fila, como en deleteClient.
+        var delCombo = await sb.from('combos').delete().eq('slug', slug).select('slug');
+        if (delCombo.error) throw delCombo.error;
+        if (!delCombo.data || delCombo.data.length === 0) { alert(errorEnCriollo(null, null, 'eliminar el combo')); return; }   // 0 filas: la base no lo dejó
         // Remove from PERFUMES array in-place (const)
         var delIdx = PERFUMES.findIndex(function(p) { return p.slug === slug; });
         if (delIdx !== -1) PERFUMES.splice(delIdx, 1);
@@ -8792,6 +8828,8 @@
 
     function cancelCombo() {
       editingComboSlug = null;
+      var btnCombo = document.getElementById('btnSaveCombo');
+      if (btnCombo) btnCombo.disabled = false;
       document.getElementById('comboForm').style.display = 'none';
     }
 
@@ -8889,7 +8927,7 @@
       }, { onConflict: 'mes' });
       var msg = document.getElementById('votacionMsg');
       if (error) {
-        msg.textContent = errorEnCriollo(error, null, 'guardar la votación');   // 128h
+        msg.textContent = errorEnCriollo(error, null, 'guardar la votación', true);   // 128h · «GUARDAR CANDIDATOS»
         msg.style.color = '#e74c3c';
       } else {
         logAdminAction('votacion_update', null, { mes: adminMes, masc_count: masc.length, fem_count: fem.length });
@@ -10742,16 +10780,24 @@
     //    defecto «guardar»: las cinco barras de 128g dicen lo mismo que antes.
     // 128i / 128j · tocaGuardar === true donde el botón que se tocó dice «Guardar» (las barras de 128g y los de 128j: la
     // etiqueta, los beneficios, el mensaje, el slide, el decant, la config de puntos): ahí «tocá Guardar / guardá de
-    // nuevo»; en todo lo demás, «probá de nuevo». Los de 128h todavía no lo llevan.
+    // nuevo»; en todo lo demás, «probá de nuevo». Desde [CRIOLLO-BORDES], también los de 128h donde el botón dice «Guardar»
+    // (Depósito, editar cliente, «Guardar horario», «Guardar combo», «GUARDAR CANDIDATOS»).
+    // [CRIOLLO-BORDES] · sin conexión = el navegador dice que no hay red, o el mensaje de la red (un TypeError del propio
+    //    código ya no cuenta: cae en el genérico; el regex tiene los mensajes de red de Chrome, Firefox y Safari) · un 42501
+    //    al leer («cargar …» o «descargar el backup») → «…no puede ver esto.» ·
+    //    un mensaje propio del panel (una validación nuestra, como «Imagen inválida») se arma con errorPropio(texto) y va
+    //    tal cual: por la traducción pasan sólo los errores de la base y de la red.
+    function errorPropio(texto) { var e = new Error(texto); e.propio = true; return e; }
     function errorEnCriollo(err, ctx, que, tocaGuardar) {
       console.error('[' + (que || 'guardar') + ']', err);
+      if (err && err.propio === true && err.message) return err.message;
       var e = err || {}, code = String(e.code || ''), status = Number(e.status || 0);
       var txt = [e.message, e.details, e.hint, typeof err === 'string' ? err : ''].filter(Boolean).join(' ');
       var repetido = ctx === 'perfume' ? 'Ya existe un perfume con ese nombre.' : (ctx === 'nombre' ? 'Ya existe con ese nombre.' : (ctx ? 'Ya existe ' + ctx + '.' : ''));
       if (repetido && (code === '23505' || /duplicate key/i.test(txt))) return repetido;
-      if (navigator.onLine === false || e.name === 'TypeError' || /failed to fetch|load failed|networkerror|network request failed/i.test(txt)) return tocaGuardar === true ? 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.' : 'No se pudo conectar. Revisá internet y probá de nuevo.';
+      if (navigator.onLine === false || /failed to fetch|load failed|networkerror|network ?error|network request failed|network connection was lost|internet connection appears to be offline|request timed out|could not connect to the server/i.test(txt)) return tocaGuardar === true ? 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.' : 'No se pudo conectar. Revisá internet y probá de nuevo.';
       if (code === 'PGRST301' || code === 'PGRST303' || status === 401 || /jwt/i.test(txt)) return tocaGuardar === true ? 'Se venció la sesión. Volvé a entrar y guardá de nuevo.' : 'Se venció la sesión. Volvé a entrar y probá de nuevo.';
-      if (code === '42501' || /row-level security|permission denied/i.test(txt)) return 'Esta cuenta no puede guardar esto.';
+      if (code === '42501' || /row-level security|permission denied/i.test(txt)) return /^(des)?cargar/.test(que || '') ? 'Esta cuenta no puede ver esto.' : 'Esta cuenta no puede guardar esto.';
       return 'No se pudo ' + (que || 'guardar') + '. Probá de nuevo; si sigue, avisale a Alejo.';
     }
     var GUARDAR_AVISO = {};   // id del botón → { t: el timer, texto: el de siempre, aviso: lo que puso }

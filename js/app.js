@@ -215,11 +215,11 @@
       var digitCount = clean.length;
       // Argentina: 549 + 10 dígitos = 13 total
       if (digitCount === 13) {
-        el.innerHTML = '📱 ' + display + ' <span style="color:#27ae60">✓</span>';
+        el.innerHTML = '📱 ' + display + ' <span class="tel-ok">✓</span>';   // [LOGIN-CLARO-TELEFONO] por clase
       } else if (digitCount > 13) {
-        el.innerHTML = '⚠️ ' + display + ' <span style="color:#e74c3c">(demasiados dígitos)</span>';
+        el.innerHTML = '⚠️ ' + display + ' <span class="tel-mal">(demasiados dígitos)</span>';
       } else {
-        el.innerHTML = '📱 ' + display + ' <span style="color:#999">(' + (13 - digitCount) + ' dígitos faltan)</span>';
+        el.innerHTML = '📱 ' + display + ' <span class="tel-falta">(' + (13 - digitCount) + ' dígitos faltan)</span>';
       }
     }
 
@@ -229,13 +229,24 @@
       var el = document.getElementById(matchId);
       if (!document.getElementById(id2).value.trim()) { el.textContent = ''; return; }
       if (p1 === p2) {
-        el.innerHTML = '<span style="color:#27ae60">✓ Los números coinciden</span>';
+        el.innerHTML = '<span class="tel-ok">✓ Los números coinciden</span>';
       } else {
-        el.innerHTML = '<span style="color:#e74c3c">✗ Los números no coinciden</span>';
+        el.innerHTML = '<span class="tel-mal">✗ Los números no coinciden</span>';
       }
     }
 
     var authMode = 'register'; // 'register' o 'login'
+
+    // [LOGIN-CLARO-TELEFONO] El mensaje de la ventana (.auth-error): rojo por defecto, verde con .auth-ok. Por clase y no
+    // inline: en claro los pinta la hoja (#b8342a / #1b5e20), sin otro !important.
+    function authMsgOk(el, ok) { if (el) el.classList.toggle('auth-ok', ok === true); }
+
+    // [LOGIN-CAMPOS-QUEDAN] Después de entrar o de registrarse bien, y al cerrar sesión, la ventana queda vacía: número,
+    // repetir número, nombre, contraseña y lo que se escribe debajo del número.
+    function limpiarCamposAuth() {
+      ['authName', 'authPhone', 'authPhone2', 'authPass'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+      ['authPhonePreview', 'authPhoneMatch'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = ''; });
+    }
 
     function switchAuthMode(mode) {
       authMode = mode;
@@ -253,6 +264,7 @@
       if (phoneElReset) phoneElReset.style.display = '';
       if (btnEl) { btnEl.style.display = ''; btnEl.disabled = false; }
       document.getElementById('authError').textContent = '';
+      authMsgOk(document.getElementById('authError'), false);
       if (phonePreview) phonePreview.textContent = '';
       if (phone2Match) phone2Match.textContent = '';
       if (mode === 'login') {
@@ -298,7 +310,7 @@
       var btn = document.getElementById('authBtn');
       var rawPhone = (document.getElementById('authPhone') || {}).value || '';
       rawPhone = rawPhone.trim();
-      errEl.style.color = '#e74c3c';
+      authMsgOk(errEl, false);
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
         errEl.textContent = 'Escribí tu número de WhatsApp para que podamos ayudarte';
         return;
@@ -322,12 +334,12 @@
         if (preview) preview.textContent = '';
         btn.style.display = 'none';
         if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" class="auth-link" style="font-size:.85rem;">Volver al inicio</a>';
-        errEl.style.color = '#2ecc71';
+        authMsgOk(errEl, true);
         errEl.innerHTML = '✓ Pedido enviado. Si tu número está registrado, te escribimos por WhatsApp para que elijas una contraseña nueva. Si el local está cerrado puede ser recién mañana — no hace falta pedirlo de nuevo. 🌸';
       } catch (e) {
         btn.disabled = false;
         btn.textContent = 'Pedir ayuda';
-        errEl.style.color = '#e74c3c';
+        authMsgOk(errEl, false);
         errEl.textContent = 'No se pudo enviar el pedido. Probá de nuevo en un momento o escribinos por WhatsApp.';
       }
     }
@@ -373,7 +385,7 @@
         btn.disabled = true;
         inputs.forEach(function(i){ i.disabled = true; });
         err.textContent = 'Demasiados intentos. Esperá ' + authFormatRemaining(st.until - now);
-        err.style.color = '#e74c3c';
+        authMsgOk(err, false);
         return true;
       }
       btn.disabled = false;
@@ -426,7 +438,7 @@
       var errEl = document.getElementById('authError');
       var btn = document.getElementById('authBtn');
       errEl.textContent = '';
-      errEl.style.color = '#e74c3c';
+      authMsgOk(errEl, false);
 
       // [FORGOT-PASS-A] modo recuperación: pide SOLO el teléfono (sin contraseña)
       if (authMode === 'recover') { return requestPasswordReset(); }
@@ -486,7 +498,7 @@
           if (estadoLogin === 'activado') {
             // Cuenta creada desde admin o reseteada: la clave que acaba de
             // escribir quedó fijada, ya hasheada, del lado del servidor.
-            errEl.style.color = '#2ecc71';
+            authMsgOk(errEl, true);
             errEl.textContent = '\u2713 \u00a1Listo! Tu contrase\u00f1a nueva qued\u00f3 guardada: es la que acab\u00e1s de escribir. Anotala para la pr\u00f3xima.';
             setTimeout(function() {
               onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono, token: r.token }, true);
@@ -521,6 +533,7 @@
             re = (!rpcEnt.error && rpcEnt.data && rpcEnt.data[0]) ? rpcEnt.data[0] : null;
           } catch (eEnt) {}
           closeAuth();
+          limpiarCamposAuth();   // [LOGIN-CAMPOS-QUEDAN] la cuenta quedó creada: también si después no entró (pide entrar de nuevo)
           if (re && (re.estado === 'ok' || re.estado === 'activado') && re.token) onLogin({ id: re.id, nombre: re.nombre, telefono: re.telefono, token: re.token }, true);
           else sesionSinLlave('registro', re && re.estado === 'bloqueado' ? (re.espera_seg || 900) : 0);   // la cuenta quedó creada: sale siempre
         }
@@ -548,7 +561,7 @@
       var errEl = document.getElementById('editProfileError');
       var btn = document.getElementById('editProfileBtn');
       errEl.textContent = '';
-      errEl.style.color = '#e74c3c';
+      authMsgOk(errEl, false);
 
       if (!newName || newName.length < 2) { errEl.textContent = 'Poné tu nombre completo'; return; }
       if (!newRawPhone || newRawPhone.replace(/[^0-9]/g, '').length < 8) { errEl.textContent = 'Poné un número válido'; return; }
@@ -597,7 +610,7 @@
         // cliente_editar, que tiene los valores viejos en v_cli.
 
         closeEditProfile();
-        errEl.style.color = '#27ae60';
+        authMsgOk(errEl, true);
         // Mostrar confirmación breve
         alert('✅ Perfil actualizado correctamente');
       } catch(e) { errEl.textContent = 'Error de conexión'; }
@@ -692,7 +705,7 @@
     function onLogin(user, entro) {
       currentUser = user;
       localStorage.setItem('st_cliente', JSON.stringify(user));
-      if (entro) avisoReentrarMostrado = false;
+      if (entro) { avisoReentrarMostrado = false; limpiarCamposAuth(); }   // [LOGIN-CAMPOS-QUEDAN]
       updateAuthUI();
       var bi = document.getElementById('boardInput');
       if (bi) bi.placeholder = 'Ej: El 9 AM me dura todo el día, increíble...';
@@ -720,6 +733,7 @@
         localStorage.removeItem('st_waitlist');
       }
       waitlistSlugs = [];
+      limpiarCamposAuth();   // [LOGIN-CAMPOS-QUEDAN] al cerrar sesión (y en una salida forzada) la ventana no queda con nada escrito
       if (sinRpc !== true) {
         // [FAVS-DISPOSITIVO-COMPARTIDO] opción A: al cerrar sesión, los favoritos no quedan en el dispositivo (vuelven al
         // entrar: están en la base). En una salida forzada quedan, con su marca.

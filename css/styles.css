@@ -6791,6 +6791,12 @@
     .phone-match {
       font-size: .65rem; text-align: left; margin: -4px 0 6px 2px; min-height: 1em;
     }
+    /* [LOGIN-CLARO-TELEFONO] Lo que va debajo del número y el mensaje de la ventana, por clase (antes, inline). En oscuro,
+       los mismos colores de antes; en claro, más abajo. */
+    .auth-error.auth-ok { color: #2ecc71; }
+    .tel-ok { color: #27ae60; }
+    .tel-mal { color: #e74c3c; }
+    .tel-falta { color: #999; }
     .auth-user-bar {
       font-size: .7rem; color: var(--gris-claro); display: flex; align-items: center;
       gap: .5rem;
@@ -7847,6 +7853,13 @@
     body:not(.dark-mode) .auth-link { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .auth-link-sec { color: #5e564a; }
     body:not(.dark-mode) .phone-preview { color: #5e564a !important; }
+    /* [LOGIN-CLARO-TELEFONO] sólo en claro, sobre #f5efde: ✓ #1b5e20 (6,85), el rojo y .auth-error #b8342a (5,13),
+       «(N dígitos faltan)» #5e564a (6,29). La regla de los <p> de la ventana ya no toca .auth-error (ver más abajo). */
+    body:not(.dark-mode) .auth-error,
+    body:not(.dark-mode) .tel-mal { color: #b8342a; }
+    body:not(.dark-mode) .auth-error.auth-ok,
+    body:not(.dark-mode) .tel-ok { color: #1b5e20; }
+    body:not(.dark-mode) .tel-falta { color: #5e564a; }
 
     /* BUG 4 · Tu Sector — textareas, inputs y mensajes */
     body:not(.dark-mode) .tu-sector textarea,
@@ -8333,7 +8346,7 @@
     body:not(.dark-mode) .decant-builder-subtitle,
     body:not(.dark-mode) .decant-builder-aviso,
     body:not(.dark-mode) .auth-subtitle,
-    body:not(.dark-mode) .auth-modal p,
+    body:not(.dark-mode) .auth-modal p:not(.auth-error), /* [LOGIN-CLARO-TELEFONO] el mensaje rojo o verde lleva su color */
     body:not(.dark-mode) .modal-label {
       color: #2a2622 !important;
     }

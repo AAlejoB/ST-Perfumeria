@@ -36,6 +36,9 @@ var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no fren
   // [JUEGOS-VENTANA-PULIDO] «deslizá para cerrar» salió de acá: en oscuro --gris da 5,33 sobre la ventana
   // [HOTSALE-CLARO] el Hot Sale del detalle en claro salió de acá: con #9a3412 da 5,82 al principio de la franja
   // [AMARILLO-TINTA-CLARO] el título del quiz en claro salió de acá: con #6b5500 da 6,25 sobre #f5efde
+  // [CLIENTES-OSCURO-ROJO] 28-sep: el rojo #e74c3c de la tarjeta de Clientes en OSCURO (la 132 cambia sólo el claro y Editar)
+  { superficie: 'panel', tema: 'oscuro', nombre: '🗑️ Eliminar .client-btn-delete', keyword: '[CLIENTES-OSCURO-ROJO]' },
+  { superficie: 'panel', tema: 'oscuro', nombre: '✗ NO COMPRÓ .client-tag-nocompro', keyword: '[CLIENTES-OSCURO-ROJO]' }
 ];
 
 // ── color ──
@@ -538,9 +541,12 @@ function mezcla(hex, fondo, a) {
     });
   });
 })();
-// ═══ «INICIÁ SESIÓN» / «UNITE A ST» ═══ [LOGIN-CLARO-CONTRASTE] decisión 131 · 29-sep-2026
+// ═══ «INICIÁ SESIÓN» / «UNITE A ST» ═══ [LOGIN-CLARO-CONTRASTE] decisión 131 · 28-sep-2026
 // El botón (.auth-btn: «ENTRAR», «Unirme», «Guardar cambios») sobre su amarillo, y los links (.auth-link, .auth-link-sec),
 // el título y el subtítulo sobre la caja de la ventana (.auth-modal). Hasta la 131 los links iban con style inline.
+// [LOGIN-CLARO-TELEFONO] 28-sep-2026: también lo que va debajo del número (.tel-ok, .tel-mal, .tel-falta) y el mensaje
+// (.auth-error, .auth-error.auth-ok), que hasta ahí iban con color inline. Ojo: acá se mide la regla de cada clase; que la
+// de los <p> de la ventana (.auth-modal p) no los pise se mira en el navegador.
 (function () {
   var rs = reglas(hoja('css/styles.css'));
   var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
@@ -551,9 +557,56 @@ function mezcla(hex, fondo, a) {
     var btnFondo = efectivo(rs, '.auth-btn', c.pref, 'background', c.capas).hex, btn = efectivo(rs, '.auth-btn', c.pref, 'color', c.capas);
     medir({ superficie: 'catálogo', tema: tema, rol: 'login', nombre: '«ENTRAR» / «Unirme» .auth-btn', texto: btn.hex[0], fondos: btnFondo, impone: btn.impone });
     [['«Creá una» / «Iniciá sesión» .auth-link', '.auth-link'], ['«¿Olvidaste tu contraseña?» .auth-link-sec', '.auth-link-sec'],
-     ['título .auth-title', '.auth-title'], ['subtítulo .auth-subtitle', '.auth-subtitle']].forEach(function (x) {
+     ['título .auth-title', '.auth-title'], ['subtítulo .auth-subtitle', '.auth-subtitle'],
+     ['✓ del número .tel-ok', '.tel-ok'], ['«✗ no coinciden» / «demasiados dígitos» .tel-mal', '.tel-mal'],
+     ['«(N dígitos faltan)» .tel-falta', '.tel-falta'], ['el error .auth-error', '.auth-error'],
+     ['el ✓ del mensaje .auth-error.auth-ok', '.auth-error.auth-ok']].forEach(function (x) {
       var fg = efectivo(rs, x[1], c.pref, 'color', c.capas);
       medir({ superficie: 'catálogo', tema: tema, rol: 'login', nombre: x[0], texto: fg.hex[0], fondos: caja, impone: fg.impone });
+    });
+  });
+})();
+
+// ═══ LA TARJETA DE CLIENTES ═══ [CLIENTES-CLARO-CONTRASTE] decisión 132 · 28-sep-2026
+// Los botones y las dos etiquetas de la tarjeta de «Clientes» (hasta la 132, con color inline). Los fondos rgba() se
+// componen sobre la tarjeta (en claro, blanca), como en pantalla. En claro cambia la letra; Editar, el fondo en los dos.
+(function () {
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz] }, claro: { pref: ['body.light'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function crudo(v, capas, prof) {
+    prof = prof || 0; var t = String(v || '').trim(); var m = t.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([\s\S]+))?\)$/);
+    if (!m || prof > 8) return t;
+    for (var i = 0; i < capas.length; i++) if (capas[i] && capas[i][m[1]]) return crudo(capas[i][m[1]], capas, prof + 1);
+    return m[2] ? crudo(m[2], capas, prof + 1) : '';
+  }
+  function rgbaDe(v) { var m = String(v || '').match(/rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:[ ,\/]+([\d.]+))?\s*\)/); return m ? { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] } : null; }
+  function sobre(c, fondoHex) {
+    var fo = [1, 3, 5].map(function (i) { return parseInt(fondoHex.substr(i, 2), 16); });
+    return '#' + [c.r, c.g, c.b].map(function (v, i) { return Math.round(v * c.a + fo[i] * (1 - c.a)).toString(16).padStart(2, '0'); }).join('');
+  }
+  function aHex(valor, c, abajo) {
+    var v = crudo(valor, c.capas); if (!v || v === 'transparent' || v === 'none') return abajo;
+    var r = rgbaDe(v); if (r) return sobre(r, abajo);
+    var h = normalizarHex(v); if (h) return h;
+    var hs = resolver(valor, c.capas); return hs.length ? hs[0] : abajo;
+  }
+  function fondo(target, c, abajo) {
+    var g = [ganador(rs, target, c.pref, 'background'), ganador(rs, target, c.pref, 'background-color')].filter(Boolean).sort(orden).pop();
+    return g ? aHex(g.valor, c, abajo) : abajo;
+  }
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var tarjeta = fondo('.client-card', c, fondo('body', c, '#000000'));
+    [['💬 WhatsApp .client-btn-wa', '.client-btn-wa'], ['⭐ +1 punto .client-btn-punto', '.client-btn-punto'],
+     ['📜 Historial .client-btn-historial', '.client-btn-historial'], ['✏️ Editar .client-btn-edit', '.client-btn-edit'],
+     ['🚫 Bloquear .client-btn-block', '.client-btn-block'], ['🚫 Desbloquear .client-btn-blocked', '.client-btn-blocked'],
+     ['🗑️ Eliminar .client-btn-delete', '.client-btn-delete'], ['✓ COMPRÓ .client-tag-compro', '.client-tag-compro'],
+     ['✗ NO COMPRÓ .client-tag-nocompro', '.client-tag-nocompro']].forEach(function (x) {
+      var bg = fondo(x[1], c, tarjeta), g = ganador(rs, x[1], c.pref, 'color');
+      medir({ superficie: 'panel', tema: tema, rol: 'clientes', nombre: x[0], texto: g ? aHex(g.valor, c, bg) : null, fondos: [bg],
+              impone: g ? path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') : '' });
     });
   });
 })();
