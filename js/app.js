@@ -152,6 +152,7 @@
     // ============================================================
     function openAuth() {
       if (currentUser) return;
+      cerrarAvisoReentrar();   // [AVISO-TAPA-LOGIN]
       switchAuthMode('login');
       document.getElementById('authOverlay').classList.add('open');
       document.getElementById('authError').textContent = '';
@@ -260,10 +261,10 @@
         passEl.style.display = '';
         passEl.placeholder = 'Tu contraseña';
         titleEl.textContent = 'Iniciá sesión';
-        subEl.innerHTML = '&iquest;No ten&eacute;s cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" style="color:var(--amarillo)">Cre&aacute; una</a>';
+        subEl.innerHTML = '&iquest;No ten&eacute;s cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'register\')" class="auth-link">Cre&aacute; una</a>';
         btnEl.textContent = 'Entrar';
         if (forgotEl) {
-          forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'recover\')" style="color:#bbb;font-size:.78rem;text-decoration:underline;">¿Olvidaste tu contraseña?</a>';
+          forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'recover\')" class="auth-link-sec">¿Olvidaste tu contraseña?</a>';
           forgotEl.style.display = 'block';
         }
       } else if (mode === 'recover') {
@@ -274,7 +275,7 @@
         titleEl.textContent = 'Recuperá tu cuenta';
         subEl.innerHTML = 'No te preocupes 🌸 Escribí abajo tu número de WhatsApp (el mismo con el que te registraste) y nuestro equipo te va a contactar para ayudarte a entrar de nuevo.';
         btnEl.textContent = 'Pedir ayuda';
-        if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:#bbb;font-size:.78rem;text-decoration:underline;">← Volver a iniciar sesión</a>';
+        if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" class="auth-link-sec">← Volver a iniciar sesión</a>';
         if (forgotEl) forgotEl.style.display = 'block';
       } else {
         nameEl.style.display = '';
@@ -282,7 +283,7 @@
         passEl.style.display = '';
         passEl.placeholder = 'Creá una contraseña (mín. 4 caracteres)';
         titleEl.textContent = 'Unite a ST';
-        subEl.innerHTML = 'Guardá tus favoritos, votá el perfume del mes y recibí ofertas<br><br>¿Ya tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
+        subEl.innerHTML = 'Guardá tus favoritos, votá el perfume del mes y recibí ofertas<br><br>¿Ya tenés cuenta? <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" class="auth-link">Iniciá sesión</a>';
         btnEl.textContent = 'Unirme';
         if (forgotEl) forgotEl.style.display = 'none';
       }
@@ -320,7 +321,7 @@
         if (phoneEl) phoneEl.style.display = 'none';
         if (preview) preview.textContent = '';
         btn.style.display = 'none';
-        if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo);font-size:.85rem;">Volver al inicio</a>';
+        if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" class="auth-link" style="font-size:.85rem;">Volver al inicio</a>';
         errEl.style.color = '#2ecc71';
         errEl.innerHTML = '✓ Pedido enviado. Si tu número está registrado, te escribimos por WhatsApp para que elijas una contraseña nueva. Si el local está cerrado puede ser recién mañana — no hace falta pedirlo de nuevo. 🌸';
       } catch (e) {
@@ -505,7 +506,7 @@
           if (rpcReg.error) { errEl.textContent = 'Error de conexión'; btn.disabled = false; return; }
           var rr = (rpcReg.data && rpcReg.data[0]) ? rpcReg.data[0] : null;
           if (rr && rr.estado === 'duplicado') {
-            errEl.innerHTML = 'Este número ya está registrado. <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" style="color:var(--amarillo)">Iniciá sesión</a>';
+            errEl.innerHTML = 'Este número ya está registrado. <a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" class="auth-link">Iniciá sesión</a>';
             btn.disabled = false; return;
           }
           if (!rr || rr.estado !== 'ok') {
@@ -574,8 +575,11 @@
           errEl.textContent = 'Ese número ya está en uso por otra cuenta';
           btn.disabled = false; return;
         }
-        if (estadoEd === 'bloqueado') {   // [EDITAR-SIN-LIMITE] cliente_editar cuenta intentos como entrar (no devuelve los segundos)
-          errEl.textContent = 'Demasiados intentos. Esperá 15 minutos y volvé a probar.';
+        if (estadoEd === 'bloqueado') {   // [EDITAR-SIN-LIMITE] cliente_editar cuenta intentos como entrar
+          // los minutos, con la misma cuenta que el login; sin espera_seg (antes del Bloque 2c), 15
+          var segEd = rpcEd.data && rpcEd.data[0] && rpcEd.data[0].espera_seg;
+          var minEd = segEd ? Math.max(1, Math.ceil(segEd / 60)) : 15;
+          errEl.textContent = 'Demasiados intentos. Esperá ' + minEd + ' minuto' + (minEd === 1 ? '' : 's') + ' y volvé a probar.';
           btn.disabled = false; return;
         }
         if (estadoEd !== 'ok') {
@@ -608,6 +612,7 @@
     // (currentUser.token), dura 180 días y un cambio de contraseña la corta.
     var SLUG_LLAVE_OK = /^[a-z0-9-]{1,120}$/;   // los slugs que aceptan favorito_marcar y seleccion_guardar
     var avisoReentrarMostrado = false;          // «Tu sesión se cerró…» sale una vez aunque fallen varias RPC juntas
+    var avisoReentrarCerrar = null;             // [AVISO-TAPA-LOGIN] cierra el aviso 130 si está a la vista
 
     // Sin llave: se cierra la sesión de este dispositivo sin avisarle a la base (st_favs y st_favs_de quedan) y se avisa
     // según el motivo:
@@ -623,7 +628,7 @@
       if (motivo === 'registro') {
         if (esperaSeg) {
           var min = Math.max(1, Math.ceil(esperaSeg / 60));   // la misma cuenta que el login
-          texto = 'Tu cuenta quedó creada. Por los intentos de antes, esperá ' + min + ' minuto' + (min === 1 ? '' : 's') + ' y entrá con tu número y contraseña.';
+          texto = 'Tu cuenta quedó creada. Hubo muchos intentos con este número: esperá ' + min + ' minuto' + (min === 1 ? '' : 's') + ' y entrá con tu número y contraseña.';
         } else {
           texto = 'Tu cuenta quedó creada. Entrá con tu número y contraseña.';
         }
@@ -650,6 +655,7 @@
         var cerrar = function() {
           if (cerrado) return;
           cerrado = true;
+          avisoReentrarCerrar = null;
           clearTimeout(reloj);
           el.classList.add('leaving');
           setTimeout(function() { el.classList.remove('active', 'leaving'); }, 300);
@@ -658,11 +664,16 @@
         el.classList.add('active');
         if (txt) txt.textContent = 'Actualizamos el sitio: volvé a entrar con tu número y contraseña. Tus favoritos siguen guardados.';
         el.onclick = cerrar;
+        avisoReentrarCerrar = cerrar;
         reloj = setTimeout(cerrar, 6000);
       };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mostrar, { once: true });
       else mostrar();
     }
+
+    // [AVISO-TAPA-LOGIN] (default del PREPARADOR hasta que conteste el DISEÑADOR): el aviso 130 se va cuando se abre
+    // «Iniciá sesión» o cuando aparece el aviso del carrito, que van en el mismo lugar.
+    function cerrarAvisoReentrar() { if (avisoReentrarCerrar) avisoReentrarCerrar(); }
 
     // favorito_marcar, voto_guardar y seleccion_guardar dan false si la llave no sirve (lo demás lo valida el catálogo
     // antes de llamar). Cuenta sólo si la llave sigue siendo la de la sesión de ahora.
@@ -5512,6 +5523,7 @@
     function showCartToast(slug) {
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
+      cerrarAvisoReentrar();   // [AVISO-TAPA-LOGIN] el del carrito va en el mismo lugar
       var toast = document.getElementById('cartToast');
       var imgWrap = document.getElementById('cartToastImgWrap');
       var nameEl = document.getElementById('cartToastName');

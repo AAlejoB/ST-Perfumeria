@@ -3532,8 +3532,6 @@
       flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch; padding: .4rem 1.1rem 1.5rem;
     }
-    /* el login (z-index 2000) se abre encima de la ventana, sólo mientras está abierta */
-    body.juegos-open .auth-overlay { z-index: 10005; }
     @media (max-width: 767px) {
       /* una pestaña a la vez */
       .juegos-body[data-juego="quiz"] .misel-section { display: none; }
@@ -6736,7 +6734,9 @@
 
     /* ====== AUTH MODAL ====== */
     .auth-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 2000;
+      /* [AUTH-BAJO-DETALLE] 10005 siempre (antes, 2000 y 10005 sólo con los juegos): arriba del detalle (10000), de
+         comparar (10001) y del resto de las ventanas; los avisos (99998) siguen arriba */
+      position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 10005;
       display: none; align-items: center; justify-content: center;
     }
     .auth-overlay.open { display: flex; }
@@ -6773,6 +6773,9 @@
     }
     .auth-btn:hover:not(:disabled) { background: var(--amarillo-claro); }
     .auth-btn:disabled { opacity: .35; cursor: not-allowed; background: #555; color: #aaa; }
+    /* [LOGIN-CLARO-CONTRASTE] 131 · los links de «Iniciá sesión» y «Unite a ST» (antes, style inline); el claro, abajo */
+    .auth-link { color: var(--amarillo); }
+    .auth-link-sec { color: #bbb; font-size: .78rem; text-decoration: underline; }
     .auth-toggle {
       font-size: .72rem; color: var(--gris-claro); text-align: center;
       margin-top: .8rem; cursor: pointer;
@@ -7837,6 +7840,12 @@
     }
     body:not(.dark-mode) .auth-input::placeholder { color: #999 !important; }
     body:not(.dark-mode) .auth-close { color: #1a1a1d; }
+    /* [LOGIN-CLARO-CONTRASTE] 131 · sólo en claro: «ENTRAR», «Unirme» y «Guardar cambios» (antes #e3d6b3 sobre #E8B800: 1,29),
+       «Creá una» / «Iniciá sesión» y «¿Olvidaste tu contraseña?». El oscuro queda como estaba. */
+    body:not(.dark-mode) .auth-btn { color: #1a1a1d; }
+    body:not(.dark-mode) .auth-btn:disabled { color: #aaa; }
+    body:not(.dark-mode) .auth-link { color: var(--amarillo-tinta); }
+    body:not(.dark-mode) .auth-link-sec { color: #5e564a; }
     body:not(.dark-mode) .phone-preview { color: #5e564a !important; }
 
     /* BUG 4 · Tu Sector — textareas, inputs y mensajes */
@@ -9942,7 +9951,7 @@
       }
       .barra-num[hidden] { display: none; }
       /* Lo que se abre encima tapa la barra (87, 93). El carrito, el armador, los juegos y el detalle ya están más arriba
-         (9995-10000); el login (2000) y el menú (200) no: con ellos abiertos la barra se esconde. Con el armador, también
+         (9995-10000), y el login también (10005); con el login y el menú (200) abiertos, además, la barra se esconde. Con el armador, también
          (62): el armador es una hoja desde abajo y la barra no tiene que asomar. */
       body:has(.auth-overlay.open) .barra-celu,
       body:has(.nav-drawer.open) .barra-celu,

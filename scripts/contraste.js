@@ -538,6 +538,25 @@ function mezcla(hex, fondo, a) {
     });
   });
 })();
+// ═══ «INICIÁ SESIÓN» / «UNITE A ST» ═══ [LOGIN-CLARO-CONTRASTE] decisión 131 · 29-sep-2026
+// El botón (.auth-btn: «ENTRAR», «Unirme», «Guardar cambios») sobre su amarillo, y los links (.auth-link, .auth-link-sec),
+// el título y el subtítulo sobre la caja de la ventana (.auth-modal). Hasta la 131 los links iban con style inline.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var caja = efectivo(rs, '.auth-modal', c.pref, 'background', c.capas).hex;
+    var btnFondo = efectivo(rs, '.auth-btn', c.pref, 'background', c.capas).hex, btn = efectivo(rs, '.auth-btn', c.pref, 'color', c.capas);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'login', nombre: '«ENTRAR» / «Unirme» .auth-btn', texto: btn.hex[0], fondos: btnFondo, impone: btn.impone });
+    [['«Creá una» / «Iniciá sesión» .auth-link', '.auth-link'], ['«¿Olvidaste tu contraseña?» .auth-link-sec', '.auth-link-sec'],
+     ['título .auth-title', '.auth-title'], ['subtítulo .auth-subtitle', '.auth-subtitle']].forEach(function (x) {
+      var fg = efectivo(rs, x[1], c.pref, 'color', c.capas);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'login', nombre: x[0], texto: fg.hex[0], fondos: caja, impone: fg.impone });
+    });
+  });
+})();
 
 // ═══ LA LETRA LA DECIDE EL FONDO ═══ [BOTONES-CONTRASTE] [CINTA-TINTA] 24-sep-2026 (parte K, decisiones 94 y 95)
 // Los botones del panel con fondo de color propio (WhatsApp, gris y los 7 de etiqueta) y la cinta de la card: la letra
