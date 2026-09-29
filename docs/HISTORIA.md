@@ -3301,7 +3301,7 @@ Quedan para el PREPARADOR: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[PUNTOS-BUSCA-TEL-C
 
 ### Sesión 29-sep-2026 · `_s` · la ronda s sobre `sesion-cliente`: el aviso de la sesión vieja, los motivos, de quién son los favoritos, votar al retomar, «Sumar punto», 128i y la tarjeta de cliente · **sin mergear**
 
-El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bump: la v1.1.150 nunca salió. El merge no está pre-aprobado. `e3d760e` (`js/app.js`, `index.html`, `css/styles.css`) + `8ae552f` (`admin.html`). En el punto 3 va la **opción A**: es el default del prompt, y el mensaje de Alejo traía el texto «(+ … si elegís B)» de la plantilla, sin elegir. Antes de arrancar, en la base (sólo lectura): **el Bloque 2b ya estaba corrido**.
+El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bump: la v1.1.150 nunca salió. El merge no está pre-aprobado. `e3d760e` (`js/app.js`, `index.html`, `css/styles.css`) + `8ae552f` (`admin.html`). En el punto 3 va la **opción A**: primero fue el default del prompt (el mensaje de Alejo traía el texto «(+ … si elegís B)» de la plantilla, sin elegir), y después **Alejo la confirmó** (29-sep), con las dos opciones graficadas. Antes de arrancar, en la base (sólo lectura): **el Bloque 2b ya estaba corrido**.
 - `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`.
 - `cliente_editar` cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta y devuelve `bloqueado`.
 - Cierra `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (SECURITY.md § S28 y S29).
