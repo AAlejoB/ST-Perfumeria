@@ -1160,6 +1160,9 @@
            cuando se scrolleaba pasado el catálogo (look raro). */
         position: static;
         top: auto;
+        /* [SUGERENCIAS-BAJO-ORDENAR] sin sticky no arma contexto en Safari ≤ 17 (no tiene backdrop-filter sin prefijo):
+           el z-index 101 del buscador y el 100 de «Ordenar» quedaban encima del nav. En Chrome ya lo arma el backdrop-filter. */
+        isolation: isolate;
         flex-wrap: nowrap;
         padding: .7rem 2rem;
         gap: 1rem;

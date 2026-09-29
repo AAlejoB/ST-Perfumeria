@@ -3862,10 +3862,12 @@
         if (typeof p.promo === 'string' && p.promo !== '') p.promo = parsePrice(p.promo);
         else if (!p.promo) p.promo = null;
       });
-      await loadStockFromDB();
       // Mergear perfumes de Supabase (perfumes_nuevos) en PERFUMES
       // ANTES de renderizar, para que EDITAR / PRECIOS / STOCK los vean
       await mergeNuevosIntoPerfumes();
+      // [GUARDAR-SIN-LEER] (revisión) el stock después de los nuevos: si no, los ~117 nuevos quedaban sin stock y
+      // stockCargado decía que estaba todo (si después fallaban los overrides, sus modales abrían con 5 y 0)
+      await loadStockFromDB();
       // Aplicar perfume_overrides completos (foto, tipo, alias, notas, etc.)
       // para que el admin vea lo mismo que el cat\u00e1logo p\u00fablico.
       await loadOverridesIntoPerfumes();
@@ -4568,6 +4570,8 @@
     // [CARGA-FALLIDA-CERO] 128m · los totales de Precios & Stock y de Depósito salen de perfume_overrides: hasta que llega una
     // lectura buena (la del login o, si falló, el primer resync completo) dicen «—», no «0» ni lo de perfumes.js.
     var stockCargado = false;
+    // [GUARDAR-SIN-LEER] (revisión) los overrides leídos: hasta la primera lectura buena, Editar y Migrar tipos no escriben
+    var overridesCargado = false;
     async function loadStockFromDB() {
       try {
         var { data, error } = await sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito');
@@ -4595,8 +4599,9 @@
       try {
         var { data, error } = await sb.from('perfume_overrides').select('*');
         // [GUARDAR-SIN-LEER] sin los overrides, Editar mostraba lo de perfumes.js y «Guardar» lo escribía encima de lo guardado
-        if (error) { sinLeer('overrides', error, 'cargar los datos de los perfumes'); return; }
+        if (error) { sinLeer('overrides', error, 'cargar los datos de los perfumes'); overridesCargado = false; return; }
         stockCargado = true;   // [CARGA-FALLIDA-CERO] también trae stock_qty, stock_status y stock_deposito
+        overridesCargado = true;
         leido('stock');
         leido('overrides');
         if (!data || data.length === 0) return;
@@ -4636,7 +4641,7 @@
           if (o.precio_decant !== undefined && o.precio_decant !== null) p._precioDecant = o.precio_decant;
           if (o.decant_excluido !== undefined && o.decant_excluido !== null) p._decantExcluido = !!o.decant_excluido;
         });
-      } catch(e) { sinLeer('overrides', e, 'cargar los datos de los perfumes'); }   // también si se cortó a mitad de camino
+      } catch(e) { sinLeer('overrides', e, 'cargar los datos de los perfumes'); overridesCargado = false; }   // también si se cortó a mitad de camino
     }
 
     function getStockStatus(slug) {
@@ -4812,7 +4817,8 @@
         'En el local: ' + (local === null ? 'sin dato' : local + ' u.');
       document.getElementById('modalDepQty').value = depPrevQty;
       document.getElementById('modalDepMsg').textContent = '';
-      faltaStock(document.getElementById('modalDepMsg'));   // [GUARDAR-SIN-LEER]
+      depModalConBase = stockCargado;   // [GUARDAR-SIN-LEER]
+      faltaStock(document.getElementById('modalDepMsg'));
       document.getElementById('modalDepNoSumar').checked = false;
       toggleDepSumar();
       document.getElementById('modalDeposito').classList.add('active');
@@ -4858,6 +4864,11 @@
       if (!p) return;
       var msgEl = document.getElementById('modalDepMsg');
       if (faltaStock(msgEl)) return;   // [GUARDAR-SIN-LEER]
+      if (!depModalConBase) {   // el stock llegó con el modal abierto: el depósito y el local eran los de perfumes.js
+        openDepositoModal(editingDepSlug);
+        avisoLectura(document.getElementById('modalDepMsg'), 'Ya cargó el stock: revisá la cantidad y guardá.');
+        return;
+      }
       var btn = document.getElementById('modalDepBtn');
       var qty = parseInt(document.getElementById('modalDepQty').value, 10);
       if (isNaN(qty) || qty < 0) qty = 0;
@@ -5995,6 +6006,7 @@
       document.getElementById('modalPrice').classList.add('active');
     }
 
+    var stockModalConBase = false, depModalConBase = false;   // [GUARDAR-SIN-LEER] los modales se abrieron con el stock de la base
     function openStockModal(slug) {
       editingSlug = slug;
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
@@ -6027,7 +6039,8 @@
 
       document.getElementById('modalStockBtn').disabled = false;
       document.getElementById('modalStockMsg').textContent = '';
-      faltaStock(document.getElementById('modalStockMsg'));   // [GUARDAR-SIN-LEER]
+      stockModalConBase = stockCargado;   // [GUARDAR-SIN-LEER]
+      faltaStock(document.getElementById('modalStockMsg'));
       updateStockPreview();
       document.getElementById('modalStock').classList.add('active');
     }
@@ -6244,6 +6257,11 @@
       if (!p) return;
       var msgEl = document.getElementById('modalStockMsg');
       if (faltaStock(msgEl)) return;   // [GUARDAR-SIN-LEER]
+      if (!stockModalConBase) {   // el stock llegó con el modal abierto: la cantidad y «Pausado» eran los de perfumes.js
+        openStockModal(editingSlug);
+        avisoLectura(document.getElementById('modalStockMsg'), 'Ya cargó el stock: revisá la cantidad y guardá.');
+        return;
+      }
 
       var qty = parseInt(document.getElementById('modalStockQty').value, 10);
       if (isNaN(qty) || qty < 0) qty = 0;
@@ -6612,7 +6630,8 @@
         return;
       }
       // [GUARDAR-SIN-LEER] sin los overrides, los que ya tienen un tipo en la base contaban como «sin tipo»
-      if (SIN_LEER.overrides) { alert(SIN_LEER.overrides); return; }
+      var faltaMig = faltaOverrides(null);
+      if (faltaMig) { alert(faltaMig); return; }
 
       var pendientes = [];
       PERFUMES.forEach(function(p) {
@@ -6774,7 +6793,8 @@
       document.getElementById('editSearch').value = '';
       document.getElementById('editMsg').textContent = '';
       barraError(document.getElementById('btnSaveEdit'), '');   // [MOTIVO-QUEDA] el motivo no sobrevive a otro perfume
-      faltaLeer('overrides', document.getElementById('editMsg'));   // [GUARDAR-SIN-LEER]
+      editConOverrides = overridesCargado;   // [GUARDAR-SIN-LEER]
+      faltaOverrides(document.getElementById('editMsg'));
     }
 
     // ============================================================
@@ -6909,11 +6929,18 @@
       return out;
     }
 
+    var editConOverrides = false;   // [GUARDAR-SIN-LEER] el formulario se llenó con los overrides de la base
     async function saveEditPerfumeAhora() {
       var slug = document.getElementById('editSlug').value;
       if (!slug) return;
-      var faltaEdit = faltaLeer('overrides', document.getElementById('editMsg'));   // [GUARDAR-SIN-LEER] antes de pedir «ST»
+      var faltaEdit = faltaOverrides(document.getElementById('editMsg'));   // [GUARDAR-SIN-LEER] antes de pedir «ST»
       if (faltaEdit) return { ok: false, error: faltaEdit };
+      if (!editConOverrides) {   // se abrió antes de que llegaran: se vuelve a llenar con lo de la base
+        loadEditPerfume(slug);
+        var llegaron = 'Llegaron los datos del perfume: revisá y guardá de nuevo.';
+        avisoLectura(document.getElementById('editMsg'), llegaron);
+        return { ok: false, error: llegaron };
+      }
 
       // Doble verificación anti-error: pedir "ST" antes de impactar cambios
       // al catálogo. Editar es la operación más amplia (nombre, foto, notas,
@@ -7598,7 +7625,11 @@
 
       // Mergear inmediatamente en PERFUMES para que EDITAR/PRECIOS/STOCK lo vean
       // sin tener que recargar la página
+      // [GUARDAR-SIN-LEER] (revisión) si al entrar habían fallado los nuevos, llegan acá sin su stock ni sus overrides: se
+      // vuelven a leer (y hasta entonces el stock no cuenta como cargado, así la próxima vuelta del resync lo trae entero)
+      var faltabanNuevos = !!SIN_LEER.nuevos;
       await mergeNuevosIntoPerfumes();
+      if (faltabanNuevos && !SIN_LEER.nuevos) { stockCargado = false; await loadOverridesIntoPerfumes(); }
       renderPrecios();
       renderStock();
 
@@ -7706,8 +7737,14 @@
     var cachedDestacados = [];
 
     var destacadosError = '';   // [CARGA-FALLIDA-CERO] 128m
+    // [DESTACADOS-BORRA-SI-FALLA] (revisión) mientras la primera lectura no llegó, la lista es [] igual que si hubiera fallado;
+    // y una lectura que salió antes de un guardado bueno no pisa lo guardado (destacadosLecturaN).
+    var destacadosLeidos = false, destacadosLecturaN = 0, destacadosGuardando = false;
     async function loadDestacados() {
+      var n = ++destacadosLecturaN;
       var { data, error } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
+      if (n !== destacadosLecturaN) return;
+      destacadosLeidos = !error;
       destacadosError = error ? errorEnCriollo(error, null, 'cargar los destacados', 'recargar') : '';
       cachedDestacados = data ? data.map(function(d) { return d.slug; }) : [];
       renderDestacados();
@@ -8178,6 +8215,12 @@
     }
     function errorDestacados(texto) { msgDestacados(texto, 'var(--stat-tinta-out)', 0); }
     function filasDestacados(slugs) { return slugs.map(function(slug, i) { return { slug: slug, posicion: i }; }); }
+    // Sin la lista de la base (falló o todavía no llegó) no se escribe. Lo dice y devuelve true.
+    function destacadosBloqueados() {
+      if (destacadosError) { errorDestacados(destacadosError); return true; }
+      if (!destacadosLeidos) { errorDestacados('Todavía se están cargando los destacados. Esperá un momento.'); return true; }
+      return false;
+    }
 
     // Borra todos y los vuelve a escribir en orden. [DESTACADOS-BORRA-SI-FALLA]
     // · Sin la lista de la base (la carga falló) no escribe: armaría la lista nueva sobre [] y borraría los de la Selección.
@@ -8185,7 +8228,12 @@
     //   quedaba vacía) y relee la base para mostrar lo que quedó de verdad.
     // · La lista, el Log y la pantalla cambian sólo con el alta buena. Devuelve true si se guardó.
     async function syncDestacadosToDB(slugs) {
-      if (destacadosError) { errorDestacados(destacadosError); return false; }
+      if (destacadosBloqueados()) return false;
+      if (destacadosGuardando) return false;   // un segundo toque mientras guarda armaría otra lista sobre la misma de antes
+      destacadosGuardando = true;
+      try { return await syncDestacadosAhora(slugs); } finally { destacadosGuardando = false; }
+    }
+    async function syncDestacadosAhora(slugs) {
       var prevSlugs = cachedDestacados.slice();
       var borrado = await sb.from('destacados').delete().neq('id', 0);
       if (borrado.error) { errorDestacados(errorEnCriollo(borrado.error, null, 'guardar los destacados')); return false; }
@@ -8195,13 +8243,14 @@
           var motivo = errorEnCriollo(alta.error, null, 'guardar los destacados');
           if (prevSlugs.length) {
             var vuelta = await sb.from('destacados').insert(filasDestacados(prevSlugs));
-            if (vuelta.error) console.error('[destacados] no se pudieron volver a escribir los de antes:', vuelta.error);
+            if (vuelta.error) console.error('[destacados] no se pudieron volver a escribir los de antes (' + prevSlugs.join(', ') + '):', vuelta.error);
           }
           await loadDestacados();
           errorDestacados(motivo);
           return false;
         }
       }
+      destacadosLecturaN++;   // una lectura en vuelo es de antes de este guardado
       cachedDestacados = slugs;
       logAdminAction('destacados_update', null, { from: prevSlugs, to: slugs });
       renderDestacados();
@@ -8248,7 +8297,7 @@
     }
 
     function moveDestacado(index, dir) {
-      if (destacadosError) { errorDestacados(destacadosError); return; }   // [DESTACADOS-BORRA-SI-FALLA]
+      if (destacadosBloqueados()) return;   // [DESTACADOS-BORRA-SI-FALLA]
       var slugs = cachedDestacados.slice();
       var newIndex = index + dir;
       if (newIndex < 0 || newIndex >= slugs.length) return;
@@ -8260,7 +8309,7 @@
 
     // [DESTACADOS-BORRA-SI-FALLA] «eliminado» y «agregado» salen cuando la base lo guardó (antes, antes de saberlo)
     async function removeDestacado(index) {
-      if (destacadosError) { errorDestacados(destacadosError); return; }
+      if (destacadosBloqueados()) return;
       var slugs = cachedDestacados.slice();
       var removed = slugs.splice(index, 1);
       if (!(await syncDestacadosToDB(slugs))) return;
@@ -8269,7 +8318,7 @@
     }
 
     async function addDestacado(slug) {
-      if (destacadosError) { errorDestacados(destacadosError); return; }   // [DESTACADOS-BORRA-SI-FALLA]
+      if (destacadosBloqueados()) return;   // [DESTACADOS-BORRA-SI-FALLA]
       var slugs = cachedDestacados.slice();
       if (slugs.indexOf(slug) !== -1) {
         msgDestacados('Ya está en destacados', '#f1c40f', 2000);
@@ -8280,11 +8329,11 @@
         return;
       }
       slugs.push(slug);
+      document.getElementById('destacadoResults').style.display = 'none';   // como antes: no queda un resultado para tocar dos veces
       if (!(await syncDestacadosToDB(slugs))) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       msgDestacados((p ? p.name : '') + ' agregado a destacados', '#2ecc71', 2000);
       document.getElementById('destacadoSearch').value = '';
-      document.getElementById('destacadoResults').style.display = 'none';
     }
 
     function filterDestacados() {
@@ -8804,6 +8853,12 @@
       return { row: row, mlInput: mlInput, customInput: customInput };
     }
 
+    // [GUARDAR-SIN-LEER] sin los perfumes nuevos, ¿a este combo le falta algún ítem? (los demás combos se editan como siempre)
+    function comboSinNuevos(items) {
+      return !!SIN_LEER.nuevos && (items || []).some(function(it) {
+        return it && it.slug && !PERFUMES.some(function(p) { return p.slug === it.slug; });
+      });
+    }
     function editCombo(slug) {
       var s = PERFUMES.find(function(p) { return p.slug === slug; });
       if (!s) return;
@@ -8818,7 +8873,7 @@
       // [GUARDAR-SIN-LEER] sin los perfumes nuevos, un ítem que es uno de ellos queda vacío y «Guardar» lo sacaba del combo.
       // #e74c3c como los otros errores de esta caja, que es oscura en los dos temas (regla 19).
       var comboMsgEl = document.getElementById('comboMsg');
-      if (faltaLeer('nuevos', comboMsgEl)) comboMsgEl.style.color = '#e74c3c';
+      if (comboSinNuevos(s.items) && faltaLeer('nuevos', comboMsgEl)) comboMsgEl.style.color = '#e74c3c';
 
       // Cargar foto si existe
       clearComboFoto();
@@ -8849,7 +8904,8 @@
       var price = document.getElementById('comboPrice').value;
       var promo = document.getElementById('comboPromo').value;
       var msgEl = document.getElementById('comboMsg');
-      if (editingComboSlug && faltaLeer('nuevos', msgEl)) { msgEl.style.color = '#e74c3c'; return; }   // [GUARDAR-SIN-LEER]
+      var comboEditado = editingComboSlug && PERFUMES.find(function(p) { return p.slug === editingComboSlug; });
+      if (comboEditado && comboSinNuevos(comboEditado.items) && faltaLeer('nuevos', msgEl)) { msgEl.style.color = '#e74c3c'; return; }   // [GUARDAR-SIN-LEER]
 
       if (!name || !price) {
         msgEl.style.color = '#e74c3c';
@@ -11032,6 +11088,13 @@
     function faltaLeer(clave, el) { var t = SIN_LEER[clave] || ''; avisoLectura(el, t); return t; }
     // El stock de la base (stockCargado): sin él, los modales de stock y de depósito arrancan con lo de perfumes.js
     // (5 en el local, 0 en el depósito) y «Guardar» lo escribía.
+    // Los overrides (Editar, Migrar tipos): el error si la lectura falló, o «todavía» si no llegó.
+    function faltaOverrides(el) {
+      if (overridesCargado) return '';
+      var t = SIN_LEER.overrides || 'Todavía no cargaron los datos de los perfumes. Esperá un momento y probá de nuevo.';
+      avisoLectura(el, t);
+      return t;
+    }
     function faltaStock(el) {
       if (stockCargado) return '';
       var t = SIN_LEER.stock || 'Todavía no cargó el stock. Esperá un momento y probá de nuevo.';
@@ -11057,7 +11120,7 @@
         if (carga) return 'Se venció la sesión. Volvé a entrar.';
         return tocaGuardar === true ? 'Se venció la sesión. Volvé a entrar y guardá de nuevo.' : 'Se venció la sesión. Volvé a entrar y probá de nuevo.';
       }
-      if (code === '42501' || /row-level security|permission denied/i.test(txt)) return /^(des)?cargar/.test(que || '') ? 'Esta cuenta no puede ver esto.' : 'Esta cuenta no puede guardar esto.';
+      if (code === '42501' || /row-level security|permission denied/i.test(txt)) return /^((des)?cargar|buscar)/.test(que || '') ? 'Esta cuenta no puede ver esto.' : 'Esta cuenta no puede guardar esto.';
       if (carga) return noSePudo(que) + '. ' + (conBoton ? 'Tocá ↺' : 'Recargá la página') + '; si sigue, avisale a Alejo.';
       return noSePudo(que || 'guardar') + '. Probá de nuevo; si sigue, avisale a Alejo.';
     }
