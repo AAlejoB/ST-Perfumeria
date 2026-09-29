@@ -5413,7 +5413,8 @@
       }
       var html = '';
       list.forEach(function(c) {
-        var fecha = new Date(c.created_at).toLocaleDateString('es-AR');
+        var fechaD = c.created_at ? new Date(c.created_at) : null;   // [CLIENTES-FECHA-TEL] sin fecha (o inválida), nada
+        var fecha = (fechaD && !isNaN(fechaD.getTime())) ? fechaD.toLocaleDateString('es-AR') : '';
         var initials = escapeHtml((c.nombre || '?').charAt(0).toUpperCase());
         var isBlocked = c.bloqueado === true;
         var blockedBadge = isBlocked ? ' <span class="client-blocked-badge">Bloqueado</span>' : '';
@@ -5440,10 +5441,10 @@
         html += '<div class="client-card" data-name="' + escapeHtml((c.nombre || '').toLowerCase()) + '" data-tel="' + escapeHtml(c.telefono || '') + '" data-nota="' + escapeHtml((c.nota || '').toLowerCase()) + '">'
           + '<div class="client-top">'
             + '<div class="client-name"><span class="client-name-icon">' + initials + '</span> ' + escapeHtml(c.nombre) + blockedBadge + '</div>'
-            + '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">' + comproTag + puntosHTML + '<span class="client-date">' + fecha + '</span></div>'
+            + '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">' + comproTag + puntosHTML + (fecha ? '<span class="client-date">' + fecha + '</span>' : '') + '</div>'
           + '</div>'
           + '<div class="client-details">'
-            + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + escapeHtml(c.telefono) + '</span></span>'
+            + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + escHtml(formatPhoneDisplay(c.telefono) || c.telefono) + '</span></span>'   // [CLIENTES-FECHA-TEL] como en el catálogo
             + (c.telefono2 ? '<span class="client-detail"><span class="client-detail-icon">📞</span> <span class="client-detail-value">' + escapeHtml(c.telefono2) + '</span></span>' : '')
           + '</div>'
           + notaHTML
@@ -5588,8 +5589,11 @@
 
       if (!query || query.length < 2) { msgEl.textContent = 'Ingresá un nombre o teléfono'; msgEl.style.color = '#e74c3c'; return; }
 
-      // Buscar por teléfono exacto primero
-      var { data } = await sb.from('clientes').select('*').eq('telefono', query).limit(1);
+      // Buscar por teléfono exacto primero · [PUNTOS-BUSCA-TEL-CRUDO] con el número normalizado (como se guarda)
+      var soloDig = query.replace(/[\s\-+().]/g, '');
+      var esNumero = /^\d{6,}$/.test(soloDig);
+      var telBusca = esNumero ? cleanPhone(soloDig) : '';
+      var { data } = await sb.from('clientes').select('*').eq('telefono', esperaTelValido(telBusca) ? telBusca : query).limit(1);
 
       // Si no encontró por teléfono, buscar por nombre (parcial, case-insensitive)
       if (!data || data.length === 0) {
@@ -5612,7 +5616,6 @@
 
       if (!data || data.length === 0) {
         // No existe → preguntar datos para registrarlo
-        var esNumero = /^\d{6,}$/.test(query);
         var nombre, telefono;
         if (esNumero) {
           telefono = cleanPhone(query);   // [TEL-CANONICO-PANEL] se revisa antes de pedir el nombre
@@ -6889,7 +6892,7 @@
       }
 
       if (error) {
-        msgEl.textContent = errorEnCriollo(error, 'perfume');
+        msgEl.textContent = errorEnCriollo(error, 'perfume', null, true);   // 128i · «Guardar cambios»
         msgEl.style.color = '#e74c3c';
         return { ok: false, error: msgEl.textContent };
       }
@@ -7480,7 +7483,7 @@
       }
 
       if (result.error) {
-        msgEl.textContent = errorEnCriollo(result.error, 'perfume');
+        msgEl.textContent = errorEnCriollo(result.error, 'perfume', null, !!editId);   // 128i · «Guardar cambios» al editar; «Agregar perfume» al agregar
         msgEl.style.color = '#e74c3c';
         return { ok: false, error: msgEl.textContent };
       }
@@ -10411,7 +10414,7 @@
       var antes = (MARCAS_DISENADOR || []).slice(), nuevas = MARCAS_EDIT.slice();
       var r = await sb.from('decants_config').update({ marcas_disenador: nuevas }).eq('id', 1);
       if (r && r.error) {
-        var motivo = errorEnCriollo(r.error, 'nombre');
+        var motivo = errorEnCriollo(r.error, 'nombre', null, true);   // 128i · «Guardar»
         if (msg) { msg.style.color = '#e74c3c'; msg.textContent = motivo; }
         return { ok: false, error: motivo };
       }
@@ -10650,7 +10653,7 @@
         var r = await sb.from('promos_decants').upsert(fila, { onConflict: 'id' });
         if (r && r.error) throw r.error;
       } catch (e) {
-        return mal(errorEnCriollo(e, 'nombre'));
+        return mal(errorEnCriollo(e, 'nombre', null, true));   // 128i · «Guardar promo»
       }
       // Log: sólo lo que cambió, legible (fechas en hora argentina).
       var A = PROMO_ADMIN || {}, cambios = {};
@@ -10726,14 +10729,16 @@
     //    (sólo donde la base tiene un único que puede chocar; sin ctx, un 23505 cae en el genérico);
     //  · que: lo que se intentaba hacer, «cambiar el stock» → «No se pudo cambiar el stock. Probá de nuevo; …». Por
     //    defecto «guardar»: las cinco barras de 128g dicen lo mismo que antes.
-    function errorEnCriollo(err, ctx, que) {
+    // 128i · tocaGuardar === true sólo en las barras de 128g cuyo botón dice «Guardar»: ahí «tocá Guardar / guardá de
+    // nuevo»; en todo lo demás, «probá de nuevo».
+    function errorEnCriollo(err, ctx, que, tocaGuardar) {
       console.error('[' + (que || 'guardar') + ']', err);
       var e = err || {}, code = String(e.code || ''), status = Number(e.status || 0);
       var txt = [e.message, e.details, e.hint, typeof err === 'string' ? err : ''].filter(Boolean).join(' ');
       var repetido = ctx === 'perfume' ? 'Ya existe un perfume con ese nombre.' : (ctx === 'nombre' ? 'Ya existe con ese nombre.' : (ctx ? 'Ya existe ' + ctx + '.' : ''));
       if (repetido && (code === '23505' || /duplicate key/i.test(txt))) return repetido;
-      if (navigator.onLine === false || e.name === 'TypeError' || /failed to fetch|load failed|networkerror|network request failed/i.test(txt)) return 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.';
-      if (code === 'PGRST301' || code === 'PGRST303' || status === 401 || /jwt/i.test(txt)) return 'Se venció la sesión. Volvé a entrar y guardá de nuevo.';
+      if (navigator.onLine === false || e.name === 'TypeError' || /failed to fetch|load failed|networkerror|network request failed/i.test(txt)) return tocaGuardar === true ? 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.' : 'No se pudo conectar. Revisá internet y probá de nuevo.';
+      if (code === 'PGRST301' || code === 'PGRST303' || status === 401 || /jwt/i.test(txt)) return tocaGuardar === true ? 'Se venció la sesión. Volvé a entrar y guardá de nuevo.' : 'Se venció la sesión. Volvé a entrar y probá de nuevo.';
       if (code === '42501' || /row-level security|permission denied/i.test(txt)) return 'Esta cuenta no puede guardar esto.';
       return 'No se pudo ' + (que || 'guardar') + '. Probá de nuevo; si sigue, avisale a Alejo.';
     }
@@ -10854,7 +10859,7 @@
         return { ok: true };
       } catch (e) {
         msg.style.color = '#e74c3c';
-        msg.textContent = errorEnCriollo(e, 'nombre');   // [PROMO-DECANTS] 114 · nunca el error crudo de la base
+        msg.textContent = errorEnCriollo(e, 'nombre', null, true);   // [PROMO-DECANTS] 114 · nunca el error crudo de la base · 128i · «Guardar»
         return { ok: false, error: msg.textContent };
       }
     }
