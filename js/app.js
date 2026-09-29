@@ -241,8 +241,10 @@
     // inline: en claro los pinta la hoja (#b8342a / #1b5e20), sin otro !important.
     function authMsgOk(el, ok) { if (el) el.classList.toggle('auth-ok', ok === true); }
 
-    // [LOGIN-CAMPOS-QUEDAN] Después de entrar o de registrarse bien, y al cerrar sesión, la ventana queda vacía: número,
-    // repetir número, nombre, contraseña y lo que se escribe debajo del número.
+    // [LOGIN-CAMPOS-QUEDAN] Después de entrar (también al registrarse con sesión) y al cerrar sesión, la ventana queda vacía:
+    // número, repetir número, nombre, contraseña y lo que se escribe debajo del número. Un registro que termina SIN sesión
+    // (la cuenta quedó creada pero entrar no dio llave) los deja: «Iniciá sesión» se abre con el número y la contraseña, y
+    // alcanza un toque en «Entrar» (2.2, opción B).
     function limpiarCamposAuth() {
       ['authName', 'authPhone', 'authPhone2', 'authPass'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
       ['authPhonePreview', 'authPhoneMatch'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = ''; });
@@ -533,9 +535,13 @@
             re = (!rpcEnt.error && rpcEnt.data && rpcEnt.data[0]) ? rpcEnt.data[0] : null;
           } catch (eEnt) {}
           closeAuth();
-          limpiarCamposAuth();   // [LOGIN-CAMPOS-QUEDAN] la cuenta quedó creada: también si después no entró (pide entrar de nuevo)
           if (re && (re.estado === 'ok' || re.estado === 'activado') && re.token) onLogin({ id: re.id, nombre: re.nombre, telefono: re.telefono, token: re.token }, true);
-          else sesionSinLlave('registro', re && re.estado === 'bloqueado' ? (re.espera_seg || 900) : 0);   // la cuenta quedó creada: sale siempre
+          else {
+            sesionSinLlave('registro', re && re.estado === 'bloqueado' ? (re.espera_seg || 900) : 0);   // la cuenta quedó creada: sale siempre
+            // [LOGIN-CAMPOS-QUEDAN] 2.2 (B): quedan el número y la contraseña; lo que en «Iniciá sesión» no se usa, no
+            ['authName', 'authPhone2'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+            previewPhone('authPhone', 'authPhonePreview');
+          }
         }
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;

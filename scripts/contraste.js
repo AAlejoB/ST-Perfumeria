@@ -36,9 +36,7 @@ var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no fren
   // [JUEGOS-VENTANA-PULIDO] «deslizá para cerrar» salió de acá: en oscuro --gris da 5,33 sobre la ventana
   // [HOTSALE-CLARO] el Hot Sale del detalle en claro salió de acá: con #9a3412 da 5,82 al principio de la franja
   // [AMARILLO-TINTA-CLARO] el título del quiz en claro salió de acá: con #6b5500 da 6,25 sobre #f5efde
-  // [CLIENTES-OSCURO-ROJO] 28-sep: el rojo #e74c3c de la tarjeta de Clientes en OSCURO (la 132 cambia sólo el claro y Editar)
-  { superficie: 'panel', tema: 'oscuro', nombre: '🗑️ Eliminar .client-btn-delete', keyword: '[CLIENTES-OSCURO-ROJO]' },
-  { superficie: 'panel', tema: 'oscuro', nombre: '✗ NO COMPRÓ .client-tag-nocompro', keyword: '[CLIENTES-OSCURO-ROJO]' }
+  // [CLIENTES-OSCURO-ROJO] salió de acá el 29-sep: en oscuro, #ff8a80 da 7,13 (Eliminar) y 7,39 (✗ NO COMPRÓ)
 ];
 
 // ── color ──
@@ -570,6 +568,8 @@ function mezcla(hex, fondo, a) {
 // ═══ LA TARJETA DE CLIENTES ═══ [CLIENTES-CLARO-CONTRASTE] decisión 132 · 28-sep-2026
 // Los botones y las dos etiquetas de la tarjeta de «Clientes» (hasta la 132, con color inline). Los fondos rgba() se
 // componen sobre la tarjeta (en claro, blanca), como en pantalla. En claro cambia la letra; Editar, el fondo en los dos.
+// [CLIENTES-HOVER] 29-sep: también el :hover de Editar, Bloquear y Eliminar (dentro de @media (hover: hover): sólo con
+// mouse): la letra de siempre sobre el fondo del hover.
 (function () {
   var rs = reglas(hoja('admin.html'));
   var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
@@ -605,6 +605,12 @@ function mezcla(hex, fondo, a) {
      ['🗑️ Eliminar .client-btn-delete', '.client-btn-delete'], ['✓ COMPRÓ .client-tag-compro', '.client-tag-compro'],
      ['✗ NO COMPRÓ .client-tag-nocompro', '.client-tag-nocompro']].forEach(function (x) {
       var bg = fondo(x[1], c, tarjeta), g = ganador(rs, x[1], c.pref, 'color');
+      medir({ superficie: 'panel', tema: tema, rol: 'clientes', nombre: x[0], texto: g ? aHex(g.valor, c, bg) : null, fondos: [bg],
+              impone: g ? path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') : '' });
+    });
+    [['✏️ Editar con el mouse .client-btn-edit:hover', '.client-btn-edit'], ['🚫 Bloquear con el mouse .client-btn-block:hover', '.client-btn-block'],
+     ['🗑️ Eliminar con el mouse .client-btn-delete:hover', '.client-btn-delete']].forEach(function (x) {
+      var bg = fondo(x[1] + ':hover', c, tarjeta), g = ganador(rs, x[1], c.pref, 'color');
       medir({ superficie: 'panel', tema: tema, rol: 'clientes', nombre: x[0], texto: g ? aHex(g.valor, c, bg) : null, fondos: [bg],
               impone: g ? path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') : '' });
     });

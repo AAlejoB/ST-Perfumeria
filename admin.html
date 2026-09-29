@@ -1189,12 +1189,19 @@
     }
     /* [CLIENTES-CLARO-CONTRASTE] 132 · en los dos temas: blanco sobre #2170b0, 5,24 (sobre #3498db daba 3,15) */
     .client-btn-edit { background: #2170b0; color: #fff; }
-    .client-btn-edit:hover { background: #5dade2; }
     .client-btn-block { background: rgba(243,156,18,.15); color: #f39c12; }
-    .client-btn-block:hover { background: rgba(243,156,18,.3); }
     .client-btn-blocked { background: #f39c12; color: #000; }
-    .client-btn-delete { background: rgba(231,76,60,.15); color: #e74c3c; }
-    .client-btn-delete:hover { background: rgba(231,76,60,.3); }
+    /* [CLIENTES-OSCURO-ROJO] en oscuro, #ff8a80 (el rojo de la decisión 100): 7,13 sobre su fondo; con #e74c3c daba 4,26.
+       En claro manda body.light (--stat-tinta-out). */
+    .client-btn-delete { background: rgba(231,76,60,.15); color: #ff8a80; }
+    /* [CLIENTES-HOVER] los :hover sólo con mouse: en la tablet no quedan puestos después del toque. Editar se oscurece
+       (blanco sobre #1a5a8f, 7,23; antes se aclaraba a #5dade2, 2,46). Bloquear y Eliminar, la misma letra que sin el mouse
+       sobre un fondo apenas más fuerte (.18): claro 4,75 / 4,68, oscuro 6,30 / 6,82 (con .3 daban 4,32 / 3,97 en claro). */
+    @media (hover: hover) {
+      .client-btn-edit:hover { background: #1a5a8f; }
+      .client-btn-block:hover { background: rgba(243,156,18,.18); }
+      .client-btn-delete:hover { background: rgba(231,76,60,.18); }
+    }
     /* [CLIENTES-CLARO-CONTRASTE] 132 · lo que iba en el style de cada botón y etiqueta de la tarjeta de Clientes, por clase
        (en claro, cada una con su letra, más abajo). En oscuro, los mismos colores que tenían inline. */
     .client-btn-wa { background: rgba(37,211,102,.15); color: #25D366; text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; }
@@ -1202,7 +1209,7 @@
     .client-btn-historial { background: rgba(120,120,120,.15); color: #ccc; }
     .client-tag { font-size: .58rem; font-weight: 700; padding: .2rem .5rem; border-radius: 3px; letter-spacing: .05em; }
     .client-tag-compro { background: rgba(46,204,113,.15); color: #2ecc71; }
-    .client-tag-nocompro { background: rgba(231,76,60,.12); color: #e74c3c; }
+    .client-tag-nocompro { background: rgba(231,76,60,.12); color: #ff8a80; }   /* [CLIENTES-OSCURO-ROJO] 7,39 en oscuro */
     .client-blocked-badge {
       font-size: .55rem; font-weight: 700; background: #e74c3c; color: #fff;
       padding: .15rem .5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .06em;
@@ -2813,7 +2820,7 @@
             <textarea class="modal-input" id="ajusteMotivo" rows="2" placeholder="Ej: Horario de verano &#9728;&#65039;, Horario reducido por refacciones, etc." style="margin-bottom:0;resize:vertical;min-height:50px;"></textarea>
           </div>
           <div style="display:flex;gap:.5rem;align-items:center;margin-top:.8rem;">
-            <button class="modal-btn modal-btn-price" onclick="saveAjuste()" style="width:auto;padding:.6rem 1.5rem;">Guardar horario</button>
+            <button class="modal-btn modal-btn-price" id="btnSaveAjuste" onclick="saveAjuste()" style="width:auto;padding:.6rem 1.5rem;">Guardar horario</button>
             <label style="font-size:.65rem;color:var(--gris-claro);cursor:pointer;display:flex;align-items:center;gap:.3rem;">
               <input type="checkbox" id="ajusteMostrarNota" checked> Mostrar nota en la web
             </label>
@@ -4177,7 +4184,7 @@
       cont.innerHTML = '<p style="color:var(--gris);">Cargando…</p>';
       var res = await sb.from('password_reset_requests')
         .select('*, clientes(nombre)').eq('status', 'pending').order('created_at', { ascending: false });
-      if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">' + escHtml(errorEnCriollo(res.error, null, 'cargar los pedidos')) + '</p>'; return; }   // 128j
+      if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">' + escHtml(errorEnCriollo(res.error, null, 'cargar los pedidos', 'recargar')) + '</p>'; return; }   // 128j
       var data = res.data || [];
       if (data.length === 0) {
         cont.innerHTML = '<p style="color:var(--gris);padding:1rem 0;">No hay pedidos pendientes. 🎉</p>';
@@ -5420,7 +5427,7 @@
       container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</p>';
       var { data, error } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
       if (error) {   // 128j · antes decía «Sin clientes registrados»
-        errorClientes = errorEnCriollo(error, null, 'cargar los clientes');
+        errorClientes = errorEnCriollo(error, null, 'cargar los clientes', 'recargar');
         allClientes = [];
         filterClientes();
         return;
@@ -7819,7 +7826,7 @@
         HOME_BANNER_LIST = res.data || [];
         renderHomeBannerList();
       } catch (e) {
-        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'cargar los mensajes'); }   // 128j
+        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'cargar los mensajes', 'recargar'); }   // 128j
       }
     }
 
@@ -7920,7 +7927,7 @@
         renderSlidesAdmin();
       } catch (e) {
         if (list) {
-          list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los slides')) + '</p>';   // 128j
+          list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los slides', 'recargar')) + '</p>';   // 128j
         }
       }
     }
@@ -8317,7 +8324,11 @@
       panel.dataset.id = a.id;
     }
 
+    var ajusteMsgTimer = null;   // [HORARIO-BORRA-ANTES] el «guardado» se va a los 3 s; un guardado nuevo cancela el anterior
     async function saveAjuste() {
+      var btnAjuste = document.getElementById('btnSaveAjuste');
+      if (btnAjuste && btnAjuste.disabled) return;
+      clearTimeout(ajusteMsgTimer);
       var horaAbre = parseInt(document.getElementById('ajusteOpen').value);
       var horaCierra = parseInt(document.getElementById('ajusteClose').value);
       var horaCierraSab = parseInt(document.getElementById('ajusteCloseSab').value);
@@ -8336,9 +8347,6 @@
         msgEl.style.color = '#e74c3c'; return;
       }
 
-      // Borrar ajustes anteriores (solo 1 activo a la vez)
-      await sb.from('ajuste_horario').delete().neq('id', 0);
-
       // FECHA HOY en zona horaria Argentina (no UTC) — antes guardaba
       // UTC y a la noche eso ya era "mañana", haciendo que el ajuste
       // recién aplicara al día siguiente.
@@ -8354,29 +8362,49 @@
         mostrar_nota: mostrarNota
       };
 
-      var { error } = await sb.from('ajuste_horario').insert(row);
-      if (error) {
-        msgEl.textContent = errorEnCriollo(error, null, 'guardar el horario', true);   // 128h · «Guardar horario»
+      // [HORARIO-BORRA-ANTES] Primero el ajuste nuevo; sólo si se guardó, se borran los ANTERIORES a él (uno activo a la vez;
+      // el id crece). Si el insert falla, el de antes sigue. El catálogo y el panel leen el más nuevo (order created_at desc,
+      // limit 1): si por un momento hay dos, manda el nuevo. Borrar «los que no son el nuevo» (neq) con dos guardados
+      // cruzados dejaba la tabla vacía; con lt queda siempre el último. El botón se apaga mientras guarda.
+      if (btnAjuste) btnAjuste.disabled = true;
+      var ins = await sb.from('ajuste_horario').insert(row).select('id').single();
+      if (ins.error || !ins.data) {
+        if (btnAjuste) btnAjuste.disabled = false;
+        msgEl.textContent = errorEnCriollo(ins.error, null, 'guardar el horario', true);   // 128h · «Guardar horario»
         msgEl.style.color = '#e74c3c'; return;
       }
+      var borrado = await sb.from('ajuste_horario').delete().lt('id', ins.data.id);
+      if (btnAjuste) btnAjuste.disabled = false;
 
       logAdminAction('horario_update', null, row);
       msgEl.textContent = 'Horario guardado: ' + horaAbre + ':00 a ' + horaCierra + ':00';
       msgEl.style.color = '#2ecc71';
       notifyTelegram('🕐 Horario cambiado\n⏰ ' + horaAbre + ':00 a ' + horaCierra + ':00 (sáb ' + horaCierraSab + ':00)\n📅 ' + (desde || 'hoy') + ' al ' + (hasta || 'indefinido') + (motivo ? '\n📝 ' + motivo : ''));
+      if (borrado.error) {   // el nuevo quedó guardado y es el que manda; el de antes sigue en la tabla
+        // 2 · el formulario queda como estaba: «Guardar» de nuevo guarda lo mismo y borra los anteriores
+        msgEl.textContent += '. ' + errorEnCriollo(borrado.error, null, 'borrar el horario anterior', true);
+        msgEl.style.color = '#e74c3c';
+        loadAjuste();
+        return;
+      }
 
       document.getElementById('ajusteDesde').value = '';
       document.getElementById('ajusteHasta').value = '';
       document.getElementById('ajusteMotivo').value = '';
       loadAjuste();
-      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+      ajusteMsgTimer = setTimeout(function() { msgEl.textContent = ''; }, 3000);
     }
 
     async function removeAjuste() {
       if (!confirm('¿Volver al horario normal (L-V 10 a 20, Sáb 10 a 14)?')) return;
       var id = document.getElementById('ajusteActivo').dataset.id;
-      if (id) await sb.from('ajuste_horario').delete().eq('id', id);
-      else await sb.from('ajuste_horario').delete().neq('id', 0);
+      // [HORARIO-BORRA-ANTES] todos, no sólo el que se ve: si quedó uno anterior (falló su borrado), no vuelve a mandar
+      var quitar = await sb.from('ajuste_horario').delete().neq('id', 0);
+      if (quitar.error) {
+        var msgQ = document.getElementById('ajusteMsg');
+        if (msgQ) { msgQ.textContent = errorEnCriollo(quitar.error, null, 'volver al horario normal'); msgQ.style.color = '#e74c3c'; }
+        return;
+      }
       logAdminAction('horario_reset', null, { id: id || null });
       loadAjuste();
     }
@@ -10180,7 +10208,7 @@
         PRECIOS_DATOS.customs = true;   // [PRECIOS-EN-UN-LUGAR]
         renderDecantsCustomList();
       } catch (e) {
-        if (list) list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los decants de diseñador')) + '</p>';   // 128j
+        if (list) list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los decants de diseñador', currentRole === 'jefe' ? '↺' : 'recargar')) + '</p>';   // 128j
       }
     }
 
@@ -10787,6 +10815,11 @@
     //    al leer («cargar …» o «descargar el backup») → «…no puede ver esto.» ·
     //    un mensaje propio del panel (una validación nuestra, como «Imagen inválida») se arma con errorPropio(texto) y va
     //    tal cual: por la traducción pasan sólo los errores de la base y de la red.
+    // 128k · [ERROR-AL-CARGAR] Una carga (que empieza con «cargar») no tiene nada que «probar de nuevo»: el 4.º parámetro
+    //    dice cómo se vuelve a pedir. '↺' si la pestaña tiene el botón para recargar esa lista (el Log, Analítica, Backups,
+    //    el historial de puntos y, para el jefe, Decants); 'recargar' (o nada) si no: «recargá la página». La sesión
+    //    vencida dice «Volvé a entrar.» y el 42501, «Esta cuenta no puede ver esto.», como antes. Guardar, borrar, sumar y
+    //    «descargar el backup» (se hace con un botón) siguen igual.
     function errorPropio(texto) { var e = new Error(texto); e.propio = true; return e; }
     function errorEnCriollo(err, ctx, que, tocaGuardar) {
       console.error('[' + (que || 'guardar') + ']', err);
@@ -10795,9 +10828,17 @@
       var txt = [e.message, e.details, e.hint, typeof err === 'string' ? err : ''].filter(Boolean).join(' ');
       var repetido = ctx === 'perfume' ? 'Ya existe un perfume con ese nombre.' : (ctx === 'nombre' ? 'Ya existe con ese nombre.' : (ctx ? 'Ya existe ' + ctx + '.' : ''));
       if (repetido && (code === '23505' || /duplicate key/i.test(txt))) return repetido;
-      if (navigator.onLine === false || /failed to fetch|load failed|networkerror|network ?error|network request failed|network connection was lost|internet connection appears to be offline|request timed out|could not connect to the server/i.test(txt)) return tocaGuardar === true ? 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.' : 'No se pudo conectar. Revisá internet y probá de nuevo.';
-      if (code === 'PGRST301' || code === 'PGRST303' || status === 401 || /jwt/i.test(txt)) return tocaGuardar === true ? 'Se venció la sesión. Volvé a entrar y guardá de nuevo.' : 'Se venció la sesión. Volvé a entrar y probá de nuevo.';
+      var carga = /^cargar/.test(que || ''), conBoton = carga && tocaGuardar === '↺';   // 128k
+      if (navigator.onLine === false || /failed to fetch|load failed|networkerror|network ?error|network request failed|network connection was lost|internet connection appears to be offline|request timed out|could not connect to the server/i.test(txt)) {
+        if (carga) return 'No se pudo conectar. Revisá internet y ' + (conBoton ? 'tocá ↺.' : 'recargá la página.');
+        return tocaGuardar === true ? 'No se pudo conectar. Revisá internet y tocá Guardar de nuevo.' : 'No se pudo conectar. Revisá internet y probá de nuevo.';
+      }
+      if (code === 'PGRST301' || code === 'PGRST303' || status === 401 || /jwt/i.test(txt)) {
+        if (carga) return 'Se venció la sesión. Volvé a entrar.';
+        return tocaGuardar === true ? 'Se venció la sesión. Volvé a entrar y guardá de nuevo.' : 'Se venció la sesión. Volvé a entrar y probá de nuevo.';
+      }
       if (code === '42501' || /row-level security|permission denied/i.test(txt)) return /^(des)?cargar/.test(que || '') ? 'Esta cuenta no puede ver esto.' : 'Esta cuenta no puede guardar esto.';
+      if (carga) return 'No se pudo ' + que + '. ' + (conBoton ? 'Tocá ↺' : 'Recargá la página') + '; si sigue, avisale a Alejo.';
       return 'No se pudo ' + (que || 'guardar') + '. Probá de nuevo; si sigue, avisale a Alejo.';
     }
     var GUARDAR_AVISO = {};   // id del botón → { t: el timer, texto: el de siempre, aviso: lo que puso }
@@ -11476,7 +11517,7 @@
         logRender();
       } catch (e) {
         console.error('[auditlog] load error:', e);
-        feed.innerHTML = '<p class="log-vacio">' + escHtml(errorEnCriollo(e, null, 'cargar el log')) + '</p>';   // 128j
+        feed.innerHTML = '<p class="log-vacio">' + escHtml(errorEnCriollo(e, null, 'cargar el log', '↺')) + '</p>';   // 128j
       }
     }
 
@@ -11645,7 +11686,7 @@
         if (meta) meta.textContent = data.length.toLocaleString('es-AR') + ' eventos · ' + days + 'd · actualizado ' + new Date().toLocaleTimeString('es-AR');
       } catch (e) {
         console.error('[analytics] load error:', e);
-        if (meta) meta.textContent = errorEnCriollo(e, null, 'cargar las estadísticas');   // 128j
+        if (meta) meta.textContent = errorEnCriollo(e, null, 'cargar las estadísticas', '↺');   // 128j
       }
     }
 
@@ -11857,10 +11898,11 @@
       if (!tbody) return;
       try {
         var r = await sb.from('clientes').select('id,nombre,telefono,puntos').order('puntos', { ascending: false }).limit(500);
+        if (r.error) throw r.error;   // 128k · sin esto, un error se veía como «Sin clientes»
         _puntosRankingData = r.data || [];
         renderPuntosRanking();
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el ranking')) +'</td></tr>';   // 128h
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el ranking', 'recargar')) +'</td></tr>';   // 128h
       }
     }
 
@@ -11967,6 +12009,7 @@
       if (!tbody) return;
       try {
         var r = await sb.from('puntos_log').select('*').order('created_at', { ascending: false }).limit(200);
+        if (r.error) throw r.error;   // 128k · sin esto, un error se veía como «Sin movimientos»
         var rows = r.data || [];
         if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gris);">Sin movimientos</td></tr>'; return; }
         var html = '';
@@ -11987,7 +12030,7 @@
         }
         tbody.innerHTML = html;
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el historial de puntos')) +'</td></tr>';   // 128h
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el historial de puntos', '↺')) +'</td></tr>';   // 128h
       }
     }
 
@@ -12051,7 +12094,7 @@
         if (meta) meta.textContent = data.length + ' backup' + (data.length === 1 ? '' : 's') + ' · actualizado ' + new Date().toLocaleTimeString('es-AR');
       } catch (e) {
         console.error('[backup] load error:', e);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">' + escHtml(errorEnCriollo(e, null, 'cargar los backups')) + '</td></tr>';   // 128j
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">' + escHtml(errorEnCriollo(e, null, 'cargar los backups', '↺')) + '</td></tr>';   // 128j
       }
     }
 
