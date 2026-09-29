@@ -5670,12 +5670,12 @@
       var telBusca = esNumero ? cleanPhone(soloDig) : '';
       var { data, error: errTel } = await sb.from('clientes').select('*').eq('telefono', esperaTelValido(telBusca) ? telBusca : query).limit(1);
       // [GUARDAR-SIN-LEER] con la búsqueda fallida ofrecía registrarlo como nuevo
-      if (errTel) { msgEl.textContent = errorEnCriollo(errTel, null, 'buscar el cliente'); msgEl.style.color = '#e74c3c'; return; }
+      if (errTel) { avisoLectura(msgEl, errorEnCriollo(errTel, null, 'buscar el cliente')); return; }
 
       // Si no encontró por teléfono, buscar por nombre (parcial, case-insensitive)
       if (!data || data.length === 0) {
         var { data: byName, error: errNombre } = await sb.from('clientes').select('*').ilike('nombre', '%' + query + '%');
-        if (errNombre) { msgEl.textContent = errorEnCriollo(errNombre, null, 'buscar el cliente'); msgEl.style.color = '#e74c3c'; return; }
+        if (errNombre) { avisoLectura(msgEl, errorEnCriollo(errNombre, null, 'buscar el cliente')); return; }
         if (byName && byName.length === 1) {
           data = byName; // Encontró exactamente 1 → usarlo
         } else if (byName && byName.length > 1) {
@@ -8815,8 +8815,10 @@
       document.getElementById('comboPrice').value = parseFloat(String(s.price).replace(/,/g, '')) || '';
       document.getElementById('comboPromo').value = s.promo ? parseFloat(String(s.promo).replace(/,/g, '')) : '';
       document.getElementById('comboMsg').textContent = '';
-      // [GUARDAR-SIN-LEER] sin los perfumes nuevos, un ítem que es uno de ellos queda vacío y «Guardar» lo sacaba del combo
-      faltaLeer('nuevos', document.getElementById('comboMsg'));
+      // [GUARDAR-SIN-LEER] sin los perfumes nuevos, un ítem que es uno de ellos queda vacío y «Guardar» lo sacaba del combo.
+      // #e74c3c como los otros errores de esta caja, que es oscura en los dos temas (regla 19).
+      var comboMsgEl = document.getElementById('comboMsg');
+      if (faltaLeer('nuevos', comboMsgEl)) comboMsgEl.style.color = '#e74c3c';
 
       // Cargar foto si existe
       clearComboFoto();
@@ -8847,7 +8849,7 @@
       var price = document.getElementById('comboPrice').value;
       var promo = document.getElementById('comboPromo').value;
       var msgEl = document.getElementById('comboMsg');
-      if (editingComboSlug && faltaLeer('nuevos', msgEl)) return;   // [GUARDAR-SIN-LEER]
+      if (editingComboSlug && faltaLeer('nuevos', msgEl)) { msgEl.style.color = '#e74c3c'; return; }   // [GUARDAR-SIN-LEER]
 
       if (!name || !price) {
         msgEl.style.color = '#e74c3c';
