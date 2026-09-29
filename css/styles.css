@@ -5464,6 +5464,10 @@
       50%  { transform: scale(1.3); }
       to   { opacity: 1; transform: scale(1); }
     }
+    /* [SESION-CLIENTE] 130 · el aviso «Actualizamos el sitio…» (#avisoToast): la caja y la animación de .cart-toast, sólo
+       el texto. Se cierra tocándolo. */
+    .aviso-toast { cursor: pointer; }
+    .aviso-toast-texto { margin: 0; font-size: .85rem; line-height: 1.45; color: #f0ede8; }
     /* Fly-to-cart animation */
     .fly-to-cart {
       position: fixed; z-index: 99999; pointer-events: none;
@@ -8424,6 +8428,7 @@
     }
     body:not(.dark-mode) .cart-empty,
     body:not(.dark-mode) .cart-toast-text { color: #2a2622 !important; }
+    body:not(.dark-mode) .aviso-toast-texto { color: #1a1a1d; }   /* [SESION-CLIENTE] 130 · sobre el #f5efde de la caja */
     body:not(.dark-mode) .cart-item-name { color: #1a1a1d !important; }
     body:not(.dark-mode) .cart-item-meta { color: #5e564a !important; }
 

@@ -521,7 +521,7 @@
           } catch (eEnt) {}
           closeAuth();
           if (re && (re.estado === 'ok' || re.estado === 'activado') && re.token) onLogin({ id: re.id, nombre: re.nombre, telefono: re.telefono, token: re.token }, true);
-          else { avisoReentrarMostrado = false; sesionSinLlave(); }   // acá el aviso sale siempre: la cuenta quedó creada y hay que entrar
+          else sesionSinLlave('registro', re && re.estado === 'bloqueado' ? (re.espera_seg || 900) : 0);   // la cuenta quedó creada: sale siempre
         }
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;
@@ -574,6 +574,10 @@
           errEl.textContent = 'Ese número ya está en uso por otra cuenta';
           btn.disabled = false; return;
         }
+        if (estadoEd === 'bloqueado') {   // [EDITAR-SIN-LIMITE] cliente_editar cuenta intentos como entrar (no devuelve los segundos)
+          errEl.textContent = 'Demasiados intentos. Esperá 15 minutos y volvé a probar.';
+          btn.disabled = false; return;
+        }
         if (estadoEd !== 'ok') {
           errEl.textContent = 'Revisá los datos e intentá de nuevo';
           btn.disabled = false; return;
@@ -603,18 +607,61 @@
     // escriben con RPC que la piden (favorito_marcar, voto_guardar, seleccion_guardar). La llave vive en st_cliente
     // (currentUser.token), dura 180 días y un cambio de contraseña la corta.
     var SLUG_LLAVE_OK = /^[a-z0-9-]{1,120}$/;   // los slugs que aceptan favorito_marcar y seleccion_guardar
-    var avisoReentrarMostrado = false;          // el aviso sale una vez aunque fallen varias RPC juntas
+    var avisoReentrarMostrado = false;          // «Tu sesión se cerró…» sale una vez aunque fallen varias RPC juntas
 
-    // Una sesión sin llave (de antes de este cambio) o con una que la base ya no acepta: se cierra la sesión de este
-    // dispositivo sin avisarle a la base, y se abre «Iniciá sesión» con el aviso. st_favs queda: se sube al volver a entrar.
-    function sesionSinLlave() {
+    // Sin llave: se cierra la sesión de este dispositivo sin avisarle a la base (st_favs y st_favs_de quedan) y se avisa
+    // según el motivo:
+    //  · 'vieja': al cargar, una sesión de antes (st_cliente sin token) → el aviso chico, una vez por dispositivo (130);
+    //  · 'rechazada': la base contestó false con la llave de ahora → «Iniciá sesión», una vez por carga;
+    //  · 'registro': la cuenta quedó creada pero cliente_entrar no dio llave → «Iniciá sesión», siempre. esperaSeg: si
+    //    dio 'bloqueado' (los intentos de antes), cuánto falta.
+    function sesionSinLlave(motivo, esperaSeg) {
       if (currentUser) onLogout(true);
-      else { localStorage.removeItem('st_cliente'); localStorage.removeItem('st_waitlist'); }
-      if (avisoReentrarMostrado) return;
-      avisoReentrarMostrado = true;
-      openAuth();
+      else { try { localStorage.removeItem('st_cliente'); localStorage.removeItem('st_waitlist'); } catch (e) {} }
+      if (motivo === 'vieja') { avisoReentrarToast(); return; }
+      var texto;
+      if (motivo === 'registro') {
+        if (esperaSeg) {
+          var min = Math.max(1, Math.ceil(esperaSeg / 60));   // la misma cuenta que el login
+          texto = 'Tu cuenta quedó creada. Por los intentos de antes, esperá ' + min + ' minuto' + (min === 1 ? '' : 's') + ' y entrá con tu número y contraseña.';
+        } else {
+          texto = 'Tu cuenta quedó creada. Entrá con tu número y contraseña.';
+        }
+      } else {
+        if (avisoReentrarMostrado) return;
+        avisoReentrarMostrado = true;
+        texto = 'Tu sesión se cerró: volvé a entrar con tu número y contraseña. Tus favoritos siguen guardados.';
+      }
+      openAuth();   // switchAuthMode vuelve a poner el subtítulo de siempre al cambiar de pestaña o al reabrir
       var sub = document.getElementById('authSubtitle');
-      if (sub) sub.textContent = 'Por seguridad, volvé a entrar con tu número y contraseña. Tus favoritos no se pierden.';
+      if (sub) sub.textContent = texto;
+    }
+
+    // [SESION-CLIENTE] 130 · el aviso chico para quien tenía la sesión de antes: la caja de .cart-toast (#avisoToast), sin
+    // imagen ni ✓. Una vez por dispositivo (st_aviso_reentrar); ~6 s, o hasta que lo toquen.
+    function avisoReentrarToast() {
+      try { if (localStorage.getItem('st_aviso_reentrar') === '1') return; } catch (e) { return; }
+      try { localStorage.setItem('st_aviso_reentrar', '1'); } catch (e) {}
+      var mostrar = function() {
+        var el = document.getElementById('avisoToast');
+        if (!el) return;
+        var txt = el.querySelector('.aviso-toast-texto');
+        var cerrado = false, reloj = null;
+        var cerrar = function() {
+          if (cerrado) return;
+          cerrado = true;
+          clearTimeout(reloj);
+          el.classList.add('leaving');
+          setTimeout(function() { el.classList.remove('active', 'leaving'); }, 300);
+        };
+        el.classList.remove('leaving');
+        el.classList.add('active');
+        if (txt) txt.textContent = 'Actualizamos el sitio: volvé a entrar con tu número y contraseña. Tus favoritos siguen guardados.';
+        el.onclick = cerrar;
+        reloj = setTimeout(cerrar, 6000);
+      };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mostrar, { once: true });
+      else mostrar();
     }
 
     // favorito_marcar, voto_guardar y seleccion_guardar dan false si la llave no sirve (lo demás lo valida el catálogo
@@ -627,7 +674,7 @@
     function marcarFavorito(slug, si) {
       if (!currentUser || !currentUser.token || !SLUG_LLAVE_OK.test(slug)) return;
       var token = currentUser.token;
-      sb.rpc('favorito_marcar', { p_token: token, p_slug: slug, p_si: si }).then(function(r) { if (llaveRechazada(r, token)) sesionSinLlave(); }, function() {});
+      sb.rpc('favorito_marcar', { p_token: token, p_slug: slug, p_si: si }).then(function(r) { if (llaveRechazada(r, token)) sesionSinLlave('rechazada'); }, function() {});
     }
 
     // entro: la persona acaba de entrar (o de registrarse); sin él, se retoma la sesión guardada.
@@ -662,6 +709,11 @@
         localStorage.removeItem('st_waitlist');
       }
       waitlistSlugs = [];
+      if (sinRpc !== true) {
+        // [FAVS-DISPOSITIVO-COMPARTIDO] opción A: al cerrar sesión, los favoritos no quedan en el dispositivo (vuelven al
+        // entrar: están en la base). En una salida forzada quedan, con su marca.
+        try { localStorage.removeItem('st_favs'); localStorage.removeItem('st_favs_de'); } catch (e) {}
+      }
       favs = JSON.parse(localStorage.getItem('st_favs') || '[]');
       updateAuthUI();
       var bi = document.getElementById('boardInput');
@@ -715,7 +767,11 @@
         try {
           var guardado = JSON.parse(saved);
           if (guardado && guardado.token) onLogin(guardado);
-          else sesionSinLlave();
+          else {
+            // [FAVS-DISPOSITIVO-COMPARTIDO] los favoritos del dispositivo eran de esa sesión (el código de antes no los marcaba)
+            try { if (guardado && guardado.id && localStorage.getItem('st_favs') && !localStorage.getItem('st_favs_de')) localStorage.setItem('st_favs_de', String(guardado.id)); } catch (e) {}
+            sesionSinLlave('vieja');
+          }
         } catch(e) {}
       }
     })();
@@ -1329,6 +1385,22 @@
     async function loadFavsFromSupabase(entro) {
       if (!currentUser || !currentUser.token) return;
       var token = currentUser.token;
+      // [FAVS-DISPOSITIVO-COMPARTIDO] Si los favoritos de este dispositivo son de otra cuenta (st_favs_de), no se suben
+      // ni se muestran: queda lo de la base (al entrar y al retomar la sesión). Sin marca (invitado) o de esta misma
+      // cuenta, al entrar se suben los que faltan.
+      var dueno = null;
+      try { dueno = localStorage.getItem('st_favs_de'); } catch (e) {}
+      var deOtraCuenta = !!(dueno && dueno !== String(currentUser.id));
+      if (entro) {
+        // la lista del dispositivo, no la de la memoria de esta pestaña: otra pestaña pudo cambiarla (y su marca)
+        try { favs = JSON.parse(localStorage.getItem('st_favs') || '[]'); } catch (e) {}
+        if (deOtraCuenta) {
+          var habia = favs.length > 0;
+          favs = [];
+          saveFavs();
+          if (habia) renderCatalog();
+        }
+      }
       try {
         var res = await sb.rpc('mis_favoritos', { p_token: token });
         if (res.error || !Array.isArray(res.data)) return;
@@ -1340,11 +1412,11 @@
           var union = enBase.concat(faltan);
           var cambio = union.length !== favs.length || union.some(function(s) { return favs.indexOf(s) === -1; });
           favs = union;
-          localStorage.setItem('st_favs', JSON.stringify(favs));
+          saveFavs();   // st_favs + la marca de esta cuenta
           if (cambio) renderCatalog();
-        } else if (enBase.length > 0) {
+        } else if (enBase.length > 0 || deOtraCuenta) {
           favs = enBase;
-          localStorage.setItem('st_favs', JSON.stringify(favs));
+          saveFavs();
           renderCatalog();
         }
       } catch(e) {}
@@ -1355,6 +1427,8 @@
     // aunque cierres la pestaña. Se guarda como texto (JSON).
     function saveFavs() {
       localStorage.setItem('st_favs', JSON.stringify(favs));
+      // [FAVS-DISPOSITIVO-COMPARTIDO] de quién es st_favs: el id del cliente con sesión (sin marca = invitado)
+      if (currentUser && currentUser.id) { try { localStorage.setItem('st_favs_de', String(currentUser.id)); } catch (e) {} }
       updateFavBadge();
     }
 
@@ -1520,6 +1594,7 @@
       gridFem.innerHTML = candidatosFem.map(function(name) {
         return '<button class="voto-opt" data-name="' + escapeHTML(name) + '" onclick="submitVoto(this,\'femenino\',' + jsAttr(name) + ')" disabled>' + escapeHTML(name) + '</button>';
       }).join('');
+      if (currentUser) unlockVoting();   // [VOTO-RETOMAR-APAGADO] al retomar la sesión, los botones llegan después de onLogin
     }
 
     async function submitVoto(btn, categoria, slug) {
@@ -1536,7 +1611,7 @@
       // Guardar en Supabase · [SESION-CLIENTE] con la llave del cliente
       var tokenVoto = currentUser.token;
       var rv = await sb.rpc('voto_guardar', { p_token: tokenVoto, p_categoria: categoria, p_slug: slug, p_mes: currentMes });
-      if (llaveRechazada(rv, tokenVoto)) { sesionSinLlave(); return; }
+      if (llaveRechazada(rv, tokenVoto)) { sesionSinLlave('rechazada'); return; }
       // Mostrar resultados de esta categoría
       loadVotoResults(categoria, grid);
     }
@@ -1571,12 +1646,15 @@
       var lock = document.querySelector('.voto-lock');
       if (lock) lock.style.display = 'none';
       var btns = document.querySelectorAll('.voto-opt');
-      btns.forEach(function(b) { b.disabled = false; });
       // Ocultar CTA de registro
       var cta = document.getElementById('ctaRegister');
       if (cta) cta.style.display = 'none';
+      // [VOTO-RETOMAR-APAGADO] Sin botones todavía (la votación se carga diferida): mis votos los pide la segunda pasada,
+      // desde renderVotoButtons. Los botones se habilitan cuando ya se saben mis votos: si no, en ese rato se podía
+      // cambiar un voto ya hecho.
+      if (!btns.length) return;
       // Cargar votos previos del usuario
-      if (currentUser) {
+      if (currentUser) try {
         // [SESION-CLIENTE] Al retomar la sesión, esto corre antes de que currentMes tenga valor (se asigna más abajo en
         // el archivo): sin p_mes, la RPC no existe con esa firma y da error. El mes se arma acá si hace falta.
         var mesVotos = currentMes || (new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0'));
@@ -1593,7 +1671,9 @@
             loadVotoResults(v.categoria, grid);
           });
         }
-      }
+      } catch (e) {}
+      if (!currentUser) return;   // salió mientras tanto: lockVoting ya los apagó
+      btns.forEach(function(b) { b.disabled = false; });
     }
 
     function lockVoting() {
@@ -6704,7 +6784,7 @@
       var tokenSel = user.token;
       try {
         var rs = await sb.rpc('seleccion_guardar', { p_token: tokenSel, p_slugs: slugsSel });
-        if (llaveRechazada(rs, tokenSel)) sesionSinLlave();
+        if (llaveRechazada(rs, tokenSel)) sesionSinLlave('rechazada');
       } catch(e) {}
     }
 
