@@ -2621,7 +2621,7 @@
 
         <!-- LISTA DE PERFUMES AGREGADOS -->
         <div style="flex:1;min-width:300px;">
-          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Perfumes agregados desde admin (<span id="nuevosCount">0</span>)</p>
+          <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Perfumes agregados desde admin (<span id="nuevosCount">—</span>)</p>
           <input type="text" class="admin-search" id="searchNuevos" placeholder="Buscar en agregados..." oninput="renderNuevos()" style="margin-bottom:.6rem;"/>
           <table class="admin-table">
             <thead><tr><th>Perfume</th><th>Marca</th><th>Precio</th><th>Acciones</th></tr></thead>
@@ -2671,7 +2671,7 @@
         </div>
       </div>
 
-      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Destacados actuales (<span id="destacadosCount">0</span>/7)</p>
+      <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Destacados actuales (<span id="destacadosCount">—</span>/7)</p>
       <div id="destacadosList" style="display:flex;flex-direction:column;gap:.5rem;"></div>
       <p class="modal-success" id="destacadoMsg" style="margin-top:.8rem;"></p>
     </div>
@@ -2751,7 +2751,7 @@
         <div id="ajusteActivo" style="display:none;background:rgba(232,184,0,.08);border:1px solid rgba(232,184,0,.25);border-radius:6px;padding:1rem;margin-bottom:1rem;">
           <p style="font-size:.72rem;font-weight:600;color:var(--amarillo-tinta);margin-bottom:.4rem;">&#128338; Horario modificado</p>
           <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.6;" id="ajusteActivoText"></p>
-          <button class="action-btn btn-hide" onclick="removeAjuste()" style="margin-top:.6rem;font-size:.65rem;">Volver al horario normal</button>
+          <button class="action-btn btn-hide" id="ajusteVolver" onclick="removeAjuste()" style="margin-top:.6rem;font-size:.65rem;">Volver al horario normal</button>
         </div>
 
         <div id="ajusteForm">
@@ -2882,7 +2882,7 @@
     <div class="tab-content" id="tab-clientes">
       <div class="clients-search-bar">
         <input type="text" class="admin-search" id="searchClientes" placeholder="Buscar por nombre, tel&#233;fono o nota..." oninput="filterClientes()"/>
-        <span class="client-count" id="clientCount">0 clientes</span>
+        <span class="client-count" id="clientCount">— clientes</span>
         <button class="action-btn btn-price" onclick="toggleNewClientForm()" style="font-size:.72rem;padding:.5rem 1rem;">+ Nuevo cliente</button>
       </div>
       <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
@@ -2955,7 +2955,7 @@
     <!-- TAB: COMBOS -->
     <div class="tab-content" id="tab-combos">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-        <span class="client-count" id="comboCount">0 combos</span>
+        <span class="client-count" id="comboCount">— combos</span>
         <button class="action-btn btn-price" onclick="openComboCreator()" style="font-size:.72rem;padding:.5rem 1rem;">+ NUEVO COMBO</button>
       </div>
       <div id="combosList"></div>
@@ -3091,12 +3091,12 @@
       <div class="espera-stats">
         <div class="espera-stat espera-stat--pend">
           <p class="espera-stat-titulo">ESPERANDO</p>
-          <p class="espera-stat-num" id="esperaTotal">0</p>
+          <p class="espera-stat-num" id="esperaTotal">—</p>
           <p class="espera-stat-sub">personas en lista</p>
         </div>
         <div class="espera-stat">
           <p class="espera-stat-titulo">PERFUMES</p>
-          <p class="espera-stat-num" id="esperaPerfumes">0</p>
+          <p class="espera-stat-num" id="esperaPerfumes">—</p>
           <p class="espera-stat-sub">con gente esperando</p>
         </div>
       </div>
@@ -4559,9 +4559,14 @@
     // ============================================================
     // PRECIOS
     // ============================================================
+    // [CARGA-FALLIDA-CERO] 128m · los totales de Precios & Stock y de Depósito salen de perfume_overrides: hasta que llega una
+    // lectura buena (la del login o, si falló, el primer resync completo) dicen «—», no «0» ni lo de perfumes.js.
+    var stockCargado = false;
     async function loadStockFromDB() {
       try {
-        var { data } = await sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito');
+        var { data, error } = await sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito');
+        if (error) { console.error('loadStockFromDB:', error); return; }
+        stockCargado = true;
         if (data) {
           data.forEach(function(row) {
             var p = PERFUMES.find(function(pf) { return pf.slug === row.slug; });
@@ -4581,7 +4586,9 @@
     // a perfumes que ya tenían foto override guardada.
     async function loadOverridesIntoPerfumes() {
       try {
-        var { data } = await sb.from('perfume_overrides').select('*');
+        var { data, error } = await sb.from('perfume_overrides').select('*');
+        if (error) { console.error('loadOverridesIntoPerfumes:', error); return; }
+        stockCargado = true;   // [CARGA-FALLIDA-CERO] también trae stock_qty, stock_status y stock_deposito
         if (!data || data.length === 0) return;
         data.forEach(function(o) {
           var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
@@ -4733,9 +4740,10 @@
         if (depParaReponer(p)) reponer++;
       });
       var setText = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
-      setText('statDepUnidades', unidades.toLocaleString('es-AR'));
-      setText('statDepPerfumes', conDep);
-      setText('statDepReponer', reponer);
+      // [CARGA-FALLIDA-CERO] 128m · sin el stock de la base daban «0»
+      setText('statDepUnidades', stockCargado ? unidades.toLocaleString('es-AR') : '—');
+      setText('statDepPerfumes', stockCargado ? conDep : '—');
+      setText('statDepReponer', stockCargado ? reponer : '—');
       pintarValorInventario();   // [VALOR-INV-DEPOSITO] la parte del depósito del valor total
 
       var list = soloCon ? todos.filter(function(p) { return depQty(p) > 0; }) : todos.slice();
@@ -4776,7 +4784,9 @@
 
       var aviso = document.getElementById('avisoDeposito');
       if (aviso) {
-        aviso.textContent = list.length + ' perfume' + (list.length !== 1 ? 's' : '') + ' en la lista' +
+        // [CARGA-FALLIDA-CERO] con «sólo los que tienen unidades» y sin el stock de la base, la lista sale vacía: «—»
+        var nLista = (soloCon && !stockCargado) ? '—' : list.length;
+        aviso.textContent = nLista + ' perfume' + (nLista !== 1 ? 's' : '') + ' en la lista' +
           (soloCon ? ' (mostrando sólo los que tienen depósito)' : '');
       }
     }
@@ -4949,12 +4959,13 @@
         return exacto(n);
       };
       var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
-      setText('statValorInv',   compacto(total));
-      setText('statValorLocal', exacto(local));
-      setText('statValorDep',   exacto(dep));
-      setText('statValorPausados', exacto(pausados));
+      var sinDato = !stockCargado;   // [CARGA-FALLIDA-CERO] 128m · sin el stock de la base daba «$0»
+      setText('statValorInv',   sinDato ? '—' : compacto(total));
+      setText('statValorLocal', sinDato ? '—' : exacto(local));
+      setText('statValorDep',   sinDato ? '—' : exacto(dep));
+      setText('statValorPausados', sinDato ? '—' : exacto(pausados));
       var card = document.getElementById('statValorInv');
-      if (card) card.title = 'Total exacto: ' + exacto(total);
+      if (card) card.title = sinDato ? '' : 'Total exacto: ' + exacto(total);
     }
 
     // ============================================================
@@ -5078,9 +5089,10 @@
       });
       var fmt = function(n) { return Math.round(n).toLocaleString('es-AR'); };
       var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
-      setText('statTotalUnits',    fmt(totalUnits));
-      setText('statTotalPerfumes', fmt(totalActive));
-      setText('statSinStock',      fmt(sinStock));
+      // [CARGA-FALLIDA-CERO] 128m · sin el stock de la base daban «0» (o contaban los pausados como activos): «—»
+      setText('statTotalUnits',    stockCargado ? fmt(totalUnits) : '—');
+      setText('statTotalPerfumes', stockCargado ? fmt(totalActive) : '—');
+      setText('statSinStock',      stockCargado ? fmt(sinStock) : '—');
       pintarValorInventario();
       // ─────────────────────────────────────────────────────────────
 
@@ -5218,9 +5230,9 @@
       // en 1000. Usamos head:true + count:'exact' para que Postgres devuelva solo el
       // número total (mucho más barato y SIN límite).
       var clientesQ = await sb.from('clientes').select('*', { count: 'exact', head: true });
-      var totalClientes = clientesQ.count || 0;
+      var totalClientes = clientesQ.error ? '—' : (clientesQ.count || 0);   // [CARGA-FALLIDA-CERO] con error decía «0»
       var opinionesQ = await sb.from('opiniones').select('*', { count: 'exact', head: true });
-      var totalOpiniones = opinionesQ.count || 0;
+      var totalOpiniones = opinionesQ.error ? '—' : (opinionesQ.count || 0);
       // [CLICKS-RESUMEN] Reemplaza el count exacto + el select de 50k filas por una
       // sola llamada al RPC perfume_clicks_resumen(), que ya agrupa por slug en
       // Postgres (264 filas en vez de 230k+). Si falla o no devuelve nada, seguimos
@@ -5241,15 +5253,17 @@
         + '<div class="stat-card"><p class="stat-label">🧴 Perfumes</p><p class="stat-value">' + totalPerfumes + '</p></div>'
         + '<div class="stat-card"><p class="stat-label">👥 Clientes</p><p class="stat-value">' + totalClientes + '</p></div>'
         + '<div class="stat-card"><p class="stat-label">💬 Opiniones</p><p class="stat-value">' + totalOpiniones + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">👁️ Visitas totales</p><p class="stat-value">' + totalClicks + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">📊 Promedio/perfume</p><p class="stat-value">' + avgViews + '</p></div>';
+        + '<div class="stat-card"><p class="stat-label">👁️ Visitas totales</p><p class="stat-value">' + (clicksErr ? '—' : totalClicks) + '</p></div>'
+        + '<div class="stat-card"><p class="stat-label">📊 Promedio/perfume</p><p class="stat-value">' + (clicksErr ? '—' : avgViews) + '</p></div>';
 
       // === TOP 10 — Gráfico de barras ===
       var barChart = document.getElementById('statsBarChart');
       var sorted = Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; });
       var topMax = sorted.length > 0 ? counts[sorted[0]] : 1;
 
-      if (sorted.length > 0) {
+      if (clicksErr) {   // [CARGA-FALLIDA-CERO] 128m · antes «Sin datos aún»
+        barChart.innerHTML = '<p style="text-align:center;color:var(--gris);font-size:.72rem;">' + escHtml(errorEnCriollo(clicksErr, null, 'cargar las visitas', 'recargar')) + '</p>';
+      } else if (sorted.length > 0) {
         var barHTML = '';
         sorted.slice(0, 10).forEach(function(slug, i) {
           var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
@@ -5279,7 +5293,9 @@
       var visitedSlugs = Object.keys(counts);
       var zeroVisits = perfumes.filter(function(p) { return visitedSlugs.indexOf(p.slug) === -1; });
 
-      if (zeroVisits.length === 0) {
+      if (clicksErr) {   // [CARGA-FALLIDA-CERO] 128m · antes todos los perfumes en rojo y «N sin visitas de N totales»
+        zeroDiv.innerHTML = '<p style="width:100%;font-size:.58rem;color:var(--gris);margin-top:.3rem;">— perfumes sin visitas de ' + totalPerfumes + ' totales</p>';
+      } else if (zeroVisits.length === 0) {
         zeroDiv.innerHTML = '<p style="color:#2ecc71;font-size:.7rem;">🎉 ¡Todos los perfumes recibieron al menos 1 visita!</p>';
       } else {
         var zHTML = '';
@@ -5420,6 +5436,7 @@
 
     var allClientes = [];
     var errorClientes = '';   // 128j · el último error al cargar: buscar o filtrar no lo tapa con «Sin clientes registrados»
+    var clientesCargando = false;   // [CARGA-FALLIDA-CERO] 128m · mientras carga, «— clientes» (buscar no lo pisa con «0»)
     var editingClientId = null;
     var deletingClientId = null;
     var deletingClientName = '';
@@ -5427,7 +5444,10 @@
     async function loadClientes() {
       var container = document.getElementById('clientsList');
       container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</p>';
+      document.getElementById('clientCount').textContent = '— clientes';   // [CARGA-FALLIDA-CERO] 128m · antes, «0 clientes»
+      clientesCargando = true;
       var { data, error } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
+      clientesCargando = false;
       if (error) {   // 128j · antes decía «Sin clientes registrados»
         errorClientes = errorEnCriollo(error, null, 'cargar los clientes', 'recargar');
         allClientes = [];
@@ -5441,7 +5461,13 @@
 
     function renderClientes(list) {
       var container = document.getElementById('clientsList');
-      document.getElementById('clientCount').textContent = list.length + ' cliente' + (list.length !== 1 ? 's' : '');
+      // [CARGA-FALLIDA-CERO] 128m · mientras carga y con la carga fallida, «— clientes»: «0 clientes» sólo si la base dijo 0
+      if (clientesCargando) {
+        document.getElementById('clientCount').textContent = '— clientes';
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</p>';
+        return;
+      }
+      document.getElementById('clientCount').textContent = errorClientes ? '— clientes' : list.length + ' cliente' + (list.length !== 1 ? 's' : '');
       if (!list || list.length === 0) {
         container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">' + (errorClientes ? escHtml(errorClientes) : 'Sin clientes registrados') + '</p>';
         return;
@@ -6346,11 +6372,20 @@
     var NUEVOS_STEP = 5;
     var _nuevosData = [];
     var _nuevosVisible = NUEVOS_STEP;
+    var _nuevosError = '';   // [CARGA-FALLIDA-CERO] 128m · la carga falló: «—» y el error (buscar no lo tapa con «Sin resultados»)
 
     async function loadNuevos() {
       var tbody = document.getElementById('tbodyNuevos');
       var countEl = document.getElementById('nuevosCount');
-      var { data } = await sb.from('perfumes_nuevos').select('*').order('created_at', { ascending: false });
+      var { data, error } = await sb.from('perfumes_nuevos').select('*').order('created_at', { ascending: false });
+      if (error) {   // [CARGA-FALLIDA-CERO] 128m · antes «0» y «Sin perfumes agregados aún»
+        _nuevosError = errorEnCriollo(error, null, 'cargar los perfumes nuevos', 'recargar');
+        _nuevosData = [];
+        countEl.textContent = '—';
+        renderNuevos();
+        return;
+      }
+      _nuevosError = '';
       _nuevosData = data || [];
       _nuevosVisible = NUEVOS_STEP;
       if (_nuevosData.length === 0) {
@@ -6366,6 +6401,11 @@
     function renderNuevos() {
       var tbody = document.getElementById('tbodyNuevos');
       if (!tbody) return;
+      if (_nuevosError) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gris);">' + escHtml(_nuevosError) + '</td></tr>';
+        document.getElementById('nuevosFooter').style.display = 'none';
+        return;
+      }
       var searchEl = document.getElementById('searchNuevos');
       var q = (searchEl && searchEl.value || '').trim().toLowerCase();
 
@@ -7640,8 +7680,10 @@
     // ============================================================
     var cachedDestacados = [];
 
+    var destacadosError = '';   // [CARGA-FALLIDA-CERO] 128m
     async function loadDestacados() {
-      var { data } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
+      var { data, error } = await sb.from('destacados').select('slug, posicion').order('posicion', { ascending: true });
+      destacadosError = error ? errorEnCriollo(error, null, 'cargar los destacados', 'recargar') : '';
       cachedDestacados = data ? data.map(function(d) { return d.slug; }) : [];
       renderDestacados();
       // [SELECCION-BADGE] Cargar también el texto custom del badge al abrir la tab
@@ -8103,6 +8145,13 @@
       var container = document.getElementById('destacadosList');
       var countEl = document.getElementById('destacadosCount');
       if (!container) return;
+      // [CARGA-FALLIDA-CERO] 128m · con la carga fallida, «—/7» y el error; antes «0/7» y «No hay destacados. Buscá un perfume
+      // arriba para agregar.» (agregar uno así sigue pisando los de la base: syncDestacadosToDB borra todo y escribe la lista)
+      if (destacadosError) {
+        countEl.textContent = '—';
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">' + escHtml(destacadosError) + '</p>';
+        return;
+      }
       countEl.textContent = slugs.length;
 
       if (slugs.length === 0) {
@@ -8297,9 +8346,20 @@
     // CAMBIAR HORARIO DEL LOCAL (temporal o indefinido)
     // ============================================================
     async function loadAjuste() {
-      var { data } = await sb.from('ajuste_horario').select('*').order('created_at', { ascending: false }).limit(1);
+      var { data, error } = await sb.from('ajuste_horario').select('*').order('created_at', { ascending: false }).limit(1);
       var panel = document.getElementById('ajusteActivo');
       var textEl = document.getElementById('ajusteActivoText');
+      var volver = document.getElementById('ajusteVolver');
+
+      // [CARGA-FALLIDA-CERO] 1.2 · antes, con error, el recuadro se escondía sin aviso y parecía que no había horario modificado.
+      // Sin «Volver al horario normal»: no se sabe si hay algo a qué volver.
+      if (error) {
+        textEl.innerHTML = '<span style="color:var(--stat-tinta-out);">' + escHtml(errorEnCriollo(error, null, 'cargar el horario modificado', 'recargar')) + '</span>';
+        if (volver) volver.style.display = 'none';
+        panel.style.display = 'block';
+        return;
+      }
+      if (volver) volver.style.display = '';
 
       if (!data || data.length === 0) { panel.style.display = 'none'; return; }
       var a = data[0];
@@ -8421,8 +8481,17 @@
     // ============================================================
     var editingComboSlug = null;
 
+    // [CARGA-FALLIDA-CERO] 128m · hasta que llega la lectura de combos (loadCombosFromDB, en el login) y si falla: «— combos» y,
+    // en vez de la lista, «Cargando...» o el error. Los sets que quedan en PERFUMES son los de perfumes.js, no los de la base
+    // (decía «4 combos» con esos 4).
+    var combosCargados = false, combosError = '';
     function loadCombos() {
       var container = document.getElementById('combosList');
+      if (!combosCargados || combosError) {
+        document.getElementById('comboCount').textContent = '— combos';
+        container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">' + (combosError ? escHtml(combosError) : 'Cargando...') + '</p>';
+        return;
+      }
       var sets = PERFUMES.filter(function(p) { return p.esSet; });
       document.getElementById('comboCount').textContent = sets.length + ' combo' + (sets.length !== 1 ? 's' : '');
 
@@ -8870,7 +8939,8 @@
 
     async function loadCombosFromDB() {
       try {
-        var { data } = await sb.from('combos').select('*');
+        var { data, error } = await sb.from('combos').select('*');
+        if (error) throw error;   // [CARGA-FALLIDA-CERO] antes se ignoraba y quedaban los combos de perfumes.js
         if (data && data.length > 0) {
           // Remove old DB combos in-place (no reasignar const)
           for (var i = PERFUMES.length - 1; i >= 0; i--) {
@@ -8887,7 +8957,11 @@
             }
           });
         }
-      } catch(e) { console.error('loadCombosFromDB error:', e); }
+        combosError = '';
+      } catch(e) { combosError = errorEnCriollo(e, null, 'cargar los combos', 'recargar'); }
+      combosCargados = true;
+      var tabCombos = document.getElementById('tab-combos');
+      if (tabCombos && tabCombos.classList.contains('active')) loadCombos();
     }
 
     // ============================================================
@@ -8992,9 +9066,10 @@
         // Consultar Supabase: contar suscriptores (sin traer datos, solo el count)
         // "head: true" = no traer filas, solo metadata (más rápido)
         var res = await sb.from('push_subscriptions').select('id', { count: 'exact', head: true });
-        document.getElementById('pushSubCount').textContent = (res.count || 0);
+        // [CARGA-FALLIDA-CERO] 128m · supabase-js no tira: con error, count es null y decía «0»
+        document.getElementById('pushSubCount').textContent = res.error ? '—' : (res.count || 0);
       } catch (e) {
-        document.getElementById('pushSubCount').textContent = '?';
+        document.getElementById('pushSubCount').textContent = '—';
       }
 
       // Historial de envíos — se guarda en localStorage (solo visible para el admin)
@@ -9447,18 +9522,23 @@
     async function resyncFromDB(opts) {
       opts = opts || {};
       try {
+        const completo = !rtLastSyncAt;   // sin rtLastSyncAt trae todas las filas
         let query = sb.from('perfume_overrides')
           .select('slug, stock_qty, stock_status, stock_deposito, price, promo, updated_at')
           .order('updated_at', { ascending: true });
         if (rtLastSyncAt) query = query.gt('updated_at', rtLastSyncAt);
         const { data, error } = await query;
         if (error) { console.warn('[resync] error:', error.message); return; }
-        if (!data || !data.length) return;
+        // [CARGA-FALLIDA-CERO] si la lectura del login falló, el primer resync completo trae el stock: los totales dejan el «—»
+        const recienCargado = completo && !stockCargado;
+        if (recienCargado) stockCargado = true;
         let touchedAny = false;
-        data.forEach(function(ov) {
+        (data || []).forEach(function(ov) {
           if (applyOverrideRowToMemory(ov)) touchedAny = true;
           if (ov.updated_at) rtLastSyncAt = ov.updated_at;
         });
+        if (recienCargado) { try { if (!touchedAny) renderPrecios(); renderDeposito(); } catch(e) {} }
+        if (!data || !data.length) return;
         if (touchedAny) {
           try { renderPrecios(); } catch(e) {}
           if (!opts.silent) {
@@ -9756,6 +9836,7 @@
     var esperaView = 'pending';
     var esperaOrigen = 'todo';        // [ESPERA-MAS] 42 · el filtro Todo · Web · 🏪 Local
     var esperaTieneOrigen = false;    // la columna origen existe (corrió el SQL de [ESPERA-MAS]); si no, sin filtro ni tag
+    var esperaError = '';             // [CARGA-FALLIDA-CERO] 128m · la última carga falló: «—» en las tarjetas y el error en la lista
 
     // Mensaje gen\u00e9rico reutilizable.
     function buildWaitlistMsg() {
@@ -9768,7 +9849,15 @@
     async function loadListaEspera() {
       try {
         var { data, error } = await sb.from('lista_espera').select('*').order('created_at', { ascending: false });
-        if (error) { console.error(error); return; }
+        if (error) throw error;
+      } catch (e) {   // [CARGA-FALLIDA-CERO] 128m · antes sólo iba a la consola: quedaban «0» y «0» (o los números de antes), sin aviso
+        esperaError = errorEnCriollo(e, null, 'cargar la lista de espera', 'recargar');
+        esperaData = [];
+        try { renderListaEspera(); } catch (e2) { console.error(e2); }
+        return;
+      }
+      try {
+        esperaError = '';
         esperaData = data || [];
         esperaTieneOrigen = esperaData.some(function(r) { return r && Object.prototype.hasOwnProperty.call(r, 'origen'); });
         if (!esperaTieneOrigen) esperaOrigen = 'todo';
@@ -9817,14 +9906,14 @@
       var todosPend = esperaData.filter(function(r) { return !r.notified_at; });
       var slugsPend = {};
       todosPend.forEach(function(r) { slugsPend[r.slug] = true; });
-      document.getElementById('esperaTotal').textContent = todosPend.length;
-      document.getElementById('esperaPerfumes').textContent = Object.keys(slugsPend).length;
+      document.getElementById('esperaTotal').textContent = esperaError ? '—' : todosPend.length;
+      document.getElementById('esperaPerfumes').textContent = esperaError ? '—' : Object.keys(slugsPend).length;
 
       var filtrando = esperaTieneOrigen && esperaOrigen !== 'todo';
       var bajoFiltro = esperaData.filter(esperaPasaFiltro);
       var pending = bajoFiltro.filter(function(r) { return !r.notified_at; });
       var history = bajoFiltro.filter(function(r) { return !!r.notified_at; });
-      esperaRenderControles(pending.length, history.length);
+      esperaRenderControles(esperaError ? '—' : pending.length, esperaError ? '—' : history.length);
 
       var rows = (esperaView === 'history') ? history : pending;
       var grouped = Object.create(null);   // sin prototipo: un slug «constructor» o «__proto__» no corta la lista
@@ -9837,6 +9926,7 @@
       if (rows.length === 0) {
         list.innerHTML = '';
         emptyEl.style.display = '';
+        if (esperaError) { emptyEl.textContent = esperaError; return; }   // [CARGA-FALLIDA-CERO] no «Nadie esperando»
         emptyEl.textContent = filtrando
           ? (esperaOrigen === 'local' ? 'Nadie anotado desde el local' : 'Nadie anotado desde la web')
           : ((esperaView === 'history') ? 'Todav\u00eda no avisaste a nadie \ud83d\udcec' : 'Nadie esperando \ud83d\ude0a');
@@ -11697,6 +11787,12 @@
       } catch (e) {
         console.error('[analytics] load error:', e);
         if (meta) meta.textContent = errorEnCriollo(e, null, 'cargar las estadísticas', '↺');   // 128j
+        // [CARGA-FALLIDA-CERO] 128m · quedaba lo de la carga anterior (quizás de otro rango): todo vuelve a «—»
+        [totViews, totDecants, totWA, totEmpty, totSessions].forEach(function(el) { if (el) el.textContent = '—'; });
+        [tbTopViewed, tbTopDecants, tbTopWA, tbEmpty].forEach(function(tb) { if (tb) tb.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--gris);">—</td></tr>'; });
+        if (heatmapDiv) heatmapDiv.innerHTML = '<div style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">—</div>';
+        if (deviceDiv) deviceDiv.textContent = '—';
+        if (referrerDiv) referrerDiv.textContent = '—';
       }
     }
 
@@ -12060,6 +12156,7 @@
       var meta = document.getElementById('backupsMeta');
       if (!tbody) return;
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gris);">Cargando…</td></tr>';
+      if (meta) meta.textContent = '— backups';   // [CARGA-FALLIDA-CERO] 128m · quedaba «N backups · actualizado …» de antes
 
       // Cleanup una vez por sesión
       if (!backupsCleanupRan) {
@@ -12105,6 +12202,7 @@
       } catch (e) {
         console.error('[backup] load error:', e);
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">' + escHtml(errorEnCriollo(e, null, 'cargar los backups', '↺')) + '</td></tr>';   // 128j
+        if (meta) meta.textContent = '— backups';   // [CARGA-FALLIDA-CERO] 128m
       }
     }
 
