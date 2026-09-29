@@ -3299,9 +3299,9 @@ Quedan para el PREPARADOR: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[PUNTOS-BUSCA-TEL-C
 - `docs/BACKEND.md` describía S13 en «Deuda que queda». Pasó a la keyword sola, por la regla del 23-sep.
 
 
-### Sesión 29-sep-2026 · `_s` · la ronda s sobre `sesion-cliente`: el aviso de la sesión vieja, los motivos, de quién son los favoritos, votar al retomar, «Sumar punto», 128i y la tarjeta de cliente · **sin mergear**
+### Sesión 28-sep-2026 · `_s` · la ronda s sobre `sesion-cliente`: el aviso de la sesión vieja, los motivos, de quién son los favoritos, votar al retomar, «Sumar punto», 128i y la tarjeta de cliente · **sin mergear**
 
-El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bump: la v1.1.150 nunca salió. El merge no está pre-aprobado. `e3d760e` (`js/app.js`, `index.html`, `css/styles.css`) + `8ae552f` (`admin.html`). En el punto 3 va la **opción A**: primero fue el default del prompt (el mensaje de Alejo traía el texto «(+ … si elegís B)» de la plantilla, sin elegir), y después **Alejo la confirmó** (29-sep), con las dos opciones graficadas. Antes de arrancar, en la base (sólo lectura): **el Bloque 2b ya estaba corrido**.
+El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bump: la v1.1.150 nunca salió. El merge no está pre-aprobado. `e3d760e` (`js/app.js`, `index.html`, `css/styles.css`) + `8ae552f` (`admin.html`). En el punto 3 va la **opción A**: primero fue el default del prompt (el mensaje de Alejo traía el texto «(+ … si elegís B)» de la plantilla, sin elegir), y después **Alejo la confirmó** (28-sep), con las dos opciones graficadas. Antes de arrancar, en la base (sólo lectura): **el Bloque 2b ya estaba corrido**.
 - `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`.
 - `cliente_editar` cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta y devuelve `bloqueado`.
 - Cierra `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (SECURITY.md § S28 y S29).
@@ -3366,12 +3366,12 @@ El prompt `_r` del PREPARADOR, sobre `origin/sesion-cliente` (`19258a1`), sin bu
   - los botones de votar, recién con mis votos.
 - 6 pendientes nuevos, 🟢: `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]` (lo pidió el PREPARADOR), `[AVISO-TAPA-LOGIN]`, `[FAVS-MARCA-BORDES]`, `[AUTH-BAJO-DETALLE]` y `[EDITAR-BLOQUEADO]`.
 
-### Sesión 29-sep-2026 · `_t` · el merge de `sesion-cliente` (v1.1.150) y la tanda chica v1.1.151 en `pulido-login` · **sin mergear**
+### Sesión 28-sep-2026 · `_t` · el merge de `sesion-cliente` (v1.1.150) y la tanda chica v1.1.151 en `pulido-login` · **sin mergear**
 
 El prompt `_s` del PREPARADOR.
 
 #### El merge de `sesion-cliente`
-- Con la revisión del PREPARADOR y el OK de Alejo en el chat: fast-forward `ebad698..5f17464` a las **01:22 (ART) del 29-sep**. Desde esa hora cuentan las 24 h para el Bloque 3.
+- Con la revisión del PREPARADOR y el OK de Alejo en el chat: fast-forward `ebad698..5f17464` a las **22:22 (ART) del 28-sep**. Desde esa hora cuentan las 24 h para el Bloque 3.
 - Producción: `sw.js` en v1.1.150 a los 30 s. `sw.js`, `js/app.js`, `admin.html`, `index.html` y `css/styles.css` son iguales, byte a byte, a `5f17464`.
 - Prueba de humo **sin cuenta** (el navegador del panel de Claude Code):
   - 192 cards, sin sesión, ni aviso, ni modal;
@@ -3381,7 +3381,7 @@ El prompt `_s` del PREPARADOR.
 #### La tanda chica (rama `pulido-login` desde `5f17464`)
 `e42a32e` (catálogo: `js/app.js`, `index.html`, `css/styles.css`, `scripts/contraste.js`) + `fea3057` (`admin.html`, `api/cron/backup.js`) + SW v1.1.151 (`57bfede`).
 
-**En el punto 2.9 va la opción A.** Primero fue el default del prompt (el mensaje de Alejo traía otra vez el texto de la plantilla, sin elegir); después **Alejo la confirmó** (29-sep). La rama `sesion-cliente` se borró, en la compu y en GitHub, con su OK. Antes de arrancar, en la base (sólo lectura), **el Bloque 2c ya estaba corrido**:
+**En el punto 2.9 va la opción A.** Primero fue el default del prompt (el mensaje de Alejo traía otra vez el texto de la plantilla, sin elegir); después **Alejo la confirmó** (28-sep). La rama `sesion-cliente` se borró, en la compu y en GitHub, con su OK. Antes de arrancar, en la base (sólo lectura), **el Bloque 2c ya estaba corrido**:
 - `cliente_editar` devuelve `TABLE(estado text, espera_seg integer)`, mira `v_cli.bloqueado` y avisa por Telegram;
 - cierra `[EDITAR-BLOQUEADO]` (SECURITY.md § S30).
 
@@ -3431,11 +3431,87 @@ El prompt `_s` del PREPARADOR.
   - dos comentarios de CSS con el `z-index` 2000 viejo.
 - 4 pendientes nuevos, 🟢: `[COMBO-BORRA-SIN-MIRAR]`, `[CRIOLLO-BORDES]`, `[LOGIN-CLARO-TELEFONO]` y `[LOGIN-CAMPOS-QUEDAN]` (este último, de las capturas).
 
+### Sesión 28→29-sep-2026 · `_u` · el merge de `pulido-login` (v1.1.151), el Bloque 3 (S13 cerrado) y la tanda v1.1.152 en `pulido-panel` · **sin mergear**
+
+El prompt `_t` del PREPARADOR.
+
+#### La hora
+- Los docs y los reportes de las rondas s y t tenían la hora en UTC: en Git Bash, `TZ=America/Argentina/Buenos_Aires date` devuelve UTC sin avisar. Lo vio el PREPARADOR contra la hora del deploy de Vercel.
+- Corregido en los docs: el merge de `sesion-cliente` fue a las **22:22 (ART) del 28-sep** (no a las 01:22 del 29), el Bloque 3 podía correr **desde el 29-sep a las 22:22**, y todo lo de las rondas s y t, con las decisiones A de Alejo, es del **28-sep**.
+- Quedan con la fecha vieja los mensajes de `bfdc69c` y `4458f2f` (la historia de git no se reescribe) y los nombres de los reportes `_s` y `_t` en `_correo_agentes`.
+- Desde ahora la hora sale de `date` a secas o de `Intl` de Node.
+
+#### El merge de `pulido-login`
+- Con la revisión del PREPARADOR y el OK de Alejo en el chat: fast-forward `5f17464..4458f2f` a las **23:21 (ART) del 28-sep**.
+- Producción: `sw.js` en v1.1.151; `sw.js`, `js/app.js`, `admin.html`, `index.html` y `css/styles.css`, iguales byte a byte a `4458f2f`.
+- Prueba de humo **sin cuenta**: 192 cards, sin sesión ni ventana, 17 pedidos a Supabase sin error, 0 mensajes en la consola, 0 links de la ventana con color inline (la 131) y «Iniciá sesión» en `z-index` 10005.
+- Quedan en producción los 7 de la ronda t: `[ERRORES-CRUDOS-OTROS]`, `[LOGIN-CLARO-CONTRASTE]`, `[BACKUP-SIN-FAVORITOS]`, `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]`, `[AVISO-TAPA-LOGIN]` y `[AUTH-BAJO-DETALLE]`.
+
+#### El Bloque 3: S13 cerrado
+- **Ya estaba corrido** cuando se miró, el 28-sep a las ~23:25 (ART): una hora después de la v1.1.150, no 24 h. Se volvió a verificar el 29-sep a las 02:23.
+- `pg_policies`: `favoritos` sólo con `favoritos_panel_lee` (SELECT, `authenticated`), `votos` sólo con «Ver votos» y `mi_seleccion` sólo con «Mi seleccion lectura publica» (SELECT).
+- `anon` sin permisos de tabla en las tres; por columna lee `votos (categoria, mes, slug)` y `mi_seleccion (slugs)`, lo que usa el catálogo. `has_column_privilege('anon', 'public.votos', 'user_id', 'SELECT')` falso. RLS prendida en las tres.
+- `clientes` con `clientes_telefono_canonico` y `clientes_nombre_limpio`.
+- Cierra **`[S13-ESCRITURAS-ANON]`** con el detalle (SECURITY.md § S13). La parte de `opiniones` que nombraba S13 en mayo ya no aplica: hoy la tabla no guarda a quién escribe.
+
+#### La tanda v1.1.152 (rama `pulido-panel` desde `4458f2f`)
+`d9c0a44` (`admin.html`, `js/app.js`, `css/styles.css`, `scripts/contraste.js`) + SW v1.1.152 (`c8bb2f2`).
+
+- **2.1 · 132 `[CLIENTES-CLARO-CONTRASTE]`:** los colores inline de la tarjeta de «Clientes» (WhatsApp, ⭐ +1 punto, 📜 Historial y las dos etiquetas) pasan a clases con su versión `body.light`: `.client-btn-wa`, `.client-btn-punto`, `.client-btn-historial`, `.client-tag-compro` y `.client-tag-nocompro`. En claro cambia sólo la letra: WhatsApp `#1e7a3c`, Bloquear `#9a5a00`, Eliminar y ✗ NO COMPRÓ `--stat-tinta-out`, ✓ COMPRÓ `--stat-tinta-inv`; Historial conserva el `#333` que le ponía el parche por atributo. Editar, blanco sobre `#2170b0` en los dos temas (Combos usa la misma clase).
+- **2.2 `[LOGIN-CLARO-TELEFONO]`:** lo de debajo del número (`.tel-ok`, `.tel-mal`, `.tel-falta`) y el mensaje (`.auth-error`, con `.auth-ok` para el verde) por clase, con `authMsgOk(el, ok)`. En claro `#1b5e20`, `#b8342a` y `#5e564a`. La regla `body:not(.dark-mode) .auth-modal p` pasa a `p:not(.auth-error)`: el mensaje ya no queda en gris.
+- **2.3 `[CRIOLLO-BORDES]`:**
+  - sin conexión = `navigator.onLine === false` o el mensaje de la red; se va `e.name === 'TypeError'`;
+  - un 42501 al leer (`que` empieza con «cargar», o «descargar el backup») → «Esta cuenta no puede ver esto.»;
+  - `tocaGuardar` en los cinco de 128h con «Guardar»: Depósito, editar cliente, «Guardar horario», «Guardar combo» y «GUARDAR CANDIDATOS»;
+  - los mensajes propios: **`errorPropio(texto)`** arma un `Error` con `propio = true` y `errorEnCriollo` lo devuelve tal cual. Lo usan los tres rechazos de `compressToWebP` («No se pudo comprimir», «Imagen inválida», «No se pudo leer»).
+- **2.4:** `[COMBO-BORRA-SIN-MIRAR]` (`deleteCombo` pide la fila: con error o con 0 filas, el combo sigue en la lista, sin Log ni Telegram) y `[COMBO-PISA-COMBO]` (al crear, «Ya existe un combo con ese nombre.» sin escribir si el `slug` ya está en la lista; si no, `insert`, y el 23505 da el mismo mensaje y recarga la lista; editar, `upsert` como antes).
+- **2.5 `[LOGIN-CAMPOS-QUEDAN]`:** `limpiarCamposAuth()` en `onLogin` cuando entra, en el registro y en `onLogout`.
+- **2.6:** el Bloque 3, arriba. **2.7:** el bump, aparte.
+
+#### Verificación (fixtures, stub `ronda-t/stub-t.js`, 390; `herramientas/ronda-u`)
+- **a · 132**, en el DOM, con el fondo compuesto:
+  - en claro, WhatsApp 4,80 · Bloquear 4,87 · Eliminar 4,86 · ✗ NO COMPRÓ 5,06 · ✓ COMPRÓ 7,15 · ⭐ +1 punto 6,66 · Historial 10,57;
+  - Editar 5,24 en los dos temas; «Desbloquear» (negro sobre `#f39c12`) 9,58 en los dos: no hizo falta tocarlo;
+  - el oscuro, contra `main` (`4458f2f`), igual en color, fondo, alto y forma salvo Editar; colores inline en la tarjeta: 0 (en `main`, 9).
+- **b · el teléfono**, en claro:
+  - «dígitos faltan» 6,29 · «demasiados dígitos» 5,13 · ✓ 6,85 · «no coinciden» 5,13 · «coinciden» 6,85 · el error 5,13 · el ✓ del mensaje 6,85;
+  - en `main`: 2,48 / 3,33 / 2,50 / 3,33 / 2,50, y el error y el ✓ en gris (13,07). El oscuro, igual a `main` en los 8.
+- **c · `errorEnCriollo`:**
+  - un `TypeError` del código → el genérico; «Failed to fetch», «Load failed», «network error» y los dos de Safari 16 → «No se pudo conectar»;
+  - 42501 al cargar los clientes → «Esta cuenta no puede ver esto.» en la lista;
+  - un archivo que no es una imagen en «Editar» → «Imagen inválida»;
+  - sin red, Depósito, editar cliente, horario, combo y votación → «…tocá Guardar de nuevo.».
+- **d · combos:**
+  - el `delete` con error o con 0 filas → sigue en la lista, sin Log ni Telegram, y el `alert` genérico; borrar bien → Log y 1 Telegram;
+  - crear «Asad» (`set-asad`, ya en la lista) → el mensaje, 0 escrituras;
+  - crear uno que la base tiene (23505) → el mensaje, un `insert` y la lista recargada;
+  - doble toque en «Guardar combo» → un solo `insert` y «Combo creado ✓»; el botón vuelve al cerrarse el formulario;
+  - editar → `upsert`, «Combo actualizado ✓».
+- **e · la ventana de entrar:**
+  - vacía después de entrar, de cerrar sesión y reabrir, de registrarse y del registro sin llave;
+  - después de entrar mal, los campos quedan (para corregir);
+  - en `main`, el número y la contraseña seguían escritos al reabrir después de cerrar sesión.
+- `vm.Script` y `node --check` (app, extras, contraste): ok. `npm run contraste`: **0 fallas** + 1 token pisado + **2 conocidas** (`[CLIENTES-OSCURO-ROJO]`), **333** mediciones (antes 305). 0 `!important` nuevos.
+- 7 capturas en `herramientas\ronda-u\png`.
+
+#### La revisión adversarial (10 agentes: 4 revisores y un verificador por hallazgo)
+- CSS y contraste: 0 hallazgos.
+- 6 confirmados. 5 arreglados en la rama:
+  - el regex de red suma los mensajes de Chrome y Safari que faltaban;
+  - «descargar el backup» cuenta como lectura;
+  - `deleteCombo` detecta las 0 filas;
+  - «Guardar combo» se apaga mientras guarda: con `insert`, un segundo toque sobre un alta que salió bien decía «Ya existe…»;
+  - el 23505 al crear recarga la lista.
+- 1 queda como opción, para el PREPARADOR: el registro sin llave vacía el número y la contraseña, y «Iniciá sesión» pide escribirlos de nuevo. Es la lectura literal del 2.5 («registrarse bien»). La otra opción es dejarlos, como en `main`, para entrar con un toque cuando termina la espera.
+- 2 pendientes nuevos, 🟢, del DISEÑADOR: `[CLIENTES-OSCURO-ROJO]` y `[CLIENTES-HOVER]`.
+
 ---
 
-**Última actualización:** **Septiembre 29, 2026 (`_t`)** — el merge de `sesion-cliente` (01:22, v1.1.150 en producción) y la tanda chica v1.1.151 en `pulido-login`, sin mergear. Cerrados: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[REGISTRO-LLAVE]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]` (en producción), `[EDITAR-BLOQUEADO]` (el Bloque 2c) y `[FAVS-MARCA-BORDES]` (aceptado). Nuevos, 🟢: `[COMBO-BORRA-SIN-MIRAR]`, `[CRIOLLO-BORDES]`, `[LOGIN-CLARO-TELEFONO]`, `[LOGIN-CAMPOS-QUEDAN]`.
+**Última actualización:** **Septiembre 29, 2026 (`_u`)** — el merge de `pulido-login` (23:21 del 28-sep, v1.1.151 en producción), el Bloque 3 (cierra `[S13-ESCRITURAS-ANON]`), la hora de las rondas s y t corregida y la tanda v1.1.152 en `pulido-panel`, sin mergear. Cerrados, en producción: los 7 de `pulido-login`. Nuevos, 🟢: `[CLIENTES-OSCURO-ROJO]`, `[CLIENTES-HOVER]`.
 
-**Última actualización:** **Septiembre 29, 2026 (`_s`)** — la ronda s sobre `sesion-cliente` (sin bump, v1.1.150), sin mergear. Cerrados: `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (el Bloque 2b). En la rama: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[REGISTRO-LLAVE]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]`. Nuevos, 🟢: `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]`, `[AVISO-TAPA-LOGIN]`, `[FAVS-MARCA-BORDES]`, `[AUTH-BAJO-DETALLE]`, `[EDITAR-BLOQUEADO]`.
+**Última actualización:** **Septiembre 28, 2026 (`_t`)** — el merge de `sesion-cliente` (22:22, v1.1.150 en producción) y la tanda chica v1.1.151 en `pulido-login`, sin mergear. Cerrados: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[REGISTRO-LLAVE]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]` (en producción), `[EDITAR-BLOQUEADO]` (el Bloque 2c) y `[FAVS-MARCA-BORDES]` (aceptado). Nuevos, 🟢: `[COMBO-BORRA-SIN-MIRAR]`, `[CRIOLLO-BORDES]`, `[LOGIN-CLARO-TELEFONO]`, `[LOGIN-CAMPOS-QUEDAN]`.
+
+**Última actualización:** **Septiembre 28, 2026 (`_s`)** — la ronda s sobre `sesion-cliente` (sin bump, v1.1.150), sin mergear. Cerrados: `[SESION-BLOQUEADO]` y `[EDITAR-SIN-LIMITE]` (el Bloque 2b). En la rama: `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[REGISTRO-LLAVE]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]`. Nuevos, 🟢: `[CLIENTES-BUSCA-TEL-FORMATO]`, `[TELEFONO2-MUERTO]`, `[AVISO-TAPA-LOGIN]`, `[FAVS-MARCA-BORDES]`, `[AUTH-BAJO-DETALLE]`, `[EDITAR-BLOQUEADO]`.
 
 **Última actualización:** **Septiembre 28, 2026 (`_r`)** — `[SESION-CLIENTE]` y `[TEL-CANONICO-PANEL]` en la rama `sesion-cliente` (SW v1.1.150), sin mergear. Nuevos: `[EDITAR-SIN-LIMITE]` 🟠, `[FAVS-DISPOSITIVO-COMPARTIDO]`, `[VOTO-RETOMAR-APAGADO]`, `[PUNTOS-BUSCA-TEL-CRUDO]` 🟡, `[SESION-BLOQUEADO]`, `[REGISTRO-LLAVE]`, `[LOGIN-CLARO-CONTRASTE]`, `[BACKUP-SIN-FAVORITOS]` 🟢.
 
@@ -3588,18 +3664,29 @@ El prompt `_s` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
-**Movidos el 29-sep-2026 (`_t`):**
+**Movidos el 29-sep-2026 (`_u`):**
 
-- ✅ ~~**`[FAVS-DISPOSITIVO-COMPARTIDO]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟡, prioridad propuesta por Claude Code) — al entrar se suben los favoritos de este dispositivo que no están en la base (punto 3 del prompt `_q` del PREPARADOR), pero `st_favs` no se borra al salir: en un dispositivo compartido, los del cliente anterior se suben a la cuenta del que entra después. Decide el PREPARADOR (por ejemplo, guardar de quién es `st_favs` y subir sólo lo de invitado o lo de la misma cuenta). En la rama `sesion-cliente`, sin tocar. **En la rama `sesion-cliente` (ronda s, `_s`):** marca nueva `st_favs_de` (el `id` del dueño de `st_favs`): al entrar se suben sólo si son de invitado o de la misma cuenta; si son de otra, queda lo de la base (también al retomar la sesión). «Cerrar sesión» los borra (opción A, decisión de Alejo del 29-sep); una salida forzada los deja. → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART).
-- ✅ ~~**`[REGISTRO-LLAVE]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟢) — la llave de quien se acaba de registrar sale de `cliente_entrar` con los mismos datos. Si ese teléfono venía bloqueado por intentos (`cliente_login_intentos`, 15 min), `cliente_registrar` da `ok` pero `cliente_entrar` da `bloqueado`: la persona ve «Por seguridad, volvé a entrar…» y, al entrar, «Demasiados intentos». Que `cliente_registrar` devuelva la llave lo resolvería (SQL del PREPARADOR). **En la rama `sesion-cliente` (ronda s, `_s`):** con `bloqueado`, «Tu cuenta quedó creada. Por los intentos de antes, esperá N minutos y entrá con tu número y contraseña.» (sin tocar el SQL). → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART). La frase cambia otra vez en `pulido-login` (2.1).
-- ✅ ~~**`[VOTO-RETOMAR-APAGADO]`**~~ (28-sep, de antes · 🟡, prioridad propuesta por Claude Code) — al retomar la sesión guardada, los botones de la votación quedan deshabilitados: `unlockVoting` corre desde `onLogin` antes de que `loadVotacionFromDB` (diferida) arme los botones, y `renderVotoButtons` los arma con `disabled`. Con fixture: 4 de 4 apagados, en la rama y en `main`. Se puede votar sólo saliendo y entrando. No se tocó. **En la rama `sesion-cliente` (ronda s, `_s`):** `renderVotoButtons` llama a `unlockVoting` con sesión; sin botones no se piden mis votos, y los botones se habilitan cuando ya se saben. Medido: 4 botones, la categoría votada con sus resultados y `mis_votos` una vez. → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART).
-- ✅ ~~**`[PUNTOS-BUSCA-TEL-CRUDO]`**~~ (28-sep, salió de `[TEL-CANONICO-PANEL]` · 🟡, prioridad propuesta por Claude Code) — «Sumar punto» busca al cliente con `.eq('telefono', query)` tal cual se tipeó. Como los 100 teléfonos están como `549` + 10, «2970000011» no encuentra a 5492970000011: pide el nombre y el alta choca con el único («Ya existe un cliente con ese teléfono.»; antes creaba un duplicado en silencio). Y un número con espacios en el buscador se toma como nombre (`esNumero` es `^\d{6,}$`). Arreglo propuesto: buscar también con `cleanPhone(query)` cuando da válido. Del PREPARADOR. **En la rama `sesion-cliente` (ronda s, `_s`):** se busca `cleanPhone` de lo tipeado sin espacios, `+`, guiones ni paréntesis: «2970000011», «297 15 000 0011» y «+54 9 297 000-0011» encuentran al cliente y no piden nombre. → **RESUELTO el 29-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 01:22 ART).
-- ✅ ~~**`[EDITAR-BLOQUEADO]`**~~ (29-sep, salió de la ronda s · 🟢, prioridad propuesta por Claude Code) — **sólo la keyword**; el detalle vive en `_correo_agentes`. SQL del PREPARADOR. → **RESUELTO el 29-sep** (el Bloque 2c del PREPARADOR, corrido por Alejo; verificado en `pg_proc`): un cliente bloqueado desde el panel recibe `pass_incorrecta` y cuenta como un intento fallido, como en el login; al trabarse avisa por Telegram; la función devuelve también `espera_seg`. Antes, un bloqueado no podía entrar pero con su contraseña todavía cambiaba su nombre y su teléfono. Ver SECURITY.md § S30.
-- ✅ ~~**`[FAVS-MARCA-BORDES]`**~~ (29-sep, salió de la revisión de la ronda s · 🟢, prioridad propuesta por Claude Code) — tres bordes de `st_favs_de`: (1) lo que marca un invitado después de una salida forzada queda a nombre de la cuenta anterior y se pierde si entra otra (es la regla del punto 3 tal cual); (2) quien hizo «Cerrar sesión» con la v1.1.149 dejó `st_favs` sin marca, y eso se sube a la próxima cuenta que entre (no se distingue de un invitado); (3) con otra pestaña de la misma cuenta abierta, después de «Cerrar sesión» esa pestaña vuelve a escribir `st_favs` y su salida forzada lo deja (y dice «Tu sesión se cerró…»). Decide el PREPARADOR. → **CERRADO el 29-sep, aceptado así** (el PREPARADOR, `_s`): a es la regla, b es de transición y se va sola, c es un borde con dos pestañas de la misma cuenta.
+- ✅ ~~**`[S13-ESCRITURAS-ANON]` / S2-bis**~~ (16-sep · 🟠) — agujero abierto: **sólo la keyword** (regla del 23-sep, aplicada también a lo viejo). Se resuelve con `[SUPABASE-AUTH]`. Ver `docs/SECURITY.md` § S13. En camino: `[SESION-CLIENTE]` está en producción desde el 28-sep a las 22:22 (ART); falta el Bloque 3 del PREPARADOR (desde el 29-sep a las 22:22, hora de Argentina). → **RESUELTO el 28-sep**: la llave de `[SESION-CLIENTE]` (v1.1.150) y el Bloque 3 del PREPARADOR, ya corrido cuando se miró (28-sep, ~23:25 ART); verificado en `pg_policies` y en los permisos el 28-sep y el 29-sep a las 02:23. Detalle en SECURITY.md § S13.
+- ✅ ~~**`[ERRORES-CRUDOS-OTROS]`**~~ (28-sep, salió de 128h · 🟢, prioridad propuesta por Claude Code) — fuera de los 18 de 128h, el panel muestra el error de la base en **31 lugares más**, con otras formas: «✗ Error: …» (badges, banner, slides), «❌ Error al guardar: …», «✗ …» (Decants de diseñador, backups), `alert('Error al eliminar: …')` y parecidos. Uno va a `innerHTML` sin escapar (`loadResetRequests`, «Reset contraseñas»: es el mensaje de un `select` fijo, no lo escribe nadie de afuera). Varios tienen un texto propio de respaldo («¿Creaste la tabla…?»). Si pasan por `errorEnCriollo`, lo decide el DISEÑADOR. No se tocó. **En la rama `pulido-login` (ronda t, `_t`):** 128j: los 31, `loadResetRequests`, `loadClientes` y los «Revisá permisos en Supabase (RLS)» pasan por `errorEnCriollo`, en el mismo lugar y forma («probá de nuevo»; `tocaGuardar` donde el botón dice «Guardar»). El tope de pushes por día conserva su mensaje. → **RESUELTO el 28-sep**, en producción con v1.1.151 (merge de `pulido-login`, 23:21 ART).
+- ✅ ~~**`[LOGIN-CLARO-CONTRASTE]`**~~ (28-sep, de antes · 🟢, del DISEÑADOR) — en claro, en «Iniciá sesión»: «ENTRAR» **1,29** (`#e3d6b3` sobre `#E8B800`), «Creá una» **1,62** y «¿Olvidaste tu contraseña?» **1,67** (sobre `#f5efde`). En oscuro: 10,06 · 9,33 · 9,04. `npm run contraste` no mide esta ventana. No se tocó. **En la rama `pulido-login` (ronda t, `_t`):** 131, sólo en claro: «ENTRAR» / «Unirme» / «Guardar cambios» `#1a1a1d` (9,33), «Creá una» / «Iniciá sesión» `--amarillo-tinta` (6,25), «¿Olvidaste tu contraseña?» `#5e564a` (6,29); los links pasan a `.auth-link` / `.auth-link-sec` y la ventana entra en `npm run contraste`. El oscuro, igual. → **RESUELTO el 28-sep**, en producción con v1.1.151 (merge de `pulido-login`, 23:21 ART).
+- ✅ ~~**`[BACKUP-SIN-FAVORITOS]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟢) — ni el backup del panel (`BACKUP_TABLES`, `admin.html`) ni el del cron (`api/cron/backup.js`) incluyen `favoritos` ni `mi_seleccion`. Decide Alejo si se suman (si cambia una lista, cambiar la otra). **En la rama `pulido-login` (ronda t, `_t`):** opción A, decisión de Alejo (28-sep): `favoritos` y `mi_seleccion` en las dos listas (panel y cron). Con el Bloque 3, el PREPARADOR suma que el panel pueda leerlas. → **RESUELTO el 28-sep**, en producción con v1.1.151 (merge de `pulido-login`, 23:21 ART).
+- ✅ ~~**`[CLIENTES-BUSCA-TEL-FORMATO]`**~~ (28-sep, salió de la revisión de la ronda s · 🟢, prioridad propuesta por Claude Code) — la tarjeta de «Clientes» muestra el teléfono con formato («+54 9 2970 00-0011», `[CLIENTES-FECHA-TEL]`), pero el buscador busca en `data-tel`, que sigue crudo (lo pidió el PREPARADOR): escribir el número como se ve no lo encuentra. Del PREPARADOR (por ejemplo, comparar los dígitos). **En la rama `pulido-login` (ronda t, `_t`):** si lo buscado parece un número, también encuentra por los dígitos del teléfono («+54 9 2970 00-0011», «297 000»). → **RESUELTO el 28-sep**, en producción con v1.1.151 (merge de `pulido-login`, 23:21 ART).
+- ✅ ~~**`[TELEFONO2-MUERTO]`**~~ (28-sep, del PREPARADOR · 🟢) — la línea 📞 de `telefono2` en `renderClientes` (`admin.html`) es código muerto: esa columna no existe en la base. No se tocó. **En la rama `pulido-login` (ronda t, `_t`):** fuera de la tarjeta y de la búsqueda. → **RESUELTO el 28-sep**, en producción con v1.1.151 (merge de `pulido-login`, 23:21 ART).
+- ✅ ~~**`[AVISO-TAPA-LOGIN]`**~~ (28-sep, salió de la revisión de la ronda s · 🟢, del DISEÑADOR) — el aviso de la sesión vieja (`#avisoToast`) usa la caja de `.cart-toast`: centrado y en `z-index` 99998. Si en esos ~6 s se abre «Iniciá sesión» o se agrega algo al carrito, el aviso queda encima (se cierra tocándolo). **En la rama `pulido-login` (ronda t, `_t`):** el default del PREPARADOR hasta que conteste el DISEÑADOR: el aviso se cierra solo al abrir «Iniciá sesión» o al aparecer el aviso del carrito. → **RESUELTO el 28-sep**, en producción con v1.1.151 (merge de `pulido-login`, 23:21 ART).
+- ✅ ~~**`[AUTH-BAJO-DETALLE]`**~~ (28-sep, salió de la revisión de la ronda s · 🟢, de la ronda r) — si la llave se rechaza desde el detalle de un perfume, «Iniciá sesión» (`z-index` 2000) se abre debajo del detalle (10000) y gasta su «una vez por carga». Con la ventana de juegos ya hay una regla que lo sube (`body.juegos-open .auth-overlay`). Del DISEÑADOR / PREPARADOR. **En la rama `pulido-login` (ronda t, `_t`):** `.auth-overlay` en `z-index` 10005 siempre. → **RESUELTO el 28-sep**, en producción con v1.1.151 (merge de `pulido-login`, 23:21 ART).
 
-**Movidos el 29-sep-2026 (`_s`):**
+**Movidos el 28-sep-2026 (`_t`):**
 
-- ✅ ~~**`[EDITAR-SIN-LIMITE]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep). Ya estaba en `main`; el detalle vive en `_correo_agentes`. Es SQL del PREPARADOR. → **RESUELTO el 28-sep** (el Bloque 2b del PREPARADOR, corrido por Alejo; verificado en `pg_proc` el 29-sep): `cliente_editar` cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (5 → 15 min, el mismo contador que entrar) y devuelve `bloqueado`. Antes, con el `uuid` de un cliente se podían probar claves sin límite. Ver SECURITY.md § S28.
+- ✅ ~~**`[FAVS-DISPOSITIVO-COMPARTIDO]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟡, prioridad propuesta por Claude Code) — al entrar se suben los favoritos de este dispositivo que no están en la base (punto 3 del prompt `_q` del PREPARADOR), pero `st_favs` no se borra al salir: en un dispositivo compartido, los del cliente anterior se suben a la cuenta del que entra después. Decide el PREPARADOR (por ejemplo, guardar de quién es `st_favs` y subir sólo lo de invitado o lo de la misma cuenta). En la rama `sesion-cliente`, sin tocar. **En la rama `sesion-cliente` (ronda s, `_s`):** marca nueva `st_favs_de` (el `id` del dueño de `st_favs`): al entrar se suben sólo si son de invitado o de la misma cuenta; si son de otra, queda lo de la base (también al retomar la sesión). «Cerrar sesión» los borra (opción A, decisión de Alejo del 28-sep); una salida forzada los deja. → **RESUELTO el 28-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 22:22 ART).
+- ✅ ~~**`[REGISTRO-LLAVE]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟢) — la llave de quien se acaba de registrar sale de `cliente_entrar` con los mismos datos. Si ese teléfono venía bloqueado por intentos (`cliente_login_intentos`, 15 min), `cliente_registrar` da `ok` pero `cliente_entrar` da `bloqueado`: la persona ve «Por seguridad, volvé a entrar…» y, al entrar, «Demasiados intentos». Que `cliente_registrar` devuelva la llave lo resolvería (SQL del PREPARADOR). **En la rama `sesion-cliente` (ronda s, `_s`):** con `bloqueado`, «Tu cuenta quedó creada. Por los intentos de antes, esperá N minutos y entrá con tu número y contraseña.» (sin tocar el SQL). → **RESUELTO el 28-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 22:22 ART). La frase cambia otra vez en `pulido-login` (2.1).
+- ✅ ~~**`[VOTO-RETOMAR-APAGADO]`**~~ (28-sep, de antes · 🟡, prioridad propuesta por Claude Code) — al retomar la sesión guardada, los botones de la votación quedan deshabilitados: `unlockVoting` corre desde `onLogin` antes de que `loadVotacionFromDB` (diferida) arme los botones, y `renderVotoButtons` los arma con `disabled`. Con fixture: 4 de 4 apagados, en la rama y en `main`. Se puede votar sólo saliendo y entrando. No se tocó. **En la rama `sesion-cliente` (ronda s, `_s`):** `renderVotoButtons` llama a `unlockVoting` con sesión; sin botones no se piden mis votos, y los botones se habilitan cuando ya se saben. Medido: 4 botones, la categoría votada con sus resultados y `mis_votos` una vez. → **RESUELTO el 28-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 22:22 ART).
+- ✅ ~~**`[PUNTOS-BUSCA-TEL-CRUDO]`**~~ (28-sep, salió de `[TEL-CANONICO-PANEL]` · 🟡, prioridad propuesta por Claude Code) — «Sumar punto» busca al cliente con `.eq('telefono', query)` tal cual se tipeó. Como los 100 teléfonos están como `549` + 10, «2970000011» no encuentra a 5492970000011: pide el nombre y el alta choca con el único («Ya existe un cliente con ese teléfono.»; antes creaba un duplicado en silencio). Y un número con espacios en el buscador se toma como nombre (`esNumero` es `^\d{6,}$`). Arreglo propuesto: buscar también con `cleanPhone(query)` cuando da válido. Del PREPARADOR. **En la rama `sesion-cliente` (ronda s, `_s`):** se busca `cleanPhone` de lo tipeado sin espacios, `+`, guiones ni paréntesis: «2970000011», «297 15 000 0011» y «+54 9 297 000-0011» encuentran al cliente y no piden nombre. → **RESUELTO el 28-sep**, en producción con v1.1.150 (merge de `sesion-cliente`, 22:22 ART).
+- ✅ ~~**`[EDITAR-BLOQUEADO]`**~~ (28-sep, salió de la ronda s · 🟢, prioridad propuesta por Claude Code) — **sólo la keyword**; el detalle vive en `_correo_agentes`. SQL del PREPARADOR. → **RESUELTO el 28-sep** (el Bloque 2c del PREPARADOR, corrido por Alejo; verificado en `pg_proc`): un cliente bloqueado desde el panel recibe `pass_incorrecta` y cuenta como un intento fallido, como en el login; al trabarse avisa por Telegram; la función devuelve también `espera_seg`. Antes, un bloqueado no podía entrar pero con su contraseña todavía cambiaba su nombre y su teléfono. Ver SECURITY.md § S30.
+- ✅ ~~**`[FAVS-MARCA-BORDES]`**~~ (28-sep, salió de la revisión de la ronda s · 🟢, prioridad propuesta por Claude Code) — tres bordes de `st_favs_de`: (1) lo que marca un invitado después de una salida forzada queda a nombre de la cuenta anterior y se pierde si entra otra (es la regla del punto 3 tal cual); (2) quien hizo «Cerrar sesión» con la v1.1.149 dejó `st_favs` sin marca, y eso se sube a la próxima cuenta que entre (no se distingue de un invitado); (3) con otra pestaña de la misma cuenta abierta, después de «Cerrar sesión» esa pestaña vuelve a escribir `st_favs` y su salida forzada lo deja (y dice «Tu sesión se cerró…»). Decide el PREPARADOR. → **CERRADO el 28-sep, aceptado así** (el PREPARADOR, `_s`): a es la regla, b es de transición y se va sola, c es un borde con dos pestañas de la misma cuenta.
+
+**Movidos el 28-sep-2026 (`_s`):**
+
+- ✅ ~~**`[EDITAR-SIN-LIMITE]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟠, prioridad propuesta por Claude Code) — agujero abierto: **sólo la keyword** (regla del 23-sep). Ya estaba en `main`; el detalle vive en `_correo_agentes`. Es SQL del PREPARADOR. → **RESUELTO el 28-sep** (el Bloque 2b del PREPARADOR, corrido por Alejo; verificado en `pg_proc` el 28-sep): `cliente_editar` cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (5 → 15 min, el mismo contador que entrar) y devuelve `bloqueado`. Antes, con el `uuid` de un cliente se podían probar claves sin límite. Ver SECURITY.md § S28.
 - ✅ ~~**`[SESION-BLOQUEADO]`**~~ (28-sep, salió de la revisión de `[SESION-CLIENTE]` · 🟢, prioridad propuesta por Claude Code) — **sólo la keyword**; el detalle vive en `_correo_agentes`. Es SQL del PREPARADOR (va con el Bloque 3). → **RESUELTO el 28-sep** (el Bloque 2b): `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`. Antes, un cliente bloqueado desde el panel seguía escribiendo con su llave hasta que venciera. Ver SECURITY.md § S29.
 
 **Movidos el 28-sep-2026 (`_q`):**

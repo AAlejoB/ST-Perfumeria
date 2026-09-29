@@ -122,7 +122,7 @@ CREATE POLICY "mi_tabla_write_auth" ON mi_tabla
 
 - **`admin_actions`**: read **solo el mail del jefe** (`admin_actions_select` filtra por `auth.jwt() ->> 'email' = 'jefe@stperfumeria.local'`), NO update, NO delete (inmutable). ⚠️ Decía "read solo auth", que se leía como "cualquier usuario autenticado" — es falso: la cuenta de empleada está autenticada y **no** puede leer esta tabla. Verificado contra `pg_policies` el 2-sep-2026.
 - **`puntos_log`**: read pública, write auth, NO update, NO delete.
-- **`favoritos`**: read sólo del propio user, write sólo del propio user.
+- **`favoritos`**, **`votos`** y **`mi_seleccion`** (Bloque 3 de `[SESION-CLIENTE]`, 28-sep, cierra S13): sin políticas de escritura; el catálogo escribe sólo por las RPC con la llave (`favorito_marcar`, `voto_guardar`, `seleccion_guardar`). Una política de lectura por tabla: `favoritos_panel_lee` (SELECT, `authenticated`), «Ver votos» y «Mi seleccion lectura publica» (SELECT). `anon` no tiene permisos de tabla en ninguna de las tres: lee por columna `votos (categoria, mes, slug)` y `mi_seleccion (slugs)`.
 - **`backups`**: read auth (solo admin), write auth.
 
 ### ⚠️ Bug histórico
@@ -158,7 +158,7 @@ created_at   TIMESTAMPTZ DEFAULT NOW()
 |---|---|---|
 | `cliente_login(telefono, pass)` | el `select … password` + la activación | `estado` (`ok` · `activado` · `invalido` · `bloqueado`), `id`, `nombre`, `telefono`, `espera_seg` |
 | `cliente_registrar(nombre, telefono, pass)` | chequeo de duplicado + `insert` | `estado` (`ok` · `duplicado` · `invalido`), `id`, `nombre`, `telefono` |
-| `cliente_editar(id, pass, nombre, telefono)` | verificación + `update` (antes sin clave) | `estado` (`ok` · `pass_incorrecta` · `duplicado` · `invalido` · `bloqueado`), `espera_seg` · desde el Bloque 2b (28-sep) cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (el mismo contador que entrar: 5 → 15 min) y devuelve `bloqueado`; desde el 2c (29-sep) devuelve también `espera_seg`, y un cliente bloqueado desde el panel no edita: cuenta como un intento fallido (`pass_incorrecta`), como en el login, y al trabarse avisa por Telegram |
+| `cliente_editar(id, pass, nombre, telefono)` | verificación + `update` (antes sin clave) | `estado` (`ok` · `pass_incorrecta` · `duplicado` · `invalido` · `bloqueado`), `espera_seg` · desde el Bloque 2b (28-sep) cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (el mismo contador que entrar: 5 → 15 min) y devuelve `bloqueado`; desde el 2c (28-sep) devuelve también `espera_seg`, y un cliente bloqueado desde el panel no edita: cuenta como un intento fallido (`pass_incorrecta`), como en el login, y al trabarse avisa por Telegram |
 | `cliente_puntos(telefono)` | `select puntos, nombre` | `puntos`, `nombre` — misma exposición que antes (sin prueba de identidad) |
 | `cliente_reset_solicitar(telefono)` | lookup + `insert` en `password_reset_requests` | `nombre` (sólo para el Telegram) |
 | `cliente_entrar(telefono, pass)` · `[SESION-CLIENTE]` | `cliente_login` tal cual, más la llave | lo mismo que `cliente_login` + `token` (sólo con `ok` / `activado`; si no, `null`). Guarda el sha256 del token en `cliente_sesiones` (180 días) |

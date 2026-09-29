@@ -89,7 +89,7 @@ onLogin({ id: r.id, nombre: r.nombre, telefono: r.telefono, token: r.token }, tr
 - **Rate-limit server-side**: 5 fallos → 15 min (`cliente_login_intentos`). El lockout de localStorage (`st_auth_lockout`) sigue como UX; el que protege es el del servidor.
 - **Sin filtrar información**: teléfono inexistente cuesta un hash igual (~77 ms, como un login real) y el mensaje es siempre "Teléfono o contraseña incorrectos". `bloqueado = true` (botón del panel) devuelve el mismo `invalido`.
 - **Editar perfil** (`cliente_editar`) exige la clave: antes el `update` corría como anon sin verificar nada.
-- **La llave** (`[SESION-CLIENTE]`, rama `sesion-cliente`, v1.1.150): `cliente_entrar` es `cliente_login` más un `token` que se guarda en `st_cliente`. Favoritos, votos y «Mi selección» van por RPC que lo piden (`mis_favoritos`, `favorito_marcar`, `mis_votos`, `voto_guardar`, `seleccion_guardar`; ver `docs/DATABASE.md`). El registro saca la llave entrando con los mismos datos. Salir llama a `cliente_salir` sin esperar. Al entrar, los favoritos de este dispositivo que no están en la base se suben (queda la unión); al retomar la sesión guardada manda la base. Sin llave, `sesionSinLlave(motivo)` cierra la sesión local sin RPC. Una sesión guardada sin token (de antes) sale con un aviso chico («Actualizamos el sitio: …», `#avisoToast`, una vez por dispositivo) y sin abrir nada. La llave rechazada («Tu sesión se cerró: …», una vez por carga) y el registro sin llave («Tu cuenta quedó creada. …», siempre; con `bloqueado`, los minutos) abren «Iniciá sesión». `st_favs_de` dice de quién es `st_favs`: al entrar se suben sólo si son de invitado o de la misma cuenta; «Cerrar sesión» los borra y una salida forzada los deja.
+- **La llave** (`[SESION-CLIENTE]`, en producción desde la v1.1.150, 28-sep): `cliente_entrar` es `cliente_login` más un `token` que se guarda en `st_cliente`. Favoritos, votos y «Mi selección» van por RPC que lo piden (`mis_favoritos`, `favorito_marcar`, `mis_votos`, `voto_guardar`, `seleccion_guardar`; ver `docs/DATABASE.md`). El registro saca la llave entrando con los mismos datos. Salir llama a `cliente_salir` sin esperar. Al entrar, los favoritos de este dispositivo que no están en la base se suben (queda la unión); al retomar la sesión guardada manda la base. Sin llave, `sesionSinLlave(motivo)` cierra la sesión local sin RPC. Una sesión guardada sin token (de antes) sale con un aviso chico («Actualizamos el sitio: …», `#avisoToast`, una vez por dispositivo) y sin abrir nada. La llave rechazada («Tu sesión se cerró: …», una vez por carga) y el registro sin llave («Tu cuenta quedó creada. …», siempre; con `bloqueado`, los minutos) abren «Iniciá sesión». `st_favs_de` dice de quién es `st_favs`: al entrar se suben sólo si son de invitado o de la misma cuenta; «Cerrar sesión» los borra y una salida forzada los deja.
 
 ### Por qué se hizo así
 
@@ -98,8 +98,8 @@ S2 en `docs/SECURITY.md`: con la anon key pública y RLS abierta, cualquiera pod
 ### Deuda que queda (escalón 3 · Supabase Auth)
 
 - No hay sesión del lado del servidor: `cliente_puntos` y `cliente_reset_solicitar` responden con sólo el teléfono (misma exposición que antes).
-- `[S13-ESCRITURAS-ANON]` (ver `SECURITY.md` § S13): agujero abierto, **la keyword sola** (regla del 23-sep; hasta el 28-sep esta línea lo describía).
-- Migrar a Supabase Auth resuelve las dos: `auth.uid()` en las policies.
+- ~~`[S13-ESCRITURAS-ANON]`~~: cerrado el 28-sep sin Supabase Auth, con la llave de `[SESION-CLIENTE]` y el Bloque 3 (ver `SECURITY.md` § S13).
+- Migrar a Supabase Auth resuelve lo de arriba: `auth.uid()` en las policies.
 
 ### `[FORGOT-PASS-A]` · recuperación de contraseña (27-jun-2026 · commit `db9d485`)
 

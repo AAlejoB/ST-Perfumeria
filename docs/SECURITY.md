@@ -1,8 +1,10 @@
 # SECURITY.md — Inventario de seguridad de ST Perfumería
 
-> **Última actualización:** **Septiembre 29, 2026 (`_t`)** — **S30 RESUELTO** (el Bloque 2c del PREPARADOR, corrido por Alejo): un cliente bloqueado desde el panel ya no edita su perfil. `[SESION-CLIENTE]` en producción desde el 29-sep a las 01:22 (ART, v1.1.150); **S13 sigue con la keyword sola** hasta el Bloque 3 (no antes del 30-sep a las 01:22).
+> **Última actualización:** **Septiembre 29, 2026 (`_u`)** — **S13 RESUELTO**: favoritos, votos y «Mi selección» ya no se escriben como `anon` a nombre de otro cliente. La llave de `[SESION-CLIENTE]` (v1.1.150) y el Bloque 3 del PREPARADOR, que ya estaba corrido el 28-sep (~23:25 ART); verificado en la base el 28-sep y otra vez el 29-sep a las 02:23. Las fechas de `_s` y `_t` se corrigieron: estaban en UTC.
 >
-> **Antes (29-sep, `_s`):** — **S28 y S29 RESUELTOS** (el SQL del Bloque 2b del PREPARADOR, corrido por Alejo): `cliente_editar` cuenta intentos y `cliente_de_token` no sirve para clientes bloqueados. Del lado del catálogo, «Editar perfil» dice «Demasiados intentos…» (rama `sesion-cliente`). **S13 sigue con la keyword sola** hasta el Bloque 3.
+> **Antes (28-sep, `_t`):** — **S30 RESUELTO** (el Bloque 2c del PREPARADOR, corrido por Alejo): un cliente bloqueado desde el panel ya no edita su perfil. `[SESION-CLIENTE]` en producción desde el 28-sep a las 22:22 (ART, v1.1.150); **S13 sigue con la keyword sola** hasta el Bloque 3 (desde el 29-sep a las 22:22, hora de Argentina).
+>
+> **Antes (28-sep, `_s`):** — **S28 y S29 RESUELTOS** (el SQL del Bloque 2b del PREPARADOR, corrido por Alejo): `cliente_editar` cuenta intentos y `cliente_de_token` no sirve para clientes bloqueados. Del lado del catálogo, «Editar perfil» dice «Demasiados intentos…» (rama `sesion-cliente`). **S13 sigue con la keyword sola** hasta el Bloque 3.
 >
 > **Antes (28-sep, `_p`):** — **S18, S24, S25 y S27 RESUELTOS** (v1.1.148): los escapes del barrido de XSS, en el panel y en el catálogo, cruzados contra el inventario de S18 del PREPARADOR.
 >
@@ -59,7 +61,7 @@
 > - **Rate-limit del lado del servidor** (`cliente_login_intentos`: 5 fallos → 15 min), hash dummy para teléfonos inexistentes (77 ms vs 76 ms: el tiempo no delata qué números existen), mensaje unificado, y la columna `bloqueado` por fin bloquea.
 > - Métrica: los hashes suben con cada login (`count(*) filter (where password like '$2%')`). Los 4 clientes sin clave se activan con la primera que escriban.
 > - **D verificado por Alejo el 17-sep contra producción**: un cliente con password en texto plano (el caso de 92 de 96) → login `ok` → password pasa a `$2a$10$…` → `crypt(clave, password) = password` true / clave incorrecta false → segundo login contra el hash `ok`. **Los 92 entran con su clave de siempre.**
-> - **Queda:** escalón 3 (Supabase Auth) · `cliente_puntos` / `cliente_reset_solicitar` responden con sólo el teléfono (misma exposición que antes: nombre y puntos) · **S13** (abajo) · `[LOGIN-INTENTOS-CLEANUP]`. Detalle de diseño y tropiezos en `docs/HISTORIA.md` § "Sesión 16→17-sep-2026".
+> - **Queda:** escalón 3 (Supabase Auth) · `cliente_puntos` / `cliente_reset_solicitar` responden con sólo el teléfono (misma exposición que antes: nombre y puntos) · ~~**S13**~~ (cerrado el 28-sep, abajo) · `[LOGIN-INTENTOS-CLEANUP]`. Detalle de diseño y tropiezos en `docs/HISTORIA.md` § "Sesión 16→17-sep-2026".
 >
 > Lo que sigue abajo es el análisis original, se conserva como historia.
 
@@ -259,9 +261,15 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 ---
 
-### **S13 · `[S13-ESCRITURAS-ANON]` · 🟠 ABIERTO**
+### **S13 · `[S13-ESCRITURAS-ANON]` · `favoritos`, `votos` y `mi_seleccion` se escribían como `anon` a nombre de cualquier cliente (S2-bis) · ✅ RESUELTO 28-sep-2026**
 
-> Agujero abierto: **la keyword sola** por la regla de § 📏 (23-sep). Se resuelve de verdad con `[SUPABASE-AUTH]`. El detalle vive fuera del repo; la historia de git conserva la versión anterior de esta sección.
+**Severidad:** 🟠 MEDIA-ALTA mientras duró · hallado el 16-sep-2026 al relevar S2.
+
+> ✅ **ESTADO: RESUELTO** · `[SESION-CLIENTE]` (v1.1.150, en producción desde el 28-sep a las 22:22 ART) + el Bloque 3 del PREPARADOR, que ya estaba corrido cuando se miró (28-sep, ~23:25 ART). No hizo falta `[SUPABASE-AUTH]`.
+> - **Qué pasaba:** el «login» del cliente era un objeto en `localStorage` (`st_cliente`), sin nada del lado del servidor, y el catálogo escribía directo con la anon key y el `id` guardado: `favoritos` (`insert` / `delete` con `user_id`), `votos` (`upsert`) y `mi_seleccion`. Con la anon key y el `uuid` de un cliente se podían marcar o borrar sus favoritos, votar y cambiar su selección a su nombre, y leer `votos.user_id`. Desde S2 los `uuid` ya no se listaban: bajaba la explotabilidad, pero el agujero seguía. En mayo S13 nombraba también `opiniones`: hoy esa tabla no guarda a quién escribe (sólo `id`, `texto` y `created_at`), así que ahí no se escribe a nombre de nadie.
+> - **Fix, en el catálogo** (`[SESION-CLIENTE]`): `cliente_entrar` da una llave (`token`, 180 días; la base guarda su sha256 en `cliente_sesiones`) y las tres tablas se escriben sólo con RPC `SECURITY DEFINER` que la piden: `favorito_marcar`, `voto_guardar` y `seleccion_guardar` (se leen con `mis_favoritos` y `mis_votos`). `cliente_de_token` no sirve para un cliente bloqueado (S29) y un cambio de contraseña borra sus llaves.
+> - **Fix, en la base** (Bloque 3): fuera las políticas de escritura de las tres tablas y los permisos de `anon`. Queda una política por tabla, de lectura: `favoritos_panel_lee` (SELECT, `authenticated`: el panel y el backup), «Ver votos» y «Mi seleccion lectura publica» (SELECT). `anon` lee por columna sólo lo que usa el catálogo para contar: `votos (categoria, mes, slug)` y `mi_seleccion (slugs)`. `clientes` suma dos CHECK: `clientes_telefono_canonico` (`^549[0-9]{10}$`) y `clientes_nombre_limpio` (de 1 a 60, sin caracteres de control).
+> - **Verificado en la base** (sólo lectura, 28-sep ~23:25 y 29-sep 02:23 ART): `pg_policies` con esas tres políticas y ninguna más; `has_table_privilege('anon', …)` falso en SELECT, INSERT, UPDATE y DELETE sobre las tres; `has_column_privilege('anon', 'public.votos', 'user_id', 'SELECT')` falso; RLS prendida en las tres. El catálogo en producción (v1.1.151) lee `votos` y `mi_seleccion` con esas columnas y no escribe ninguna de las tres directo.
 
 ---
 
@@ -410,19 +418,19 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 
 **Severidad:** 🟠 mientras duró · ya estaba en `main`; lo encontró la revisión adversarial de `[SESION-CLIENTE]` (ronda r).
 
-> ✅ **ESTADO: RESUELTO** · el Bloque 2b del PREPARADOR, corrido por Alejo. `cliente_editar(p_id, p_pass, …)` (EXECUTE de `anon`) comparaba la clave y devolvía `pass_incorrecta` sin contar intentos: con el `uuid` de un cliente se podían probar claves sin límite y, si una daba, pisar el nombre y el teléfono (y después sacar una llave con `cliente_entrar`). **Fix:** cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (el mismo contador que entrar: 5 fallos → 15 min) y devuelve `bloqueado`. **Verificado en la base** (`pg_proc`, 29-sep): `prosrc` usa `cliente_login_intentos` y devuelve `'bloqueado'`. El catálogo lo muestra como el login («Demasiados intentos. Esperá 15 minutos y volvé a probar.», rama `sesion-cliente`).
+> ✅ **ESTADO: RESUELTO** · el Bloque 2b del PREPARADOR, corrido por Alejo. `cliente_editar(p_id, p_pass, …)` (EXECUTE de `anon`) comparaba la clave y devolvía `pass_incorrecta` sin contar intentos: con el `uuid` de un cliente se podían probar claves sin límite y, si una daba, pisar el nombre y el teléfono (y después sacar una llave con `cliente_entrar`). **Fix:** cuenta los fallos en `cliente_login_intentos` sobre el teléfono de la cuenta (el mismo contador que entrar: 5 fallos → 15 min) y devuelve `bloqueado`. **Verificado en la base** (`pg_proc`, 28-sep): `prosrc` usa `cliente_login_intentos` y devuelve `'bloqueado'`. El catálogo lo muestra como el login («Demasiados intentos. Esperá 15 minutos y volvé a probar.», rama `sesion-cliente`).
 
 ### **S29 · `[SESION-BLOQUEADO]` · Un cliente bloqueado seguía escribiendo con su llave · ✅ RESUELTO 28-sep-2026**
 
 **Severidad:** 🟢 mientras duró · salió de la revisión adversarial de `[SESION-CLIENTE]` (ronda r); era del Bloque 2.
 
-> ✅ **ESTADO: RESUELTO** · el Bloque 2b. `cliente_de_token` no miraba `clientes.bloqueado` y el trigger borra llaves sólo al cambiar la contraseña: un cliente bloqueado desde el panel seguía escribiendo favoritos, votos y «Mi selección» con su llave hasta que venciera. **Fix:** `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`. **Verificado en la base** (`pg_proc`, 29-sep).
+> ✅ **ESTADO: RESUELTO** · el Bloque 2b. `cliente_de_token` no miraba `clientes.bloqueado` y el trigger borra llaves sólo al cambiar la contraseña: un cliente bloqueado desde el panel seguía escribiendo favoritos, votos y «Mi selección» con su llave hasta que venciera. **Fix:** `cliente_de_token` hace `join public.clientes` y pide `bloqueado is not true`. **Verificado en la base** (`pg_proc`, 28-sep).
 
-### **S30 · `[EDITAR-BLOQUEADO]` · Un cliente bloqueado todavía podía editar su perfil · ✅ RESUELTO 29-sep-2026**
+### **S30 · `[EDITAR-BLOQUEADO]` · Un cliente bloqueado todavía podía editar su perfil · ✅ RESUELTO 28-sep-2026**
 
-**Severidad:** 🟢 mientras duró · salió de la ronda s (29-sep).
+**Severidad:** 🟢 mientras duró · salió de la ronda s (28-sep).
 
-> ✅ **ESTADO: RESUELTO** · el Bloque 2c del PREPARADOR, corrido por Alejo. `cliente_editar` no miraba `clientes.bloqueado`: un cliente bloqueado desde el panel no podía entrar, pero con su contraseña todavía cambiaba su nombre y su teléfono. **Fix:** un bloqueado recibe `pass_incorrecta` y cuenta como un intento fallido, igual que en `cliente_login`; al trabarse avisa por Telegram, y la función devuelve también `espera_seg`. **Verificado en la base** (`pg_proc`, 29-sep): `TABLE(estado text, espera_seg integer)`, mira `v_cli.bloqueado` y usa `_aviso_tg`. El catálogo muestra los minutos («Demasiados intentos. Esperá N minutos…», rama `pulido-login`).
+> ✅ **ESTADO: RESUELTO** · el Bloque 2c del PREPARADOR, corrido por Alejo. `cliente_editar` no miraba `clientes.bloqueado`: un cliente bloqueado desde el panel no podía entrar, pero con su contraseña todavía cambiaba su nombre y su teléfono. **Fix:** un bloqueado recibe `pass_incorrecta` y cuenta como un intento fallido, igual que en `cliente_login`; al trabarse avisa por Telegram, y la función devuelve también `espera_seg`. **Verificado en la base** (`pg_proc`, 28-sep): `TABLE(estado text, espera_seg integer)`, mira `v_cli.bloqueado` y usa `_aviso_tg`. El catálogo muestra los minutos («Demasiados intentos. Esperá N minutos…», rama `pulido-login`).
 
 ---
 
