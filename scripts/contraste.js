@@ -617,6 +617,20 @@ function mezcla(hex, fondo, a) {
   });
 })();
 
+// ═══ [HORARIO-ERROR-OSCURO] el error de «Horario modificado» (ronda y, 29-sep-2026) ═══
+// El recuadro #ajusteActivo es rgba(232,184,0,.08) inline sobre su caja (#111 en oscuro; blanca en claro, [PANEL-CLARO-CAJAS]):
+// da #221e10 y #fdf9eb, medidos en el navegador. La letra es la de .ajuste-error.
+(function () {
+  var rs = reglas(hoja('admin.html'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body.light');
+  var cfg = { oscuro: { pref: [], capas: [raiz], fondo: '#221e10' }, claro: { pref: ['body.light'], capas: [luz, raiz], fondo: '#fdf9eb' } };
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema], fg = efectivo(rs, '.ajuste-error', c.pref, 'color', c.capas);
+    medir({ superficie: 'panel', tema: tema, rol: 'horario', nombre: 'error de «Horario modificado» .ajuste-error', texto: fg.hex[0] || null,
+            fondos: [c.fondo], impone: fg.impone, pisado: fg.pisado });
+  });
+})();
+
 // ═══ LA LETRA LA DECIDE EL FONDO ═══ [BOTONES-CONTRASTE] [CINTA-TINTA] 24-sep-2026 (parte K, decisiones 94 y 95)
 // Los botones del panel con fondo de color propio (WhatsApp, gris y los 7 de etiqueta) y la cinta de la card: la letra
 // es la misma en los dos temas y la elige el fondo (regla 19: si el fondo pide letra oscura y va clara, falla aunque el

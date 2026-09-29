@@ -1272,6 +1272,9 @@
       position: relative;
       z-index: 2;           /* sobre la zona de Ordenar para que el dropdown no quede tapado */
     }
+    /* [SUGERENCIAS-BAJO-ORDENAR] .sort-wrapper arma su contexto en z 100 (su menú sobre las cards), así que con 2 esta zona
+       quedaba debajo y «Ordenar» tapaba la primera sugerencia. Mientras hay sugerencias, la zona del buscador va arriba. */
+    .filter-zone--center:has(.search-suggestions.active) { z-index: 101; }
     .filter-zone--right {
       order: 3;
       width: 100%;

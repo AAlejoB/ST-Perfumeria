@@ -858,6 +858,10 @@
     .espera-falta { color: var(--gris); }
     .espera-ya { color: var(--amarillo-tinta); }
     .espera-error { color: var(--stat-tinta-out); }
+    /* [HORARIO-ERROR-OSCURO] el error de «Horario modificado»: en oscuro #ff8a80 (decisión 100, el de 132b), 7,29 sobre el
+       recuadro; con --stat-tinta-out daba 4,34. En claro, --stat-tinta-out (5,60). */
+    .ajuste-error { color: #ff8a80; }
+    body.light .ajuste-error { color: var(--stat-tinta-out); }
     .espera-resultados { display: flex; flex-direction: column; gap: .25rem; margin: -.4rem 0 .6rem; max-height: 15rem; overflow-y: auto; }
     .espera-resultado {
       display: flex; align-items: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem; text-align: left;
@@ -2739,7 +2743,7 @@
 
       <p style="font-size:.75rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;">Días cerrados programados</p>
       <table class="admin-table">
-        <thead><tr><th>Fecha</th><th>Motivo</th><th>Accion</th></tr></thead>
+        <thead><tr><th>Fecha</th><th>Motivo</th><th>Acción</th></tr></thead>
         <tbody id="tbodyCierres"></tbody>
       </table>
 
@@ -2873,7 +2877,7 @@
     <div class="tab-content" id="tab-opiniones">
       <p style="font-size:.7rem;color:var(--gris-claro);margin-bottom:1rem;line-height:1.5;">Moderá las opiniones de los clientes. Podés eliminar spam o mensajes inapropiados.</p>
       <table class="admin-table">
-        <thead><tr><th>Cliente</th><th>Perfume</th><th>Opinión</th><th>Fecha</th><th>Accion</th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Perfume</th><th>Opinión</th><th>Fecha</th><th>Acción</th></tr></thead>
         <tbody id="tbodyOpiniones"></tbody>
       </table>
     </div>
@@ -4567,8 +4571,9 @@
     async function loadStockFromDB() {
       try {
         var { data, error } = await sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito');
-        if (error) { console.error('loadStockFromDB:', error); return; }
+        if (error) { sinLeer('stock', error, 'cargar el stock'); return; }   // [GUARDAR-SIN-LEER]
         stockCargado = true;
+        leido('stock');
         if (data) {
           data.forEach(function(row) {
             var p = PERFUMES.find(function(pf) { return pf.slug === row.slug; });
@@ -4579,7 +4584,7 @@
             if (row.stock_deposito !== null && row.stock_deposito !== undefined) p._stockDeposito = row.stock_deposito;
           });
         }
-      } catch(e) { console.error('loadStockFromDB:', e); }
+      } catch(e) { if (!stockCargado) sinLeer('stock', e, 'cargar el stock'); else console.error('loadStockFromDB:', e); }
     }
 
     // Mergea la tabla perfume_overrides completa en PERFUMES.
@@ -4589,8 +4594,11 @@
     async function loadOverridesIntoPerfumes() {
       try {
         var { data, error } = await sb.from('perfume_overrides').select('*');
-        if (error) { console.error('loadOverridesIntoPerfumes:', error); return; }
+        // [GUARDAR-SIN-LEER] sin los overrides, Editar mostraba lo de perfumes.js y «Guardar» lo escribía encima de lo guardado
+        if (error) { sinLeer('overrides', error, 'cargar los datos de los perfumes'); return; }
         stockCargado = true;   // [CARGA-FALLIDA-CERO] también trae stock_qty, stock_status y stock_deposito
+        leido('stock');
+        leido('overrides');
         if (!data || data.length === 0) return;
         data.forEach(function(o) {
           var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
@@ -4628,7 +4636,7 @@
           if (o.precio_decant !== undefined && o.precio_decant !== null) p._precioDecant = o.precio_decant;
           if (o.decant_excluido !== undefined && o.decant_excluido !== null) p._decantExcluido = !!o.decant_excluido;
         });
-      } catch(e) { console.error('loadOverridesIntoPerfumes:', e); }
+      } catch(e) { sinLeer('overrides', e, 'cargar los datos de los perfumes'); }   // también si se cortó a mitad de camino
     }
 
     function getStockStatus(slug) {
@@ -4804,6 +4812,7 @@
         'En el local: ' + (local === null ? 'sin dato' : local + ' u.');
       document.getElementById('modalDepQty').value = depPrevQty;
       document.getElementById('modalDepMsg').textContent = '';
+      faltaStock(document.getElementById('modalDepMsg'));   // [GUARDAR-SIN-LEER]
       document.getElementById('modalDepNoSumar').checked = false;
       toggleDepSumar();
       document.getElementById('modalDeposito').classList.add('active');
@@ -4848,6 +4857,7 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === editingDepSlug; });
       if (!p) return;
       var msgEl = document.getElementById('modalDepMsg');
+      if (faltaStock(msgEl)) return;   // [GUARDAR-SIN-LEER]
       var btn = document.getElementById('modalDepBtn');
       var qty = parseInt(document.getElementById('modalDepQty').value, 10);
       if (isNaN(qty) || qty < 0) qty = 0;
@@ -5658,11 +5668,14 @@
       var soloDig = query.replace(/[\s\-+().]/g, '');
       var esNumero = /^\d{6,}$/.test(soloDig);
       var telBusca = esNumero ? cleanPhone(soloDig) : '';
-      var { data } = await sb.from('clientes').select('*').eq('telefono', esperaTelValido(telBusca) ? telBusca : query).limit(1);
+      var { data, error: errTel } = await sb.from('clientes').select('*').eq('telefono', esperaTelValido(telBusca) ? telBusca : query).limit(1);
+      // [GUARDAR-SIN-LEER] con la búsqueda fallida ofrecía registrarlo como nuevo
+      if (errTel) { msgEl.textContent = errorEnCriollo(errTel, null, 'buscar el cliente'); msgEl.style.color = '#e74c3c'; return; }
 
       // Si no encontró por teléfono, buscar por nombre (parcial, case-insensitive)
       if (!data || data.length === 0) {
-        var { data: byName } = await sb.from('clientes').select('*').ilike('nombre', '%' + query + '%');
+        var { data: byName, error: errNombre } = await sb.from('clientes').select('*').ilike('nombre', '%' + query + '%');
+        if (errNombre) { msgEl.textContent = errorEnCriollo(errNombre, null, 'buscar el cliente'); msgEl.style.color = '#e74c3c'; return; }
         if (byName && byName.length === 1) {
           data = byName; // Encontró exactamente 1 → usarlo
         } else if (byName && byName.length > 1) {
@@ -6014,6 +6027,7 @@
 
       document.getElementById('modalStockBtn').disabled = false;
       document.getElementById('modalStockMsg').textContent = '';
+      faltaStock(document.getElementById('modalStockMsg'));   // [GUARDAR-SIN-LEER]
       updateStockPreview();
       document.getElementById('modalStock').classList.add('active');
     }
@@ -6229,6 +6243,7 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
       if (!p) return;
       var msgEl = document.getElementById('modalStockMsg');
+      if (faltaStock(msgEl)) return;   // [GUARDAR-SIN-LEER]
 
       var qty = parseInt(document.getElementById('modalStockQty').value, 10);
       if (isNaN(qty) || qty < 0) qty = 0;
@@ -6336,7 +6351,10 @@
     // Sin esto, EDITAR/PRECIOS/STOCK no ven los perfumes agregados desde el admin.
     async function mergeNuevosIntoPerfumes() {
       try {
-        var { data } = await sb.from('perfumes_nuevos').select('*');
+        var { data, error } = await sb.from('perfumes_nuevos').select('*');
+        // [GUARDAR-SIN-LEER] sólo se anota, para Editar combo; que la tabla no lo diga es [PANEL-STOCK-CALLA]
+        if (error) { sinLeer('nuevos', error, 'cargar los perfumes nuevos'); return; }
+        leido('nuevos');
         if (!data || data.length === 0) return;
         data.forEach(function(p) {
           // No duplicar si ya existe en el array estático
@@ -6593,6 +6611,8 @@
         alert('Todavía no cargó el catálogo. Esperá unos segundos y reintentá.');
         return;
       }
+      // [GUARDAR-SIN-LEER] sin los overrides, los que ya tienen un tipo en la base contaban como «sin tipo»
+      if (SIN_LEER.overrides) { alert(SIN_LEER.overrides); return; }
 
       var pendientes = [];
       PERFUMES.forEach(function(p) {
@@ -6754,6 +6774,7 @@
       document.getElementById('editSearch').value = '';
       document.getElementById('editMsg').textContent = '';
       barraError(document.getElementById('btnSaveEdit'), '');   // [MOTIVO-QUEDA] el motivo no sobrevive a otro perfume
+      faltaLeer('overrides', document.getElementById('editMsg'));   // [GUARDAR-SIN-LEER]
     }
 
     // ============================================================
@@ -6891,6 +6912,8 @@
     async function saveEditPerfumeAhora() {
       var slug = document.getElementById('editSlug').value;
       if (!slug) return;
+      var faltaEdit = faltaLeer('overrides', document.getElementById('editMsg'));   // [GUARDAR-SIN-LEER] antes de pedir «ST»
+      if (faltaEdit) return { ok: false, error: faltaEdit };
 
       // Doble verificación anti-error: pedir "ST" antes de impactar cambios
       // al catálogo. Editar es la operación más amplia (nombre, foto, notas,
@@ -7703,10 +7726,12 @@
         var { data, error } = await sb.from('seleccion_st_config')
           .select('badge_text').eq('id', 1).maybeSingle();
         if (error) throw error;
-        input.value = (data && data.badge_text) ? data.badge_text : 'TOP VENTAS';
+        leido('seleccionBadge', document.getElementById('seleccionBadgeMsg'));
+        input.value = (data && data.badge_text) ? data.badge_text : 'TOP VENTAS';   // sin fila: el de siempre
       } catch (e) {
-        input.value = 'TOP VENTAS';
-        console.warn('[seleccion-badge] no se pudo cargar config, usando default:', e);
+        // [GUARDAR-SIN-LEER] antes ponía «TOP VENTAS» aunque el sitio dijera otra cosa, y «Guardar» lo escribía
+        input.value = '';
+        avisoLectura(document.getElementById('seleccionBadgeMsg'), sinLeer('seleccionBadge', e, 'cargar la etiqueta de la Selección'));
       }
     }
 
@@ -7714,6 +7739,7 @@
       var input = document.getElementById('seleccionBadgeInput');
       var msg = document.getElementById('seleccionBadgeMsg');
       if (!input) return;
+      if (faltaLeer('seleccionBadge', msg)) return;   // [GUARDAR-SIN-LEER]
       var newText = (input.value || '').trim().substring(0, 20);
       if (newText.length === 0) {
         if (msg) { msg.textContent = '⚠️ El texto no puede estar vacío.'; msg.style.color = '#e74c3c'; }
@@ -7777,12 +7803,20 @@
     async function loadBadgesAdmin() {
       var msg = document.getElementById('badgesMsg');
       if (msg) msg.textContent = '';
-      var rows = [];
+      var rows = [], errLectura = null;
       try {
         var res = await sb.from('trust_badges').select('id, orden, icono, titulo, bajada, link_a, activo').order('orden', { ascending: true });
-        if (!res.error && res.data && res.data.length) rows = res.data;
-      } catch (e) {}
-      if (!rows.length) rows = BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); });
+        if (res.error) errLectura = res.error;
+        else if (res.data && res.data.length) rows = res.data;
+      } catch (e) { errLectura = e; }
+      if (errLectura) {   // [GUARDAR-SIN-LEER] antes armaba los 4 cuadros por defecto y «Guardar cambios» borraba los de la base
+        var textoB = sinLeer('badges', errLectura, 'cargar los beneficios');
+        var contB = document.getElementById('badgesList');
+        if (contB) contB.innerHTML = '<p style="text-align:center;color:var(--gris);font-size:.75rem;padding:1rem;">' + escHtml(textoB) + '</p>';
+        return;
+      }
+      leido('badges', document.getElementById('badgesMsg'));
+      if (!rows.length) rows = BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); });   // tabla vacía de verdad: como antes
       renderBadgesEditor(rows);
     }
 
@@ -7818,6 +7852,7 @@
 
     async function saveBadges() {
       var msg = document.getElementById('badgesMsg');
+      if (faltaLeer('badges', msg)) return;   // [GUARDAR-SIN-LEER]
       if (msg) { msg.style.color = ''; msg.textContent = 'Guardando...'; }
       var rows = Array.prototype.slice.call(document.querySelectorAll('#badgesList .badge-row'));
       var payload = rows.map(function(row, i) {
@@ -7845,6 +7880,7 @@
     }
 
     function resetBadgesToDefaults() {
+      if (faltaLeer('badges', document.getElementById('badgesMsg'))) return;   // [GUARDAR-SIN-LEER] sin los de la base, no
       if (!confirm('¿Restaurar los 4 cuadros a sus valores por defecto? (no se guarda hasta que toques "Guardar cambios")')) return;
       renderBadgesEditor(BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); }));
     }
@@ -8129,17 +8165,47 @@
       }
     }
 
+    // [DESTACADOS-BORRA-SI-FALLA] el mensaje de la pestaña, con un solo reloj: un «agregado» viejo no borra un error nuevo.
+    // ms = 0: queda hasta el próximo mensaje.
+    var destacadoMsgTimer = null;
+    function msgDestacados(texto, color, ms) {
+      var msgEl = document.getElementById('destacadoMsg');
+      if (!msgEl) return;
+      clearTimeout(destacadoMsgTimer);
+      msgEl.textContent = texto;
+      msgEl.style.color = color;
+      if (ms) destacadoMsgTimer = setTimeout(function() { msgEl.textContent = ''; }, ms);
+    }
+    function errorDestacados(texto) { msgDestacados(texto, 'var(--stat-tinta-out)', 0); }
+    function filasDestacados(slugs) { return slugs.map(function(slug, i) { return { slug: slug, posicion: i }; }); }
+
+    // Borra todos y los vuelve a escribir en orden. [DESTACADOS-BORRA-SI-FALLA]
+    // · Sin la lista de la base (la carga falló) no escribe: armaría la lista nueva sobre [] y borraría los de la Selección.
+    // · Si el borrado falla, no cambió nada. Si falla el alta, vuelve a escribir los de antes (si no, la Selección del sitio
+    //   quedaba vacía) y relee la base para mostrar lo que quedó de verdad.
+    // · La lista, el Log y la pantalla cambian sólo con el alta buena. Devuelve true si se guardó.
     async function syncDestacadosToDB(slugs) {
+      if (destacadosError) { errorDestacados(destacadosError); return false; }
       var prevSlugs = cachedDestacados.slice();
-      // Borrar todos y reinsertar con posiciones correctas
-      await sb.from('destacados').delete().neq('id', 0);
+      var borrado = await sb.from('destacados').delete().neq('id', 0);
+      if (borrado.error) { errorDestacados(errorEnCriollo(borrado.error, null, 'guardar los destacados')); return false; }
       if (slugs.length > 0) {
-        var rows = slugs.map(function(slug, i) { return { slug: slug, posicion: i }; });
-        await sb.from('destacados').insert(rows);
+        var alta = await sb.from('destacados').insert(filasDestacados(slugs));
+        if (alta.error) {
+          var motivo = errorEnCriollo(alta.error, null, 'guardar los destacados');
+          if (prevSlugs.length) {
+            var vuelta = await sb.from('destacados').insert(filasDestacados(prevSlugs));
+            if (vuelta.error) console.error('[destacados] no se pudieron volver a escribir los de antes:', vuelta.error);
+          }
+          await loadDestacados();
+          errorDestacados(motivo);
+          return false;
+        }
       }
       cachedDestacados = slugs;
       logAdminAction('destacados_update', null, { from: prevSlugs, to: slugs });
       renderDestacados();
+      return true;
     }
 
     function renderDestacados() {
@@ -8182,6 +8248,7 @@
     }
 
     function moveDestacado(index, dir) {
+      if (destacadosError) { errorDestacados(destacadosError); return; }   // [DESTACADOS-BORRA-SI-FALLA]
       var slugs = cachedDestacados.slice();
       var newIndex = index + dir;
       if (newIndex < 0 || newIndex >= slugs.length) return;
@@ -8191,40 +8258,31 @@
       syncDestacadosToDB(slugs);
     }
 
-    function removeDestacado(index) {
+    // [DESTACADOS-BORRA-SI-FALLA] «eliminado» y «agregado» salen cuando la base lo guardó (antes, antes de saberlo)
+    async function removeDestacado(index) {
+      if (destacadosError) { errorDestacados(destacadosError); return; }
       var slugs = cachedDestacados.slice();
       var removed = slugs.splice(index, 1);
-      syncDestacadosToDB(slugs);
+      if (!(await syncDestacadosToDB(slugs))) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === removed[0]; });
-      var msgEl = document.getElementById('destacadoMsg');
-      msgEl.textContent = (p ? p.name : '') + ' eliminado de destacados';
-      msgEl.style.color = '#e74c3c';
-      setTimeout(function() { msgEl.textContent = ''; }, 2000);
+      msgDestacados((p ? p.name : '') + ' eliminado de destacados', '#e74c3c', 2000);
     }
 
-    function addDestacado(slug) {
+    async function addDestacado(slug) {
+      if (destacadosError) { errorDestacados(destacadosError); return; }   // [DESTACADOS-BORRA-SI-FALLA]
       var slugs = cachedDestacados.slice();
       if (slugs.indexOf(slug) !== -1) {
-        var msgEl = document.getElementById('destacadoMsg');
-        msgEl.textContent = 'Ya está en destacados';
-        msgEl.style.color = '#f1c40f';
-        setTimeout(function() { msgEl.textContent = ''; }, 2000);
+        msgDestacados('Ya está en destacados', '#f1c40f', 2000);
         return;
       }
       if (slugs.length >= 7) {
-        var msgEl = document.getElementById('destacadoMsg');
-        msgEl.textContent = 'Máximo 7 destacados. Quitá uno primero.';
-        msgEl.style.color = '#e74c3c';
-        setTimeout(function() { msgEl.textContent = ''; }, 2000);
+        msgDestacados('Máximo 7 destacados. Quitá uno primero.', '#e74c3c', 2000);
         return;
       }
       slugs.push(slug);
-      syncDestacadosToDB(slugs);
+      if (!(await syncDestacadosToDB(slugs))) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-      var msgEl = document.getElementById('destacadoMsg');
-      msgEl.textContent = (p ? p.name : '') + ' agregado a destacados';
-      msgEl.style.color = '#2ecc71';
-      setTimeout(function() { msgEl.textContent = ''; }, 2000);
+      msgDestacados((p ? p.name : '') + ' agregado a destacados', '#2ecc71', 2000);
       document.getElementById('destacadoSearch').value = '';
       document.getElementById('destacadoResults').style.display = 'none';
     }
@@ -8356,7 +8414,7 @@
       // [CARGA-FALLIDA-CERO] 1.2 · antes, con error, el recuadro se escondía sin aviso y parecía que no había horario modificado.
       // Sin «Volver al horario normal»: no se sabe si hay algo a qué volver.
       if (error) {
-        textEl.innerHTML = '<span style="color:var(--stat-tinta-out);">' + escHtml(errorEnCriollo(error, null, 'cargar el horario modificado', 'recargar')) + '</span>';
+        textEl.innerHTML = '<span class="ajuste-error">' + escHtml(errorEnCriollo(error, null, 'cargar el horario modificado', 'recargar')) + '</span>';
         if (volver) volver.style.display = 'none';
         panel.style.display = 'block';
         return;
@@ -8757,6 +8815,8 @@
       document.getElementById('comboPrice').value = parseFloat(String(s.price).replace(/,/g, '')) || '';
       document.getElementById('comboPromo').value = s.promo ? parseFloat(String(s.promo).replace(/,/g, '')) : '';
       document.getElementById('comboMsg').textContent = '';
+      // [GUARDAR-SIN-LEER] sin los perfumes nuevos, un ítem que es uno de ellos queda vacío y «Guardar» lo sacaba del combo
+      faltaLeer('nuevos', document.getElementById('comboMsg'));
 
       // Cargar foto si existe
       clearComboFoto();
@@ -8787,6 +8847,7 @@
       var price = document.getElementById('comboPrice').value;
       var promo = document.getElementById('comboPromo').value;
       var msgEl = document.getElementById('comboMsg');
+      if (editingComboSlug && faltaLeer('nuevos', msgEl)) return;   // [GUARDAR-SIN-LEER]
 
       if (!name || !price) {
         msgEl.style.color = '#e74c3c';
@@ -8978,8 +9039,13 @@
 
       try {
         // Cargar config del mes actual
-        var { data } = await sb.from('votacion_config').select('*').eq('mes', adminMes).maybeSingle();
-        if (data) {
+        var { data, error } = await sb.from('votacion_config').select('*').eq('mes', adminMes).maybeSingle();
+        if (error) {   // [GUARDAR-SIN-LEER] antes decía «Sin configurar», con los candidatos vacíos, y guardar pisaba la config del mes
+          var textoV = sinLeer('votacion', error, 'cargar la votación');
+          for (var j = 1; j <= 4; j++) { document.getElementById('votoM' + j).value = ''; document.getElementById('votoF' + j).value = ''; }
+          document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--stat-tinta-out);">' + escHtml(textoV) + '</span>';
+        } else if (data) {
+          leido('votacion', document.getElementById('votacionMsg'));
           var masc = data.candidatos_masc || [];
           var fem = data.candidatos_fem || [];
           for (var i = 0; i < 4; i++) {
@@ -8988,6 +9054,7 @@
           }
           document.getElementById('votacionEstado').innerHTML = '<span style="color:#2ecc71;">&#9679; Activa</span>';
         } else {
+          leido('votacion', document.getElementById('votacionMsg'));
           document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--gris);">Sin configurar</span>';
         }
 
@@ -9019,6 +9086,7 @@
     }
 
     async function saveVotacionConfig() {
+      if (faltaLeer('votacion', document.getElementById('votacionMsg'))) return;   // [GUARDAR-SIN-LEER]
       var masc = [], fem = [];
       for (var i = 1; i <= 4; i++) {
         var m = document.getElementById('votoM' + i).value.trim();
@@ -9533,7 +9601,7 @@
         if (error) { console.warn('[resync] error:', error.message); return; }
         // [CARGA-FALLIDA-CERO] si la lectura del login falló, el primer resync completo trae el stock: los totales dejan el «—»
         const recienCargado = completo && !stockCargado;
-        if (recienCargado) stockCargado = true;
+        if (recienCargado) { stockCargado = true; leido('stock'); }
         let touchedAny = false;
         (data || []).forEach(function(ov) {
           if (applyOverrideRowToMemory(ov)) touchedAny = true;
@@ -10507,7 +10575,7 @@
         precio_frasco_max: 170000,
         aviso_conservacion: 'Guard\u00e1 tu decant en lugar fresco y seco, lejos de la luz directa y cambios bruscos de temperatura.'
       };
-      var cfg = def;
+      var cfg = def, errDec = null;
       try {
         if (sb) {
           var res = await sb
@@ -10515,27 +10583,32 @@
             .select('*')
             .eq('id', 1)
             .maybeSingle();
-          if (res && res.data) {
+          if (res && res.error) errDec = res.error;
+          else if (res && res.data) {
             cfg = Object.assign({}, def, res.data);
             preciosTomarConfig(res.data);   // [PRECIOS-EN-UN-LUGAR] la tira y el filtro de Precios & Stock
             MARCAS_ESTADO = ('marcas_disenador' in res.data) ? 'ok' : 'sin-columna';
-          } else if (res && res.error && msg) {
-            // tabla no existe aun -> se usan defaults
-            msg.style.color = 'var(--gris)';
-            msg.textContent = 'No se encontr\u00f3 configuraci\u00f3n guardada. Mostrando valores por defecto.';
           }
         }
-      } catch (e) {
-        console.warn('[decants-admin] load error:', e);
+      } catch (e) { errDec = e; }
+      if (errDec) {
+        // [GUARDAR-SIN-LEER] antes: «No se encontró configuración guardada. Mostrando valores por defecto.» con los valores de
+        // def, y un «Guardar» los escribía ([DECANTS-DEFAULTS]). Ahora los campos quedan vacíos, el error arriba y no se guarda.
+        avisoLectura(msg, sinLeer('decants', errDec, 'cargar la configuración de decants', currentRole === 'jefe' ? '↺' : 'recargar'));
+        MARCAS_ESTADO = 'error';
+        document.getElementById('decActivo').checked = false;
+        ['decMl', 'decPrecio1', 'decPrecio3', 'decPrecio5', 'decMax', 'decFrascoMax', 'decAviso'].forEach(function(id) { document.getElementById(id).value = ''; });
+      } else {
+        leido('decants', msg);   // con la fila, sus valores; sin fila (tabla vacía de verdad), los de def, como antes
+        document.getElementById('decActivo').checked = !!cfg.activo;
+        document.getElementById('decMl').value = cfg.ml != null ? cfg.ml : 5;
+        document.getElementById('decPrecio1').value = cfg.precio_1 != null ? cfg.precio_1 : 9500;
+        document.getElementById('decPrecio3').value = cfg.precio_3 != null ? cfg.precio_3 : 9000;   // [DECANTS-DEFAULTS]
+        document.getElementById('decPrecio5').value = cfg.precio_5 != null ? cfg.precio_5 : 8500;   // [DECANTS-DEFAULTS]
+        document.getElementById('decMax').value = cfg.max_decants != null ? cfg.max_decants : 100;
+        document.getElementById('decFrascoMax').value = cfg.precio_frasco_max != null ? cfg.precio_frasco_max : 170000;
+        document.getElementById('decAviso').value = cfg.aviso_conservacion || '';
       }
-      document.getElementById('decActivo').checked = !!cfg.activo;
-      document.getElementById('decMl').value = cfg.ml != null ? cfg.ml : 5;
-      document.getElementById('decPrecio1').value = cfg.precio_1 != null ? cfg.precio_1 : 9500;
-      document.getElementById('decPrecio3').value = cfg.precio_3 != null ? cfg.precio_3 : 9000;   // [DECANTS-DEFAULTS]
-      document.getElementById('decPrecio5').value = cfg.precio_5 != null ? cfg.precio_5 : 8500;   // [DECANTS-DEFAULTS]
-      document.getElementById('decMax').value = cfg.max_decants != null ? cfg.max_decants : 100;
-      document.getElementById('decFrascoMax').value = cfg.precio_frasco_max != null ? cfg.precio_frasco_max : 170000;
-      document.getElementById('decAviso').value = cfg.aviso_conservacion || '';
       updateFrascoMaxHint();
       aplicarCandadoDecants();   // [PROMO-DECANTS] 114 · la escalera con candado para la empleada
       marcasCargarEditor();      // [PRECIOS-EN-UN-LUGAR] 123e
@@ -10565,6 +10638,11 @@
         if (agregar) agregar.style.display = 'none';
         return;
       }
+      if (MARCAS_ESTADO === 'error') {   // [GUARDAR-SIN-LEER] sin la config no se sabe qué marcas hay: no «Ninguna.»
+        cont.innerHTML = '<p class="promo-vacio">' + escHtml(SIN_LEER.decants || '') + '</p>';
+        if (agregar) agregar.style.display = 'none';
+        return;
+      }
       if (agregar) agregar.style.display = jefe ? '' : 'none';
       cont.classList.toggle('campo-bloqueado', !jefe);
       if (!MARCAS_EDIT.length) { cont.innerHTML = '<p class="promo-vacio">Ninguna.</p>'; return; }
@@ -10591,6 +10669,8 @@
     async function marcasGuardarAhora() {
       if (currentRole !== 'jefe') return;
       var msg = document.getElementById('marcasMsg');
+      var faltaM = faltaLeer('decants', msg);   // [GUARDAR-SIN-LEER] la lista de marcas vive en la misma fila
+      if (faltaM) return { ok: false, error: faltaM };
       var antes = (MARCAS_DISENADOR || []).slice(), nuevas = MARCAS_EDIT.slice();
       var r = await sb.from('decants_config').update({ marcas_disenador: nuevas }).eq('id', 1);
       if (r && r.error) {
@@ -10676,18 +10756,23 @@
       try {
         var r = await sb.from('promos_decants').select('*').eq('id', 1);
         PROMO_ADMIN = (r && !r.error && Array.isArray(r.data) && r.data.length) ? r.data[0] : null;
+        // [GUARDAR-SIN-LEER] con la lectura fallida el formulario mostraba «Apagada» y la oferta por defecto, y «Guardar»
+        // pisaba la promo de la base. Lo mismo los perfumes sumados o sacados a mano.
+        var tocaP = currentRole === 'jefe' ? '↺' : 'recargar';
+        if (r && r.error) sinLeer('promo', r.error, 'cargar la promo', tocaP); else leido('promo');
         var r2 = await sb.from('promos_decants_perfumes').select('*');
         PROMO_ADMIN_MODOS = {};
+        if (r2 && r2.error) sinLeer('promoModos', r2.error, 'cargar los perfumes de la promo', tocaP); else leido('promoModos');
         if (r2 && !r2.error && Array.isArray(r2.data)) r2.data.forEach(function(x) { if (x && x.slug) PROMO_ADMIN_MODOS[x.slug] = x.modo; });
         PRECIOS_DATOS.promo = !(r && r.error) && !(r2 && r2.error);   // [PRECIOS-EN-UN-LUGAR]
       } catch (e) {
-        console.warn('[promo-admin] load:', e);
-        if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'No se pudo leer la promo. Probá con ↺ Recargar.'; }
+        sinLeer('promo', e, 'cargar la promo', currentRole === 'jefe' ? '↺' : 'recargar');
       }
+      avisoLectura(msg, SIN_LEER.promo || SIN_LEER.promoModos);
       var P = PROMO_ADMIN;
       document.getElementById('promoActiva').checked = !!(P && P.activa);
       promoSwitchTexto();
-      document.getElementById('promoN').value = String(P ? P.n : 3);
+      document.getElementById('promoN').value = SIN_LEER.promo ? '' : String(P ? P.n : 3);   // [GUARDAR-SIN-LEER] sin el 3 por defecto
       document.getElementById('promoPrecio').value = P ? P.precio_pack : '';
       document.getElementById('promoMax').value = (P && P.max_packs) ? P.max_packs : '';
       document.getElementById('promoDesde').value = P ? promoAInput(P.desde) : '';
@@ -10708,6 +10793,12 @@
     function renderPromoEstado() {
       var el = document.getElementById('promoEstado'), el2 = document.getElementById('promoEstado2');
       if (!el) return;
+      el.style.color = '';
+      if (SIN_LEER.promo) {   // [GUARDAR-SIN-LEER] sin la fila de la base no se sabe si está prendida: no «Apagada»
+        el.className = 'promo-estado'; el.textContent = SIN_LEER.promo; el.style.color = 'var(--stat-tinta-out)';
+        if (el2) el2.hidden = true;
+        return;
+      }
       var P = PROMO_ADMIN, ahora = Date.now(), estado = 'apagada', txt = 'Apagada · no se ve en el sitio';
       if (P && P.activa) {
         var desde = Date.parse(P.desde), hasta = Date.parse(P.hasta);
@@ -10796,6 +10887,7 @@
     // e · sumar, sacar o volver a automático (las dos cuentas).
     async function promoCambiarModo(slug, modo) {
       var msg = document.getElementById('promoPerfMsg'); if (msg) { msg.textContent = ''; msg.style.color = ''; }
+      if (faltaLeer('promoModos', msg)) return;   // [GUARDAR-SIN-LEER]
       var antes = PROMO_ADMIN_MODOS[slug];
       try {
         var r = modo === 'auto'
@@ -10816,6 +10908,7 @@
       var msg = document.getElementById('promoMsg'); msg.textContent = ''; msg.style.color = '';
       var mal = function(t) { msg.style.color = '#e74c3c'; msg.textContent = t; return { ok: false, error: t }; };
       if (currentRole !== 'jefe') return mal('Sólo el jefe puede cambiar la promo.');
+      if (SIN_LEER.promo) return mal(SIN_LEER.promo);   // [GUARDAR-SIN-LEER]
       var activa = document.getElementById('promoActiva').checked;
       var n = parseInt(document.getElementById('promoN').value, 10);
       var pp = parseInt(document.getElementById('promoPrecio').value, 10);
@@ -10925,6 +11018,25 @@
     //    «descargar el backup» (se hace con un botón) siguen igual.
     // 2.3 · «No se pudo» / «No se pudieron»: plural cuando lo que sigue al verbo empieza con «los» o «las»
     // («cargar los clientes» → «No se pudieron cargar los clientes»; «cargar el log» → «No se pudo cargar el log»).
+    // [GUARDAR-SIN-LEER] si la lectura de un formulario o de una lista falló, no se muestra un relleno por defecto como si
+    // fuera lo de la base, y «Guardar» no escribe: queda el error, como en 128m. Una tabla vacía de verdad sigue como antes.
+    // SIN_LEER[clave] = el texto en criollo de la lectura que falló; leido(clave) lo borra cuando la lectura anda.
+    var SIN_LEER = {};
+    function sinLeer(clave, err, que, toca) { var t = errorEnCriollo(err, null, que, toca || 'recargar'); SIN_LEER[clave] = t; return t; }
+    // Con el: si todavía muestra el error de esa lectura, lo borra (la carga siguiente anduvo).
+    function leido(clave, el) { if (el && SIN_LEER[clave] && el.textContent === SIN_LEER[clave]) el.textContent = ''; delete SIN_LEER[clave]; }
+    function avisoLectura(el, texto) { if (el && texto) { el.textContent = texto; el.style.color = 'var(--stat-tinta-out)'; } }
+    // Si esa lectura falló, lo dice en el (si hay) y devuelve el texto; si no, ''.
+    function faltaLeer(clave, el) { var t = SIN_LEER[clave] || ''; avisoLectura(el, t); return t; }
+    // El stock de la base (stockCargado): sin él, los modales de stock y de depósito arrancan con lo de perfumes.js
+    // (5 en el local, 0 en el depósito) y «Guardar» lo escribía.
+    function faltaStock(el) {
+      if (stockCargado) return '';
+      var t = SIN_LEER.stock || 'Todavía no cargó el stock. Esperá un momento y probá de nuevo.';
+      avisoLectura(el, t);
+      return t;
+    }
+
     function noSePudo(que) { return (/^\S+ (los|las) /.test(que) ? 'No se pudieron ' : 'No se pudo ') + que; }
     function errorPropio(texto) { var e = new Error(texto); e.propio = true; return e; }
     function errorEnCriollo(err, ctx, que, tocaGuardar) {
@@ -11002,6 +11114,8 @@
       var msg = document.getElementById('decMsg');
       msg.textContent = '';
       msg.style.color = '';
+      var faltaDec = faltaLeer('decants', msg);   // [GUARDAR-SIN-LEER]
+      if (faltaDec) return { ok: false, error: faltaDec };
 
       var activo = document.getElementById('decActivo').checked;
       var ml = parseInt(document.getElementById('decMl').value, 10);
@@ -11973,7 +12087,9 @@
     async function loadPuntosConfig() {
       try {
         var r = await sb.from('puntos_config').select('*').order('id').limit(1);
-        var cfg = (r.data && r.data[0]) || {};
+        if (r.error) throw r.error;
+        leido('puntos', document.getElementById('cfgPuntosMsg'));
+        var cfg = (r.data && r.data[0]) || {};   // sin fila (tabla vacía de verdad): los valores de siempre, como antes
         var byId = function(id){ return document.getElementById(id); };
         if (byId('cfgPuntosPerfume')) byId('cfgPuntosPerfume').value = cfg.puntos_por_perfume != null ? cfg.puntos_por_perfume : 1;
         if (byId('cfgPuntosDecant')) byId('cfgPuntosDecant').value = cfg.puntos_por_decant != null ? cfg.puntos_por_decant : 0.10;
@@ -11981,11 +12097,17 @@
         if (byId('cfgThreshold')) byId('cfgThreshold').value = cfg.threshold_proximo_premio != null ? cfg.threshold_proximo_premio : 5;
         if (byId('cfgMensajePromo')) byId('cfgMensajePromo').value = cfg.mensaje_promo || '';
         window._puntosCfgId = cfg.id;
-      } catch(e) { console.warn('[puntos] loadConfig', e); }
+      } catch(e) {   // [GUARDAR-SIN-LEER] antes llenaba 1 / 0,10 / 2 / 5 y «Guardar» los escribía (sin el id, en una fila nueva)
+        var textoP = sinLeer('puntos', e, 'cargar la configuración de puntos');
+        ['cfgPuntosPerfume', 'cfgPuntosDecant', 'cfgPuntosCombo', 'cfgThreshold', 'cfgMensajePromo'].forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+        window._puntosCfgId = undefined;
+        avisoLectura(document.getElementById('cfgPuntosMsg'), textoP);
+      }
     }
 
     async function savePuntosConfig() {
       var msg = document.getElementById('cfgPuntosMsg');
+      if (faltaLeer('puntos', msg)) return;   // [GUARDAR-SIN-LEER]
       var byId = function(id){ return document.getElementById(id); };
       var payload = {
         puntos_por_perfume: parseFloat(byId('cfgPuntosPerfume').value) || 0,
@@ -12015,15 +12137,19 @@
       try {
         var r = await sb.from('clientes').select('id,nombre,telefono,puntos').order('puntos', { ascending: false }).limit(500);
         if (r.error) throw r.error;   // 128k · sin esto, un error se veía como «Sin clientes»
+        leido('ranking');
         _puntosRankingData = r.data || [];
         renderPuntosRanking();
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el ranking', 'recargar')) +'</td></tr>';   // 128h
+        sinLeer('ranking', e, 'cargar el ranking');   // 128h
+        renderPuntosRanking();
       }
     }
 
     function renderPuntosRanking() {
       var tbody = document.getElementById('tbodyPuntosRanking');
+      // [GUARDAR-SIN-LEER] con la recarga fallida, el buscador volvía a pintar la lista vieja (con «Ajustar») o «Sin clientes»
+      if (SIN_LEER.ranking) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">' + escHtml(SIN_LEER.ranking) + '</td></tr>'; return; }
       var f = (document.getElementById('puntosFilterCliente')||{}).value || '';
       f = f.trim().toLowerCase();
       var rows = _puntosRankingData;
@@ -12084,6 +12210,7 @@
       var amt = parseFloat(document.getElementById('modalPuntosCantidad').value);
       var msg = document.getElementById('modalPuntosMsg');
       msg.style.color = '';
+      if (faltaLeer('ranking', msg)) return;   // [GUARDAR-SIN-LEER] los puntos de la lista vieja + el ajuste pisaban los de ahora
       if (!isFinite(amt) || amt <= 0) { msg.style.color = '#ff7a7a'; msg.textContent = 'Cantidad inválida'; return; }
       var motivoSel = document.getElementById('modalPuntosMotivo').value || 'manual_jefe';
       var nota = (document.getElementById('modalPuntosNota').value||'').trim();
