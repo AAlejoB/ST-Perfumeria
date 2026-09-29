@@ -3381,7 +3381,7 @@ El prompt `_s` del PREPARADOR.
 #### La tanda chica (rama `pulido-login` desde `5f17464`)
 `e42a32e` (catálogo: `js/app.js`, `index.html`, `css/styles.css`, `scripts/contraste.js`) + `fea3057` (`admin.html`, `api/cron/backup.js`) + SW v1.1.151 (`57bfede`).
 
-**En el punto 2.9 va la opción A.** Es el default del prompt: el mensaje de Alejo traía otra vez el texto de la plantilla, sin elegir. Antes de arrancar, en la base (sólo lectura), **el Bloque 2c ya estaba corrido**:
+**En el punto 2.9 va la opción A.** Primero fue el default del prompt (el mensaje de Alejo traía otra vez el texto de la plantilla, sin elegir); después **Alejo la confirmó** (29-sep). La rama `sesion-cliente` se borró, en la compu y en GitHub, con su OK. Antes de arrancar, en la base (sólo lectura), **el Bloque 2c ya estaba corrido**:
 - `cliente_editar` devuelve `TABLE(estado text, espera_seg integer)`, mira `v_cli.bloqueado` y avisa por Telegram;
 - cierra `[EDITAR-BLOQUEADO]` (SECURITY.md § S30).
 
