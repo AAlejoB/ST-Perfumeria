@@ -3598,7 +3598,52 @@ El prompt `_v` del PREPARADOR.
   - las 66 llamadas a `errorEnCriollo`: todos los `que` empiezan con el verbo; los plurales empiezan con «los» o «las» (ninguno con «unos», «sus» o parecido); sin `que`, queda «guardar».
 - 0 hallazgos.
 
+### Sesión 29-sep-2026 · `_x` · el merge de `pulido-clientes` (v1.1.154), la tanda v1.1.155 en `carga-fallida` · **sin mergear** · y el arranque de los dos temas (sólo medido)
+
+El prompt `_w` del PREPARADOR.
+
+#### 0 · El merge de `pulido-clientes`
+- OK de Alejo con la línea del PREPARADOR: fast-forward `91c7e37..ac74be1` a las **03:50:18 (ART) del 29-sep**. Vercel sirvió `ac74be1` a los ~29 s: los archivos, iguales byte a byte. Prueba de humo sin cuenta: 192 cards, 17 pedidos a Supabase todos 200, 0 errores en la consola.
+- `pulido-clientes` borrada, en la compu y en GitHub. Cierra `[PANEL-HOY-UTC]` (y quedan en producción 132d y la concordancia).
+
+#### 1 · La tanda v1.1.155 (rama `carga-fallida` desde `ac74be1`)
+- **1.1 · 128m `[CARGA-FALLIDA-CERO]`:** un contador que depende de una carga dice «—» (con la palabra) mientras carga y si la carga falla; «0» sólo con la carga buena y 0 de verdad. Inventario con 3 agentes buscando por separado (el HTML, el JS y las cargas: 53, 42 y 44 contadores). Lo que se tocó, y qué decía en `main` con la carga fallida:
+  - Clientes (`#clientCount`): «0 clientes» → «— clientes» (también mientras carga, y buscar no lo pisa).
+  - Combos (`#comboCount`): «4 combos», los de `perfumes.js` → «— combos» y el error en vez de la lista (`loadCombosFromDB` ignoraba el error).
+  - La Espera (ESPERANDO, PERFUMES y «Pendientes (N) / Historial (N)»): «0» y «0» sin aviso (o los números de antes) → «—» y el error en vez de «Nadie esperando».
+  - Nuevos (`#nuevosCount`): «0» y «Sin perfumes agregados aún» → «—» y el error (buscar no lo tapa con «Sin resultados»).
+  - Destacados (`#destacadosCount`): «0/7» y «No hay destacados. Buscá un perfume arriba para agregar.» → «—/7» y el error.
+  - Push (`#pushSubCount`): «0» → «—» (supabase-js no tira; el «?» del `catch` casi no salía).
+  - Estadísticas: 👥 Clientes, 💬 Opiniones, 👁️ Visitas y 📊 Promedio en «0» → «—»; el top 10 decía «Sin datos aún» y «los olvidados» mostraba todos los perfumes → el error y «— perfumes sin visitas de N totales».
+  - Precios & Stock y Depósito: las tarjetas de arriba se calculaban con `perfumes.js` si fallaba `perfume_overrides` («0», «$0», o los pausados como activos) → «—» hasta la primera lectura buena (`stockCargado`: la del login o, si falló, el primer resync completo). «N perfumes en la lista» con «sólo los que tienen unidades» → «—».
+  - Analítica: los totales y las tablas quedaban con la carga anterior (quizás de otro rango) → «—» mientras carga y si falla.
+  - Backups (`#backupsMeta`): quedaba «N backups · actualizado …» de antes → «— backups» si falla.
+  - Ya estaban bien: el Log (el error en vez del feed; los chips no llevan números) y el Resumen.
+- **1.2:** `loadAjuste` mira su error: el recuadro «Horario modificado» con «No se pudo cargar el horario modificado. Recargá la página; si sigue, avisale a Alejo.» en `--stat-tinta-out`, escapado, y sin «Volver al horario normal» (no se sabe si hay algo a qué volver).
+- **1.3:** `noSePudo` queda como está. Los textos nuevos de `errorEnCriollo`: «No se pudieron cargar los combos.», «No se pudo cargar la lista de espera.», «No se pudieron cargar los perfumes nuevos.», «No se pudieron cargar los destacados.», «No se pudieron cargar las visitas.», «No se pudo cargar el horario modificado.», todos con «Recargá la página; si sigue, avisale a Alejo.».
+- **1.4:** el bump, aparte.
+
+#### Verificación (fixtures, stub `ronda-x/stub-x.js`, 390; contra `main` = `ac74be1`)
+- Cada contador con la carga buena, fallida, vacía (0 de verdad) y colgada (cargando): en la rama «—» con la carga fallida y colgada, y «0» con la base vacía; en `main`, «0», «$0», «0/7», «4 combos» o los números de antes.
+- `loadAjuste` con error: el recuadro con el texto y sin el botón (`main`: escondido).
+- Los arreglos de la revisión (pruebas f a h): el «✅ Backup creado» se ve; «Quitar» con la relectura fallida avisa «No se pudo quitar»; una carga vieja de la Espera que falla tarde no tapa una nueva; Depósito abierto durante el arranque pasa de «—» a los números (`main`: queda en «0 · 0 · 0»); el resync completo trae el stock aunque el realtime ya haya fijado `rtLastSyncAt`.
+- `vm.Script`: ok. `npm run contraste`: **0 fallas** + 1 token pisado, **341** mediciones. El error del horario medido aparte: claro 5,60, oscuro 4,34 → `[HORARIO-ERROR-OSCURO]`.
+- 4 capturas en `herramientas\ronda-x\png` (Clientes y la Espera con la carga fallida; el horario en claro y en oscuro).
+
+#### La revisión adversarial (19 agentes, ultracode)
+- 4 enfoques (los estados, las regresiones, el escapado y los textos, el arranque y los roles) y un verificador por hallazgo: 15 veredictos, 12 reales y 3 refutados.
+- De este cambio, arreglados en la rama (`3c3b046`): el «— backups» del arranque de la carga pisaba el «✅ Backup creado»; si fallaba la relectura, «Quitar» daba la fila por borrada y no avisaba; una carga vieja de la Espera que fallaba tarde tapaba una nueva; Depósito abierto durante el arranque quedaba en «—»; y, opcionales, el resync completo mientras el stock no cargó y Analítica en «—» mientras carga.
+- De antes, a Pendientes: `[DESTACADOS-BORRA-SI-FALLA]` 🟠 y `[PANEL-STOCK-CALLA]` 🟡. Del inventario: `[CARGA-FALLIDA-SEED]` 🟢. De medir: `[HORARIO-ERROR-OSCURO]` 🟢.
+
+#### 2 · El arranque de los dos temas (sólo medido, sobre `main` = `ac74be1`)
+- Con fixtures de los **volúmenes reales** (contados con `count(*)`, sin leer datos: 100 clientes, 42 en la espera, 117 nuevos, 272 filas de stock con 73 pausados, 36 movimientos del Log en 2 días, etc.) y datos inventados.
+- `[DISEÑOACORTADOR-PANELADMIN]`, a 600 × 960: 23 pestañas el jefe y 15 la empleada; con el menú fuera de pantalla, 2 toques por pestaña (3 en «Avanzado», plegado); el contenido arranca a 175 px; Precios & Stock 11,3 pantallas (la tabla empieza a 703), Depósito 14,1, Clientes 20,5 y el Doctor 40.
+- `[FACILITAR-MOBILE-EN-CATALOGO]`, a 390 × 844: la primera tarjeta a 2.506 px (2,97 pantallas); una tarjeta mide 592 y la zona útil con lo pegado 547, así que ninguna entra entera; el mazo de género queda tapado con el catálogo pegado (`[MAZO-TAPADO]`) y «Ordenar» tapa la primera sugerencia (`[SUGERENCIAS-BAJO-ORDENAR]`).
+- El detalle, las preguntas y la tabla «hago / no hago / decide Alejo»: `_correo_agentes\ST_Perfumeria\ClaudeCode_para_PREPARADOR_2026-09-29_x2.md`; las 60 capturas, en `herramientas\ronda-x\png` (`panel-*`, `catalogo-*`).
+
 ---
+
+**Última actualización:** **Septiembre 29, 2026 (`_x`)** — el merge de `pulido-clientes` (03:50 del 29-sep, v1.1.154 en producción), la tanda v1.1.155 en `carga-fallida`, sin mergear, y el relevamiento de los dos temas. Cerrado, en producción: `[PANEL-HOY-UTC]`. Nuevos: `[DESTACADOS-BORRA-SI-FALLA]` 🟠, `[PANEL-STOCK-CALLA]`, `[MAZO-TAPADO]` y `[SUGERENCIAS-BAJO-ORDENAR]` 🟡, `[CARGA-FALLIDA-SEED]` y `[HORARIO-ERROR-OSCURO]` 🟢.
 
 **Última actualización:** **Septiembre 29, 2026 (`_w`)** — el merge de `pulido-textos` (03:05 del 29-sep, v1.1.153 en producción), las capturas al DISEÑADOR y la tanda v1.1.154 en `pulido-clientes`, sin mergear. Cerrados, en producción: `[CLIENTES-OSCURO-ROJO]`, `[CLIENTES-HOVER]`, `[HORARIO-BORRA-ANTES]`. Nuevo, 🟢: `[PANEL-HOY-UTC]` (en la rama).
 
@@ -3760,6 +3805,10 @@ El prompt `_v` del PREPARADOR.
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 29-sep-2026 (`_x`):**
+
+- ✅ ~~**`[PANEL-HOY-UTC]`**~~ (29-sep, salió de la revisión de la ronda v · 🟢, confirmado por el PREPARADOR) — `loadCierres` y `loadAjuste` (`admin.html`) calculaban «hoy» con `new Date().toISOString()`, en UTC (NO ROMPER #6): de 21 a 24 (ART) el panel mostraba como pasado el cierre de hoy y escondía el ajuste de horario que terminaba ese día, aunque el catálogo lo seguía aplicando. **En la rama `pulido-clientes` (ronda w, `_w`):** las dos usan `resumenHoyART()`, y `loadCierres` muestra su error (antes un error decía «No hay cierres programados»). Con el reloj a las 22:30 del 29-09, el cierre de hoy ya no sale como pasado y el ajuste que termina hoy se ve. `addCierre` (`fechas.push(d.toISOString()…)`) no tiene el problema: arma cada fecha al mediodía local. **En producción desde el 29-sep a las 03:50 (ART), v1.1.154.**
 
 **Movidos el 29-sep-2026 (`_w`):**
 
