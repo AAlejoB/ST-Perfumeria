@@ -3505,7 +3505,61 @@ El prompt `_t` del PREPARADOR.
 - 1 queda como opción, para el PREPARADOR: el registro sin llave vacía el número y la contraseña, y «Iniciá sesión» pide escribirlos de nuevo. Es la lectura literal del 2.5 («registrarse bien»). La otra opción es dejarlos, como en `main`, para entrar con un toque cuando termina la espera.
 - 2 pendientes nuevos, 🟢, del DISEÑADOR: `[CLIENTES-OSCURO-ROJO]` y `[CLIENTES-HOVER]`.
 
+### Sesión 29-sep-2026 · `_v` · el merge de `pulido-panel` (v1.1.152) y la tanda v1.1.153 en `pulido-textos` · **sin mergear**
+
+El prompt `_u` del PREPARADOR.
+
+#### El merge de `pulido-panel`
+- Con la revisión del PREPARADOR y el OK de Alejo en el chat: fast-forward `4458f2f..8da11ab` a las **02:35:08 (ART) del 29-sep**.
+- Producción: `sw.js` en v1.1.152 a los 20 s; `sw.js`, `js/app.js`, `admin.html`, `index.html` y `css/styles.css`, iguales byte a byte a `8da11ab`.
+- Prueba de humo **sin cuenta**: 192 cards, sin sesión ni ventana, 17 pedidos a Supabase todos 200, 0 errores en la consola.
+- Con el mismo OK se borró `pulido-login` (`4458f2f`, ya en `main`), en la compu y en GitHub.
+- Quedan en producción los 5 de la ronda u: `[COMBO-PISA-COMBO]`, `[COMBO-BORRA-SIN-MIRAR]`, `[CRIOLLO-BORDES]`, `[LOGIN-CLARO-TELEFONO]` y `[LOGIN-CAMPOS-QUEDAN]`.
+
+#### La tanda v1.1.153 (rama `pulido-textos` desde `8da11ab`)
+`f693ea2` (`admin.html`, `js/app.js`, `scripts/contraste.js`) + SW v1.1.153 (`bade743`).
+
+- **2.1 · 128k `[ERROR-AL-CARGAR]`:** `errorEnCriollo` sabe si es una carga (`que` empieza con «cargar») y el 4.º parámetro dice cómo se vuelve a pedir: `'↺'` o `'recargar'` (o nada).
+  - Con ↺: el Log («↺»), Analítica («↺ Refrescar»), Backups («↺ Refrescar»), el historial de puntos («↺») y Decants de diseñador sólo para el jefe (el «↺ Recargar» de su barra llama a `loadDecantsCustom`). Sin red: «No se pudo conectar. Revisá internet y tocá ↺.»; genérico: «No se pudo cargar X. Tocá ↺; si sigue, avisale a Alejo.».
+  - Sin botón: Reset contraseñas, Clientes, los mensajes, los slides, el ranking de puntos y Decants de diseñador para la empleada. «…recargá la página.» / «…Recargá la página; si sigue, avisale a Alejo.».
+  - Sesión vencida: «Se venció la sesión. Volvé a entrar.». El 42501, «Esta cuenta no puede ver esto.». «descargar el backup» (se hace con un botón), guardar, borrar y sumar, como antes.
+  - El ranking y el historial de puntos no miraban `r.error`: un error se veía como «Sin clientes» / «Sin movimientos» (ya pasaba en `main`; salió de la revisión).
+- **2.2, opción B** (el default: Alejo no eligió A): un registro que termina **sin** sesión deja el número y la contraseña en «Iniciá sesión», con la vista previa del número; el nombre y «repetí tu número», que ahí no se usan, se vacían. Con sesión, los vacía `onLogin` como antes.
+- **2.3 `[HORARIO-BORRA-ANTES]`:** `saveAjuste` inserta primero (`.select('id').single()`) y, si salió, borra sólo los **anteriores** (`lt('id', nuevo)`). El catálogo y el panel leen el más nuevo (`order created_at desc, limit 1`): si por un momento hay dos filas, manda el nuevo. «Guardar horario» se apaga mientras guarda. Si falla el borrado, el nuevo queda y manda, el formulario también, y el aviso («Horario guardado: … . No se pudo …») no se va solo. «Volver al horario normal» borra todos (`neq('id', 0)`) y mira el error.
+- **2.4:** `[CLIENTES-OSCURO-ROJO]` (Eliminar y ✗ NO COMPRÓ `#ff8a80` en oscuro) y `[CLIENTES-HOVER]` (los `:hover` en `@media (hover: hover)`; Editar `#1a5a8f`; Bloquear y Eliminar sobre `.18`). Combos usa las mismas clases.
+- **2.5:** el bump, aparte.
+
+#### Verificación (fixtures, stub `ronda-v/stub-v.js`: el de la ronda t más los filtros de cada escritura, el id del insert y `__fallaOp`; 390)
+- **a · 128k**, jefe y empleada: Clientes, sin red / genérico / sesión / 42501 → «…recargá la página.» / «No se pudo cargar los clientes. Recargá la página; …» / «Se venció la sesión. Volvé a entrar.» / «Esta cuenta no puede ver esto.». El Log y el historial de puntos, con «tocá ↺». Decants de diseñador: «tocá ↺» el jefe, «recargá la página» la empleada. El ranking, «recargá la página». «descargar el backup» sin red → «…probá de nuevo.».
+- **b · 2.2 (B):** registro con `cliente_entrar` = `'bloqueado'` → «Iniciá sesión» con el número y la contraseña, la vista previa «📱 +54 9 2970 00-0022 ✓», y el nombre y el número repetido vacíos. Un toque en «Entrar» (después) llama a `cliente_entrar` con esos datos y entra; los campos quedan vacíos. Registro con llave → vacíos.
+- **c · 2.3:**
+  - el `insert` fallando → no hay `delete`, el ajuste de antes sigue, sin Telegram;
+  - el `insert` bien → `delete lt(id, nuevo)`, 1 Telegram, el formulario se vacía;
+  - el borrado fallando → el aviso con los dos textos, el formulario queda, 1 Telegram, y a los 3 s sigue;
+  - doble toque en «Guardar horario» → un solo `insert` y un solo `delete`;
+  - el temporizador de un guardado anterior no borra el aviso del siguiente;
+  - «Volver al horario normal» → `delete neq(id, 0)` y 1 `horario_reset` en el Log; si falla, el aviso y 0 en el Log.
+- **d · 2.4**, en el DOM:
+  - oscuro: Eliminar 7,13 y ✗ NO COMPRÓ 7,39;
+  - con mouse: Editar 7,23 en los dos temas; claro Bloquear 4,76 y Eliminar 4,67; oscuro 6,31 y 6,86;
+  - las tres reglas `:hover` están sólo dentro de `(hover: hover)`: sin mouse el botón queda con su fondo y su letra.
+- `vm.Script` y `node --check`: ok. `npm run contraste`: **0 fallas** + 1 token pisado, **339** mediciones (sin conocidas). 0 `!important` nuevos.
+- 6 capturas en `herramientas\ronda-v\png`.
+
+#### La revisión adversarial (12 agentes: 3 revisores y un verificador por hallazgo)
+- 7 confirmados, 2 descartados. 6 arreglados en la rama:
+  - el ranking y el historial de puntos miran `r.error`;
+  - **el doble toque en «Guardar horario» podía dejar la tabla vacía** (regresión del orden nuevo con `neq`): se borra con `lt` y el botón se apaga;
+  - si falla el borrado, el formulario queda (el aviso pide guardar de nuevo);
+  - «Volver al horario normal» borra todos y mira el error (ya pasaba en `main`);
+  - el temporizador de 3 s ya no borra un aviso nuevo;
+  - en la B, el nombre y «repetí tu número» se vacían y el número muestra su vista previa.
+- 1 queda, porque es parte de la B: con `'bloqueado'`, la contraseña queda en la ventana durante la espera (misma pestaña, sin recargar).
+- Descartados: el ↺ de Decants para el jefe (está en su barra, a la vista) y `docs/DATABASE.md` con el orden viejo (se corrige en estos docs).
+
 ---
+
+**Última actualización:** **Septiembre 29, 2026 (`_v`)** — el merge de `pulido-panel` (02:35 del 29-sep, v1.1.152 en producción) y la tanda v1.1.153 en `pulido-textos`, sin mergear. Cerrados, en producción: los 5 de `pulido-panel`. Nuevo, 🟢: `[HORARIO-BORRA-ANTES]` (en la rama).
 
 **Última actualización:** **Septiembre 29, 2026 (`_u`)** — el merge de `pulido-login` (23:21 del 28-sep, v1.1.151 en producción), el Bloque 3 (cierra `[S13-ESCRITURAS-ANON]`), la hora de las rondas s y t corregida y la tanda v1.1.152 en `pulido-panel`, sin mergear. Cerrados, en producción: los 7 de `pulido-login`. Nuevos, 🟢: `[CLIENTES-OSCURO-ROJO]`, `[CLIENTES-HOVER]`.
 
@@ -3663,6 +3717,14 @@ El prompt `_t` del PREPARADOR.
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 29-sep-2026 (`_v`):**
+
+- ✅ ~~**`[COMBO-PISA-COMBO]`**~~ (28-sep, salió de 128h · 🟢, prioridad propuesta por Claude Code) — `saveCombo` (`admin.html`) arma el `slug` de un combo nuevo con el nombre (`'set-' + nombre`, en minúsculas) y guarda con `upsert` por `slug`: si ya hay un combo que da el mismo `slug` («Verano» y «VERANO»), el nuevo lo pisa sin avisar. Por eso Combos no tiene «Ya existe…» en 128h: la base nunca responde 23505. Además, `combos` tiene el único de `slug` dos veces (`combos_slug_key` y `combos_slug_unique`). No se tocó. **En la rama `pulido-panel` (ronda u, `_u`):** al crear, un nombre que da el `slug` de algo que ya está en la lista no pisa al otro: «Ya existe un combo con ese nombre.», sin escribir. Si no está en la lista va `insert`: el 23505 de la base da el mismo mensaje y recarga la lista. «Guardar combo» se apaga mientras guarda y hasta que se cierra el formulario. Editar, `upsert` como antes. → **RESUELTO el 29-sep**, en producción con v1.1.152 (merge de `pulido-panel`, 02:35 ART).
+- ✅ ~~**`[COMBO-BORRA-SIN-MIRAR]`**~~ (28-sep, salió de la revisión de la ronda t · 🟢, de antes, prioridad propuesta por Claude Code) — `deleteCombo` (`admin.html`) no mira el resultado del `delete`: si la base lo rechaza, igual saca el combo de la lista, lo anota en el Log y manda el Telegram; vuelve al recargar. El `catch` (128j) sólo corre con una excepción. Del PREPARADOR. **En la rama `pulido-panel` (ronda u, `_u`):** `deleteCombo` pide la fila (`.select('slug')`): con error, o con 0 filas (un DELETE que la RLS no deja no da error), el combo sigue en la lista, sin Log ni Telegram, y el mensaje sale por `errorEnCriollo`. → **RESUELTO el 29-sep**, en producción con v1.1.152 (merge de `pulido-panel`, 02:35 ART).
+- ✅ ~~**`[CRIOLLO-BORDES]`**~~ (28-sep, salió de la revisión de la ronda t · 🟢, prioridad propuesta por Claude Code) — bordes de `errorEnCriollo` que aparecen al usarla también en las cargas: un `TypeError` del propio código (no de la red) sale como «No se pudo conectar»; un `42501` al cargar dice «Esta cuenta no puede guardar esto.»; los «Guardar» de 128h (Depósito, horario, combo, candidatos, editar cliente) no llevan `tocaGuardar`; y las validaciones propias de las fotos («Imagen inválida») pasan a «Probá de nuevo». Del PREPARADOR. **En la rama `pulido-panel` (ronda u, `_u`):** sin conexión = `navigator.onLine === false` o el mensaje de la red (se va `e.name === 'TypeError'`; el regex suma «network error» y los de Safari: «The network connection was lost.», «The request timed out.»…); un 42501 al leer («cargar …» o «descargar el backup») → «Esta cuenta no puede ver esto.»; `tocaGuardar` en los cinco de 128h con «Guardar»; los mensajes propios se arman con `errorPropio(texto)` y van tal cual (las fotos: «Imagen inválida»). → **RESUELTO el 29-sep**, en producción con v1.1.152 (merge de `pulido-panel`, 02:35 ART).
+- ✅ ~~**`[LOGIN-CLARO-TELEFONO]`**~~ (28-sep, salió de la revisión de la ronda t · 🟢, de antes, del DISEÑADOR) — en claro, en «Unite a ST», los textos del teléfono con color inline: ✓ verde `#27ae60` 2,50, rojo `#e74c3c` 3,33 y «(N dígitos faltan)» `#999` 2,48 sobre `#f5efde`. Además, la regla `body:not(.dark-mode) .auth-modal p { color: #2a2622 !important }` deja el error y el ✓ de la ventana en gris oscuro, sin rojo ni verde. No se tocó. **En la rama `pulido-panel` (ronda u, `_u`):** en claro, por clase: ✓ `#1b5e20` (6,85), el rojo y `.auth-error` `#b8342a` (5,13), «(N dígitos faltan)» `#5e564a` (6,29). La regla de los `<p>` de la ventana pasa a `p:not(.auth-error)` (sin otro `!important`). El oscuro, igual. → **RESUELTO el 29-sep**, en producción con v1.1.152 (merge de `pulido-panel`, 02:35 ART).
+- ✅ ~~**`[LOGIN-CAMPOS-QUEDAN]`**~~ (28-sep, salió de las capturas de la ronda t · 🟢, de antes) — después de entrar, el número y la contraseña quedan escritos en los campos de «Iniciá sesión» (sólo se vacían al recargar): si la sesión se corta en esa misma carga, la ventana se reabre con los dos cargados. No se tocó. **En la rama `pulido-panel` (ronda u, `_u`):** `limpiarCamposAuth()` después de entrar, de registrarse (también cuando la cuenta quedó creada pero entrar no dio llave) y al cerrar sesión (también en una salida forzada). → **RESUELTO el 29-sep**, en producción con v1.1.152 (merge de `pulido-panel`, 02:35 ART). En `pulido-textos` el registro que termina sin sesión pasa a la opción B (quedan el número y la contraseña).
 
 **Movidos el 29-sep-2026 (`_u`):**
 

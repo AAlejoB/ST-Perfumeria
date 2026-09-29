@@ -50,7 +50,7 @@
 | `votacion_config` | Candidatos del perfume del mes | 1 fila por mes |
 | `votos` | Votos individuales | `(user_id, categoria, mes)` |
 | `cierres_especiales` | Días cerrados programados | |
-| `ajuste_horario` | Override de horario | **1 sola fila activa** (delete-then-insert pattern) |
+| `ajuste_horario` | Override de horario | **1 sola fila activa** (insert y después se borran los anteriores, `[HORARIO-BORRA-ANTES]`) |
 | `puntos_config` | 1 sola fila con conversiones globales | |
 | `puntos_log` | Auditoría de movimientos de puntos | Inmutable |
 | `decants_custom` | Perfumes "estrella" del armador no en catálogo | |
@@ -329,11 +329,12 @@ mostrar_nota    BOOLEAN DEFAULT FALSE,
 created_at      TIMESTAMPTZ DEFAULT NOW()
 ```
 
-**Pattern de uso:** delete-then-insert para garantizar 1 fila vigente:
+**Pattern de uso** (`[HORARIO-BORRA-ANTES]`, v1.1.153): primero el ajuste nuevo y, si se guardó, se borran los anteriores. Si el insert falla, el de antes sigue; con dos guardados cruzados queda el último (el `id` crece). El catálogo y el panel leen el más nuevo (`order by created_at desc limit 1`), así que si por un momento hay dos filas manda el nuevo. «Volver al horario normal» borra todas.
 ```sql
-DELETE FROM ajuste_horario WHERE id != 0;
-INSERT INTO ajuste_horario (...) VALUES (...);
+INSERT INTO ajuste_horario (...) VALUES (...) RETURNING id;   -- :nuevo
+DELETE FROM ajuste_horario WHERE id < :nuevo;
 ```
+Hasta v1.1.152 era al revés (borrar todo y después insertar): si el insert fallaba, el ajuste activo se perdía.
 
 ⚠️ Frontend tolera `desde`/`hasta` null como "siempre vigente" (fix tras bug de timezone).
 
@@ -514,7 +515,7 @@ Archivos actuales en `sql/`:
 4. **No exponer `service_role` key** en el cliente.
 5. **Cron Hobby de Vercel: 1 daily máximo** (no más, sino el deploy falla).
 6. **Patterns idempotentes**: `IF NOT EXISTS`, `ON CONFLICT DO UPDATE/NOTHING`.
-7. **Tabla `ajuste_horario`**: SIEMPRE 1 fila vigente (delete-then-insert).
+7. **Tabla `ajuste_horario`**: SIEMPRE 1 fila vigente (insert y después se borran los anteriores, `id < nuevo`).
 8. **`votos`**: UNIQUE(`user_id`, `categoria`, `mes`) para evitar votos duplicados.
 
 ---
