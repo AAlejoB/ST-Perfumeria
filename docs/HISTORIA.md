@@ -3557,7 +3557,50 @@ El prompt `_u` del PREPARADOR.
 - 1 queda, porque es parte de la B: con `'bloqueado'`, la contraseña queda en la ventana durante la espera (misma pestaña, sin recargar).
 - Descartados: el ↺ de Decants para el jefe (está en su barra, a la vista) y `docs/DATABASE.md` con el orden viejo (se corrige en estos docs).
 
+### Sesión 29-sep-2026 · `_w` · el merge de `pulido-textos` (v1.1.153), las capturas al DISEÑADOR y la tanda v1.1.154 en `pulido-clientes` · **sin mergear**
+
+El prompt `_v` del PREPARADOR.
+
+#### El merge de `pulido-textos` (antes del prompt)
+- Alejo lo autorizó en el chat, antes de que lo revisara el PREPARADOR: fast-forward `8da11ab..91c7e37` a las **03:05:57 (ART) del 29-sep**. El PREPARADOR lo revisó después, sobre `main`, y lo aprobó.
+- Producción: `sw.js` en v1.1.153 a los 25 s; los 5 archivos, iguales byte a byte a `91c7e37`. Prueba de humo sin cuenta: 192 cards, sin sesión ni ventana, 17 pedidos a Supabase todos 200, 0 errores en la consola.
+- Borradas `pulido-panel` y `pulido-textos` (las dos ya en `main`), en la compu y en GitHub, con el OK de Alejo.
+- Quedan en producción `[CLIENTES-OSCURO-ROJO]`, `[CLIENTES-HOVER]` y `[HORARIO-BORRA-ANTES]`.
+- Para el DISEÑADOR, las capturas de 132c en la tablet: el capturador de `herramientas` suma `--tactil` (hover: none, pointer: coarse, toque de verdad). Después del toque, «Editar» sigue con `#2170b0` aunque el navegador lo marque `:hover`; con el mouse encima, `#1a5a8f`.
+
+#### Reglas nuevas (prompt `_v`, decisión de Alejo)
+- En cada tanda, `ClaudeCode_para_Disenador_<fecha>_<letra>.md` además del reporte al PREPARADOR: las capturas (ruta, qué muestra, qué mirar, números) y los 📐, sólo como datos. El de la ronda v (`ClaudeCode_para_Disenador_2026-09-29_v.md`, 11 capturas) salió al principio de esta sesión.
+- El OK de un merge es la línea del PREPARADOR («…revisada y aprobada por el PREPARADOR»).
+- Un rato de la sesión el chequeo automático del modo auto no respondió (ni a un `date`): se siguió con Alejo aprobando cada acción.
+
+#### La tanda v1.1.154 (rama `pulido-clientes` desde `91c7e37`)
+- **2.1 · 132d `[CLIENTES-BLOQUEADO-BADGE]`:** `.client-blocked-badge` sobre `var(--rojo-fondo)` (`#b8342a`, el de `.modal-btn-danger`): blanco encima **5,89** en los dos temas (antes `#e74c3c`, 3,82).
+- **2.2 `[PANEL-HOY-UTC]`:** `loadCierres` y `loadAjuste` usan `resumenHoyART()` (la que ya existía, ~L11365). `loadCierres` mira el error: `errorEnCriollo(error, null, 'cargar los cierres', 'recargar')` dentro de la tabla (antes, un error decía «No hay cierres programados»). ~L8247 (`addCierre`, `fechas.push(d.toISOString()…)`) **no** tiene el problema: cada fecha se arma al mediodía local, y en Argentina (UTC−3) eso cae el mismo día en UTC.
+- **2.3 · la concordancia:** `noSePudo(que)` en `errorEnCriollo`: «No se pudieron …» si lo que sigue al verbo empieza con «los» o «las» («No se pudieron cargar los clientes», «No se pudieron guardar los beneficios»); los singulares, igual («No se pudo cargar el log»).
+- **2.4:** el bump, aparte.
+
+#### Verificación (fixtures, stub `ronda-v/stub-v.js`, reloj falso en `--antes`; 390; contra `main` = `91c7e37`)
+- **a · 132d:** «BLOQUEADO» blanco sobre `#b8342a` → **5,89** en claro y en oscuro (`main`: sobre `#e74c3c`, 3,82).
+- **b · 2.2**, con el reloj a las **22:30 del 29-09 (ART)** = 01:30 UTC del 30-09:
+  - el ajuste que termina el 29-09 se ve (`main`: escondido);
+  - el cierre del 29-09 no sale como pasado (`main`: sí); el del 28-09 sí, el del 01-10 no;
+  - `loadCierres` con error: sin red «No se pudo conectar. Revisá internet y recargá la página.», genérico «No se pudieron cargar los cierres. Recargá la página; si sigue, avisale a Alejo.», sesión vencida «Se venció la sesión. Volvé a entrar.».
+- **c · 2.3:** «No se pudieron cargar los clientes. Recargá la página; …» (también en la pantalla de Clientes), «No se pudieron guardar los beneficios. Probá de nuevo; …», «No se pudo cargar el log. Tocá ↺; …», «No se pudieron cargar las estadísticas…», «No se pudo sumar el punto…», «No se pudieron ajustar los puntos…», «No se pudo guardar.» (por defecto).
+- `vm.Script`: ok. `npm run contraste`: **0 fallas** + 1 token pisado, **341** mediciones (la etiqueta, en los dos temas).
+- 4 capturas en `herramientas\ronda-w\png`.
+
+#### La revisión (a mano)
+- Se lanzó la revisión adversarial con agentes (2 revisores), pero se frenó a los segundos: con la sesión en el modo que pide permiso para cada acción, los agentes de fondo no podían avanzar. La hizo Claude Code a mano, sobre el diff (81 líneas):
+  - `resumenHoyART` es una función del script principal del panel: la prueba b la usa desde `loadCierres` y desde `loadAjuste`;
+  - su formato (`YYYY-MM-DD`) es el de `cierres_especiales.fecha` y `ajuste_horario.hasta`;
+  - el error de `loadCierres` va escapado (`escHtml`); `loadCombos` también la llama y `#tbodyCierres` existe siempre;
+  - `--rojo-fondo` sólo se define en `:root`, así que es el mismo en los dos temas; `.client-blocked-badge` sólo se usa en la tarjeta de Clientes;
+  - las 66 llamadas a `errorEnCriollo`: todos los `que` empiezan con el verbo; los plurales empiezan con «los» o «las» (ninguno con «unos», «sus» o parecido); sin `que`, queda «guardar».
+- 0 hallazgos.
+
 ---
+
+**Última actualización:** **Septiembre 29, 2026 (`_w`)** — el merge de `pulido-textos` (03:05 del 29-sep, v1.1.153 en producción), las capturas al DISEÑADOR y la tanda v1.1.154 en `pulido-clientes`, sin mergear. Cerrados, en producción: `[CLIENTES-OSCURO-ROJO]`, `[CLIENTES-HOVER]`, `[HORARIO-BORRA-ANTES]`. Nuevo, 🟢: `[PANEL-HOY-UTC]` (en la rama).
 
 **Última actualización:** **Septiembre 29, 2026 (`_v`)** — el merge de `pulido-panel` (02:35 del 29-sep, v1.1.152 en producción) y la tanda v1.1.153 en `pulido-textos`, sin mergear. Cerrados, en producción: los 5 de `pulido-panel`. Nuevo, 🟢: `[HORARIO-BORRA-ANTES]` (en la rama).
 
@@ -3717,6 +3760,12 @@ El prompt `_u` del PREPARADOR.
 ## ✅ Resueltos (movidos desde `CLAUDE.md` § Pendientes)
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
+
+**Movidos el 29-sep-2026 (`_w`):**
+
+- ✅ ~~**`[CLIENTES-OSCURO-ROJO]`**~~ (28-sep, salió de medir la 132 · 🟢, del DISEÑADOR) — en oscuro, el rojo `#e74c3c` de la tarjeta de «Clientes» no llega a 4,5: 🗑️ Eliminar **4,26** (sobre `#311a17`) y ✗ NO COMPRÓ **4,42** (sobre `#2b1816`). La 132 cambió sólo el claro (y Editar); ya era así en `main`. `npm run contraste` los marca como conocidos. No se tocó. **En la rama `pulido-textos` (ronda v, `_v`):** en oscuro, Eliminar y ✗ NO COMPRÓ pasan a `#ff8a80` (el rojo de la decisión 100): 7,13 y 7,39. El claro, igual. `npm run contraste` ya no los marca como conocidos. → **RESUELTO el 29-sep**, en producción con v1.1.153 (merge de `pulido-textos`, 03:05 ART).
+- ✅ ~~**`[CLIENTES-HOVER]`**~~ (29-sep, salió de medir la 132 · 🟢, del DISEÑADOR) — los `:hover` de los botones de la tarjeta de «Clientes» (Combos usa las mismas clases): Editar, blanco sobre `#5dade2`, **2,46** en los dos temas; en claro, Bloquear **4,32** y Eliminar **3,97**; en oscuro, Eliminar **3,42**. En la tablet el hover queda puesto después del toque. Ya era así en `main` (el hover de Editar no cambió). No se tocó. **En la rama `pulido-textos` (ronda v, `_v`):** los `:hover` van sólo con mouse (`@media (hover: hover)`): en la tablet no quedan puestos. Editar se oscurece a `#1a5a8f` (7,23). Bloquear y Eliminar, la misma letra sobre un fondo `.18`: claro 4,76 / 4,67, oscuro 6,31 / 6,86. `npm run contraste` mide también el hover. → **RESUELTO el 29-sep**, en producción con v1.1.153 (merge de `pulido-textos`, 03:05 ART).
+- ✅ ~~**`[HORARIO-BORRA-ANTES]`**~~ (29-sep, salió de la revisión de la ronda u · 🟢, anotado por el PREPARADOR) — `saveAjuste` (`admin.html`) borraba todos los ajustes de horario (`delete().neq('id', 0)`, sin mirar el resultado) antes del `insert`: si el `insert` fallaba, el ajuste activo se perdía y la web volvía al horario de siempre. **En la rama `pulido-textos` (ronda v, `_v`):** primero el `insert` y, si salió, se borran sólo los anteriores (`lt('id', nuevo)`: con dos guardados cruzados queda el último). «Guardar horario» se apaga mientras guarda. Si falla el borrado, el nuevo manda, el formulario queda y el aviso no se va solo. «Volver al horario normal» borra todos y mira el error. El catálogo y el panel leen el más nuevo (`order created_at desc, limit 1`). → **RESUELTO el 29-sep**, en producción con v1.1.153 (merge de `pulido-textos`, 03:05 ART).
 
 **Movidos el 29-sep-2026 (`_v`):**
 
