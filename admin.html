@@ -276,6 +276,62 @@
     }
     .panel-logout:hover { color: #fff; border-color: #fff; }
 
+    /* ════════════════════════════════════════════════════════════════
+       [PANEL-INICIO] 133a-g · la pantalla de inicio del panel (decisión del DISEÑADOR, 29-sep-2026).
+       El panel arranca en Inicio (133a): cuatro botones grandes (los de todos los días) y «Ver todas las pestañas».
+       133b «Inicio» en el encabezado, al lado de ☰: casita + texto; a ≤ 480 sólo la casita y el título queda «ST Admin».
+       ════════════════════════════════════════════════════════════════ */
+    :root { --inicio-toque: #28282b; }
+    body.light { --inicio-toque: #f0ece0; }   /* 133f · tocado / con mouse: 14,70 en oscuro, 14,74 en claro */
+    .panel-inicio {
+      display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+      min-width: var(--tap-min); min-height: var(--tap-min); padding: 0 .75rem; margin-right: .5rem;
+      font-family: inherit; font-size: 1rem; font-weight: 600; line-height: 1;
+      background: transparent; color: var(--amarillo-tinta); border: 1px solid var(--borde); border-radius: 4px;
+      cursor: pointer; transition: background .15s;
+    }
+    .panel-inicio svg { flex-shrink: 0; }
+    body.light .panel-inicio { border-color: rgba(0,0,0,.15); }
+    .panel-inicio.active, body.light .panel-inicio.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); }   /* en Inicio: 11,29 */
+    @media (hover: hover) { .panel-inicio:not(.active):hover { background: rgba(232,184,0,.08); } }
+    .panel-inicio:focus-visible { outline: 2px solid var(--amarillo-tinta); outline-offset: 2px; }
+    @media (max-width: 480px) {
+      .panel-inicio { padding: 0; width: var(--tap-min); }
+      .panel-inicio .panel-inicio-txt, .panel-title-extra { display: none; }
+      .panel-title { --badge-ml: .3rem; }   /* a 360 «ST Admin» + EMPLEADO entraba con 0,2 px de sobra: un poco de aire */
+    }
+    /* 133d · 2 × 2 en el orden del menú. La base de la 40 en grande: --superficie, --borde, texto heredado, radio 8. */
+    .inicio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .inicio-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem;
+      height: 184px; padding: .5rem; font-family: inherit; color: inherit; text-align: center;
+      background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; cursor: pointer;
+    }
+    .inicio-ico { font-size: 40px; line-height: 1.1; }
+    .inicio-nombre { font-size: 18.4px; font-weight: 700; line-height: 1.2; }
+    .inicio-sub { min-height: 1.3em; font-size: .9rem; font-weight: 700; line-height: 1.3; color: var(--gris); }   /* el renglón reservado: los nombres quedan a la misma altura */
+    .inicio-sub.pide { color: var(--amarillo-tinta); }   /* 133e · sólo Espera, y sólo si hay a quién avisar */
+    .inicio-btn:active { background: var(--inicio-toque); }
+    @media (hover: hover) { .inicio-btn:hover { background: var(--inicio-toque); } }   /* 133f · con mouse (132c) */
+    /* el gris de «— esperando» sobre el fondo tocado daba 4,15 en oscuro (#888 sobre #28282b): mientras está tocado, --gris-claro */
+    .inicio-btn:active .inicio-sub:not(.pide) { color: var(--gris-claro); }
+    @media (hover: hover) { .inicio-btn:hover .inicio-sub:not(.pide) { color: var(--gris-claro); } }
+    .inicio-btn:focus-visible, .inicio-todas:focus-visible { outline: 2px solid var(--amarillo-tinta); outline-offset: 2px; }
+    .inicio-todas {   /* 133c · como «+ Anotar del mostrador», ancho completo */
+      display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin-top: 16px;
+      font-family: inherit; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      background: transparent; color: var(--amarillo-tinta); border: 1.5px solid var(--amarillo-tinta); border-radius: 6px; cursor: pointer;
+    }
+    @media (max-width: 480px) {
+      .inicio-btn { height: 148px; padding: .5rem .25rem; }   /* a 360 los botones miden 142,8: con .5rem a los lados «Precios & Stock» pasaba a 2 renglones y los nombres quedaban desparejos */
+      .inicio-ico { font-size: 34px; }
+      .inicio-nombre { font-size: 17px; }
+    }
+    @media (min-width: 701px) {
+      .inicio-grid, .inicio-todas { max-width: 640px; }
+      .inicio-btn { height: 150px; }
+    }
+
     /* SYNC INDICATOR — estado del watchdog de Realtime (ver bloque JS al final) */
     .sync-indicator {
       display: inline-flex;
@@ -405,7 +461,7 @@
       padding: .35rem .55rem;
       border-radius: 4px;
       cursor: pointer;
-      margin-right: .5rem;
+      margin-right: 0;   /* [PANEL-INICIO] 133b · antes .5rem (hasta el título); ahora sigue el botón «Inicio», que lleva el margen al título */
       transition: background .15s;
     }
     .sidebar-hamburger:hover { background: rgba(232,184,0,.08); }
@@ -2034,7 +2090,9 @@
     <div class="panel-header">
       <div style="display:flex;align-items:center;gap:.4rem;">
         <button class="sidebar-hamburger" onclick="toggleMobileSidebar()" aria-label="Abrir menú">☰</button>
-        <p class="panel-title" style="margin:0;">ST Admin Panel <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:.5rem;vertical-align:middle;"></span></p>
+        <!-- [PANEL-INICIO] 133b · vuelve a la pantalla de inicio; en Inicio va relleno (.active) -->
+        <button type="button" class="panel-inicio active" id="btnInicio" onclick="irAInicio()" aria-label="Inicio" aria-current="page" title="Inicio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5.5h4V20"/></svg><span class="panel-inicio-txt">Inicio</span></button>
+        <p class="panel-title" style="margin:0;">ST Admin<span class="panel-title-extra"> Panel</span> <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:var(--badge-ml,.5rem);vertical-align:middle;"></span></p>
       </div>
       <div style="display:flex;align-items:center;gap:.5rem;">
         <span id="syncIndicator" class="sync-indicator" style="display:none;" title="Estado de sincronización entre tablets"></span>
@@ -2063,7 +2121,7 @@
         <div class="sb-group" data-group="top">
           <div class="sb-group-header locked"><span>&#11088; Lo de siempre</span></div>
           <div class="sb-tab-list">
-            <button class="tab-btn active" data-tab="precios" title="Precios &amp; Stock" onclick="switchTab('precios',this);closeMobileSidebar()"><span class="sb-ico">&#128176;</span><span class="sb-label">Precios &amp; Stock</span></button>
+            <button class="tab-btn" data-tab="precios" title="Precios &amp; Stock" onclick="switchTab('precios',this);closeMobileSidebar()"><span class="sb-ico">&#128176;</span><span class="sb-label">Precios &amp; Stock</span></button>
             <button class="tab-btn" data-tab="deposito" title="Depósito" onclick="switchTab('deposito',this);renderDeposito();closeMobileSidebar()"><span class="sb-ico">&#128230;</span><span class="sb-label">Depósito</span></button>
           </div>
         </div>
@@ -2108,7 +2166,7 @@
             <button class="tab-btn" data-tab="combos" title="Combos" onclick="switchTab('combos',this);closeMobileSidebar()"><span class="sb-ico">&#127857;</span><span class="sb-label">Combos</span></button>
             <button class="tab-btn" data-tab="destacados" title="Destacados" onclick="switchTab('destacados',this);closeMobileSidebar()"><span class="sb-ico">&#11088;</span><span class="sb-label">Destacados</span></button>
             <button class="tab-btn" data-tab="badges" title="Beneficios" onclick="switchTab('badges',this);loadBadgesAdmin();closeMobileSidebar()"><span class="sb-ico">&#127991;&#65039;</span><span class="sb-label">Beneficios</span></button>
-            <button class="tab-btn" data-tab="home" title="Home" onclick="switchTab('home',this);loadHomeAdmin();closeMobileSidebar()"><span class="sb-ico">&#127968;</span><span class="sb-label">Home</span></button>
+            <button class="tab-btn" data-tab="home" title="Banner" onclick="switchTab('home',this);loadHomeAdmin();closeMobileSidebar()"><span class="sb-ico">&#128227;</span><span class="sb-label">Banner</span></button>   <!-- 133g: «Home» se confundía con «Inicio» -->
             <button class="tab-btn" data-tab="push" title="Notificaciones" onclick="switchTab('push',this);closeMobileSidebar()"><span class="sb-ico">&#128276;</span><span class="sb-label">Notificaciones</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="puntos" title="Puntos" onclick="switchTab('puntos',this);loadPuntosAdmin();closeMobileSidebar()"><span class="sb-ico">&#127919;</span><span class="sb-label">Puntos</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="votacion" title="Votación" onclick="switchTab('votacion',this);closeMobileSidebar()"><span class="sb-ico">&#127942;</span><span class="sb-label">Votación</span></button>
@@ -2121,8 +2179,20 @@
 
       <main class="admin-main">
 
+    <!-- [PANEL-INICIO] 133 · TAB: INICIO (la pantalla con la que arranca el panel, las dos cuentas). Los botones hacen lo mismo
+         que el menú: .click() sobre la pestaña del menú (con su carga y su marca). -->
+    <div class="tab-content active" id="tab-inicio">
+      <div class="inicio-grid">
+        <button type="button" class="inicio-btn" onclick="irDesdeInicio('precios')"><span class="inicio-ico" aria-hidden="true">&#128176;</span><span class="inicio-nombre">Precios &amp; Stock</span><span class="inicio-sub"></span></button>
+        <button type="button" class="inicio-btn" onclick="irDesdeInicio('deposito')"><span class="inicio-ico" aria-hidden="true">&#128230;</span><span class="inicio-nombre">Depósito</span><span class="inicio-sub"></span></button>
+        <button type="button" class="inicio-btn" onclick="irDesdeInicio('espera')"><span class="inicio-ico" aria-hidden="true">&#128205;</span><span class="inicio-nombre">Espera</span><span class="inicio-sub" id="inicioEspera">— esperando</span></button>
+        <button type="button" class="inicio-btn" onclick="irDesdeInicio('auditlog')"><span class="inicio-ico" aria-hidden="true">&#128203;</span><span class="inicio-nombre">Log</span><span class="inicio-sub"></span></button>
+      </div>
+      <button type="button" class="inicio-todas" onclick="abrirMenuDesdeInicio()">&#9776; Ver todas las pestañas</button>
+    </div>
+
     <!-- TAB: PRECIOS & STOCK (unificada) -->
-    <div class="tab-content active" id="tab-precios">
+    <div class="tab-content" id="tab-precios">
       <!-- Mini-dashboard de inventario: se actualiza en cada renderPrecios() -->
       <div class="stock-stats">
         <div class="stat-card stat-units">
@@ -3862,6 +3932,7 @@
       // [ZAPATO] cargar preferencias del sidebar (collapsed + grupos) del localStorage
       loadSidebarPrefs();
       applyRolePermissions();
+      switchTab('inicio', null);   // [PANEL-INICIO] 133a · el panel arranca en Inicio cada vez que se abre (entrar o recargar)
       startInactivityWatcher();
       // Normalizar precios string → número al arrancar
       PERFUMES.forEach(function(p) {
@@ -3887,6 +3958,7 @@
       // [CARGA-FALLIDA-CERO] si se abrió Depósito durante las cargas, sus totales quedaban en «—»
       if (document.getElementById('tab-deposito').classList.contains('active')) renderDeposito();
       cargarDatosPrecios();   // [PRECIOS-EN-UN-LUGAR] decants, promo y escalera en paralelo; vuelve a pintar al llegar
+      loadListaEspera();   // [PANEL-INICIO] 133e · el número de Espera de Inicio (la misma carga de la pestaña; no bloquea)
       loadDestacados();
       loadNuevos();
       // El resto se carga lazy al cambiar de tab (opiniones, clientes, stats, horario, combos, etc.)
@@ -4154,28 +4226,56 @@
         }
       });
 
-      // Ocultar todas las tab-content y mostrar solo la primera visible permitida
+      // [PANEL-INICIO] 133a · el panel arranca en Inicio, también para la empleada (antes: la primera pestaña visible)
       document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
-      if (firstVisible) {
-        firstVisible.classList.add('active');
-        var tabId = firstVisible.dataset.tab;
-        var content = document.getElementById('tab-' + tabId);
-        if (content) content.classList.add('active');
-      }
+      document.getElementById('tab-inicio').classList.add('active');
 
       badge.style.display = 'inline-block';
       badge.textContent = 'Empleado';
       badge.style.background = 'rgba(255,255,255,.06)';
-      badge.style.color = '#ccc';
-      badge.style.border = '1px solid #555';
+      // [BADGE-EMPLEADO-CLARO] 135 · #ccc sobre el crema daba 1,46: letra --gris-claro y borde --gris (10,35 en claro, 10,95 en oscuro)
+      badge.style.color = 'var(--gris-claro)';
+      badge.style.border = '1px solid var(--gris)';
     }
 
     // canAccessTab: verifica si el rol actual puede entrar a esa pestaña
     function canAccessTab(tab) {
       if (currentRole === 'jefe') return true;
+      if (tab === 'inicio') return true;   // [PANEL-INICIO] no tiene botón en el menú: es de las dos cuentas
       var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
       if (!btn) return false;
       return btn.dataset.role !== 'jefe';
+    }
+
+    // ============================================================
+    // [PANEL-INICIO] 133 · la pantalla de inicio (decisión del DISEÑADOR, 29-sep-2026). El panel arranca en Inicio.
+    // ============================================================
+    // 133b · «Inicio» del encabezado: vuelve a la pantalla (ninguna pestaña del menú queda marcada) y cierra el cajón.
+    function irAInicio() {
+      switchTab('inicio', null);
+      document.body.classList.remove('sidebar-open');
+      window.scrollTo(0, 0);
+    }
+    // 133d/f · un toque abre la pestaña igual que desde el menú, con su carga, y el menú queda con esa pestaña marcada:
+    // es el mismo botón del menú (y la misma regla de roles: si la cuenta no lo ve, no hace nada).
+    function irDesdeInicio(tab) {
+      var b = document.querySelector('.sidebar .tab-btn[data-tab="' + tab + '"]');
+      if (!b || b.style.display === 'none' || !canAccessTab(tab)) return;
+      b.click();
+    }
+    // 133c · «Ver todas las pestañas» abre el ☰ de hoy: el cajón a ≤ 700, el riel desplegado desde 701. Sólo abre
+    // (si ya estaba abierto, no lo cierra).
+    function abrirMenuDesdeInicio() {
+      var abierto = window.innerWidth <= 700 ? document.body.classList.contains('sidebar-open') : document.body.classList.contains('sidebar-expanded');
+      if (!abierto) toggleSidebar();
+    }
+    // 133e · el número de Espera: los pendientes, la misma cuenta que la tarjeta ESPERANDO. n = null: sin leer
+    // (cargando o fallida, 128m) → «— esperando». Sólo Espera lleva número, porque es la que pide hacer algo.
+    function pintarInicioEspera(n) {
+      var el = document.getElementById('inicioEspera');
+      if (!el) return;
+      el.textContent = (n === null || n === undefined) ? '— esperando' : (n === 0 ? 'Nadie esperando' : n + ' esperando');
+      el.classList.toggle('pide', n > 0);
     }
 
     // ============================================================
@@ -4522,6 +4622,9 @@
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('tab-' + tab).classList.add('active');
       if (btn) btn.classList.add('active');
+      // [PANEL-INICIO] 133b · el botón «Inicio» del encabezado va relleno sólo en Inicio (y ninguna pestaña del menú queda marcada)
+      var bi = document.getElementById('btnInicio');
+      if (bi) { bi.classList.toggle('active', tab === 'inicio'); if (tab === 'inicio') bi.setAttribute('aria-current', 'page'); else bi.removeAttribute('aria-current'); }
 
       // Lazy load: cargar datos solo la primera vez que se entra a la tab
       if (!tabLoaded[tab]) {
@@ -10061,6 +10164,7 @@
       todosPend.forEach(function(r) { slugsPend[r.slug] = true; });
       document.getElementById('esperaTotal').textContent = esperaError ? '—' : todosPend.length;
       document.getElementById('esperaPerfumes').textContent = esperaError ? '—' : Object.keys(slugsPend).length;
+      pintarInicioEspera(esperaError ? null : todosPend.length);   // [PANEL-INICIO] 133e
 
       var filtrando = esperaTieneOrigen && esperaOrigen !== 'todo';
       var bajoFiltro = esperaData.filter(esperaPasaFiltro);

@@ -314,6 +314,27 @@ function efectivo(rs, target, prefijos, prop, capas) {
       var fg = tinta(x[1], c, chip, enVentana);
       medir({ superficie: 'panel', tema: tema, rol: 'espera', nombre: x[0], texto: fg.hex, fondos: [chip, ventana], impone: fg.impone });
     });
+    // [PANEL-INICIO] 133 + 135 + 128n (30-sep-2026): la pantalla de inicio, el botón «Inicio» del encabezado, la badge «Empleado»
+    // (su color va inline en applyRolePermissions: var(--gris-claro) sobre rgba(255,255,255,.06), escrito acá) y lo de 128n.
+    var boton = fondo('.inicio-btn', c, pagina), superficie = aHex('var(--superficie)', c, pagina), toque = aHex('var(--inicio-toque)', c, pagina);
+    [['«Inicio» en Inicio .panel-inicio.active', '.panel-inicio.active', '.panel-inicio.active', pagina, cuerpo],
+     ['«Inicio» en otra pestaña .panel-inicio', '.panel-inicio', null, pagina, cuerpo],
+     ['nombre del botón .inicio-nombre (hereda)', '.inicio-nombre', null, boton, cuerpo],
+     ['«— esperando» / «Nadie esperando» .inicio-sub', '.inicio-sub', null, boton, cuerpo],
+     ['«10 esperando» .inicio-sub.pide', '.inicio-sub.pide', null, boton, cuerpo],
+     ['nombre del botón tocado (hereda)', '.inicio-nombre', null, toque, cuerpo],
+     ['«— esperando» en el botón tocado .inicio-btn:active .inicio-sub', '.inicio-btn:active .inicio-sub:not(.pide)', null, toque, cuerpo],
+     ['«10 esperando» en el botón tocado .inicio-sub.pide', '.inicio-sub.pide', null, toque, cuerpo],
+     ['«☰ Ver todas las pestañas» .inicio-todas', '.inicio-todas', null, pagina, cuerpo],
+     ['128n · línea «No se pudo cargar el stock» .aviso-lectura-tabla', '.aviso-lectura-tabla', null, pagina, cuerpo],
+     ['128n · Estado «—» .stock-sin-lectura', '.td-stock .stock-sin-lectura', null, superficie, cuerpo]].forEach(function (x) {
+      var bg = x[2] ? fondo(x[2], c, x[3]) : x[3];
+      var fg = tinta(x[1], c, bg, x[4]);
+      medir({ superficie: 'panel', tema: tema, rol: 'inicio', nombre: x[0], texto: fg.hex, fondos: [bg], impone: fg.impone });
+    });
+    var gc = aHex('var(--gris-claro)', c, pagina), gb = aHex('var(--gris)', c, pagina), fb = sobre({ r: 255, g: 255, b: 255, a: .06 }, pagina);
+    medir({ superficie: 'panel', tema: tema, rol: 'inicio', nombre: '135 · badge «Empleado» (letra --gris-claro, inline)', texto: gc, fondos: [fb], impone: 'admin.html · applyRolePermissions' });
+    medir({ superficie: 'panel', tema: tema, rol: 'inicio', nombre: '135 · badge «Empleado» (borde --gris, inline)', texto: gb, fondos: [pagina], impone: 'admin.html · applyRolePermissions' });
   });
 })();
 
