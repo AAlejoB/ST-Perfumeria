@@ -1038,8 +1038,14 @@
     }
     .combo-item-row input:focus { border-color: var(--amarillo); }
     .combo-item-remove {
-      background: none; border: none; color: #e74c3c; font-size: 1rem; cursor: pointer; padding: 0 .3rem;
+      background: none; border: none; color: var(--tinta-error); font-size: 1rem; cursor: pointer; padding: 0 .3rem;   /* 137: 5,89 en claro */
     }
+    /* [COMBO-FORM-CLARO] 137 · el formulario de combo (nuevo y editar): oscuro igual que siempre (#111); en claro, la caja blanca de las listas
+       (--superficie) con el borde --amarillo que marca que estás editando. Con eso se leen el título (7,18), las etiquetas #444 (9,74) y la ayuda de la foto (5,33). */
+    .combo-form { background: #111; }
+    body.light .combo-form { background: var(--superficie); }
+    .btn-cancelar-combo { background: rgba(255,255,255,.1); }
+    body.light .btn-cancelar-combo { background: rgba(0,0,0,.06); }   /* letra --gris-claro: 9,98 */
     /* Searchable perfume picker */
     .perfume-picker {
       flex: 2; position: relative;
@@ -3043,7 +3049,7 @@
       <div id="combosList"></div>
 
       <!-- Formulario crear/editar combo -->
-      <div id="comboForm" style="display:none;background:#111;border:1px solid var(--amarillo);border-radius:8px;padding:1.5rem;margin-top:1rem;">
+      <div id="comboForm" class="combo-form" style="display:none;border:1px solid var(--amarillo);border-radius:8px;padding:1.5rem;margin-top:1rem;">
         <p style="font-size:.8rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--amarillo-tinta);margin-bottom:1rem;text-align:center;" id="comboFormTitle">Nuevo combo</p>
         <label class="modal-label">Nombre del combo</label>
         <input type="text" class="modal-input" id="comboName" placeholder="Ej: SET YARA MINI x4"/>
@@ -3069,7 +3075,7 @@
           <div id="comboFotoPreview" style="width:36px;height:48px;border-radius:4px;overflow:hidden;background:#1a1a1a;flex-shrink:0;display:none;">
             <img id="comboFotoPreviewImg" style="width:100%;height:100%;object-fit:cover;"/>
           </div>
-          <button type="button" id="comboFotoClear" onclick="clearComboFoto()" style="display:none;flex-shrink:0;background:transparent;border:1px solid var(--borde);color:#e74c3c;padding:.4rem .6rem;border-radius:4px;cursor:pointer;font-size:.65rem;">✕</button>
+          <button type="button" id="comboFotoClear" onclick="clearComboFoto()" style="display:none;flex-shrink:0;background:transparent;border:1px solid var(--borde);color:var(--tinta-error);padding:.4rem .6rem;border-radius:4px;cursor:pointer;font-size:.65rem;">✕</button>
         </div>
         <p id="comboFotoMsg" style="font-size:.6rem;color:var(--gris);margin-bottom:.8rem;min-height:.8rem;">Si subís una foto, se muestra como imagen principal del combo. Si la dejás vacía, se arma con las fotos de los perfumes individuales.</p>
         <label class="modal-label">Perfumes del combo</label>
@@ -3077,7 +3083,7 @@
         <button class="action-btn btn-stock" onclick="addComboItem()" style="margin-bottom:1rem;font-size:.68rem;">+ Agregar perfume</button>
         <div style="display:flex;gap:.5rem;">
           <button class="modal-btn modal-btn-price" id="btnSaveCombo" onclick="saveCombo()" style="flex:1;">Guardar combo</button>
-          <button class="modal-btn" onclick="cancelCombo()" style="flex:.4;background:rgba(255,255,255,.1);color:var(--gris-claro);">Cancelar</button>
+          <button class="modal-btn btn-cancelar-combo" onclick="cancelCombo()" style="flex:.4;color:var(--gris-claro);">Cancelar</button>
         </div>
         <p class="modal-success" id="comboMsg"></p>
       </div>
@@ -7555,7 +7561,7 @@
       document.getElementById('comboFotoClear').style.display = 'none';
       var msgEl = document.getElementById('comboFotoMsg');
       msgEl.textContent = 'Si subís una foto, se muestra como imagen principal del combo. Si la dejás vacía, se arma con las fotos de los perfumes individuales.';
-      msgEl.style.color = '';
+      msgEl.style.color = 'var(--gris)';   // 137: la ayuda vuelve a --gris (antes se borraba el color y heredaba el del texto)
     }
 
     function compressToWebP(file, maxSize, quality) {
