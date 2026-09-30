@@ -2775,7 +2775,7 @@
         <div id="badgesList" style="display:flex;flex-direction:column;gap:.8rem;"></div>
         <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap;">
           <button class="modal-btn" onclick="saveBadges()" style="background:var(--amarillo);color:#000;font-weight:600;">💾 Guardar cambios</button>
-          <button class="modal-btn" onclick="resetBadgesToDefaults()" style="background:#333;color:#fff;">↻ Restaurar por defecto</button>
+          <button class="modal-btn" id="btnBadgesRestaurar" onclick="resetBadgesToDefaults()" style="display:none;background:#333;color:#fff;">↻ Restaurar por defecto</button>   <!-- 139: se muestra cuando la lectura anda -->
         </div>
         <p class="modal-success" id="badgesMsg" style="margin-top:.8rem;"></p>
       </div>
@@ -7974,6 +7974,8 @@
     async function loadBadgesAdmin() {
       var msg = document.getElementById('badgesMsg');
       if (msg) msg.textContent = '';
+      var btnRest = document.getElementById('btnBadgesRestaurar');
+      if (btnRest) btnRest.style.display = 'none';   // [SIN-LECTURA-SIN-RESTAURAR] 139 · sin la lectura, se esconde lo que reemplaza todo
       var rows = [], errLectura = null;
       try {
         var res = await sb.from('trust_badges').select('id, orden, icono, titulo, bajada, link_a, activo').order('orden', { ascending: true });
@@ -7987,6 +7989,7 @@
         return;
       }
       leido('badges', document.getElementById('badgesMsg'));
+      if (btnRest) btnRest.style.display = '';   // 139
       if (!rows.length) rows = BADGES_ADMIN_DEFAULTS.map(function(b){ return Object.assign({}, b); });   // tabla vacía de verdad: como antes
       renderBadgesEditor(rows);
     }
@@ -8023,7 +8026,8 @@
 
     async function saveBadges() {
       var msg = document.getElementById('badgesMsg');
-      if (faltaLeer('badges', msg)) return;   // [GUARDAR-SIN-LEER]
+      // [GUARDAR-SIN-LEER] · [AVISO-DEL-TOQUE] 140: la lista ya dice qué pasa y qué hacer; acá, qué pasó con el toque
+      if (SIN_LEER.badges) { if (msg) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'No se guardó: los beneficios no cargaron.'; } return; }
       if (msg) { msg.style.color = ''; msg.textContent = 'Guardando...'; }
       var rows = Array.prototype.slice.call(document.querySelectorAll('#badgesList .badge-row'));
       var payload = rows.map(function(row, i) {
@@ -8350,9 +8354,12 @@
     function errorDestacados(texto) { msgDestacados(texto, 'var(--tinta-error)', 0); }
     function filasDestacados(slugs) { return slugs.map(function(slug, i) { return { slug: slug, posicion: i }; }); }
     // Sin la lista de la base (falló o todavía no llegó) no se escribe. Lo dice y devuelve true.
-    function destacadosBloqueados() {
-      if (destacadosError) { errorDestacados(destacadosError); return true; }
-      if (!destacadosLeidos) { errorDestacados('Todavía se están cargando los destacados. Esperá un momento.'); return true; }
+    // [AVISO-DEL-TOQUE] 140 · la línea gris de la lista ya dice qué pasa y qué hacer («No se pudo cargar los destacados. Recargá…»):
+    // la roja dice qué pasó con lo que tocaste («No se agregó «YEAH PARFUM»: la lista de destacados no cargó.»).
+    function destacadosBloqueados(queTocaste) {
+      var q = queTocaste || 'No se guardó';
+      if (destacadosError) { errorDestacados(q + ': la lista de destacados no cargó.'); return true; }
+      if (!destacadosLeidos) { errorDestacados(q + ': la lista de destacados todavía se está cargando.'); return true; }
       return false;
     }
 
@@ -8431,7 +8438,7 @@
     }
 
     function moveDestacado(index, dir) {
-      if (destacadosBloqueados()) return;   // [DESTACADOS-BORRA-SI-FALLA]
+      if (destacadosBloqueados('No se movió')) return;   // [DESTACADOS-BORRA-SI-FALLA]
       var slugs = cachedDestacados.slice();
       var newIndex = index + dir;
       if (newIndex < 0 || newIndex >= slugs.length) return;
@@ -8443,7 +8450,7 @@
 
     // [DESTACADOS-BORRA-SI-FALLA] «eliminado» y «agregado» salen cuando la base lo guardó (antes, antes de saberlo)
     async function removeDestacado(index) {
-      if (destacadosBloqueados()) return;
+      if (destacadosBloqueados('No se quitó')) return;
       var slugs = cachedDestacados.slice();
       var removed = slugs.splice(index, 1);
       if (!(await syncDestacadosToDB(slugs))) return;
@@ -8452,7 +8459,8 @@
     }
 
     async function addDestacado(slug) {
-      if (destacadosBloqueados()) return;   // [DESTACADOS-BORRA-SI-FALLA]
+      var pAgregar = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (destacadosBloqueados('No se agregó' + (pAgregar ? ' «' + pAgregar.name + '»' : ''))) return;   // [DESTACADOS-BORRA-SI-FALLA] · 140
       var slugs = cachedDestacados.slice();
       if (slugs.indexOf(slug) !== -1) {
         msgDestacados('Ya está en destacados', 'var(--tinta-aviso)', 2000);
