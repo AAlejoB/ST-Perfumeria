@@ -348,6 +348,11 @@ function efectivo(rs, target, prefijos, prop, capas) {
       var fg = tinta(x[1], c, x[2], cuerpo);
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '136 · ' + x[0], texto: fg.hex, fondos: [x[2]], impone: fg.impone });
     });
+    // [BTN-STOCK-AZUL] 138: letra blanca sobre el azul (reposo y con mouse)
+    [['138 · .btn-stock (reposo)', '.btn-stock'], ['138 · .btn-stock:hover (con mouse)', '.btn-stock:hover']].forEach(function (x) {
+      var bg = fondo(x[1], c, pagina), fg = tinta(x[1], c, bg, '#ffffff');
+      medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: x[0], texto: fg.hex, fondos: [bg], impone: fg.impone });
+    });
   });
 })();
 

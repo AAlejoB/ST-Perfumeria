@@ -787,8 +787,11 @@
     }
     .btn-price { background: var(--amarillo); color: #000; }
     .btn-price:hover { background: #ffd633; }
-    .btn-stock { background: #3498db; color: #fff; }
-    .btn-stock:hover { background: #5dade2; }
+    /* [BTN-STOCK-AZUL] 138 · el azul de «Editar» de Clientes (132): letra blanca sobre #2170b0 = 5,24 (era #3498db: 3,15 en los dos temas).
+       Con mouse se oscurece a #1a5a8f (7,23), sólo con @media (hover: hover) (132c); antes se aclaraba a #5dade2 (2,46). Es la clase de
+       los 9 lugares, también el − / + del modal de stock y del de depósito. */
+    .btn-stock { background: #2170b0; color: #fff; }
+    @media (hover: hover) { .btn-stock:hover { background: #1a5a8f; } }
     .btn-hide { background: var(--rojo-fondo); color: #fff; }   /* 3,82 → 5,89 */
     .btn-hide:hover { background: #f1948a; }
     /* [ACTION-BTN-BASE] los que tenían el color inline, en clases (decisión 49). Mismo fondo y color que antes en los
