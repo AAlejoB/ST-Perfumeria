@@ -1285,6 +1285,12 @@
       gap: .5rem;
     }
 
+    /* [MAZO-TAPADO] 134 · con la barra pegada (celu) el mazo no asoma: nada tocable debajo de la cinta de cuotas. La clase la
+       pone app.js (IntersectionObserver). visibility y no display: la barra conserva su alto (236,8) y los saltos siguen frenando igual. */
+    @media (max-width: 767px) {
+      .filter-bar--pegada .filter-zone--left { visibility: hidden; }
+    }
+
     /* Desktop: botones en fila normal (sin mazo) */
     @media (min-width: 768px) {
       .filter-zone--left {

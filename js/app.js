@@ -4177,6 +4177,20 @@
           closeDeck();
         }
       });
+
+      // [MAZO-TAPADO] 134 · con la barra pegada arriba (celu), el mazo no asoma: el borde de 5 px del botón activo quedaba
+      // debajo de la cinta de cuotas y parecía un botón, pero el toque caía en la cinta. Un sticky no avisa cuándo se pega:
+      // se mide con un IntersectionObserver (la barra con su borde de arriba en el sticky, top: 58px, deja de estar entera).
+      // La clase sólo hace algo a < 768 (CSS): en escritorio la barra no es sticky.
+      var bar = document.getElementById('catalogo');
+      if (bar && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function(entries) {
+          var e = entries[entries.length - 1];
+          var pegada = e.intersectionRatio < 1 && e.boundingClientRect.top <= 59;
+          bar.classList.toggle('filter-bar--pegada', pegada);
+          if (pegada) closeDeck();   // un mazo abierto se esconde con la barra: que no vuelva abierto
+        }, { rootMargin: '-59px 0px 0px 0px', threshold: [1] }).observe(bar);
+      }
     })();
 
     // ============================================================
