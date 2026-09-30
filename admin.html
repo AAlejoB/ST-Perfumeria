@@ -2255,7 +2255,7 @@
           Mostrar pausados
         </label>
       </div>
-      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
+      <p id="tipPrecios" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
       <!-- [PRECIOS-EN-UN-LUGAR] 123a + 123d · la escalera de decants (y la promo si está vigente) y el filtro. Sólo se mira:
            los precios se cambian en Editar y en Decants. -->
       <div class="precios-tira" id="preciosTira" hidden></div>
@@ -2312,7 +2312,7 @@
           Sólo los que tienen unidades
         </label>
       </div>
-      <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> o la badge de <strong>Local</strong> para cambiarlos. Es el mismo control que en <strong>Precios &amp; Stock</strong>.</p>
+      <p id="tipDeposito" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> o la badge de <strong>Local</strong> para cambiarlos. Es el mismo control que en <strong>Precios &amp; Stock</strong>.</p>
       <p class="aviso-lectura-tabla" id="avisoStockDep" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Local</th><th>Depósito</th></tr></thead>
@@ -4919,6 +4919,7 @@
       tbody.innerHTML = html;
       var avisoStockD = document.getElementById('avisoStockDep');   // 128n
       if (avisoStockD) avisoStockD.textContent = stockCargado ? '' : (SIN_LEER.stock || '');
+      var tipD = document.getElementById('tipDeposito'); if (tipD) tipD.style.display = stockCargado ? '' : 'none';   // 128p [TIP-SIN-BADGE]
       // Re-aplicar el buscador: el re-render (guardar, ordenar, casilla) dibuja las
       // 146 filas de cero y perdía lo que la chica había buscado.
       filterTable('deposito');
@@ -5267,6 +5268,7 @@
       pintarTiraPrecios();
       var avisoStockP = document.getElementById('avisoStockPrecios');   // 128n · la línea de arriba de la tabla, sólo si la lectura falló
       if (avisoStockP) avisoStockP.textContent = stockCargado ? '' : (SIN_LEER.stock || '');
+      var tipP = document.getElementById('tipPrecios'); if (tipP) tipP.style.display = stockCargado ? '' : 'none';   // 128p [TIP-SIN-BADGE] sin la lectura no hay badge que tocar
       var customs = promoCustoms();
       var oferta = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
       var mlDecant = (PRECIOS_CFG && PRECIOS_CFG.ml) ? PRECIOS_CFG.ml : 5;
