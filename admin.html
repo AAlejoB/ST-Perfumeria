@@ -27,6 +27,10 @@
          Bordes, accent-color y fondos siguen en --amarillo (regla 22). */
       --amarillo-tinta: var(--amarillo);
       --stat-tinta-out: var(--rojo-tinta);
+      /* [TINTA-MENSAJES] 136 · tres tintas para todo lo que el panel te contesta (decisión del DISEÑADOR, 29-sep-2026).
+         ok = se hizo lo que pediste · aviso = no pasó nada y no hay nada roto (ya estaba, hay un tope) · error = no se pudo o el dato está mal.
+         Oscuro acá, claro en body.light. Ningún color nuevo: ok = --stat-tinta-inv, aviso = --amarillo-tinta, error = el rojo de 100 / 132b / 128o. */
+      --tinta-ok: #2ecc71; --tinta-aviso: #e8b800; --tinta-error: #ff8a80;
       --stat-tinta-perfumes: #5dade2;
       --stat-tinta-inv: #2ecc71;
       /* [LOG-EMPLEADA] Superficie de las listas (filas del Log). En claro son BLANCAS,
@@ -255,7 +259,7 @@
     }
     .login-btn:hover:not(:disabled) { background: var(--amarillo-claro); }
     .login-btn:disabled { opacity: .35; cursor: not-allowed; background: #555; color: #aaa; }
-    .login-error { font-size: .75rem; color: #e74c3c; margin-top: .8rem; min-height: 1.2rem; }
+    .login-error { font-size: .75rem; color: var(--tinta-error); margin-top: .8rem; min-height: 1.2rem; }
 
     /* PANEL */
     /* [ZAPATO] panel ocupa todo el viewport (antes max-width:900px del tab-bar viejo).
@@ -720,7 +724,7 @@
     /* 128n [PANEL-STOCK-CALLA] · sin la lectura del stock, el Estado de cada fila es un «—» gris (sin badge, sin toque) y la
        línea de arriba de la tabla dice por qué. Un número de perfumes.js en una badge que se toca invita a guardar un stock falso. */
     .td-stock .stock-sin-lectura { display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--tap-comfort); color: var(--gris); font-weight: 400; }
-    .aviso-lectura-tabla { font-size: .8rem; font-weight: 700; line-height: 1.4; color: var(--stat-tinta-out); margin: 0 0 .8rem; }
+    .aviso-lectura-tabla { font-size: .8rem; font-weight: 700; line-height: 1.4; color: var(--tinta-error); margin: 0 0 .8rem; }
     .aviso-lectura-tabla:empty { display: none; }
     .precios-tira {
       font-size: .7rem; line-height: 1.6; color: var(--gris-claro);
@@ -838,7 +842,7 @@
     /* 128b · el motivo de «No se guardó», adentro de la barra y arriba de los botones: ocupa la fila entera y se va al tocar
        Guardar de nuevo. Lo pone barraError(), con textContent. */
     .barra-error {
-      flex-basis: 100%; margin: 0; color: var(--stat-tinta-out); font-size: .72rem; font-weight: 600; overflow-wrap: anywhere;
+      flex-basis: 100%; margin: 0; color: var(--tinta-error); font-size: .72rem; font-weight: 600; overflow-wrap: anywhere;
       display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
     }
     .con-barra { --caja-pad: 1.5rem; }
@@ -915,14 +919,14 @@
       background: transparent; border: none; color: inherit; outline: none;
     }
     .espera-tel-preview { font-size: .75rem; min-height: 1.2rem; margin: .3rem 0 .8rem; }
-    .espera-ok { color: var(--stat-tinta-inv); }
+    .espera-ok { color: var(--tinta-ok); }
     .espera-falta { color: var(--gris); }
-    .espera-ya { color: var(--amarillo-tinta); }
-    .espera-error { color: var(--stat-tinta-out); }
+    .espera-ya { color: var(--tinta-aviso); }
+    .espera-error { color: var(--tinta-error); }
     /* [HORARIO-ERROR-OSCURO] el error de «Horario modificado»: en oscuro #ff8a80 (decisión 100, el de 132b), 7,29 sobre el
        recuadro; con --stat-tinta-out daba 4,34. En claro, --stat-tinta-out (5,60). */
-    .ajuste-error { color: #ff8a80; }
-    body.light .ajuste-error { color: var(--stat-tinta-out); }
+    .ajuste-error { color: var(--tinta-error); }
+    
     .espera-resultados { display: flex; flex-direction: column; gap: .25rem; margin: -.4rem 0 .6rem; max-height: 15rem; overflow-y: auto; }
     .espera-resultado {
       display: flex; align-items: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem; text-align: left;
@@ -1000,7 +1004,7 @@
     .modal-btn-danger { background: var(--rojo-fondo); color: #fff; }   /* 3,82 → 5,89 */
     .modal-btn-danger:hover:not(:disabled) { background: #c0392b; }
     .modal-success {
-      font-size: .75rem; color: #2ecc71; text-align: center; margin-top: .5rem; min-height: 1.2rem;
+      font-size: .75rem; color: var(--tinta-ok); text-align: center; margin-top: .5rem; min-height: 1.2rem;
     }
 
     /* COMBOS */
@@ -1517,6 +1521,7 @@
       --stat-borde: rgba(184,140,0,.35);
       --amarillo-tinta: #6b5500;   /* [AMARILLO-TINTA-CLARO] era --stat-tinta #8a6d00 */
       --stat-tinta-out: #b8342a;
+      --tinta-ok: #1e5b3a; --tinta-aviso: #6b5500; --tinta-error: #b8342a;   /* [TINTA-MENSAJES] 136 · claro */
       --stat-tinta-perfumes: #1c699d;
       --stat-tinta-inv: #1e5b3a;
       --superficie: #ffffff;
@@ -2011,12 +2016,10 @@
     .promo-estado-2 { font-size: .72rem; font-weight: 500; margin: .3rem 0 0 1.05rem; }
     .promo-estado--apagada { color: #888; }
     .promo-estado--programada { color: #E8B800; }
-    .promo-estado--prendida { color: #2ecc71; }
-    .promo-estado--terminada, .promo-estado-2 { color: #ff6b6b; }
+    .promo-estado--prendida { color: var(--tinta-ok); }
+    .promo-estado--terminada, .promo-estado-2 { color: var(--tinta-aviso); }
     body.light .promo-estado--apagada { color: #5e564a; }
     body.light .promo-estado--programada { color: #6b5500; }
-    body.light .promo-estado--prendida { color: #1b5e20; }
-    body.light .promo-estado--terminada, body.light .promo-estado-2 { color: #b8342a; }
     /* el interruptor (44 px de toque) */
     .promo-switch { position: relative; display: inline-flex; align-items: center; gap: .55rem; min-height: var(--tap-min); cursor: pointer; font-size: .8rem; font-weight: 600; }
     .promo-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
@@ -2027,8 +2030,7 @@
     .promo-switch input:focus-visible + .promo-switch-pista { outline: 2px solid var(--amarillo); outline-offset: 2px; }
     .promo-switch input:disabled + .promo-switch-pista { opacity: .5; }
     .promo-switch input:disabled ~ span { cursor: not-allowed; }
-    .promo-aviso-costo { font-size: .74rem; font-weight: 700; color: #ff6b6b; margin: .7rem 0 0; }
-    body.light .promo-aviso-costo { color: #b8342a; }
+    .promo-aviso-costo { font-size: .74rem; font-weight: 700; color: var(--tinta-error); margin: .7rem 0 0; }
     .promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .6rem; margin-top: .9rem; }
     .promo-grid .modal-input { margin-bottom: 0; min-height: var(--tap-min); }
     .promo-cada-uno { font-size: .7rem; color: var(--gris); margin: .3rem 0 0; }
@@ -2042,8 +2044,7 @@
     .promo-fila { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .35rem .5rem; border: 1px solid var(--borde); border-radius: 6px; min-height: var(--tap-min); }
     .promo-fila-nombre { font-size: .76rem; font-weight: 700; flex: 1 1 160px; min-width: 0; }
     .promo-fila-nota { font-size: .7rem; color: var(--gris); flex: 1 1 160px; }
-    .promo-fila-nota--pierde { color: #ff6b6b; font-weight: 700; }
-    body.light .promo-fila-nota--pierde { color: #b8342a; }
+    .promo-fila-nota--pierde { color: var(--tinta-error); font-weight: 700; }
     .promo-fila .action-btn { margin: 0; }
     .promo-vacio { font-size: .72rem; color: var(--gris); margin: 0; }
   </style>
@@ -3624,7 +3625,7 @@
         <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje promo (cuando cliente está a 1 del threshold)</label>
         <input type="text" id="cfgMensajePromo" class="modal-input" style="margin:0;"/>
         <button class="action-btn btn-principal" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;">💾 Guardar config</button>
-        <span id="cfgPuntosMsg" style="font-size:.7rem;color:#9bd28b;margin-left:.6rem;"></span>
+        <span id="cfgPuntosMsg" style="font-size:.7rem;color:var(--tinta-ok);margin-left:.6rem;"></span>
       </div>
 
       <!-- Ranking -->
@@ -4014,7 +4015,7 @@
       var passInput = document.getElementById('loginPass');
       var errEl = document.getElementById('loginError');
       if (passInput) passInput.disabled = true;
-      if (errEl) { errEl.style.color = '#e8b800'; errEl.textContent = 'Verificando\u2026'; }
+      if (errEl) { errEl.style.color = 'var(--tinta-aviso)'; errEl.textContent = 'Verificando\u2026'; }
 
       // Helper local: race entre la promesa de signInWithPassword y un
       // timeout. Sin esto, si Supabase est\u00e1 degradado (free tier saturado),
@@ -4093,7 +4094,7 @@
         var isTimeout = loginError && loginError.indexOf('tard\u00f3') !== -1;
         if (isTimeout) {
           if (errEl) {
-            errEl.style.color = '#e74c3c';
+            errEl.style.color = 'var(--tinta-error)';
             errEl.innerHTML = '\u23f1 Supabase no respondi\u00f3. Prob\u00e1 de nuevo en unos segundos.<br><span style="font-size:.6rem;color:#999;">Si segu\u00eds sin poder entrar, revis\u00e1 el estado del proyecto en Supabase Dashboard.</span>';
           }
           // NO contar como intento fallido \u2014 fue infraestructura
@@ -4113,7 +4114,7 @@
         } else {
           setLockoutState(st);
           var left = 5 - (st.fails % 5);
-          if (errEl) { errEl.style.color = '#e74c3c'; errEl.textContent = 'Contrase\u00f1a incorrecta (' + left + ' intento' + (left === 1 ? '' : 's') + ' antes del bloqueo)'; }
+          if (errEl) { errEl.style.color = 'var(--tinta-error)'; errEl.textContent = 'Contrase\u00f1a incorrecta (' + left + ' intento' + (left === 1 ? '' : 's') + ' antes del bloqueo)'; }
           notifyTelegram('\ud83d\udea8 Intento fallido en Panel Admin (' + st.fails + ' acumulados)\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
         }
       }
@@ -4301,7 +4302,7 @@
       cont.innerHTML = '<p style="color:var(--gris);">Cargando…</p>';
       var res = await sb.from('password_reset_requests')
         .select('*, clientes(nombre)').eq('status', 'pending').order('created_at', { ascending: false });
-      if (res.error) { cont.innerHTML = '<p style="color:#e74c3c;">' + escHtml(errorEnCriollo(res.error, null, 'cargar los pedidos', 'recargar')) + '</p>'; return; }   // 128j
+      if (res.error) { cont.innerHTML = '<p style="color:var(--tinta-error);">' + escHtml(errorEnCriollo(res.error, null, 'cargar los pedidos', 'recargar')) + '</p>'; return; }   // 128j
       var data = res.data || [];
       if (data.length === 0) {
         cont.innerHTML = '<p style="color:var(--gris);padding:1rem 0;">No hay pedidos pendientes. 🎉</p>';
@@ -5016,7 +5017,7 @@
       btn.disabled = false;
 
       if (res.error) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = errorEnCriollo(res.error, null, 'cambiar el stock del depósito', true);   // 128h · «Guardar»
         return;
       }
@@ -5035,7 +5036,7 @@
         try { renderStock && renderStock(); } catch (e) {}
       }
 
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
       msgEl.textContent = sumar ? ('✓ Guardado · +' + movidas + ' al local') : '✓ Guardado';
       renderDeposito();
       setTimeout(function() { closeModal('modalDeposito'); }, MODAL_CIERRE_MS);
@@ -5443,7 +5444,7 @@
       if (clicksErr) {   // [CARGA-FALLIDA-CERO] 128m · antes todos los perfumes en rojo y «N sin visitas de N totales»
         zeroDiv.innerHTML = '<p style="width:100%;font-size:.58rem;color:var(--gris);margin-top:.3rem;">— perfumes sin visitas de ' + totalPerfumes + ' totales</p>';
       } else if (zeroVisits.length === 0) {
-        zeroDiv.innerHTML = '<p style="color:#2ecc71;font-size:.7rem;">🎉 ¡Todos los perfumes recibieron al menos 1 visita!</p>';
+        zeroDiv.innerHTML = '<p style="color:var(--tinta-ok);font-size:.7rem;">🎉 ¡Todos los perfumes recibieron al menos 1 visita!</p>';
       } else {
         var zHTML = '';
         zeroVisits.forEach(function(p) {
@@ -5728,14 +5729,14 @@
       var compro = document.getElementById('newClientCompro').checked;
       var msgEl = document.getElementById('newClientMsg');
 
-      if (!nombre) { msgEl.textContent = 'Poné un nombre o apodo'; msgEl.style.color = '#e74c3c'; return; }
-      if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = '#e74c3c'; return; }
+      if (!nombre) { msgEl.textContent = 'Poné un nombre o apodo'; msgEl.style.color = 'var(--tinta-error)'; return; }
+      if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = 'var(--tinta-error)'; return; }
 
       // Ver si ya existe
       var { data: existing } = await sb.from('clientes').select('id').eq('telefono', telefono).limit(1);
       if (existing && existing.length > 0) {
         msgEl.textContent = 'Este teléfono ya está registrado';
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return;
       }
 
@@ -5748,10 +5749,10 @@
       };
 
       var { error } = await sb.from('clientes').insert(row);
-      if (error) { msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'registrar el cliente'); msgEl.style.color = '#e74c3c'; return; }   // 128h
+      if (error) { msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'registrar el cliente'); msgEl.style.color = 'var(--tinta-error)'; return; }   // 128h
 
       msgEl.textContent = '✓ ' + nombre + ' registrado' + (compro ? ' con 1 punto' : '');
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
       // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
       // notifyTelegram('👤 Nuevo cliente (admin)\n📱 ' + nombre + ' · ' + telefono + (compro ? '\n⭐ 1 punto' : ''));
 
@@ -5797,7 +5798,7 @@
       var query = document.getElementById('puntoQuery').value.trim();
       var msgEl = document.getElementById('puntoMsg');
 
-      if (!query || query.length < 2) { msgEl.textContent = 'Ingresá un nombre o teléfono'; msgEl.style.color = '#e74c3c'; return; }
+      if (!query || query.length < 2) { msgEl.textContent = 'Ingresá un nombre o teléfono'; msgEl.style.color = 'var(--tinta-error)'; return; }
 
       // Buscar por teléfono exacto primero · [PUNTOS-BUSCA-TEL-CRUDO] con el número normalizado (como se guarda)
       var soloDig = query.replace(/[\s\-+().]/g, '');
@@ -5817,12 +5818,12 @@
           // Varios coinciden → mostrar lista para que elija
           var nombres = byName.map(function(c, i) { return (i + 1) + '. ' + c.nombre + ' (' + c.telefono + ')'; }).join('\n');
           var pick = prompt('Se encontraron ' + byName.length + ' clientes:\n' + nombres + '\n\nEscribí el número para elegir:');
-          if (!pick) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }
+          if (!pick) { msgEl.textContent = 'Cancelado'; msgEl.style.color = 'var(--tinta-aviso)'; return; }
           var idx = parseInt(pick) - 1;
           if (idx >= 0 && idx < byName.length) {
             data = [byName[idx]];
           } else {
-            msgEl.textContent = 'Número inválido'; msgEl.style.color = '#e74c3c'; return;
+            msgEl.textContent = 'Número inválido'; msgEl.style.color = 'var(--tinta-error)'; return;
           }
         }
       }
@@ -5832,16 +5833,16 @@
         var nombre, telefono;
         if (esNumero) {
           telefono = cleanPhone(query);   // [TEL-CANONICO-PANEL] se revisa antes de pedir el nombre
-          if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = '#e74c3c'; return; }
+          if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = 'var(--tinta-error)'; return; }
           nombre = prompt('Este teléfono no está registrado.\nIngresá nombre o apodo para registrarlo:');
-          if (!nombre || !nombre.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }
+          if (!nombre || !nombre.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = 'var(--tinta-aviso)'; return; }
           nombre = nombre.trim();
         } else {
           nombre = query;
           telefono = prompt('"' + query + '" no está registrado.\nIngresá su teléfono para registrarlo:');
-          if (!telefono || !telefono.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = '#e74c3c'; return; }   // [TEL-CANONICO-PANEL] un número corto va abajo, con el mensaje nuevo
+          if (!telefono || !telefono.trim()) { msgEl.textContent = 'Cancelado'; msgEl.style.color = 'var(--tinta-aviso)'; return; }   // [TEL-CANONICO-PANEL] un número corto va abajo, con el mensaje nuevo
           telefono = cleanPhone(telefono);   // [TEL-CANONICO-PANEL]
-          if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = '#e74c3c'; return; }
+          if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = 'var(--tinta-error)'; return; }
         }
 
         var firstLog = appendPuntoLog([], makePuntoLogEntry(+1, 0, 1, 'Registro inicial'));
@@ -5858,12 +5859,12 @@
           var retry = await sb.from('clientes').insert({
             nombre: nombre, telefono: telefono, puntos: 1, compro: true
           }).select();
-          if (retry.error) { msgEl.textContent = errorEnCriollo(retry.error, 'un cliente con ese teléfono', 'sumar el punto'); msgEl.style.color = '#e74c3c'; return; }   // 128h
+          if (retry.error) { msgEl.textContent = errorEnCriollo(retry.error, 'un cliente con ese teléfono', 'sumar el punto'); msgEl.style.color = 'var(--tinta-error)'; return; }   // 128h
           console.warn('[puntos_log] insert sin historial (columna ausente):', error.message);
         }
 
         msgEl.textContent = '✓ ' + nombre + ' registrado + 1 punto';
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
         // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
         // notifyTelegram('⭐ Punto + nuevo cliente\n👤 ' + nombre + ' · ' + telefono);
       } else {
@@ -5873,12 +5874,12 @@
         var { data: updated, error } = await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', cliente.id).select();
         if (error || !updated || updated.length === 0) {
           msgEl.textContent = errorEnCriollo(error, null, 'sumar el punto');   // 128j
-          msgEl.style.color = '#e74c3c'; return;
+          msgEl.style.color = 'var(--tinta-error)'; return;
         }
         await pushPuntoLogEntry(cliente, +1, cliente.puntos || 0, nuevosPuntos, '+1 desde buscador');
 
         msgEl.textContent = '✓ ' + cliente.nombre + ' ahora tiene ' + nuevosPuntos + ' punto' + (nuevosPuntos !== 1 ? 's' : '');
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
         // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
         // notifyTelegram('⭐ +1 punto\n👤 ' + cliente.nombre + ' → ' + nuevosPuntos + ' pts');
       }
@@ -6001,8 +6002,8 @@
       var msgEl = document.getElementById('modalClientEditMsg');
       var btn = document.getElementById('modalClientEditBtn');
 
-      if (!nombre) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'El nombre no puede estar vacío'; return; }
-      if (!esperaTelValido(telefono)) { msgEl.style.color = '#e74c3c'; msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; return; }
+      if (!nombre) { msgEl.style.color = 'var(--tinta-error)'; msgEl.textContent = 'El nombre no puede estar vacío'; return; }
+      if (!esperaTelValido(telefono)) { msgEl.style.color = 'var(--tinta-error)'; msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; return; }
       if (puntos < 0) puntos = 0;
 
       btn.disabled = true; btn.textContent = 'Guardando...';
@@ -6011,11 +6012,11 @@
       }).eq('id', editingClientId).select();
 
       if (error) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'guardar el cliente', true);   // 128h · «Guardar cambios»
         console.error('Edit client error:', error);
       } else if (!data || data.length === 0) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = errorEnCriollo(null, null, 'guardar el cliente', true);   // 128j · 0 filas: la base no lo dejó
         console.error('Edit client: no rows updated. Check RLS policies on clientes table.');
       } else {
@@ -6024,7 +6025,7 @@
         if (prev && (prev.puntos || 0) !== puntos) {
           await pushPuntoLogEntry(prev, puntos - (prev.puntos || 0), prev.puntos || 0, puntos, 'Edicion manual');
         }
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
         msgEl.textContent = 'Cliente actualizado ✓';
         notifyTelegram('✏️ Cliente editado: ' + nombre + ' · ' + telefono + ' · ' + puntos + ' pts');
         loadClientes();
@@ -6070,15 +6071,15 @@
       btn.disabled = true; btn.textContent = 'Eliminando...';
       var { data, error } = await sb.from('clientes').delete().eq('id', deletingClientId).select();
       if (error) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = errorEnCriollo(error, null, 'borrar el cliente');   // 128h
         console.error('Delete client error:', error);
       } else if (!data || data.length === 0) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = errorEnCriollo(null, null, 'borrar el cliente');   // 128j · 0 filas: la base no lo dejó
         console.error('Delete client: no rows deleted. Check RLS policies on clientes table.');
       } else {
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
         msgEl.textContent = 'Cliente eliminado ✓';
         notifyTelegram('🗑️ Cliente eliminado: ' + deletingClientName);
         loadClientes();
@@ -6221,7 +6222,7 @@
 
       if (!newPrice || newPrice <= 0) {
         msgEl.textContent = 'Precio invalido';
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return;
       }
 
@@ -6229,7 +6230,7 @@
       var oldPromo = p.promo;
 
       msgEl.textContent = 'Guardando...';
-      msgEl.style.color = '#e8b800';
+      msgEl.style.color = 'var(--tinta-aviso)';
 
       // Persistencia REAL en Supabase: upsert en perfume_overrides.
       // Antes solo escribíamos en localStorage, por eso los cambios de precio
@@ -6241,7 +6242,7 @@
 
       if (result.error) {
         msgEl.textContent = errorEnCriollo(result.error, null, 'cambiar el precio');   // 128h
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return;
       }
 
@@ -6266,7 +6267,7 @@
       });
 
       msgEl.textContent = '✓ Precio actualizado en Supabase';
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
 
       // [TG-RESUMEN-DIARIO] silenciado \u00b7 ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
       // notifyTelegram('\ud83d\udcb0 Precio actualizado\n\ud83c\udf36 ' + p.name + '\n\ud83d\udcb5 Precio: $' + newPrice.toLocaleString('es-AR') + (newPromo ? '\n\ud83c\udf1f Promo: $' + newPromo.toLocaleString('es-AR') : ''));
@@ -6359,10 +6360,10 @@
         var up = await sb.from('lista_espera').update({ notified_at: now }).eq('id', id);
         if (up.error) {
           console.error('[waitlist] marcar error:', up.error);
-          if (estado) { estado.textContent = 'no se pudo marcar'; estado.style.color = '#e74c3c'; }
+          if (estado) { estado.textContent = 'no se pudo marcar'; estado.style.color = 'var(--tinta-error)'; }
           return;
         }
-        if (estado) { estado.textContent = '✓ avisado'; estado.style.color = '#2ecc71'; }
+        if (estado) { estado.textContent = '✓ avisado'; estado.style.color = 'var(--tinta-ok)'; }
         if (fila) fila.style.opacity = '.55';
         // Reflejar en memoria para que la tab Espera no quede desactualizada.
         if (Array.isArray(esperaData) && esperaData.length) {
@@ -6406,7 +6407,7 @@
 
       if (result.error) {
         msgEl.textContent = errorEnCriollo(result.error, null, 'cambiar el stock');   // 128h
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return;
       }
 
@@ -6423,7 +6424,7 @@
       p._stockQty = qty;
 
       msgEl.textContent = 'Stock actualizado: ' + info.badgeText;
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
 
       // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
       // notifyTelegram('📦 Stock actualizado\n🌶 ' + p.name + '\n📊 ' + info.badgeText + (paused ? ' (pausado)' : ''));
@@ -6445,7 +6446,7 @@
           msgEl.innerHTML = '\u2713 Stock actualizado<br>' +
             '<span style="color:var(--amarillo-tinta);font-weight:600;">\ud83d\udcec ' + notified.length + ' persona' + (notified.length !== 1 ? 's' : '') +
             ' esperando el aviso \u2014 avisales con los botones de abajo</span>';
-          msgEl.style.color = '#2ecc71';
+          msgEl.style.color = 'var(--tinta-ok)';
           notifyTelegram('\ud83d\udcec Waitlist PENDIENTE de aviso\n\ud83c\udf36 ' + p.name + '\n\ud83d\udc65 ' + notified.length + ' persona(s)');
           setTimeout(function() { closeModal('modalStock'); }, 5000);
         } else {
@@ -7077,7 +7078,7 @@
       if ((tipeado || '').trim().toUpperCase() !== CONFIRM_TOKEN) {
         var msgCancel = document.getElementById('editMsg');
         msgCancel.textContent = 'Cancelado: tenés que escribir ST exactamente.';
-        msgCancel.style.color = '#e74c3c';
+        msgCancel.style.color = 'var(--tinta-error)';
         return { ok: false, error: msgCancel.textContent };
       }
 
@@ -7127,7 +7128,7 @@
 
       var msgEl = document.getElementById('editMsg');
       msgEl.textContent = 'Guardando...';
-      msgEl.style.color = '#e8b800';
+      msgEl.style.color = 'var(--tinta-aviso)';
 
       // Upsert: insert si no existe, update si ya existe
       var { error } = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
@@ -7138,7 +7139,7 @@
         delete obj.precio_decant; delete obj.decant_excluido;
         var retry = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
         if (!retry.error) {
-          msgEl.style.color = '#fbbf24';
+          msgEl.style.color = 'var(--tinta-aviso)';
           msgEl.textContent = '⚠ Guardado SIN los datos de decant (falta correr sql/add_precio_decant.sql).';
           return { ok: true };   // guardó (sin esas dos columnas)
         }
@@ -7146,7 +7147,7 @@
 
       if (error) {
         msgEl.textContent = errorEnCriollo(error, 'perfume', null, true);   // 128i · «Guardar cambios»
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return { ok: false, error: msgEl.textContent };
       }
 
@@ -7218,7 +7219,7 @@
       setTimeout(function() { try { loadEditLog(); } catch(e) {} }, 700);
 
       msgEl.textContent = '\u2713 ' + obj.name + ' actualizado';
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
       notifyTelegram('\u270f\ufe0f Perfume editado: ' + obj.name + '\n\ud83d\udccb Cambios guardados en Supabase');
       return { ok: true };
     }
@@ -7273,7 +7274,7 @@
 
       var msgEl = document.getElementById('editMsg');
       msgEl.textContent = 'Eliminando...';
-      msgEl.style.color = '#e8b800';
+      msgEl.style.color = 'var(--tinta-aviso)';
 
       // Upsert con oculto:true — si ya hay override lo actualiza, si no crea uno nuevo
       var { data, error } = await sb.from('perfume_overrides')
@@ -7282,7 +7283,7 @@
 
       if (error) {
         msgEl.textContent = errorEnCriollo(error, null, 'eliminar el perfume');   // 128h
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return;
       }
 
@@ -7292,7 +7293,7 @@
       logAdminAction('perfume_hide', slug, { nombre: nombre });
 
       msgEl.textContent = '✓ "' + nombre + '" eliminado del catálogo';
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
 
       // Ocultar el botón para que no se pueda hacer doble-click
       var btn = document.getElementById('btnDeletePerfume');
@@ -7373,7 +7374,7 @@
       if (clearBtn) { clearBtn.disabled = true; clearBtn.style.opacity = '.4'; }
       var msgEl = document.getElementById('editFotoMsg');
       msgEl.textContent = 'Foto quitada. Acordate de apretar "Guardar cambios" para confirmar.';
-      msgEl.style.color = '#e8b800';
+      msgEl.style.color = 'var(--tinta-aviso)';
     }
 
     // Sincroniza el preview cuando el usuario pega una URL manualmente en el input.
@@ -7401,7 +7402,7 @@
       var previewImg = document.getElementById('editFotoPreviewImg');
 
       msgEl.textContent = 'Comprimiendo y subiendo...';
-      msgEl.style.color = '#e8b800';
+      msgEl.style.color = 'var(--tinta-aviso)';
 
       try {
         var compressed = await compressToWebP(file, 800, 0.82);
@@ -7426,10 +7427,10 @@
 
         var sizeKB = Math.round(compressed.size / 1024);
         msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
       } catch(e) {
         msgEl.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128h
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
       }
       input.value = '';
     }
@@ -7447,7 +7448,7 @@
       var fotoInput = document.getElementById('nuevoFoto');
 
       msgEl.textContent = 'Comprimiendo y subiendo...';
-      msgEl.style.color = '#e8b800';
+      msgEl.style.color = 'var(--tinta-aviso)';
 
       try {
         // Comprimir a WebP usando canvas
@@ -7485,11 +7486,11 @@
 
         var sizeKB = Math.round(compressed.size / 1024);
         msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
 
       } catch(e) {
         msgEl.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128h
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
       }
 
       // Limpiar file input para poder subir otra
@@ -7508,7 +7509,7 @@
       var clearBtn = document.getElementById('comboFotoClear');
 
       msgEl.textContent = 'Comprimiendo y subiendo...';
-      msgEl.style.color = '#e8b800';
+      msgEl.style.color = 'var(--tinta-aviso)';
 
       try {
         var compressed = await compressToWebP(file, 800, 0.82);
@@ -7540,10 +7541,10 @@
 
         var sizeKB = Math.round(compressed.size / 1024);
         msgEl.textContent = '✓ Foto subida (' + sizeKB + 'KB WebP)';
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
       } catch(e) {
         msgEl.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128h
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
       }
       input.value = '';
     }
@@ -7634,7 +7635,7 @@
 
       var precioDecant = num(prefix + 'PrecioDecant');
       if (precioDecant > 0) {
-        hint.style.color = '#2ecc71';
+        hint.style.color = 'var(--tinta-ok)';
         hint.textContent = '✓ Se va a vender a $' + precioDecant.toLocaleString('es-AR') + ' el decant.';
         return;
       }
@@ -7646,7 +7647,7 @@
       if (!precio || !tope) { hint.textContent = ''; return; }
 
       if ((precio / ml * 100) > tope) {
-        hint.style.color = '#ff9f43';
+        hint.style.color = 'var(--tinta-aviso)';
         hint.innerHTML = '⚠️ <strong>Este perfume es caro y va a salir como "Precio a consultar"</strong> '
           + '(el cliente no lo va a poder comprar solo).<br>Cargale un precio de decant acá arriba para que se venda normalmente.';
       } else {
@@ -7696,7 +7697,7 @@
 
       if (!name || !price) {
         msgEl.textContent = 'Nombre y precio son obligatorios';
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return { ok: false, error: msgEl.textContent };
       }
 
@@ -7731,20 +7732,20 @@
         result = await doSave();
         if (!result.error) {
           msgEl.textContent = '⚠ Perfume guardado SIN los datos de decant (falta correr sql/add_precio_decant.sql).';
-          msgEl.style.color = '#fbbf24';
+          msgEl.style.color = 'var(--tinta-aviso)';
         }
       }
 
       if (result.error) {
         msgEl.textContent = errorEnCriollo(result.error, 'perfume', null, !!editId);   // 128i · «Guardar cambios» al editar; «Agregar perfume» al agregar
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         return { ok: false, error: msgEl.textContent };
       }
 
       var action = editId ? 'actualizado' : 'agregado';
       logAdminAction(editId ? 'nuevo_update' : 'nuevo_create', slug, { name: name, marca: marca, price: price, promo: promo });
       msgEl.textContent = name + ' ' + action + ' correctamente';
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
       notifyTelegram('🆕 Perfume ' + action + ': ' + name + '\n💰 $' + price.toLocaleString('es-AR') + '\n📋 ' + cat + ' · ' + perfil);
 
       // Mergear inmediatamente en PERFUMES para que EDITAR/PRECIOS/STOCK lo vean
@@ -7903,7 +7904,7 @@
       if (faltaLeer('seleccionBadge', msg)) return;   // [GUARDAR-SIN-LEER]
       var newText = (input.value || '').trim().substring(0, 20);
       if (newText.length === 0) {
-        if (msg) { msg.textContent = '⚠️ El texto no puede estar vacío.'; msg.style.color = '#e74c3c'; }
+        if (msg) { msg.textContent = '⚠️ El texto no puede estar vacío.'; msg.style.color = 'var(--tinta-error)'; }
         return;
       }
       try {
@@ -7914,7 +7915,7 @@
         }, { onConflict: 'id' });
         if (error) throw error;
         input.value = newText;
-        if (msg) { msg.textContent = '✅ Badge guardado: "' + newText + '"'; msg.style.color = '#66bb6a'; }
+        if (msg) { msg.textContent = '✅ Badge guardado: "' + newText + '"'; msg.style.color = 'var(--tinta-ok)'; }
         if (typeof logAdminAction === 'function') {
           // La firma es (action, target_slug, changes). Acá faltaba el
           // target_slug, así que el objeto se iba a esa columna (que es
@@ -7924,7 +7925,7 @@
         // Limpiar el mensaje después de 4 segundos
         setTimeout(function() { if (msg) msg.textContent = ''; }, 4000);
       } catch (e) {
-        if (msg) { msg.textContent = errorEnCriollo(e, null, 'guardar la etiqueta', true); msg.style.color = '#e74c3c'; }   // 128j · «💾 Guardar badge»
+        if (msg) { msg.textContent = errorEnCriollo(e, null, 'guardar la etiqueta', true); msg.style.color = 'var(--tinta-error)'; }   // 128j · «💾 Guardar badge»
       }
     }
     window.saveSeleccionBadge = saveSeleccionBadge;
@@ -8034,9 +8035,9 @@
         var ins = await sb.from('trust_badges').insert(payload);
         if (ins.error) throw ins.error;
         if (typeof logAdminAction === 'function') logAdminAction('badges_update', null, { rows: payload });
-        if (msg) { msg.style.color = 'var(--verde, #4ade80)'; msg.textContent = '✓ Beneficios actualizados. Refrescá el sitio para verlos.'; }
+        if (msg) { msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Beneficios actualizados. Refrescá el sitio para verlos.'; }
       } catch (e) {
-        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'guardar los beneficios', true); }   // 128j · «💾 Guardar cambios»
+        if (msg) { msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'guardar los beneficios', true); }   // 128j · «💾 Guardar cambios»
       }
     }
 
@@ -8069,7 +8070,7 @@
         HOME_BANNER_LIST = res.data || [];
         renderHomeBannerList();
       } catch (e) {
-        if (msg) { msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'cargar los mensajes', 'recargar'); }   // 128j
+        if (msg) { msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'cargar los mensajes', 'recargar'); }   // 128j
       }
     }
 
@@ -8110,10 +8111,10 @@
           updated_at: new Date().toISOString()
         }).select().single();
         if (ins.error) throw ins.error;
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Mensaje agregado. Editá el texto.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Mensaje agregado. Editá el texto.';
         await loadHomeBannerAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'agregar el mensaje');   // 128j
+        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'agregar el mensaje');   // 128j
       }
     }
 
@@ -8125,7 +8126,7 @@
       var activo = !!card.querySelector('.banner-msg-activo').checked;
       var marquee = !!card.querySelector('.banner-msg-marquee').checked;
       if (!texto) {
-        msg.style.color = '#ff6b6b'; msg.textContent = '⚠ El texto no puede estar vacío.';
+        msg.style.color = 'var(--tinta-error)'; msg.textContent = '⚠ El texto no puede estar vacío.';
         return;
       }
       msg.style.color = ''; msg.textContent = 'Guardando...';
@@ -8134,11 +8135,11 @@
         var upd = await sb.from('home_top_banner').update(payload).eq('id', id);
         if (upd.error) throw upd.error;
         if (typeof logAdminAction === 'function') logAdminAction('home_banner_msg_update', null, Object.assign({ id: id }, payload));
-        msg.style.color = '#4ade80';
+        msg.style.color = 'var(--tinta-ok)';
         msg.textContent = '✓ Guardado.';
         await loadHomeBannerAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'guardar el mensaje', true);   // 128j · «💾 Guardar»
       }
     }
@@ -8151,10 +8152,10 @@
         var del = await sb.from('home_top_banner').delete().eq('id', id);
         if (del.error) throw del.error;
         if (typeof logAdminAction === 'function') logAdminAction('home_banner_msg_delete', null, { id: id });
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Mensaje eliminado.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Mensaje eliminado.';
         await loadHomeBannerAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'eliminar el mensaje');   // 128j
+        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'eliminar el mensaje');   // 128j
       }
     }
 
@@ -8170,7 +8171,7 @@
         renderSlidesAdmin();
       } catch (e) {
         if (list) {
-          list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los slides', 'recargar')) + '</p>';   // 128j
+          list.innerHTML = '<p style="color:var(--tinta-error);font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los slides', 'recargar')) + '</p>';   // 128j
         }
       }
     }
@@ -8234,11 +8235,11 @@
           }).select().single();
           if (ins.error) throw ins.error;
           if (typeof logAdminAction === 'function') logAdminAction('home_slide_add', null, { url: uploaded.url, tipo: uploaded.tipo });
-          msg.style.color = '#4ade80';
+          msg.style.color = 'var(--tinta-ok)';
           msg.textContent = '✓ Slide agregado.';
           await loadHomeSlidesAdmin();
         } catch (e) {
-          msg.style.color = '#ff6b6b';
+          msg.style.color = 'var(--tinta-error)';
           msg.textContent = errorEnCriollo(e, null, 'agregar el slide');   // 128j
         } finally {
           document.body.removeChild(fileInput);
@@ -8260,10 +8261,10 @@
         var uploaded = await uploadSlideFile(file);
         var upd = await sb.from('home_slides').update({ media_url: uploaded.url, media_tipo: uploaded.tipo }).eq('id', id);
         if (upd.error) throw upd.error;
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Media actualizada.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Media actualizada.';
         await loadHomeSlidesAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'subir el archivo');   // 128j
       } finally {
         inputEl.value = '';
@@ -8303,10 +8304,10 @@
         var upd = await sb.from('home_slides').update(payload).eq('id', id);
         if (upd.error) throw upd.error;
         if (typeof logAdminAction === 'function') logAdminAction('home_slide_update', null, Object.assign({ id: id }, payload));
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Slide guardado.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Slide guardado.';
         await loadHomeSlidesAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'guardar el slide', true);   // 128j · «💾 Guardar»
       }
     }
@@ -8318,10 +8319,10 @@
         var del = await sb.from('home_slides').delete().eq('id', id);
         if (del.error) throw del.error;
         if (typeof logAdminAction === 'function') logAdminAction('home_slide_delete', null, { id: id });
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Slide eliminado.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Slide eliminado.';
         await loadHomeSlidesAdmin();
       } catch (e) {
-        msg.style.color = '#ff6b6b';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'eliminar el slide');   // 128j
       }
     }
@@ -8337,7 +8338,7 @@
       msgEl.style.color = color;
       if (ms) destacadoMsgTimer = setTimeout(function() { msgEl.textContent = ''; }, ms);
     }
-    function errorDestacados(texto) { msgDestacados(texto, 'var(--stat-tinta-out)', 0); }
+    function errorDestacados(texto) { msgDestacados(texto, 'var(--tinta-error)', 0); }
     function filasDestacados(slugs) { return slugs.map(function(slug, i) { return { slug: slug, posicion: i }; }); }
     // Sin la lista de la base (falló o todavía no llegó) no se escribe. Lo dice y devuelve true.
     function destacadosBloqueados() {
@@ -8438,25 +8439,25 @@
       var removed = slugs.splice(index, 1);
       if (!(await syncDestacadosToDB(slugs))) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === removed[0]; });
-      msgDestacados((p ? p.name : '') + ' eliminado de destacados', '#e74c3c', 2000);
+      msgDestacados((p ? p.name : '') + ' eliminado de destacados', 'var(--tinta-ok)', 2000);
     }
 
     async function addDestacado(slug) {
       if (destacadosBloqueados()) return;   // [DESTACADOS-BORRA-SI-FALLA]
       var slugs = cachedDestacados.slice();
       if (slugs.indexOf(slug) !== -1) {
-        msgDestacados('Ya está en destacados', '#f1c40f', 2000);
+        msgDestacados('Ya está en destacados', 'var(--tinta-aviso)', 2000);
         return;
       }
       if (slugs.length >= 7) {
-        msgDestacados('Máximo 7 destacados. Quitá uno primero.', '#e74c3c', 2000);
+        msgDestacados('Máximo 7 destacados. Quitá uno primero.', 'var(--tinta-aviso)', 2000);
         return;
       }
       slugs.push(slug);
       document.getElementById('destacadoResults').style.display = 'none';   // como antes: no queda un resultado para tocar dos veces
       if (!(await syncDestacadosToDB(slugs))) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-      msgDestacados((p ? p.name : '') + ' agregado a destacados', '#2ecc71', 2000);
+      msgDestacados((p ? p.name : '') + ' agregado a destacados', 'var(--tinta-ok)', 2000);
       document.getElementById('destacadoSearch').value = '';
     }
 
@@ -8493,7 +8494,7 @@
       var tbody = document.getElementById('tbodyCierres');
       var { data, error } = await sb.from('cierres_especiales').select('*').order('fecha', { ascending: true });
       if (error) {   // [PANEL-HOY-UTC] antes un error se veía como «No hay cierres programados»
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--stat-tinta-out);">' + escHtml(errorEnCriollo(error, null, 'cargar los cierres', 'recargar')) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--tinta-error);">' + escHtml(errorEnCriollo(error, null, 'cargar los cierres', 'recargar')) + '</td></tr>';
         return;
       }
       if (!data || data.length === 0) {
@@ -8520,12 +8521,12 @@
       var motivo = document.getElementById('cierreMotivo').value.trim();
       var msgEl = document.getElementById('cierreMsg');
 
-      if (!desde) { msgEl.textContent = 'Seleccioná al menos la fecha "Desde"'; msgEl.style.color = '#e74c3c'; return; }
+      if (!desde) { msgEl.textContent = 'Seleccioná al menos la fecha "Desde"'; msgEl.style.color = 'var(--tinta-error)'; return; }
       if (!motivo) motivo = 'Cerrado';
       if (!hasta) hasta = desde; // Un solo día
 
       // Validar que hasta >= desde
-      if (hasta < desde) { msgEl.textContent = '"Hasta" debe ser igual o posterior a "Desde"'; msgEl.style.color = '#e74c3c'; return; }
+      if (hasta < desde) { msgEl.textContent = '"Hasta" debe ser igual o posterior a "Desde"'; msgEl.style.color = 'var(--tinta-error)'; return; }
 
       // Generar todas las fechas del rango
       var fechas = [];
@@ -8539,7 +8540,7 @@
       // Máximo 14 días para evitar errores
       if (fechas.length > 14) {
         msgEl.textContent = 'Máximo 14 días por vez (seleccionaste ' + fechas.length + ')';
-        msgEl.style.color = '#e74c3c'; return;
+        msgEl.style.color = 'var(--tinta-error)'; return;
       }
 
       // Insertar todas las fechas
@@ -8547,7 +8548,7 @@
       var { error } = await sb.from('cierres_especiales').upsert(rows, { onConflict: 'fecha' });
       if (error) {
         msgEl.textContent = errorEnCriollo(error, null, 'agregar el cierre');   // 128h
-        msgEl.style.color = '#e74c3c'; return;
+        msgEl.style.color = 'var(--tinta-error)'; return;
       }
 
       logAdminAction('cierre_add', null, { desde: desde, hasta: hasta, dias: fechas.length, motivo: motivo });
@@ -8558,7 +8559,7 @@
         ? 'Cierre agregado: ' + desdeStr
         : fechas.length + ' días cerrados: ' + desdeStr + ' al ' + hastaStr;
       msgEl.textContent = resumen;
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
       notifyTelegram('🚫 Cierre programado\n📅 ' + (fechas.length === 1 ? desdeStr : desdeStr + ' al ' + hastaStr) + ' (' + fechas.length + ' día' + (fechas.length > 1 ? 's' : '') + ')\n📝 ' + motivo);
 
       document.getElementById('cierreFechaDesde').value = '';
@@ -8640,11 +8641,11 @@
 
       if (horaAbre >= horaCierra) {
         msgEl.textContent = 'La hora de apertura debe ser anterior a la de cierre';
-        msgEl.style.color = '#e74c3c'; return;
+        msgEl.style.color = 'var(--tinta-error)'; return;
       }
       if (desde && hasta && hasta < desde) {
         msgEl.textContent = 'La fecha "hasta" debe ser posterior a "desde"';
-        msgEl.style.color = '#e74c3c'; return;
+        msgEl.style.color = 'var(--tinta-error)'; return;
       }
 
       // FECHA HOY en zona horaria Argentina (no UTC) — antes guardaba
@@ -8671,19 +8672,19 @@
       if (ins.error || !ins.data) {
         if (btnAjuste) btnAjuste.disabled = false;
         msgEl.textContent = errorEnCriollo(ins.error, null, 'guardar el horario', true);   // 128h · «Guardar horario»
-        msgEl.style.color = '#e74c3c'; return;
+        msgEl.style.color = 'var(--tinta-error)'; return;
       }
       var borrado = await sb.from('ajuste_horario').delete().lt('id', ins.data.id);
       if (btnAjuste) btnAjuste.disabled = false;
 
       logAdminAction('horario_update', null, row);
       msgEl.textContent = 'Horario guardado: ' + horaAbre + ':00 a ' + horaCierra + ':00';
-      msgEl.style.color = '#2ecc71';
+      msgEl.style.color = 'var(--tinta-ok)';
       notifyTelegram('🕐 Horario cambiado\n⏰ ' + horaAbre + ':00 a ' + horaCierra + ':00 (sáb ' + horaCierraSab + ':00)\n📅 ' + (desde || 'hoy') + ' al ' + (hasta || 'indefinido') + (motivo ? '\n📝 ' + motivo : ''));
       if (borrado.error) {   // el nuevo quedó guardado y es el que manda; el de antes sigue en la tabla
         // 2 · el formulario queda como estaba: «Guardar» de nuevo guarda lo mismo y borra los anteriores
         msgEl.textContent += '. ' + errorEnCriollo(borrado.error, null, 'borrar el horario anterior', true);
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         loadAjuste();
         return;
       }
@@ -8702,7 +8703,7 @@
       var quitar = await sb.from('ajuste_horario').delete().neq('id', 0);
       if (quitar.error) {
         var msgQ = document.getElementById('ajusteMsg');
-        if (msgQ) { msgQ.textContent = errorEnCriollo(quitar.error, null, 'volver al horario normal'); msgQ.style.color = '#e74c3c'; }
+        if (msgQ) { msgQ.textContent = errorEnCriollo(quitar.error, null, 'volver al horario normal'); msgQ.style.color = 'var(--tinta-error)'; }
         return;
       }
       logAdminAction('horario_reset', null, { id: id || null });
@@ -8758,7 +8759,7 @@
           ? '<span class="combo-badge" style="background:#e74c3c;color:#fff;margin-left:.3rem;">⚠️ ROTO</span>'
           : '';
         var brokenWarning = isBroken
-          ? '<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(231,76,60,.1);border-left:3px solid #e74c3c;border-radius:3px;font-size:.6rem;color:#e74c3c;font-weight:600;">'
+          ? '<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(231,76,60,.1);border-left:3px solid var(--tinta-error);border-radius:3px;font-size:.6rem;color:var(--tinta-error);font-weight:600;">'
             + '⚠️ Este combo NO se muestra en el index. Editalo para reemplazar o sacar: ' + escHtml(brokenItems.join(', '))
             + '</div>'
           : '';
@@ -8997,7 +8998,7 @@
       // [GUARDAR-SIN-LEER] sin los perfumes nuevos, un ítem que es uno de ellos queda vacío y «Guardar» lo sacaba del combo.
       // #e74c3c como los otros errores de esta caja, que es oscura en los dos temas (regla 19).
       var comboMsgEl = document.getElementById('comboMsg');
-      if (comboSinNuevos(s.items) && faltaLeer('nuevos', comboMsgEl)) comboMsgEl.style.color = '#e74c3c';
+      if (comboSinNuevos(s.items) && faltaLeer('nuevos', comboMsgEl)) comboMsgEl.style.color = 'var(--tinta-error)';
 
       // Cargar foto si existe
       clearComboFoto();
@@ -9029,10 +9030,10 @@
       var promo = document.getElementById('comboPromo').value;
       var msgEl = document.getElementById('comboMsg');
       var comboEditado = editingComboSlug && PERFUMES.find(function(p) { return p.slug === editingComboSlug; });
-      if (comboEditado && comboSinNuevos(comboEditado.items) && faltaLeer('nuevos', msgEl)) { msgEl.style.color = '#e74c3c'; return; }   // [GUARDAR-SIN-LEER]
+      if (comboEditado && comboSinNuevos(comboEditado.items) && faltaLeer('nuevos', msgEl)) { msgEl.style.color = 'var(--tinta-error)'; return; }   // [GUARDAR-SIN-LEER]
 
       if (!name || !price) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = 'Completá nombre y precio';
         return;
       }
@@ -9053,7 +9054,7 @@
       });
 
       if (items.length === 0) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = 'Agregá al menos un perfume al combo';
         return;
       }
@@ -9063,7 +9064,7 @@
       // [COMBO-PISA-COMBO] Al crear, un nombre que da el slug de algo que ya está (un combo de la base o de perfumes.js)
       // no pisa al otro. Lo que otra tablet creó después de cargar lo frena la base: al crear va insert (23505).
       if (creando && PERFUMES.some(function(p) { return p.slug === slug; })) {
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = 'Ya existe un combo con ese nombre.';
         return;
       }
@@ -9103,7 +9104,7 @@
         if (upErr) throw upErr;
 
         logAdminAction(editingComboSlug ? 'combo_update' : 'combo_create', slug, { name: name, price: priceFormatted, items_count: (items||[]).length });
-        msgEl.style.color = '#2ecc71';
+        msgEl.style.color = 'var(--tinta-ok)';
         msgEl.textContent = editingComboSlug ? 'Combo actualizado ✓' : 'Combo creado ✓';
         notifyTelegram((editingComboSlug ? '✏️ Combo editado' : '🎁 Nuevo combo creado') + ': ' + name);
 
@@ -9124,7 +9125,7 @@
         setTimeout(function() { cancelCombo(); }, 1200);
       } catch(e) {
         if (btnCombo) btnCombo.disabled = false;
-        msgEl.style.color = '#e74c3c';
+        msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = errorEnCriollo(e, creando ? 'un combo con ese nombre' : null, 'guardar el combo', true);   // 128h · «Guardar combo» · al crear, un 23505 es el nombre repetido
         // 4 · el que ya existe (de otra tablet, o de un alta cuya respuesta se perdió) aparece en la lista para editarlo
         if (creando && String((e && e.code) || '') === '23505') loadCombosFromDB().then(loadCombos).catch(function() {});
@@ -9225,7 +9226,7 @@
         if (error) {   // [GUARDAR-SIN-LEER] antes decía «Sin configurar», con los candidatos vacíos, y guardar pisaba la config del mes
           var textoV = sinLeer('votacion', error, 'cargar la votación');
           for (var j = 1; j <= 4; j++) { document.getElementById('votoM' + j).value = ''; document.getElementById('votoF' + j).value = ''; }
-          document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--stat-tinta-out);">' + escHtml(textoV) + '</span>';
+          document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--tinta-error);">' + escHtml(textoV) + '</span>';
         } else if (data) {
           leido('votacion', document.getElementById('votacionMsg'));
           var masc = data.candidatos_masc || [];
@@ -9234,7 +9235,7 @@
             document.getElementById('votoM' + (i+1)).value = masc[i] || '';
             document.getElementById('votoF' + (i+1)).value = fem[i] || '';
           }
-          document.getElementById('votacionEstado').innerHTML = '<span style="color:#2ecc71;">&#9679; Activa</span>';
+          document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--tinta-ok);">&#9679; Activa</span>';
         } else {
           leido('votacion', document.getElementById('votacionMsg'));
           document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--gris);">Sin configurar</span>';
@@ -9278,7 +9279,7 @@
       }
       if (masc.length === 0 && fem.length === 0) {
         document.getElementById('votacionMsg').textContent = 'Agregá al menos un candidato';
-        document.getElementById('votacionMsg').style.color = '#e74c3c';
+        document.getElementById('votacionMsg').style.color = 'var(--tinta-error)';
         return;
       }
       var { error } = await sb.from('votacion_config').upsert({
@@ -9289,13 +9290,13 @@
       var msg = document.getElementById('votacionMsg');
       if (error) {
         msg.textContent = errorEnCriollo(error, null, 'guardar la votación', true);   // 128h · «GUARDAR CANDIDATOS»
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
       } else {
         logAdminAction('votacion_update', null, { mes: adminMes, masc_count: masc.length, fem_count: fem.length });
         msg.textContent = 'Candidatos guardados para ' + meses[new Date().getMonth()];
-        msg.style.color = '#2ecc71';
+        msg.style.color = 'var(--tinta-ok)';
         notifyTelegram('🗳️ Votación actualizada: ' + masc.length + ' masc + ' + fem.length + ' fem');
-        document.getElementById('votacionEstado').innerHTML = '<span style="color:#2ecc71;">&#9679; Activa</span>';
+        document.getElementById('votacionEstado').innerHTML = '<span style="color:var(--tinta-ok);">&#9679; Activa</span>';
       }
       setTimeout(function() { msg.textContent = ''; }, 3000);
     }
@@ -9364,7 +9365,7 @@
 
       if (!title || !body) {
         msg.textContent = '⚠️ Completá título y mensaje';
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
         return;
       }
 
@@ -9383,7 +9384,7 @@
           : null;
         if (!accessToken) {
           msg.textContent = errorEnCriollo({ status: 401 }, null, 'mandar la notificación');   // 128j · sin sesión
-          msg.style.color = '#e74c3c';
+          msg.style.color = 'var(--tinta-error)';
           btn.disabled = false;
           btn.textContent = '🚀 ENVIAR PUSH';
           setTimeout(function() { msg.textContent = ''; }, 5000);
@@ -9405,7 +9406,7 @@
 
         if (res.ok) {
           msg.textContent = '✅ Enviada a ' + data.sent + ' usuarios (' + data.failed + ' fallidas)';
-          msg.style.color = '#2ecc71';
+          msg.style.color = 'var(--tinta-ok)';
 
           // Guardar en historial local (admin)
           var history = JSON.parse(localStorage.getItem('st_push_history') || '[]');
@@ -9437,11 +9438,11 @@
         } else {
           msg.textContent = res.status === 429 && data.error ? String(data.error)   // el tope de envíos por día: su propio mensaje
             : errorEnCriollo({ status: res.status, message: String(data.error || '') }, null, 'mandar la notificación');   // 128j
-          msg.style.color = '#e74c3c';
+          msg.style.color = 'var(--tinta-error)';
         }
       } catch (e) {
         msg.textContent = errorEnCriollo(e, null, 'mandar la notificación');   // 128j
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
       }
 
       btn.disabled = false;
@@ -9467,7 +9468,7 @@
 
       if (!title || !body) {
         msg.textContent = '⚠️ Completá título y mensaje primero';
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
         setTimeout(function() { msg.textContent = ''; }, 3000);
         return;
       }
@@ -9562,7 +9563,7 @@
 
       if (!title || !body) {
         msg.textContent = '⚠️ Escribí título y mensaje primero';
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
         setTimeout(function() { msg.textContent = ''; }, 3000);
         return;
       }
@@ -9570,7 +9571,7 @@
       var presets = getPushPresets();
       if (presets.length >= 3) {
         msg.textContent = '⚠️ Máximo 3 predeterminados. Eliminá uno primero.';
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
         setTimeout(function() { msg.textContent = ''; }, 3000);
         return;
       }
@@ -9580,7 +9581,7 @@
       renderPushPresets();
 
       msg.textContent = '✅ Mensaje guardado como predeterminado';
-      msg.style.color = '#2ecc71';
+      msg.style.color = 'var(--tinta-ok)';
       setTimeout(function() { msg.textContent = ''; }, 3000);
     }
 
@@ -10008,7 +10009,7 @@
         html += '</div>';
 
         if (r.status === 'ok') {
-          html += '<span style="font-size:.6rem;color:#2ecc71;font-weight:600;">✓ Completo</span>';
+          html += '<span style="font-size:.6rem;color:var(--tinta-ok);font-weight:600;">✓ Completo</span>';
         } else {
           html += '<button onclick="doctorGoEdit(' + escHtml(JSON.stringify(String(r.slug))) + ')" style="flex-shrink:0;background:var(--amarillo);color:#000;border:none;border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer;letter-spacing:.05em;">✏️ CORREGIR</button>';
         }
@@ -10046,7 +10047,7 @@
           var horas = Math.floor((diff % 86400000) / 3600000);
           preview.innerHTML = '✅ <strong style="color:var(--amarillo-tinta);">' + pct + '% OFF</strong> — vence en <strong>' + dias + 'd ' + horas + 'h</strong>';
         } else {
-          preview.innerHTML = '⚠️ <span style="color:#e74c3c;">Esta fecha ya venció</span>';
+          preview.innerHTML = '⚠️ <span style="color:var(--tinta-error);">Esta fecha ya venció</span>';
         }
       } else if (pct > 0 && !hasta) {
         preview.innerHTML = '⚠️ Falta la fecha de vencimiento';
@@ -10562,7 +10563,7 @@
         PRECIOS_DATOS.customs = true;   // [PRECIOS-EN-UN-LUGAR]
         renderDecantsCustomList();
       } catch (e) {
-        if (list) list.innerHTML = '<p style="color:#ff6b6b;font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los decants de diseñador', currentRole === 'jefe' ? '↺' : 'recargar')) + '</p>';   // 128j
+        if (list) list.innerHTML = '<p style="color:var(--tinta-error);font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los decants de diseñador', currentRole === 'jefe' ? '↺' : 'recargar')) + '</p>';   // 128j
       }
     }
 
@@ -10619,10 +10620,10 @@
           orden: maxOrden + 1
         }).select().single();
         if (ins.error) throw ins.error;
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Agregado. Editá el nombre.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Agregado. Editá el nombre.';
         await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'agregar el decant');   // 128j
+        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'agregar el decant');   // 128j
       }
     }
 
@@ -10631,7 +10632,7 @@
       var card = document.querySelector('[data-custom-id="' + id + '"]');
       if (!card) return;
       var nombre = (card.querySelector('.dc-nombre').value || '').trim();
-      if (!nombre) { msg.style.color = '#ff6b6b'; msg.textContent = '⚠ Nombre obligatorio.'; return; }
+      if (!nombre) { msg.style.color = 'var(--tinta-error)'; msg.textContent = '⚠ Nombre obligatorio.'; return; }
       msg.style.color = ''; msg.textContent = 'Guardando…';
       try {
         // precio_unit: vacío = null (usa escalera global del armador)
@@ -10653,17 +10654,17 @@
           delete payload.precio_unit;
           upd = await sb.from('decants_custom').update(payload).eq('id', id);
           if (!upd.error) {
-            msg.style.color = '#fbbf24';
+            msg.style.color = 'var(--tinta-aviso)';
             msg.textContent = '⚠ Guardado SIN precio (falta correr el ALTER TABLE para precio_unit).';
             await loadDecantsCustom();
             return;
           }
         }
         if (upd.error) throw upd.error;
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Guardado.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Guardado.';
         await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'guardar el decant', true);   // 128j · «💾 Guardar»
+        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'guardar el decant', true);   // 128j · «💾 Guardar»
       }
     }
 
@@ -10673,10 +10674,10 @@
       try {
         var del = await sb.from('decants_custom').delete().eq('id', id);
         if (del.error) throw del.error;
-        msg.style.color = '#4ade80'; msg.textContent = '✓ Eliminado.';
+        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Eliminado.';
         await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = '#ff6b6b'; msg.textContent = errorEnCriollo(e, null, 'eliminar el decant');   // 128j
+        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'eliminar el decant');   // 128j
       }
     }
 
@@ -10685,7 +10686,7 @@
       var file = input.files && input.files[0];
       if (!file) return;
       var msg = document.getElementById('decantsCustomMsg');
-      msg.style.color = '#e8b800'; msg.textContent = 'Comprimiendo y subiendo foto…';
+      msg.style.color = 'var(--tinta-aviso)'; msg.textContent = 'Comprimiendo y subiendo foto…';
       try {
         // Comprimir a WebP (reusamos la función ya existente en este admin)
         var compressed = await compressToWebP(file, 700, 0.8);
@@ -10703,7 +10704,7 @@
         var payload = { foto_url: fotoUrl };
         var upd = await sb.from('decants_custom').update(payload).eq('id', id);
         if (upd.error && /foto_url/i.test(upd.error.message || '')) {
-          msg.style.color = '#fbbf24';
+          msg.style.color = 'var(--tinta-aviso)';
           msg.textContent = '⚠ Foto subida pero NO guardada en DB. Falta correr: ALTER TABLE decants_custom ADD COLUMN foto_url TEXT;';
           input.value = '';
           return;
@@ -10714,10 +10715,10 @@
         var idx = DECANTS_CUSTOM_CACHE.findIndex(function(p) { return p.id === id; });
         if (idx !== -1) DECANTS_CUSTOM_CACHE[idx].foto_url = fotoUrl;
         renderDecantsCustomList();
-        msg.style.color = '#4ade80';
+        msg.style.color = 'var(--tinta-ok)';
         msg.textContent = '✓ Foto subida (' + Math.round(compressed.size / 1024) + ' KB WebP).';
       } catch (e) {
-        msg.style.color = '#ff6b6b';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128j
       }
       input.value = '';
@@ -10733,10 +10734,10 @@
         var idx = DECANTS_CUSTOM_CACHE.findIndex(function(p) { return p.id === id; });
         if (idx !== -1) DECANTS_CUSTOM_CACHE[idx].foto_url = null;
         renderDecantsCustomList();
-        msg.style.color = '#4ade80';
+        msg.style.color = 'var(--tinta-ok)';
         msg.textContent = '✓ Foto quitada (vuelve al placeholder ⭐).';
       } catch (e) {
-        msg.style.color = '#ff6b6b';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'sacar la foto');   // 128j
       }
     }
@@ -10858,7 +10859,7 @@
       var r = await sb.from('decants_config').update({ marcas_disenador: nuevas }).eq('id', 1);
       if (r && r.error) {
         var motivo = errorEnCriollo(r.error, 'nombre', null, true);   // 128i · «Guardar»
-        if (msg) { msg.style.color = '#e74c3c'; msg.textContent = motivo; }
+        if (msg) { msg.style.color = 'var(--tinta-error)'; msg.textContent = motivo; }
         return { ok: false, error: motivo };
       }
       MARCAS_DISENADOR = nuevas;
@@ -10978,7 +10979,7 @@
       if (!el) return;
       el.style.color = '';
       if (SIN_LEER.promo) {   // [GUARDAR-SIN-LEER] sin la fila de la base no se sabe si está prendida: no «Apagada»
-        el.className = 'promo-estado'; el.textContent = SIN_LEER.promo; el.style.color = 'var(--stat-tinta-out)';
+        el.className = 'promo-estado'; el.textContent = SIN_LEER.promo; el.style.color = 'var(--tinta-error)';
         if (el2) el2.hidden = true;
         return;
       }
@@ -11082,14 +11083,14 @@
         renderPromoQuienes();
       } catch (e) {
         console.warn('[promo-admin] perfume:', e);
-        if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'No se pudo guardar el cambio. Revisá la conexión y probá de nuevo.'; }
+        if (msg) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'No se pudo guardar el cambio. Revisá la conexión y probá de nuevo.'; }
       }
     }
 
     // a-d · guardar la promo (sólo el jefe).
     async function savePromoAdminAhora() {
       var msg = document.getElementById('promoMsg'); msg.textContent = ''; msg.style.color = '';
-      var mal = function(t) { msg.style.color = '#e74c3c'; msg.textContent = t; return { ok: false, error: t }; };
+      var mal = function(t) { msg.style.color = 'var(--tinta-error)'; msg.textContent = t; return { ok: false, error: t }; };
       if (currentRole !== 'jefe') return mal('Sólo el jefe puede cambiar la promo.');
       if (SIN_LEER.promo) return mal(SIN_LEER.promo);   // [GUARDAR-SIN-LEER]
       var activa = document.getElementById('promoActiva').checked;
@@ -11119,7 +11120,7 @@
         if (viejo !== nuevo) cambios[k] = { old: viejo, new: nuevo };
       });
       if (Object.keys(cambios).length) logAdminAction('promo_decants_update', null, cambios);
-      msg.style.color = '#27ae60'; msg.textContent = '✓ Promo guardada.';
+      msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Promo guardada.';
       PROMO_ADMIN = fila;
       renderPromoEstado();
       promoFormCambio();
@@ -11208,7 +11209,7 @@
     function sinLeer(clave, err, que, toca) { var t = errorEnCriollo(err, null, que, toca || 'recargar'); SIN_LEER[clave] = t; return t; }
     // Con el: si todavía muestra el error de esa lectura, lo borra (la carga siguiente anduvo).
     function leido(clave, el) { if (el && SIN_LEER[clave] && el.textContent === SIN_LEER[clave]) el.textContent = ''; delete SIN_LEER[clave]; }
-    function avisoLectura(el, texto) { if (el && texto) { el.textContent = texto; el.style.color = 'var(--stat-tinta-out)'; } }
+    function avisoLectura(el, texto) { if (el && texto) { el.textContent = texto; el.style.color = 'var(--tinta-error)'; } }
     // Si esa lectura falló, lo dice en el (si hay) y devuelve el texto; si no, ''.
     function faltaLeer(clave, el) { var t = SIN_LEER[clave] || ''; avisoLectura(el, t); return t; }
     // El stock de la base (stockCargado): sin él, los modales de stock y de depósito arrancan con lo de perfumes.js
@@ -11317,12 +11318,12 @@
       if (isNaN(frascoMax) || frascoMax < 0) frascoMax = 0;   // 0 = regla desactivada
       var aviso = (document.getElementById('decAviso').value || '').trim();
 
-      if (!ml || ml < 1) { msg.style.color = '#e74c3c'; msg.textContent = 'Tamaño en ml inválido.'; return { ok: false, error: msg.textContent }; }
-      if (!p1 || !p3 || !p5) { msg.style.color = '#e74c3c'; msg.textContent = 'Todos los precios son obligatorios.'; return { ok: false, error: msg.textContent }; }
-      if (!maxD || maxD < 1) { msg.style.color = '#e74c3c'; msg.textContent = 'Máximo de decants inválido.'; return { ok: false, error: msg.textContent }; }
+      if (!ml || ml < 1) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Tamaño en ml inválido.'; return { ok: false, error: msg.textContent }; }
+      if (!p1 || !p3 || !p5) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Todos los precios son obligatorios.'; return { ok: false, error: msg.textContent }; }
+      if (!maxD || maxD < 1) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Máximo de decants inválido.'; return { ok: false, error: msg.textContent }; }
 
       if (!sb) {
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = 'Sin conexión a Supabase.';
         return { ok: false, error: msg.textContent };
       }
@@ -11356,18 +11357,18 @@
             .upsert(payload, { onConflict: 'id' });
           if (!res.error) {
             logAdminAction('decants_config_update', null, payload);
-            msg.style.color = '#fbbf24';
+            msg.style.color = 'var(--tinta-aviso)';
             msg.textContent = '⚠ Guardado SIN el tope (falta correr sql/add_precio_frasco_max.sql)';
             return { ok: true };   // guardó (sin el tope)
           }
         }
         if (res.error) throw res.error;
         logAdminAction('decants_config_update', null, payload);
-        msg.style.color = '#27ae60';
+        msg.style.color = 'var(--tinta-ok)';
         msg.textContent = '✓ Configuración guardada.';
         return { ok: true };
       } catch (e) {
-        msg.style.color = '#e74c3c';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, 'nombre', null, true);   // [PROMO-DECANTS] 114 · nunca el error crudo de la base · 128i · «Guardar»
         return { ok: false, error: msg.textContent };
       }
@@ -12317,7 +12318,7 @@
         if (q.error) throw q.error;
         if (msg) { msg.textContent = '✓ Guardado'; setTimeout(function(){ msg.textContent=''; }, 2500); }
       } catch(e) {
-        if (msg) { msg.style.color='#ff7a7a'; msg.textContent = errorEnCriollo(e, null, 'guardar la configuración', true); }   // 128j · «💾 Guardar config»
+        if (msg) { msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'guardar la configuración', true); }   // 128j · «💾 Guardar config»
       }
     }
 
@@ -12339,7 +12340,7 @@
     function renderPuntosRanking() {
       var tbody = document.getElementById('tbodyPuntosRanking');
       // [GUARDAR-SIN-LEER] con la recarga fallida, el buscador volvía a pintar la lista vieja (con «Ajustar») o «Sin clientes»
-      if (SIN_LEER.ranking) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">' + escHtml(SIN_LEER.ranking) + '</td></tr>'; return; }
+      if (SIN_LEER.ranking) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--tinta-error);">' + escHtml(SIN_LEER.ranking) + '</td></tr>'; return; }
       var f = (document.getElementById('puntosFilterCliente')||{}).value || '';
       f = f.trim().toLowerCase();
       var rows = _puntosRankingData;
@@ -12401,7 +12402,7 @@
       var msg = document.getElementById('modalPuntosMsg');
       msg.style.color = '';
       if (faltaLeer('ranking', msg)) return;   // [GUARDAR-SIN-LEER] los puntos de la lista vieja + el ajuste pisaban los de ahora
-      if (!isFinite(amt) || amt <= 0) { msg.style.color = '#ff7a7a'; msg.textContent = 'Cantidad inválida'; return; }
+      if (!isFinite(amt) || amt <= 0) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Cantidad inválida'; return; }
       var motivoSel = document.getElementById('modalPuntosMotivo').value || 'manual_jefe';
       var nota = (document.getElementById('modalPuntosNota').value||'').trim();
       var motivoFinal = nota ? (motivoSel + ': ' + nota) : motivoSel;
@@ -12426,11 +12427,11 @@
         _puntosRankingData.sort(function(a,b){ return Number(b.puntos||0) - Number(a.puntos||0); });
         renderPuntosRanking();
         loadPuntosHistory();
-        msg.style.color = '#9bd28b';
+        msg.style.color = 'var(--tinta-ok)';
         msg.textContent = '✓ ' + (sign>0?'Sumado':'Restado') + ' ' + amt + ' pts';
         setTimeout(function(){ closeModal('modalPuntos'); }, MODAL_CIERRE_MS);
       } catch(e) {
-        msg.style.color = '#ff7a7a';
+        msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'ajustar los puntos');   // 128j
       } finally {
         btn.disabled = false; btn.textContent = '✓ Confirmar';
@@ -12463,7 +12464,7 @@
         }
         tbody.innerHTML = html;
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#ff7a7a;">'+ escHtml(errorEnCriollo(e, null, 'cargar el historial de puntos', '↺')) +'</td></tr>';   // 128h
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--tinta-error);">'+ escHtml(errorEnCriollo(e, null, 'cargar el historial de puntos', '↺')) +'</td></tr>';   // 128h
       }
     }
 
@@ -12527,7 +12528,7 @@
         if (meta) meta.textContent = data.length + ' backup' + (data.length === 1 ? '' : 's') + ' · actualizado ' + new Date().toLocaleTimeString('es-AR');
       } catch (e) {
         console.error('[backup] load error:', e);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#e74c3c;">' + escHtml(errorEnCriollo(e, null, 'cargar los backups', '↺')) + '</td></tr>';   // 128j
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--tinta-error);">' + escHtml(errorEnCriollo(e, null, 'cargar los backups', '↺')) + '</td></tr>';   // 128j
         if (meta) meta.textContent = '— backups';   // [CARGA-FALLIDA-CERO] 128m · quedaba «N backups · actualizado …» de antes
       }
     }

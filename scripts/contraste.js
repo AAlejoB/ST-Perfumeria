@@ -335,6 +335,19 @@ function efectivo(rs, target, prefijos, prop, capas) {
     var gc = aHex('var(--gris-claro)', c, pagina), gb = aHex('var(--gris)', c, pagina), fb = sobre({ r: 255, g: 255, b: 255, a: .06 }, pagina);
     medir({ superficie: 'panel', tema: tema, rol: 'inicio', nombre: '135 · badge «Empleado» (letra --gris-claro, inline)', texto: gc, fondos: [fb], impone: 'admin.html · applyRolePermissions' });
     medir({ superficie: 'panel', tema: tema, rol: 'inicio', nombre: '135 · badge «Empleado» (borde --gris, inline)', texto: gb, fondos: [pagina], impone: 'admin.html · applyRolePermissions' });
+    // [TINTA-MENSAJES] 136 (30-sep-2026): las tres tintas de los mensajes, sobre los fondos reales donde se pintan (los del DISEÑADOR:
+    // claro #fff #f5f3ee #fdf9eb #fffaf0 · oscuro #0a0a0a #111111 #1a1a1c #1a1a1d #221e10) y las clases que las usan.
+    var fondosMsg = tema === 'claro' ? ['#ffffff', '#f5f3ee', '#fdf9eb', '#fffaf0'] : ['#0a0a0a', '#111111', '#1a1a1c', '#1a1a1d', '#221e10'];
+    [['--tinta-ok', 'se hizo lo que pediste'], ['--tinta-aviso', 'no pasó nada y no hay nada roto'], ['--tinta-error', 'no se pudo / el dato está mal']].forEach(function (t) {
+      medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '136 · ' + t[0] + ' (' + t[1] + ')', texto: aHex('var(' + t[0] + ')', c, pagina), fondos: fondosMsg, impone: 'admin.html · :root / body.light' });
+    });
+    [['.modal-success (mensajes de los modales)', '.modal-success', pagina], ['.barra-error (motivo de «No se guardó»)', '.barra-error', pagina],
+     ['.espera-ok', '.espera-ok', pagina], ['.espera-ya', '.espera-ya', pagina], ['.espera-error', '.espera-error', pagina],
+     ['.ajuste-error', '.ajuste-error', pagina], ['.promo-estado--prendida', '.promo-estado--prendida', pagina], ['.promo-estado--terminada', '.promo-estado--terminada', pagina],
+     ['.promo-aviso-costo', '.promo-aviso-costo', pagina], ['.promo-fila-nota--pierde', '.promo-fila-nota--pierde', pagina]].forEach(function (x) {
+      var fg = tinta(x[1], c, x[2], cuerpo);
+      medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '136 · ' + x[0], texto: fg.hex, fondos: [x[2]], impone: fg.impone });
+    });
   });
 })();
 
