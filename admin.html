@@ -661,6 +661,11 @@
     .td-decant-precio { color: var(--amarillo-tinta); font-weight: 700; }
     .td-stock .badge-stock.badge-decant { background: transparent; color: var(--gris-claro); border: 1px solid var(--gris-claro); cursor: default; }
     .admin-table td.td-price.td-sin, .td-consultar { color: var(--gris); font-weight: 400; }
+    /* 128n [PANEL-STOCK-CALLA] · sin la lectura del stock, el Estado de cada fila es un «—» gris (sin badge, sin toque) y la
+       línea de arriba de la tabla dice por qué. Un número de perfumes.js en una badge que se toca invita a guardar un stock falso. */
+    .td-stock .stock-sin-lectura { display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--tap-comfort); color: var(--gris); font-weight: 400; }
+    .aviso-lectura-tabla { font-size: .8rem; font-weight: 700; line-height: 1.4; color: var(--stat-tinta-out); margin: 0 0 .8rem; }
+    .aviso-lectura-tabla:empty { display: none; }
     .precios-tira {
       font-size: .7rem; line-height: 1.6; color: var(--gris-claro);
       background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-lg);
@@ -2179,6 +2184,7 @@
         <button type="button" class="log-chip" data-filtro="frascos" onclick="preciosFiltrar('frascos')">Frascos</button>
         <button type="button" class="log-chip" data-filtro="disenador" onclick="preciosFiltrar('disenador')">💎 Diseñador</button>
       </div>
+      <p class="aviso-lectura-tabla" id="avisoStockPrecios" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
@@ -2227,6 +2233,7 @@
         </label>
       </div>
       <p style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> o la badge de <strong>Local</strong> para cambiarlos. Es el mismo control que en <strong>Precios &amp; Stock</strong>.</p>
+      <p class="aviso-lectura-tabla" id="avisoStockDep" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Local</th><th>Depósito</th></tr></thead>
         <tbody id="tbodyDeposito"></tbody>
@@ -4782,18 +4789,23 @@
         var dep = deriveDepositoInfo(d);
         var searchStr = ((p.name || '') + ' ' + (p.marca || '') + ' ' +
                          (p.marca_real || '') + ' ' + (p.alias || '')).toLowerCase().replace(/"/g, '');
-        var alerta = depParaReponer(p)
+        var alerta = (stockCargado && depParaReponer(p))
           ? ' <span style="color:#e67e22;font-size:.62rem;white-space:nowrap;">← traer al local</span>' : '';
+        var sinLect = '<td class="td-stock"><span class="stock-sin-lectura" title="El stock no se leyó">—</span></td>';   // 128n
         html += '<tr data-search="' + searchStr + '">' +
             '<td class="td-name">' + escapeHtml(p.name) + alerta + '</td>' +
             // [DEPOSITO-LOCAL-CLICK] La badge de Local abre el MISMO modal de Precios & Stock.
-            '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock local" ' +
-              'onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + info.badgeText + '</span></td>' +
-            '<td class="td-stock"><span class="badge-stock ' + dep.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar" ' +
-              'onclick="openDepositoModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + dep.badgeText + '</span></td>' +
+            (stockCargado
+              ? '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock local" ' +
+                  'onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + info.badgeText + '</span></td>' +
+                '<td class="td-stock"><span class="badge-stock ' + dep.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar" ' +
+                  'onclick="openDepositoModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + dep.badgeText + '</span></td>'
+              : sinLect + sinLect) +
           '</tr>';
       });
       tbody.innerHTML = html;
+      var avisoStockD = document.getElementById('avisoStockDep');   // 128n
+      if (avisoStockD) avisoStockD.textContent = stockCargado ? '' : (SIN_LEER.stock || '');
       // Re-aplicar el buscador: el re-render (guardar, ordenar, casilla) dibuja las
       // 146 filas de cero y perdía lo que la chica había buscado.
       filterTable('deposito');
@@ -5140,6 +5152,8 @@
       // y el filtro. [XSS-PRECIOS-STOCK] Todo lo que viene de la base pasa por escHtml; el slug del onclick, por
       // escHtml(JSON.stringify(…)) (escHtml solo no escapa la comilla simple).
       pintarTiraPrecios();
+      var avisoStockP = document.getElementById('avisoStockPrecios');   // 128n · la línea de arriba de la tabla, sólo si la lectura falló
+      if (avisoStockP) avisoStockP.textContent = stockCargado ? '' : (SIN_LEER.stock || '');
       var customs = promoCustoms();
       var oferta = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
       var mlDecant = (PRECIOS_CFG && PRECIOS_CFG.ml) ? PRECIOS_CFG.ml : 5;
@@ -5168,9 +5182,15 @@
                 + (promoNum(dec.precio_unit) > 0 ? '<span class="td-decant-precio">' + escHtml(promoPesos(promoNum(dec.precio_unit))) + '</span>' : 'sin precio') + '</span>' : '')   // 123l
           +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('')
           + '</td>'
-          + '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + escHtml(info.badgeText) + '</span></td>'
-          + '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
-          + '<td class="td-price td-efectivo" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
+          // 128n [PANEL-STOCK-CALLA] sin la lectura del stock, «—» gris y sin toque; sin la de los overrides (de ahí salen los precios
+          // que cambió el jefe), el precio y el efectivo también: no se muestra el de perfumes.js como si fuera el vigente.
+          + (stockCargado
+              ? '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + escHtml(info.badgeText) + '</span></td>'
+              : '<td class="td-stock"><span class="stock-sin-lectura" title="El stock no se leyó">—</span></td>')
+          + (overridesCargado
+              ? '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
+                + '<td class="td-price td-efectivo" title="10% off (efectivo o transferencia)">$' + cashPrice.toLocaleString('es-AR') + '</td>'
+              : '<td class="td-price td-sin">—</td><td class="td-price td-sin">—</td>')
           + '</tr>';
       };
       // 123c · cada decant de diseñador activo es una fila: 💎 nombre, «DECANT» (no abre el modal de stock), $X c/u, «—».
