@@ -688,6 +688,11 @@
       cursor: pointer; padding: 0;
     }
     .admin-search-clear.visible { display: flex; }
+    /* [RANKING-TEL-CRUDO] el buscador del ranking de Puntos: lo inline (fondo #0a0a0c y letra #fff fijos) pasa a la clase, así en claro
+       toma los tokens (regla de la 54); y el padding-right de 2.5rem del wrapper vuelve a valer (el inline lo pisaba y la ✕ tapaba el placeholder). */
+    .puntos-filtro { background: #0a0a0c; color: #fff; border: 1px solid var(--borde); padding: .5rem .6rem; border-radius: 6px; font-size: 1rem; }
+    body.light .puntos-filtro { background: var(--superficie); color: inherit; }
+    .admin-search-wrap > input.puntos-filtro { padding-right: 2.5rem; }
     .admin-search-clear:hover { color: #fff; background: rgba(255,255,255,.08); }
     body.light .admin-search-clear:hover { color: #000; background: rgba(0,0,0,.06); }
 
@@ -3641,7 +3646,7 @@
       <div style="background:#111;border:1px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:1.2rem;">
         <div class="cabecera-caja-c" style="padding:.7rem 1rem;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
           <p class="tinta-dorada" style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0;">🏆 Ranking de clientes</p>
-          <input type="text" id="puntosFilterCliente" placeholder="Buscar nombre/teléfono…" oninput="renderPuntosRanking()" style="background:#0a0a0c;border:1px solid var(--borde);color:#fff;padding:.5rem .6rem;border-radius:6px;font-size:1rem;width:200px;"/>
+          <input type="text" id="puntosFilterCliente" placeholder="Buscar nombre/teléfono…" oninput="renderPuntosRanking()" class="puntos-filtro" style="width:200px;"/>
         </div>
         <table class="admin-table" style="margin:0;">
           <thead><tr>
@@ -4263,6 +4268,7 @@
     // 133b · «Inicio» del encabezado: vuelve a la pantalla (ninguna pestaña del menú queda marcada) y cierra el cajón.
     function irAInicio() {
       switchTab('inicio', null);
+      loadListaEspera();   // [INICIO-ESPERA-VIEJO] el número de Espera no cambiaba hasta entrar a Espera: se vuelve a leer al volver
       document.body.classList.remove('sidebar-open');
       window.scrollTo(0, 0);
     }
@@ -5267,7 +5273,8 @@
       // escHtml(JSON.stringify(…)) (escHtml solo no escapa la comilla simple).
       pintarTiraPrecios();
       var avisoStockP = document.getElementById('avisoStockPrecios');   // 128n · la línea de arriba de la tabla, sólo si la lectura falló
-      if (avisoStockP) avisoStockP.textContent = stockCargado ? '' : (SIN_LEER.stock || '');
+      // si falló sólo la lectura completa (el stock anda), los precios quedan en «—»: la línea dice por qué (SIN_LEER.overrides)
+      if (avisoStockP) avisoStockP.textContent = stockCargado ? (overridesCargado ? '' : (SIN_LEER.overrides || '')) : (SIN_LEER.stock || '');
       var tipP = document.getElementById('tipPrecios'); if (tipP) tipP.style.display = stockCargado ? '' : 'none';   // 128p [TIP-SIN-BADGE] sin la lectura no hay badge que tocar
       var customs = promoCustoms();
       var oferta = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
@@ -12364,7 +12371,7 @@
       f = f.trim().toLowerCase();
       var rows = _puntosRankingData;
       if (f) rows = rows.filter(function(c){
-        return ((c.nombre||'').toLowerCase().indexOf(f) !== -1) || ((c.telefono||'').toLowerCase().indexOf(f) !== -1);
+        return ((c.nombre||'').toLowerCase().indexOf(f) !== -1) || ((c.telefono||'').toLowerCase().indexOf(f) !== -1) || (formatPhoneDisplay(c.telefono).toLowerCase().indexOf(f) !== -1);   // el número como se guardó y como se ve
       });
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gris);">Sin clientes</td></tr>';
@@ -12377,7 +12384,7 @@
         html += '<tr>'
           + '<td style="color:var(--gris);">'+ (i+1) +'</td>'
           + '<td style="font-weight:600;">'+ escapeHtml(c.nombre||'—') +'</td>'
-          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ escapeHtml(c.telefono||'—') +'</td>'
+          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ escapeHtml(formatPhoneDisplay(c.telefono) || c.telefono || '—') +'</td>'
           + '<td class="tinta-dorada" style="text-align:right;font-weight:700;">'+ pts +'</td>'
           + '<td>'
             + '<button class="action-btn btn-principal" onclick="openPuntosModal(\''+ c.id +'\')" style="padding:.3rem .7rem;font-size:.72rem;">Ajustar</button>'
