@@ -349,7 +349,7 @@ function efectivo(rs, target, prefijos, prop, capas) {
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '136 · ' + x[0], texto: fg.hex, fondos: [x[2]], impone: fg.impone });
     });
     // [BTN-STOCK-AZUL] 138b: la etiqueta MINI de los combos, y las otras dos para tenerlas a la vista
-    [['138b · MINI .combo-badge-mini', '.combo-badge-mini'], ['PACK .combo-badge-pack', '.combo-badge-pack'], ['138c · REGALO .combo-badge-regalo', '.combo-badge-regalo'], ['138c · ROTO .combo-badge-roto', '.combo-badge-roto']].forEach(function (x) {
+    [['138b · MINI .combo-badge-mini', '.combo-badge-mini'], ['PACK .combo-badge-pack', '.combo-badge-pack'], ['138c · REGALO .combo-badge-regalo', '.combo-badge-regalo'], ['138c · ROTO .combo-badge-roto', '.combo-badge-roto'], ['138d · PAUSADO .combo-badge-pausado', '.combo-badge-pausado'], ['138d · Pausar .client-btn-pausar', '.client-btn-pausar'], ['138d · Activar .client-btn-activar', '.client-btn-activar']].forEach(function (x) {
       var bg = fondo(x[1], c, pagina), fg = tinta(x[1], c, bg, '#ffffff');
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: x[0], texto: fg.hex, fondos: [bg], impone: fg.impone });
     });

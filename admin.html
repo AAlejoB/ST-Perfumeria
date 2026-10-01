@@ -1034,6 +1034,11 @@
        ROTO era una etiqueta con estilo inline (color:#fff): el parche body.light [style*="color:#fff"] le ponía letra #1a1a1a; ahora es una clase. */
     .combo-badge-regalo { background: var(--rojo-fondo); color: #fff; }
     .combo-badge-roto { background: var(--rojo-fondo); color: #fff; margin-left: .3rem; }
+    /* [COMBO-PAUSADO] 138d · la letra la decide el fondo (94): Pausar (#95a5a6) y Activar (#2ecc71) con #1a1a1a (6,80 / 8,28) en los dos temas, por clase
+       (inline daba blanco: 2,56 y 2,10 en oscuro). La tarjeta pausada va sin opacity y «⏸ PAUSADO» es una etiqueta como MINI o PACK (#95a5a6 + #000: 8,21). */
+    .client-btn-pausar { background: #95a5a6; color: #1a1a1a; }
+    .client-btn-activar { background: #2ecc71; color: #1a1a1a; }
+    .combo-badge-pausado { background: #95a5a6; color: #000; margin-left: .3rem; }
     .combo-items-list { font-size: .7rem; color: var(--gris-claro); margin-top: .4rem; padding-left: 1.2rem; }
     .combo-items-list li { margin-bottom: .15rem; }
     .combo-pricing { margin-top: .4rem; font-size: .8rem; }
@@ -8801,12 +8806,12 @@
 
         var isPaused = getStockStatus(s.slug) === 'pausado';
         var pauseBtn = isPaused
-          ? '<button class="client-btn" style="background:#2ecc71;color:#fff;" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">▶ Activar</button>'
-          : '<button class="client-btn" style="background:#95a5a6;color:#fff;" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">⏸ Pausar</button>';
-        var pausedLabel = isPaused ? ' <span style="color:#95a5a6;font-size:.6rem;font-weight:600;">⏸ PAUSADO</span>' : '';
+          ? '<button class="client-btn client-btn-activar" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">▶ Activar</button>'
+          : '<button class="client-btn client-btn-pausar" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">⏸ Pausar</button>';
+        var pausedLabel = isPaused ? ' <span class="combo-badge combo-badge-pausado">⏸ PAUSADO</span>' : '';
 
         var cardBorder = isBroken ? 'border:2px solid #e74c3c;' : '';
-        html += '<div class="combo-card" style="' + (isPaused ? 'opacity:.5;' : '') + cardBorder + '">'
+        html += '<div class="combo-card" style="' + cardBorder + '">'
           + '<div class="combo-top">'
             + '<span class="combo-name">' + escHtml(s.name || '') + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + brokenBadge + pausedLabel + '</span>'
             + '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(s.cat || '') + '</span>'
