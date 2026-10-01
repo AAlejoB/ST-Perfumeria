@@ -885,6 +885,7 @@
     .espera-estado { font-size: .6rem; font-weight: 600; }
     .espera-estado--ok { color: var(--stat-tinta-inv); }
     .espera-estado--out { color: var(--stat-tinta-out); }
+    .espera-estado--libre { color: var(--gris); }   /* [ESPERA-LIBRE] 142b · «FUERA DEL CATÁLOGO»: no hay stock que mirar, el gris dice que no hay dato (5,33 / 4,90) */
     .espera-cuenta { font-size: .65rem; color: var(--amarillo-tinta); font-weight: 600; }
     .espera-fila { display: flex; align-items: center; justify-content: space-between; padding: .5rem 0; border-top: 1px solid var(--borde); gap: .5rem; }
     .espera-fila-datos { min-width: 0; }
@@ -936,7 +937,20 @@
        recuadro; con --stat-tinta-out daba 4,34. En claro, --stat-tinta-out (5,60). */
     .ajuste-error { color: var(--tinta-error); }
     
-    .espera-resultados { display: flex; flex-direction: column; gap: .25rem; margin: -.4rem 0 .6rem; max-height: 15rem; overflow-y: auto; }
+    /* [ESPERA-LIBRE] 142 · la lista de resultados (con su scroll de 15rem) y, DEBAJO y fuera de ese scroll, la opción «+ Anotar «…»»: entre
+       las dos queda el mismo .25rem que entre dos resultados. Los márgenes de antes pasaron a .espera-busqueda. */
+    .espera-busqueda { display: flex; flex-direction: column; gap: .25rem; margin: -.4rem 0 .6rem; }
+    .espera-resultados { display: flex; flex-direction: column; gap: .25rem; max-height: 15rem; overflow-y: auto; }
+    .espera-resultados:empty, #esperaOpcionLibre:empty { display: none; }
+    .espera-opcion {
+      display: flex; align-items: center; gap: .5rem; width: 100%; min-height: var(--tap-min); padding: 0 .8rem; text-align: left;
+      background: var(--superficie); border: 1px dashed var(--amarillo-tinta); border-radius: 4px; color: inherit;
+      font-family: inherit; cursor: pointer;
+    }
+    .espera-opcion-mas { flex: 0 0 auto; font-size: 1rem; font-weight: 700; line-height: 1; color: var(--amarillo-tinta); }
+    .espera-opcion-txt { display: flex; flex-direction: column; min-width: 0; }
+    .espera-opcion-nombre { font-size: .75rem; font-weight: 600; overflow-wrap: anywhere; }
+    .espera-opcion-sub { font-size: .65rem; font-weight: 400; color: var(--gris); }
     .espera-resultado {
       display: flex; align-items: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem; text-align: left;
       background: var(--superficie); border: 1px solid var(--borde); border-radius: 4px; color: inherit;
@@ -953,6 +967,7 @@
     .espera-chip--error { border-color: var(--stat-tinta-out); }
     .espera-chip-txt { min-width: 0; overflow-wrap: anywhere; }
     .espera-chip-estado { display: block; font-size: .64rem; font-weight: 600; }
+    .espera-chip-estado.espera-libre { font-weight: 400; color: var(--gris); }   /* [ESPERA-LIBRE] 142a · «fuera del catálogo», donde irá el estado */
     .espera-chip-x {
       flex: 0 0 auto; width: var(--tap-min); height: var(--tap-min); background: none; border: none;
       color: inherit; font-size: .9rem; cursor: pointer; border-radius: var(--r-full);
@@ -3704,7 +3719,7 @@
       <button type="button" class="modal-close espera-cerrar" onclick="closeModal('modalEsperaAnotar')" aria-label="Cerrar">&times;</button>
       <p class="espera-form-icono">&#128276;</p>
       <p class="modal-title">Anotar del mostrador</p>
-      <p class="espera-form-desc">Le avisamos por WhatsApp apenas vuelva a estar disponible.</p>
+      <p class="espera-form-desc">Le avisamos por WhatsApp apenas lo tengamos.</p>
       <label class="modal-label" for="esperaTel">WhatsApp</label>
       <div class="espera-tel">
         <span class="espera-tel-prefijo">+54 9</span>
@@ -3713,9 +3728,12 @@
       <p class="espera-tel-preview" id="esperaTelPreview"></p>
       <label class="modal-label" for="esperaNombre">Nombre</label>
       <input type="text" id="esperaNombre" class="modal-input" placeholder="Nombre" autocomplete="off" oninput="esperaNombreTocado = this.value.trim() !== ''"/>
-      <label class="modal-label" for="esperaBuscarPerfume">Perfumes</label>
-      <input type="text" id="esperaBuscarPerfume" class="modal-input" placeholder="&#128269; Buscar perfume&#8230;" autocomplete="off" oninput="esperaBuscar()" onkeydown="esperaBuscarTecla(event)"/>
-      <div class="espera-resultados" id="esperaResultados"></div>
+      <label class="modal-label" for="esperaBuscarPerfume">Qué busca</label>
+      <input type="text" id="esperaBuscarPerfume" class="modal-input" placeholder="&#128269; Buscar perfume&#8230;" maxlength="60" autocomplete="off" oninput="esperaBuscar()" onkeydown="esperaBuscarTecla(event)"/>
+      <div class="espera-busqueda">
+        <div class="espera-resultados" id="esperaResultados"></div>
+        <div id="esperaOpcionLibre"></div>   <!-- [ESPERA-LIBRE] 142 · «+ Anotar «…»», siempre debajo y fuera del scroll de los resultados -->
+      </div>
       <div class="espera-chips" id="esperaChips"></div>
       <button type="button" class="modal-btn modal-btn-price" id="esperaAnotarBtn" onclick="esperaAnotar()">&#128276; Anotar</button>
       <p class="espera-form-msg" id="esperaFormMsg"></p>
@@ -10131,8 +10149,13 @@
     var esperaCargaN = 0;             // sólo pinta la última carga pedida
 
     // Mensaje gen\u00e9rico reutilizable.
-    function buildWaitlistMsg() {
-      return 'Hola! \ud83d\udc4b Desde ST Perfumer\u00eda te avisamos que uno de los perfumes que estabas esperando ya volvi\u00f3 a estar disponible \ud83c\udf89\n\n'
+    // [ESPERA-LIBRE] 142c · para lo libre cambia sólo la primera oración: «ya tenemos lo que nos consultaste: *nombre*» (nunca estuvo,
+    // no «volvió a estar disponible»). El nombre va en negrita de WhatsApp, tal como lo escribió la chica, sin los * _ ~ que rompen el formato.
+    function buildWaitlistMsg(nombreLibre) {
+      var primera = (nombreLibre !== undefined && nombreLibre !== null)
+        ? 'Hola! \ud83d\udc4b Desde ST Perfumer\u00eda te avisamos que ya tenemos lo que nos consultaste: *' + String(nombreLibre).replace(/[*_~]/g, '').replace(/\s+/g, ' ').trim() + '* \ud83c\udf89\n\n'
+        : 'Hola! \ud83d\udc4b Desde ST Perfumer\u00eda te avisamos que uno de los perfumes que estabas esperando ya volvi\u00f3 a estar disponible \ud83c\udf89\n\n';
+      return primera
         + 'Pod\u00e9s pasar por el local o escribirnos por ac\u00e1 para coordinar. Revis\u00e1 nuestro horario y direcci\u00f3n en el cat\u00e1logo:\n'
         + 'https://www.stperfumeria.com\n\n'
         + '\u00a1Te esperamos!';
@@ -10239,8 +10262,10 @@
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         // [ESPERA-LOW-SIN-STOCK] ok y low (pocas unidades) → EN STOCK; sin stock o pausado → SIN STOCK; un slug que no está en
         // PERFUMES → nada (no se sabe).
+        var libre = esperaEsLibre(group.items[0]);   // [ESPERA-LIBRE] 142b
         var status = p ? (p._stockStatus || 'ok') : null;
-        var statusBadge = !p ? ''
+        var statusBadge = libre ? '<span class="espera-estado espera-estado--libre">FUERA DEL CAT\u00c1LOGO</span>'
+          : !p ? ''
           : (status === 'ok' || status === 'low')
             ? '<span class="espera-estado espera-estado--ok">EN STOCK</span>'
             : '<span class="espera-estado espera-estado--out">SIN STOCK</span>';
@@ -10266,7 +10291,7 @@
           var id = Number(item.id);
 
           var tel = String(item.telefono || '').replace(/[^0-9]/g, '');
-          var waLink = 'https://wa.me/' + tel + '?text=' + msgEnc;
+          var waLink = 'https://wa.me/' + tel + '?text=' + (esperaEsLibre(item) ? encodeURIComponent(buildWaitlistMsg(item.perfume_name)) : msgEnc);   // [ESPERA-LIBRE] 142c · cada fila libre manda su propio mensaje
           html += '<div class="espera-fila">';
           html += '<div class="espera-fila-datos">';
           html += '<p class="espera-nombre">' + escHtml(item.nombre || 'Sin nombre') + '</p>';
@@ -10369,6 +10394,16 @@
     var esperaNombrePedido = 0;       // si tipean rápido, gana la última respuesta
     var esperaCierreTimer = null;     // el cierre solo después de anotar: se cancela si se vuelve a abrir
     var ESPERA_CHIP_TXT = { ok: '\u2713 Anotado', ya: 'Ya est\u00e1 anotado para ese perfume', error: 'No se pudo anotar' };
+    // [ESPERA-LIBRE] 142 · lo libre (algo que no está en el catálogo, escrito a mano): slug 'libre:' + la clave del texto (sin tildes, en
+    // minúsculas, sin espacios de más: así el único parcial (slug, telefono) da «Ya estaba anotado» y la lista lo agrupa), perfume_name
+    // = el texto tal como lo escribió (3 a 60), libre = true y origen 'local'. Ningún slug del catálogo tiene «:» (medido el 1-oct).
+    function esperaTextoLibre(t) { return String(t == null ? '' : t).replace(/\s+/g, ' ').trim().slice(0, 60); }
+    function esperaClave(t) { return esperaTextoLibre(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+    // Sólo `libre === true` (la columna): el CHECK la deja escribir únicamente con origen 'local' (el catálogo, anon, no puede). Un slug «libre:…» sin la marca
+    // no cuenta: el texto de un perfume_name que escribe anon NO puede ir a un WhatsApp.
+    function esperaEsLibre(r) { return !!r && r.libre === true; }
+    ESPERA_CHIP_TXT.yaLibre = 'Ya estaba anotado';
+    ESPERA_CHIP_TXT.libre = 'fuera del cat\u00e1logo';
 
     function esperaAbrirAnotar() {
       clearTimeout(esperaCierreTimer);
@@ -10379,6 +10414,7 @@
       document.getElementById('esperaNombre').value = '';
       document.getElementById('esperaBuscarPerfume').value = '';
       document.getElementById('esperaResultados').innerHTML = '';
+      document.getElementById('esperaOpcionLibre').innerHTML = '';
       document.getElementById('esperaAnotarBtn').disabled = false;
       esperaMostrarX('esperaNombre'); esperaMostrarX('esperaBuscarPerfume');
       esperaFormMsg('', '');
@@ -10436,35 +10472,63 @@
 
     // Perfumes elegidos, no tipeados: los visibles del catálogo (sin ocultos, pausados ni sets).
     function esperaBuscar() {
-      var q = logNormalizar(document.getElementById('esperaBuscarPerfume').value.trim());
+      var crudo = document.getElementById('esperaBuscarPerfume').value;
+      var q = logNormalizar(crudo.trim()).replace(/\s+/g, ' ');   // [ESPERA-LIBRE] 142 · los espacios de más no cuentan
       var cont = document.getElementById('esperaResultados');
-      if (!q) { cont.innerHTML = ''; return; }
+      var opc = document.getElementById('esperaOpcionLibre');
+      if (!q) { cont.innerHTML = ''; opc.innerHTML = ''; return; }
       var ya = esperaElegidos.map(function(e) { return e.slug; });
-      var hits = PERFUMES.filter(function(p) {
+      var todos = PERFUMES.filter(function(p) {
         return p && !p.esSet && !p._oculto && p._stockStatus !== 'pausado' && ya.indexOf(p.slug) === -1
           && logNormalizar([p.name, p.marca_real || p.marca, p.alias].join(' ')).indexOf(q) !== -1;
-      }).slice(0, 8);
+      });
+      var hits = todos.slice(0, 8);
+      // [ESPERA-LIBRE] 142 · la opción «+ Anotar «…»» sale desde 3 caracteres, haya o no perfumes que coincidan; se esconde sólo si lo
+      // escrito es igual (sin mayúsculas, tildes ni espacios de más) al nombre de un resultado o ya es un chip.
+      var texto = esperaTextoLibre(crudo), clave = esperaClave(texto);
+      var igual = todos.some(function(p) { return esperaClave(p.name) === clave; })
+        || esperaElegidos.some(function(e) { return esperaClave(e.name) === clave; });
+      var hayOpcion = texto.length >= 3 && !igual;
+      opc.innerHTML = hayOpcion
+        ? '<button type="button" class="espera-opcion" onclick="esperaElegirLibre()"><span class="espera-opcion-mas" aria-hidden="true">+</span>'
+          + '<span class="espera-opcion-txt"><span class="espera-opcion-nombre">Anotar \u00ab' + escHtml(texto) + '\u00bb</span><small class="espera-opcion-sub">fuera del cat\u00e1logo</small></span></button>'
+        : '';
       cont.innerHTML = hits.length
         ? hits.map(function(p) {
             var marca = p.marca_real || p.marca || '';
             return '<button type="button" class="espera-resultado" onclick="esperaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
               + escHtml(p.name || p.slug) + (marca ? ' <small>' + escHtml(marca) + '</small>' : '') + '</button>';
           }).join('')
-        : '<p class="espera-sin-resultados">No hay perfumes con ese nombre</p>';
+        : (hayOpcion ? '' : '<p class="espera-sin-resultados">No hay perfumes con ese nombre</p>');   // con la opción, ocupa su lugar
     }
     // Enter en el buscador elige el primero (y no dispara «Anotar»: [ENTER-GUARDA] escucha en document).
     function esperaBuscarTecla(e) {
       if (e.key !== 'Enter') return;
       e.preventDefault(); e.stopPropagation();
       var primero = document.querySelector('#esperaResultados .espera-resultado');
-      if (primero) primero.click();
+      if (primero) { primero.click(); return; }
+      var opcion = document.querySelector('#esperaOpcionLibre .espera-opcion');   // [ESPERA-LIBRE] 142: sin resultados, Enter elige la opción
+      if (opcion) opcion.click();
+    }
+    // [ESPERA-LIBRE] 142 · lo libre pasa a ser un chip con el texto tal como lo escribió (el cliente lo va a leer en el WhatsApp).
+    function esperaElegirLibre() {
+      var b = document.getElementById('esperaBuscarPerfume');
+      var texto = esperaTextoLibre(b.value), clave = esperaClave(texto);
+      if (texto.length < 3 || !clave) return;
+      var slug = 'libre:' + clave;
+      if (esperaElegidos.some(function(e) { return e.slug === slug; })) return;
+      esperaElegidos.push({ slug: slug, name: texto, libre: true, estado: '' });
+      b.value = ''; document.getElementById('esperaResultados').innerHTML = ''; document.getElementById('esperaOpcionLibre').innerHTML = '';
+      esperaMostrarX('esperaBuscarPerfume');
+      esperaRenderChips();
+      b.focus();
     }
     function esperaElegir(slug) {
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p || esperaElegidos.some(function(e) { return e.slug === slug; })) return;
       esperaElegidos.push({ slug: p.slug, name: p.name || p.slug, estado: '' });
       var b = document.getElementById('esperaBuscarPerfume');
-      b.value = ''; document.getElementById('esperaResultados').innerHTML = ''; esperaMostrarX('esperaBuscarPerfume');
+      b.value = ''; document.getElementById('esperaResultados').innerHTML = ''; document.getElementById('esperaOpcionLibre').innerHTML = ''; esperaMostrarX('esperaBuscarPerfume');
       esperaRenderChips();
       b.focus();
     }
@@ -10476,9 +10540,12 @@
       var cont = document.getElementById('esperaChips'); if (!cont) return;
       cont.innerHTML = esperaElegidos.map(function(e) {
         var estado = e.estado && ESPERA_CHIP_TXT[e.estado] ? e.estado : '';
+        // [ESPERA-LIBRE] 142a · lo libre lleva «fuera del catálogo» donde irá el estado; ya anotado dice «Ya estaba anotado»
+        var linea = estado ? (e.libre && estado === 'ya' ? ESPERA_CHIP_TXT.yaLibre : ESPERA_CHIP_TXT[estado]) : (e.libre ? ESPERA_CHIP_TXT.libre : '');
+        var claseLinea = estado ? 'espera-' + estado : (e.libre ? 'espera-libre' : '');
         return '<span class="espera-chip' + (estado ? ' espera-chip--' + estado : '') + '">'
           + '<span class="espera-chip-txt">' + escHtml(e.name)
-          + (estado ? '<small class="espera-chip-estado espera-' + estado + '">' + ESPERA_CHIP_TXT[estado] + '</small>' : '')
+          + (linea ? '<small class="espera-chip-estado ' + claseLinea + '">' + linea + '</small>' : '')
           + '</span>'
           + '<button type="button" class="espera-chip-x" aria-label="Sacar" onclick="esperaSacar(' + escHtml(JSON.stringify(String(e.slug))) + ')">&#10005;</button>'
           + '</span>';
@@ -10500,19 +10567,19 @@
       for (var i = 0; i < aAnotar.length; i++) {
         var e = aAnotar[i];
         if (esperaElegidos.indexOf(e) === -1) continue;   // #3 · la sacaron (✕) mientras se anotaban las anteriores
-        var p = PERFUMES.find(function(pf) { return pf.slug === e.slug; });
+        var p = e.libre ? null : PERFUMES.find(function(pf) { return pf.slug === e.slug; });
         var res;
+        var nom = e.libre ? '\u00ab' + e.name + '\u00bb' : e.name;   // 142d: lo libre va entre «»
         try {
-          res = await sb.from('lista_espera').insert({
-            slug: e.slug, telefono: tel, nombre: nombre || null,
-            perfume_name: p ? p.name : e.name, origen: 'local'
-          });
+          var fila = { slug: e.slug, telefono: tel, nombre: nombre || null, perfume_name: p ? p.name : e.name, origen: 'local' };
+          if (e.libre) fila.libre = true;   // sólo lo libre lleva la columna: lo de siempre anda aunque falte el SQL
+          res = await sb.from('lista_espera').insert(fila);
         } catch(err) { res = { error: err || {} }; }
-        if (res && !res.error) { e.estado = 'ok'; anotados.push(e.name); }
-        else if (res.error && res.error.code === '23505') { e.estado = 'ya'; yaEstaban.push(e.name); }
+        if (res && !res.error) { e.estado = 'ok'; anotados.push(nom); }
+        else if (res.error && res.error.code === '23505') { e.estado = 'ya'; yaEstaban.push(nom); }
         else {
-          e.estado = 'error'; fallaron.push(e.name);
-          if (/origen/i.test(String((res.error && res.error.message) || ''))) faltaSql = true;
+          e.estado = 'error'; fallaron.push(nom);
+          if (/origen|libre/i.test(String((res.error && res.error.message) || ''))) faltaSql = true;
           console.warn('[espera] anotar', e.slug, res.error);
         }
       }
@@ -10562,7 +10629,7 @@
       var msgEnc = encodeURIComponent(buildWaitlistMsg());
       // Abrir cada WA en nueva pesta\u00f1a
       group.forEach(function(item, i) {
-        var waLink = 'https://wa.me/' + String(item.telefono || '').replace(/[^0-9]/g, '') + '?text=' + msgEnc;   // [ESPERA-MAS] sólo dígitos, como la fila: el teléfono lo escribe anon
+        var waLink = 'https://wa.me/' + String(item.telefono || '').replace(/[^0-9]/g, '') + '?text=' + (esperaEsLibre(item) ? encodeURIComponent(buildWaitlistMsg(item.perfume_name)) : msgEnc);   // [ESPERA-LIBRE] 142c   // [ESPERA-MAS] sólo dígitos, como la fila: el teléfono lo escribe anon
         setTimeout(function() { window.open(waLink, '_blank'); }, i * 800);
       });
       // [WAITLIST-AVISO-REAL] Acá antes iba una UPDATE marcando a TODO el grupo

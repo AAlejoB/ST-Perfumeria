@@ -304,7 +304,11 @@ function efectivo(rs, target, prefijos, prop, capas) {
      ['«(faltan dígitos)» .espera-falta', '.espera-falta', null, ventana, enVentana],
      ['resultado del buscador (hereda)', '.espera-resultado', '.espera-resultado', ventana, enVentana],
      ['marca del resultado .espera-resultado small', '.espera-resultado small', null, resultado, enVentana],
-     ['perfume elegido, en el chip (hereda)', null, null, chip, enVentana]].forEach(function (x) {
+     ['perfume elegido, en el chip (hereda)', null, null, chip, enVentana],
+     ['[ESPERA-LIBRE] 142 · «+» de «Anotar «…»» .espera-opcion-mas', '.espera-opcion-mas', null, chip, enVentana],
+     ['[ESPERA-LIBRE] 142 · «fuera del catálogo» de la opción .espera-opcion-sub', '.espera-opcion-sub', null, chip, enVentana],
+     ['[ESPERA-LIBRE] 142a · «fuera del catálogo» del chip .espera-chip-estado.espera-libre', '.espera-chip-estado.espera-libre', null, chip, enVentana],
+     ['[ESPERA-LIBRE] 142b · «FUERA DEL CATÁLOGO» .espera-estado--libre', '.espera-estado--libre', null, grupo, cuerpo]].forEach(function (x) {
       var bg = x[2] ? fondo(x[2], c, x[3]) : x[3];
       var fg = tinta(x[1], c, bg, x[4]);
       medir({ superficie: 'panel', tema: tema, rol: 'espera', nombre: x[0], texto: fg.hex, fondos: [bg], impone: fg.impone });
