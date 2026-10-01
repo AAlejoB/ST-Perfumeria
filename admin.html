@@ -12140,23 +12140,41 @@
     // ============================================================
     // BACKUPS — snapshots manuales + auto cada 24h
     // ============================================================
+    // [BACKUP-INCOMPLETO] 1-oct-2026 (v1.1.159): TIENE QUE SER IGUAL a BACKUP_TABLES de api/cron/backup.js (mismas tablas, mismo orden).
+    // Entran las tablas de configuración y de negocio. Quedan AFUERA a propósito:
+    //   · cliente_sesiones y cliente_login_intentos: llaves y bloqueos, se rehacen solos (y no se guardan llaves en un backup);
+    //   · password_reset_requests: pedidos temporales de contraseña (con teléfonos), vencen;
+    //   · push_subscriptions: endpoints de suscriptores, se vuelven a suscribir;
+    //   · los logs (admin_actions, edit_log, analytics_events, perfume_clicks, push_send_log): crecen sin parar y no son configuración;
+    //   · admin_backups: un backup dentro de un backup.
     var BACKUP_TABLES = [
       // Config editable
-      { name: 'perfume_overrides',  critical: true },
-      { name: 'perfumes_nuevos',    critical: true },
-      { name: 'combos',             critical: true },
-      { name: 'destacados',         critical: true },
-      { name: 'cierres_especiales', critical: true },
-      { name: 'ajuste_horario',     critical: true },
-      { name: 'votacion_config',    critical: true },
-      { name: 'decants_config',     critical: true },
+      { name: 'perfume_overrides',       critical: true },
+      { name: 'perfumes_nuevos',         critical: true },
+      { name: 'combos',                  critical: true },
+      { name: 'destacados',              critical: true },
+      { name: 'cierres_especiales',      critical: true },
+      { name: 'ajuste_horario',          critical: true },
+      { name: 'votacion_config',         critical: true },
+      { name: 'decants_config',          critical: true },
+      { name: 'decants_custom',          critical: true },   // los decants de diseñador y sus precios
+      { name: 'promos_decants',          critical: true },
+      { name: 'promos_decants_perfumes', critical: true },
+      { name: 'home_top_banner',         critical: true },
+      { name: 'home_slides',             critical: true },
+      { name: 'trust_badges',            critical: true },
+      { name: 'seleccion_st_config',     critical: true },
+      { name: 'announcements',           critical: true },
       // Data de negocio
-      { name: 'clientes',           critical: false },
-      { name: 'opiniones',          critical: false },
-      { name: 'lista_espera',       critical: false },
-      { name: 'votos',              critical: false },
-      { name: 'favoritos',          critical: false },   // [BACKUP-SIN-FAVORITOS] 2.9 (A): igual que api/cron/backup.js
-      { name: 'mi_seleccion',       critical: false }
+      { name: 'clientes',                critical: false },
+      { name: 'opiniones',               critical: false },
+      { name: 'lista_espera',            critical: false },
+      { name: 'votos',                   critical: false },
+      // ⚠️ `ventas` tiene RLS prendida y NINGUNA política: el panel la lee siempre vacía y sin error (el cron, con la clave de
+      // servicio, sí la trae). Hoy tiene 0 filas, así que da igual; si algún día se usa, el backup del panel no la ve.
+      { name: 'ventas',                  critical: false },
+      { name: 'favoritos',               critical: false },   // [BACKUP-SIN-FAVORITOS] 2.9 (A): igual que api/cron/backup.js
+      { name: 'mi_seleccion',            critical: false }
     ];
 
     var backupsCleanupRan = false;

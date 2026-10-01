@@ -28,6 +28,13 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KE
 const CRON_SECRET  = process.env.CRON_SECRET || '';
 
 // Tablas a backupear (mismas que el cliente)
+// [BACKUP-INCOMPLETO] 1-oct-2026 (v1.1.159): TIENE QUE SER IGUAL a BACKUP_TABLES de admin.html (mismas tablas, mismo orden).
+// Quedan AFUERA a propósito:
+//   · cliente_sesiones y cliente_login_intentos: llaves y bloqueos, se rehacen solos (y no se guardan llaves en un backup);
+//   · password_reset_requests: pedidos temporales de contraseña (con teléfonos), vencen;
+//   · push_subscriptions: endpoints de suscriptores, se vuelven a suscribir;
+//   · los logs (admin_actions, edit_log, analytics_events, perfume_clicks, push_send_log): crecen sin parar y no son configuración;
+//   · admin_backups: un backup dentro de un backup.
 const BACKUP_TABLES = [
   // Config editable (crítico)
   'perfume_overrides',
@@ -38,12 +45,20 @@ const BACKUP_TABLES = [
   'ajuste_horario',
   'votacion_config',
   'decants_config',
+  'decants_custom',           // los decants de diseñador y sus precios
+  'promos_decants',
+  'promos_decants_perfumes',
+  'home_top_banner',
+  'home_slides',
+  'trust_badges',
+  'seleccion_st_config',
+  'announcements',
   // Data de negocio
   'clientes',
   'opiniones',
   'lista_espera',
   'votos',
-  'ventas',
+  'ventas',         // el panel no la lee (RLS sin políticas): sólo el cron, con la clave de servicio, la trae
   'favoritos',      // [BACKUP-SIN-FAVORITOS] 2.9 (A): igual que BACKUP_TABLES de admin.html
   'mi_seleccion'
 ];
