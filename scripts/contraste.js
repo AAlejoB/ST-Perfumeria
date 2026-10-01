@@ -343,7 +343,7 @@ function efectivo(rs, target, prefijos, prop, capas) {
     });
     [['.modal-success (mensajes de los modales)', '.modal-success', pagina], ['.barra-error (motivo de «No se guardó»)', '.barra-error', pagina],
      ['.espera-ok', '.espera-ok', pagina], ['.espera-ya', '.espera-ya', pagina], ['.espera-error', '.espera-error', pagina],
-     ['.ajuste-error', '.ajuste-error', pagina], ['.promo-estado--prendida', '.promo-estado--prendida', pagina], ['.promo-estado--terminada', '.promo-estado--terminada', pagina],
+     ['.ajuste-error', '.ajuste-error', pagina], ['.promo-estado--apagada', '.promo-estado--apagada', pagina], ['.promo-estado--programada', '.promo-estado--programada', pagina], ['.promo-estado--prendida', '.promo-estado--prendida', pagina], ['.promo-estado--terminada', '.promo-estado--terminada', pagina], ['.promo-estado-2 (renglón de «Terminó»)', '.promo-estado-2', pagina],
      ['.promo-aviso-costo', '.promo-aviso-costo', pagina], ['.promo-fila-nota--pierde', '.promo-fila-nota--pierde', pagina]].forEach(function (x) {
       var fg = tinta(x[1], c, x[2], cuerpo);
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '136 · ' + x[0], texto: fg.hex, fondos: [x[2]], impone: fg.impone });

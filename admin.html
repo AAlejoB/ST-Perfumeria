@@ -2028,12 +2028,12 @@
     .promo-estado { display: flex; align-items: center; gap: .5rem; font-size: .8rem; font-weight: 700; margin: 0; }
     .promo-estado::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
     .promo-estado-2 { font-size: .72rem; font-weight: 500; margin: .3rem 0 0 1.05rem; }
-    .promo-estado--apagada { color: #888; }
-    .promo-estado--programada { color: #E8B800; }
+    /* [TINTA-MENSAJES] 136a · un estado con su propio código de color conserva sus colores y usa el token de ese valor (regla del DISEÑADOR):
+       Apagada --gris, Programada --tinta-aviso, Prendida --tinta-ok, Terminó --tinta-error (y su renglón de abajo). */
+    .promo-estado--apagada { color: var(--gris); }
+    .promo-estado--programada { color: var(--tinta-aviso); }
     .promo-estado--prendida { color: var(--tinta-ok); }
-    .promo-estado--terminada, .promo-estado-2 { color: var(--tinta-aviso); }
-    body.light .promo-estado--apagada { color: #5e564a; }
-    body.light .promo-estado--programada { color: #6b5500; }
+    .promo-estado--terminada, .promo-estado-2 { color: var(--tinta-error); }
     /* el interruptor (44 px de toque) */
     .promo-switch { position: relative; display: inline-flex; align-items: center; gap: .55rem; min-height: var(--tap-min); cursor: pointer; font-size: .8rem; font-weight: 600; }
     .promo-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
