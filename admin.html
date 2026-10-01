@@ -10398,7 +10398,12 @@
     // minúsculas, sin espacios de más: así el único parcial (slug, telefono) da «Ya estaba anotado» y la lista lo agrupa), perfume_name
     // = el texto tal como lo escribió (3 a 60), libre = true y origen 'local'. Ningún slug del catálogo tiene «:» (medido el 1-oct).
     function esperaTextoLibre(t) { return String(t == null ? '' : t).replace(/\s+/g, ' ').trim().slice(0, 60); }
-    function esperaClave(t) { return esperaTextoLibre(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+    // La clave de «lo mismo»: sin tildes (NFD), en minúsculas, **sin signos de puntuación** (. , ; : ! ¡ ? ¿ ' " -: se sacan, no se cambian por un espacio) y sin
+    // espacios de más. Queda guardada en el slug: cambiarla después partiría los grupos. Lo que se guarda en perfume_name y lo que se muestra no cambian.
+    function esperaClave(t) {
+      return esperaTextoLibre(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+        .replace(/[.,;:!\u00a1?\u00bf'"\-]/g, '').replace(/\s+/g, ' ').trim();
+    }
     // Sólo `libre === true` (la columna): el CHECK la deja escribir únicamente con origen 'local' (el catálogo, anon, no puede). Un slug «libre:…» sin la marca
     // no cuenta: el texto de un perfume_name que escribe anon NO puede ir a un WhatsApp.
     function esperaEsLibre(r) { return !!r && r.libre === true; }
@@ -10488,7 +10493,7 @@
       var texto = esperaTextoLibre(crudo), clave = esperaClave(texto);
       var igual = todos.some(function(p) { return esperaClave(p.name) === clave; })
         || esperaElegidos.some(function(e) { return esperaClave(e.name) === clave; });
-      var hayOpcion = texto.length >= 3 && !igual;
+      var hayOpcion = texto.length >= 3 && clave.length >= 3 && !igual;   // la clave (sin puntuación) también de 3 en adelante: «!!!» no ofrece nada
       opc.innerHTML = hayOpcion
         ? '<button type="button" class="espera-opcion" onclick="esperaElegirLibre()"><span class="espera-opcion-mas" aria-hidden="true">+</span>'
           + '<span class="espera-opcion-txt"><span class="espera-opcion-nombre">Anotar \u00ab' + escHtml(texto) + '\u00bb</span><small class="espera-opcion-sub">fuera del cat\u00e1logo</small></span></button>'
@@ -10514,7 +10519,7 @@
     function esperaElegirLibre() {
       var b = document.getElementById('esperaBuscarPerfume');
       var texto = esperaTextoLibre(b.value), clave = esperaClave(texto);
-      if (texto.length < 3 || !clave) return;
+      if (texto.length < 3 || clave.length < 3) return;
       var slug = 'libre:' + clave;
       if (esperaElegidos.some(function(e) { return e.slug === slug; })) return;
       esperaElegidos.push({ slug: slug, name: texto, libre: true, estado: '' });
