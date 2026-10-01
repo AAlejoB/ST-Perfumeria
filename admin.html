@@ -1028,7 +1028,7 @@
       text-transform: uppercase; letter-spacing: .06em; margin-left: .4rem;
     }
     .combo-badge-pack { background: var(--amarillo); color: #000; }
-    .combo-badge-mini { background: #3498db; color: #fff; }
+    .combo-badge-mini { background: #2170b0; color: #fff; }   /* 138b: el azul de «Editar» de Clientes y de .btn-stock (5,24); era #3498db: 3,15 */
     .combo-badge-regalo { background: #e74c3c; color: #fff; }
     .combo-items-list { font-size: .7rem; color: var(--gris-claro); margin-top: .4rem; padding-left: 1.2rem; }
     .combo-items-list li { margin-bottom: .15rem; }
@@ -5115,7 +5115,9 @@
         return exacto(n);
       };
       var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
-      var sinDato = !stockCargado;   // [CARGA-FALLIDA-CERO] 128m · sin el stock de la base daba «$0»
+      // [CARGA-FALLIDA-CERO] 128m · sin el stock de la base daba «$0». [VALOR-SIN-PRECIOS] 128q · y sin los overrides (de ahí salen los
+      // precios que cambió el jefe) las cuatro cifras valdrían a precio de perfumes.js: «—». Unidades y «sin stock» siguen con número.
+      var sinDato = !stockCargado || !overridesCargado;
       setText('statValorInv',   sinDato ? '—' : compacto(total));
       setText('statValorLocal', sinDato ? '—' : exacto(local));
       setText('statValorDep',   sinDato ? '—' : exacto(dep));
