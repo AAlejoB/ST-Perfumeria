@@ -4859,15 +4859,15 @@
         case 'name-desc': sorted.sort(function(a, b) { return b.name.localeCompare(a.name); }); break;
         case 'price-asc': sorted.sort(function(a, b) { return parsePrice(a.price) - parsePrice(b.price); }); break;
         case 'price-desc': sorted.sort(function(a, b) { return parsePrice(b.price) - parsePrice(a.price); }); break;
-        // [MAYOR-STOCK] los grupos, con lo que dice la etiqueta de la fila (deriveStockInfo: la misma cuenta que la pinta): (0) cantidad mayor que 0, de mayor a menor;
-        // (1) «En stock» o «Último» sin número; (2) 0, negativa o «Sin stock»; (3) pausados. Un «En stock» no queda debajo de un «Sin stock». En cada grupo y en
-        // los empates, por nombre de la A a la Z.
+        // [MAYOR-STOCK] los grupos, con los dos campos del perfume (_stockQty y _stockStatus): (0) cantidad mayor que 0, de mayor a menor; (1) «En stock» o poco stock
+        // (estado ok o low) con la cantidad vacía; (2) 0, negativa, estado «Sin stock», o ni cantidad ni estado; (3) pausados. Si cantidad y estado se contradicen, manda
+        // la cantidad. En cada grupo y en los empates, por nombre de la A a la Z. (Los pausados sólo se ven con «Mostrar pausados» prendido: los esconde la tabla.)
         case 'stock-max': sorted.sort(function(a, b) {
           var rango = function(p) {
-            var info = deriveStockInfo(p);
-            if (info.status === 'pausado') return 3;
+            var est = p._stockStatus;
+            if (est === 'pausado') return 3;
             if (typeof p._stockQty === 'number') return p._stockQty > 0 ? 0 : 2;
-            return info.status === 'out' ? 2 : 1;
+            return (est === 'ok' || est === 'low') ? 1 : 2;
           };
           var ra = rango(a), rb = rango(b);
           if (ra !== rb) return ra - rb;
