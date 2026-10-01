@@ -4317,9 +4317,31 @@ Del prompt `_ad` del PREPARADOR. La rama sale de `d21c46d` (`backup-completo`, a
 
 ---
 
+## Sesión 1-oct-2026 · `_ad` — `[ESPERA-LIBRE]` (rama `espera-libre`, v1.1.161, sin mergear)
+
+Del prompt `_af` del PREPARADOR. La rama sale de `71ff959` (`combos-ranking`, todavía no aprobada). **El SQL no está aplicado**: columna `libre boolean NOT NULL DEFAULT false` y el CHECK `NOT libre OR (origen = 'local' AND slug LIKE 'libre:%' AND char_length(perfume_name) BETWEEN 3 AND 60)` (en el reporte al PREPARADOR, con una observación: un `perfume_name` nulo pasa ese CHECK; la variante con `coalesce` lo cierra).
+
+**Medido antes de empezar:** ningún slug con «:» en `lista_espera` (42 filas), `perfumes_nuevos` (117), `combos` (5), `perfume_overrides` (272) ni `perfumes.js` (160); el slug más largo mide 29 (`libre:` + 60 entra sin problema).
+
+**Lo que hace** (142 a 142d, el dibujo del DISEÑADOR): la opción «+ Anotar «…»» debajo de los resultados y fuera de su scroll, desde 3 caracteres y haya o no coincidencias (se esconde si lo escrito es igual —sin mayúsculas, tildes ni espacios de más— al nombre de un resultado o a un chip; Enter sin resultados la elige; el buscador acepta 60 caracteres); el chip con el texto tal como lo escribió y «fuera del catálogo» donde va el estado («Ya estaba anotado» si ya estaba); la marca «FUERA DEL CATÁLOGO» en Pendientes e Historial; el WhatsApp «ya tenemos lo que nos consultaste: *nombre*» (cada fila libre manda el suyo; se sacan `*`, `_` y `~`); y los textos del formulario («Qué busca», «…apenas lo tengamos.», «✓ Anotado para «…»»). **Medido** (fixture, claro y oscuro, 360 y 600): fila de la opción 44, 4 px (.25rem) entre la lista y la opción, fuera del scroll (la lista de 5 resultados mide 236); borde `dashed 1px` `#6b5500` / `#e8b800`; «+» 16 px 700; «Anotar «yara»» 12 px 600; «fuera del catálogo» 10,4 px, gris 5,33 / 4,90; chip de 46 a 360; encabezado de grupo 35. `contraste.js`: las cuatro filas nuevas dan 7,18 / 9,33, 5,33 / 4,90.
+
+**Decisiones de Claude Code:** (a) los espacios de más del texto escrito se colapsan al guardar (la clave y el nombre); (b) el buscador también colapsa los espacios de la consulta (si no, «YARA  tous» no encontraba «YARA TOUS» y salía la opción); (c) **`esperaEsLibre` mira sólo `libre === true`**, no el prefijo `libre:`: el catálogo (anon) puede insertar un slug «libre:…» con `origen = 'web'` y `libre = false` (el CHECK sólo ata lo libre), y su `perfume_name` iría a un WhatsApp; (d) sólo lo libre manda la columna `libre` al insertar: lo de siempre anda aunque falte el SQL.
+
+**Confirmado:** `saveStock` → `autoNotifyWaitlist(slug)` busca por `.eq('slug', slug)` con slugs del catálogo (ninguno tiene «:»): nunca agarra una fila libre; lo demás de la lista se mueve por `id`; la RPC `lista_espera_pendientes(telefono)` devuelve slugs y el catálogo ignora los que no son de un perfume. **Backup:** `lista_espera` está en las dos listas y se baja con `select('*')`, así que lleva la columna sola; **el panel no restaura** (sólo descarga), así que no hay un camino por donde entre un backup viejo; si algún día lo hubiera, `DEFAULT false` cubre las filas sin la columna.
+
+**`[VENTAS-SIN-POLITICA]` vuelve a 🟢** (decisión del PREPARADOR: nada escribe en `ventas`): migración `ventas_select_staff` (`FOR SELECT TO authenticated`, la misma expresión por email que `pd_select_staff`), a aplicar fuera de 10–21.
+
+**Verificación:** `npm run contraste` 0 fallas + 1 token pisado, 427 mediciones; `node --check` de los scripts de `admin.html`.
+
+---
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 1-oct-2026 (`_ac`) — pasó de `CLAUDE.md` al archivo el mismo día
+
+**Última actualización:** **Octubre 1, 2026 (`_ac`)** — el prompt `_ad` del PREPARADOR. **`tintas` mergeada** (v1.1.158 en producción, `main` = `32cb2c3`, push de Alejo; archivos servidos iguales, humo sin cuenta bien, rama borrada). **`backup-completo` (v1.1.159, `d21c46d`) aprobada por el PREPARADOR: el merge es desde las 21:00 del 1-oct** (el push lo corre Alejo: `git push origin d21c46d:refs/heads/main`; después archivos servidos, humo sin cuenta y borrar la rama). Mientras, la tanda chica **v1.1.160** en la rama **`combos-ranking`** (desde `d21c46d`), **sin mergear**, un commit por punto: **138c `[COMBO-REGALO-ROJO]`** (REGALO y ROTO a `--rojo-fondo`; ROTO a una clase), **138d `[COMBO-PAUSADO]`** (Pausar y Activar con letra `#1a1a1a` por clase, la tarjeta pausada sin `opacity`, «⏸ PAUSADO» como etiqueta; las etiquetas de combo no se parten), **141b `[RANKING-BUSCAR-ANCHO]`** y **141c `[PUNTOS-COMA]`** («8,5» en el ranking y en «Puntos actuales»). `npm run contraste`: 0 fallas + 1 token pisado, 419 mediciones (el mismo token pisado que en la 158: `.card-brand`; REGALO ya no es «conocida»). **Medido para el PREPARADOR:** `[VENTAS-SIN-POLITICA]` sube a 🟡 (ningún código escribe en `ventas`) y el esquema de `lista_espera` para `[ESPERA-LIBRE]` (en `docs/HISTORIA.md` § «Sesión 1-oct-2026 · `_ac`»). **Orden de trabajo:** el merge de `backup-completo` (21:00) → la revisión de `combos-ranking` y el OK de Alejo → la migración de `ventas` → `[ESPERA-LIBRE]` (cuando el PREPARADOR defina cómo se guarda) → el par nuevo de `VAPID_*` → `[TAP-44]` tanda 2 → `[FACILITAR-MOBILE-EN-CATALOGO]` y `[DISEÑOACORTADOR-PANELADMIN]`.
 
 ### Última actualización del 1-oct-2026 (`_ab`) — pasó de `CLAUDE.md` al archivo el mismo día
 
