@@ -2275,7 +2275,7 @@
           <option value="name-desc">Nombre Z-A</option>
           <option value="price-desc">Precio mayor a menor</option>
           <option value="price-asc">Precio menor a mayor</option>
-          <option value="stock-ok">En stock primero</option>
+          <option value="stock-max">Mayor stock primero</option>
           <option value="stock-out">Sin stock primero</option>
         </select>
         <!-- [OCULTAR-PAUSADOS] Casilla en la misma fila que "Ordenar por".
@@ -4859,7 +4859,15 @@
         case 'name-desc': sorted.sort(function(a, b) { return b.name.localeCompare(a.name); }); break;
         case 'price-asc': sorted.sort(function(a, b) { return parsePrice(a.price) - parsePrice(b.price); }); break;
         case 'price-desc': sorted.sort(function(a, b) { return parsePrice(b.price) - parsePrice(a.price); }); break;
-        case 'stock-ok': sorted.sort(function(a, b) { var order = { ok: 0, low: 1, out: 2, pausado: 3 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
+        // [MAYOR-STOCK] de la cantidad del local de mayor a menor; después los que tienen 0 o no tienen dato, y al final los pausados (como el orden anterior);
+        // en cada grupo y en los empates, por nombre de la A a la Z.
+        case 'stock-max': sorted.sort(function(a, b) {
+          var rango = function(p) { return p._stockStatus === 'pausado' ? 2 : (typeof p._stockQty === 'number' && p._stockQty > 0) ? 0 : 1; };
+          var ra = rango(a), rb = rango(b);
+          if (ra !== rb) return ra - rb;
+          if (ra === 0 && a._stockQty !== b._stockQty) return b._stockQty - a._stockQty;
+          return a.name.localeCompare(b.name);
+        }); break;
         case 'stock-out': sorted.sort(function(a, b) { var order = { pausado: 0, out: 1, low: 2, ok: 3 }; return (order[getStockStatus(a.slug)] || 0) - (order[getStockStatus(b.slug)] || 0); }); break;
       }
       return sorted;
