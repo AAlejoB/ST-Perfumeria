@@ -4341,6 +4341,12 @@ Del prompt `_af` del PREPARADOR. La rama sale de `71ff959` (`combos-ranking`, to
 
 ---
 
+## Sesión 1-oct-2026 · `_al` — `[MAYOR-STOCK]` (rama `mayor-stock`, v1.1.162, sin mergear)
+
+Del prompt `_al` del PREPARADOR (decisión de Alejo). La rama sale de `a3b7764` (el HEAD final de `espera-libre`, aprobada por el PREPARADOR y el DISEÑADOR). Sin SQL. **Medido antes de tocar:** «En stock primero» era la opción `stock-ok` del `<select id="sortPrecios">` de Precios & Stock (`admin.html`), resuelta en `sortPerfumes` (ok, low, out, pausado, sin desempate); `sortPerfumes` sólo la llama `renderPrecios`; el catálogo público, `js/app.js` y las demás pestañas no la usan; **no se guarda** (ni `localStorage` ni otra cosa: el select abre en «Nombre A-Z»), así que no hay elección vieja que migrar. **Depósito (`#sortDeposito`) no tenía «En stock primero»:** sus opciones son «Más en depósito» (la de abajo, por defecto), «Menos en depósito», «Nombre A-Z» y «Para reponer primero»; «Más en depósito» ya ordena por la cantidad del depósito de mayor a menor con el desempate por nombre, así que no se tocó.
+
+**Lo que hace:** la opción pasa a `stock-max` «Mayor stock primero». Grupos: (0) cantidad del local numérica y mayor que 0, de mayor a menor; (1) 0, negativa o sin dato; (2) pausados (como el orden anterior); en los tres, el empate por nombre (`localeCompare`, A-Z). **Medido (fixture, 360 y 600):** primeras filas 20, 15, 12, 9, 9, 8, 7, 7; los empates salen A-Z («ANTIQUE» antes de «ART OF NATURE I», los dos con 9; «9 PM», «9 PM ELIXIR» y «9AM Dive», los tres con 7); los 0 y sin dato al final por nombre; con «Mostrar pausados», el pausado (9 u.) queda último. El texto «Mayor stock primero» mide 156,1 px contra 165,9 de «Precio mayor a menor»: el select (213,6 px) no cambia de ancho, entra en una línea y no desborda a 360 ni a 600. `contraste`: 0 fallas. `sw.js` v1.1.161 → v1.1.162 (hay un deploy entre las dos: `espera-libre` sale el 2-oct y esta el 3-oct).
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
