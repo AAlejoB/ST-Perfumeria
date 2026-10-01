@@ -37,9 +37,6 @@ var CONOCIDAS = [   // falla hoy y se resuelve en otro lado: se informa, no fren
   // [HOTSALE-CLARO] el Hot Sale del detalle en claro salió de acá: con #9a3412 da 5,82 al principio de la franja
   // [AMARILLO-TINTA-CLARO] el título del quiz en claro salió de acá: con #6b5500 da 6,25 sobre #f5efde
   // [CLIENTES-OSCURO-ROJO] salió de acá el 29-sep: en oscuro, #ff8a80 da 7,13 (Eliminar) y 7,39 (✗ NO COMPRÓ)
-  // [COMBO-REGALO-ROJO] 1-oct: la etiqueta REGALO de los combos, #fff sobre #e74c3c = 3,82 (de antes; lo midió 138b). Del DISEÑADOR: el rojo de fondo con letra blanca es --rojo-fondo (#b8342a, 5,89)
-  { superficie: 'panel', tema: 'oscuro', nombre: 'REGALO .combo-badge-regalo', keyword: '[COMBO-REGALO-ROJO]' },
-  { superficie: 'panel', tema: 'claro', nombre: 'REGALO .combo-badge-regalo', keyword: '[COMBO-REGALO-ROJO]' }
 ];
 
 // ── color ──
@@ -352,7 +349,7 @@ function efectivo(rs, target, prefijos, prop, capas) {
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '136 · ' + x[0], texto: fg.hex, fondos: [x[2]], impone: fg.impone });
     });
     // [BTN-STOCK-AZUL] 138b: la etiqueta MINI de los combos, y las otras dos para tenerlas a la vista
-    [['138b · MINI .combo-badge-mini', '.combo-badge-mini'], ['PACK .combo-badge-pack', '.combo-badge-pack'], ['REGALO .combo-badge-regalo', '.combo-badge-regalo']].forEach(function (x) {
+    [['138b · MINI .combo-badge-mini', '.combo-badge-mini'], ['PACK .combo-badge-pack', '.combo-badge-pack'], ['138c · REGALO .combo-badge-regalo', '.combo-badge-regalo'], ['138c · ROTO .combo-badge-roto', '.combo-badge-roto']].forEach(function (x) {
       var bg = fondo(x[1], c, pagina), fg = tinta(x[1], c, bg, '#ffffff');
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: x[0], texto: fg.hex, fondos: [bg], impone: fg.impone });
     });

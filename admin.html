@@ -1030,7 +1030,10 @@
     }
     .combo-badge-pack { background: var(--amarillo); color: #000; }
     .combo-badge-mini { background: #2170b0; color: #fff; }   /* 138b: el azul de «Editar» de Clientes y de .btn-stock (5,24); era #3498db: 3,15 */
-    .combo-badge-regalo { background: #e74c3c; color: #fff; }
+    /* [COMBO-REGALO-ROJO] 138c · REGALO y ROTO en el rojo de fondo con letra blanca (--rojo-fondo #b8342a: 5,89 en los dos temas; era #e74c3c: 3,82).
+       ROTO era una etiqueta con estilo inline (color:#fff): el parche body.light [style*="color:#fff"] le ponía letra #1a1a1a; ahora es una clase. */
+    .combo-badge-regalo { background: var(--rojo-fondo); color: #fff; }
+    .combo-badge-roto { background: var(--rojo-fondo); color: #fff; margin-left: .3rem; }
     .combo-items-list { font-size: .7rem; color: var(--gris-claro); margin-top: .4rem; padding-left: 1.2rem; }
     .combo-items-list li { margin-bottom: .15rem; }
     .combo-pricing { margin-top: .4rem; font-size: .8rem; }
@@ -8785,7 +8788,7 @@
         });
         var isBroken = brokenItems.length > 0;
         var brokenBadge = isBroken
-          ? '<span class="combo-badge" style="background:#e74c3c;color:#fff;margin-left:.3rem;">⚠️ ROTO</span>'
+          ? '<span class="combo-badge combo-badge-roto">⚠️ ROTO</span>'
           : '';
         var brokenWarning = isBroken
           ? '<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(231,76,60,.1);border-left:3px solid var(--tinta-error);border-radius:3px;font-size:.6rem;color:var(--tinta-error);font-weight:600;">'
