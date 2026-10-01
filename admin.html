@@ -11812,6 +11812,10 @@
     // [TEL-SIN-CORTE] 141 · el HTML de un teléfono para una celda angosta: el tramo final («00-0012») va en un <span class="tel-fin"> con
     // nowrap, así no se parte en el guion. Es sólo para pintar: el texto que devuelve formatPhoneDisplay no cambia (el buscador del
     // ranking compara contra ese texto). Si no hay un tramo final con guion, queda el texto escapado tal cual.
+    // [PUNTOS-COMA] 141c · los puntos como se ven en el panel (coma decimal, como el punto de los miles en $35.000): «8,5». Sólo lo que se
+    // muestra; lo guardado y lo que se calcula siguen con punto.
+    function puntosTxt(n) { return Number(n || 0).toFixed(2).replace(/\.?0+$/, '').replace('.', ','); }
+
     function telHtml(raw) {
       var t = formatPhoneDisplay(raw) || String(raw == null ? '' : raw);
       var m = /^(.*\S) (\d{2}-\d{4})$/.exec(t);
@@ -12418,7 +12422,7 @@
       var html = '';
       for (var i=0;i<rows.length;i++){
         var c = rows[i];
-        var pts = Number(c.puntos||0).toFixed(2).replace(/\.?0+$/,'');
+        var pts = puntosTxt(c.puntos);   // 141c
         html += '<tr>'
           + '<td style="color:var(--gris);">'+ (i+1) +'</td>'
           + '<td style="font-weight:600;">'+ escapeHtml(c.nombre||'—') +'</td>'
@@ -12439,9 +12443,9 @@
       if (!c) return;
       _puntosModalCliente = c;
       _puntosModalMode = 'sumar';
-      var pts = Number(c.puntos||0).toFixed(2).replace(/\.?0+$/,'');
+      var pts = puntosTxt(c.puntos);   // 141c · «8,5»
       document.getElementById('modalPuntosCliente').textContent = c.nombre || '—';
-      document.getElementById('modalPuntosActual').textContent = 'Puntos actuales: ' + pts + (c.telefono ? ' · ' + c.telefono : '');
+      document.getElementById('modalPuntosActual').textContent = 'Puntos actuales: ' + pts + (c.telefono ? ' · ' + (formatPhoneDisplay(c.telefono) || c.telefono) : '');   // 141c · el teléfono como en el catálogo
       document.getElementById('modalPuntosCantidad').value = '';
       document.getElementById('modalPuntosNota').value = '';
       document.getElementById('modalPuntosMotivo').value = 'manual_jefe';
