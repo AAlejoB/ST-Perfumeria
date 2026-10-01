@@ -10237,10 +10237,14 @@
       var rows = (esperaView === 'history') ? history : pending;
       var grouped = Object.create(null);   // sin prototipo: un slug «constructor» o «__proto__» no corta la lista
       rows.forEach(function(row) {
-        if (!grouped[row.slug]) grouped[row.slug] = { name: row.perfume_name || row.slug, items: [] };
+        if (!grouped[row.slug]) grouped[row.slug] = { name: row.perfume_name || row.slug, items: [], vieja: row };
         grouped[row.slug].items.push(row);
+        if (esperaMasVieja(row, grouped[row.slug].vieja)) grouped[row.slug].vieja = row;
       });
       var slugs = Object.keys(grouped);
+      // [ESPERA-LIBRE] 142h · el título de un grupo libre es el texto de la fila más vieja QUE SIGUE en esta lista (Pendientes: la pendiente; Historial: la avisada),
+      // así no cambia cada vez que alguien anota otra grafía; si esa fila se quita, pasa a la siguiente más vieja. El WhatsApp: cada fila manda el suyo.
+      slugs.forEach(function(s) { var g = grouped[s]; if (esperaEsLibre(g.vieja)) g.name = g.vieja.perfume_name || s; });
 
       if (rows.length === 0) {
         list.innerHTML = '';
@@ -10398,11 +10402,23 @@
     // minúsculas, sin espacios de más: así el único parcial (slug, telefono) da «Ya estaba anotado» y la lista lo agrupa), perfume_name
     // = el texto tal como lo escribió (3 a 60), libre = true y origen 'local'. Ningún slug del catálogo tiene «:» (medido el 1-oct).
     function esperaTextoLibre(t) { return String(t == null ? '' : t).replace(/\s+/g, ' ').trim().slice(0, 60); }
-    // La clave de «lo mismo»: sin tildes (NFD), en minúsculas, **sin signos de puntuación** (. , ; : ! ¡ ? ¿ ' " -: se sacan, no se cambian por un espacio) y sin
-    // espacios de más. Queda guardada en el slug: cambiarla después partiría los grupos. Lo que se guarda en perfume_name y lo que se muestra no cambian.
+    // La clave de «lo mismo» (142i), en este orden: sin tildes (NFD) y en minúsculas; los tres guiones (- – —) pasan a UN ESPACIO («Cargador de-auto» =
+    // «cargador de auto», «Sí - Armani» = «si armani»); se SACAN, sin dejar espacio, . , ; : ! ¡ ? ¿ ' " « » “ ” ‘ ’ … ´ (los que pone solo el teclado del celu: «L'Aventure»
+    // = «laventure»); y se colapsan los espacios. Queda guardada en el slug: cambiarla después partiría los grupos. Lo que se guarda en perfume_name y lo que se
+    // muestra no cambian.
     function esperaClave(t) {
       return esperaTextoLibre(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-        .replace(/[.,;:!\u00a1?\u00bf'"\-]/g, '').replace(/\s+/g, ' ').trim();
+        .replace(/[\-\u2013\u2014]/g, ' ')
+        .replace(/[.,;:!\u00a1?\u00bf'"\u00ab\u00bb\u201c\u201d\u2018\u2019\u2026\u00b4]/g, '')
+        .replace(/\s+/g, ' ').trim();
+    }
+    // Una clave sirve si tiene 3 o más caracteres SIN contar los espacios: «ab», «¿?», «a-b» («a b») no ofrecen la opción.
+    function esperaClaveValida(clave) { return clave.replace(/ /g, '').length >= 3; }
+    // La fila más vieja: por fecha de alta y, si empatan, por id (el título de un grupo libre sale de ella, 142h).
+    function esperaMasVieja(a, b) {
+      var ta = Date.parse(a.created_at), tb = Date.parse(b.created_at);
+      if (!isNaN(ta) && !isNaN(tb) && ta !== tb) return ta < tb;
+      return Number(a.id) < Number(b.id);
     }
     // Sólo `libre === true` (la columna): el CHECK la deja escribir únicamente con origen 'local' (el catálogo, anon, no puede). Un slug «libre:…» sin la marca
     // no cuenta: el texto de un perfume_name que escribe anon NO puede ir a un WhatsApp.
@@ -10491,9 +10507,10 @@
       // [ESPERA-LIBRE] 142 · la opción «+ Anotar «…»» sale desde 3 caracteres, haya o no perfumes que coincidan; se esconde sólo si lo
       // escrito es igual (sin mayúsculas, tildes ni espacios de más) al nombre de un resultado o ya es un chip.
       var texto = esperaTextoLibre(crudo), clave = esperaClave(texto);
-      var igual = todos.some(function(p) { return esperaClave(p.name) === clave; })
-        || esperaElegidos.some(function(e) { return esperaClave(e.name) === clave; });
-      var hayOpcion = texto.length >= 3 && clave.length >= 3 && !igual;   // la clave (sin puntuación) también de 3 en adelante: «!!!» no ofrece nada
+      var claveOk = esperaClaveValida(clave);   // 3 o más caracteres sin contar los espacios: «!!!», «a-b» no ofrecen nada
+      var yaChip = claveOk && esperaElegidos.some(function(e) { return esperaClave(e.name) === clave; });
+      var igual = yaChip || todos.some(function(p) { return esperaClave(p.name) === clave; });
+      var hayOpcion = texto.length >= 3 && claveOk && !igual;
       opc.innerHTML = hayOpcion
         ? '<button type="button" class="espera-opcion" onclick="esperaElegirLibre()"><span class="espera-opcion-mas" aria-hidden="true">+</span>'
           + '<span class="espera-opcion-txt"><span class="espera-opcion-nombre">Anotar \u00ab' + escHtml(texto) + '\u00bb</span><small class="espera-opcion-sub">fuera del cat\u00e1logo</small></span></button>'
@@ -10504,7 +10521,7 @@
             return '<button type="button" class="espera-resultado" onclick="esperaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
               + escHtml(p.name || p.slug) + (marca ? ' <small>' + escHtml(marca) + '</small>' : '') + '</button>';
           }).join('')
-        : (hayOpcion ? '' : '<p class="espera-sin-resultados">No hay perfumes con ese nombre</p>');   // con la opción, ocupa su lugar
+        : (hayOpcion ? '' : '<p class="espera-sin-resultados">' + (yaChip ? 'Ya est\u00e1 agregado abajo' : 'No hay perfumes con ese nombre') + '</p>');   // con la opción, ocupa su lugar; 142g: si se esconde porque ya es un chip, lo dice
     }
     // Enter en el buscador elige el primero (y no dispara «Anotar»: [ENTER-GUARDA] escucha en document).
     function esperaBuscarTecla(e) {
@@ -10519,7 +10536,7 @@
     function esperaElegirLibre() {
       var b = document.getElementById('esperaBuscarPerfume');
       var texto = esperaTextoLibre(b.value), clave = esperaClave(texto);
-      if (texto.length < 3 || clave.length < 3) return;
+      if (texto.length < 3 || !esperaClaveValida(clave)) return;
       var slug = 'libre:' + clave;
       if (esperaElegidos.some(function(e) { return e.slug === slug; })) return;
       esperaElegidos.push({ slug: slug, name: texto, libre: true, estado: '' });
