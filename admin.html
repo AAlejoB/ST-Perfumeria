@@ -890,6 +890,7 @@
     .espera-fila-datos { min-width: 0; }
     .espera-nombre { font-size: .72rem; font-weight: 500; overflow-wrap: anywhere; }
     .espera-sub { font-size: .62rem; color: var(--gris); }
+    .tel-fin { white-space: nowrap; }   /* 141 [TEL-SIN-CORTE]: el tramo final del teléfono (telHtml) no se parte en el guion */
     .espera-tel-num, .espera-avisado { white-space: nowrap; }   /* 129c / 129d: el número y «Avisado dd/mm hh:mm» no se parten; la línea sí, en los «·» */
     .espera-tag-local {
       display: inline-block; margin-left: .35rem; padding: 0 .4rem; font-size: .58rem; font-weight: 700;
@@ -5673,7 +5674,7 @@
             + '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">' + comproTag + puntosHTML + (fecha ? '<span class="client-date">' + fecha + '</span>' : '') + '</div>'
           + '</div>'
           + '<div class="client-details">'
-            + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + escHtml(formatPhoneDisplay(c.telefono) || c.telefono) + '</span></span>'   // [CLIENTES-FECHA-TEL] como en el catálogo
+            + '<span class="client-detail"><span class="client-detail-icon">📱</span> <span class="client-detail-value">' + telHtml(c.telefono) + '</span></span>'   // [CLIENTES-FECHA-TEL] como en el catálogo
           + '</div>'
           + notaHTML
           + '<div class="client-actions">'
@@ -11800,6 +11801,15 @@
       return '+54 9 ' + area + ' ' + rest.substring(0, 2) + '-' + rest.substring(2);
     }
 
+    // [TEL-SIN-CORTE] 141 · el HTML de un teléfono para una celda angosta: el tramo final («00-0012») va en un <span class="tel-fin"> con
+    // nowrap, así no se parte en el guion. Es sólo para pintar: el texto que devuelve formatPhoneDisplay no cambia (el buscador del
+    // ranking compara contra ese texto). Si no hay un tramo final con guion, queda el texto escapado tal cual.
+    function telHtml(raw) {
+      var t = formatPhoneDisplay(raw) || String(raw == null ? '' : raw);
+      var m = /^(.*\S) (\d{2}-\d{4})$/.exec(t);
+      return m ? escHtml(m[1]) + ' <span class="tel-fin">' + escHtml(m[2]) + '</span>' : escHtml(t);
+    }
+
     function resumenHoyART() {
       return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     }
@@ -11863,7 +11873,7 @@
     function resumenFilaCliente(it) {
       var tel = String(it.telefono || ''), digitos = tel.replace(/[^0-9]/g, '');
       return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.nombre || '')
-        + (tel ? '<div class="res-sub">📱 ' + escHtml(formatPhoneDisplay(tel) || tel) + '</div>' : '') + '</div>'
+        + (tel ? '<div class="res-sub">📱 ' + telHtml(tel) + '</div>' : '') + '</div>'
         + (digitos ? '<a class="action-btn btn-whatsapp res-wa-cli" href="https://wa.me/' + digitos + '" target="_blank" rel="noopener">WhatsApp</a>' : '')
         + '</div>';
     }
@@ -12404,7 +12414,7 @@
         html += '<tr>'
           + '<td style="color:var(--gris);">'+ (i+1) +'</td>'
           + '<td style="font-weight:600;">'+ escapeHtml(c.nombre||'—') +'</td>'
-          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ escapeHtml(formatPhoneDisplay(c.telefono) || c.telefono || '—') +'</td>'
+          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ (c.telefono ? telHtml(c.telefono) : '—') +'</td>'
           + '<td class="tinta-dorada" style="text-align:right;font-weight:700;">'+ pts +'</td>'
           + '<td>'
             + '<button class="action-btn btn-principal" onclick="openPuntosModal(\''+ c.id +'\')" style="padding:.3rem .7rem;font-size:.72rem;">Ajustar</button>'
