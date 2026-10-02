@@ -3450,6 +3450,43 @@
       font-size: .9rem;
     }
 
+    /* [BUSQUEDA-SIN-RESULTADOS] 143c (DISEÑADOR): centrado, en el lugar de la grilla. Título 17 px / 700 en el texto principal, ayuda 13 px en el gris del tema,
+       botón de 44 px con contorno de 1 px (con 1,5 px Chrome lo redondea a 1) y letra en --amarillo-tinta (que ya cambia con el tema: --amarillo en oscuro, #6b5500 en claro), radio 8. */
+    .sin-resultados {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    /* ojo: en claro `body:not(.dark-mode) p` (0,1,2) pisa el color de un <p> con una sola clase: por eso `.sin-resultados .sin-resultados-…` (0,2,0) */
+    .sin-resultados .sin-resultados-titulo {
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--blanco);
+      margin-bottom: .6rem;
+      overflow-wrap: anywhere;
+    }
+    .sin-resultados .sin-resultados-ayuda {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--gris);
+      margin-bottom: 1.4rem;
+    }
+    .sin-resultados-btn {
+      min-height: 44px;
+      padding: 0 1.4rem;
+      border: 1px solid var(--amarillo-tinta);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--amarillo-tinta);
+      font-family: var(--font-body);
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      cursor: pointer;
+    }
+
     /* BOTTOM SHEET — solo mobile */
     .bottom-sheet-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;

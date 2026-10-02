@@ -3737,7 +3737,8 @@
         if (_grid) { void _grid.offsetWidth; }
         _cardsToReAnimate.forEach(function(c) { c.classList.add('filter-entering'); });
       }
-      var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
+      // [FRAGANCIAS-SINGULAR] 143d · «1 fragancia» (y «1 favorito»); con 0 y con 2 o más, en plural
+      var label = currentFilter === 'favs' ? totalMatch + (totalMatch === 1 ? ' favorito' : ' favoritos') : totalMatch + (totalMatch === 1 ? ' fragancia' : ' fragancias');
       document.getElementById('filterCount').textContent = label;
       // Re-observar cards recién visibles (load more / cambio de filtro)
       // para que tengan fade-in también, no aparezcan abruptas.
@@ -3754,6 +3755,20 @@
         if (favsEmpty) favsEmpty.style.display = 'none';
         if (gridEl) gridEl.style.display = '';
         if (loadWrap) loadWrap.style.display = '';
+      }
+      // [BUSQUEDA-SIN-RESULTADOS] 143c · 0 resultados con algo escrito en el buscador: en el lugar de la grilla, «No encontramos «…»» + una ayuda + un botón que hace lo mismo
+      // que la ✕ del chip «Búsqueda» (deja los otros filtros). Lo escrito va con textContent (escapado). Favoritos tiene su propio estado vacío.
+      var sinRes = document.getElementById('sinResultados');
+      if (sinRes) {
+        var hayAlgoEscrito = !!currentSearch;
+        var mostrarSinRes = totalMatch === 0 && currentFilter !== 'favs' && hayAlgoEscrito;
+        sinRes.style.display = mostrarSinRes ? 'block' : 'none';
+        if (mostrarSinRes) {
+          var escrito = (document.getElementById('searchInput').value || '').trim() || currentSearch;
+          document.getElementById('sinResultadosTitulo').textContent = 'No encontramos «' + escrito + '»';
+          if (gridEl) gridEl.style.display = 'none';
+          if (loadWrap) loadWrap.style.display = 'none';
+        }
       }
       // Layout especial cuando hay 1-2 cards visibles (sino se ve roto en desktop:
       // la card sola queda en la columna izq con mucho espacio vacío al lado).
@@ -3896,6 +3911,9 @@
         chips.appendChild(chip);
       });
     }
+
+    // [BUSQUEDA-SIN-RESULTADOS] 143c · el botón «BORRAR LA BÚSQUEDA»: lo mismo que la ✕ del chip «Búsqueda» (deja los otros filtros)
+    function borrarBusqueda() { removeFilter('search'); }
 
     function removeFilter(type) {
       if (type === 'cat') {
@@ -4095,7 +4113,7 @@
       cards.forEach(card => {
         if (matchesCat(card.dataset.cat, cat)) visible++;
       });
-      document.getElementById('filterCount').textContent = visible + ' fragancias';
+      document.getElementById('filterCount').textContent = visible + (visible === 1 ? ' fragancia' : ' fragancias');   // 143d
     }
 
     function applyFilter(cat) {
