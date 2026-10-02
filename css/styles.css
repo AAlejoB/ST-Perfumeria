@@ -8518,6 +8518,9 @@
     }
     /* [CHIP-ETIQUETA-CLARO] 143h (DISEÑADOR) · «BÚSQUEDA», «NOTA»… del chip activo en claro: #E8B800 sobre el chip (#f4eabf) daba 1,54:1; con la tinta dorada de texto pasa de 4,5. */
     body:not(.dark-mode) .active-filter-chip .chip-label { color: var(--amarillo-tinta); }
+    /* [CHIP-X-CLARO] 143i (DISEÑADOR) · la ✕ del chip activo en claro: #888 daba 2,93:1 sobre el chip; --gris (#5e564a, el texto secundario de claro) pasa de 3:1 (no es texto: 1.4.11). Sin cambio de tamaño ni de área de toque; el hover sigue en rojo. «Limpiar todo» no usa #888 (en claro es #1a1a1d !important) y no se toca. */
+    body:not(.dark-mode) .active-filter-chip .chip-remove { color: var(--gris); }
+    body:not(.dark-mode) .active-filter-chip .chip-remove:hover { color: #e74c3c; }
     body:not(.dark-mode) .active-filters-clear {
       background: #ffffff !important;
       color: #1a1a1d !important;

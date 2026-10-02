@@ -257,6 +257,8 @@ Cosas que aprendimos a la mala y NO hay que volver a tocar:
 
 26. **Una columna nueva en `clientes` hay que habilitarla para el panel** (`[PUNTOS-LOG]`, `sql/puntos_cerrar_update.sql`, 2-oct-2026, sin aplicar hasta después del merge de `puntos-log`): esa migración saca el `insert` y el `update` de TABLA a `authenticated` en `clientes` y los devuelve columna por columna (insert: `nombre, telefono, nota, compro`; update: `nombre, telefono, nota, compro, bloqueado, password`), **sin `puntos` ni `puntos_log`**: los puntos se cambian SÓLO con `ajustar_puntos` (security definer). Una columna nueva en `clientes` → `grant insert (columna)` / `grant update (columna) on public.clientes to authenticated`, o el panel no la puede escribir. Y el front no manda `puntos` ni `puntos_log` en ningún insert ni update de `clientes`. **«Puntos nunca negativo» lo garantiza la base:** esa migración agrega `clientes_puntos_no_negativo` (`check (puntos >= 0)`; medido el 2-oct: 0 negativos y 0 nulos en 102 clientes), además del chequeo de `ajustar_puntos`.
 
+27. **Antes de cada commit de merge, buscar marcas de conflicto** (2-oct-2026, `_bj`/`_bn`): `git diff --check` y `grep -n '^<<<<<<<\|^=======$\|^>>>>>>>'` sobre los archivos que chocaron; si aparece algo, no se hace el commit. En una copia de trabajo con CRLF un script que arregla `sw.js` puede fallar sin cortar el comando, y un `git add` encadenado sin `&&` sube las marcas (pasó el 2-oct en `etiqueta-umbral`; se vio al medir y se corrigió antes de subir).
+
 ---
 
 ## 🔐 Cuentas de admin

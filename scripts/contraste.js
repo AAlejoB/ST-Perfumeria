@@ -445,6 +445,9 @@ function mezcla(hex, fondo, a) {
     var barraChip = mezcla('#e8b800', paginaPub, tema === 'oscuro' ? 0.06 : 0.10), fondoChip = mezcla('#e8b800', barraChip, tema === 'oscuro' ? 0.12 : 0.15);
     var etChip = efectivo(rs, '.active-filter-chip .chip-label', c.pref, 'color', c.capas);
     medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '143h · etiqueta del chip activo .chip-label («Búsqueda», «Nota»…)', texto: etChip.hex[0], fondos: [fondoChip], impone: etChip.impone, pisado: etChip.pisado });
+    // [CHIP-X-CLARO] 143i: la ✕ del chip activo (.chip-remove) sobre el chip; no es texto sino un control gráfico: pide 3:1 (WCAG 1.4.11).
+    var xChip = efectivo(rs, '.active-filter-chip .chip-remove', c.pref, 'color', c.capas);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '143i · ✕ del chip activo .chip-remove (control, 3:1)', texto: xChip.hex[0], fondos: [fondoChip], minimo: 3, impone: xChip.impone, pisado: xChip.pisado });
     // El bottom-sheet tiene su propio fondo y sus propias reglas: se mide aparte.
     var bs = efectivo(rs, '.bottom-sheet', c.pref, 'background', c.capas);
     var bsCash = efectivo(rs, '.bottom-sheet .price-cash', c.pref, 'color', c.capas);
