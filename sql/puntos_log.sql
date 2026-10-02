@@ -6,7 +6,7 @@
 -- funciones. No toca `clientes` ni cambia ninguna función existente (`resumen_dia` y `daily_summary`
 -- siguen leyendo `clientes.puntos_log`, el JSONB de los últimos 5: ver (6)).
 --
---   (1) tabla  public.puntos_log      el historial: un renglón por movimiento, con origen y pago_id
+--   (1) tabla  public.puntos_log      el historial: un renglón por movimiento, con origen y pago_id (el historial no se borra con el cliente: on delete set null)
 --   (2) tabla  public.puntos_config   la regla de puntos: UNA fila (id = 1) + pesos_por_punto (nulo = las compras no suman)
 --   (3) func   public.ajustar_puntos(cliente, delta, motivo)             el panel (jefe y empleado)
 --   (4) func   public.sumar_puntos_por_compra(pago_id, cliente, monto)   la pasarela (sólo service_role)
@@ -25,7 +25,7 @@ begin;
 -- ─── (1) puntos_log ───────────────────────────────────────────────────
 create table if not exists public.puntos_log (
   id            bigint generated always as identity primary key,
-  cliente_id    uuid        not null references public.clientes(id) on delete cascade,   -- clientes.id es uuid
+  cliente_id    uuid        references public.clientes(id) on delete set null,   -- clientes.id es uuid; si se borra el cliente, el movimiento QUEDA (con cliente_id nulo)
   delta         integer     not null check (delta <> 0),
   saldo_antes   integer     not null check (saldo_antes >= 0),
   saldo_despues integer     not null check (saldo_despues >= 0),

@@ -97,6 +97,14 @@ begin
   v_res := v_res || E'\n# clientes.puntos_log (JSONB, máx. 5): ' || (select jsonb_array_length(puntos_log) from public.clientes where id = v_c);
   v_res := v_res || E'\n# resumen_dia() sigue andando, puntos de hoy: ' || (select jsonb_array_length(public.resumen_dia() -> 'puntos'));
 
+  -- ── 7 · borrar un cliente con movimientos: el historial QUEDA, con cliente_id nulo ──
+  select count(*) into v_n from public.puntos_log where cliente_id = v_c;
+  v_res := v_res || E'\n# antes de borrar el cliente: ' || v_n || ' renglones suyos';
+  delete from public.clientes where id = v_c;   -- como dueño; se deshace
+  v_res := v_res || E'\n# después de borrarlo: renglones con su id = ' || (select count(*) from public.puntos_log where cliente_id = v_c)
+                 || ' · renglones con cliente_id nulo = ' || (select count(*) from public.puntos_log where cliente_id is null) || ' (tienen que ser ' || v_n || ')';
+  v_res := v_res || E'\n[service] revertir pago-1 sin cliente -> ' || pg_temp.t('service_role', null, format('select public.revertir_puntos_por_compra(%L)', 'pago-1'));
+
   raise exception E'RESULTADOS (se deshace todo):%', v_res;
 end
 $prueba$;
