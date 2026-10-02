@@ -798,7 +798,10 @@ function mezcla(hex, fondo, a) {
      ['mensaje ¡Listo!', '.waitlist-msg--ok', 'p'], ['mensaje ¡Ya estás!', '.waitlist-msg--ya', 'p'], ['mensaje de error', '.waitlist-msg--error', 'p'],
      // [ESPERA-INVITADO] la hoja del invitado: «Ya tengo cuenta», el «+54 9» y lo que escribe (caja del campo ≈ la de la hoja)
      ['[ESPERA-INVITADO] «Ya tengo cuenta · Iniciar sesión»', '.waitlist-login', null], ['[ESPERA-INVITADO] «+54 9»', '.waitlist-prefix', null],
-     ['[ESPERA-INVITADO] lo que escribe (teléfono y nombre)', '.waitlist-input', null]].forEach(function (t) {
+     ['[ESPERA-INVITADO] lo que escribe (teléfono y nombre)', '.waitlist-input', null],
+     // 142m2 · la línea de debajo del teléfono, en sus tres estados (son <span> dentro del <p>: la regla de la etiqueta no los toca)
+     ['[ESPERA-INVITADO] 142m2 «Faltan N dígitos»', '.waitlist-ayuda--falta', null], ['[ESPERA-INVITADO] 142m2 «✓ +54 9 …»', '.waitlist-ayuda--ok', null],
+     ['[ESPERA-INVITADO] 142m2 el error al tocar «Avisame»', '.waitlist-ayuda--error', null]].forEach(function (t) {
       var fg = conEtiqueta(t[1], t[2], c) || { hex: cuerpo.hex, impone: 'heredado del body' };
       medir({ superficie: 'catálogo', tema: tema, rol: 'avisame', nombre: t[0] + ' ' + t[1], texto: fg.hex[0], fondos: caja.hex, impone: fg.impone });
     });
@@ -822,7 +825,7 @@ function mezcla(hex, fondo, a) {
   ['oscuro', 'claro'].forEach(function (tema) {
     var c = cfg[tema];
     var caja = tema === 'claro' ? ['#f5efde'] : cajaOscura;
-    [['título', '.espera-cartel-titulo', 'p'], ['lista', '.espera-cartel-lista', null], ['«Te avisamos por WhatsApp…»', '.espera-cartel-sub', 'p'], ['✕', '.espera-cartel-x', null]].forEach(function (t) {
+    [['título', '.espera-cartel-titulo', 'p'], ['lista', '.espera-cartel-lista', null], ['«Y N cosas que pediste en el local»', '.espera-cartel-lista .espera-cartel-libre', null], ['pie «Te escribimos por WhatsApp…»', '.espera-cartel-sub', 'p'], ['✕', '.espera-cartel-x', null]].forEach(function (t) {
       var fg = conEtiqueta(t[1], t[2], c) || { hex: cuerpo.hex, impone: 'heredado del body' };
       medir({ superficie: 'catálogo', tema: tema, rol: 'cartel de espera', nombre: '[ESPERA-INVITADO] ' + t[0] + ' ' + t[1], texto: fg.hex[0], fondos: caja, impone: fg.impone });
     });
