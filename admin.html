@@ -837,6 +837,7 @@
     body.light .btn-modo-restar.activo { background: rgba(184,52,42,.10); }
     /* [PUNTOS-CAMPOS] 141e · el panel envuelve cada campo de texto en .admin-search-wrap (un inline-flex que se achica al contenido): en «Ajustar puntos» la nota quedaba más angosta que los demás */
     #modalPuntos .admin-search-wrap { display: flex; width: 100%; }
+    #modalPuntosMsg { text-wrap: balance; }   /* [PUNTOS-SIN-NEGATIVOS] 141i-c · si el aviso se parte en dos renglones, que queden parejos (no cambia el tamaño ni el color) */
     body.light .btn-reavisar { background: rgba(0,0,0,.05); color: #333; }
     /* [GUARDAR-ABAJO] 128 · la barra fija de «Guardar» (decisión del DISEÑADOR, aprobada por Alejo): se pega abajo de la
        pantalla mientras se recorre el formulario y, al llegar al final, se apoya en su lugar. Los botones son los de antes
@@ -12640,7 +12641,7 @@
       var motivoSel = document.getElementById('modalPuntosMotivo').value || 'manual_jefe';
       var nota = (document.getElementById('modalPuntosNota').value||'').trim();
       var motivoFinal = nota ? (motivoSel + ': ' + nota) : motivoSel;
-      if (_puntosModalMode === 'restar' && amt > Number(c.puntos || 0)) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Cantidad inválida: tiene ' + puntosTxt(c.puntos) + ' pts, no se pueden restar ' + amt + '.'; return; }   // [PUNTOS-SIN-NEGATIVOS] no se resta más de lo que hay: nada se escribe (restar justo lo que tiene, y que quede en 0, sí vale); `c.puntos` es el de la lista cargada (el ranking en memoria)
+      if (_puntosModalMode === 'restar' && amt > Number(c.puntos || 0)) { msg.style.color = 'var(--tinta-error)'; msg.textContent = Number(c.puntos || 0) > 0 ? 'Cantidad inválida: se pueden restar hasta ' + puntosTxt(c.puntos) + '.' : 'Cantidad inválida: no tiene puntos para restar.'; return; }   // [PUNTOS-SIN-NEGATIVOS] 141i-c: no se resta más de lo que hay (después de validar Cantidad; con saldo mayor que 0 dice «se pueden restar hasta N», con 0 «no tiene puntos para restar»): nada se escribe (restar justo lo que tiene, y que quede en 0, sí vale); `c.puntos` es el de la lista cargada (el ranking en memoria)
       var sign = (_puntosModalMode === 'restar') ? -1 : 1;
       var delta = sign * amt;
       var nuevo = Number(c.puntos||0) + delta;   // [PUNTOS-ENTEROS] enteros: sin redondeo a centésimas
