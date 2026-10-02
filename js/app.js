@@ -4341,6 +4341,16 @@
       sugActiveIndex = -1;
     }
 
+    // [BUSQUEDA-143] bajar hasta una card (o la grilla) con el cálculo de siempre: se frena en el scroll-margin-top del DESTINO (lo define el CSS: 243 en el celu,
+    // 115 en la compu) y es instantáneo (behavior:'instant' EXPLÍCITO: la forma corta heredaba el smooth del <html>). Lo usan selectSuggestion y el Enter del buscador.
+    function bajarACard(destino) {
+      var pad = parseFloat(window.getComputedStyle(destino).scrollMarginTop) || 0;
+      window.scrollTo({
+        top: destino.getBoundingClientRect().top + window.pageYOffset - pad,
+        behavior: 'instant'
+      });
+    }
+
     // selectSuggestion: al hacer clic en una sugerencia
     function selectSuggestion(slug) {
       hideSearchSuggestions();
@@ -4373,15 +4383,13 @@
         // del <html>, que también frenaba 240 px cualquier salto a una sección.
         var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
         var destino = card || document.getElementById('catalogGrid');
-        var pad = parseFloat(window.getComputedStyle(destino).scrollMarginTop) || 0;
-        // behavior:'instant' EXPLÍCITO. La forma corta scrollTo(x, y) hereda
-        // el scroll-behavior:smooth del <html>, así que el "scroll instantáneo"
-        // que prometía el comentario original nunca lo fue: animaba ~1s desde
-        // arriba de todo. Acá no queremos animación, queremos aparecer.
-        window.scrollTo({
-          top: destino.getBoundingClientRect().top + window.pageYOffset - pad,
-          behavior: 'instant'
-        });
+        // behavior:'instant' EXPLÍCITO (ver bajarACard). Acá no queremos animación, queremos aparecer.
+        bajarACard(destino);
+
+        // [BUSQUEDA-143] 143a · después de bajar a la card, se abre la ficha de ese perfume (en el celu, la hoja de abajo; en la compu, el panel
+        // lateral: el mismo openBottomSheet de tocar una card). Lo de antes (el scroll, el brillo y cerrar el teclado) no cambia; al cerrar la
+        // ficha la card queda a la vista y la búsqueda sigue filtrada.
+        openBottomSheet(slug);
 
         // 4) Highlight la card
         setTimeout(function() {
@@ -4404,8 +4412,20 @@
       // había forma de cerrarlo salvo tocar en un hueco de la página.
       if (e.key === 'Enter' && sugActiveIndex < 0) {
         e.preventDefault();
+        var escrito = stripAccents(String(this.value || '').trim().toLowerCase());
+        // [BUSQUEDA-143] el filtro se aplica con 120 ms de retraso (debouncedSearch): si se aprieta Enter antes, se aplica ya, así no queda pendiente
+        // (y no vuelve a abrir las sugerencias después de cerrarlas).
+        if (_searchTimer) { clearTimeout(_searchTimer); _searchTimer = null; applySearch(this.value); }
         hideSearchSuggestions();
         this.blur();
+        // [BUSQUEDA-143] 143b · si hay algo escrito y al menos un resultado, se baja al primero (el mismo cálculo que selectSuggestion, instantáneo y
+        // después de que se cierre el teclado). Sin resultados, o con el buscador vacío, no se mueve.
+        if (escrito) {
+          setTimeout(function() {
+            var primera = Array.prototype.slice.call(document.querySelectorAll('#catalogGrid .product-card')).filter(function(c) { return c.style.display !== 'none'; })[0];
+            if (primera) bajarACard(primera);
+          }, 500);
+        }
         return;
       }
       if (items.length === 0) return;
