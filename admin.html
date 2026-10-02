@@ -1649,6 +1649,13 @@
     body.light input[type="tel"]:not(#esperaTel):focus,
     body.light textarea:focus,
     body.light select:focus { border-color: var(--amarillo-tinta) !important; }
+    /* [FOCO-CLARO-B] (141h-b) · el teléfono de la lista de espera: el borde lo lleva la caja .espera-tel (el «+54 9» y el campo juntos), no el input. En claro la de reposo
+       (`body.light .espera-tel`, 0,2,1) le ganaba a `.espera-tel:focus-within` (0,2,0); ésta (0,3,1) le gana a las dos. El oscuro no se toca (ya marca --amarillo). */
+    body.light .espera-tel:focus-within { border-color: var(--amarillo-tinta); }
+    /* [FOCO-OSCURO-C] (141h-c) · en oscuro `#analyticsRange` (el borde va inline: `style="border:1px solid var(--borde)"`) y `#puntosFilterCliente` (`.puntos-filtro`,
+       sin :focus propio) no marcaban el foco. El inline sólo se le gana con !important; sólo esos dos y sólo en oscuro (en claro ya los cubre la regla de arriba). */
+    body:not(.light) #analyticsRange:focus,
+    body:not(.light) #puntosFilterCliente:focus { border-color: var(--amarillo) !important; }
 
     /* Modales */
     body.light .modal-box { background: #fff; color: #1a1a1a; border-color: #d6d1c3; }
