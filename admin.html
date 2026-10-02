@@ -3708,11 +3708,11 @@
             <input type="number" step="0.01" id="cfgPuntosCombo" class="modal-input" style="margin:0;"/>
           </div>
           <div>
-            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Threshold (múltiplo)</label>
+            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Premio cada cuántos puntos</label>   <!-- [ETIQUETA-UMBRAL] antes «Threshold (múltiplo)»: el campo es cada cuántos puntos el cliente tiene un premio (threshold_proximo_premio) -->
             <input type="number" step="1" id="cfgThreshold" class="modal-input" style="margin:0;"/>
           </div>
         </div>
-        <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje promo (cuando cliente está a 1 del threshold)</label>
+        <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje cuando al cliente le falta 1 punto para el premio</label>
         <input type="text" id="cfgMensajePromo" class="modal-input" style="margin:0;"/>
         <button class="action-btn btn-principal" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;">💾 Guardar config</button>
         <span id="cfgPuntosMsg" style="font-size:.7rem;color:var(--tinta-ok);margin-left:.6rem;"></span>
