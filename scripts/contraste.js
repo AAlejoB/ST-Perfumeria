@@ -371,6 +371,8 @@ function efectivo(rs, target, prefijos, prop, capas) {
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: x[0], texto: x[1], fondos: x[2], impone: x[3] });
     });
     (function () { var bg = fondo('.badge-out', c, pagina), fg = tinta('.badge-out', c, bg, '#ffffff'); medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '142k · «SIN DATO» y «-1 u.» .badge-out', texto: fg.hex, fondos: [bg], impone: fg.impone }); })();
+    // [FOCO-CLARO] el borde del campo con foco (no es texto: pide 3:1) contra los fondos que lo rodean: el blanco del campo y de los modales, los cremas del panel y el crema del campo (#faf8f3)
+    medir({ superficie: 'panel', tema: tema, rol: 'foco', nombre: 'FOCO-CLARO · borde del campo con foco (' + (tema === 'claro' ? '--amarillo-tinta' : '--amarillo, sin cambios') + ')', texto: aHex(tema === 'claro' ? 'var(--amarillo-tinta)' : 'var(--amarillo)', c, pagina), fondos: tema === 'claro' ? ['#ffffff', '#faf8f3', '#f5f3ee', '#fdf9eb', '#fffaf0'] : ['#0a0a0a', '#111111', '#1a1a1c', '#1a1a1d', '#221e10'], impone: 'admin.html · body.light input:focus (!important)' });
     // [BTN-STOCK-AZUL] 138: letra blanca sobre el azul (reposo y con mouse)
     [['138 · .btn-stock (reposo)', '.btn-stock'], ['138 · .btn-stock:hover (con mouse)', '.btn-stock:hover']].forEach(function (x) {
       var bg = fondo(x[1], c, pagina), fg = tinta(x[1], c, bg, '#ffffff');
