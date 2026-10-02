@@ -158,7 +158,8 @@ revoke all on function public.ajustar_puntos(uuid, integer, text) from public, a
 grant execute on function public.ajustar_puntos(uuid, integer, text) to authenticated;   -- la función misma exige jefe o empleado
 
 -- ─── (4) sumar_puntos_por_compra: la pasarela ─────────────────────────
--- Devuelve jsonb: {aplicado: bool, motivo?, puntos?, saldo?, log_id?}. Sin pesos_por_punto no hace nada y lo dice.
+-- Devuelve jsonb: {aplicado: bool, motivo?, puntos?, saldo?, log_id?}. Sin pesos_por_punto no hace nada y lo dice. Idempotente por pago_id
+-- ([PUNTOS-IDEMPOTENTE]): la misma compra repetida da `ya_sumado` aunque el saldo ya esté cerca del tope.
 create or replace function public.sumar_puntos_por_compra(p_pago_id text, p_cliente uuid, p_monto numeric)
 returns jsonb
 language plpgsql
@@ -194,6 +195,11 @@ begin
   if not found then
     raise exception 'cliente_no_encontrado' using errcode = 'P0002';
   end if;
+  -- [PUNTOS-IDEMPOTENTE] ¿ese pago ya sumó? Se pregunta DESPUÉS del bloqueo (en READ COMMITTED esta consulta ve lo que confirmó el que lo tenía) y ANTES de
+  -- cualquier cuenta o chequeo de saldo: un reintento de la pasarela da siempre «ya_sumado», nunca puntos_excede_maximo.
+  if exists (select 1 from public.puntos_log pl where pl.pago_id = v_pago and pl.origen = 'compra') then
+    return jsonb_build_object('aplicado', false, 'motivo', 'ya_sumado');
+  end if;
   v_antes   := coalesce(v_antes, 0);
   v_despues := v_antes::bigint + v_pts;
   if v_despues > 2147483647 then
@@ -226,7 +232,8 @@ grant execute on function public.sumar_puntos_por_compra(text, uuid, numeric) to
 -- ─── (5) revertir_puntos_por_compra: la pasarela ──────────────────────
 -- Resta exactamente lo que esa compra sumó. Si no hay compra con ese pago_id, no hace nada y lo dice. Si el cliente ya
 -- no tiene esos puntos (los gastó), NO resta: levanta puntos_insuficientes (detail = saldo) y no cambia nada: la decisión
--- de qué hacer en ese caso es de Alejo. No mira pesos_por_punto: usa lo que quedó anotado.
+-- de qué hacer en ese caso es de Alejo. No mira pesos_por_punto: usa lo que quedó anotado. Idempotente por pago_id
+-- ([PUNTOS-IDEMPOTENTE]): la MISMA devolución repetida da `ya_revertido` aunque el cliente ya haya gastado los puntos.
 create or replace function public.revertir_puntos_por_compra(p_pago_id text)
 returns jsonb
 language plpgsql
@@ -252,6 +259,11 @@ begin
   select c.puntos into v_antes from public.clientes c where c.id = v_compra.cliente_id for update;
   if not found then
     return jsonb_build_object('aplicado', false, 'motivo', 'cliente_no_encontrado');
+  end if;
+  -- [PUNTOS-IDEMPOTENTE] ¿esa devolución ya se hizo? Después del bloqueo y ANTES de la cuenta: si el cliente ya gastó los puntos, el reintento de la
+  -- misma devolución tiene que dar «ya_revertido», no puntos_insuficientes (la pasarela reintentaría sin fin).
+  if exists (select 1 from public.puntos_log pl where pl.pago_id = v_pago and pl.origen = 'devolucion') then
+    return jsonb_build_object('aplicado', false, 'motivo', 'ya_revertido');
   end if;
   v_antes   := coalesce(v_antes, 0);
   v_despues := v_antes - v_compra.delta;

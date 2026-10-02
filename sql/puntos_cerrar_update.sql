@@ -22,7 +22,7 @@
 --     grant insert (columna) on public.clientes to authenticated;   grant update (columna) on public.clientes to authenticated;
 -- (está en CLAUDE.md § NO ROMPER).
 --
--- Volver atrás (si algo no anda): ver el final del archivo.
+-- También agrega el CHECK `clientes_puntos_no_negativo` (puntos >= 0). Volver atrás (si algo no anda): ver el final del archivo.
 -- ═══════════════════════════════════════════════════════════════════════
 
 begin;
@@ -31,6 +31,15 @@ revoke insert, update on public.clientes from authenticated;
 
 grant insert (nombre, telefono, nota, compro) on public.clientes to authenticated;
 grant update (nombre, telefono, nota, compro, bloqueado, password) on public.clientes to authenticated;
+
+-- «puntos nunca negativo» lo garantiza la BASE (no sólo ajustar_puntos): medido el 2-oct, 0 clientes con puntos negativos y 0 con puntos nulos (102 clientes).
+do $chk$
+begin
+  if not exists (select 1 from pg_constraint where conrelid = 'public.clientes'::regclass and conname = 'clientes_puntos_no_negativo') then
+    alter table public.clientes add constraint clientes_puntos_no_negativo check (puntos >= 0);
+  end if;
+end
+$chk$;
 
 commit;
 
@@ -44,4 +53,5 @@ commit;
 -- ─── Volver atrás ───
 -- begin;
 -- grant insert, update on public.clientes to authenticated;
+-- alter table public.clientes drop constraint if exists clientes_puntos_no_negativo;
 -- commit;
