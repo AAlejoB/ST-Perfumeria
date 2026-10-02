@@ -3800,7 +3800,7 @@
       </div>
 
       <label class="modal-label">Cantidad</label>
-      <input type="text" inputmode="decimal" autocomplete="off" class="modal-input" id="modalPuntosCantidad" placeholder="Ej: 1 · 2 · 0,5"/>
+      <input type="text" inputmode="numeric" autocomplete="off" class="modal-input" id="modalPuntosCantidad" placeholder="Ej: 1 · 2 · 5"/>
 
       <label class="modal-label">Motivo</label>
       <select class="modal-input" id="modalPuntosMotivo">
@@ -11968,9 +11968,9 @@
     // [TEL-SIN-CORTE] 141 · el HTML de un teléfono para una celda angosta: el tramo final («00-0012») va en un <span class="tel-fin"> con
     // nowrap, así no se parte en el guion. Es sólo para pintar: el texto que devuelve formatPhoneDisplay no cambia (el buscador del
     // ranking compara contra ese texto). Si no hay un tramo final con guion, queda el texto escapado tal cual.
-    // [PUNTOS-COMA] 141c · los puntos como se ven en el panel (coma decimal, como el punto de los miles en $35.000): «8,5». Sólo lo que se
+    // [PUNTOS-COMA] 141c · los puntos como se ven en el panel (hasta [PUNTOS-ENTEROS] con coma decimal, «8,5»; ahora enteros). Sólo lo que se
     // muestra; lo guardado y lo que se calcula siguen con punto.
-    function puntosTxt(n) { return Number(n || 0).toFixed(2).replace(/\.?0+$/, '').replace('.', ','); }
+    function puntosTxt(n) { return String(Math.round(Number(n) || 0)); }   // [PUNTOS-ENTEROS] los puntos son enteros: «8», no «8,5»
 
     function telHtml(raw) {
       var t = formatPhoneDisplay(raw) || String(raw == null ? '' : raw);
@@ -12619,16 +12619,14 @@
       s.classList.toggle('activo', mode === 'sumar');
       r.classList.toggle('activo', mode !== 'sumar');
     }
-    // [PUNTOS-COMA] 141g · lo que se escribe en «Cantidad» → número, igual en cualquier idioma del navegador. El campo era type="number": con el navegador en
-    // en-US la coma se descartaba sin avisar («0,5» quedaba 5 y se sumaban 5 puntos). Ahora es type="text" inputmode="decimal" (el teclado de la tablet sigue siendo
-    // numérico) y la regla es ésta: se recorta, vale UNA sola coma o punto como separador (se cambia por punto), sólo dígitos, MÁXIMO UN DECIMAL (el step="0.1" de antes;
-    // el código no tenía otra regla) y mayor que 0. Lo que no pase → null → «Cantidad inválida», sin confirmar.
+    // [PUNTOS-ENTEROS] lo que se escribe en «Cantidad» → número ENTERO, igual en cualquier idioma del navegador. `clientes.puntos` es `integer` en la base: un decimal lo rechaza.
+    // Antes (141g, `[PUNTOS-COMA]`) se aceptaba un decimal («0,5»): pasaba la validación del panel y la base lo rechazaba al guardar. El campo es type="text" inputmode="numeric"
+    // y la regla es ésta: se recorta y tiene que ser sólo dígitos y mayor que 0 («5», «12»). No entran coma, punto («1.000»), «0», vacío ni negativos (la resta la hacen los
+    // botones Sumar / Restar). Lo que no pase → null → el mensaje de Cantidad, sin confirmar.
     function parseCantidadPuntos(raw) {
       var t = String(raw == null ? '' : raw).trim();
-      if ((t.match(/,/g) || []).length > 1) return null;   // «1,5,2»
-      t = t.replace(',', '.');
-      if (!/^\d+(\.\d)?$/.test(t)) return null;           // «abc», «-1», «0,55», «1.5.2», «.5», «5.»
-      var n = parseFloat(t);
+      if (!/^\d+$/.test(t)) return null;                 // «abc», «-3», «0,5», «1,5», «0,55», «1.000», «5.», vacío
+      var n = parseInt(t, 10);
       return (isFinite(n) && n > 0) ? n : null;            // «0» no es una cantidad
     }
     async function confirmPuntosModal() {
@@ -12638,13 +12636,13 @@
       var msg = document.getElementById('modalPuntosMsg');
       msg.style.color = '';
       if (faltaLeer('ranking', msg)) return;   // [GUARDAR-SIN-LEER] los puntos de la lista vieja + el ajuste pisaban los de ahora
-      if (amt === null) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Cantidad inválida: mayor que 0 y hasta un decimal (ej: 0,5).'; return; }   // [PUNTOS-ERROR-DICE-QUE] 141i · el error dice qué se acepta (sale también con 0 y -1)
+      if (amt === null) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'La cantidad tiene que ser un número entero mayor que 0 (ej: 5)'; return; }   // [PUNTOS-ERROR-DICE-QUE] 141i · el error dice qué se acepta (sale también con 0, -1, un decimal, letras y vacío); [PUNTOS-ENTEROS] los puntos son enteros
       var motivoSel = document.getElementById('modalPuntosMotivo').value || 'manual_jefe';
       var nota = (document.getElementById('modalPuntosNota').value||'').trim();
       var motivoFinal = nota ? (motivoSel + ': ' + nota) : motivoSel;
       var sign = (_puntosModalMode === 'restar') ? -1 : 1;
       var delta = sign * amt;
-      var nuevo = Math.round((Number(c.puntos||0) + delta) * 100) / 100;
+      var nuevo = Number(c.puntos||0) + delta;   // [PUNTOS-ENTEROS] enteros: sin redondeo a centésimas
       var btn = document.getElementById('modalPuntosBtn');
       btn.disabled = true; btn.textContent = '...';
       try {
