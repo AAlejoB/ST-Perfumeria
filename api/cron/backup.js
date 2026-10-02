@@ -53,6 +53,7 @@ const BACKUP_TABLES = [
   'trust_badges',
   'seleccion_st_config',
   'announcements',
+  'puntos_config',            // [PUNTOS-LOG] la regla de puntos (una fila)
   // Data de negocio
   'clientes',
   'opiniones',
@@ -60,7 +61,8 @@ const BACKUP_TABLES = [
   'votos',
   'ventas',         // el panel no la lee (RLS sin políticas): sólo el cron, con la clave de servicio, la trae
   'favoritos',      // [BACKUP-SIN-FAVORITOS] 2.9 (A): igual que BACKUP_TABLES de admin.html
-  'mi_seleccion'
+  'mi_seleccion',
+  'puntos_log'      // [PUNTOS-LOG] el historial de puntos (la leen el panel y el cron; nadie la escribe directo)
 ];
 
 // [BACKUPS-PIE] decisión 125b · TIENE QUE SER IGUAL a BACKUPS_QUE_SE_GUARDAN de admin.html (el pie de Backups dice
