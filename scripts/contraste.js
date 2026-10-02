@@ -357,6 +357,20 @@ function efectivo(rs, target, prefijos, prop, capas) {
       var bg = fondo(x[1], c, pagina), fg = tinta(x[1], c, bg, '#ffffff');
       medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: x[0], texto: fg.hex, fondos: [bg], impone: fg.impone });
     });
+    // [COMBO-ROTO-BORDE] 138e: el tachado de la tarjeta rota (letra de --tinta-error sobre la tarjeta) y su borde de 2 px contra la página; [PUNTOS-MODO-CLARO] 141d: «+ Sumar» / «− Restar»
+    // de «Ajustar puntos», sin elegir (sobre --superficie) y elegidos (el rol al 10 % sobre --superficie); [ETIQUETA-QUE-MIENTE] 142k: «SIN DATO» y «-1 u.» van en .badge-out
+    var tarjetaRota = tema === 'claro' ? '#ffffff' : '#111111';
+    var rolOk = tema === 'claro' ? { r: 30, g: 91, b: 58 } : { r: 46, g: 204, b: 113 }, rolMal = tema === 'claro' ? { r: 184, g: 52, b: 42 } : { r: 255, g: 138, b: 128 };
+    var okSobre = sobre({ r: rolOk.r, g: rolOk.g, b: rolOk.b, a: .10 }, superficie), malSobre = sobre({ r: rolMal.r, g: rolMal.g, b: rolMal.b, a: .10 }, superficie);
+    [['138e · tachado de la tarjeta rota .combo-item-roto', aHex('var(--tinta-error)', c, pagina), [tarjetaRota], 'admin.html · .combo-items-list li.combo-item-roto'],
+     ['138e · borde de 2 px de la tarjeta rota (--tinta-error) contra la página', aHex('var(--tinta-error)', c, pagina), [pagina], 'admin.html · .combo-card--rota'],
+     ['141d · «+ Sumar» sin elegir .btn-modo-sumar', aHex('var(--tinta-ok)', c, pagina), [superficie], 'admin.html · .btn-modo-sumar'],
+     ['141d · «− Restar» sin elegir .btn-modo-restar', aHex('var(--tinta-error)', c, pagina), [superficie], 'admin.html · .btn-modo-restar'],
+     ['141d · «+ Sumar» elegido .btn-modo-sumar.activo', aHex('var(--tinta-ok)', c, pagina), [okSobre], 'admin.html · .btn-modo-sumar.activo'],
+     ['141d · «− Restar» elegido .btn-modo-restar.activo', aHex('var(--tinta-error)', c, pagina), [malSobre], 'admin.html · .btn-modo-restar.activo']].forEach(function (x) {
+      medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: x[0], texto: x[1], fondos: x[2], impone: x[3] });
+    });
+    (function () { var bg = fondo('.badge-out', c, pagina), fg = tinta('.badge-out', c, bg, '#ffffff'); medir({ superficie: 'panel', tema: tema, rol: 'tintas', nombre: '142k · «SIN DATO» y «-1 u.» .badge-out', texto: fg.hex, fondos: [bg], impone: fg.impone }); })();
     // [BTN-STOCK-AZUL] 138: letra blanca sobre el azul (reposo y con mouse)
     [['138 · .btn-stock (reposo)', '.btn-stock'], ['138 · .btn-stock:hover (con mouse)', '.btn-stock:hover']].forEach(function (x) {
       var bg = fondo(x[1], c, pagina), fg = tinta(x[1], c, bg, '#ffffff');
