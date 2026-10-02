@@ -1043,6 +1043,9 @@
     .modal-success {
       font-size: .75rem; color: var(--tinta-ok); text-align: center; margin-top: .5rem; min-height: 1.2rem;
     }
+    /* [PUNTOS-DELTA-TINTA] 141j · el + y el − de los dos historiales de puntos (la tabla y las tarjetas): las mismas tintas que «+ Sumar» / «− Restar» del modal (141d) */
+    .puntos-delta--mas   { color: var(--tinta-ok); }
+    .puntos-delta--menos { color: var(--tinta-error); }
 
     /* COMBOS */
     .combo-card {
@@ -3892,13 +3895,13 @@
     </div>
   </div>
 
-  <!-- MODAL: HISTORIAL DE PUNTOS (ultimas 5 subidas) -->
+  <!-- MODAL: HISTORIAL DE PUNTOS (los últimos 20 movimientos, de la tabla puntos_log) -->
   <div class="modal-overlay" id="modalClientPuntosLog" onclick="closeModal('modalClientPuntosLog',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal('modalClientPuntosLog')">&times;</button>
       <p class="modal-title">Historial de puntos</p>
       <p id="modalPuntosLogHeader" style="text-align:center;font-weight:600;margin-bottom:.4rem;color:var(--amarillo-tinta);"></p>
-      <p style="text-align:center;font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Ultimas 5 subidas/ajustes</p>
+      <p id="modalPuntosLogPie" style="display:none;text-align:center;font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Últimos 20 movimientos</p>   <!-- 141m: sólo se muestra si hay al menos un movimiento -->
       <div id="modalPuntosLogList" style="display:flex;flex-direction:column;gap:.5rem;max-height:50vh;overflow-y:auto;"></div>
     </div>
   </div>
@@ -5856,19 +5859,29 @@
         return;
       }
 
+      // [PUNTOS-LOG] el cliente nace con 0 (el default de la columna: el insert no manda `puntos`) y el punto de «compró» entra por ajustar_puntos (con historial)
       var row = {
         nombre: nombre,
         telefono: telefono,
         nota: nota || '',
-        compro: compro,
-        puntos: compro ? 1 : 0
+        compro: compro
       };
 
-      var { error } = await sb.from('clientes').insert(row);
+      var { data: nuevoCli, error } = await sb.from('clientes').insert(row).select('id');
       if (error) { msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'registrar el cliente'); msgEl.style.color = 'var(--tinta-error)'; return; }   // 128h
 
-      msgEl.textContent = '✓ ' + nombre + ' registrado' + (compro ? ' con 1 punto' : '');
-      msgEl.style.color = 'var(--tinta-ok)';
+      var errPunto1 = null;
+      if (compro) {
+        try { if (!nuevoCli || !nuevoCli[0]) throw new Error('sin id'); await ajustarPuntosRPC(nuevoCli[0].id, 1, 'Registro inicial'); }
+        catch (ePto) { errPunto1 = ePto; }
+      }
+      if (errPunto1) {
+        msgEl.textContent = nombre + ' registrado, pero no se pudo sumar el punto: ' + textoErrorPuntos(errPunto1);
+        msgEl.style.color = 'var(--tinta-error)';   // 141l · a medias: en la tinta de error y sin «✓»
+      } else {
+        msgEl.textContent = '✓ ' + nombre + ' registrado' + (compro ? ' con 1 punto' : '');
+        msgEl.style.color = 'var(--tinta-ok)';
+      }
       // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
       // notifyTelegram('👤 Nuevo cliente (admin)\n📱 ' + nombre + ' · ' + telefono + (compro ? '\n⭐ 1 punto' : ''));
 
@@ -5961,22 +5974,19 @@
           if (!esperaTelValido(telefono)) { msgEl.textContent = 'Revisá el número: 10 dígitos, sin 0 ni 15'; msgEl.style.color = 'var(--tinta-error)'; return; }
         }
 
-        var firstLog = appendPuntoLog([], makePuntoLogEntry(+1, 0, 1, 'Registro inicial'));
+        // [PUNTOS-LOG] el cliente nace con 0 y el punto entra por ajustar_puntos (con historial)
         var { data: inserted, error } = await sb.from('clientes').insert({
           nombre: nombre,
           telefono: telefono,
-          puntos: 1,
-          compro: true,
-          puntos_log: firstLog
-        }).select();
-        if (error) {
-          // Fallback: tal vez la columna puntos_log no existe aun.
-          // Reintentamos sin ella — el punto debe persistir si o si.
-          var retry = await sb.from('clientes').insert({
-            nombre: nombre, telefono: telefono, puntos: 1, compro: true
-          }).select();
-          if (retry.error) { msgEl.textContent = errorEnCriollo(retry.error, 'un cliente con ese teléfono', 'sumar el punto'); msgEl.style.color = 'var(--tinta-error)'; return; }   // 128h
-          console.warn('[puntos_log] insert sin historial (columna ausente):', error.message);
+          compro: true
+        }).select('id');
+        if (error || !inserted || !inserted[0]) { msgEl.textContent = errorEnCriollo(error, 'un cliente con ese teléfono', 'sumar el punto'); msgEl.style.color = 'var(--tinta-error)'; return; }   // 128h
+        try { await ajustarPuntosRPC(inserted[0].id, 1, 'Registro inicial'); }
+        catch (ePto) {
+          msgEl.textContent = nombre + ' registrado, pero no se pudo sumar el punto: ' + textoErrorPuntos(ePto);
+          msgEl.style.color = 'var(--tinta-error)';   // 141l · a medias: en la tinta de error y sin «✓»
+          loadClientes();
+          return;
         }
 
         msgEl.textContent = '✓ ' + nombre + ' registrado + 1 punto';
@@ -5986,13 +5996,9 @@
       } else {
         // Existe → sumar punto
         var cliente = data[0];
-        var nuevosPuntos = (cliente.puntos || 0) + 1;
-        var { data: updated, error } = await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', cliente.id).select();
-        if (error || !updated || updated.length === 0) {
-          msgEl.textContent = errorEnCriollo(error, null, 'sumar el punto');   // 128j
-          msgEl.style.color = 'var(--tinta-error)'; return;
-        }
-        await pushPuntoLogEntry(cliente, +1, cliente.puntos || 0, nuevosPuntos, '+1 desde buscador');
+        var nuevosPuntos;   // [PUNTOS-LOG] el saldo nuevo lo devuelve ajustar_puntos
+        try { nuevosPuntos = await ajustarPuntosRPC(cliente.id, 1, '+1 desde buscador'); }
+        catch (ePto) { msgEl.textContent = textoErrorPuntos(ePto); msgEl.style.color = 'var(--tinta-error)'; return; }
 
         msgEl.textContent = '✓ ' + cliente.nombre + ' ahora tiene ' + nuevosPuntos + ' punto' + (nuevosPuntos !== 1 ? 's' : '');
         msgEl.style.color = 'var(--tinta-ok)';
@@ -6008,90 +6014,114 @@
     async function sumarPuntoDirecto(id) {
       var c = allClientes.find(function(cl) { return cl.id == id; });
       if (!c) return;
-      var nuevosPuntos = (c.puntos || 0) + 1;
-      var { data, error } = await sb.from('clientes').update({ puntos: nuevosPuntos, compro: true }).eq('id', id).select();
-      if (error || !data || data.length === 0) {
-        alert(errorEnCriollo(error, null, 'sumar el punto'));   // 128j
-        console.error('sumarPuntoDirecto failed:', error);
-        return;
-      }
-      await pushPuntoLogEntry(c, +1, c.puntos || 0, nuevosPuntos, '+1 desde panel');
+      var nuevosPuntos;   // [PUNTOS-LOG] el saldo nuevo lo devuelve ajustar_puntos
+      try { nuevosPuntos = await ajustarPuntosRPC(id, 1, '+1 desde panel'); }
+      catch (ePto) { alert(textoErrorPuntos(ePto)); console.error('sumarPuntoDirecto failed:', ePto); return; }
       // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
       // notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
       loadClientes();
     }
 
     // ============================================================
-    // HISTORIAL DE PUNTOS POR CLIENTE (ultimas 5 subidas/ajustes)
-    // Se guarda como columna JSONB 'puntos_log' en tabla clientes.
-    // Migracion necesaria (correr una vez en Supabase SQL):
-    //   ALTER TABLE clientes ADD COLUMN IF NOT EXISTS puntos_log JSONB DEFAULT '[]'::jsonb;
-    // Si la columna no existe aun, la funcion falla silenciosa — el cambio
-    // de puntos (que es lo importante) igual se persiste.
+    // [PUNTOS-LOG] PUNTOS: UN SOLO CAMINO
+    // Todo cambio de puntos del panel pasa por la función de la base `ajustar_puntos(cliente, delta, motivo)`: en una sola
+    // transacción bloquea la fila del cliente, valida (entero distinto de 0, que no quede negativo ni pase de 2147483647),
+    // actualiza clientes.puntos y anota el movimiento en la tabla `puntos_log` (con el rol de quien lo hizo). Devuelve el
+    // saldo nuevo. Sin esto el cambio de puntos y su historial eran dos pedidos sueltos y el segundo se perdía sin avisar.
     // ============================================================
-    function makePuntoLogEntry(delta, before, after, motivo) {
-      return {
-        ts: new Date().toISOString(),
-        delta: delta,
-        before: before,
-        after: after,
-        actor: currentRole || 'admin',
-        motivo: motivo || ''
-      };
+    async function ajustarPuntosRPC(clienteId, delta, motivo) {
+      var r = await sb.rpc('ajustar_puntos', { p_cliente: clienteId, p_delta: delta, p_motivo: motivo || null });
+      if (r.error) throw r.error;
+      return r.data;
     }
 
-    function appendPuntoLog(existing, entry) {
-      var log = Array.isArray(existing) ? existing.slice() : [];
-      log.unshift(entry);
-      return log.slice(0, 5);
-    }
-
-    async function pushPuntoLogEntry(cliente, delta, before, after, motivo) {
-      try {
-        var entry = makePuntoLogEntry(delta, before, after, motivo);
-        var newLog = appendPuntoLog(cliente.puntos_log, entry);
-        var res = await sb.from('clientes').update({ puntos_log: newLog }).eq('id', cliente.id);
-        if (res.error) {
-          console.warn('[puntos_log] no se pudo guardar el historial (puede que falte la columna JSONB puntos_log):', res.error.message);
-          return;
-        }
-        // Reflejar en memoria para que el modal muestre la entrada nueva sin refetch
-        cliente.puntos_log = newLog;
-      } catch (e) {
-        console.warn('[puntos_log] excepcion:', e);
+    // El texto que ve la chica cuando ajustar_puntos dice que no (la base manda el código en `message` y, si sirve, el saldo en `details`).
+    function textoErrorPuntos(e) {
+      var m = (e && e.message) || '';
+      var det = e && (e.details || e.detail);
+      if (m === 'puntos_insuficientes') {
+        var n = parseInt(det, 10);
+        return n > 0 ? 'Cantidad inválida: se pueden restar hasta ' + n + '.' : 'Cantidad inválida: no tiene puntos para restar.';   // 141i-c
       }
+      if (m === 'puntos_excede_maximo') return 'Cantidad inválida: el saldo no puede pasar de 2.147.483.647 puntos.';   // 141l
+      if (m === 'cantidad_invalida') return 'Cantidad inválida: entero mayor que 0 (ej: 5).';
+      if (m === 'cliente_no_encontrado') return 'No se encontró el cliente. Recargá la lista y probá de nuevo.';
+      return errorEnCriollo(e, null, 'ajustar los puntos');
     }
 
-    function openClientPuntoLog(id) {
+    // [PUNTOS-HORA-24] 141k · «02/10/26 03:10»: 24 h, sin coma, hora de Argentina; la fecha y la hora van cada una de una pieza (nowrap): si no entra, se parte ENTRE las dos
+    function fechaPuntosHTML(ts) {
+      var d = new Date(ts);
+      if (isNaN(d.getTime())) return escHtml(String(ts || ''));
+      var tz = { timeZone: 'America/Argentina/Buenos_Aires' };
+      var dia = d.toLocaleDateString('es-AR', Object.assign({ day: '2-digit', month: '2-digit', year: '2-digit' }, tz));
+      var hora = d.toLocaleTimeString('es-AR', Object.assign({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }, tz));
+      return '<span style="white-space:nowrap;">' + dia + '</span> <span style="white-space:nowrap;">' + hora + '</span>';
+    }
+    // [PUNTOS-DELTA-TINTA] 141j · el signo menos de verdad (U+2212), no un guion
+    function deltaPuntosTxt(delta) { return (delta < 0 ? '\u2212' : '+') + Math.abs(delta); }
+    // [PUNTOS-SIN-CODIGOS] 141l · ningún código de la base a la vista: se traduce al mostrar (la base guarda lo que guarde)
+    var MOTIVOS_PUNTOS = { compra: 'Compra', 'devolución': 'Devolución', devolucion: 'Devolución', canje: 'Canje de premio', regalo: 'Regalo / cumpleaños', correccion: 'Corrección', otro: 'Otro' };
+    function motivoPuntosTxt(m, origen) {
+      var t = String(m == null ? '' : m).trim();
+      if (!t) return origen === 'compra' ? 'Compra' : (origen === 'devolucion' ? 'Devolución' : 'Ajuste');
+      var i = t.indexOf(':');
+      var cod = (i < 0 ? t : t.slice(0, i)).trim(), nota = i < 0 ? '' : t.slice(i + 1).trim();
+      var base = /^manual_/.test(cod) ? 'Ajuste' : MOTIVOS_PUNTOS[cod];
+      if (base) return nota ? base + ': ' + nota : base;
+      if (t === '+1 desde panel') return '+1 desde el panel';
+      if (t === '+1 desde buscador') return '+1 desde el buscador';
+      if (t === 'Edicion manual') return 'Edición manual';   // como está guardado de antes, sin tilde: se traduce al mostrar
+      return t.replace(/_/g, ' ');
+    }
+    function actorPuntosTxt(a) {
+      var t = String(a == null ? '' : a).trim();
+      if (t === 'jefe') return 'Jefe';
+      if (t === 'empleado') return 'Empleado';
+      if (t === 'pasarela') return 'Automático';
+      return t ? t.replace(/_/g, ' ') : '—';
+    }
+
+    // El historial de UN cliente: los últimos movimientos de la tabla puntos_log.
+    async function openClientPuntoLog(id) {
       var c = allClientes.find(function(cl) { return cl.id == id; });
       if (!c) return;
-      document.getElementById('modalPuntosLogHeader').textContent = c.nombre + ' — ' + (c.puntos || 0) + ' pts';
-      var list = Array.isArray(c.puntos_log) ? c.puntos_log : [];
+      document.getElementById('modalPuntosLogHeader').textContent = c.nombre + ' — ' + puntosTxt(c.puntos) + ' pts';
       var listEl = document.getElementById('modalPuntosLogList');
-      if (list.length === 0) {
-        listEl.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1.2rem;font-size:.75rem;">Sin subidas registradas todavia</p>';
-      } else {
-        var html = '';
-        list.forEach(function(e) {
-          var delta = Number(e.delta) || 0;   // [XSS-PANEL-STAFF] puntos_log es jsonb: números como números
-          var deltaStr = (delta > 0 ? '+' : '') + delta;
-          var color = delta > 0 ? '#2ecc71' : (delta < 0 ? '#e74c3c' : 'var(--gris)');
-          var fecha = '';
-          try { fecha = new Date(e.ts).toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }); } catch(_) { fecha = e.ts || ''; }
-          html += '<div style="border:1px solid var(--borde);border-radius:6px;padding:.6rem .8rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;">'
-            +   '<div style="display:flex;flex-direction:column;gap:.15rem;">'
-            +     '<span style="font-size:.9rem;font-weight:700;color:' + color + ';">' + deltaStr + ' pts</span>'
-            +     '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(e.motivo || '—') + ' · ' + escHtml(e.actor || '?') + '</span>'
-            +   '</div>'
-            +   '<div style="text-align:right;display:flex;flex-direction:column;gap:.15rem;">'
-            +     '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(fecha) + '</span>'
-            +     '<span style="font-size:.6rem;color:var(--gris);">' + (Number(e.before) || 0) + ' → ' + (Number(e.after) || 0) + '</span>'
-            +   '</div>'
-            + '</div>';
-        });
-        listEl.innerHTML = html;
-      }
+      var pieEl = document.getElementById('modalPuntosLogPie');
+      if (pieEl) pieEl.style.display = 'none';   // 141m · la bajada «Últimos 20 movimientos» sale sólo si hay al menos uno (no vacío, no con la carga fallida)
+      listEl.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1.2rem;font-size:.75rem;">Cargando…</p>';
       document.getElementById('modalClientPuntosLog').classList.add('active');
+      var r;
+      try { r = await sb.from('puntos_log').select('id,created_at,delta,saldo_antes,saldo_despues,origen,motivo,actor').eq('cliente_id', id).order('created_at', { ascending: false }).limit(20); }
+      catch (e) { r = { error: e }; }
+      if (r.error) {
+        listEl.innerHTML = '<p style="text-align:center;color:var(--tinta-error);padding:1.2rem;font-size:.75rem;">' + escHtml(errorEnCriollo(r.error, null, 'cargar el historial de puntos', 'recargar')) + '</p>';   // 128h · este modal no tiene ↺
+        return;
+      }
+      var list = r.data || [];
+      if (list.length === 0) {
+        listEl.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1.2rem;font-size:.75rem;">Sin movimientos registrados todavía</p>';
+        return;
+      }
+      if (pieEl) pieEl.style.display = '';
+      var html = '';
+      list.forEach(function(e) {
+        var delta = Number(e.delta) || 0;
+        var deltaStr = deltaPuntosTxt(delta);
+        var claseDelta = delta < 0 ? 'puntos-delta--menos' : 'puntos-delta--mas';
+        html += '<div style="border:1px solid var(--borde);border-radius:6px;padding:.6rem .8rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;">'
+          +   '<div style="display:flex;flex-direction:column;gap:.15rem;">'
+          +     '<span class="' + claseDelta + '" style="font-size:.9rem;font-weight:700;">' + deltaStr + (Math.abs(delta) === 1 ? ' pt' : ' pts') + '</span>'   // 141n · «+1 pt» / «−1 pt» con 1; «pts» con el resto
+          +     '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(motivoPuntosTxt(e.motivo, e.origen)) + ' · ' + escHtml(actorPuntosTxt(e.actor)) + '</span>'
+          +   '</div>'
+          +   '<div style="text-align:right;display:flex;flex-direction:column;gap:.15rem;">'
+          +     '<span style="font-size:.65rem;color:var(--gris);">' + fechaPuntosHTML(e.created_at) + '</span>'
+          +     '<span style="font-size:.6rem;color:var(--gris);">' + (Number(e.saldo_antes) || 0) + ' → ' + (Number(e.saldo_despues) || 0) + '</span>'
+          +   '</div>'
+          + '</div>';
+      });
+      listEl.innerHTML = html;
     }
 
     function openClientEditModal(id) {
@@ -6123,8 +6153,9 @@
       if (puntos < 0) puntos = 0;
 
       btn.disabled = true; btn.textContent = 'Guardando...';
+      // [PUNTOS-LOG] los datos se guardan acá; los puntos (si cambiaron) van por ajustar_puntos, con su historial
       var { data, error } = await sb.from('clientes').update({
-        nombre: nombre, telefono: telefono, puntos: puntos, nota: nota, compro: compro
+        nombre: nombre, telefono: telefono, nota: nota, compro: compro
       }).eq('id', editingClientId).select();
 
       if (error) {
@@ -6136,16 +6167,23 @@
         msgEl.textContent = errorEnCriollo(null, null, 'guardar el cliente', true);   // 128j · 0 filas: la base no lo dejó
         console.error('Edit client: no rows updated. Check RLS policies on clientes table.');
       } else {
-        // Si cambiaron los puntos, loguear la subida/ajuste en el historial
         var prev = allClientes.find(function(cl) { return cl.id == editingClientId; });
+        var errPuntos = null;
         if (prev && (prev.puntos || 0) !== puntos) {
-          await pushPuntoLogEntry(prev, puntos - (prev.puntos || 0), prev.puntos || 0, puntos, 'Edicion manual');
+          try { await ajustarPuntosRPC(editingClientId, puntos - (prev.puntos || 0), 'Edicion manual'); }
+          catch (ePto) { errPuntos = ePto; }
         }
-        msgEl.style.color = 'var(--tinta-ok)';
-        msgEl.textContent = 'Cliente actualizado ✓';
-        notifyTelegram('✏️ Cliente editado: ' + nombre + ' · ' + telefono + ' · ' + puntos + ' pts');
-        loadClientes();
-        setTimeout(function() { closeModal('modalClientEdit'); }, MODAL_CIERRE_MS);
+        if (errPuntos) {
+          msgEl.style.color = 'var(--tinta-error)';
+          msgEl.textContent = 'Se guardaron los datos, pero no los puntos: ' + textoErrorPuntos(errPuntos);
+          loadClientes();
+        } else {
+          msgEl.style.color = 'var(--tinta-ok)';
+          msgEl.textContent = 'Cliente actualizado ✓';
+          notifyTelegram('✏️ Cliente editado: ' + nombre + ' · ' + telefono + ' · ' + puntos + ' pts');
+          loadClientes();
+          setTimeout(function() { closeModal('modalClientEdit'); }, MODAL_CIERRE_MS);
+        }
       }
       btn.textContent = 'Guardar cambios'; btn.disabled = false;
     }
@@ -12346,6 +12384,7 @@
       { name: 'trust_badges',            critical: true },
       { name: 'seleccion_st_config',     critical: true },
       { name: 'announcements',           critical: true },
+      { name: 'puntos_config',           critical: true },   // [PUNTOS-LOG] la regla de puntos (una fila)
       // Data de negocio
       { name: 'clientes',                critical: false },
       { name: 'opiniones',               critical: false },
@@ -12355,7 +12394,8 @@
       // servicio, sí la trae). Hoy tiene 0 filas, así que da igual; si algún día se usa, el backup del panel no la ve.
       { name: 'ventas',                  critical: false },
       { name: 'favoritos',               critical: false },   // [BACKUP-SIN-FAVORITOS] 2.9 (A): igual que api/cron/backup.js
-      { name: 'mi_seleccion',            critical: false }
+      { name: 'mi_seleccion',            critical: false },
+      { name: 'puntos_log',              critical: false }    // [PUNTOS-LOG] el historial de puntos
     ];
 
     var backupsCleanupRan = false;
@@ -12644,21 +12684,11 @@
       if (_puntosModalMode === 'restar' && amt > Number(c.puntos || 0)) { msg.style.color = 'var(--tinta-error)'; msg.textContent = Number(c.puntos || 0) > 0 ? 'Cantidad inválida: se pueden restar hasta ' + puntosTxt(c.puntos) + '.' : 'Cantidad inválida: no tiene puntos para restar.'; return; }   // [PUNTOS-SIN-NEGATIVOS] 141i-c: no se resta más de lo que hay (después de validar Cantidad; con saldo mayor que 0 dice «se pueden restar hasta N», con 0 «no tiene puntos para restar»): nada se escribe (restar justo lo que tiene, y que quede en 0, sí vale); `c.puntos` es el de la lista cargada (el ranking en memoria)
       var sign = (_puntosModalMode === 'restar') ? -1 : 1;
       var delta = sign * amt;
-      var nuevo = Number(c.puntos||0) + delta;   // [PUNTOS-ENTEROS] enteros: sin redondeo a centésimas
+      var nuevo;   // [PUNTOS-LOG] el saldo nuevo lo devuelve ajustar_puntos
       var btn = document.getElementById('modalPuntosBtn');
       btn.disabled = true; btn.textContent = '...';
       try {
-        var u = await sb.from('clientes').update({ puntos: nuevo }).eq('id', c.id);
-        if (u.error) throw u.error;
-        var actor = (window.currentUser && (window.currentUser.email || window.currentUser.nombre)) || 'jefe';
-        await sb.from('puntos_log').insert({
-          cliente_id: c.id,
-          cliente_telefono: c.telefono || null,
-          cliente_nombre: c.nombre || null,
-          delta: delta,
-          motivo: motivoFinal,
-          actor: actor
-        });
+        nuevo = await ajustarPuntosRPC(c.id, delta, motivoFinal);   // [PUNTOS-LOG] cambia el saldo y anota el historial en una sola transacción; si falla, no hace nada
         c.puntos = nuevo;
         _puntosRankingData.sort(function(a,b){ return Number(b.puntos||0) - Number(a.puntos||0); });
         renderPuntosRanking();
@@ -12668,7 +12698,7 @@
         setTimeout(function(){ closeModal('modalPuntos'); }, MODAL_CIERRE_MS);
       } catch(e) {
         msg.style.color = 'var(--tinta-error)';
-        msg.textContent = errorEnCriollo(e, null, 'ajustar los puntos');   // 128j
+        msg.textContent = textoErrorPuntos(e);   // 128j · [PUNTOS-LOG] los avisos de 141i-c también cuando los dice la base
       } finally {
         btn.disabled = false; btn.textContent = '✓ Confirmar';
       }
@@ -12678,24 +12708,22 @@
       var tbody = document.getElementById('tbodyPuntosLog');
       if (!tbody) return;
       try {
-        var r = await sb.from('puntos_log').select('*').order('created_at', { ascending: false }).limit(200);
+        var r = await sb.from('puntos_log').select('id,created_at,delta,origen,motivo,actor,cliente_id,clientes(nombre,telefono)').order('created_at', { ascending: false }).limit(200);   // [PUNTOS-LOG]
         if (r.error) throw r.error;   // 128k · sin esto, un error se veía como «Sin movimientos»
         var rows = r.data || [];
         if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gris);">Sin movimientos</td></tr>'; return; }
         var html = '';
         for (var i=0;i<rows.length;i++){
           var l = rows[i];
-          var d = new Date(l.created_at);
-          var fecha = d.toLocaleDateString('es-AR') + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
           var delta = Number(l.delta||0);
-          var color = delta >= 0 ? '#9bd28b' : '#ff9b9b';
-          var sign = delta >= 0 ? '+' : '';
+          var claseDelta = delta < 0 ? 'puntos-delta--menos' : 'puntos-delta--mas';   // 141j
+          var cli = l.clientes || {};   // [PUNTOS-LOG] el nombre sale del cliente (join por cliente_id)
           html += '<tr>'
-            + '<td style="font-size:.7rem;color:var(--gris-claro);">'+ fecha +'</td>'
-            + '<td>'+ escHtml(l.cliente_nombre || l.cliente_telefono || ('#'+(l.cliente_id||'?'))) +'</td>'   // [XSS-PANEL-STAFF] latente
-            + '<td style="text-align:right;font-weight:700;color:'+ color +';">'+ sign + delta.toFixed(2).replace(/\.?0+$/,'') +'</td>'
-            + '<td style="font-size:.7rem;">'+ escHtml(l.motivo||'—') +'</td>'
-            + '<td style="font-size:.7rem;color:var(--gris);">'+ escHtml(l.actor||'—') +'</td>'
+            + '<td style="font-size:.7rem;color:var(--gris-claro);">'+ fechaPuntosHTML(l.created_at) +'</td>'
+            + '<td>'+ (l.cliente_id ? escHtml(cli.nombre || cli.telefono || '—') : '<span style="color:var(--gris);">(cliente eliminado)</span>') +'</td>'   // [XSS-PANEL-STAFF] · el historial no se borra con el cliente (on delete set null)
+            + '<td style="text-align:right;font-weight:700;"><span class="'+ claseDelta +'">'+ deltaPuntosTxt(delta) +'</span></td>'   // 141j · la tinta va en el span: `.admin-table td` la pisaba
+            + '<td style="font-size:.7rem;">'+ escHtml(motivoPuntosTxt(l.motivo, l.origen)) +'</td>'
+            + '<td style="font-size:.7rem;color:var(--gris);">'+ escHtml(actorPuntosTxt(l.actor)) +'</td>'
           + '</tr>';
         }
         tbody.innerHTML = html;
