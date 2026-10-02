@@ -12621,11 +12621,11 @@
     }
     // [PUNTOS-ENTEROS] lo que se escribe en «Cantidad» → número ENTERO, igual en cualquier idioma del navegador. `clientes.puntos` es `integer` en la base: un decimal lo rechaza.
     // Antes (141g, `[PUNTOS-COMA]`) se aceptaba un decimal («0,5»): pasaba la validación del panel y la base lo rechazaba al guardar. El campo es type="text" inputmode="numeric"
-    // y la regla es ésta: se recorta y tiene que ser sólo dígitos y mayor que 0 («5», «12»). No entran coma, punto («1.000»), «0», vacío ni negativos (la resta la hacen los
+    // y la regla es ésta: se recorta y tiene que ser sólo dígitos (hasta 9) y mayor que 0 («5», «12»). No entran coma, punto («1.000»), «0», vacío ni negativos (la resta la hacen los
     // botones Sumar / Restar). Lo que no pase → null → el mensaje de Cantidad, sin confirmar.
     function parseCantidadPuntos(raw) {
       var t = String(raw == null ? '' : raw).trim();
-      if (!/^\d+$/.test(t)) return null;                 // «abc», «-3», «0,5», «1,5», «0,55», «1.000», «5.», vacío
+      if (!/^\d{1,9}$/.test(t)) return null;             // «abc», «-3», «0,5», «1,5», «0,55», «1.000», «5.», vacío, y más de 9 dígitos (nunca llega a la base algo fuera de integer)
       var n = parseInt(t, 10);
       return (isFinite(n) && n > 0) ? n : null;            // «0» no es una cantidad
     }
@@ -12636,10 +12636,11 @@
       var msg = document.getElementById('modalPuntosMsg');
       msg.style.color = '';
       if (faltaLeer('ranking', msg)) return;   // [GUARDAR-SIN-LEER] los puntos de la lista vieja + el ajuste pisaban los de ahora
-      if (amt === null) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'La cantidad tiene que ser un número entero mayor que 0 (ej: 5)'; return; }   // [PUNTOS-ERROR-DICE-QUE] 141i · el error dice qué se acepta (sale también con 0, -1, un decimal, letras y vacío); [PUNTOS-ENTEROS] los puntos son enteros
+      if (amt === null) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Cantidad inválida: entero mayor que 0 (ej: 5).'; return; }   // [PUNTOS-ERROR-DICE-QUE] 141i · el error dice qué se acepta (sale también con 0, -1, un decimal, letras y vacío); [PUNTOS-ENTEROS] los puntos son enteros; 141i-b: el texto es «Cantidad inválida: entero mayor que 0 (ej: 5).»
       var motivoSel = document.getElementById('modalPuntosMotivo').value || 'manual_jefe';
       var nota = (document.getElementById('modalPuntosNota').value||'').trim();
       var motivoFinal = nota ? (motivoSel + ': ' + nota) : motivoSel;
+      if (_puntosModalMode === 'restar' && amt > Number(c.puntos || 0)) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Cantidad inválida: tiene ' + puntosTxt(c.puntos) + ' pts, no se pueden restar ' + amt + '.'; return; }   // [PUNTOS-SIN-NEGATIVOS] no se resta más de lo que hay: nada se escribe (restar justo lo que tiene, y que quede en 0, sí vale); `c.puntos` es el de la lista cargada (el ranking en memoria)
       var sign = (_puntosModalMode === 'restar') ? -1 : 1;
       var delta = sign * amt;
       var nuevo = Number(c.puntos||0) + delta;   // [PUNTOS-ENTEROS] enteros: sin redondeo a centésimas
