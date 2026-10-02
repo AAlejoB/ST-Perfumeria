@@ -4951,18 +4951,10 @@
       border-color: var(--tinta-efectivo); pointer-events: none;
     }
     body:not(.dark-mode) .waitlist-btn.subscribed { background: rgba(27,94,32,.10); }
-    /* Iconos y labels del boton: por default guest (lock) oculto y logueado (bell)
-       visible. body.is-guest invierte eso para usuarios sin sesion. */
+    /* [ESPERA-INVITADO] el invitado ya puede anotarse sin cuenta: el botón se ve igual con y sin sesión (sin el candado,
+       sin «Ingresá para avisarte» y sin el borde punteado que lo marcaba como «cerrado»). */
     .waitlist-btn .waitlist-ico,
     .waitlist-btn .waitlist-label { display: inline; }
-    .waitlist-btn .waitlist-ico--lock,
-    .waitlist-btn .waitlist-label--guest { display: none; }
-    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-ico--bell,
-    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-label:not(.waitlist-label--guest) { display: none; }
-    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-ico--lock,
-    body.is-guest .waitlist-btn:not(.subscribed) .waitlist-label--guest { display: inline; }
-    /* Leve diferencial visual para que el guest entienda que esta gateado */
-    body.is-guest .waitlist-btn:not(.subscribed) { border-style: dashed; }
     /* [TAP-44] en el celu el botón mide 44 en los tres estados (medía 33,6) y la letra va al 120 % de la card
        ([JERARQUIA-CARD]): 12,5 px. En escritorio no cambia. */
     @media (max-width: 767px) {
@@ -5014,7 +5006,14 @@
       flex: 1; padding: .7rem .8rem .7rem .4rem; font-family: inherit; font-size: .82rem;
       background: transparent; border: none; color: #fff; outline: none;
     }
-    .waitlist-input::placeholder { color: #555; }
+    .waitlist-input::placeholder { color: #8a8a8a; }   /* [ESPERA-INVITADO] era #555 (≈2,5 sobre la caja): hasta ahora el campo estaba siempre escondido */
+    /* [ESPERA-INVITADO] el nombre (opcional) del invitado: la caja del teléfono, sin el «+54 9» delante */
+    .waitlist-nombre { padding-left: .8rem; }
+    .waitlist-login {
+      display: block; width: 100%; min-height: 44px; margin-top: .5rem; padding: .5rem;
+      background: none; border: none; font-family: inherit; font-size: .78rem; font-weight: 600;
+      color: var(--amarillo-tinta); text-decoration: underline; cursor: pointer;
+    }
     .waitlist-phone-preview {
       font-size: .75rem; min-height: 1rem; margin-bottom: .8rem;   /* [ESPERA-MAS] decisión 42: era .65rem */
     }
@@ -5037,6 +5036,13 @@
        body:not(.dark-mode) p (0,1,2) le ganaba a los textos de la caja (0,1,0): quedaban #2a2a2d sobre #111 = 1,32.
        Estas son (0,2,1): le ganan sin !important. En oscuro no cambia nada (el oscuro es la base). */
     body:not(.dark-mode) .waitlist-box { background: #fff; border-color: rgba(120,90,0,.28); }
+    /* [ESPERA-INVITADO] el teléfono y el nombre del invitado en claro: el campo era blanco sobre blanco (nunca se había visto: la caja
+       se escondía para el cliente, que usa el número de su cuenta) */
+    body:not(.dark-mode) .waitlist-input-wrap { background: #fff; border-color: rgba(120,90,0,.4); }
+    body:not(.dark-mode) .waitlist-input-wrap:focus-within { border-color: var(--amarillo-tinta); }
+    body:not(.dark-mode) .waitlist-input { color: #1a1a1d; }
+    body:not(.dark-mode) .waitlist-input::placeholder { color: #756d60; }
+    body:not(.dark-mode) .waitlist-prefix { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .waitlist-title { color: #1a1a1d; }
     body:not(.dark-mode) .waitlist-perfume-name { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .waitlist-desc { color: #5e564a; }
@@ -5477,6 +5483,15 @@
     /* [SESION-CLIENTE] 130 · el aviso «Actualizamos el sitio…» (#avisoToast): la caja y la animación de .cart-toast, sólo
        el texto. Se cierra tocándolo. */
     .aviso-toast { cursor: pointer; }
+    /* [ESPERA-INVITADO] B · el cartel «Tenés N cosas en espera»: la misma caja, en columna y con su ✕ */
+    .espera-cartel { flex-direction: column; align-items: stretch; gap: .15rem; padding-right: 2.4rem; }
+    .espera-cartel-x {
+      position: absolute; top: .2rem; right: .35rem; width: 44px; height: 44px; background: none; border: none;
+      font-size: 1.4rem; line-height: 1; color: var(--gris); cursor: pointer;
+    }
+    .espera-cartel-titulo { margin: 0; font-size: .95rem; font-weight: 700; color: #fff; }
+    .espera-cartel-lista { margin: .35rem 0 0; padding: 0; list-style: none; font-size: .82rem; line-height: 1.5; color: #f0ede8; }
+    .espera-cartel-sub { margin: .45rem 0 0; font-size: .72rem; color: var(--gris); }
     .aviso-toast-texto { margin: 0; font-size: .85rem; line-height: 1.45; color: #f0ede8; }
     /* Fly-to-cart animation */
     .fly-to-cart {
@@ -8463,6 +8478,10 @@
     body:not(.dark-mode) .cart-empty,
     body:not(.dark-mode) .cart-toast-text { color: #2a2622 !important; }
     body:not(.dark-mode) .aviso-toast-texto { color: #1a1a1d; }   /* [SESION-CLIENTE] 130 · sobre el #f5efde de la caja */
+    body:not(.dark-mode) .espera-cartel-titulo,
+    body:not(.dark-mode) .espera-cartel-lista { color: #1a1a1d; }   /* [ESPERA-INVITADO] B · sobre el #f5efde de la caja */
+    body:not(.dark-mode) .espera-cartel-sub,
+    body:not(.dark-mode) .espera-cartel-x { color: #5e564a; }
     body:not(.dark-mode) .cart-item-name { color: #1a1a1d !important; }
     body:not(.dark-mode) .cart-item-meta { color: #5e564a !important; }
 

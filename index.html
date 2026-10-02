@@ -1601,6 +1601,14 @@
     <p class="aviso-toast-texto"></p>
   </div>
 
+  <!-- [ESPERA-INVITADO] B · el cartel «Tenés N cosas en espera» al entrar (con el número que ya estaba anotado). La caja de .cart-toast. -->
+  <div class="cart-toast aviso-toast espera-cartel" id="esperaCartel" role="status">
+    <button type="button" class="espera-cartel-x" onclick="cerrarCartelEspera(event)" aria-label="Cerrar">&times;</button>
+    <p class="espera-cartel-titulo" id="esperaCartelTitulo"></p>
+    <ul class="espera-cartel-lista" id="esperaCartelLista"></ul>
+    <p class="espera-cartel-sub">Te avisamos por WhatsApp apenas vuelvan.</p>
+  </div>
+
   <div class="splash-overlay" id="splashOverlay">
     <div class="splash-content">
       <div id="splashImgWrap"></div>
@@ -1662,7 +1670,12 @@
         <input type="tel" class="waitlist-input" id="waitlistPhone" placeholder="2975416017" oninput="previewWaitlistPhone()"/>
       </div>
       <p class="waitlist-phone-preview" id="waitlistPhonePreview"></p>
+      <!-- [ESPERA-INVITADO] A · sin sesión la hoja pide el nombre (opcional) y ofrece entrar; con sesión, se esconden los dos -->
+      <div class="waitlist-input-wrap waitlist-nombre-wrap" id="waitlistNombreWrap" style="display:none">
+        <input type="text" class="waitlist-input waitlist-nombre" id="waitlistNombre" placeholder="Tu nombre (opcional)" maxlength="40" autocomplete="given-name"/>
+      </div>
       <button class="waitlist-submit" id="waitlistSubmitBtn" onclick="submitWaitlist()">&#128227; Avisame</button>
+      <button type="button" class="waitlist-login" id="waitlistLoginBtn" onclick="waitlistIrALogin()" style="display:none">Ya tengo cuenta &middot; Iniciar sesi&oacute;n</button>
       <p class="waitlist-msg" id="waitlistMsg"></p>
     </div>
   </div>

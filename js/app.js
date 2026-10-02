@@ -716,7 +716,8 @@
       var bi = document.getElementById('boardInput');
       if (bi) bi.placeholder = 'Ej: El 9 AM me dura todo el día, increíble...';
       loadFavsFromSupabase(entro);
-      syncWaitlistFromDB();
+      if (entro) esperaInvitadoOlvidar();   // [ESPERA-INVITADO] la cuenta toma el relevo del número que se había anotado como invitado
+      syncWaitlistFromDB(entro);
       unlockVoting();
       setTimeout(initMiSeleccion, 500);
     }
@@ -2173,14 +2174,12 @@
         if (alreadyWaiting) {
           waitlistHTML = '<button class="waitlist-btn subscribed" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
             + '<span class="waitlist-ico waitlist-ico--check">&#10003;</span> '
-            + '<span class="waitlist-label">Te avisamos cuando vuelva</span>'
+            + '<span class="waitlist-label">' + escapeHTML(esperaEtiquetaAvisado()) + '</span>'   // [ESPERA-INVITADO] al invitado se le dice a qué número
           + '</button>';
         } else {
           waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
-            + '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span>'
-            + '<span class="waitlist-ico waitlist-ico--lock">&#128274;</span> '   // [ESPERA-MAS] el espacio, como el ✓ (medía 0 px)
+            + '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span> '   // [ESPERA-INVITADO] sin el candado ni «Ingresá para avisarte»: el invitado se anota igual
             + '<span class="waitlist-label">Avisame cuando vuelva</span>'
-            + '<span class="waitlist-label waitlist-label--guest">Ingresá para avisarte</span>'
           + '</button>';
         }
       }
@@ -4592,8 +4591,9 @@
     // onLogout viejo no la borraba). Con cliente sirve sólo para el primer pintado; después manda la base.
     // currentUser ya está resuelto acá: la sesión se restaura más arriba, antes de que corra esta línea.
     var waitlistSlugs = [];
-    if (currentUser) {
+    if (currentUser || esperaInvitadoGuardado().tel) {   // [ESPERA-INVITADO] también el invitado que se anotó en este navegador
       try { waitlistSlugs = JSON.parse(localStorage.getItem('st_waitlist') || '[]'); } catch (e) { waitlistSlugs = []; }
+      if (!currentUser) setTimeout(function() { syncWaitlistFromDB(); }, 0);
     } else {
       try { localStorage.removeItem('st_waitlist'); } catch (e) {}
     }
@@ -4602,18 +4602,94 @@
     // "= null" acá pisaría el array que ella ya abrió.
     var waitlistMarcadosDurante;
 
+    // ===== [ESPERA-INVITADO] A + B (1-oct-2026) =====
+    // A · sin sesión, «Avisame cuando vuelva» abre la hoja con teléfono + nombre (opcional). El teléfono del invitado queda en este
+    // navegador (st_espera_tel; el nombre, st_espera_nombre) para que sus cards sigan marcadas al recargar: sale por el mismo camino
+    // que la cuenta (syncWaitlistFromDB / lista_espera_pendientes). Al entrar con una cuenta, esas dos claves se borran.
+    // B · al entrar (no al retomar la sesión), el cartel «Tenés N cosas en espera», con lo del catálogo y lo libre. NUNCA se
+    // muestra un nombre guardado (el teléfono no está verificado) ni el texto de lo libre: sólo «N pedidos especiales».
+    function esperaInvitadoGuardado() {
+      var t = '', n = '';
+      try { t = localStorage.getItem('st_espera_tel') || ''; n = localStorage.getItem('st_espera_nombre') || ''; } catch (e) {}
+      return { tel: /^549\d{10}$/.test(t) ? t : '', nombre: String(n).slice(0, 40) };
+    }
+    function esperaInvitadoGuardar(tel, nombre) {
+      try { localStorage.setItem('st_espera_tel', tel); localStorage.setItem('st_espera_nombre', nombre || ''); } catch (e) {}
+    }
+    function esperaInvitadoOlvidar() {
+      try { localStorage.removeItem('st_espera_tel'); localStorage.removeItem('st_espera_nombre'); } catch (e) {}
+    }
+    // El teléfono con el que se consulta la lista: el de la cuenta, o el del invitado.
+    function esperaTelActual() {
+      if (currentUser) return currentUser.telefono || '';
+      return esperaInvitadoGuardado().tel;
+    }
+    // La etiqueta de la card ya anotada: al invitado se le dice a qué número.
+    function esperaEtiquetaAvisado() {
+      if (currentUser) return 'Te avisamos cuando vuelva';
+      var t = esperaInvitadoGuardado().tel;
+      return t ? 'Te avisamos al ' + (formatPhoneDisplay(t) || t) : 'Te avisamos cuando vuelva';
+    }
+    // La hoja en uno de sus dos modos: invitado (nombre + «Anotame sin registrarme» + «Ya tengo cuenta») o con sesión.
+    function esperaModoHoja(invitado) {
+      var nom = document.getElementById('waitlistNombreWrap'), login = document.getElementById('waitlistLoginBtn'), btn = document.getElementById('waitlistSubmitBtn');
+      if (nom) nom.style.display = invitado ? '' : 'none';
+      if (login) login.style.display = invitado ? '' : 'none';
+      if (btn) btn.innerHTML = invitado ? '&#128227; Anotame sin registrarme' : '&#128227; Avisame';
+    }
+    // «Ya tengo cuenta · Iniciar sesión»: cierra la hoja y abre el login.
+    function waitlistIrALogin() {
+      closeWaitlist();
+      if (typeof openAuth === 'function') openAuth();
+    }
+    // El cartel de B. Se cierra con la ✕, tocándolo, o solo a los 12 s; vuelve a salir en el próximo ingreso.
+    var esperaCartelReloj = null;
+    function cerrarCartelEspera(e) {
+      if (e) e.stopPropagation();
+      var el = document.getElementById('esperaCartel');
+      clearTimeout(esperaCartelReloj);
+      if (!el || !el.classList.contains('active')) return;
+      el.classList.add('leaving');
+      setTimeout(function() { el.classList.remove('active', 'leaving'); }, 300);
+    }
+    function mostrarCartelEspera(slugs) {
+      var el = document.getElementById('esperaCartel');
+      if (!el || !slugs || !slugs.length) return;
+      var nombres = [], libres = 0, sinNombre = 0;
+      slugs.forEach(function(s) {
+        if (s.indexOf('libre:') === 0) { libres++; return; }
+        var p = PERFUMES.find(function(pf) { return pf.slug === s; });
+        if (p && p.name) nombres.push(p.name); else sinNombre++;
+      });
+      var total = slugs.length;
+      document.getElementById('esperaCartelTitulo').textContent = 'Ten\u00e9s ' + total + (total === 1 ? ' cosa' : ' cosas') + ' en espera';
+      var items = nombres.slice(0, 5).map(function(n) { return '<li>' + escapeHTML(n) + '</li>'; });
+      var mas = Math.max(0, nombres.length - 5) + sinNombre;
+      if (mas) items.push('<li>y ' + mas + (mas === 1 ? ' m\u00e1s' : ' m\u00e1s') + '</li>');
+      if (libres) items.push('<li>' + libres + (libres === 1 ? ' pedido especial' : ' pedidos especiales') + '</li>');
+      document.getElementById('esperaCartelLista').innerHTML = items.join('');
+      clearTimeout(esperaCartelReloj);
+      el.classList.remove('leaving');
+      el.classList.add('active');
+      el.onclick = function() { cerrarCartelEspera(); };
+      esperaCartelReloj = setTimeout(cerrarCartelEspera, 12000);
+    }
+
     // [ESPERA-SEGURA] El "✓ Te avisamos" sale de la base (decisión 46): los perfumes que este teléfono
     // tiene PENDIENTES. st_waitlist queda como caché para el primer pintado. Si la RPC falla o no existe,
     // se sigue con la caché; si la base cambió algo, se repinta (mismo patrón que loadFavsFromSupabase).
-    async function syncWaitlistFromDB() {
-      if (!currentUser || !currentUser.telefono) return;
-      var tel = currentUser.telefono;
+    async function syncWaitlistFromDB(entro) {
+      var tel = esperaTelActual();   // [ESPERA-INVITADO] el de la cuenta, o el del invitado que se anotó en este navegador
+      if (!tel) return;
       waitlistMarcadosDurante = [];
       try {
         var res = await sb.rpc('lista_espera_pendientes', { p_telefono: tel });
         if (res.error || !Array.isArray(res.data)) return;
-        if (!currentUser || currentUser.telefono !== tel) return;   // salió o cambió de cuenta mientras tanto
-        var nuevos = res.data.filter(function(s) { return typeof s === 'string'; });
+        if (esperaTelActual() !== tel) return;   // salió o cambió de cuenta mientras tanto
+        var todas = res.data.filter(function(s) { return typeof s === 'string'; });
+        // lo libre llega como «libre:…»: cuenta para el cartel de B pero no marca ninguna card (ni se guarda acá)
+        var nuevos = todas.filter(function(s) { return s.indexOf('libre:') !== 0; });
+        if (entro === true && currentUser && todas.length) mostrarCartelEspera(todas);   // [ESPERA-INVITADO] B · sólo al entrar, no al retomar la sesión
         // Lo que el cliente anotó mientras la RPC estaba en vuelo no viene en la respuesta: se conserva.
         (waitlistMarcadosDurante || []).forEach(function(s) { if (nuevos.indexOf(s) === -1) nuevos.push(s); });
         var antes = JSON.stringify((waitlistSlugs || []).slice().sort());
@@ -4630,14 +4706,8 @@
 
     function openWaitlist(slug, e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
-      // Solo usuarios registrados pueden anotarse en la lista de espera.
-      // Si no hay sesion, abrimos el modal de login (mismo patron que
-      // sendBoardMsg, favoritos logueados, votos del mes, etc.). Al
-      // loguearse el usuario vuelve a tocar el boton y el flujo sigue.
-      if (!currentUser) {
-        if (typeof openAuth === 'function') openAuth();
-        return;
-      }
+      // [ESPERA-INVITADO] A · sin sesión ya no se abre el login: se abre la hoja con el teléfono, el nombre (opcional),
+      // «Anotame sin registrarme» y «Ya tengo cuenta · Iniciar sesión». Antes: «Solo usuarios registrados pueden anotarse».
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       document.getElementById('waitlistSlug').value = slug;
@@ -4650,13 +4720,25 @@
       // [ESPERA-SEGURA] El teléfono de la lista es el de la cuenta, y se muestra como texto, no como campo
       // (DISEÑADOR: "una caja que no deja escribir parece rota"). El input queda en el DOM, oculto.
       var phoneInput = document.getElementById('waitlistPhone');
+      esperaModoHoja(!currentUser);
+      var wrap = document.querySelector('#waitlistOverlay .waitlist-input-wrap');
+      if (!currentUser) {
+        // [ESPERA-INVITADO] el teléfono se escribe acá; si ya se anotó antes en este navegador, vuelve puesto
+        var guardado = esperaInvitadoGuardado();
+        var telI = guardado.tel;
+        if (telI.substring(0, 3) === '549') telI = telI.substring(3);
+        phoneInput.value = telI;
+        document.getElementById('waitlistNombre').value = guardado.nombre;
+        if (wrap) wrap.style.display = '';
+        if (telI) previewWaitlistPhone(); else document.getElementById('waitlistPhonePreview').textContent = '';
+      } else {
       var tel = String(currentUser.telefono || '');
       if (tel.substring(0, 3) === '549') tel = tel.substring(3);
       else if (tel.substring(0, 2) === '54') tel = tel.substring(2);
       phoneInput.value = tel;
-      var wrap = document.querySelector('#waitlistOverlay .waitlist-input-wrap');
       if (wrap) wrap.style.display = 'none';
       document.getElementById('waitlistPhonePreview').innerHTML = 'Te avisamos al <strong>' + escapeHTML(formatPhoneDisplay(tel)) + '</strong> \u00b7 el de tu cuenta';
+      }
 
       document.getElementById('waitlistOverlay').classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -4687,7 +4769,9 @@
       var slug = document.getElementById('waitlistSlug').value;
       // [ESPERA-SEGURA] El teléfono es el de la cuenta, no el del input (ahora oculto). Las validaciones de
       // abajo quedan como defensa.
-      var rawPhone = String((currentUser && currentUser.telefono) || '').trim();
+      var invitado = !currentUser;   // [ESPERA-INVITADO] sin sesión el teléfono sale del campo de la hoja
+      var rawPhone = invitado ? String(document.getElementById('waitlistPhone').value || '').trim() : String((currentUser && currentUser.telefono) || '').trim();
+      var MSG_TEL_INVITADO = 'Revis\u00e1 el n\u00famero: son 10 d\u00edgitos con la caracter\u00edstica';
       var msgEl = document.getElementById('waitlistMsg');
       var btn = document.getElementById('waitlistSubmitBtn');
       msgEl.textContent = '';
@@ -4697,7 +4781,7 @@
 
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
         msgEl.className = 'waitlist-msg waitlist-msg--error';
-        msgEl.textContent = 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
+        msgEl.textContent = invitado ? MSG_TEL_INVITADO : 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
         return;
       }
       // Ya viene canónico (549 + 10 dígitos: los clientes). Hasta [TEL-15-SIN-549] cleanPhone le borraba un "15" legítimo del
@@ -4705,7 +4789,7 @@
       var phone = /^549\d{10}$/.test(rawPhone) ? rawPhone : cleanPhone(rawPhone);
       if (phone.length !== 13) {
         msgEl.className = 'waitlist-msg waitlist-msg--error';
-        msgEl.textContent = 'El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)';
+        msgEl.textContent = invitado ? MSG_TEL_INVITADO : 'El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)';
         return;
       }
 
@@ -4713,20 +4797,21 @@
 
       try {
         var perfume = PERFUMES.find(function(p) { return p.slug === slug; });
-        var nombre = currentUser ? currentUser.nombre : '';
+        var nombre = currentUser ? currentUser.nombre : String(document.getElementById('waitlistNombre').value || '').replace(/\s+/g, ' ').trim().slice(0, 40);   // [ESPERA-INVITADO] el del invitado es opcional y sólo lo ve el panel
 
         // [ESPERA-SEGURA] El catálogo ya no lee lista_espera (anon no puede): inserta directo, y el índice
         // único parcial (slug, telefono) WHERE notified_at IS NULL responde 23505 si ya estaba pendiente.
         var res = await sb.from('lista_espera').insert({
           slug: slug,
           telefono: phone,
-          nombre: nombre,
+          nombre: invitado ? (nombre || null) : nombre,
           perfume_name: perfume ? perfume.name : slug
         });
 
         if (res.error && res.error.code === '23505') {
           msgEl.className = 'waitlist-msg waitlist-msg--ya';
           msgEl.textContent = '\u00a1Ya est\u00e1s en la lista! Te avisamos cuando vuelva.';
+          if (invitado) esperaInvitadoGuardar(phone, nombre);   // [ESPERA-INVITADO]
           markWaitlistSlug(slug);
           setTimeout(function() { closeWaitlist(); }, 1800);
           btn.disabled = false;
@@ -4744,8 +4829,9 @@
         // después del "¡Listo!".
         successShown = true;
         msgEl.className = 'waitlist-msg waitlist-msg--ok';
-        msgEl.textContent = '\u00a1Listo! Te avisamos por WhatsApp cuando vuelva.';
+        msgEl.textContent = invitado ? '\u00a1Listo! Te avisamos por WhatsApp al ' + formatPhoneDisplay(phone) + ' cuando vuelva.' : '\u00a1Listo! Te avisamos por WhatsApp cuando vuelva.';
         setTimeout(function() { closeWaitlist(); }, 2000);
+        if (invitado) esperaInvitadoGuardar(phone, nombre);   // [ESPERA-INVITADO] el teléfono queda en este navegador: sus cards siguen marcadas
 
         // Side-effects en try/catch individuales para no romper el flujo
         try { markWaitlistSlug(slug); } catch(e) { console.error('[waitlist] markWaitlistSlug falló:', e); }
@@ -4776,7 +4862,7 @@
         var btn = card.querySelector('.waitlist-btn');
         if (btn) {
           btn.classList.add('subscribed');
-          btn.innerHTML = '\u2713 Te avisamos cuando vuelva';
+          btn.innerHTML = '\u2713 ' + escapeHTML(esperaEtiquetaAvisado());
         }
       }
     }
