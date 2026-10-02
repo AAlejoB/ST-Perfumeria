@@ -1656,6 +1656,10 @@
        sin :focus propio) no marcaban el foco. El inline sólo se le gana con !important; sólo esos dos y sólo en oscuro (en claro ya los cubre la regla de arriba). */
     body:not(.light) #analyticsRange:focus,
     body:not(.light) #puntosFilterCliente:focus { border-color: var(--amarillo) !important; }
+    /* [FOCO-SIN-ANILLO] (141h-c, decisión del DISEÑADOR y el PREPARADOR) · esos dos eran los únicos campos del panel con el anillo del navegador (`outline: auto`); el resto lleva
+       `outline: none` y marca el foco sólo con el borde. En los dos temas: así el foco se ve igual en los 117. (El `style` inline de #analyticsRange no trae `outline`.) */
+    #analyticsRange:focus,
+    #puntosFilterCliente:focus { outline: none; }
 
     /* Modales */
     body.light .modal-box { background: #fff; color: #1a1a1a; border-color: #d6d1c3; }
