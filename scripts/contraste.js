@@ -795,9 +795,36 @@ function mezcla(hex, fondo, a) {
     [['título', '.waitlist-title', 'p'], ['perfume', '.waitlist-perfume-name', 'p'], ['descripción', '.waitlist-desc', 'p'],
      ['× cerrar', '.waitlist-close', null], ['× cerrar (hover)', '.waitlist-close:hover', null],
      ['línea del teléfono', '.waitlist-phone-preview', 'p'],
-     ['mensaje ¡Listo!', '.waitlist-msg--ok', 'p'], ['mensaje ¡Ya estás!', '.waitlist-msg--ya', 'p'], ['mensaje de error', '.waitlist-msg--error', 'p']].forEach(function (t) {
+     ['mensaje ¡Listo!', '.waitlist-msg--ok', 'p'], ['mensaje ¡Ya estás!', '.waitlist-msg--ya', 'p'], ['mensaje de error', '.waitlist-msg--error', 'p'],
+     // [ESPERA-INVITADO] la hoja del invitado: «Ya tengo cuenta», el «+54 9» y lo que escribe (caja del campo ≈ la de la hoja)
+     ['[ESPERA-INVITADO] «Ya tengo cuenta · Iniciar sesión»', '.waitlist-login', null], ['[ESPERA-INVITADO] «+54 9»', '.waitlist-prefix', null],
+     ['[ESPERA-INVITADO] lo que escribe (teléfono y nombre)', '.waitlist-input', null]].forEach(function (t) {
       var fg = conEtiqueta(t[1], t[2], c) || { hex: cuerpo.hex, impone: 'heredado del body' };
       medir({ superficie: 'catálogo', tema: tema, rol: 'avisame', nombre: t[0] + ' ' + t[1], texto: fg.hex[0], fondos: caja.hex, impone: fg.impone });
+    });
+  });
+})();
+
+// ═══ CARTEL «TENÉS N COSAS EN ESPERA» ═══ [ESPERA-INVITADO] B · 1-oct-2026
+// La caja es la de .cart-toast (oscuro rgba(10,10,10,.96); claro #f5efde con !important). Sus textos compiten con la regla de la etiqueta <p>.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { pref: ['body.dark-mode'], capas: [raiz] }, claro: { pref: ['body:not(.dark-mode)'], capas: [luz, raiz] } };
+  var orden = function (x, y) { return (x.important - y.important) || (x.esp - y.esp) || (x.orden - y.orden); };
+  function conEtiqueta(target, etiqueta, c) {
+    var g = [ganador(rs, target, c.pref, 'color'), etiqueta ? ganador(rs, etiqueta, c.pref, 'color') : null].filter(Boolean).sort(orden).pop();
+    if (!g) return null;
+    return { hex: resolver(g.valor, c.capas), impone: path.basename(g.archivo) + ':' + g.linea + (g.important ? ' !important' : '') };
+  }
+  var cuerpo = efectivo(rs, 'body', [], 'color', cfg.oscuro.capas);
+  var cajaOscura = ['#0a0a0a'];   // rgba(10,10,10,.96) sobre el catálogo oscuro: el 4 % que se cuela no cambia el número
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema];
+    var caja = tema === 'claro' ? ['#f5efde'] : cajaOscura;
+    [['título', '.espera-cartel-titulo', 'p'], ['lista', '.espera-cartel-lista', null], ['«Te avisamos por WhatsApp…»', '.espera-cartel-sub', 'p'], ['✕', '.espera-cartel-x', null]].forEach(function (t) {
+      var fg = conEtiqueta(t[1], t[2], c) || { hex: cuerpo.hex, impone: 'heredado del body' };
+      medir({ superficie: 'catálogo', tema: tema, rol: 'cartel de espera', nombre: '[ESPERA-INVITADO] ' + t[0] + ' ' + t[1], texto: fg.hex[0], fondos: caja, impone: fg.impone });
     });
   });
 })();
