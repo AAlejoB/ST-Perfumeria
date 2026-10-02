@@ -1606,7 +1606,7 @@
     <button type="button" class="espera-cartel-x" onclick="cerrarCartelEspera(event)" aria-label="Cerrar">&times;</button>
     <p class="espera-cartel-titulo" id="esperaCartelTitulo"></p>
     <ul class="espera-cartel-lista" id="esperaCartelLista"></ul>
-    <p class="espera-cartel-sub">Te avisamos por WhatsApp apenas vuelvan.</p>
+    <p class="espera-cartel-sub">Te escribimos por WhatsApp apenas los tengamos.</p>
   </div>
 
   <div class="splash-overlay" id="splashOverlay">
@@ -1663,11 +1663,11 @@
       <p class="waitlist-icon">&#128276;</p>
       <p class="waitlist-title">Avisame cuando vuelva</p>
       <p class="waitlist-perfume-name" id="waitlistPerfumeName"></p>
-      <p class="waitlist-desc">Te avisamos por WhatsApp apenas vuelva a estar disponible.</p>
+      <p class="waitlist-desc" id="waitlistDesc">Te avisamos por WhatsApp apenas vuelva a estar disponible.</p>
       <input type="hidden" id="waitlistSlug"/>
       <div class="waitlist-input-wrap">
         <span class="waitlist-prefix">+54 9</span>
-        <input type="tel" class="waitlist-input" id="waitlistPhone" placeholder="2975416017" oninput="previewWaitlistPhone()"/>
+        <input type="tel" class="waitlist-input" id="waitlistPhone" placeholder="Ej: 297 412 3456" oninput="previewWaitlistPhone()"/>
       </div>
       <p class="waitlist-phone-preview" id="waitlistPhonePreview"></p>
       <!-- [ESPERA-INVITADO] A · sin sesión la hoja pide el nombre (opcional) y ofrece entrar; con sesión, se esconden los dos -->

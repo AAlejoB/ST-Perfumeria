@@ -46,6 +46,7 @@
          está en body:not(.dark-mode). Ojo: el panel usa body.light, éste usa
          body:not(.dark-mode) — un token declarado bajo uno NO llega al otro. */
       --tinta-precio:   #E8B800;       /* .price-promo — [JERARQUIA-CARD] decisión 51: el amarillo de la marca, 9,35 sobre la card oscura (era #ffcc00) */
+      --tinta-error: #ff8a80;          /* [ESPERA-INVITADO] 142m2 · el rojo de los errores (el mismo del panel): 7,29 sobre #111 */
       --tinta-efectivo: #4caf50;       /* .price-cash — 6,26 sobre la card oscura */
       --borde:          rgba(232, 184, 0, 0.18);  /* bordes dorados sutiles */
       --borde-sutil:    rgba(255,255,255,0.06);    /* bordes casi invisibles */
@@ -5009,6 +5010,18 @@
     .waitlist-input::placeholder { color: #8a8a8a; }   /* [ESPERA-INVITADO] era #555 (≈2,5 sobre la caja): hasta ahora el campo estaba siempre escondido */
     /* [ESPERA-INVITADO] el nombre (opcional) del invitado: la caja del teléfono, sin el «+54 9» delante */
     .waitlist-nombre { padding-left: .8rem; }
+    /* [ESPERA-INVITADO] 142m2 · la línea de debajo del teléfono: «Faltan N dígitos» (gris), «✓ +54 9 …» (el verde de efectivo) y, al tocar
+       «Avisame» con el número mal, el error (600, en la tinta de error) con el borde del campo de 2 px (1 px + un anillo: no salta nada) */
+    .waitlist-ayuda--falta { color: var(--gris); }
+    .waitlist-ayuda--ok { color: var(--tinta-efectivo); }
+    .waitlist-ayuda--error { color: var(--tinta-error); font-weight: 600; }
+    .waitlist-input-wrap--error, .waitlist-input-wrap--error:focus-within,
+    body:not(.dark-mode) .waitlist-input-wrap.waitlist-input-wrap--error, body:not(.dark-mode) .waitlist-input-wrap.waitlist-input-wrap--error:focus-within { border-color: var(--tinta-error); box-shadow: 0 0 0 1px var(--tinta-error); }   /* en claro, con el foco puesto, le ganaba el dorado */
+    /* [ESPERA-INVITADO] 142m3 · la card marcada del invitado: «✓ TE AVISAMOS» y debajo el número, chico, sin mayúsculas y sin partirse */
+    .waitlist-btn .waitlist-tel {
+      display: block; margin-top: .1rem; font-size: .72rem; font-weight: 400; letter-spacing: .02em;
+      text-transform: none; white-space: nowrap;
+    }
     .waitlist-login {
       display: block; width: 100%; min-height: 44px; margin-top: .5rem; padding: .5rem;
       background: none; border: none; font-family: inherit; font-size: .78rem; font-weight: 600;
@@ -5484,7 +5497,9 @@
        el texto. Se cierra tocándolo. */
     .aviso-toast { cursor: pointer; }
     /* [ESPERA-INVITADO] B · el cartel «Tenés N cosas en espera»: la misma caja, en columna y con su ✕ */
-    .espera-cartel { flex-direction: column; align-items: stretch; gap: .15rem; padding-right: 2.4rem; }
+    /* 142m6: fondo opaco en los dos temas (en oscuro era rgba(10,10,10,.96) y se veía el banner de atrás) */
+    .espera-cartel { flex-direction: column; align-items: stretch; gap: .15rem; padding-right: 2.4rem; background: #0a0a0a; }
+    .espera-cartel-lista .espera-cartel-libre { color: var(--gris); margin-top: .2rem; }   /* 142m4: «Y N cosas que pediste en el local» */
     .espera-cartel-x {
       position: absolute; top: .2rem; right: .35rem; width: 44px; height: 44px; background: none; border: none;
       font-size: 1.4rem; line-height: 1; color: var(--gris); cursor: pointer;
@@ -7607,6 +7622,7 @@
       --gris:         #5e564a;
       /* [TEMA-CLARO] las dos tintas de precio sobre la card blanca */
       --tinta-precio:   #1a1a1d;   /* = L8160 (mayo) · 17,36 sobre la card blanca · decisión 32: el token dice lo mismo que la pantalla */
+      --tinta-error: #b8342a;          /* [ESPERA-INVITADO] 142m2 · 5,89 sobre #fff */
       --tinta-efectivo: #1b5e20;   /* = L8155 (mayo) · 7,87 sobre la card · 6,85 sobre el bottom-sheet (#f5efde) · decisión 32 */
       --gris-claro:   #2a2622;
       --borde:        rgba(120,90,0,.28);

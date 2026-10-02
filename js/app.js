@@ -2173,8 +2173,7 @@
         var alreadyWaiting = waitlistSlugs.indexOf(p.slug) !== -1;
         if (alreadyWaiting) {
           waitlistHTML = '<button class="waitlist-btn subscribed" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
-            + '<span class="waitlist-ico waitlist-ico--check">&#10003;</span> '
-            + '<span class="waitlist-label">' + escapeHTML(esperaEtiquetaAvisado()) + '</span>'   // [ESPERA-INVITADO] al invitado se le dice a qué número
+            + esperaAvisadoHTML()   // [ESPERA-INVITADO] 142m3 · al invitado se le dice a qué número, en un segundo renglón
           + '</button>';
         } else {
           waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
@@ -4624,18 +4623,24 @@
       if (currentUser) return currentUser.telefono || '';
       return esperaInvitadoGuardado().tel;
     }
-    // La etiqueta de la card ya anotada: al invitado se le dice a qué número.
-    function esperaEtiquetaAvisado() {
-      if (currentUser) return 'Te avisamos cuando vuelva';
-      var t = esperaInvitadoGuardado().tel;
-      return t ? 'Te avisamos al ' + (formatPhoneDisplay(t) || t) : 'Te avisamos cuando vuelva';
+    // El contenido del botón de la card ya anotada. Con sesión, como siempre. Al invitado se le dice a qué número (142m3): «✓ TE AVISAMOS»
+    // y, debajo, «al +54 9 2974 12-3456» chico, sin mayúsculas y sin partirse.
+    function esperaAvisadoHTML() {
+      var check = '<span class="waitlist-ico waitlist-ico--check">&#10003;</span> ';
+      var t = currentUser ? '' : esperaInvitadoGuardado().tel;
+      if (!t) return check + '<span class="waitlist-label">Te avisamos cuando vuelva</span>';
+      return check + '<span class="waitlist-label">Te avisamos</span><span class="waitlist-tel">al ' + escapeHTML(formatPhoneDisplay(t) || t) + '</span>';
     }
     // La hoja en uno de sus dos modos: invitado (nombre + «Anotame sin registrarme» + «Ya tengo cuenta») o con sesión.
     function esperaModoHoja(invitado) {
       var nom = document.getElementById('waitlistNombreWrap'), login = document.getElementById('waitlistLoginBtn'), btn = document.getElementById('waitlistSubmitBtn');
       if (nom) nom.style.display = invitado ? '' : 'none';
       if (login) login.style.display = invitado ? '' : 'none';
-      if (btn) btn.innerHTML = invitado ? '&#128227; Anotame sin registrarme' : '&#128227; Avisame';
+      if (btn) btn.innerHTML = '&#128276; Avisame';   // 142m1: el 🔔 de la card que la abre (el 📣 es el de «Banner» del panel), en los dos modos
+      var desc = document.getElementById('waitlistDesc');
+      if (desc) desc.textContent = invitado ? 'Te escribimos por WhatsApp apenas vuelva. No hace falta crear una cuenta.' : 'Te avisamos por WhatsApp apenas vuelva a estar disponible.';
+      var wrapTel = document.querySelector('#waitlistOverlay .waitlist-input-wrap');
+      if (wrapTel) wrapTel.classList.remove('waitlist-input-wrap--error');
     }
     // «Ya tengo cuenta · Iniciar sesión»: cierra la hoja y abre el login.
     function waitlistIrALogin() {
@@ -4662,11 +4667,14 @@
         if (p && p.name) nombres.push(p.name); else sinNombre++;
       });
       var total = slugs.length;
-      document.getElementById('esperaCartelTitulo').textContent = 'Ten\u00e9s ' + total + (total === 1 ? ' cosa' : ' cosas') + ' en espera';
-      var items = nombres.slice(0, 5).map(function(n) { return '<li>' + escapeHTML(n) + '</li>'; });
-      var mas = Math.max(0, nombres.length - 5) + sinNombre;
-      if (mas) items.push('<li>y ' + mas + (mas === 1 ? ' m\u00e1s' : ' m\u00e1s') + '</li>');
-      if (libres) items.push('<li>' + libres + (libres === 1 ? ' pedido especial' : ' pedidos especiales') + '</li>');
+      // 142m4 · «Tenés N avisos pendientes» (con uno, «1 aviso pendiente»); los perfumes por nombre, y con más de 4, los 3 primeros y «y N más»;
+      // lo libre sólo como cuenta, nunca el texto (142m5): «Y N cosas que pediste en el local», sin la «Y» si es lo único.
+      document.getElementById('esperaCartelTitulo').textContent = total === 1 ? 'Ten\u00e9s 1 aviso pendiente' : 'Ten\u00e9s ' + total + ' avisos pendientes';
+      var visibles = nombres.length > 4 ? nombres.slice(0, 3) : nombres;
+      var items = visibles.map(function(n) { return '<li>' + escapeHTML(n) + '</li>'; });
+      var mas = (nombres.length > 4 ? nombres.length - 3 : 0) + sinNombre;
+      if (mas) items.push('<li>y ' + mas + ' m\u00e1s</li>');
+      if (libres) items.push('<li class="espera-cartel-libre">' + (items.length ? 'Y ' : '') + libres + (libres === 1 ? ' cosa' : ' cosas') + ' que pediste en el local</li>');
       document.getElementById('esperaCartelLista').innerHTML = items.join('');
       clearTimeout(esperaCartelReloj);
       el.classList.remove('leaving');
@@ -4750,20 +4758,29 @@
       document.body.style.overflow = '';
     }
 
-    function previewWaitlistPhone() {
+    // [ESPERA-INVITADO] 142m2 · la línea de debajo del teléfono de la hoja. Escribiendo: «Faltan N dígitos» (gris, sin formatear a medias)
+    // o «✓ +54 9 2974 12-3456» con el número completo. Con el número mal y al tocar «Avisame» (conError): la misma línea pasa a error
+    // («Faltan N dígitos: son 10, con la característica y sin el 0 ni el 15.») y el campo se marca con un borde de 2 px. NO es la función de
+    // «Unite a ST» (previewPhone, 131b): ésa no se toca.
+    function esperaAyudaTel(conError) {
       var raw = document.getElementById('waitlistPhone').value.trim();
       var el = document.getElementById('waitlistPhonePreview');
-      if (!raw || raw.replace(/[^0-9]/g, '').length < 6) { el.textContent = ''; return; }
-      var clean = cleanPhone(raw);
-      var display = formatPhoneDisplay(raw);
-      if (clean.length === 13) {
-        el.innerHTML = '<span style="color:#27ae60">\u2713 ' + display + '</span>';
-      } else if (clean.length > 13) {
-        el.innerHTML = '<span style="color:#e74c3c">' + display + ' (demasiados d\u00edgitos)</span>';
-      } else {
-        el.innerHTML = '<span style="color:var(--gris)">' + display + ' (' + (13 - clean.length) + ' d\u00edgitos faltan)</span>';
-      }
+      var wrap = document.querySelector('#waitlistOverlay .waitlist-input-wrap');
+      var FINAL = ': son 10, con la caracter\u00edstica y sin el 0 ni el 15.';
+      var digitos = raw.replace(/[^0-9]/g, '').length;
+      var clean = digitos ? cleanPhone(raw) : '';
+      var falta = digitos ? 13 - clean.length : 10;   // si es negativo, sobran
+      var bien = digitos > 0 && clean.length === 13;
+      var n = Math.abs(falta);
+      var dig = n === 1 ? ' d\u00edgito' : ' d\u00edgitos';
+      if (wrap) wrap.classList.toggle('waitlist-input-wrap--error', !!conError && !bien);
+      if (bien) { el.innerHTML = '<span class="waitlist-ayuda--ok">\u2713 ' + escapeHTML(formatPhoneDisplay(raw)) + '</span>'; return true; }
+      var texto = falta > 0 ? (n === 1 ? 'Falta ' : 'Faltan ') + n + dig : (n === 1 ? 'Sobra ' : 'Sobran ') + n + dig;
+      if (!digitos && !conError) { el.textContent = ''; return false; }
+      el.innerHTML = conError ? '<span class="waitlist-ayuda--error">' + texto + FINAL + '</span>' : '<span class="waitlist-ayuda--falta">' + texto + '</span>';
+      return false;
     }
+    function previewWaitlistPhone() { esperaAyudaTel(false); }
 
     async function submitWaitlist() {
       var slug = document.getElementById('waitlistSlug').value;
@@ -4771,7 +4788,6 @@
       // abajo quedan como defensa.
       var invitado = !currentUser;   // [ESPERA-INVITADO] sin sesión el teléfono sale del campo de la hoja
       var rawPhone = invitado ? String(document.getElementById('waitlistPhone').value || '').trim() : String((currentUser && currentUser.telefono) || '').trim();
-      var MSG_TEL_INVITADO = 'Revis\u00e1 el n\u00famero: son 10 d\u00edgitos con la caracter\u00edstica';
       var msgEl = document.getElementById('waitlistMsg');
       var btn = document.getElementById('waitlistSubmitBtn');
       msgEl.textContent = '';
@@ -4779,9 +4795,10 @@
       // (markWaitlistSlug, DOM update, race con otro fetch) NO debe pisar el "¡Listo!".
       var successShown = false;
 
+      if (invitado && !esperaAyudaTel(true)) { document.getElementById('waitlistPhone').focus(); return; }   // 142m2: el error va en la línea del teléfono y el foco vuelve al campo
       if (!rawPhone || rawPhone.replace(/[^0-9]/g, '').length < 8) {
         msgEl.className = 'waitlist-msg waitlist-msg--error';
-        msgEl.textContent = invitado ? MSG_TEL_INVITADO : 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
+        msgEl.textContent = 'Pon\u00e9 un n\u00famero de WhatsApp v\u00e1lido';
         return;
       }
       // Ya viene canónico (549 + 10 dígitos: los clientes). Hasta [TEL-15-SIN-549] cleanPhone le borraba un "15" legítimo del
@@ -4789,7 +4806,7 @@
       var phone = /^549\d{10}$/.test(rawPhone) ? rawPhone : cleanPhone(rawPhone);
       if (phone.length !== 13) {
         msgEl.className = 'waitlist-msg waitlist-msg--error';
-        msgEl.textContent = invitado ? MSG_TEL_INVITADO : 'El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)';
+        msgEl.textContent = 'El n\u00famero debe tener 10 d\u00edgitos (sin 0 ni 15)';
         return;
       }
 
@@ -4862,7 +4879,7 @@
         var btn = card.querySelector('.waitlist-btn');
         if (btn) {
           btn.classList.add('subscribed');
-          btn.innerHTML = '\u2713 ' + escapeHTML(esperaEtiquetaAvisado());
+          btn.innerHTML = esperaAvisadoHTML();
         }
       }
     }
