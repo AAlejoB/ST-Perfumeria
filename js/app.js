@@ -5578,6 +5578,52 @@
         el.className = 'wa-status ' + clase;
         el.innerHTML = '<span class="wa-status-dot"></span>';
         el.appendChild(document.createTextNode(texto));
+        waPildoraAlPintar(el, texto);   // [PILDORA-PUNTO] 144d / 144
+      }
+
+      // [PILDORA-PUNTO] 144 (DISEÑADOR, decisión B de Alejo) · sólo < 768. La píldora de WhatsApp (#waStatus) se ve ENTERA mientras el comienzo de la grilla del
+      // catálogo (#catalogGrid) todavía no llegó a su altura, y se achica a un PUNTO pegado a WhatsApp desde que llega (y en todo lo que sigue: cards, «Ver más»,
+      // «Creá tu cuenta», el pie); al volver a subir, vuelve a estar entera. El modo vive en el atributo data-punto, no en una clase: pintarWaStatus reescribe className.
+      // Se evalúa en cada scroll (con requestAnimationFrame) con el borde de arriba de la grilla contra el borde de abajo de la píldora entera (16 px arriba de la base de
+      // WhatsApp, también con «comparar» abierto). El ancho y el alto de la píldora entera se miden en un clon (--wa-w / --wa-h) para poder animar hacia los 12 px del punto.
+      var waCel = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+      function waEsCelu() { return !!(waCel && waCel.matches); }
+      function waMedirNatural(el) {
+        var c = el.cloneNode(true);
+        c.removeAttribute('id'); c.removeAttribute('data-punto'); c.removeAttribute('data-quieto'); c.removeAttribute('aria-hidden');
+        c.style.cssText = 'position:fixed;left:-9999px;top:0;right:auto;bottom:auto;visibility:hidden;width:auto;height:auto;transition:none;animation:none;';
+        document.body.appendChild(c);
+        var r = c.getBoundingClientRect();
+        document.body.removeChild(c);
+        if (r.width) el.style.setProperty('--wa-w', r.width + 'px');
+        if (r.height) el.style.setProperty('--wa-h', r.height + 'px');
+      }
+      function waPildoraActualizar() {
+        var el = document.getElementById('waStatus'), grid = document.getElementById('catalogGrid'), wa = document.querySelector('.wa-float');
+        if (!el) return;
+        var punto = false;
+        if (waEsCelu() && grid && wa) punto = grid.getBoundingClientRect().top <= wa.getBoundingClientRect().bottom - 16;
+        if (punto === el.hasAttribute('data-punto')) return;
+        if (punto) { el.setAttribute('data-punto', ''); el.setAttribute('aria-hidden', 'true'); }   // 144d: el punto no dice nada con el lector de pantalla: lo dice el aria-label de WhatsApp
+        else { el.removeAttribute('data-punto'); el.removeAttribute('aria-hidden'); }
+      }
+      var waPildoraRaf = 0;
+      function waPildoraProgramar() {
+        if (waPildoraRaf) return;
+        waPildoraRaf = requestAnimationFrame(function() { waPildoraRaf = 0; waPildoraActualizar(); });
+      }
+      window.addEventListener('scroll', waPildoraProgramar, { passive: true });
+      window.addEventListener('resize', waPildoraProgramar);
+      function waPildoraAlPintar(el, texto) {
+        // 144d: el aria-label de WhatsApp suma el estado, con el mismo texto de la píldora y desde esta misma función; no se reescribe si el texto no cambió
+        var wl = document.querySelector('.wa-float');
+        if (wl && el._waTexto !== texto) { wl.setAttribute('aria-label', 'WhatsApp · ' + texto); el._waTexto = texto; }
+        waMedirNatural(el);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function() { waMedirNatural(el); });
+        // el primer cálculo y 1,2 s más, sin transición: al recargar a mitad de página arranca en punto, sin salto
+        el.setAttribute('data-quieto', '');
+        waPildoraActualizar();
+        setTimeout(function() { el.removeAttribute('data-quieto'); }, 1200);
       }
 
       // Cargar feriados + cierres + ajuste horario en paralelo

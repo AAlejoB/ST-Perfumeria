@@ -452,6 +452,11 @@ function mezcla(hex, fondo, a) {
     var fondoChipHover = tema === 'oscuro' ? mezcla('#e8b800', barraChip, 0.20) : fondoChip;
     var xHover = efectivo(rs, '.active-filter-chip .chip-remove:hover', c.pref, 'color', c.capas);
     medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '143j · ✕ del chip activo con el mouse encima .chip-remove:hover (control, 3:1)', texto: xHover.hex[0], fondos: [fondoChipHover], minimo: 3, impone: xHover.impone, pisado: xHover.pisado });
+    // [PILDORA-PUNTO] 144: el punto de la píldora de WhatsApp (el fondo de cada estado, los de la decisión 96: iguales en los dos temas) contra su anillo blanco de 2 px; control gráfico: 3:1.
+    [['abierto', '.wa-status--open'], ['cerrado', '.wa-status--closed'], ['feriado / cierre especial', '.wa-status--special']].forEach(function (x) {
+      var bgp = efectivo(rs, x[1], c.pref, 'background', c.capas);
+      medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '144 · punto «' + x[0] + '» ' + x[1] + ' contra su anillo blanco (control, 3:1)', texto: bgp.hex[0], fondos: ['#ffffff'], minimo: 3, impone: bgp.impone, pisado: bgp.pisado });
+    });
     // El bottom-sheet tiene su propio fondo y sus propias reglas: se mide aparte.
     var bs = efectivo(rs, '.bottom-sheet', c.pref, 'background', c.capas);
     var bsCash = efectivo(rs, '.bottom-sheet .price-cash', c.pref, 'color', c.capas);
