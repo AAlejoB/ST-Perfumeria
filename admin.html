@@ -12614,7 +12614,7 @@
       var msg = document.getElementById('modalPuntosMsg');
       msg.style.color = '';
       if (faltaLeer('ranking', msg)) return;   // [GUARDAR-SIN-LEER] los puntos de la lista vieja + el ajuste pisaban los de ahora
-      if (amt === null) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Cantidad inválida'; return; }
+      if (amt === null) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Cantidad inválida: mayor que 0 y hasta un decimal (ej: 0,5).'; return; }   // [PUNTOS-ERROR-DICE-QUE] 141i · el error dice qué se acepta (sale también con 0 y -1)
       var motivoSel = document.getElementById('modalPuntosMotivo').value || 'manual_jefe';
       var nota = (document.getElementById('modalPuntosNota').value||'').trim();
       var motivoFinal = nota ? (motivoSel + ': ' + nota) : motivoSel;
