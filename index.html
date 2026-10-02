@@ -861,6 +861,12 @@
       <p class="favs-empty-title">Todav&iacute;a no ten&eacute;s favoritos</p>
       <p class="favs-empty-desc">Toc&aacute; el <span class="favs-empty-heart">&#9829;</span> en cualquier perfume para guardarlo ac&aacute;. Despu&eacute;s pod&eacute;s encontrarlos r&aacute;pido, compararlos y armar tu carrito en segundos.</p>
     </div>
+    <!-- [BUSQUEDA-SIN-RESULTADOS] 143c · con una búsqueda que no encuentra nada: en el lugar de la grilla. El texto de lo escrito se pone con textContent (escapado) desde app.js. -->
+    <div class="sin-resultados" id="sinResultados" style="display:none;" role="status" aria-live="polite">
+      <p class="sin-resultados-titulo" id="sinResultadosTitulo"></p>
+      <p class="sin-resultados-ayuda">Probá con otra palabra: el nombre, la marca o una nota (vainilla, oud…).</p>
+      <button type="button" class="sin-resultados-btn" onclick="borrarBusqueda()">BORRAR LA BÚSQUEDA</button>
+    </div>
     <div class="catalog-grid" id="catalogGrid">
       <!-- Skeleton loader: 6 cards fantasma con shimmer mientras renderCatalog corre.
            Se reemplazan automáticamente cuando JS pobla el grid. -->

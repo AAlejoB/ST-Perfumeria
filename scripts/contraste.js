@@ -436,6 +436,11 @@ function mezcla(hex, fondo, a) {
       medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: t, texto: fg.hex[0], fondos: card.hex, impone: fg.impone, pisado: fg.pisado });
     });
     medir({ superficie: 'catálogo', tema: tema, rol: 'token', nombre: '--gris', texto: resolver('var(--gris)', c.capas)[0], fondos: card.hex, extra: '154 elementos con texto visible', impone: 'token' });
+    // [BUSQUEDA-SIN-RESULTADOS] 143c: el título (--blanco, el texto principal), la ayuda (--gris) y el botón (--amarillo-tinta: la letra y el contorno de 1 px; el contorno pide 3:1) sobre el fondo de la página (--negro)
+    var paginaPub = resolver('var(--negro)', c.capas)[0];
+    [['143c · «No encontramos…» .sin-resultados-titulo (--blanco)', '--blanco'], ['143c · la ayuda .sin-resultados-ayuda (--gris)', '--gris'], ['143c · «BORRAR LA BÚSQUEDA» .sin-resultados-btn (--amarillo-tinta): letra y contorno', '--amarillo-tinta']].forEach(function (x) {
+      medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: x[0], texto: resolver('var(' + x[1] + ')', c.capas)[0], fondos: [paginaPub], impone: 'css/styles.css · .sin-resultados-*' });
+    });
     // El bottom-sheet tiene su propio fondo y sus propias reglas: se mide aparte.
     var bs = efectivo(rs, '.bottom-sheet', c.pref, 'background', c.capas);
     var bsCash = efectivo(rs, '.bottom-sheet .price-cash', c.pref, 'color', c.capas);

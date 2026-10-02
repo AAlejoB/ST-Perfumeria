@@ -3737,7 +3737,8 @@
         if (_grid) { void _grid.offsetWidth; }
         _cardsToReAnimate.forEach(function(c) { c.classList.add('filter-entering'); });
       }
-      var label = currentFilter === 'favs' ? totalMatch + ' favoritos' : totalMatch + ' fragancias';
+      // [FRAGANCIAS-SINGULAR] 143d · «1 fragancia» (y «1 favorito»); con 0 y con 2 o más, en plural
+      var label = currentFilter === 'favs' ? totalMatch + (totalMatch === 1 ? ' favorito' : ' favoritos') : totalMatch + (totalMatch === 1 ? ' fragancia' : ' fragancias');
       document.getElementById('filterCount').textContent = label;
       // Re-observar cards recién visibles (load more / cambio de filtro)
       // para que tengan fade-in también, no aparezcan abruptas.
@@ -3754,6 +3755,20 @@
         if (favsEmpty) favsEmpty.style.display = 'none';
         if (gridEl) gridEl.style.display = '';
         if (loadWrap) loadWrap.style.display = '';
+      }
+      // [BUSQUEDA-SIN-RESULTADOS] 143c · 0 resultados con algo escrito en el buscador: en el lugar de la grilla, «No encontramos «…»» + una ayuda + un botón que hace lo mismo
+      // que la ✕ del chip «Búsqueda» (deja los otros filtros). Lo escrito va con textContent (escapado). Favoritos tiene su propio estado vacío.
+      var sinRes = document.getElementById('sinResultados');
+      if (sinRes) {
+        var hayAlgoEscrito = !!currentSearch;
+        var mostrarSinRes = totalMatch === 0 && currentFilter !== 'favs' && hayAlgoEscrito;
+        sinRes.style.display = mostrarSinRes ? 'block' : 'none';
+        if (mostrarSinRes) {
+          var escrito = (document.getElementById('searchInput').value || '').trim() || currentSearch;
+          document.getElementById('sinResultadosTitulo').textContent = 'No encontramos «' + escrito + '»';
+          if (gridEl) gridEl.style.display = 'none';
+          if (loadWrap) loadWrap.style.display = 'none';
+        }
       }
       // Layout especial cuando hay 1-2 cards visibles (sino se ve roto en desktop:
       // la card sola queda en la columna izq con mucho espacio vacío al lado).
@@ -3888,14 +3903,17 @@
         var chip = document.createElement('span');
         chip.className = 'active-filter-chip';
         chip.innerHTML = '<span class="chip-label">' + escapeHTML(item.label) + '</span> '   // [XSS-URL-FILTROS] la búsqueda y la categoría llegan por la URL
-          + escapeHTML(item.value)
-          + ' <button class="chip-remove" data-filter="' + item.remove + '">&times;</button>';
+          + '<span class="chip-value">' + escapeHTML(item.value) + '</span>'   // [CHIP-BUSQUEDA-LARGA] 143f · en su <span> para cortarlo con «…»
+          + ' <button class="chip-remove" data-filter="' + item.remove + '" aria-label="Quitar ' + escapeHTML(item.label) + '">&times;</button>';
         chip.querySelector('.chip-remove').addEventListener('click', function() {
           removeFilter(item.remove);
         });
         chips.appendChild(chip);
       });
     }
+
+    // [BUSQUEDA-SIN-RESULTADOS] 143c · el botón «BORRAR LA BÚSQUEDA»: lo mismo que la ✕ del chip «Búsqueda» (deja los otros filtros)
+    function borrarBusqueda() { removeFilter('search'); }
 
     function removeFilter(type) {
       if (type === 'cat') {
@@ -4095,7 +4113,7 @@
       cards.forEach(card => {
         if (matchesCat(card.dataset.cat, cat)) visible++;
       });
-      document.getElementById('filterCount').textContent = visible + ' fragancias';
+      document.getElementById('filterCount').textContent = visible + (visible === 1 ? ' fragancia' : ' fragancias');   // 143d
     }
 
     function applyFilter(cat) {
@@ -4284,6 +4302,10 @@
       matches = matches.slice(0, 5);
 
       if (matches.length === 0) {
+        // [SIN-RESULTADOS-UNA-VEZ] 143e · sin sugerencias el desplegable NO se abre (antes mostraba «No se encontraron resultados» y a la vez el bloque
+        // «No encontramos…» de 143c: dos avisos para lo mismo). El único aviso es el bloque de la grilla.
+        hideSearchSuggestions();
+        return;
         box.innerHTML = '<div class="search-sug-empty">No se encontraron resultados</div>';
         box.classList.add('active');
         sugActiveIndex = -1;
@@ -4341,6 +4363,16 @@
       sugActiveIndex = -1;
     }
 
+    // [BUSQUEDA-143] bajar hasta una card (o la grilla) con el cálculo de siempre: se frena en el scroll-margin-top del DESTINO (lo define el CSS: 243 en el celu,
+    // 115 en la compu) y es instantáneo (behavior:'instant' EXPLÍCITO: la forma corta heredaba el smooth del <html>). Lo usan selectSuggestion y el Enter del buscador.
+    function bajarACard(destino) {
+      var pad = parseFloat(window.getComputedStyle(destino).scrollMarginTop) || 0;
+      window.scrollTo({
+        top: destino.getBoundingClientRect().top + window.pageYOffset - pad,
+        behavior: 'instant'
+      });
+    }
+
     // selectSuggestion: al hacer clic en una sugerencia
     function selectSuggestion(slug) {
       hideSearchSuggestions();
@@ -4373,15 +4405,13 @@
         // del <html>, que también frenaba 240 px cualquier salto a una sección.
         var card = document.querySelector('.product-card[data-slug="' + slug + '"]');
         var destino = card || document.getElementById('catalogGrid');
-        var pad = parseFloat(window.getComputedStyle(destino).scrollMarginTop) || 0;
-        // behavior:'instant' EXPLÍCITO. La forma corta scrollTo(x, y) hereda
-        // el scroll-behavior:smooth del <html>, así que el "scroll instantáneo"
-        // que prometía el comentario original nunca lo fue: animaba ~1s desde
-        // arriba de todo. Acá no queremos animación, queremos aparecer.
-        window.scrollTo({
-          top: destino.getBoundingClientRect().top + window.pageYOffset - pad,
-          behavior: 'instant'
-        });
+        // behavior:'instant' EXPLÍCITO (ver bajarACard). Acá no queremos animación, queremos aparecer.
+        bajarACard(destino);
+
+        // [BUSQUEDA-143] 143a · después de bajar a la card, se abre la ficha de ese perfume (en el celu, la hoja de abajo; en la compu, el panel
+        // lateral: el mismo openBottomSheet de tocar una card). Lo de antes (el scroll, el brillo y cerrar el teclado) no cambia; al cerrar la
+        // ficha la card queda a la vista y la búsqueda sigue filtrada.
+        openBottomSheet(slug);
 
         // 4) Highlight la card
         setTimeout(function() {
@@ -4404,8 +4434,20 @@
       // había forma de cerrarlo salvo tocar en un hueco de la página.
       if (e.key === 'Enter' && sugActiveIndex < 0) {
         e.preventDefault();
+        var escrito = stripAccents(String(this.value || '').trim().toLowerCase());
+        // [BUSQUEDA-143] el filtro se aplica con 120 ms de retraso (debouncedSearch): si se aprieta Enter antes, se aplica ya, así no queda pendiente
+        // (y no vuelve a abrir las sugerencias después de cerrarlas).
+        if (_searchTimer) { clearTimeout(_searchTimer); _searchTimer = null; applySearch(this.value); }
         hideSearchSuggestions();
         this.blur();
+        // [BUSQUEDA-143] 143b · si hay algo escrito y al menos un resultado, se baja al primero (el mismo cálculo que selectSuggestion, instantáneo y
+        // después de que se cierre el teclado). Sin resultados, o con el buscador vacío, no se mueve.
+        if (escrito) {
+          setTimeout(function() {
+            var primera = Array.prototype.slice.call(document.querySelectorAll('#catalogGrid .product-card')).filter(function(c) { return c.style.display !== 'none'; })[0];
+            if (primera) bajarACard(primera);
+          }, 500);
+        }
         return;
       }
       if (items.length === 0) return;
