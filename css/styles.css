@@ -3358,6 +3358,7 @@
       gap: .4rem;
       flex-wrap: wrap;
       flex: 1;
+      min-width: 0;   /* [CHIP-BUSQUEDA-LARGA] 143f · que la fila se pueda achicar: un chip largo no la ensancha */
     }
     .active-filter-chip {
       display: inline-flex;
@@ -3378,6 +3379,13 @@
       background: rgba(232,184,0,.2);
       border-color: var(--amarillo);
     }
+    /* [CHIP-BUSQUEDA-LARGA] 143f (DISEÑADOR) · el chip nunca es más ancho que la fila: el texto va en UNA línea con «…» al final y la ✕ queda siempre
+       entera y tocable (el área de toque de 44 px sale del ::after, sin agrandar el chip). */
+    .active-filter-chip { max-width: 100%; min-width: 0; }
+    .active-filter-chip .chip-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .active-filter-chip .chip-label { flex-shrink: 0; }
+    .active-filter-chip .chip-remove { flex-shrink: 0; position: relative; }
+    .active-filter-chip .chip-remove::after { content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
     .active-filter-chip .chip-label {
       color: var(--amarillo);
       font-weight: 700;

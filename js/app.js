@@ -3903,8 +3903,8 @@
         var chip = document.createElement('span');
         chip.className = 'active-filter-chip';
         chip.innerHTML = '<span class="chip-label">' + escapeHTML(item.label) + '</span> '   // [XSS-URL-FILTROS] la búsqueda y la categoría llegan por la URL
-          + escapeHTML(item.value)
-          + ' <button class="chip-remove" data-filter="' + item.remove + '">&times;</button>';
+          + '<span class="chip-value">' + escapeHTML(item.value) + '</span>'   // [CHIP-BUSQUEDA-LARGA] 143f · en su <span> para cortarlo con «…»
+          + ' <button class="chip-remove" data-filter="' + item.remove + '" aria-label="Quitar ' + escapeHTML(item.label) + '">&times;</button>';
         chip.querySelector('.chip-remove').addEventListener('click', function() {
           removeFilter(item.remove);
         });
@@ -4302,6 +4302,10 @@
       matches = matches.slice(0, 5);
 
       if (matches.length === 0) {
+        // [SIN-RESULTADOS-UNA-VEZ] 143e · sin sugerencias el desplegable NO se abre (antes mostraba «No se encontraron resultados» y a la vez el bloque
+        // «No encontramos…» de 143c: dos avisos para lo mismo). El único aviso es el bloque de la grilla.
+        hideSearchSuggestions();
+        return;
         box.innerHTML = '<div class="search-sug-empty">No se encontraron resultados</div>';
         box.classList.add('active');
         sugActiveIndex = -1;
