@@ -3404,8 +3404,11 @@
       line-height: 1;
       transition: color .15s;
     }
-    .active-filter-chip .chip-remove:hover {
-      color: #e74c3c;
+    /* [CHIP-X-HOVER] 143j (DISEÑADOR) · el rojo del hover de la ✕ del chip: sólo con mouse (en el celu el :hover se quedaba pegado después del toque) y con la tinta de error de cada tema (--tinta-error: #ff8a80 en oscuro, #b8342a en claro) en vez del #e74c3c, que daba 3,16:1 en claro y 3,27:1 en oscuro. */
+    @media (hover: hover) {
+      .active-filter-chip .chip-remove:hover {
+        color: var(--tinta-error);
+      }
     }
     .active-filters-clear {
       background: none;
@@ -8520,7 +8523,7 @@
     body:not(.dark-mode) .active-filter-chip .chip-label { color: var(--amarillo-tinta); }
     /* [CHIP-X-CLARO] 143i (DISEÑADOR) · la ✕ del chip activo en claro: #888 daba 2,93:1 sobre el chip; --gris (#5e564a, el texto secundario de claro) pasa de 3:1 (no es texto: 1.4.11). Sin cambio de tamaño ni de área de toque; el hover sigue en rojo. «Limpiar todo» no usa #888 (en claro es #1a1a1d !important) y no se toca. */
     body:not(.dark-mode) .active-filter-chip .chip-remove { color: var(--gris); }
-    body:not(.dark-mode) .active-filter-chip .chip-remove:hover { color: #e74c3c; }
+    @media (hover: hover) { body:not(.dark-mode) .active-filter-chip .chip-remove:hover { color: var(--tinta-error); } }   /* [CHIP-X-HOVER] 143j · la regla de claro de arriba le ganaba al hover base: se repite adentro del mismo @media */
     body:not(.dark-mode) .active-filters-clear {
       background: #ffffff !important;
       color: #1a1a1d !important;

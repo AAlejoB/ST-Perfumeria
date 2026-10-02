@@ -448,6 +448,10 @@ function mezcla(hex, fondo, a) {
     // [CHIP-X-CLARO] 143i: la ✕ del chip activo (.chip-remove) sobre el chip; no es texto sino un control gráfico: pide 3:1 (WCAG 1.4.11).
     var xChip = efectivo(rs, '.active-filter-chip .chip-remove', c.pref, 'color', c.capas);
     medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '143i · ✕ del chip activo .chip-remove (control, 3:1)', texto: xChip.hex[0], fondos: [fondoChip], minimo: 3, impone: xChip.impone, pisado: xChip.pisado });
+    // [CHIP-X-HOVER] 143j: el rojo del hover de la ✕ (--tinta-error) sobre el chip con el mouse encima (oscuro: el chip pasa a 20 % de amarillo; claro: el 15 % de !important no cambia); control gráfico: 3:1.
+    var fondoChipHover = tema === 'oscuro' ? mezcla('#e8b800', barraChip, 0.20) : fondoChip;
+    var xHover = efectivo(rs, '.active-filter-chip .chip-remove:hover', c.pref, 'color', c.capas);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '143j · ✕ del chip activo con el mouse encima .chip-remove:hover (control, 3:1)', texto: xHover.hex[0], fondos: [fondoChipHover], minimo: 3, impone: xHover.impone, pisado: xHover.pisado });
     // El bottom-sheet tiene su propio fondo y sus propias reglas: se mide aparte.
     var bs = efectivo(rs, '.bottom-sheet', c.pref, 'background', c.capas);
     var bsCash = efectivo(rs, '.bottom-sheet .price-cash', c.pref, 'color', c.capas);
