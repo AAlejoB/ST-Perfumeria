@@ -1636,6 +1636,19 @@
     }
     body.light input::placeholder,
     body.light textarea::placeholder { color: #999 !important; }
+    /* [FOCO-CLARO] (ex 141h) · el campo con FOCO en claro: borde en --amarillo-tinta (#6b5500: 7,18 sobre blanco). La regla de arriba (reposo, !important) taparía el
+       :focus de .admin-search / .modal-input / etc. (`var(--amarillo)`, que en oscuro sí se ve): ésta le gana por especificidad. El grosor no cambia (sólo el color) y el
+       oscuro tampoco. Quedan afuera: .dc-precio (su borde rojo por «precio vacío» es un estado y le gana al foco; ya tiene su propio :focus) y #esperaTel (el campo es el
+       input de dentro; el borde lo pone su contenedor .espera-tel). El teléfono de «Nuevo cliente» (type="tel") entra: no marcaba el foco. */
+    body.light input[type="text"]:not(.dc-precio):focus,
+    body.light input[type="number"]:not(.dc-precio):focus,
+    body.light input[type="email"]:not(.dc-precio):focus,
+    body.light input[type="date"]:not(.dc-precio):focus,
+    body.light input[type="datetime-local"]:not(.dc-precio):focus,
+    body.light input[type="url"]:not(.dc-precio):focus,
+    body.light input[type="tel"]:not(#esperaTel):focus,
+    body.light textarea:focus,
+    body.light select:focus { border-color: var(--amarillo-tinta) !important; }
 
     /* Modales */
     body.light .modal-box { background: #fff; color: #1a1a1a; border-color: #d6d1c3; }
