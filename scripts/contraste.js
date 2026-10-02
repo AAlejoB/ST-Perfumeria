@@ -441,6 +441,10 @@ function mezcla(hex, fondo, a) {
     [['143c · «No encontramos…» .sin-resultados-titulo (--blanco)', '--blanco'], ['143c · la ayuda .sin-resultados-ayuda (--gris)', '--gris'], ['143c · «BORRAR LA BÚSQUEDA» .sin-resultados-btn (--amarillo-tinta): letra y contorno', '--amarillo-tinta']].forEach(function (x) {
       medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: x[0], texto: resolver('var(' + x[1] + ')', c.capas)[0], fondos: [paginaPub], impone: 'css/styles.css · .sin-resultados-*' });
     });
+    // [CHIP-ETIQUETA-CLARO] 143h: «BÚSQUEDA», «NOTA»… del chip activo (.chip-label) sobre el chip: el chip es un amarillo translúcido (12 % en oscuro, 15 % con !important en claro) sobre la barra de filtros (6 % en oscuro, 10 % en claro: peor caso) sobre el fondo de la página.
+    var barraChip = mezcla('#e8b800', paginaPub, tema === 'oscuro' ? 0.06 : 0.10), fondoChip = mezcla('#e8b800', barraChip, tema === 'oscuro' ? 0.12 : 0.15);
+    var etChip = efectivo(rs, '.active-filter-chip .chip-label', c.pref, 'color', c.capas);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '143h · etiqueta del chip activo .chip-label («Búsqueda», «Nota»…)', texto: etChip.hex[0], fondos: [fondoChip], impone: etChip.impone, pisado: etChip.pisado });
     // El bottom-sheet tiene su propio fondo y sus propias reglas: se mide aparte.
     var bs = efectivo(rs, '.bottom-sheet', c.pref, 'background', c.capas);
     var bsCash = efectivo(rs, '.bottom-sheet .price-cash', c.pref, 'color', c.capas);

@@ -1351,7 +1351,7 @@
        pellizcar para salir. En desktop volvemos a .8rem (allá no hay zoom). */
     .search-input {
       width: 100%;
-      padding: .5rem .5rem .5rem 34px;
+      padding: .5rem 35px .5rem 34px;   /* [BUSCADOR-TEXTO-BAJO-X] 143g · derecha = área de la ✕ de escritorio (18,3 + 8 de margen = 26,3) + 8 px, redondeado hacia arriba */
       font-family: var(--font-body);
       font-size: 16px;
       color: #fff;
@@ -3288,7 +3288,8 @@
       /* ── Buscar con la lupita, cómodo ──
          44px es el mínimo que Apple y Google recomiendan para algo que se
          toca con el dedo. El input medía ~34px: se erraba seguido. */
-      .search-input { padding: .72rem .5rem .72rem 38px; }
+      /* [BUSCADOR-TEXTO-BAJO-X] 143g (DISEÑADOR) · a la derecha se reserva el área de la ✕ (38 + 2 de borde = 40 px) + 8 px: 48. El texto largo ya no corre por debajo de la ✕ y ella no se mueve. */
+      .search-input { padding: .72rem 48px .72rem 38px; }
       .search-icon { left: 12px; width: 18px; height: 18px; }
       .search-clear.visible {
         display: flex;
@@ -8515,6 +8516,8 @@
       background: rgba(232,184,0,.15) !important;
       border-color: rgba(120,90,0,.3) !important;
     }
+    /* [CHIP-ETIQUETA-CLARO] 143h (DISEÑADOR) · «BÚSQUEDA», «NOTA»… del chip activo en claro: #E8B800 sobre el chip (#f4eabf) daba 1,54:1; con la tinta dorada de texto pasa de 4,5. */
+    body:not(.dark-mode) .active-filter-chip .chip-label { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .active-filters-clear {
       background: #ffffff !important;
       color: #1a1a1d !important;
