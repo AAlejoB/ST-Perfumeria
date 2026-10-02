@@ -4393,6 +4393,10 @@ Del prompt `_aw` del PREPARADOR, sobre `main` = `d82054f`. Primer commit: sólo 
 
 `npm run contraste`: 0 fallas, 463 mediciones (filas nuevas: 138e tachado 5,89 / 8,27 y borde 5,32 / 8,67; 141d seis filas por tema, el peor 5,07; 142k `.badge-out` 5,89).
 
+## Sesión 2-oct-2026 · `_ax` — tanda `puntos-coma` (rama `puntos-coma`, v1.1.165, sin mergear)
+
+Del prompt `_ax` del PREPARADOR (con el OK a `chicos-panel` `184431b` y la decisión de endurecer la coma). La rama sale de `184431b` (punta de `chicos-panel`, que todavía no se mergeó: no hizo falta reconciliar `CLAUDE.md`). **141g:** `#modalPuntosCantidad` `type="text" inputmode="decimal"`; `parseCantidadPuntos` (recorta; una sola coma o punto; sólo dígitos; máximo un decimal; mayor que 0). **Tabla medida con teclas reales (CDP) en `--lang=es-AR` y `--lang=en-US`, idéntica en los dos:** «0,5» → queda «0,5», se suma 0,5 · «0.5» → 0,5 · «1» → 1 · «5» → 5 · «0» → inválido · «-1» → inválido · «0,55» → inválido (más de un decimal) · «1,5,2» → inválido · «abc» → inválido · vacío → inválido. «Confirmar» con «0,55» dice «Cantidad inválida» y hace 0 pedidos a `clientes`. **141f:** Sumar y Restar a 44 px (`min-height: var(--tap-min)`) en los tres estados, claro y oscuro (antes 33); Cantidad baja 8 px en pantalla (376,5 → 384,5). **142m7 no se hizo:** vive en `js/app.js` (`mostrarCartelEspera`, ~4676-4677), la web pública. `sw.js` v1.1.165.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
