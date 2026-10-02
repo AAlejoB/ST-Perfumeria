@@ -824,10 +824,19 @@
        en oscuro y la roja de tinta en claro. El fondo rojizo y el borde no cambian en oscuro. */
     .btn-quitar-espera { background: rgba(231,76,60,.15); color: #ff8a80; border: 1px solid rgba(231,76,60,.3); }
     body.light .btn-quitar-espera { background: rgba(184,52,42,.08); color: var(--stat-tinta-out); border-color: rgba(184,52,42,.35); }
-    .btn-modo-sumar { background: #0a0a0c; color: #9bd28b; font-weight: 700; border: 1px solid var(--borde); }
-    .btn-modo-sumar.activo { background: #1a4a1a; border-color: #9bd28b; }
-    .btn-modo-restar { background: #0a0a0c; color: #ff9b9b; font-weight: 700; border: 1px solid var(--borde); }
-    .btn-modo-restar.activo { background: #4a1a1a; border-color: #ff9b9b; }
+    /* [PUNTOS-MODO-CLARO] 141d · «+ Sumar» / «− Restar» de «Ajustar puntos»: un selector de dos por tokens, igual en los dos temas (eran #0a0a0c con letra
+       clara: en claro, dos cajas negras). No elegido: --superficie + borde --borde + la letra del rol en 700 (Sumar --tinta-ok, Restar --tinta-error).
+       Elegido: borde de 2 px del rol y fondo al 10 % del rol; el padding baja 1 px para que no salte nada. */
+    .btn-modo-sumar, .btn-modo-restar { background: var(--superficie); font-weight: 700; border: 1px solid var(--borde); padding: .5rem; }
+    .btn-modo-sumar { color: var(--tinta-ok); }
+    .btn-modo-restar { color: var(--tinta-error); }
+    .btn-modo-sumar.activo, .btn-modo-restar.activo { border-width: 2px; padding: calc(.5rem - 1px); }
+    .btn-modo-sumar.activo { border-color: var(--tinta-ok); background: rgba(46,204,113,.10); }
+    .btn-modo-restar.activo { border-color: var(--tinta-error); background: rgba(255,138,128,.10); }
+    body.light .btn-modo-sumar.activo { background: rgba(30,91,58,.10); }
+    body.light .btn-modo-restar.activo { background: rgba(184,52,42,.10); }
+    /* [PUNTOS-CAMPOS] 141e · el panel envuelve cada campo de texto en .admin-search-wrap (un inline-flex que se achica al contenido): en «Ajustar puntos» la nota quedaba más angosta que los demás */
+    #modalPuntos .admin-search-wrap { display: flex; width: 100%; }
     body.light .btn-reavisar { background: rgba(0,0,0,.05); color: #333; }
     /* [GUARDAR-ABAJO] 128 · la barra fija de «Guardar» (decisión del DISEÑADOR, aprobada por Alejo): se pega abajo de la
        pantalla mientras se recorre el formulario y, al llegar al final, se apoya en su lugar. Los botones son los de antes
@@ -893,8 +902,11 @@
     .espera-sub { font-size: .62rem; color: var(--gris); }
     .tel-fin { white-space: nowrap; }   /* 141 [TEL-SIN-CORTE]: el tramo final del teléfono (telHtml) no se parte en el guion */
     .espera-tel-num, .espera-avisado { white-space: nowrap; }   /* 129c / 129d: el número y «Avisado dd/mm hh:mm» no se parten; la línea sí, en los «·» */
+    /* [CHIP-LOCAL-CORRIDO] 142j · el hueco antes del chip era un margin-left (.35rem): al bajar de renglón arrancaba 5-6 px a la derecha del nombre y del teléfono.
+       Ahora es un espacio de verdad (.espera-sep): en línea queda el mismo hueco y, al bajar, el chip queda alineado con el nombre. */
+    .espera-sep { word-spacing: .2rem; }
     .espera-tag-local {
-      display: inline-block; margin-left: .35rem; padding: 0 .4rem; font-size: .58rem; font-weight: 700;
+      display: inline-block; padding: 0 .4rem; font-size: .58rem; font-weight: 700;
       border: 1px solid var(--borde); border-radius: var(--r-full); white-space: nowrap; vertical-align: 1px;
     }
     .espera-acciones { display: flex; gap: .3rem; flex-shrink: 0; }
@@ -1037,11 +1049,17 @@
       padding: 1rem 1.2rem; margin-bottom: .6rem; transition: border-color .2s;
     }
     .combo-card:hover { border-color: rgba(232,184,0,.3); }
+    /* [COMBO-ROTO-BORDE] 138e · la card de un combo con un perfume eliminado: borde de 2 px y el tachado en --tinta-error, igual en los dos temas, por clase.
+       En claro `body.light .combo-card` pone el borde con !important: la regla de la rota va con más especificidad y también !important. */
+    .combo-card--rota, .combo-card--rota:hover { border: 2px solid var(--tinta-error); }
+    body.light .combo-card.combo-card--rota { border-color: var(--tinta-error) !important; }
+    .combo-items-list li.combo-item-roto, body.light .combo-items-list li.combo-item-roto { color: var(--tinta-error); text-decoration: line-through; }
+    .combo-item-eliminado { font-weight: 700; font-size: .55rem; }   /* hereda el color y el tachado de su li */
     .combo-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
     .combo-name { font-size: .9rem; font-weight: 700; color: #fff; }
     .combo-badge {
       font-size: .55rem; font-weight: 700; padding: .2rem .5rem; border-radius: 3px;
-      text-transform: uppercase; letter-spacing: .06em; margin-left: .4rem;
+      text-transform: uppercase; letter-spacing: .06em;
       white-space: nowrap;   /* 138d: una etiqueta no se parte (con MINI + ROTO + «⏸ PAUSADO» a 390, el «⏸» quedaba solo en el renglón de arriba) */
     }
     .combo-badge-pack { background: var(--amarillo); color: #000; }
@@ -1049,12 +1067,17 @@
     /* [COMBO-REGALO-ROJO] 138c · REGALO y ROTO en el rojo de fondo con letra blanca (--rojo-fondo #b8342a: 5,89 en los dos temas; era #e74c3c: 3,82).
        ROTO era una etiqueta con estilo inline (color:#fff): el parche body.light [style*="color:#fff"] le ponía letra #1a1a1a; ahora es una clase. */
     .combo-badge-regalo { background: var(--rojo-fondo); color: #fff; }
-    .combo-badge-roto { background: var(--rojo-fondo); color: #fff; margin-left: .3rem; }
+    .combo-badge-roto { background: var(--rojo-fondo); color: #fff; }
     /* [COMBO-PAUSADO] 138d · la letra la decide el fondo (94): Pausar (#95a5a6) y Activar (#2ecc71) con #1a1a1a (6,80 / 8,28) en los dos temas, por clase
        (inline daba blanco: 2,56 y 2,10 en oscuro). La tarjeta pausada va sin opacity y «⏸ PAUSADO» es una etiqueta como MINI o PACK (#95a5a6 + #000: 8,21). */
     .client-btn-pausar { background: #95a5a6; color: #1a1a1a; }
     .client-btn-activar { background: #2ecc71; color: #1a1a1a; }
-    .combo-badge-pausado { background: #95a5a6; color: #000; margin-left: .3rem; }
+    .combo-badge-pausado { background: #95a5a6; color: #000; }
+    /* [ETIQUETA-AL-BAJAR] 142e · el hueco entre el nombre y las etiquetas (y entre ellas) era un margin-left: la que bajaba de renglón arrancaba 6 px adentro del texto.
+       Ahora es un ESPACIO de verdad (.combo-sep), que se come al principio del renglón: la que baja queda pegada al borde (0 px); en línea, el hueco es el de antes. */
+    .combo-sep { word-spacing: .4rem; }
+    .combo-sep--roto { word-spacing: .09rem; }      /* los huecos en línea quedan como eran: nombre→etiqueta 10 px, MINI→ROTO 4,8, ROTO→PAUSADO ≈ 8 */
+    .combo-sep--pausado { word-spacing: .3rem; }
     .combo-items-list { font-size: .7rem; color: var(--gris-claro); margin-top: .4rem; padding-left: 1.2rem; }
     .combo-items-list li { margin-bottom: .15rem; }
     .combo-pricing { margin-top: .4rem; font-size: .8rem; }
@@ -3748,12 +3771,12 @@
       <p id="modalPuntosActual" style="text-align:center;font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;"></p>
 
       <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
-        <button type="button" class="action-btn btn-modo-sumar activo" id="modalPuntosTabSumar" onclick="setPuntosModalMode('sumar')" style="flex:1;padding:.5rem;">＋ Sumar</button>
-        <button type="button" class="action-btn btn-modo-restar" id="modalPuntosTabRestar" onclick="setPuntosModalMode('restar')" style="flex:1;padding:.5rem;">− Restar</button>
+        <button type="button" class="action-btn btn-modo-sumar activo" id="modalPuntosTabSumar" onclick="setPuntosModalMode('sumar')" style="flex:1;">＋ Sumar</button>
+        <button type="button" class="action-btn btn-modo-restar" id="modalPuntosTabRestar" onclick="setPuntosModalMode('restar')" style="flex:1;">− Restar</button>
       </div>
 
       <label class="modal-label">Cantidad</label>
-      <input type="number" step="0.1" min="0" class="modal-input" id="modalPuntosCantidad" placeholder="Ej: 1, 2, 0.5"/>
+      <input type="number" step="0.1" min="0" class="modal-input" id="modalPuntosCantidad" placeholder="Ej: 1 · 2 · 0,5"/>
 
       <label class="modal-label">Motivo</label>
       <select class="modal-input" id="modalPuntosMotivo">
@@ -3764,7 +3787,8 @@
         <option value="otro">Otro</option>
       </select>
 
-      <input type="text" class="modal-input" id="modalPuntosNota" placeholder="Nota libre (opcional)" style="margin-top:.5rem;"/>
+      <label class="modal-label">Nota (opcional)</label>
+      <input type="text" class="modal-input" id="modalPuntosNota" placeholder="Nota libre (opcional)"/>
 
       <button class="modal-btn modal-btn-price" id="modalPuntosBtn" onclick="confirmPuntosModal()">✓ Confirmar</button>
       <p class="modal-success" id="modalPuntosMsg"></p>
@@ -4832,6 +4856,8 @@
       var q = (typeof p._stockQty === 'number') ? p._stockQty : null;
 
       if (q !== null) {
+        // [ETIQUETA-QUE-MIENTE] 142k · una cantidad NEGATIVA es un dato mal cargado: va en el rojo de «Sin stock» y conserva el número («-1 u.»). El estado no cambia.
+        if (q < 0)    return { badgeClass: 'badge-out',  badgeText: q + ' u.',         status: 'ok',  qty: q };
         if (q === 0)  return { badgeClass: 'badge-out',  badgeText: 'Sin stock',        status: 'out', qty: 0 };
         if (q === 1)  return { badgeClass: 'badge-last', badgeText: '1 u. (Último)',    status: 'low', qty: 1 };
         if (q === 2)  return { badgeClass: 'badge-low', badgeText: '2 u.',             status: 'ok',  qty: 2 };
@@ -4839,6 +4865,9 @@
         return           { badgeClass: 'badge-ok',  badgeText: q + ' u.',              status: 'ok',  qty: q };
       }
 
+      // [ETIQUETA-QUE-MIENTE] 142k · ni cantidad ni estado (un perfume sin fila de stock): «SIN DATO» en el mismo rojo, en vez de «En stock». Sólo la etiqueta:
+      // el estado que devuelve sigue siendo 'ok' (el orden y las cuentas no cambian).
+      if (!p._stockStatus) return { badgeClass: 'badge-out', badgeText: 'SIN DATO', status: 'ok', qty: null };
       // Legacy: sin cantidad cargada todavía. Mostramos solo el estado.
       var s = p._stockStatus || 'ok';
       if (s === 'low') return { badgeClass: 'badge-last', badgeText: 'Último',   status: 'low', qty: null };
@@ -8820,13 +8849,13 @@
           var mlText = item.ml ? ' (' + item.ml + 'ml)' : '';
           var isBroken = !!(ref && ref._oculto);
           if (isBroken) brokenItems.push(nombre);
-          var itemStyle = isBroken ? ' style="color:#e74c3c;text-decoration:line-through;"' : '';
-          var itemSuffix = isBroken ? ' <span style="color:#e74c3c;font-weight:700;font-size:.55rem;">(ELIMINADO)</span>' : '';
-          listHTML += '<li' + itemStyle + '>' + escHtml(nombre) + escHtml(mlText) + itemSuffix + '</li>';   // [S10-TER-XSS-COMBOS]
+          var itemClase = isBroken ? ' class="combo-item-roto"' : '';   // 138e · por clase, no inline (el parche de claro lo pisaba)
+          var itemSuffix = isBroken ? ' <span class="combo-item-eliminado">(ELIMINADO)</span>' : '';
+          listHTML += '<li' + itemClase + '>' + escHtml(nombre) + escHtml(mlText) + itemSuffix + '</li>';   // [S10-TER-XSS-COMBOS]
         });
         var isBroken = brokenItems.length > 0;
         var brokenBadge = isBroken
-          ? '<span class="combo-badge combo-badge-roto">⚠️ ROTO</span>'
+          ? '<span class="combo-sep combo-sep--roto"> </span><span class="combo-badge combo-badge-roto">⚠️ ROTO</span>'
           : '';
         var brokenWarning = isBroken
           ? '<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(231,76,60,.1);border-left:3px solid var(--tinta-error);border-radius:3px;font-size:.6rem;color:var(--tinta-error);font-weight:600;">'
@@ -8841,12 +8870,11 @@
         var pauseBtn = isPaused
           ? '<button class="client-btn client-btn-activar" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">▶ Activar</button>'
           : '<button class="client-btn client-btn-pausar" onclick="toggleComboStock(' + escHtml(JSON.stringify(String(s.slug))) + ')">⏸ Pausar</button>';
-        var pausedLabel = isPaused ? ' <span class="combo-badge combo-badge-pausado">⏸ PAUSADO</span>' : '';
+        var pausedLabel = isPaused ? '<span class="combo-sep combo-sep--pausado"> </span><span class="combo-badge combo-badge-pausado">⏸ PAUSADO</span>' : '';
 
-        var cardBorder = isBroken ? 'border:2px solid #e74c3c;' : '';
-        html += '<div class="combo-card" style="' + cardBorder + '">'
+        html += '<div class="combo-card' + (isBroken ? ' combo-card--rota' : '') + '">'   // 138e · el borde de 2 px va por clase: inline, en claro lo pisaba la regla de body.light (!important)
           + '<div class="combo-top">'
-            + '<span class="combo-name">' + escHtml(s.name || '') + ' <span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + brokenBadge + pausedLabel + '</span>'
+            + '<span class="combo-name">' + escHtml(s.name || '') + '<span class="combo-sep"> </span><span class="combo-badge ' + badgeClass + '">' + badgeText + '</span>' + brokenBadge + pausedLabel + '</span>'
             + '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(s.cat || '') + '</span>'
           + '</div>'
           + '<ul class="combo-items-list">' + listHTML + '</ul>'
@@ -10305,7 +10333,7 @@
             subLine += ' \u00b7 <span class="espera-avisado">Avisado ' + fn.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + fn.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) + '</span>';   // 129c: en 24 h · 129d: de una pieza
           }
           var tag = (esperaTieneOrigen && item.origen === 'local') ? '<span class="espera-tag-local">🏪 Local</span>' : '';
-          subLine += tag;   // 129c: «🏪 Local» al final de la línea del teléfono (con su margin-left; si no entra, baja sola)
+          if (tag) subLine += '<span class="espera-sep"> </span>' + tag;   // 129c: «🏪 Local» al final de la línea del teléfono; 142j: separado por un espacio, no por un margin-left (si no entra, baja sola y queda alineado)
           var id = Number(item.id);
 
           var tel = String(item.telefono || '').replace(/[^0-9]/g, '');
