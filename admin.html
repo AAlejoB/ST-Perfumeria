@@ -3901,7 +3901,7 @@
       <button class="modal-close" onclick="closeModal('modalClientPuntosLog')">&times;</button>
       <p class="modal-title">Historial de puntos</p>
       <p id="modalPuntosLogHeader" style="text-align:center;font-weight:600;margin-bottom:.4rem;color:var(--amarillo-tinta);"></p>
-      <p style="text-align:center;font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Últimos 20 movimientos</p>
+      <p id="modalPuntosLogPie" style="display:none;text-align:center;font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Últimos 20 movimientos</p>   <!-- 141m: sólo se muestra si hay al menos un movimiento -->
       <div id="modalPuntosLogList" style="display:flex;flex-direction:column;gap:.5rem;max-height:50vh;overflow-y:auto;"></div>
     </div>
   </div>
@@ -6071,6 +6071,7 @@
       if (base) return nota ? base + ': ' + nota : base;
       if (t === '+1 desde panel') return '+1 desde el panel';
       if (t === '+1 desde buscador') return '+1 desde el buscador';
+      if (t === 'Edicion manual') return 'Edición manual';   // como está guardado de antes, sin tilde: se traduce al mostrar
       return t.replace(/_/g, ' ');
     }
     function actorPuntosTxt(a) {
@@ -6087,6 +6088,8 @@
       if (!c) return;
       document.getElementById('modalPuntosLogHeader').textContent = c.nombre + ' — ' + puntosTxt(c.puntos) + ' pts';
       var listEl = document.getElementById('modalPuntosLogList');
+      var pieEl = document.getElementById('modalPuntosLogPie');
+      if (pieEl) pieEl.style.display = 'none';   // 141m · la bajada «Últimos 20 movimientos» sale sólo si hay al menos uno (no vacío, no con la carga fallida)
       listEl.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1.2rem;font-size:.75rem;">Cargando…</p>';
       document.getElementById('modalClientPuntosLog').classList.add('active');
       var r;
@@ -6101,6 +6104,7 @@
         listEl.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1.2rem;font-size:.75rem;">Sin movimientos registrados todavía</p>';
         return;
       }
+      if (pieEl) pieEl.style.display = '';
       var html = '';
       list.forEach(function(e) {
         var delta = Number(e.delta) || 0;
@@ -6108,7 +6112,7 @@
         var claseDelta = delta < 0 ? 'puntos-delta--menos' : 'puntos-delta--mas';
         html += '<div style="border:1px solid var(--borde);border-radius:6px;padding:.6rem .8rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;">'
           +   '<div style="display:flex;flex-direction:column;gap:.15rem;">'
-          +     '<span class="' + claseDelta + '" style="font-size:.9rem;font-weight:700;">' + deltaStr + ' pts</span>'
+          +     '<span class="' + claseDelta + '" style="font-size:.9rem;font-weight:700;">' + deltaStr + (Math.abs(delta) === 1 ? ' pt' : ' pts') + '</span>'   // 141n · «+1 pt» / «−1 pt» con 1; «pts» con el resto
           +     '<span style="font-size:.65rem;color:var(--gris);">' + escHtml(motivoPuntosTxt(e.motivo, e.origen)) + ' · ' + escHtml(actorPuntosTxt(e.actor)) + '</span>'
           +   '</div>'
           +   '<div style="text-align:right;display:flex;flex-direction:column;gap:.15rem;">'
