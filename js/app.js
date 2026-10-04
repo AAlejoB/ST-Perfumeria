@@ -2017,7 +2017,7 @@
     // (no se inventa nada); sin nada, no hay línea. Todo escapado.
     function aQueHuele(p) {
       var perfil = String(p.perfil || '').trim();
-      if (perfil) perfil = perfil.charAt(0).toUpperCase() + perfil.slice(1);
+      if (perfil) perfil = perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase();   // una frase: primera mayúscula y el resto en minúscula, aunque el dato llegue en mayúsculas
       var notas = [p.notas_salida, p.notas_corazon, p.notas_base].map(function(n) { return String(n || '').split(',')[0].trim().toLowerCase(); }).filter(Boolean);
       if (!perfil && !notas.length) return '';
       return '<p class="card-huele">' + (perfil ? '<b>' + escapeHTML(perfil) + '</b>' : '') + (perfil && notas.length ? ' &middot; ' : '') + escapeHTML(notas.join(', ')) + '</p>';

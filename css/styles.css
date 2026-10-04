@@ -10218,7 +10218,8 @@
       .catalog-section > .load-more-wrap { padding: 0 1.2rem; }
 
       /* 146g [A-QUE-HUELE] · el perfil y hasta 3 notas, debajo de la marca (en la card ▦ y en la fila ☰) */
-      .card-huele { display: block; margin: 0; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--gris-claro); }
+      /* [A-QUE-HUELE] una sola frase, sin las mayúsculas que hereda de .card-info, en un renglón con «…» en las dos vistas */
+      .card-huele { display: block; margin: 0; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--gris-claro); text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .card-huele b { color: var(--amarillo-tinta); font-weight: 700; }
 
       /* ▦ grilla: la card de hoy, con la línea de «a qué huele». Sólo se le da aire arriba. */
