@@ -4715,7 +4715,8 @@
       var visibles = nombres.length > 4 ? nombres.slice(0, 3) : nombres;
       var items = visibles.map(function(n) { return '<li>' + escapeHTML(n) + '</li>'; });
       var mas = (nombres.length > 4 ? nombres.length - 3 : 0) + sinNombre;
-      if (mas) items.push('<li>y ' + mas + ' m\u00e1s</li>');
+      // 142m7 \u00b7 con libres, la \u00abY\u00bb queda una sola vez (en el \u00faltimo rengl\u00f3n): ac\u00e1 \u00ab3 perfumes m\u00e1s\u00bb / \u00ab1 perfume m\u00e1s\u00bb, sin \u00aby\u00bb
+      if (mas) items.push('<li>' + (libres ? mas + (mas === 1 ? ' perfume' : ' perfumes') + ' m\u00e1s' : 'y ' + mas + ' m\u00e1s') + '</li>');
       if (libres) items.push('<li class="espera-cartel-libre">' + (items.length ? 'Y ' : '') + libres + (libres === 1 ? ' cosa' : ' cosas') + ' que pediste en el local</li>');
       document.getElementById('esperaCartelLista').innerHTML = items.join('');
       clearTimeout(esperaCartelReloj);
