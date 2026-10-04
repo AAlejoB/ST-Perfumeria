@@ -10222,6 +10222,9 @@
       .card-huele { display: block; margin: 0; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--gris-claro); text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .card-huele b { color: var(--amarillo-tinta); font-weight: 700; }
 
+      /* 146q [PERFIL-UNA-VEZ] el perfil lo dice la línea de «a qué huele»: el chip de la card se va. SIEMPRE bajo #catalogGrid: la ficha (#bsTags) usa la misma clase y ahí el chip sigue. */
+      #catalogGrid .product-card .tag-acorde { display: none; }
+
       /* ▦ grilla: la card de hoy, con la línea de «a qué huele». Sólo se le da aire arriba. */
       html[data-vista="grid"] body[class] .catalog-grid { padding-top: 8px; }
       html[data-vista="grid"] #catalogGrid > #destacados, html[data-vista="grid"] #catalogGrid > #decants, html[data-vista="grid"] #catalogGrid > .price-banner-wrap { margin-left: -1rem; margin-right: -1rem; }
