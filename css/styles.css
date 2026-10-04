@@ -2701,6 +2701,9 @@
        (derecha en las normales; izquierda en las .mirror, regla más abajo). El nombre arranca debajo de esa fila y no comparte renglón con nada. Menos de 768 no cambia. */
     @media (min-width: 768px) {
       .compare-btn { top: 8px; right: 50px; }
+      /* 121c [FILA-DE-BOTONES-RESERVADA] · la card centra su .card-info en vertical y en las bajas el nombre subía hasta la fila del ♡ (arrancaba a 22-100 px y la fila llega a 37-40):
+         20 px de padding arriba dejan esa fila para los botones y el texto arranca debajo. Medido: sólo crecen las cards donde el texto estaba pegado arriba. */
+      .product-card .card-info { padding-top: 20px; }
     }
     /* 121b · de 768 a 1023 las cards son angostas (313 px a 768): ahí «Comparar» queda sólo con el ícono, en un círculo del tamaño del ♡ (32), con el área de toque de 44 (el ::after,
        como la ✕ del chip). El estado activo usa el mismo color de .active. El nombre accesible sale del aria-label="Comparar" del botón. */
@@ -2708,6 +2711,9 @@
       .compare-btn { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 50%; }
       .compare-btn .compare-label { display: none; }
       .compare-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+      /* 121d [ICONO-COMO-EL-CORAZON] · el círculo usa el mismo fondo que el ♡ en cada tema (oscuro: el de `body.dark-mode .fav-heart`; claro: el de `.fav-heart`, abajo de todo, junto a la regla de claro de .compare-btn).
+         SINCRO: si cambia el fondo del ♡, cambia éste. Conserva su borde fino dorado y el ícono; el activo no se toca. */
+      body.dark-mode .compare-btn:not(.active) { background: rgba(40,40,40,.85); }
     }
 
     /* Barra flotante comparador */
@@ -8506,6 +8512,9 @@
       color: #1a1a1d !important;
       background: rgba(255,255,255,.6) !important;
       border-color: rgba(120,90,0,.3) !important;
+    }
+    @media (min-width: 768px) and (max-width: 1023px) {   /* 121d · el círculo de «Comparar» (sólo ícono) con el fondo del ♡ en claro (SINCRO con .fav-heart); el activo no se toca */
+      body:not(.dark-mode) .compare-btn:not(.active) { background: rgba(255,255,255,.85) !important; }
     }
     /* CTA "CONSULTAR →" mobile en cards: dorado pleno (paleta ST) */
     body:not(.dark-mode) .card-cta-mobile {
