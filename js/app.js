@@ -4748,6 +4748,24 @@
     // Los links del menú a #destacados y #decants: si hay algo prendido los estantes no están; se limpia antes de que el navegador salte.
     function vidPrepararSalto() { if (vidEsCelu() && vidHayAlgoPrendido()) clearAllFilters(); }
 
+    // 146r [FOTO-QUE-NO-CARGA] · si TODAS las fotos de una card dan error, la card queda como «sin foto»: la inicial sobre blanco (el CSS sólo lo muestra a < 768; nunca el
+    // texto alternativo ni el ícono roto). El error de una imagen no sube por el DOM: se escucha en captura sobre la grilla (sirve también para las cards que se re-dibujan).
+    (function() {
+      var g = document.getElementById('catalogGrid');
+      if (!g) return;
+      g.addEventListener('error', function(e) {
+        var im = e.target;
+        if (!im || im.tagName !== 'IMG') return;
+        var ci = im.closest ? im.closest('.card-image') : null;
+        if (!ci) return;
+        var todas = ci.querySelectorAll('img');
+        for (var i = 0; i < todas.length; i++) { if (todas[i] !== im && !(todas[i].complete && todas[i].naturalWidth === 0)) return; }   // todavía hay una foto que puede cargar
+        var card = ci.closest('.product-card'), n = card && card.querySelector('.card-name');
+        ci.setAttribute('data-ini', (n ? n.textContent.trim().charAt(0) : '').toUpperCase());
+        ci.classList.add('foto-rota');
+      }, true);
+    })();
+
     if (vidCelu) { if (vidCelu.addEventListener) vidCelu.addEventListener('change', vidAcomodar); else if (vidCelu.addListener) vidCelu.addListener(vidAcomodar); }
     vidAcomodar();
 
