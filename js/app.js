@@ -3966,7 +3966,9 @@
         clearPriceFilter();
         return; // clearPriceFilter already calls applyFilters
       }
+      if (type === 'occasion') updateOccasionHint();
       applyFilters();
+      if (typeof updateFiltersInURL === 'function') updateFiltersInURL();   // [LIMPIAR-HOJA] la URL dice lo mismo que los filtros
     }
 
     function clearAllFilters() {
@@ -3990,9 +3992,12 @@
       if (labelDia) labelDia.classList.remove('active');
       if (labelNoche) labelNoche.classList.remove('active');
       updatePriceExpandBtn();
+      updateOccasionHint();   // [LIMPIAR-HOJA] la bajada de la ocasión se va con la ocasión
+      try { initPriceSlider(); } catch (e) {}   // [LIMPIAR-HOJA] el deslizador vuelve a todo el rango (antes quedaba donde estaba)
       closeDeck();
       updateDeckLabel();
       applyFilters();
+      if (typeof updateFiltersInURL === 'function') updateFiltersInURL();   // [LIMPIAR-HOJA] sin esto la URL seguía con ?cat=…&ocasion=… y un «atrás» volvía a prender lo limpiado
     }
 
     // ============================================================
@@ -4066,12 +4071,13 @@
         var hash = window.location.hash || '#catalogo';
         var newUrl = (qs ? '?' + qs : '') + hash;
         if (window.location.search + window.location.hash !== newUrl) {
-          window.history.replaceState(null, '', newUrl || '/');
+          window.history.replaceState(window.history.state, '', window.location.pathname + newUrl);   // [LIMPIAR-HOJA] con la ruta: una URL que es sólo «#catalogo» conserva el ?cat=… de antes (por eso «Limpiar» no limpiaba la URL)   // [LIMPIAR-HOJA] conserva el estado ({ vidHoja }): con null, «atrás» no cerraba la hoja sino la página
         }
       } catch (e) { /* silent */ }
     }
 
     function applyFiltersFromURL() {
+      if (typeof vidHojaAbierta !== 'undefined' && vidHojaAbierta) return;   // [LIMPIAR-HOJA] el «atrás» que cierra la hoja de filtros no es un cambio de filtros
       try {
         var params = new URLSearchParams(window.location.search);
         var hash = (window.location.hash || '').toLowerCase();
@@ -4688,6 +4694,7 @@
       var ov = document.getElementById(vidHojaAbierta);
       if (ov) ov.classList.remove('open');
       vidHojaAbierta = '';
+      if (typeof updateFiltersInURL === 'function') updateFiltersInURL();   // [LIMPIAR-HOJA] el «atrás» devuelve la URL de antes de abrir la hoja: se la vuelve a poner igual a los filtros
       var sigue = vidHojaDespues; vidHojaDespues = null;
       if (sigue) setTimeout(sigue, 60);
     });
