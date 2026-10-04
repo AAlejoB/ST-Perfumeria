@@ -2704,6 +2704,9 @@
       /* 121c [FILA-DE-BOTONES-RESERVADA] · la card centra su .card-info en vertical y en las bajas el nombre subía hasta la fila del ♡ (arrancaba a 22-100 px y la fila llega a 37-40):
          20 px de padding arriba dejan esa fila para los botones y el texto arranca debajo. Medido: sólo crecen las cards donde el texto estaba pegado arriba. */
       .product-card .card-info { padding-top: 20px; }
+      /* 121e [CINTA-BAJA-EL-TEXTO] · con cinta el ♡ y «Comparar» bajan a top 30 y la fila llega a 62-63 px: el padding-top de 20 no alcanza, 40 sí. Sólo las cards con cinta (8 en el catálogo). Un navegador
+         sin :has() se queda con los 20 de la 121c. */
+      .product-card:has(.card-ribbon) .card-info { padding-top: 40px; }
     }
     /* 121b · de 768 a 1023 las cards son angostas (313 px a 768): ahí «Comparar» queda sólo con el ícono, en un círculo del tamaño del ♡ (32), con el área de toque de 44 (el ::after,
        como la ✕ del chip). El estado activo usa el mismo color de .active. El nombre accesible sale del aria-label="Comparar" del botón. */
@@ -8515,6 +8518,9 @@
     }
     @media (min-width: 768px) and (max-width: 1023px) {   /* 121d · el círculo de «Comparar» (sólo ícono) con el fondo del ♡ en claro (SINCRO con .fav-heart); el activo no se toca */
       body:not(.dark-mode) .compare-btn:not(.active) { background: rgba(255,255,255,.85) !important; }
+      /* 121f [ACTIVO-SE-VE-EN-CLARO] · el círculo de sólo ícono activo en claro: la regla de mayo de arriba (!important) lo dejaba blanco con un halo que casi no se ve y, sin «✓», no se distinguía.
+         Fondo --amarillo e ícono #1a1a1d, como en oscuro. SINCRO con `body.dark-mode .compare-btn.active` (arriba, junto a .compare-btn). Borde y halo quedan como están. La pastilla desde 1024 no se toca. */
+      body:not(.dark-mode) .compare-btn.active { background: var(--amarillo) !important; color: #1a1a1d !important; }
     }
     /* CTA "CONSULTAR →" mobile en cards: dorado pleno (paleta ST) */
     body:not(.dark-mode) .card-cta-mobile {
