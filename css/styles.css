@@ -10187,13 +10187,15 @@
       .vid-seg-b[aria-pressed="true"] { background: var(--amarillo); color: #111; }
       .vid-seg-b svg { width: 18px; height: 18px; }
       .vid-btn, .vid-orden .sort-wrapper { flex: 1 1 0; min-width: 0; }
-      .vid-btn, .vid-orden .sort-wrapper > .filter-btn { height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0 10px; border: 1px solid var(--borde); border-radius: 8px;
+      .vid-btn, .vid-orden .sort-wrapper > .filter-btn { height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0; border: 1px solid var(--borde); border-radius: 8px;
         background: var(--v-sup); color: var(--blanco); font-family: var(--font-body); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
       .vid-orden .sort-wrapper > .filter-btn { width: 100%; }
       .vid-orden .sort-wrapper > .filter-btn.active { background: var(--amarillo); color: #111; border-color: var(--amarillo); }
       .vid-btn svg, .vid-orden .sort-wrapper > .filter-btn svg { width: 15px; height: 15px; flex: 0 0 15px; }
       .vid-n { background: var(--amarillo); color: #111; border-radius: 10px; padding: 1px 7px; font-size: 11px; letter-spacing: 0; line-height: 1.4; }
       .vid-n[hidden] { display: none; }
+      /* el menú de «Ordenar»: cada opción a 44 */
+      .vid-orden .sort-menu button { min-height: 44px; display: flex; align-items: center; }
 
       /* 146k [LINEA-DE-FILTROS] · el número de resultados y lo prendido, sólo con algo prendido (es el #activeFiltersBar de siempre) */
       body[class] .active-filters-bar { background: transparent; border: 0; margin: 0; padding: 8px 14px 6px; min-height: 34px; gap: 6px; align-items: center; }
@@ -10206,7 +10208,12 @@
       .cv-cel { display: inline; }
       body[class] .active-filters-clear { margin-left: auto; border: 0; background: none; padding: 0; color: var(--amarillo-tinta); font-size: 11.5px; font-weight: 600; text-decoration: underline; }
       .af-todo, .af-x { display: none; }
-      .favs-empty, .sin-resultados { margin-left: 14px; margin-right: 14px; }
+      /* «Limpiar»: texto chico, pero el área de toque mide 44 (sale del ::after, sin agrandar la línea) */
+      body[class] .active-filters-clear { position: relative; }
+      .active-filters-clear::after { content: ''; position: absolute; top: 50%; left: -10px; right: -10px; height: 44px; transform: translateY(-50%); }
+      /* la sección del catálogo ya no tiene padding a los lados (las filas van de punta a punta): lo que no es lista lo recupera */
+      .favs-empty, .sin-resultados, .catalog-section > .cta-register { margin-left: 1.2rem; margin-right: 1.2rem; }
+      .catalog-section > .load-more-wrap { padding: 0 1.2rem; }
 
       /* 146g [A-QUE-HUELE] · el perfil y hasta 3 notas, debajo de la marca (en la card ▦ y en la fila ☰) */
       .card-huele { display: block; margin: 0; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--gris-claro); }
@@ -10238,7 +10245,8 @@
       html[data-vista="lista"] body[class] .card-huele { margin-top: 4px; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       html[data-vista="lista"] body[class] .card-pricing { margin-top: 5px; gap: 0 8px; flex-wrap: wrap; align-items: baseline; flex: 0 0 auto; }
       html[data-vista="lista"] body[class] .card-info .price-promo { font-size: 18px; font-weight: 800; }
-      html[data-vista="lista"] body[class] .card-info .price-cash { font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+      html[data-vista="lista"] body[class] .card-info .price-cash { width: auto; font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; white-space: nowrap; }
+      html[data-vista="lista"] body[class] .price-cash .pc-transf { display: none; }   /* «efectivo» y nada más: «/transf.» no entra al lado del precio a 360 (146o) */
       html[data-vista="lista"] body[class] .price-cuotas-line, html[data-vista="lista"] body[class] .card-tags, html[data-vista="lista"] body[class] .card-notes-preview,
       html[data-vista="lista"] body[class] .card-pdm-badge, html[data-vista="lista"] body[class] .card-urgency, html[data-vista="lista"] body[class] .card-views,
       html[data-vista="lista"] body[class] .card-live-viewers, html[data-vista="lista"] body[class] .card-cta-mobile, html[data-vista="lista"] body[class] .card-gallery-nav,

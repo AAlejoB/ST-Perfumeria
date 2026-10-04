@@ -942,6 +942,65 @@ function mezcla(hex, fondo, a) {
   });
 })();
 
+// ═══ VIDRIERA DEL CELU ═══ [PRIMER-PANTALLAZO] 146 · 4-oct-2026
+// Lo nuevo a < 768: la franja de marca, el buscador, los chips, la tira de atajos, la fila de orden, la línea de filtros, la fila de la lista (marca, «a qué huele»,
+// precio, efectivo, «Avisame»), la hoja «Filtros» y la hoja «Cómo comprar». Los fondos son los tokens de la vidriera (--v-bg: #121214 oscuro / #f5efde claro,
+// --v-sup: #1a1a1d / #ffffff) y los textos salen de los tokens del sitio: la regla es la de siempre, el fondo elige la letra.
+(function () {
+  var rs = reglas(hoja('css/styles.css'));
+  var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
+  var cfg = { oscuro: { capas: [raiz] }, claro: { capas: [luz, raiz] } };
+  var FONDOS = { oscuro: { bg: '#121214', sup: '#1a1a1d' }, claro: { bg: '#f5efde', sup: '#ffffff' } };
+  function tk(nombre, c) { var h = resolver('var(' + nombre + ')', c.capas); return h.length ? h[0] : null; }
+  function sobre(rgb, a, abajo) {
+    var f = [1, 3, 5].map(function (i) { return parseInt(abajo.substr(i, 2), 16); });
+    return '#' + rgb.map(function (v, i) { return Math.round(v * a + f[i] * (1 - a)).toString(16).padStart(2, '0'); }).join('');
+  }
+  ['oscuro', 'claro'].forEach(function (tema) {
+    var c = cfg[tema], F = FONDOS[tema];
+    var AMARILLO = '#e8b800', chip = sobre([232, 184, 0], 0.14, F.bg);
+    var gris = tk('--gris', c), grisClaro = tk('--gris-claro', c), blanco = tk('--blanco', c), tinta = tk('--amarillo-tinta', c), efectivo = tk('--tinta-efectivo', c), precio = tk('--tinta-precio', c);
+    // [rol, nombre, texto, fondo]
+    [['franja', '146h «PERFUMERÍA ÁRABE · COMODORO» .hero-tagline', tinta, F.bg],
+     ['franja', '146h «Tu aroma, tu identidad.» .hero-title', blanco, F.bg],
+     ['buscador', '146b lo que se escribe .search-input', blanco, F.sup],
+     ['buscador', '146b el texto de ejemplo .search-input::placeholder', gris, F.sup],
+     ['chips', '146i género .filter-zone--left .filter-btn', blanco, F.sup],
+     ['chips', '146i género activo .filter-btn.active', '#111111', AMARILLO],
+     ['tira', '146c título .vid-t-tit', blanco, F.sup],
+     ['tira', '146c bajada .vid-t-sub', gris, F.sup],
+     ['fila de orden', '146j «Ordenar» y «Filtros» .vid-btn', blanco, F.sup],
+     ['fila de orden', '146j ▦ / ☰ sin elegir .vid-seg-b', gris, F.sup],
+     ['fila de orden', '146j ▦ / ☰ elegido .vid-seg-b[aria-pressed]', '#111111', AMARILLO],
+     ['fila de orden', '146j el número de «Filtros · N» .vid-n', '#111111', AMARILLO],
+     ['línea de filtros', '146k «N perfumes» .af-count', gris, F.bg],
+     ['línea de filtros', '146k lo prendido .active-filter-chip', blanco, chip],
+     ['línea de filtros', '146k «Limpiar» .active-filters-clear', tinta, F.bg],
+     ['fila', '146f marca · género .card-brand', gris, F.bg],
+     ['fila', '146g «a qué huele» (las notas) .card-huele', grisClaro, F.bg],
+     ['fila', '146g «a qué huele» (el perfil) .card-huele b', tinta, F.bg],
+     ['fila', '146f precio .price-promo', precio, F.bg],
+     ['fila', '146f efectivo .price-cash', efectivo, F.bg],
+     ['fila', '146o «🔔 Avisame cuando vuelva» .waitlist-btn', tinta, F.bg],
+     ['fila', '146o «✓ Te avisamos» .waitlist-btn.subscribed', efectivo, F.bg],
+     ['hoja Filtros', '146m título .vh-tit', blanco, F.sup],
+     ['hoja Filtros', '146m grupo («Para quién», «Ocasión»…) .vh-tg', gris, F.sup],
+     ['hoja Filtros', '146m chip .vh-chip', blanco, F.sup],
+     ['hoja Filtros', '146m chip elegido .vh-chip.on', '#111111', AMARILLO],
+     ['hoja Filtros', '146m la bajada de la ocasión .occasion-hint', gris, F.sup],
+     ['hoja Filtros', '146m el precio .price-slider-label', blanco, F.sup],
+     ['hoja Filtros', '146m ✕ .vh-x', gris, F.sup],
+     ['hoja Filtros', '146m «Limpiar» .vh-b1', blanco, F.sup],
+     ['hoja Filtros', '146m «Ver N perfumes» .vh-b2', '#111111', AMARILLO],
+     ['hoja Cómo comprar', '146p título del beneficio .vh-tb-tit', blanco, F.sup],
+     ['hoja Cómo comprar', '146p bajada del beneficio .vh-tb-sub', gris, F.sup],
+     ['hoja Cómo comprar', '146p ícono en su cuadro oscuro .vh-tb-ico', '#e8b800', '#000000']
+    ].forEach(function (x) {
+      medir({ superficie: 'catálogo', tema: tema, rol: x[0], nombre: x[1], texto: x[2], fondos: [x[3]], impone: 'styles.css · vidriera (tokens)' });
+    });
+  });
+})();
+
 // ═══ Salida ═══
 function tabla(titulo, lista) {
   if (!lista.length) return;

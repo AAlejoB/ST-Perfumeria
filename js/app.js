@@ -2095,7 +2095,7 @@
       } else {
         pricingHTML = '<span class="price-promo">' + listaFormatted + '</span>'
           + '<span class="price-cuotas-line"><span class="price-cuotas-chip">3 cuotas</span><strong>' + cuotaFormatted + '</strong> sin interés</span>'
-          + '<span class="price-cash">' + cashFormatted + ' efectivo/transf.</span>';   // [EFECTIVO-UN-RENGLON] decisión 85: sin «descuento» entra en un renglón a 360
+          + '<span class="price-cash">' + cashFormatted + ' efectivo<span class="pc-transf">/transf.</span></span>';   // [EFECTIVO-UN-RENGLON] decisión 85: sin «descuento» entra en un renglón a 360
       }
 
       var searchText = stripAccents([p.name, p.marca, p.marca_real || '', p.notas_salida || '', p.notas_corazon || '', p.notas_base || '', p.alias || '', p.tipo || '', getGamaAlias(p)].join(' ').toLowerCase());
@@ -4742,8 +4742,8 @@
     function vidIrASeleccion() {
       var sel = document.getElementById('destacados');
       if (!sel) return;
-      if (vidHayAlgoPrendido()) clearAllFilters();
-      requestAnimationFrame(function() { sel.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      if (vidHayAlgoPrendido()) clearAllFilters();   // sincrónico: los estantes ya están en la lista cuando se salta
+      sel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     // Los links del menú a #destacados y #decants: si hay algo prendido los estantes no están; se limpia antes de que el navegador salte.
     function vidPrepararSalto() { if (vidEsCelu() && vidHayAlgoPrendido()) clearAllFilters(); }
