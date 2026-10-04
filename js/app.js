@@ -2191,7 +2191,7 @@
       return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + escapeHTML(p.cat) + '" data-slug="' + escapeHTML(p.slug) + '" data-perfil="' + escapeHTML(p.perfil || '') + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + ribbonHTML + stockBadge + '<div class="card-etiquetas">' + etiquetasCard(p, stockStatus) + '</div>' + discountHTML + discountTimerHTML
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
-        + '<button class="compare-btn" onclick="toggleCompare(' + jsAttr(p.slug) + ', this, event)" aria-label="Comparar con otros perfumes"><span class="compare-icon">&#9878;</span><span class="compare-label">COMPARAR</span></button>'
+        + '<button class="compare-btn" onclick="toggleCompare(' + jsAttr(p.slug) + ', this, event)" aria-label="Comparar" title="Comparar"><span class="compare-icon">&#9878;</span><span class="compare-label">COMPARAR</span></button>'
         + '<div class="card-image">' + imageHTML + '</div>'
         + '<div class="card-info">'
           + galleryNavOnInfo

@@ -2696,16 +2696,18 @@
       .compare-btn .compare-label { display: none; }
       .compare-btn { padding: 0; width: 28px; height: 28px; justify-content: center; border-radius: 50%; }
     }
-    /* [COMPARE-PISA-NOMBRE] 121 (DISEÑADOR, 24-sep; medido el 4-oct) · desde 768 el botón «Comparar» (98,1 px de ancho + 10 de margen = 108,1 desde el borde de la card,
-       en .mirror del otro lado) se cruzaba con el nombre. Se mueve el NOMBRE, no el botón: el nombre deja libre del lado del botón lo que el botón le entra a la
-       caja de .card-info, que es 108,1 menos el padding de la card (24 de 768 a 1199, 30 desde 1200), redondeado hacia arriba: 85 y 79 px. Normales: el botón está a la derecha; espejadas: a la izquierda. */
+    /* [COMPARE-EN-LA-FILA-DEL-CORAZON] 121b (DISEÑADOR, 4-oct; corrige la 121: se mueve el BOTÓN, no el nombre) · desde 768 «Comparar» sube a la fila del ♡: el mismo top que el corazón
+       (8 px; 30 con cinta) y a 8 px de él, del lado donde ya están los dos: el corazón mide 32 y está a 10 px del borde, así que «Comparar» queda a 10 + 32 + 8 = 50 px del borde
+       (derecha en las normales; izquierda en las .mirror, regla más abajo). El nombre arranca debajo de esa fila y no comparte renglón con nada. Menos de 768 no cambia. */
     @media (min-width: 768px) {
-      .product-card .card-name { padding-right: 85px; }
-      .product-card.mirror .card-name { padding-right: 0; padding-left: 85px; }
+      .compare-btn { top: 8px; right: 50px; }
     }
-    @media (min-width: 1200px) {
-      .product-card .card-name { padding-right: 79px; }
-      .product-card.mirror .card-name { padding-right: 0; padding-left: 79px; }
+    /* 121b · de 768 a 1023 las cards son angostas (313 px a 768): ahí «Comparar» queda sólo con el ícono, en un círculo del tamaño del ♡ (32), con el área de toque de 44 (el ::after,
+       como la ✕ del chip). El estado activo usa el mismo color de .active. El nombre accesible sale del aria-label="Comparar" del botón. */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .compare-btn { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 50%; }
+      .compare-btn .compare-label { display: none; }
+      .compare-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
     }
 
     /* Barra flotante comparador */
@@ -3095,7 +3097,7 @@
          mirror queda a la derecha). */
       .product-card.mirror .compare-btn {
         right: auto;
-        left: 10px;
+        left: 50px;   /* [COMPARE-EN-LA-FILA-DEL-CORAZON] 121b · 10 del corazón + 32 + 8 */
       }
       /* Badges absolutos — hay que espejarlos explicitamente porque
          position:absolute no respeta el flex row-reverse del .mirror.
@@ -5204,6 +5206,9 @@
     }
     .product-card:has(.card-ribbon) .compare-btn {
       top: 68px; /* corazon(30) + heart-height(32) + gap(6) */
+    }
+    @media (min-width: 768px) {
+      .product-card:has(.card-ribbon) .compare-btn { top: 30px; }   /* [COMPARE-EN-LA-FILA-DEL-CORAZON] 121b · en la fila del corazón, que con cinta baja a 30 */
     }
 
     /* Badge descuento temporal */
