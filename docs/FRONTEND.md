@@ -91,13 +91,13 @@ Si hay solo **1 card visible** (filtros que dejan 1 resultado): clase `.catalog-
 - **Mobile**: `position: sticky; top: 58px` (debajo del nav).
 - **Desktop**: `position: static`. **NO sticky** — quedaba flotando sobre Tu Sector como un "navbar fantasma" al scrollear.
 
-### Filter deck (mobile)
+### Filtros en el celu (< 768) — chips + hoja
 
-Patrón "mazo de cards" en mobile:
-- Los 6 botones (`Todos / Unisex / Hombre / Mujer / 🔥 Nuevos / ❤`) apilados con `position: absolute`.
-- **Cerrado**: solo se ve el `.active` (otros con `opacity: 0`).
-- **Abierto**: clase `.deck-open` los despliega verticalmente con bg sólido para que no haya bleed-through.
-- Tap fuera cierra.
+> **Desde `vidriera` (146, v1.1.184) el «mazo» (`.deck-open`, cartas apiladas) ya no existe a < 768.** Detalle en `CLAUDE.md` § «Filtros del catálogo».
+- Géneros: chips de 44 en una fila que se desliza (Todos · Mujer · Hombre · Unisex · 🔥 Nuevos). El ♥ no es chip.
+- Ocasión · Notas · Precio: en la hoja «Filtros» (los mismos nodos de siempre, mudados con JS).
+- Lo único pegado al bajar: la fila de orden (▦ ☰ · Ordenar · Filtros), 54 px debajo de nav + banner.
+- A ≥ 768 todo igual: los botones en fila, la barra no es sticky.
 
 ### Cards del catálogo
 
