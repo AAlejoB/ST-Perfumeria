@@ -10194,6 +10194,8 @@
       .vid-btn svg, .vid-orden .sort-wrapper > .filter-btn svg { width: 15px; height: 15px; flex: 0 0 15px; }
       .vid-n { background: var(--amarillo); color: #111; border-radius: 10px; padding: 1px 7px; font-size: 11px; letter-spacing: 0; line-height: 1.4; }
       .vid-n[hidden] { display: none; }
+      /* el aviso de puntos (H2) se muda acá desde el bloque de «Explorá»: lleva los 14 px de los costados que le daba ese bloque */
+      .catalogo-scope > .puntos-context-banner { margin: 10px 14px 0; }
       /* el menú de «Ordenar»: cada opción a 44 */
       .vid-orden .sort-menu button { min-height: 44px; display: flex; align-items: center; }
 
@@ -10278,6 +10280,8 @@
          (cinco cards en fila) mide 670: ensanchaba toda la página. Por eso minmax(0, 1fr), stretch y los márgenes en 0. */
       body[class] .catalog-grid { grid-template-columns: minmax(0, 1fr); }
       #catalogGrid > #destacados, #catalogGrid > #decants, #catalogGrid > .price-banner-wrap { grid-column: 1 / -1; min-width: 0; justify-self: stretch; margin-left: 0; margin-right: 0; }
+      /* los 580 px de reserva de la Selección eran para que la página no saltara arriba del primer pantallazo: ya en la lista (se muda con JS) sólo dejaban un hueco */
+      body[class] #catalogGrid > #destacados { min-height: 0; }
 
       /* 146l · los saltos frenan debajo de lo pegado: nav 58 + banner 39 + fila de orden 54 + 6 de aire = 157 (era 243) */
       .active-filters-bar, #destacados, #decants { scroll-margin-top: 157px; }
