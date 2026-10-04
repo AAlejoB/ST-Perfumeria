@@ -452,6 +452,10 @@ function mezcla(hex, fondo, a) {
     var fondoChipHover = tema === 'oscuro' ? mezcla('#e8b800', barraChip, 0.20) : fondoChip;
     var xHover = efectivo(rs, '.active-filter-chip .chip-remove:hover', c.pref, 'color', c.capas);
     medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '143j · ✕ del chip activo con el mouse encima .chip-remove:hover (control, 3:1)', texto: xHover.hex[0], fondos: [fondoChipHover], minimo: 3, impone: xHover.impone, pisado: xHover.pisado });
+    // [BUSCADOR-X-HOVER-CLARO] 145: la ✕ del campo del buscador (.search-clear) con el mouse encima sobre el campo (claro: #fff !important; oscuro: 12 % de blanco sobre la página); control gráfico: 3:1.
+    var fondoCampoX = tema === 'oscuro' ? mezcla('#ffffff', paginaPub, 0.12) : '#ffffff';
+    var xBusca = efectivo(rs, '.search-clear:hover', c.pref, 'color', c.capas);
+    medir({ superficie: 'catálogo', tema: tema, rol: 'tinta', nombre: '145 · ✕ del campo del buscador con el mouse encima .search-clear:hover (control, 3:1)', texto: xBusca.hex[0], fondos: [fondoCampoX], minimo: 3, impone: xBusca.impone, pisado: xBusca.pisado });
     // [PILDORA-PUNTO] 144: el punto de la píldora de WhatsApp (el fondo de cada estado, los de la decisión 96: iguales en los dos temas) contra su anillo blanco de 2 px; control gráfico: 3:1.
     [['abierto', '.wa-status--open'], ['cerrado', '.wa-status--closed'], ['feriado / cierre especial', '.wa-status--special']].forEach(function (x) {
       var bgp = efectivo(rs, x[1], c.pref, 'background', c.capas);

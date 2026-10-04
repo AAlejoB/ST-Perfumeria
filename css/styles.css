@@ -1382,7 +1382,8 @@
       cursor: pointer; padding: 0 4px; line-height: 1;
     }
     .search-clear.visible { display: block; }
-    .search-clear:hover { color: #fff; }
+    /* [BUSCADOR-X-HOVER-CLARO] 145 (DISEÑADOR) · el hover de la ✕ del campo del buscador sólo con mouse (en el celu el :hover se quedaba pegado después del toque); en claro lo pisa la regla de claro de más abajo (el #fff daba 1:1 sobre el campo blanco). */
+    @media (hover: hover) { .search-clear:hover { color: #fff; } }
 
     /*
     ================================================
@@ -8606,6 +8607,8 @@
       border-color: rgba(120,90,0,.3) !important;
     }
     body:not(.dark-mode) .search-input::placeholder { color: #888 !important; }
+    /* [BUSCADOR-X-HOVER-CLARO] 145 (DISEÑADOR) · la ✕ del campo en claro con el mouse encima: #1a1a1d (17,40:1 sobre el campo blanco) en vez del #fff, que se perdía (1:1). Reposo: --gris (#5e564a). Oscuro, sin cambios (#fff). Especificidad 0,3,1 contra 0,2,0 de la regla base: sin !important. */
+    @media (hover: hover) { body:not(.dark-mode) .search-clear:hover { color: #1a1a1d; } }
     body:not(.dark-mode) .search-icon { stroke: #5e564a !important; }
     body:not(.dark-mode) .search-suggestions {
       background: #ffffff !important;
