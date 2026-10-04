@@ -1359,10 +1359,12 @@
       return 1.05 / (lum + 0.05) >= (lum + 0.05) / 0.05 ? '#fff' : '#000';
     }
 
+    var trustBadgesLista = null;   // [COMO-COMPRAR] 146p · la última lista pintada (la de la base, o la de respaldo)
     function renderTrustBadges(items) {
       var grid = document.getElementById('trustBadgesGrid');
       if (!grid) return;
       var list = (items && items.length) ? items : TRUST_BADGES_DEFAULTS;
+      trustBadgesLista = list;
       grid.innerHTML = list.map(function(b) {
         var hasLink = b.link_a && b.link_a.trim() !== '' && urlSegura(b.link_a);   // [XSS-CATALOGO-STAFF] sólo http(s) o relativa
         var cls = 'trust-badge-card' + (hasLink ? ' is-link' : '');
@@ -1543,6 +1545,8 @@
     }
 
     function scrollToCatalog() {
+      // [LO-PEGADO-CELU] 146l · en el celu no hay barra de filtros pegada: se va al comienzo del catálogo (buscador y géneros), debajo del nav y el banner
+      if (window.innerWidth < 768) { var c = document.getElementById('catalogo'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
       var target = document.querySelector('.filters-bar') || document.getElementById('catalogGrid');
       var nav = document.querySelector('nav');
       var filterBar = document.querySelector('.filter-bar');
@@ -2009,6 +2013,16 @@
       });
     }
 
+    // [A-QUE-HUELE] 146g · el perfil y hasta 3 notas (la primera de salida, de corazón y de base) debajo de la marca. Sin notas cargadas, sólo el perfil
+    // (no se inventa nada); sin nada, no hay línea. Todo escapado.
+    function aQueHuele(p) {
+      var perfil = String(p.perfil || '').trim();
+      if (perfil) perfil = perfil.charAt(0).toUpperCase() + perfil.slice(1);
+      var notas = [p.notas_salida, p.notas_corazon, p.notas_base].map(function(n) { return String(n || '').split(',')[0].trim().toLowerCase(); }).filter(Boolean);
+      if (!perfil && !notas.length) return '';
+      return '<p class="card-huele">' + (perfil ? '<b>' + escapeHTML(perfil) + '</b>' : '') + (perfil && notas.length ? ' &middot; ' : '') + escapeHTML(notas.join(', ')) + '</p>';
+    }
+
     function buildCard(p) {
       delete p._precioOriginal; // limpiar entre renders
       var letter = p.name.charAt(0).toUpperCase();
@@ -2196,7 +2210,8 @@
         + '<div class="card-info">'
           + galleryNavOnInfo
           + '<p class="card-name">' + escapeHTML(p.name) + '</p>'
-          + '<p class="card-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
+          + '<p class="card-brand" data-gen="' + escapeHTML(pCat) + '">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
+          + aQueHuele(p)   // [A-QUE-HUELE] 146g · sólo se ve a < 768
           + '<div class="card-tags">'
             + '<span class="card-tag tag-cat">' + escapeHTML(pCat) + '</span>'
             + '<span class="card-tag tag-ml">' + escapeHTML(mlText) + '</span>'
@@ -3714,7 +3729,7 @@
             // Lighthouse). Ahora batchamos: todas las lecturas/escrituras de display
             // primero, después UN solo reflow en el contenedor, después la clase.
             var wasHidden = card.style.display === 'none';
-            card.style.display = 'flex';
+            card.style.display = '';   // 146f · lo decide el CSS (flex en la grilla, grid en la lista del celu); 'none' sigue siendo inline
             card.style.contentVisibility = 'visible';
             if (wasHidden) {
               card.classList.remove('filter-entering');
@@ -3779,6 +3794,7 @@
       updateLoadMoreBtn(matchIndex, totalMatch);
       applyMirrorClasses();
       updateActiveFilters();
+      try { vidActualizar(totalMatch); } catch (e) { console.warn('[vidriera] vidActualizar:', e); }   // 146 · hoja de filtros, línea de filtros y estantes
     }
 
     function applyMirrorClasses() {
@@ -3862,7 +3878,7 @@
       // Categoría (si no es "all")
       if (currentFilter && currentFilter !== 'all') {
         var catLabel = currentFilter === 'favs' ? 'Favoritos' : currentFilter;
-        items.push({ label: 'Categoría', value: catLabel, remove: 'cat' });
+        items.push({ label: 'Categoría', value: catLabel, remove: 'cat', favs: currentFilter === 'favs' });
       }
 
       // Nuevos (filtro independiente)
@@ -3903,7 +3919,7 @@
         var chip = document.createElement('span');
         chip.className = 'active-filter-chip';
         chip.innerHTML = '<span class="chip-label">' + escapeHTML(item.label) + '</span> '   // [XSS-URL-FILTROS] la búsqueda y la categoría llegan por la URL
-          + '<span class="chip-value">' + escapeHTML(item.value) + '</span>'   // [CHIP-BUSQUEDA-LARGA] 143f · en su <span> para cortarlo con «…»
+          + '<span class="chip-value">' + (item.favs ? '<span class="cv-pc">Favoritos</span><span class="cv-cel">&#9829; Mis favoritos</span>' : escapeHTML(item.value)) + '</span>'   // [CHIP-BUSQUEDA-LARGA] 143f · en su <span> para cortarlo con «…» · 146i: el ♥ del celu
           + ' <button class="chip-remove" data-filter="' + item.remove + '" aria-label="Quitar ' + escapeHTML(item.label) + '">&times;</button>';
         chip.querySelector('.chip-remove').addEventListener('click', function() {
           removeFilter(item.remove);
@@ -4121,7 +4137,7 @@
       applyFilters();
     }
 
-    function filterBy(cat, btn) {
+    function filterBy(cat, btn, sinSalto) {
       // Desactivar solo los botones de categoría, no el de Nuevos
       document.querySelectorAll('.filter-zone--left .filter-btn').forEach(function(b) {
         if (b.textContent.indexOf('Nuevos') === -1) b.classList.remove('active');
@@ -4133,7 +4149,7 @@
       applyFilter(cat);
       closeDeck();
       updateDeckLabel();
-      scrollToCatalog();
+      if (!sinSalto) scrollToCatalog();   // 146m · la hoja de filtros aplica sin mover la página
       // Sincronizar URL con todos los filtros activos (cat + nota + ocasion)
       if (typeof updateFiltersInURL === 'function') updateFiltersInURL();
     }
@@ -4161,53 +4177,8 @@
       }
     }
 
-    (function() {
-      var deck = document.querySelector('.filter-zone--left');
-      var isMobile = function() { return window.innerWidth < 768; };
-
-      // En mobile: interceptar clicks en los botones del mazo.
-      // Usamos "capture: true" para atrapar el click ANTES que el onclick del botón.
-      deck.addEventListener('click', function(e) {
-        if (!isMobile()) return;
-
-        if (!deck.classList.contains('deck-open')) {
-          // Mazo cerrado → abrir y NO ejecutar el filtro
-          e.stopPropagation();
-          // Evitar que el onclick="filterBy(...)" del botón se ejecute
-          var btn = e.target.closest('.filter-btn');
-          if (btn) {
-            e.preventDefault();
-            // Remover momentáneamente el onclick para que no se dispare
-            // (el stopPropagation en capture debería bastar)
-          }
-          deck.classList.add('deck-open');
-          return;
-        }
-        // Si está abierto, dejar que el onclick del botón haga lo suyo
-        // (filterBy/filterByNew/filterByFavs llaman a closeDeck)
-      }, true); // ← capture phase: se ejecuta ANTES que el onclick
-
-      // Tap fuera del mazo → cerrar
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('.filter-zone--left')) {
-          closeDeck();
-        }
-      });
-
-      // [MAZO-TAPADO] 134 · con la barra pegada arriba (celu), el mazo no asoma: el borde de 5 px del botón activo quedaba
-      // debajo de la cinta de cuotas y parecía un botón, pero el toque caía en la cinta. Un sticky no avisa cuándo se pega:
-      // se mide con un IntersectionObserver (la barra con su borde de arriba en el sticky, top: 58px, deja de estar entera).
-      // La clase sólo hace algo a < 768 (CSS): en escritorio la barra no es sticky.
-      var bar = document.getElementById('catalogo');
-      if (bar && 'IntersectionObserver' in window) {
-        new IntersectionObserver(function(entries) {
-          var e = entries[entries.length - 1];
-          var pegada = e.intersectionRatio < 1 && e.boundingClientRect.top <= 59;
-          bar.classList.toggle('filter-bar--pegada', pegada);
-          if (pegada) closeDeck();   // un mazo abierto se esconde con la barra: que no vuelva abierto
-        }, { rootMargin: '-59px 0px 0px 0px', threshold: [1] }).observe(bar);
-      }
-    })();
+    // [VIDRIERA] 146i · el mazo ya no existe a < 768 (los géneros son chips que se tocan directo): se sacaron el interceptor del primer tap y el
+    // observador de [MAZO-TAPADO] (134). En escritorio el mazo nunca se abría (los botones van en fila), así que no hay nada más que hacer.
 
     // ============================================================
     // BUSCAR
@@ -4476,7 +4447,7 @@
       }
     });
 
-    function filterByNew(btn) {
+    function filterByNew(btn, sinSalto) {
       // Toggle: si ya estaba activo, desactivar
       filterNewActive = !filterNewActive;
       if (filterNewActive) {
@@ -4488,7 +4459,7 @@
       applyFilters();
       closeDeck();
       updateDeckLabel();
-      scrollToCatalog();
+      if (!sinSalto) scrollToCatalog();
     }
 
     function filterByFavs(btn) {
@@ -4560,6 +4531,225 @@
       document.querySelectorAll('.sort-menu button').forEach(b => b.classList.remove('active-sort'));
       document.querySelector('.sort-menu button[onclick*="' + mode + '"]').classList.add('active-sort');
     }
+
+
+    // ============================================================
+    // [VIDRIERA] 146 · el primer pantallazo del celu (< 768) · DISEÑADOR _bm / _bq, PREPARADOR _cb / _cc
+    // Orden: nav · aviso de pagos · franja de marca · buscador · géneros (chips) · tira de atajos · fila de orden (lo único pegado) · la lista.
+    // Reglas de oro: (1) a >= 768 todo queda como en main; (2) NADA se copia: lo que cambia de lugar según el ancho se MUDA (el nodo, con su id y su
+    // código) y vuelve a su casa al cruzar los 768; (3) lo que viene de la base se pide UNA vez y se escapa con escapeHTML.
+    // ============================================================
+    var vidCelu = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+    function vidEsCelu() { return !!(vidCelu && vidCelu.matches); }
+
+    // La casa de cada nodo en escritorio: un marcador (comentario) en su lugar de siempre.
+    function vidMover(nodo, padre, antes) {
+      if (!nodo || !padre) return;
+      if (!nodo._vidCasa) { nodo._vidCasa = document.createComment('vid'); nodo.parentNode.insertBefore(nodo._vidCasa, nodo); }
+      if (antes) padre.insertBefore(nodo, antes); else padre.appendChild(nodo);
+    }
+    function vidDevolver(nodo) {
+      if (nodo && nodo._vidCasa && nodo._vidCasa.parentNode) nodo._vidCasa.parentNode.insertBefore(nodo, nodo._vidCasa);
+    }
+
+    // ¿Hay algo prendido? (género, Nuevos, favoritos, búsqueda, nota, ocasión, precio): 146n, los estantes sólo salen con nada prendido.
+    function vidHayAlgoPrendido() {
+      return (currentFilter && currentFilter !== 'all') || filterNewActive || !!currentSearch || !!currentNoteFilter || !!currentOccasion || priceFilterActive;
+    }
+    // Lo que se cuenta en «Filtros · N»: lo que está en la hoja (género, Nuevos, ocasión, nota, precio). La búsqueda y los favoritos no.
+    function vidFiltrosEnHoja() {
+      return ((currentFilter && currentFilter !== 'all' && currentFilter !== 'favs') ? 1 : 0) + (filterNewActive ? 1 : 0) + (currentOccasion ? 1 : 0) + (currentNoteFilter ? 1 : 0) + (priceFilterActive ? 1 : 0);
+    }
+
+    var vidTotal = null;   // cuántos perfumes pasan los filtros (lo deja applyCardVisibility)
+    // Al final de cada applyCardVisibility: los chips de la hoja, «Filtros · N», «Ver N perfumes», el número de la línea de filtros y los estantes.
+    function vidActualizar(total) {
+      if (typeof total === 'number') vidTotal = total;
+      var i;
+      var chips = document.querySelectorAll('#vhPara .vh-chip');
+      for (i = 0; i < chips.length; i++) {
+        var on = chips[i].hasAttribute('data-nuevos') ? filterNewActive : (chips[i].getAttribute('data-cat') === currentFilter);
+        chips[i].classList.toggle('on', !!on);
+        chips[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      var n = vidFiltrosEnHoja();
+      var nEl = document.getElementById('filtrosN');
+      if (nEl) { nEl.textContent = n; nEl.hidden = n === 0; }
+      var bF = document.getElementById('btnFiltros');
+      if (bF) bF.setAttribute('aria-label', n ? 'Filtros, ' + n + (n === 1 ? ' activo' : ' activos') : 'Filtros');
+      var ver = document.getElementById('vhVer');
+      if (ver) ver.textContent = vidTotal === null ? 'Ver perfumes' : 'Ver ' + vidTotal + (vidTotal === 1 ? ' perfume' : ' perfumes');
+      var barra = document.getElementById('activeFiltersBar');
+      if (barra) {
+        var cnt = document.getElementById('activeFiltersCount');
+        if (!cnt) { cnt = document.createElement('span'); cnt.id = 'activeFiltersCount'; cnt.className = 'af-count'; barra.insertBefore(cnt, barra.firstChild); }
+        cnt.textContent = vidTotal === null ? '' : vidTotal + (vidTotal === 1 ? ' perfume' : ' perfumes');
+        cnt.style.display = vidEsCelu() ? '' : 'none';
+      }
+      vidUbicarEstantes();
+    }
+
+    // 146n [ESTANTES-DE-ENTRADA] · la Selección ST va después de la 4.ª fila y los decants (con su banner) después de la 8.ª, de las que se estén viendo;
+    // sólo con nada prendido. Con algo prendido la lista es sólo resultados (los estantes se esconden). A >= 768 vuelven a su casa.
+    var vidEst = null;
+    function vidUbicarEstantes() {
+      if (!vidEst) {
+        var dec = document.getElementById('decants');
+        vidEst = { sel: document.getElementById('destacados'), dec: dec, ban: (dec && dec.nextElementSibling && dec.nextElementSibling.classList.contains('price-banner-wrap')) ? dec.nextElementSibling : null };
+      }
+      var lista = [vidEst.sel, vidEst.dec, vidEst.ban];
+      var grid = document.getElementById('catalogGrid');
+      var i;
+      if (!vidEsCelu() || !grid) {
+        for (i = 0; i < lista.length; i++) { if (lista[i]) { lista[i].classList.remove('vid-estante-off'); vidDevolver(lista[i]); } }
+        return;
+      }
+      if (!grid.querySelector('.product-card')) return;   // todavía no hay lista: los estantes esperan (escondidos) en su casa
+      var off = vidHayAlgoPrendido();
+      for (i = 0; i < lista.length; i++) { if (lista[i]) lista[i].classList.toggle('vid-estante-off', off); }
+      if (off) { for (i = 0; i < lista.length; i++) { if (lista[i] && lista[i].parentNode !== grid) vidMover(lista[i], grid); } return; }
+      var vis = [];
+      var cards = grid.querySelectorAll('.product-card');
+      for (i = 0; i < cards.length; i++) { if (cards[i].style.display !== 'none') vis.push(cards[i]); }
+      function despuesDe(nodo, ref) {
+        if (!nodo) return ref;
+        if (!ref) { if (nodo.parentNode !== grid || grid.lastElementChild !== nodo) vidMover(nodo, grid); return nodo; }
+        if (ref.nextSibling !== nodo) vidMover(nodo, ref.parentNode, ref.nextSibling);
+        return nodo;
+      }
+      despuesDe(vidEst.sel, vis[3] || null);
+      var ref8 = despuesDe(vidEst.dec, vis[7] || null);
+      despuesDe(vidEst.ban, ref8);
+    }
+
+    // Lo que cambia de lugar según el ancho (al cargar y al cruzar los 768, sin recargar).
+    function vidAcomodar() {
+      var celu = vidEsCelu();
+      var orden = document.getElementById('ordenFila');
+      var lista = [
+        [document.querySelector('.sort-wrapper'), orden, document.getElementById('btnFiltros')],
+        [document.getElementById('puntosContextBanner'), orden && orden.parentNode, orden],   // H2: el aviso de puntos, entre la tira y la fila de orden
+        [document.querySelector('.occasion-wrap'), document.getElementById('vhOcasion'), null],
+        [document.getElementById('noteFilterWrap'), document.getElementById('vhNotas'), null],
+        [document.getElementById('priceFilterWrap'), document.getElementById('vhPrecio'), null]
+      ];
+      for (var i = 0; i < lista.length; i++) { if (celu) vidMover(lista[i][0], lista[i][1], lista[i][2]); else vidDevolver(lista[i][0]); }
+      if (!celu) { var abiertas = document.querySelectorAll('.vh-overlay.open'); for (var j = 0; j < abiertas.length; j++) abiertas[j].classList.remove('open'); vidHojaAbierta = ''; }
+      vidPintarVista();
+      vidActualizar();
+    }
+
+    // 146f / 146i · ▦ grilla / ☰ lista (en el celu arranca en ☰ y se recuerda por visitante en localStorage; sin acceso al storage, arranca en ☰)
+    function vidVista() { return document.documentElement.getAttribute('data-vista') === 'grid' ? 'grid' : 'lista'; }
+    function vidPintarVista() {
+      var v = vidVista();
+      var g = document.getElementById('vistaGrid'), l = document.getElementById('vistaLista');
+      if (g) g.setAttribute('aria-pressed', v === 'grid' ? 'true' : 'false');
+      if (l) l.setAttribute('aria-pressed', v === 'lista' ? 'true' : 'false');
+    }
+    function setVista(v) {
+      v = v === 'grid' ? 'grid' : 'lista';
+      if (v === vidVista()) return;
+      // se mantiene a la vista la card que se estaba mirando (la primera por debajo de lo pegado)
+      var tope = 157, ancla = null, desde = 0, cards = document.querySelectorAll('#catalogGrid .product-card');
+      for (var i = 0; i < cards.length; i++) {
+        if (cards[i].style.display === 'none') continue;
+        var r = cards[i].getBoundingClientRect();
+        if (r.bottom > tope) { ancla = cards[i]; desde = r.top; break; }
+      }
+      document.documentElement.setAttribute('data-vista', v);
+      try { localStorage.setItem('st_vista', v); } catch (e) {}
+      vidPintarVista();
+      if (ancla && window.pageYOffset > 100) window.scrollTo({ top: window.pageYOffset + ancla.getBoundingClientRect().top - desde, behavior: 'instant' });
+    }
+
+    // Las hojas (Filtros y Cómo comprar): encima de la barra de abajo; «atrás» las cierra (como la hoja de Cuenta).
+    var vidHojaAbierta = '';
+    var vidHojaDespues = null;
+    function vidAbrirHoja(id) {
+      var ov = document.getElementById(id);
+      if (!ov) return;
+      ov.classList.add('open');
+      vidHojaAbierta = id;
+      try { history.pushState({ vidHoja: id }, ''); } catch (e) {}
+    }
+    function vidCerrarHoja(despues) {
+      var ov = vidHojaAbierta ? document.getElementById(vidHojaAbierta) : null;
+      var sigue = typeof despues === 'function' ? despues : null;
+      if (!ov || !ov.classList.contains('open')) { if (sigue) sigue(); return; }
+      if (history.state && history.state.vidHoja) { vidHojaDespues = sigue; history.back(); return; }
+      ov.classList.remove('open');
+      vidHojaAbierta = '';
+      if (sigue) sigue();
+    }
+    window.addEventListener('popstate', function() {
+      if (!vidHojaAbierta) return;
+      var ov = document.getElementById(vidHojaAbierta);
+      if (ov) ov.classList.remove('open');
+      vidHojaAbierta = '';
+      var sigue = vidHojaDespues; vidHojaDespues = null;
+      if (sigue) setTimeout(sigue, 60);
+    });
+
+    // 146m [FILTROS-HOJA]
+    function abrirFiltrosHoja() {
+      if (!priceFilterActive) { try { initPriceSlider(); } catch (e) {} }
+      vidActualizar();
+      vidAbrirHoja('vhFiltrosOverlay');
+    }
+    function cerrarFiltrosHoja(ver) { vidCerrarHoja(ver ? vidAlGrid : null); }
+    // Al cerrar con «Ver N perfumes»: si se estaba en el medio de la lista, vuelve al comienzo de los resultados (debajo de lo pegado).
+    function vidAlGrid() {
+      var barra = document.getElementById('activeFiltersBar');
+      var t = (barra && barra.style.display !== 'none') ? barra : document.getElementById('catalogGrid');
+      if (t && t.getBoundingClientRect().top < 157) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // «Para quién» de la hoja: los mismos botones y las mismas funciones de los chips de arriba, sin el salto de scroll.
+    function vhPara(cat) {
+      var btn = document.querySelector('.filter-zone--left .filter-btn[data-cat="' + cat + '"]');
+      if (btn) filterBy(cat, btn, true);
+    }
+    function vhNuevos() {
+      var btns = document.querySelectorAll('.filter-zone--left .filter-btn');
+      for (var i = 0; i < btns.length; i++) { if (btns[i].textContent.indexOf('Nuevos') !== -1) { filterByNew(btns[i], true); return; } }
+    }
+
+    // 146p [COMO-COMPRAR] · los beneficios de la base (los mismos de renderTrustBadges), en su orden y con su texto
+    function abrirComoComprar() {
+      var cont = document.getElementById('vhCompraLista');
+      if (!cont) return;
+      var lista = (trustBadgesLista && trustBadgesLista.length) ? trustBadgesLista : TRUST_BADGES_DEFAULTS;
+      cont.innerHTML = lista.map(function(b, i) {
+        var link = b.link_a && String(b.link_a).trim() !== '' && urlSegura(b.link_a);   // [XSS-CATALOGO-STAFF] sólo http(s) o relativa
+        return '<' + (link ? 'button type="button" onclick="vidBeneficioIr(' + i + ')"' : 'div') + ' class="vh-tb">'
+          + '<span class="vh-tb-ico" aria-hidden="true">' + escapeHTML(b.icono || '\u25c6') + '</span>'
+          + '<span class="vh-tb-txt"><span class="vh-tb-tit">' + escapeHTML(b.titulo || '') + '</span>'
+          + (b.bajada ? '<span class="vh-tb-sub">' + escapeHTML(b.bajada) + '</span>' : '') + '</span>'
+          + '</' + (link ? 'button' : 'div') + '>';
+      }).join('');
+      vidAbrirHoja('vhCompraOverlay');
+    }
+    function cerrarComoComprar() { vidCerrarHoja(); }
+    // un beneficio con link: primero se cierra la hoja y después salta
+    function vidBeneficioIr(i) {
+      var lista = (trustBadgesLista && trustBadgesLista.length) ? trustBadgesLista : TRUST_BADGES_DEFAULTS;
+      var b = lista[i];
+      if (!b) return;
+      vidCerrarHoja(function() { trustBadgeGo(b.link_a); });
+    }
+
+    // 146n · «⭐ Los más elegidos»: baja a la Selección ST. Con algo prendido, primero lo limpia (como «Limpiar» más el salto).
+    function vidIrASeleccion() {
+      var sel = document.getElementById('destacados');
+      if (!sel) return;
+      if (vidHayAlgoPrendido()) clearAllFilters();
+      requestAnimationFrame(function() { sel.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    }
+    // Los links del menú a #destacados y #decants: si hay algo prendido los estantes no están; se limpia antes de que el navegador salte.
+    function vidPrepararSalto() { if (vidEsCelu() && vidHayAlgoPrendido()) clearAllFilters(); }
+
+    if (vidCelu) { if (vidCelu.addEventListener) vidCelu.addEventListener('change', vidAcomodar); else if (vidCelu.addListener) vidCelu.addListener(vidAcomodar); }
+    vidAcomodar();
 
     // ============================================================
     // NAV DRAWER

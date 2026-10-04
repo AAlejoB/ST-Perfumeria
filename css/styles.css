@@ -1267,11 +1267,7 @@
       gap: .5rem;
     }
 
-    /* [MAZO-TAPADO] 134 · con la barra pegada (celu) el mazo no asoma: nada tocable debajo de la cinta de cuotas. La clase la
-       pone app.js (IntersectionObserver). visibility y no display: la barra conserva su alto (236,8) y los saltos siguen frenando igual. */
-    @media (max-width: 767px) {
-      .filter-bar--pegada .filter-zone--left { visibility: hidden; }
-    }
+    /* [MAZO-TAPADO] 134 · SACADO en [VIDRIERA] (146): a < 768 el mazo ya no existe (los géneros son chips, la barra no es sticky). */
 
     /* Desktop: botones en fila normal (sin mazo) */
     @media (min-width: 768px) {
@@ -3309,7 +3305,7 @@
          destino quedaba escondido abajo de la barra sticky de filtros.
          Con scroll-margin-top el navegador frena antes. [VER-MAS] Antes era el
          scroll-padding-top del html y frenaba 240 px también los saltos a secciones. */
-      .product-card, .catalog-grid { scroll-margin-top: 243px; }   /* [CARD-ESCRITORIO-BANNER] 236,8 pegado + 6 (era 240) */
+      .product-card, .catalog-grid { scroll-margin-top: 157px; }   /* [LO-PEGADO-CELU] 146l: nav 58 + banner 39 + fila de orden 54 + 6 de aire (era 243: la barra de filtros pegada medía 236,8) */
     }
     /* DESKTOP: card muestra tags, oculta notas preview. Reveal lateral normal */
     @media (min-width: 768px) {
@@ -8156,42 +8152,7 @@
     body:not(.dark-mode) .nav-drawer .drawer-close,
     body:not(.dark-mode) .nav-drawer button { color: #f0ede8; }
 
-    /* ════════════════════════════════════════════════════════════════
-       FIX MOBILE · "Deck" de filtros que se montaba todo encima
-       Bug visual: con bg transparent + buttons apilados con 3px de
-       offset, los textos TODOS/UNISEX/HOMBRE/MUJER/NUEVOS/❤ se veían
-       superpuestos en mobile. Fix:
-       - CERRADO: solo se muestra el botón activo (los otros opacity:0
-         y pointer-events:none, así no roban clicks).
-       - ABIERTO: todos los botones con bg sólido para que no se vean
-         transparencias entre ellos.
-       ──────────────────────────────────────────────────────────────── */
-    @media (max-width: 767px) {
-      .filter-zone--left:not(.deck-open) .filter-btn {
-        opacity: 0;
-        pointer-events: none;
-      }
-      .filter-zone--left:not(.deck-open) .filter-btn.active {
-        opacity: 1;
-        pointer-events: auto;
-      }
-      .filter-zone--left.deck-open .filter-btn {
-        opacity: 1;
-        pointer-events: auto;
-        /* Solido para que no haya bleed-through entre cards apilados */
-        background: #1a1a1d;
-        border-color: rgba(232,184,0,.35);
-      }
-      body:not(.dark-mode) .filter-zone--left.deck-open .filter-btn {
-        background: #ffffff;
-        border-color: rgba(120,90,0,.3);
-        color: #1a1a1d;
-      }
-      .filter-zone--left.deck-open .filter-btn.active {
-        background: var(--amarillo);
-        color: #1a1a1d;
-      }
-    }
+    /* [VIDRIERA] 146i · SACADO el «FIX MOBILE · Deck de filtros» (los botones del mazo en opacity 0 salvo el activo): a < 768 el mazo ya no existe, los géneros son chips. */
 
     /* ════════════════════════════════════════════════════════════════
        LIGHT THEME · "Dónde encontrarnos" — fix título washed-out
@@ -8732,12 +8693,7 @@
       body:not(.dark-mode) .decant-b-left { border-bottom-color: #b48c00 !important; }
     }
 
-    /* #3 — "FILTROS" deck-label se montaba sobre el botón TODOS.
-       Aumentamos el padding-top del filter-zone--left para dejarle aire. */
-    @media (max-width: 767px) {
-      .filter-zone--left { padding-top: 30px !important; }
-      .deck-label { top: -28px !important; }
-    }
+    /* [VIDRIERA] 146i · SACADO el «#3»: el padding de 30 px del mazo y el top del deck-label (a < 768 el mazo ya no existe). */
 
     /* #4 — "162 fragancias" en blanco sobre el fondo oscuro del filter-bar */
     body:not(.dark-mode) .filter-count {
@@ -10149,4 +10105,216 @@
       }
       .cuenta-hoja-fila b { font-weight: 700; }
       .cuenta-hoja-salir { color: #ff6b6b; border-bottom: 0; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       [VIDRIERA] 146 · el primer pantallazo del celu (< 768) · DISEÑADOR _bm / _bq, PREPARADOR _cb / _cc
+       Va al final a propósito: les gana por orden a las reglas de arriba. `body[class]` (el body siempre tiene clase)
+       sube la especificidad a la de `body.dark-mode …` / `body:not(.dark-mode) …` sin !important. Todo lo nuevo está
+       dentro del @media: a ≥ 768 no existe (los elementos nuevos son display: none) y el catálogo queda igual a main.
+       Tokens: --v-bg (fondo del catálogo) y --v-sup (tarjetas, chips y hojas).
+       ──────────────────────────────────────────────────────────────── */
+    .vid-tira, .vid-orden, .vh-overlay, .card-huele, .cv-cel { display: none; }
+    @media (max-width: 767px) {
+      body { --v-bg: #121214; --v-sup: #1a1a1d; --v-velo: rgba(0,0,0,.6); }
+      body:not(.dark-mode) { --v-bg: #f5efde; --v-sup: #ffffff; --v-velo: rgba(0,0,0,.45); }
+
+      /* 146h [FRANJA-3-RENGLONES] · el hero pasa a ser la franja de marca: tres renglones (marca · frase · píldora del horario).
+         Es el mismo <section class="hero">, con su <h1> y su #storeStatus (los escribe calcularEstadoHorario, NO ROMPER #14). */
+      body[class] .hero { padding: 10px 16px 8px; min-height: 0; text-align: left; background: var(--v-bg); border: 0; overflow: visible; margin: 0; }
+      body[class] .hero::before { display: none; }
+      body[class] .hero-tagline { font-size: 9.8px; font-weight: 600; letter-spacing: .2em; color: var(--amarillo-tinta); margin: 0; opacity: 1; animation: none; white-space: nowrap; }
+      body[class] .hero-tagline .hero-tl-ext { display: none; }
+      body[class] .hero-title { font-size: 17px; font-style: italic; font-weight: 500; line-height: 1.25; margin: 4px 0 0; opacity: 1; animation: none; }
+      body[class] .hero-title em { font-weight: 600; }
+      body[class] .hero .store-status { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; margin-top: 6px; max-width: 100%; }
+
+      /* 146b [VIDRIERA-ORDEN] · lo que se va de arriba (los beneficios, el banner «Explorá» y el CTA del juego pasan a la tira o a
+         «Cómo comprar»); el aviso de puntos se muda a la fila de arriba de la fila de orden (JS). */
+      .trust-badges, .price-banner-wrap--big, .quiz-cta-wrap { display: none; }
+      /* 146n [ESTANTES-DE-ENTRADA] · la Selección ST y los decants bajan DENTRO de la lista (app.js los muda). Mientras están
+         sueltos en la página no se ven; con algo prendido (búsqueda, filtro) tampoco: la lista es sólo resultados. */
+      body > #destacados, body > #decants, body > #decants + .price-banner-wrap { display: none; }
+      .vid-estante-off { display: none !important; }
+
+      .catalogo-scope { background: var(--v-bg); }
+      body.dark-mode .catalog-section, body:not(.dark-mode) .catalog-section { background: var(--v-bg); padding: 0 0 4rem; }
+
+      /* Buscador y géneros: la barra deja de ser sticky y de ser un mazo. Sólo queda pegada la fila de orden (146l). */
+      body[class] .filter-bar { position: static; top: auto; background: var(--v-bg); -webkit-backdrop-filter: none; backdrop-filter: none; border: 0;
+        padding: 0 14px; display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; }
+      body[class] .filter-zone--right { display: none; }
+      body[class] .filters-bar { display: none; }   /* Ocasión, notas y precio viven en la hoja «Filtros» */
+      body[class] .filter-zone--center { order: 1; width: 100%; }
+      body[class] .search-input { height: 48px; padding: 0 40px; border-radius: 8px; background: var(--v-sup); border: 1px solid var(--borde); color: var(--blanco); }
+      body[class] .search-input:focus { border-color: var(--amarillo); background: var(--v-sup); }
+      body[class] .search-input::placeholder { font-size: 14.5px; letter-spacing: 0; }
+      body[class] .search-icon { left: 14px; width: 17px; height: 17px; }
+      body[class] .search-clear { right: 4px; width: 44px; height: 44px; font-size: 1.4rem; padding: 0; }
+      /* 146i [NUEVOS-EN-CHIPS] · los géneros son chips de 44 en una fila que se desliza (Todos · Mujer · Hombre · Unisex · 🔥 Nuevos).
+         El ♥ no es un chip: Favoritos sigue desde el ♥ del nav y «Cuenta → Mis favoritos» (el botón sigue en el DOM por su JS). */
+      body[class] .filter-zone--left { order: 2; position: static; width: auto; min-height: 0; padding: 0 14px; margin: 0 -14px; display: flex; gap: 8px;
+        overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+      .filter-zone--left::-webkit-scrollbar { display: none; }
+      body[class] .filter-zone--left .deck-label { display: none; }
+      body[class] .filter-zone--left .filter-btn { position: static; width: auto; flex: 0 0 auto; height: 44px; padding: 0 16px; border-radius: 22px;
+        font-size: 12px; font-weight: 700; letter-spacing: .08em; background: var(--v-sup); color: var(--blanco); border: 1px solid var(--borde); box-shadow: none; animation: none; }
+      body[class] .filter-zone--left .filter-btn.active { background: var(--amarillo); color: #111; border-color: var(--amarillo); }
+      body[class] #filtro-todos { order: 1; }
+      body[class] #filtro-mujer { order: 2; }
+      body[class] #filtro-hombre { order: 3; }
+      body[class] #filtro-unisex { order: 4; }
+      body[class] .filter-zone--left .filter-btn:not([id]) { order: 5; }
+      body[class] #btnFavFilter { display: none; }
+
+      /* 146c [TIRA-DE-ATAJOS] · cuatro tarjetas de 136 × 84, una sola paleta, se desliza */
+      .vid-tira { display: flex; gap: 10px; padding: 10px 14px 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; background: var(--v-bg); }
+      .vid-tira::-webkit-scrollbar { display: none; }
+      .vid-t { flex: 0 0 auto; min-width: 136px; height: 84px; border-radius: 10px; background: var(--v-sup); border: 1px solid var(--borde); padding: 10px 11px;
+        display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left; color: var(--blanco); font-family: var(--font-body); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      .vid-t-ico { width: 28px; height: 28px; border-radius: 50%; background: rgba(232,184,0,.14); display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1; }
+      .vid-t-tit { display: block; font-size: 12.5px; font-weight: 700; line-height: 1.15; white-space: nowrap; }
+      .vid-t-sub { display: block; font-size: 10.5px; font-weight: 500; color: var(--gris); margin-top: 2px; white-space: nowrap; }
+
+      /* 146j [ORDEN-SIN-NUMERO] + 146l [LO-PEGADO-CELU] · la fila de orden: ▦ ☰ · Ordenar · Filtros. Es lo único que queda pegado
+         (54 px debajo del nav + el banner = 97). Sin el banner, debajo del nav (58). */
+      .vid-orden { display: flex; align-items: center; gap: 8px; height: 54px; padding: 5px 14px; margin-top: 5px; position: sticky; top: 58px; z-index: 90;
+        background: var(--v-bg); border-bottom: 1px solid var(--borde); }
+      body:has(#topPaymentBanner[style*="block"]) .vid-orden { top: 97px; }
+      .vid-seg { position: relative; display: flex; flex: 0 0 auto; height: 44px; border-radius: 8px; overflow: hidden; background: var(--v-sup); }
+      .vid-seg::after { content: ''; position: absolute; inset: 0; border: 1px solid var(--borde); border-radius: 8px; pointer-events: none; }
+      .vid-seg-b { width: 44px; height: 44px; padding: 0; margin: 0; border: 0; display: flex; align-items: center; justify-content: center; background: var(--v-sup); color: var(--gris); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      .vid-seg-b[aria-pressed="true"] { background: var(--amarillo); color: #111; }
+      .vid-seg-b svg { width: 18px; height: 18px; }
+      .vid-btn, .vid-orden .sort-wrapper { flex: 1 1 0; min-width: 0; }
+      .vid-btn, .vid-orden .sort-wrapper > .filter-btn { height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0 10px; border: 1px solid var(--borde); border-radius: 8px;
+        background: var(--v-sup); color: var(--blanco); font-family: var(--font-body); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+      .vid-orden .sort-wrapper > .filter-btn { width: 100%; }
+      .vid-orden .sort-wrapper > .filter-btn.active { background: var(--amarillo); color: #111; border-color: var(--amarillo); }
+      .vid-btn svg, .vid-orden .sort-wrapper > .filter-btn svg { width: 15px; height: 15px; flex: 0 0 15px; }
+      .vid-n { background: var(--amarillo); color: #111; border-radius: 10px; padding: 1px 7px; font-size: 11px; letter-spacing: 0; line-height: 1.4; }
+      .vid-n[hidden] { display: none; }
+
+      /* 146k [LINEA-DE-FILTROS] · el número de resultados y lo prendido, sólo con algo prendido (es el #activeFiltersBar de siempre) */
+      body[class] .active-filters-bar { background: transparent; border: 0; margin: 0; padding: 8px 14px 6px; min-height: 34px; gap: 6px; align-items: center; }
+      .af-count { font-size: 12px; font-weight: 500; color: var(--gris); white-space: nowrap; }
+      body[class] .active-filters-chips { flex: 0 1 auto; gap: 6px; }
+      body[class] .active-filter-chip { height: 26px; padding: 0 9px; border-radius: 13px; font-size: 11px; font-weight: 600; color: var(--blanco); background: rgba(232,184,0,.14); border: 1px solid rgba(120,90,0,.3); }
+      body.dark-mode .active-filter-chip { border-color: rgba(232,184,0,.25); }
+      body[class] .active-filter-chip .chip-label { display: none; }
+      .cv-pc { display: none; }
+      .cv-cel { display: inline; }
+      body[class] .active-filters-clear { margin-left: auto; border: 0; background: none; padding: 0; color: var(--amarillo-tinta); font-size: 11.5px; font-weight: 600; text-decoration: underline; }
+      .af-todo, .af-x { display: none; }
+      .favs-empty, .sin-resultados { margin-left: 14px; margin-right: 14px; }
+
+      /* 146g [A-QUE-HUELE] · el perfil y hasta 3 notas, debajo de la marca (en la card ▦ y en la fila ☰) */
+      .card-huele { display: block; margin: 0; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--gris-claro); }
+      .card-huele b { color: var(--amarillo-tinta); font-weight: 700; }
+
+      /* ▦ grilla: la card de hoy, con la línea de «a qué huele». Sólo se le da aire arriba. */
+      html[data-vista="grid"] body[class] .catalog-grid { padding-top: 8px; }
+      html[data-vista="grid"] #catalogGrid > #destacados, html[data-vista="grid"] #catalogGrid > #decants, html[data-vista="grid"] #catalogGrid > .price-banner-wrap { margin-left: -1rem; margin-right: -1rem; }
+
+      /* 146f [VISTA-LISTA] + 146o [FILA-ESTADOS] · ☰ lista: la misma card, vista como fila de 121 como mínimo. Tocar la fila abre la ficha. */
+      html[data-vista="lista"] body[class] .catalog-grid { padding: 0; gap: 0; min-height: 480px; }
+      html[data-vista="lista"] body[class] .product-card { display: grid; grid-template-columns: 96px minmax(0, 1fr); column-gap: 12px; align-items: start; min-height: 121px;
+        padding: 12px 14px; border: 0; border-bottom: 1px solid var(--borde); border-radius: 0; background: transparent; box-shadow: none; }
+      html[data-vista="lista"] body[class] .card-image { grid-column: 1; grid-row: 1; width: 96px; height: 96px; aspect-ratio: auto; background: #fff; border-radius: 8px; overflow: hidden; }
+      html[data-vista="lista"] body[class] .card-gallery { overflow: hidden; scroll-snap-type: none; }
+      html[data-vista="lista"] body[class] .card-gallery-slide, html[data-vista="lista"] body[class] .card-gallery-slide--single { background: #fff !important; }
+      html[data-vista="lista"] body[class] .card-gallery-slide::before, html[data-vista="lista"] body[class] .card-gallery-slide::after { display: none; }
+      html[data-vista="lista"] body[class] .card-image img { padding: 4px; background: none; }
+      html[data-vista="lista"] body[class] .photo-coming { min-height: 0; padding: 0; gap: 0; background: #fff; border-radius: 0; }
+      html[data-vista="lista"] body[class] .photo-coming-letter { font-family: 'Bodoni Moda', var(--font-display); font-size: 40px; font-weight: 700; color: #c9a227; }
+      html[data-vista="lista"] body[class] .photo-coming-name, html[data-vista="lista"] body[class] .photo-coming-label { display: none; }
+      html[data-vista="lista"] body[class] .card-info { grid-column: 2; grid-row: 1; width: auto; min-width: 0; padding: 0; gap: 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+      html[data-vista="lista"] body[class] .card-info > .card-name, html[data-vista="lista"] body[class] .card-info > .card-brand, html[data-vista="lista"] body[class] .card-info > .card-huele { flex: 0 0 100%; min-width: 0; }
+      html[data-vista="lista"] body[class] .card-info .card-name { font-size: 16.5px; font-weight: 800; letter-spacing: .01em; line-height: 1.18; margin: 0;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      html[data-vista="lista"] body[class] .card-info .card-brand { margin: 2px 0 0; font-size: 11px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--gris);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      html[data-vista="lista"] body[class] .card-info .card-brand::after { content: ' \00b7  ' attr(data-gen); }
+      html[data-vista="lista"] body[class] .card-huele { margin-top: 4px; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      html[data-vista="lista"] body[class] .card-pricing { margin-top: 5px; gap: 0 8px; flex-wrap: wrap; align-items: baseline; flex: 0 0 auto; }
+      html[data-vista="lista"] body[class] .card-info .price-promo { font-size: 18px; font-weight: 800; }
+      html[data-vista="lista"] body[class] .card-info .price-cash { font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+      html[data-vista="lista"] body[class] .price-cuotas-line, html[data-vista="lista"] body[class] .card-tags, html[data-vista="lista"] body[class] .card-notes-preview,
+      html[data-vista="lista"] body[class] .card-pdm-badge, html[data-vista="lista"] body[class] .card-urgency, html[data-vista="lista"] body[class] .card-views,
+      html[data-vista="lista"] body[class] .card-live-viewers, html[data-vista="lista"] body[class] .card-cta-mobile, html[data-vista="lista"] body[class] .card-gallery-nav,
+      html[data-vista="lista"] body[class] .card-reveal, html[data-vista="lista"] body[class] .fav-heart, html[data-vista="lista"] body[class] .compare-btn { display: none; }
+      /* una sola etiqueta sobre la foto: la cinta, o la de mayor prioridad de la pila (111); «Sin stock» y «Próximamente» las tapan */
+      html[data-vista="lista"] body[class] .card-etiquetas { top: 17px; left: 19px; gap: 0; }
+      html[data-vista="lista"] body[class] .card-etiquetas > span:nth-child(n+2) { display: none; }
+      html[data-vista="lista"] body[class] .product-card:has(.card-ribbon) .card-etiquetas { display: none; }
+      html[data-vista="lista"] body[class] .card-etiquetas > span, html[data-vista="lista"] body[class] .card-ribbon, html[data-vista="lista"] body[class] .badge-sin-stock,
+      html[data-vista="lista"] body[class] .badge-proximamente { font-size: 8.5px; font-weight: 800; letter-spacing: .06em; padding: 3px 5px; border-radius: 3px; max-width: 86px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      html[data-vista="lista"] body[class] .card-ribbon { top: 17px; left: 19px; right: auto; width: auto; text-align: left; line-height: 1.3; }
+      html[data-vista="lista"] body[class] .badge-sin-stock, html[data-vista="lista"] body[class] .badge-proximamente { top: 17px; left: 19px; right: auto; transform: none; z-index: 4; box-shadow: none; }
+      html[data-vista="lista"] body[class] .badge-proximamente { background: #555; color: #fff; border: 0; font-family: var(--font-body); }
+      /* sin stock: el precio queda y, en el lugar del efectivo, «🔔 Avisame cuando vuelva» (texto, no botón: la fila entera abre la ficha, y ahí está el botón) */
+      html[data-vista="lista"] body[class] .product-card.sin-stock .price-cash { display: none; }
+      html[data-vista="lista"] body[class] .waitlist-btn { display: inline; flex: 0 0 auto; width: auto; min-height: 0; margin: 0; padding: 0; border: 0; background: none; border-radius: 0;
+        font-size: 11px; font-weight: 600; letter-spacing: 0; text-transform: none; text-align: left; color: var(--amarillo-tinta); pointer-events: none; }
+      html[data-vista="lista"] body[class] .waitlist-btn.subscribed { background: none; color: var(--tinta-efectivo); }
+      html[data-vista="lista"] body[class] .waitlist-btn .waitlist-label { display: inline; }
+
+      /* el esqueleto de la carga, con la forma de la fila (sin saltos cuando llega la lista) */
+      html[data-vista="lista"] body[class] .card-skel { flex-direction: row; align-items: flex-start; gap: 12px; min-height: 121px; padding: 12px 14px !important; border: 0; border-bottom: 1px solid var(--borde); border-radius: 0; background: transparent; }
+      html[data-vista="lista"] body[class] .card-skel-img { flex: 0 0 96px; width: 96px !important; height: 96px; aspect-ratio: auto; border-radius: 8px; }
+      html[data-vista="lista"] body[class] .card-skel-body { flex: 1 1 auto; padding: 0; }
+
+      /* los estantes (Selección ST, decants) dentro de la grilla ocupan todo el ancho */
+      /* Ojo con el ancho: un hijo de grilla con margin: auto (la Selección tiene margin: 0 auto) NO se estira, se ajusta a su contenido, y el de la Selección
+         (cinco cards en fila) mide 670: ensanchaba toda la página. Por eso minmax(0, 1fr), stretch y los márgenes en 0. */
+      body[class] .catalog-grid { grid-template-columns: minmax(0, 1fr); }
+      #catalogGrid > #destacados, #catalogGrid > #decants, #catalogGrid > .price-banner-wrap { grid-column: 1 / -1; min-width: 0; justify-self: stretch; margin-left: 0; margin-right: 0; }
+
+      /* 146l · los saltos frenan debajo de lo pegado: nav 58 + banner 39 + fila de orden 54 + 6 de aire = 157 (era 243) */
+      .active-filters-bar, #destacados, #decants { scroll-margin-top: 157px; }
+
+      /* 146m [FILTROS-HOJA] y 146p [COMO-COMPRAR] · las hojas, encima de la barra de abajo (z 9994 > 9990, NO ROMPER #15) */
+      .vh-overlay { position: fixed; inset: 0; z-index: 9994; background: var(--v-velo); align-items: flex-end; justify-content: center; overscroll-behavior: contain; }
+      .vh-overlay.open { display: flex; }
+      .vh-overlay { touch-action: none; }   /* el velo no arrastra la página de atrás; el cuerpo de la hoja sí se desliza */
+      .vh-cuerpo { touch-action: pan-y; }
+      .vh-hoja { width: 100%; max-height: 90vh; max-height: 90dvh; display: flex; flex-direction: column; background: var(--v-sup); color: var(--blanco); border-radius: 16px 16px 0 0;
+        padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); animation: slideUp .3s ease; }
+      .vh-manija { flex: 0 0 auto; width: 40px; height: 4px; border-radius: 2px; background: var(--borde); margin: 0 auto 10px; }
+      .vh-cab { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; }
+      .vh-tit { margin: 0; font-family: var(--font-body); font-size: 16px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--blanco); }
+      .vh-x { width: 44px; height: 44px; margin: 0 -12px 0 0; padding: 0; border: 0; background: none; color: var(--gris); font-size: 26px; line-height: 1; cursor: pointer; }
+      .vh-cuerpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+      .vh-grupo { margin-top: 12px; }
+      .vh-tg { margin: 0 0 7px; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--gris); }
+      .vh-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+      .vh-chip, #vhOcasion .occasion-label, #vhNotas .note-chip { height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid var(--borde); background: transparent; color: var(--blanco);
+        font-family: var(--font-body); font-size: 12.5px; font-weight: 600; letter-spacing: 0; display: flex; align-items: center; white-space: nowrap; cursor: pointer; box-shadow: none; }
+      .vh-chip.on, #vhOcasion .occasion-label.active, #vhNotas .note-chip.active { background: var(--amarillo); border-color: var(--amarillo); color: #111; font-weight: 700; box-shadow: none; }
+      #vhNotas .note-chip { font-size: 12px; padding: 0 13px; }
+      #vhOcasion .occasion-wrap { align-items: stretch; }
+      #vhOcasion .occasion-toggle { gap: 7px; }
+      #vhOcasion .occasion-title, #vhOcasion .ios-toggle { display: none; }
+      #labelDia::before { content: '\2600\fe0f  '; white-space: pre; }
+      #labelNoche::before { content: '\1f319  '; white-space: pre; }
+      #vhOcasion .occasion-hint { font-size: 11.5px; font-style: normal; font-weight: 500; color: var(--gris); }
+      #vhNotas .note-filter-wrap { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-start; padding: 0; margin: 0; animation: none; }
+      #vhPrecio .price-filter-wrap { display: block; padding: 0; background: none; border: 0; }
+      #vhPrecio .price-slider-row { max-width: none; flex-wrap: nowrap; gap: 10px; }
+      #vhPrecio .price-slider-label { min-width: 0; font-size: 12px; font-weight: 600; color: var(--blanco); }
+      #vhPrecio .price-slider-track { min-width: 0; height: 44px; }
+      #vhPrecio .price-clear-btn { display: none; }
+      .vh-pie { flex: 0 0 auto; display: flex; gap: 10px; margin-top: 16px; }
+      .vh-b1, .vh-b2 { height: 48px; border-radius: 8px; font-family: var(--font-body); text-transform: uppercase; cursor: pointer; }
+      .vh-b1 { flex: 1; border: 1px solid var(--borde); background: none; color: var(--blanco); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+      .vh-b2 { flex: 2.2; border: 0; background: var(--amarillo); color: #111; font-size: 13px; font-weight: 800; letter-spacing: .04em; }
+      /* «Cómo comprar»: los trust badges de la base. El ícono va en su cuadro oscuro en los dos temas (NO ROMPER #7). */
+      .vh-tb { display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 12px 0; margin: 0; border: 0; border-bottom: 1px solid var(--borde); background: none; text-align: left; color: var(--blanco); font-family: var(--font-body); }
+      .vh-tb:last-child { border-bottom: 0; }
+      button.vh-tb { cursor: pointer; }
+      .vh-tb-ico { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 8px; background: #000; color: #E8B800; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
+      .vh-tb-txt { flex: 1 1 auto; min-width: 0; }
+      .vh-tb-tit { display: block; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+      .vh-tb-sub { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; line-height: 1.35; color: var(--gris); }
     }

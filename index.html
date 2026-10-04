@@ -458,7 +458,17 @@
     .seleccion-st-grid { min-height: 270px; }
     section.seleccion-st { min-height: 580px; }
     @media (min-width: 768px) { nav { padding: 16px 24px; min-height: 64px; } .nav-logo img { height: 52px; } .catalog-grid { grid-template-columns: repeat(2, 1fr); min-height: 760px; } .trust-badges { min-height: 145px; } .quiz-cta-banner { min-height: 115px; } .price-banner-wrap--big .price-banner--big { min-height: 105px; } .seleccion-st-grid { min-height: 290px; } section.seleccion-st { min-height: 520px; } }
+
+    /* [VIDRIERA] 146b/146d (sólo < 768) · lo que se va de arriba y la franja de marca, ya en el primer pintado (sin saltos mientras llega styles.css) */
+    @media (max-width: 767px) {
+      .trust-badges, .price-banner-wrap--big, .quiz-cta-wrap { display: none; }
+      .hero { padding: 10px 16px 8px; min-height: 83px; text-align: left; }
+      .hero-blob { display: none; }
+      body > #destacados, body > #decants, body > #decants + .price-banner-wrap { display: none; }
+    }
   </style>
+  <!-- [RECUERDA-LA-VISTA] 146i · la vista del catálogo en el celu (▦ grilla / ☰ lista) se guarda en el navegador del visitante; si no se puede leer, arranca en ☰ lista. No va a la base. -->
+  <script>try { var _v = localStorage.getItem('st_vista'); document.documentElement.setAttribute('data-vista', _v === 'grid' ? 'grid' : 'lista'); } catch (e) { document.documentElement.setAttribute('data-vista', 'lista'); }</script>
 </head>
 <body class="is-guest dark-mode">
 
@@ -516,8 +526,8 @@
     <a href="#" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🏠</span> Inicio</a>
     <a href="#catalogo" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🛍️</span> Cat&#225;logo</a>
     <a href="#categorias" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">📂</span> Categor&#237;as</a>
-    <a href="#destacados" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">⭐</span> Selecci&#243;n ST</a>
-    <a href="#decants" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🧪</span> Decants</a>
+    <a href="#destacados" class="drawer-link" onclick="vidPrepararSalto();toggleDrawer()"><span class="drawer-link-ico">⭐</span> Selecci&#243;n ST</a>
+    <a href="#decants" class="drawer-link" onclick="vidPrepararSalto();toggleDrawer()"><span class="drawer-link-ico">🧪</span> Decants</a>
     <a href="#quizSection" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">🎮</span> Juegos ST</a>
     <a href="#nosotros" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">👋</span> Nosotros</a>
     <a href="/blog" class="drawer-link" onclick="toggleDrawer()"><span class="drawer-link-ico">📰</span> Blog</a>
@@ -584,7 +594,7 @@
     <span class="hero-blob hero-blob-1" aria-hidden="true"></span>
     <span class="hero-blob hero-blob-2" aria-hidden="true"></span>
     <span class="hero-blob hero-blob-3" aria-hidden="true"></span>
-    <p class="hero-tagline">Perfumer&#237;a &#225;rabe original &middot; Comodoro Rivadavia</p>
+    <p class="hero-tagline">Perfumer&#237;a &#225;rabe<span class="hero-tl-ext"> original</span> &middot; Comodoro<span class="hero-tl-ext"> Rivadavia</span></p>
     <h1 class="hero-title">"Tu aroma, tu <em>identidad."</em></h1>
     <!-- [HERO-SUB-MOVE] El value-prop con keywords SEO (perfumes árabes, Comodoro,
          cuotas, envíos) se movió a #nosotros como párrafo intro. Hero queda
@@ -816,6 +826,34 @@
     </div>
   </div>
 
+  <!-- [VIDRIERA] 146c [TIRA-DE-ATAJOS] (sólo < 768) · cuatro atajos en una sola paleta: el juego, la Selección ST, los decants y «Cómo comprar» (los beneficios de la base). -->
+  <div class="vid-tira" id="tiraAtajos">
+    <button type="button" class="vid-t" onclick="openJuegos()">
+      <span class="vid-t-ico" aria-hidden="true">&#127919;</span>
+      <span class="vid-t-txt"><span class="vid-t-tit">&iquest;No sab&eacute;s cu&aacute;l?</span><span class="vid-t-sub">4 preguntas</span></span>
+    </button>
+    <button type="button" class="vid-t" onclick="vidIrASeleccion()">
+      <span class="vid-t-ico" aria-hidden="true">&#11088;</span>
+      <span class="vid-t-txt"><span class="vid-t-tit">Los m&aacute;s elegidos</span><span class="vid-t-sub">Selecci&oacute;n ST</span></span>
+    </button>
+    <button type="button" class="vid-t" onclick="openDecantBuilder()">
+      <span class="vid-t-ico" aria-hidden="true">&#128167;</span>
+      <span class="vid-t-txt"><span class="vid-t-tit">Decants 5 ml</span><span class="vid-t-sub">Arm&aacute; tu pack</span></span>
+    </button>
+    <button type="button" class="vid-t" onclick="abrirComoComprar()">
+      <span class="vid-t-ico" aria-hidden="true">&#128179;</span>
+      <span class="vid-t-txt"><span class="vid-t-tit">C&oacute;mo comprar</span><span class="vid-t-sub">cuotas, efectivo, retiro</span></span>
+    </button>
+  </div>
+  <!-- [VIDRIERA] 146j [ORDEN-SIN-NUMERO] (sólo < 768) · la fila de orden, lo único que queda pegado al bajar: ▦ / ☰ · Ordenar (el .sort-wrapper de arriba se muda acá con JS) · Filtros. -->
+  <div class="vid-orden" id="ordenFila">
+    <div class="vid-seg" role="group" aria-label="Vista del cat&aacute;logo">
+      <button type="button" class="vid-seg-b" id="vistaGrid" onclick="setVista('grid')" aria-label="Ver en grilla" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></g></svg></button>
+      <button type="button" class="vid-seg-b" id="vistaLista" onclick="setVista('lista')" aria-label="Ver en lista" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="4.5" width="5" height="5" rx="1"/><rect x="3.5" y="14.5" width="5" height="5" rx="1"/><path d="M11.5 6h9M11.5 9h6M11.5 16h9M11.5 19h6"/></g></svg></button>
+    </div>
+    <button type="button" class="vid-btn vid-btn-filtros" id="btnFiltros" onclick="abrirFiltrosHoja()"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></g></svg><span>Filtros</span><span class="vid-n" id="filtrosN" hidden></span></button>
+  </div>
+
   <!-- ========== ANUNCIO DEL DÍA — últimos 3 pushes apilados (7 días) ========== -->
   <!-- El contenido lo inyecta loadAnnouncement() en app.js:
         - Pide los últimos 3 announcements (tabla Supabase) de los últimos 7 días.
@@ -854,7 +892,7 @@
     <div class="note-filter-wrap" id="noteFilterWrap"></div>
     <div class="active-filters-bar" id="activeFiltersBar" style="display:none;">
       <div class="active-filters-chips" id="activeFiltersChips"></div>
-      <button class="active-filters-clear" id="activeFiltersClearAll" onclick="clearAllFilters()">Limpiar todo &times;</button>
+      <button class="active-filters-clear" id="activeFiltersClearAll" onclick="clearAllFilters()">Limpiar<span class="af-todo"> todo</span><span class="af-x"> &times;</span></button>
     </div>
     <div class="favs-empty" id="favsEmpty" style="display:none;">
       <span class="favs-empty-icon">&#9825;</span>
@@ -1726,6 +1764,40 @@
       <button type="button" class="cuenta-hoja-fila" onclick="cuentaFavoritos()"><span>&#9829; Mis favoritos</span><b id="cuentaHojaFavs">0</b></button>
       <button type="button" class="cuenta-hoja-fila" onclick="toggleDarkMode()"><span>&#127769; Cambiar tema</span><span aria-hidden="true">&#8250;</span></button>
       <button type="button" class="cuenta-hoja-fila cuenta-hoja-salir" onclick="cerrarCuentaHoja(logout)"><span>Cerrar sesi&oacute;n</span><span aria-hidden="true">&#8250;</span></button>
+    </div>
+  </div>
+
+  <!-- [VIDRIERA] 146m [FILTROS-HOJA] (sólo < 768) · todo lo que estaba suelto, en una hoja. Ocasión, notas y precio son los MISMOS nodos de siempre (se mudan acá con JS), con sus ids y su código. Encima de la barra de abajo (NO ROMPER #15); «atrás» la cierra. -->
+  <div class="vh-overlay" id="vhFiltrosOverlay" onclick="if(event.target===this)cerrarFiltrosHoja()">
+    <div class="vh-hoja" role="dialog" aria-modal="true" aria-labelledby="vhFiltrosTitulo">
+      <div class="vh-manija" aria-hidden="true"></div>
+      <div class="vh-cab"><h2 class="vh-tit" id="vhFiltrosTitulo">Filtros</h2><button type="button" class="vh-x" onclick="cerrarFiltrosHoja()" aria-label="Cerrar">&times;</button></div>
+      <div class="vh-cuerpo">
+        <div class="vh-grupo"><p class="vh-tg">Para qui&eacute;n</p>
+          <div class="vh-chips" id="vhPara">
+            <button type="button" class="vh-chip" data-cat="all" onclick="vhPara('all')">Todos</button>
+            <button type="button" class="vh-chip" data-cat="Mujer" onclick="vhPara('Mujer')">Mujer</button>
+            <button type="button" class="vh-chip" data-cat="Hombre" onclick="vhPara('Hombre')">Hombre</button>
+            <button type="button" class="vh-chip" data-cat="Unisex" onclick="vhPara('Unisex')">Unisex</button>
+            <button type="button" class="vh-chip" data-nuevos="1" onclick="vhNuevos()">&#128293; Nuevos</button>
+          </div>
+        </div>
+        <div class="vh-grupo"><p class="vh-tg">Ocasi&oacute;n</p><div id="vhOcasion"></div></div>
+        <div class="vh-grupo"><p class="vh-tg">Una nota</p><div id="vhNotas"></div></div>
+        <div class="vh-grupo"><p class="vh-tg">Precio</p><div id="vhPrecio"></div></div>
+      </div>
+      <div class="vh-pie">
+        <button type="button" class="vh-b1" onclick="clearAllFilters()">Limpiar</button>
+        <button type="button" class="vh-b2" id="vhVer" onclick="cerrarFiltrosHoja(true)">Ver perfumes</button>
+      </div>
+    </div>
+  </div>
+  <!-- [VIDRIERA] 146p [COMO-COMPRAR] (sólo < 768) · los beneficios de la base (trust_badges), en su orden y con su texto. Lo arma app.js al abrir (escapado). -->
+  <div class="vh-overlay" id="vhCompraOverlay" onclick="if(event.target===this)cerrarComoComprar()">
+    <div class="vh-hoja vh-hoja--compra" role="dialog" aria-modal="true" aria-labelledby="vhCompraTitulo">
+      <div class="vh-manija" aria-hidden="true"></div>
+      <div class="vh-cab"><h2 class="vh-tit" id="vhCompraTitulo">C&oacute;mo comprar</h2><button type="button" class="vh-x" onclick="cerrarComoComprar()" aria-label="Cerrar">&times;</button></div>
+      <div class="vh-cuerpo" id="vhCompraLista"></div>
     </div>
   </div>
 
