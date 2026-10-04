@@ -10327,7 +10327,7 @@
       .vh-b1 { flex: 1; border: 1px solid var(--borde); background: none; color: var(--blanco); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
       .vh-b2 { flex: 2.2; border: 0; background: var(--amarillo); color: #111; font-size: 13px; font-weight: 800; letter-spacing: .04em; }
       /* «Cómo comprar»: los trust badges de la base. El ícono va en su cuadro oscuro en los dos temas (NO ROMPER #7). */
-      .vh-tb { display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 12px 0; margin: 0; border: 0; border-bottom: 1px solid var(--borde); background: none; text-align: left; color: var(--blanco); font-family: var(--font-body); }
+      .vh-tb { display: flex; gap: 12px; align-items: center;   /* 146s [BENEFICIO-CENTRADO] */ width: 100%; padding: 12px 0; margin: 0; border: 0; border-bottom: 1px solid var(--borde); background: none; text-align: left; color: var(--blanco); font-family: var(--font-body); }
       .vh-tb:last-child { border-bottom: 0; }
       button.vh-tb { cursor: pointer; }
       .vh-tb-ico { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 8px; background: #000; color: #E8B800; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
