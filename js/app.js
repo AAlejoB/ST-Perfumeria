@@ -2437,6 +2437,7 @@
       // quote del jefe ("a mí me gusta porque..."). Hoy no hay datos cargados —
       // la columna se activa con SQL ALTER + UI admin en sesión futura. Mientras
       // tanto el render es no-op si p.nota_jefe es vacío.
+      var vistos = 0;   // [PODIO-SIN-HUECO] 146t · el número cuenta los que se ven (un pausado u oculto ya no deja un hueco: #1, #2, #3 seguidos)
       TOP_VENTAS_SLUGS.forEach(function(slug, idx) {
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         // [PAUSADO-OCULTO] no mostrar destacados pausados ni eliminados. Antes
@@ -2447,7 +2448,7 @@
         var imgHTML = p.foto
           ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" width="300" height="300">'
           : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + escapeHTML(p.name.charAt(0)) + '</div>';
-        var rankNum = idx + 1;
+        var rankNum = ++vistos;
         var rankClass = rankNum <= 3 ? ' has-rank rank-' + rankNum : '';
         var rankBadge = rankNum <= 3
           ? '<span class="rank-badge rank-' + rankNum + '" aria-label="Puesto ' + rankNum + ' del ranking">#' + rankNum + '</span>'
