@@ -3645,7 +3645,9 @@
       font-size: 1.7rem; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     body:not(.dark-mode) .bottom-sheet .bs-x { color: #1a1a1d; }
-    #bsBtnShare { min-width: 44px; }   /* 151d · el 🔗 también de 44 */
+    /* 151d · el 🔗 también de 44 · 153b: ícono de línea en currentColor (como los de la barra), no el emoji: el color lo pone el tema (en claro el emoji daba 2,44) */
+    #bsBtnShare { width: 44px; min-width: 44px; padding: 0; display: flex; align-items: center; justify-content: center; }
+    #bsBtnShare svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .bs-handle {
       width: 40px; height: 4px; background: rgba(255,255,255,.3);
       border-radius: 2px;

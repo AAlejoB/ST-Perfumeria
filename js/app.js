@@ -3089,9 +3089,10 @@
         navigator.share({ title: p.name + ' — ST Perfumería', text: text, url: url }).catch(function(){});
       } else {
         navigator.clipboard.writeText(url).then(function() {
+          var orig = btn.innerHTML;   // 153b: se vuelve a lo que tenía (en la ficha ahora es un ícono, no el emoji + «Compartir»)
           btn.innerHTML = '&#10003; Link copiado';
           btn.classList.add('copied');
-          setTimeout(function() { btn.innerHTML = '&#128279; Compartir'; btn.classList.remove('copied'); }, 2000);
+          setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
         });
       }
     }
