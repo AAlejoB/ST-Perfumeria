@@ -5459,6 +5459,9 @@
       .note-chip:hover { border-color: var(--amarillo); color: #fff; background: rgba(232,184,0,.15); }
     }
     .note-chip.active { background: rgba(232,184,0,.2); border-color: var(--amarillo); color: var(--amarillo); font-weight: 700; box-shadow: 0 0 8px rgba(232,184,0,.2); }
+    /* 147c [NOTAS-HASTA-3] · con 3 acordes elegidos, los otros 9 quedan apagados (gris, borde punteado, sin hover) y abajo dice «Elegiste 3: tocá uno para sacarlo.» */
+    body .note-chip.apagado, body .note-chip.apagado:hover { background: transparent; border: 1.5px dashed var(--borde); color: var(--gris); box-shadow: none; font-weight: 600; cursor: default; }
+    .note-tope { flex: 1 0 100%; margin: 0; text-align: center; font-size: .66rem; font-weight: 500; color: var(--gris); }
 
 
     /* ================================================
@@ -10317,6 +10320,8 @@
         font-family: var(--font-body); font-size: 12.5px; font-weight: 600; letter-spacing: 0; display: flex; align-items: center; white-space: nowrap; cursor: pointer; box-shadow: none; }
       .vh-chip.on, #vhOcasion .occasion-label.active, #vhNotas .note-chip.active { background: var(--amarillo); border-color: var(--amarillo); color: #111; font-weight: 700; box-shadow: none; }
       #vhNotas .note-chip { font-size: 12px; padding: 0 13px; }
+      #vhNotas .note-chip.apagado, #vhNotas .note-chip.apagado:hover { background: transparent; border: 1px dashed var(--borde); color: var(--gris); box-shadow: none; font-weight: 600; cursor: default; }   /* 147c */
+      #vhNotas .note-tope { text-align: left; margin: 2px 0 0; font-size: 12px; line-height: 1.35; }
       #vhOcasion .occasion-wrap { align-items: stretch; }
       #vhOcasion .occasion-toggle { gap: 7px; }
       #vhOcasion .occasion-title, #vhOcasion .ios-toggle { display: none; }

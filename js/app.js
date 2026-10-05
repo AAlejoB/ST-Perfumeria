@@ -2013,14 +2013,16 @@
       });
     }
 
-    // [A-QUE-HUELE] 146g · el perfil y hasta 3 notas (la primera de salida, de corazón y de base) debajo de la marca. Sin notas cargadas, sólo el perfil
-    // (no se inventa nada); sin nada, no hay línea. Todo escapado.
+    // [A-QUE-HUELE] 146g / 147f · «perfil · acordes» debajo de la marca: «Dulce afrutado · vainilla, ámbar, frutal» (hasta 3 acordes, en minúscula). Si un acorde repite la
+    // primera palabra del perfil («Dulce» con perfil «Dulce intenso»), no se repite. Sin acordes, sólo el perfil (no se inventa nada); sin nada, no hay línea. Todo escapado.
     function aQueHuele(p) {
       var perfil = String(p.perfil || '').trim();
       if (perfil) perfil = perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase();   // una frase: primera mayúscula y el resto en minúscula, aunque el dato llegue en mayúsculas
-      var notas = [p.notas_salida, p.notas_corazon, p.notas_base].map(function(n) { return String(n || '').split(',')[0].trim().toLowerCase(); }).filter(Boolean);
-      if (!perfil && !notas.length) return '';
-      return '<p class="card-huele">' + (perfil ? '<b>' + escapeHTML(perfil) + '</b>' : '') + (perfil && notas.length ? ' &middot; ' : '') + escapeHTML(notas.join(', ')) + '</p>';
+      var primera = perfil ? stripAccents(perfil.split(/\s+/)[0].toLowerCase()) : '';
+      var acordes = acordesValidos(p.acordes).map(acordeNombre).map(function(n) { return n.toLowerCase(); })
+        .filter(function(n) { return stripAccents(n) !== primera; });
+      if (!perfil && !acordes.length) return '';
+      return '<p class="card-huele">' + (perfil ? '<b>' + escapeHTML(perfil) + '</b>' : '') + (perfil && acordes.length ? ' &middot; ' : '') + escapeHTML(acordes.join(', ')) + '</p>';
     }
 
     function buildCard(p) {
@@ -2202,7 +2204,7 @@
         ? parseFloat(String(p.promo).replace(/[^0-9.\-]/g, '')) || 0
         : parseFloat(String(p.price || '').replace(/[^0-9.\-]/g, '')) || 0;
 
-      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + escapeHTML(p.cat) + '" data-slug="' + escapeHTML(p.slug) + '" data-perfil="' + escapeHTML(p.perfil || '') + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
+      return '<div class="product-card card-lateral' + (isPaused ? ' pausado' : '') + (isOutOfStock ? ' sin-stock' : '') + '" data-cat="' + escapeHTML(p.cat) + '" data-slug="' + escapeHTML(p.slug) + '" data-perfil="' + escapeHTML(p.perfil || '') + '" data-acordes="' + escapeHTML(acordesValidos(p.acordes).join(' ')) + '" data-price="' + sortPriceNum + '" data-search="' + searchText.replace(/"/g, '') + '">'
         + ribbonHTML + stockBadge + '<div class="card-etiquetas">' + etiquetasCard(p, stockStatus) + '</div>' + discountHTML + discountTimerHTML
         + '<button class="fav-heart' + (isFav ? ' liked' : '') + '" onclick="toggleFav(this, event)" aria-label="Favorito">' + (isFav ? '&#9829;' : '&#9825;') + '</button>'
         + '<button class="compare-btn" onclick="toggleCompare(' + jsAttr(p.slug) + ', this, event)" aria-label="Comparar" title="Comparar"><span class="compare-icon">&#9878;</span><span class="compare-label">COMPARAR</span></button>'
@@ -2483,7 +2485,7 @@
       currentFilter = 'all';
       filterNewActive = false;
       currentSearch = '';
-      currentNoteFilter = '';
+      currentAcordes = [];
       currentOccasion = '';
       priceFilterActive = false;
       document.getElementById('searchInput').value = '';
@@ -2491,7 +2493,7 @@
       document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       var allBtn = document.querySelector('.filter-btn');
       if (allBtn) allBtn.classList.add('active');
-      document.querySelectorAll('.note-chip').forEach(function(c) { c.classList.remove('active'); });
+      pintarAcordes();
       var occasionToggle = document.getElementById('occasionToggle');
       if (occasionToggle) occasionToggle.classList.remove('active');
       var labelDia = document.getElementById('labelDia');
@@ -3110,31 +3112,76 @@
     }
 
     // ============================================================
-    // FILTRO POR NOTA POPULAR
+    // FILTRO «¿A QUÉ HUELE?» · [A-QUE-HUELE-AUTO] 147 / [NOTAS-HASTA-3]
+    // Cada perfume tiene hasta 3 acordes de una lista fija de 12 (p.acordes: array de slugs; viene de perfumes.js, de perfumes_nuevos.acordes o de
+    // perfume_overrides.acordes). La hoja «Filtros» y la sección de la compu tienen los 12 chips, hasta 3 elegidos (con 3, los otros quedan apagados).
+    // Dentro de la sección se combinan con «o» (alguno de los elegidos); con las otras secciones (género, ocasión, precio) va «y», como siempre.
+    // Si Alejo pide «y» dentro de la sección (147c, opción y): ACORDES_COMBINA = 'y' (lo único que cambia).
     // ============================================================
-    var currentNoteFilter = '';
+    var ACORDES = [
+      { s: 'dulce', n: 'Dulce' }, { s: 'vainilla', n: 'Vainilla' }, { s: 'especiado', n: 'Especiado' }, { s: 'amaderado', n: 'Amaderado' },
+      { s: 'oud', n: 'Oud' }, { s: 'ambar', n: '\u00c1mbar' }, { s: 'floral', n: 'Floral' }, { s: 'frutal', n: 'Frutal' },
+      { s: 'citrico', n: 'C\u00edtrico' }, { s: 'fresco', n: 'Fresco' }, { s: 'cuero', n: 'Cuero' }, { s: 'almizcle', n: 'Almizcle' }
+    ];
+    var ACORDES_MAX = 3;
+    var ACORDES_COMBINA = 'o';
+    var currentAcordes = [];
     var currentOccasion = ''; // '' = todos, 'dia' = Fresco+Versátil, 'noche' = Intenso+Dulce
-    var POPULAR_NOTES = ['Vainilla','Ámbar','Pachulí','Sándalo','Oud','Cedro','Jazmín','Rosa','Almizcle','Canela','Bergamota','Haba Tonka'];
+    // [147e] los links viejos ?nota=X: sólo estos cuatro eran, además, uno de los 12 acordes; el resto (Pachulí, Cedro…) abre el catálogo sin ese filtro
+    var ACORDE_DE_NOTA_VIEJA = { vainilla: 'vainilla', ambar: 'ambar', oud: 'oud', almizcle: 'almizcle' };
+
+    function acordeNombre(s) {
+      for (var i = 0; i < ACORDES.length; i++) { if (ACORDES[i].s === s) return ACORDES[i].n; }
+      return '';
+    }
+    // sólo los 12 slugs, sin repetir, hasta 3 (lo que llega de la base o de la URL no se confía)
+    function acordesValidos(lista) {
+      var out = [];
+      if (!Array.isArray(lista)) return out;
+      for (var i = 0; i < lista.length && out.length < ACORDES_MAX; i++) {
+        var s = String(lista[i] || '').toLowerCase();
+        if (out.indexOf(s) === -1 && acordeNombre(s)) out.push(s);
+      }
+      return out;
+    }
 
     function renderNoteFilters() {
       var wrap = document.getElementById('noteFilterWrap');
       if (!wrap) return;
       var html = '';
-      POPULAR_NOTES.forEach(function(note) {
-        html += '<button class="note-chip" onclick="toggleNoteFilter(' + jsAttr(note) + ', this)">' + note + '</button>';
+      ACORDES.forEach(function(a) {
+        html += '<button type="button" class="note-chip" data-acorde="' + a.s + '" aria-pressed="false" onclick="toggleAcorde(' + jsAttr(a.s) + ')">' + a.n + '</button>';
       });
+      html += '<p class="note-tope" id="noteTope" role="status" hidden>Elegiste ' + ACORDES_MAX + ': toc\u00e1 uno para sacarlo.</p>';
       wrap.innerHTML = html;
+      pintarAcordes();
     }
 
-    function toggleNoteFilter(note, btn) {
-      if (currentNoteFilter === note) {
-        currentNoteFilter = '';
-        btn.classList.remove('active');
-      } else {
-        currentNoteFilter = note;
-        document.querySelectorAll('.note-chip').forEach(function(c) { c.classList.remove('active'); });
-        btn.classList.add('active');
-      }
+    // Los chips dicen lo que hay en currentAcordes: elegidos, apagados (con el tope) y el renglón «Elegiste 3…».
+    function pintarAcordes() {
+      var lleno = currentAcordes.length >= ACORDES_MAX;
+      document.querySelectorAll('.note-chip[data-acorde]').forEach(function(c) {
+        var on = currentAcordes.indexOf(c.getAttribute('data-acorde')) !== -1;
+        c.classList.toggle('active', on);
+        c.classList.toggle('apagado', lleno && !on);
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (lleno && !on) c.setAttribute('aria-disabled', 'true'); else c.removeAttribute('aria-disabled');
+      });
+      var tope = document.getElementById('noteTope');
+      if (tope) tope.hidden = !lleno;
+    }
+
+    function setAcordes(lista) {
+      currentAcordes = acordesValidos(lista);
+      pintarAcordes();
+    }
+
+    function toggleAcorde(s) {
+      var i = currentAcordes.indexOf(s);
+      if (i !== -1) currentAcordes.splice(i, 1);
+      else if (currentAcordes.length < ACORDES_MAX && acordeNombre(s)) currentAcordes.push(s);
+      else return;   // con 3 elegidos, un chip apagado no hace nada
+      pintarAcordes();
       applyFilters();
       if (typeof updateFiltersInURL === 'function') updateFiltersInURL();
     }
@@ -3308,7 +3355,7 @@
       var isOpen = wrap.classList.contains('open');
       wrap.classList.toggle('open');
       btn.classList.toggle('open');
-      btn.innerHTML = isOpen ? '🎵 Notas ▾' : '🎵 Notas ▴';
+      btn.innerHTML = isOpen ? '🎵 ¿A qué huele? ▾' : '🎵 ¿A qué huele? ▴';
     }
 
     // ============================================================
@@ -3696,11 +3743,16 @@
             if (_qNoSpace && _hayNoSpace.indexOf(_qNoSpace) !== -1) searchMatch = true;
           }
         }
-        // FILTRO 3: Nota olfativa específica
+        // FILTRO 3: ¿A qué huele? (acordes). Dentro de la sección: «o» (alguno de los elegidos) o «y» (todos), según ACORDES_COMBINA
         var noteMatch = true;
-        if (currentNoteFilter) {
-          var noteNorm = stripAccents(currentNoteFilter.toLowerCase());
-          noteMatch = card.dataset.search.indexOf(noteNorm) !== -1;
+        if (currentAcordes.length) {
+          var _acs = ' ' + (card.dataset.acordes || '') + ' ';
+          noteMatch = ACORDES_COMBINA === 'y';
+          for (var _a = 0; _a < currentAcordes.length; _a++) {
+            var _tiene = _acs.indexOf(' ' + currentAcordes[_a] + ' ') !== -1;
+            if (ACORDES_COMBINA === 'y') { if (!_tiene) { noteMatch = false; break; } }
+            else if (_tiene) { noteMatch = true; break; }
+          }
         }
         // FILTRO 4: Ocasión (casual, formal, nocturno, etc.)
         var occasionMatch = true;
@@ -3892,10 +3944,10 @@
         items.push({ label: 'Búsqueda', value: '"' + currentSearch + '"', remove: 'search' });
       }
 
-      // Nota olfativa
-      if (currentNoteFilter) {
-        items.push({ label: 'Nota', value: currentNoteFilter, remove: 'note' });
-      }
+      // ¿A qué huele? — un chip por acorde, cada uno se saca solo (147d)
+      currentAcordes.forEach(function(s) {
+        items.push({ label: 'Huele a', value: acordeNombre(s), remove: 'huele:' + s, aria: 'Quitar ' + acordeNombre(s) });
+      });
 
       // Ocasión
       if (currentOccasion) {
@@ -3921,7 +3973,7 @@
         chip.className = 'active-filter-chip';
         chip.innerHTML = '<span class="chip-label">' + escapeHTML(item.label) + '</span> '   // [XSS-URL-FILTROS] la búsqueda y la categoría llegan por la URL
           + '<span class="chip-value">' + (item.favs ? '<span class="cv-pc">Favoritos</span><span class="cv-cel">&#9829; Mis favoritos</span>' : escapeHTML(item.value)) + '</span>'   // [CHIP-BUSQUEDA-LARGA] 143f · en su <span> para cortarlo con «…» · 146i: el ♥ del celu
-          + ' <button class="chip-remove" data-filter="' + item.remove + '" aria-label="Quitar ' + escapeHTML(item.label) + '">&times;</button>';
+          + ' <button class="chip-remove" data-filter="' + item.remove + '" aria-label="' + escapeHTML(item.aria || ('Quitar ' + item.label)) + '">&times;</button>';
         chip.querySelector('.chip-remove').addEventListener('click', function() {
           removeFilter(item.remove);
         });
@@ -3951,9 +4003,10 @@
         currentSearch = '';
         document.getElementById('searchInput').value = '';
         document.getElementById('searchClear').classList.remove('visible');
-      } else if (type === 'note') {
-        currentNoteFilter = '';
-        document.querySelectorAll('.note-chip').forEach(function(c) { c.classList.remove('active'); });
+      } else if (type.indexOf('huele:') === 0) {
+        var _quita = currentAcordes.indexOf(type.slice(6));
+        if (_quita !== -1) currentAcordes.splice(_quita, 1);
+        pintarAcordes();
       } else if (type === 'occasion') {
         currentOccasion = '';
         var toggle = document.getElementById('occasionToggle');
@@ -3975,7 +4028,7 @@
       currentFilter = 'all';
       filterNewActive = false;
       currentSearch = '';
-      currentNoteFilter = '';
+      currentAcordes = [];
       currentOccasion = '';
       priceFilterActive = false;
 
@@ -3984,7 +4037,7 @@
       document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       var allBtn = document.querySelector('.filter-btn');
       if (allBtn) allBtn.classList.add('active');
-      document.querySelectorAll('.note-chip').forEach(function(c) { c.classList.remove('active'); });
+      pintarAcordes();
       var toggle = document.getElementById('occasionToggle');
       if (toggle) toggle.classList.remove('active');
       var labelDia = document.getElementById('labelDia');
@@ -4065,9 +4118,9 @@
       try {
         var params = new URLSearchParams();
         if (currentFilter && currentFilter !== 'all') params.set('cat', currentFilter);
-        if (currentNoteFilter)  params.set('nota', currentNoteFilter);
+        if (currentAcordes.length) params.set('huele', currentAcordes.join(','));   // 147e · ?huele=dulce,vainilla
         if (currentOccasion)    params.set('ocasion', currentOccasion);
-        var qs = params.toString();
+        var qs = params.toString().replace(/%2C/g, ',');   // la coma va como coma
         var hash = window.location.hash || '#catalogo';
         var newUrl = (qs ? '?' + qs : '') + hash;
         if (window.location.search + window.location.hash !== newUrl) {
@@ -4090,8 +4143,13 @@
         var CATS_URL = { all: 'all', favs: 'favs', unisex: 'Unisex', hombre: 'Hombre', mujer: 'Mujer' };
         var catK = cat ? String(cat).toLowerCase() : '';
         cat = Object.prototype.hasOwnProperty.call(CATS_URL, catK) ? CATS_URL[catK] : null;
-        // Nota
-        var nota = params.get('nota');
+        // ¿A qué huele? [147e] ?huele= sólo acepta los 12 acordes (lo demás se ignora, como ?cat=). Un ?nota=X viejo entra como acorde si X es uno de los 4 que
+        // eran acorde (Vainilla, Ámbar, Oud, Almizcle); si no, el catálogo abre sin ese filtro y sin error.
+        var huele = acordesValidos(String(params.get('huele') || '').split(','));
+        if (!huele.length && params.get('nota')) {
+          var _nv = ACORDE_DE_NOTA_VIEJA[stripAccents(String(params.get('nota')).toLowerCase().trim())];
+          if (_nv) huele = [_nv];
+        }
         // Ocasión
         var ocasion = params.get('ocasion');
         // Perfume puntual (abre bottom sheet en mobile)
@@ -4099,12 +4157,10 @@
 
         setTimeout(function() {
           if (cat) filterByCat(cat);
-          if (nota) {
-            var chip = Array.prototype.find.call(
-              document.querySelectorAll('.note-chip'),
-              function(c) { return c.textContent.trim().toLowerCase() === nota.toLowerCase(); }
-            );
-            if (chip && currentNoteFilter !== nota) toggleNoteFilter(nota, chip);
+          if (huele.length && huele.join(',') !== currentAcordes.join(',')) {
+            setAcordes(huele);
+            applyFilters();
+            if (typeof updateFiltersInURL === 'function') updateFiltersInURL();   // un ?nota=Vainilla viejo pasa a ?huele=vainilla
           }
           if (ocasion === 'dia' || ocasion === 'noche') {
             if (currentOccasion !== ocasion && typeof setOccasion === 'function') setOccasion(ocasion);
@@ -4561,11 +4617,11 @@
 
     // ¿Hay algo prendido? (género, Nuevos, favoritos, búsqueda, nota, ocasión, precio): 146n, los estantes sólo salen con nada prendido.
     function vidHayAlgoPrendido() {
-      return (currentFilter && currentFilter !== 'all') || filterNewActive || !!currentSearch || !!currentNoteFilter || !!currentOccasion || priceFilterActive;
+      return (currentFilter && currentFilter !== 'all') || filterNewActive || !!currentSearch || currentAcordes.length > 0 || !!currentOccasion || priceFilterActive;
     }
     // Lo que se cuenta en «Filtros · N»: lo que está en la hoja (género, Nuevos, ocasión, nota, precio). La búsqueda y los favoritos no.
     function vidFiltrosEnHoja() {
-      return ((currentFilter && currentFilter !== 'all' && currentFilter !== 'favs') ? 1 : 0) + (filterNewActive ? 1 : 0) + (currentOccasion ? 1 : 0) + (currentNoteFilter ? 1 : 0) + (priceFilterActive ? 1 : 0);
+      return ((currentFilter && currentFilter !== 'all' && currentFilter !== 'favs') ? 1 : 0) + (filterNewActive ? 1 : 0) + (currentOccasion ? 1 : 0) + (currentAcordes.length ? 1 : 0) + (priceFilterActive ? 1 : 0);   // 147d · los acordes cuentan una vez
     }
 
     var vidTotal = null;   // cuántos perfumes pasan los filtros (lo deja applyCardVisibility)
@@ -5219,6 +5275,7 @@
               foto: p.foto || '', ml: p.ml || 100,
               notas_salida: p.notas_salida || '', notas_corazon: p.notas_corazon || '',
               notas_base: p.notas_base || '', _isNew: true,
+              acordes: Array.isArray(p.acordes) ? p.acordes : undefined,   // [A-QUE-HUELE-AUTO] 147 · perfumes_nuevos.acordes (null = todavía sin cargar)
               // [DECANT-PRECIO-MANUAL] Precio de decant que cargó el empleado
               // al dar de alta el perfume, y la casilla de exclusión.
               _precioDecant: (p.precio_decant != null ? p.precio_decant : null),
@@ -5251,6 +5308,7 @@
       if (o.notas_salida) p.notas_salida = o.notas_salida;
       if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
       if (o.notas_base) p.notas_base = o.notas_base;
+      if (Array.isArray(o.acordes)) p.acordes = o.acordes;   // [A-QUE-HUELE-AUTO] 147 · SINCRO con admin.html. Un array pisa, aunque esté vacío ([] = «sin acordes» a propósito); null = sin cambio
       if (o.stock_status) p._stockStatus = o.stock_status;
       // [PAUSADO-OCULTO] Un perfume pausado NO se muestra en el catálogo público.
       // Bandera propia y NO reuso _oculto a propósito: _oculto significa "perfume
