@@ -16,6 +16,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Intenso",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -31,6 +32,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Intenso",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -61,6 +63,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["amaderado", "dulce", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -76,6 +79,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -91,6 +95,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -106,6 +111,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["ambar", "amaderado", "dulce"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -121,6 +127,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Intenso",
+    acordes: ["vainilla", "ambar", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -136,6 +143,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Dulce",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -151,6 +159,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "FRENCH AVENUE",
     perfil: "Versátil",
+    acordes: ["dulce", "frutal", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "109,000.00",
@@ -181,6 +190,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Intenso",
+    acordes: ["vainilla", "ambar", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -196,6 +206,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "oud", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -226,6 +237,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Fresco",
+    acordes: ["citrico", "ambar", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -256,6 +268,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Intenso",
+    acordes: ["dulce", "ambar", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -361,6 +374,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -376,6 +390,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -391,6 +406,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "especiado", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -406,6 +422,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -421,6 +438,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Rayhaan",
     perfil: "Versátil",
+    acordes: ["dulce", "ambar", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -436,6 +454,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Rayhaan",
     perfil: "Versátil",
+    acordes: ["ambar", "citrico", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -451,6 +470,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "frutal", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -466,6 +486,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -481,6 +502,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -496,6 +518,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["ambar", "especiado", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -511,6 +534,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "65,000.00",
@@ -526,6 +550,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["oud", "ambar", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "65,000.00",
@@ -541,6 +566,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Anfar",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -556,6 +582,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["citrico", "ambar", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -571,6 +598,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -586,6 +614,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -601,6 +630,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "ambar", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -616,6 +646,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -631,6 +662,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -646,6 +678,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -661,6 +694,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["fresco", "ambar", "frutal"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -676,6 +710,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["amaderado", "especiado", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -691,6 +726,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["almizcle", "amaderado", "citrico"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -706,6 +742,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["dulce", "frutal", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "109,000.00",
@@ -721,6 +758,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Fresco",
+    acordes: ["citrico", "ambar", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -736,6 +774,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -751,6 +790,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -766,6 +806,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["ambar", "frutal", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -781,6 +822,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Fresco",
+    acordes: ["fresco", "amaderado", "citrico"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -796,6 +838,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Intenso",
+    acordes: ["oud", "almizcle", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -811,6 +854,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -826,6 +870,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["floral", "frutal", "citrico"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -841,6 +886,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -856,6 +902,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -871,6 +918,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["floral", "fresco", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -886,6 +934,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -901,6 +950,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["frutal", "floral", "dulce"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -916,6 +966,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["frutal", "fresco", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -931,6 +982,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["floral", "frutal", "citrico"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -946,6 +998,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "ambar", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -961,6 +1014,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "109,000.00",
@@ -976,6 +1030,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "ambar", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -991,6 +1046,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1006,6 +1062,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "floral", "dulce"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -1021,6 +1078,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["vainilla", "ambar", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1036,6 +1094,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["vainilla", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -1051,6 +1110,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["especiado", "cuero", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "125,000.00",
@@ -1066,6 +1126,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Dulce",
+    acordes: ["dulce", "vainilla", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1081,6 +1142,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Dulce",
+    acordes: ["ambar", "dulce", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1096,6 +1158,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Dulce",
+    acordes: ["ambar", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1111,6 +1174,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Fresco",
+    acordes: ["fresco", "ambar", "citrico"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1126,6 +1190,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["fresco", "almizcle", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1141,6 +1206,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["ambar", "citrico", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -1156,6 +1222,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["cuero", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1171,6 +1238,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1186,6 +1254,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "AFNAN",
     perfil: "Versátil",
+    acordes: ["especiado", "ambar", "fresco"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "88,000.00",
@@ -1201,6 +1270,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["ambar", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1216,6 +1286,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1231,6 +1302,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["fresco", "almizcle", "dulce"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1246,6 +1318,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["ambar", "especiado", "fresco"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1261,6 +1334,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["vainilla", "almizcle", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1276,6 +1350,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "ambar", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -1291,6 +1366,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Rasasi",
     perfil: "Fresco",
+    acordes: ["frutal", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "109,000.00",
@@ -1306,6 +1382,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Rasasi",
     perfil: "Versátil",
+    acordes: ["ambar", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1321,6 +1398,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Rasasi",
     perfil: "Versátil",
+    acordes: ["frutal", "ambar", "dulce"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "94,500.00",
@@ -1336,6 +1414,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Rasasi",
     perfil: "Versátil",
+    acordes: ["ambar", "almizcle", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1351,6 +1430,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["ambar", "dulce", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1366,6 +1446,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Intenso",
+    acordes: ["vainilla", "especiado", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1381,6 +1462,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "citrico"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1396,6 +1478,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1411,6 +1494,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "French Avenue",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1426,6 +1510,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -1441,6 +1526,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "ambar", "dulce"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -1456,6 +1542,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["floral", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -1471,6 +1558,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["amaderado", "dulce", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -1486,6 +1574,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["ambar", "dulce", "cuero"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "85,000.00",
@@ -1501,6 +1590,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["especiado", "amaderado", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1516,6 +1606,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "ambar", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1531,6 +1622,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["amaderado", "ambar", "fresco"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1546,6 +1638,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "floral", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -1561,6 +1654,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "94,500.00",
@@ -1576,6 +1670,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1591,6 +1686,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "floral"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -1606,6 +1702,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["floral", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -1621,6 +1718,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["ambar", "fresco", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1636,6 +1734,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["frutal", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1651,6 +1750,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "ARMAF",
     perfil: "Versátil",
+    acordes: ["especiado", "amaderado", "frutal"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1666,6 +1766,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Intenso",
+    acordes: ["ambar", "floral", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1681,6 +1782,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Fresco",
+    acordes: ["citrico", "floral", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1696,6 +1798,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["vainilla", "floral", "citrico"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1711,6 +1814,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["vainilla", "cuero", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "125,000.00",
@@ -1726,6 +1830,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["fresco", "amaderado", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1741,6 +1846,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["dulce", "especiado", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1756,6 +1862,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["vainilla", "dulce", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1771,6 +1878,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["ambar", "especiado", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1786,6 +1894,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Versátil",
+    acordes: ["vainilla", "ambar", "frutal"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "95,000.00",
@@ -1801,6 +1910,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Fresco",
+    acordes: ["fresco", "amaderado", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "75,000.00",
@@ -1816,6 +1926,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["vainilla", "floral", "dulce"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "79,000.00",
@@ -1831,6 +1942,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Afnan",
     perfil: "Dulce",
+    acordes: ["dulce", "vainilla", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1846,6 +1958,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Bharara",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "139,000.00",
@@ -1861,6 +1974,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Bharara",
     perfil: "Dulce",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "139,000.00",
@@ -1876,6 +1990,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1891,6 +2006,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Intenso",
+    acordes: ["oud", "almizcle", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1906,6 +2022,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "almizcle"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1921,6 +2038,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1936,6 +2054,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["floral", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -1951,6 +2070,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["fresco", "ambar", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1966,6 +2086,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Intenso",
+    acordes: ["ambar", "vainilla", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "99,500.00",
@@ -1981,6 +2102,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Intenso",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,500.00",
@@ -1996,6 +2118,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["ambar", "vainilla", "amaderado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -2011,6 +2134,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Maison Alhambra",
     perfil: "Versátil",
+    acordes: ["frutal", "fresco", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -2026,6 +2150,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["vainilla", "oud", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -2041,6 +2166,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["amaderado", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -2056,6 +2182,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -2071,6 +2198,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "89,000.00",
@@ -2086,6 +2214,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Al Haramain",
     perfil: "Intenso",
+    acordes: ["dulce", "oud", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "149,000.00",
@@ -2101,6 +2230,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Afnan",
     perfil: "Dulce",
+    acordes: ["citrico", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -2116,6 +2246,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Al Haramain",
     perfil: "Fresco",
+    acordes: ["fresco", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "149,000.00",
@@ -2131,6 +2262,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Al Haramain",
     perfil: "Intenso",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "149,000.00",
@@ -2146,6 +2278,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "LATTAFA",
     perfil: "Versátil",
+    acordes: ["almizcle", "amaderado", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "88,000.00",
@@ -2161,6 +2294,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Lattafa",
     perfil: "Versátil",
+    acordes: ["floral", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "68,000.00",
@@ -2176,6 +2310,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Afnan",
     perfil: "Dulce",
+    acordes: ["frutal", "dulce", "vainilla"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -2191,6 +2326,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Afnan",
     perfil: "Dulce",
+    acordes: ["floral", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -2206,6 +2342,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Afnan",
     perfil: "Intenso",
+    acordes: ["dulce", "vainilla", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "105,000.00",
@@ -2221,6 +2358,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Afnan",
     perfil: "Dulce",
+    acordes: ["dulce", "vainilla", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -2236,6 +2374,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Afnan",
     perfil: "Fresco",
+    acordes: ["fresco", "amaderado", "especiado"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "98,000.00",
@@ -2266,6 +2405,7 @@ const PERFUMES = [
     marca:  "ST Perfumería",
     marca_real: "Armaf",
     perfil: "Dulce",
+    acordes: ["amaderado", "dulce", "ambar"],   // [A-QUE-HUELE-AUTO] 147
     ml: "100",
     promo:  "",
     price:  "105,000.00",
