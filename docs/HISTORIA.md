@@ -4436,6 +4436,34 @@ Del prompt `_az` del PREPARADOR (OK a `puntos-foco` `76c233c`; el foco va global
 
 **`_bj` (2-oct, 05:10 ART): `puntos-log` cuarta vuelta.** `[PUNTOS-IDEMPOTENTE]` (el reintento de la misma devolución o compra da `ya_revertido` / `ya_sumado` antes de cualquier cuenta de saldo), el CHECK `clientes_puntos_no_negativo` en `puntos_cerrar_update.sql` (medido: 0 negativos, 0 nulos), 141m / 141n / «Edición manual». **Prueba con rollback de las dos migraciones y el plan (autorizada por Alejo, antes de las 10:00)**: casos de 1 a 42 y el cierre como empleada, jefe, `service_role` y anon, todos como se esperaba (`insert` con `puntos` o `puntos_log` denegado, `update` de `puntos` o `puntos_log` denegado, `ajustar_puntos` sigue andando, `delete` y anon iguales que antes, el CHECK rechaza −1); después, 0 tablas, funciones, constraint ni clientes de prueba, y los permisos de `clientes` iguales que antes (`authenticated`: DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE). Medido: todas las escrituras de `authenticated` sobre `clientes` son las del panel (`admin.html`: insert `nombre, telefono, nota, compro`; update `nombre, telefono, nota, compro`, `bloqueado`, `password: null`; delete); el catálogo escribe por `cliente_registrar`, `cliente_editar` y `cliente_login` (security definer, dueño `postgres`: no les afecta el cierre); `api/` sólo lee; ningún `cron.job` toca `clientes`.
 
+### Sesión 5-oct-2026 · **limpieza de textos viejos de `CLAUDE.md`** (cierre)
+
+**`_cj` (5-oct): limpieza de `CLAUDE.md` y cierre.** La tanda `acordes-nombre` dejó `CLAUDE.md` con textos que ya no eran ciertos («rama abierta `acordes-nombre`», «falta el SQL de Alejo») y, de arrastre, ~15 pendientes que decían «Hecho en la rama X, sin mergear» cuando las ramas (`chicos-catalogo`, `chicos-panel`, `puntos-coma`, `puntos-foco`, `puntos-enteros`, `puntos-log`, `foco-claro`, `vidriera`) ya están en `main` (`git branch --no-merged origin/main`: vacío).
+
+#### Qué se hizo
+
+- `CLAUDE.md`: versión del SW y `main` = `d45bcd2` (v1.1.187); `acordes-nombre` pasa a mergeada con el SQL corrido el 5-oct ~02:30; «, sin mergear» → «, ya en `main`» en las 15 líneas de ramas viejas; `[PUNTOS-LOG]` / `puntos_cerrar_update.sql` pasan de «sin aplicar» a «aplicada»; pie reescrito («sin ramas abiertas»). Sólo texto: ningún archivo servido, SW sin bump (sigue v1.1.187).
+- **Medido en la base (solo lectura, 5-oct):** existe `clientes_puntos_no_negativo`, `authenticated` no tiene `update` sobre `clientes.puntos` y existe la tabla `puntos_log`: la segunda migración de `[PUNTOS-LOG]` está aplicada. Eso era lo único que no se podía afirmar desde el repo.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** hacer la limpieza y, después, el `/handoff` «si se hace rápido».
+- **Propuse yo:** que el cierre cubra sólo lo de hoy y no los 269 commits desde el último cierre formal (`e0195d3`, 24-sep): cada tanda ya dejó su detalle en `CLAUDE.md` § Pendientes (`[PRIMER-PANTALLAZO]` = vidriera/146, `[A-QUE-HUELE-AUTO]` = 147 y `acordes-nombre`), no en esta historia. **Falta pasar esos textos a HISTORIA** (ver abierto).
+- Aprendido: «sin mergear» y «sin aplicar» en un pendiente caducan solos cuando la rama se mergea; el cierre de la tanda tiene que corregirlos (el PREPARADOR pidió no abrir otro commit en la rama, por eso quedaron).
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[A-QUE-HUELE-AUTO]` (2.ª tanda, `acordes-nombre`) | Textos de `CLAUDE.md` al día: mergeada, SQL corrido, humo pasado (138 → 153 de 192 con acordes). |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[PENDIENTES-HECHOS-A-HISTORIA]` | Mover de `CLAUDE.md` § Pendientes a HISTORIA § «✅ Resueltos» los ítems ya en producción (los «Hecho en la rama…, ya en `main`»). Es la reconciliación grande del cierre, que hoy no se hizo. |
+| `[PUNTOS-JSONB-FUERA]` paso B | Sigue sin aplicar; lo escribe el PREPARADOR y va antes de enchufar SiPago. |
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
