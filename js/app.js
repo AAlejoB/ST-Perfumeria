@@ -2398,6 +2398,10 @@
     deferTask(loadAnnouncement);
 
     // Cargar combos desde Supabase
+    // [COMBOS-PISAN-OVERRIDES] la última fila de perfume_overrides de cada slug (la escribe loadOverrides, de la copia guardada y de la base).
+    // loadCombosFromDB corre diferido: si llega DESPUÉS de los overrides, el set entra como fila cruda y perdía su pausa, su etiqueta, etc.
+    // Ahora cada set vuelve a pasar por applyOverrideToPerfume (un solo lugar que aplica un override), llegue primero lo que llegue.
+    var overridesPorSlug = {};
     async function loadCombosFromDB() {
       try {
         var { data, error } = await sb.from('combos').select('*');
@@ -2407,6 +2411,7 @@
             c.esSet = true;
             var idx = PERFUMES.findIndex(function(p) { return p.slug === c.slug; });
             if (idx !== -1) { PERFUMES[idx] = c; } else { PERFUMES.push(c); }
+            if (overridesPorSlug[c.slug]) applyOverrideToPerfume(overridesPorSlug[c.slug]);
           });
           renderSets();
         }
@@ -5420,6 +5425,7 @@
               });
             }
           }
+          if (o && o.slug) overridesPorSlug[o.slug] = o;   // [COMBOS-PISAN-OVERRIDES]
           applyOverrideToPerfume(o);
         });
         console.log('[loadOverrides] aplicado desde cache:', cached.length, 'overrides');
@@ -5441,7 +5447,10 @@
             if (snap.tenia) p._precioDecant = snap.valor;
             else delete p._precioDecant;
           });
-          data.forEach(applyOverrideToPerfume);
+          data.forEach(function(o) {
+            if (o && o.slug) overridesPorSlug[o.slug] = o;   // [COMBOS-PISAN-OVERRIDES]
+            applyOverrideToPerfume(o);
+          });
         }
       } catch(e) {
         console.warn('[loadOverrides] timeout o error:', e.message, '— usando cache si hay');
