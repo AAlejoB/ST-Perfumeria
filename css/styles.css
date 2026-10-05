@@ -5623,6 +5623,14 @@
       font-family: var(--font-display); font-size: 1.2rem; font-weight: 600;
       color: var(--amarillo); text-align: center; margin-bottom: 1rem;
     }
+    /* [CELU-RETOQUES] ✕ en «Tu pedido» (la misma regla que la 151a de la ficha): 44 × 44 arriba a la derecha, a la altura del título y de su color */
+    .cart-panel { position: relative; }
+    .cart-x {
+      position: absolute; top: 10px; right: 8px; z-index: 2;
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border: 0; background: transparent; color: var(--amarillo-tinta); padding: 0;
+      font-size: 1.7rem; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
     .cart-item {
       display: flex; align-items: center; gap: .8rem;
       padding: .6rem 0; border-bottom: 1px solid rgba(255,255,255,.06);

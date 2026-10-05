@@ -1423,6 +1423,7 @@
   <!-- Panel carrito -->
   <div class="cart-panel-overlay" id="cartPanelOverlay" onclick="if(event.target===this)closeCartPanel()">
     <div class="cart-panel">
+      <button type="button" class="cart-x" onclick="closeCartPanel()" aria-label="Cerrar">&times;</button>
       <p class="cart-panel-title">Tu pedido</p>
       <div id="cartItems"></div>
       <div class="cart-total">
