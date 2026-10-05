@@ -3623,10 +3623,20 @@
       to   { transform: translateX(0); }
     }
     .bs-handle-zone {
+      position: relative;
       display: flex; flex-direction: column; align-items: center; gap: 4px;
       padding: .6rem 0 .4rem; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
+    /* [FICHA-AL-PEDIDO] 151a · ✕ de 44 arriba a la derecha de la ficha, a la altura de «deslizá para cerrar» (que sigue andando); con el color del nombre del perfume */
+    .bs-x {
+      position: absolute; top: 2px; right: -.6rem; z-index: 2;
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border: 0; background: transparent; color: #fff; padding: 0;
+      font-size: 1.7rem; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    body:not(.dark-mode) .bottom-sheet .bs-x { color: #1a1a1d; }
+    #bsBtnShare { min-width: 44px; }   /* 151d · el 🔗 también de 44 */
     .bs-handle {
       width: 40px; height: 4px; background: rgba(255,255,255,.3);
       border-radius: 2px;
@@ -3669,7 +3679,8 @@
     .bs-note .note-label { font-size: .6rem; }
     .bs-buttons { display: flex; flex-direction: column; gap: .4rem; }
     .bs-btn-primary {
-      display: block; width: 100%; text-align: center; padding: .75rem;
+      display: flex; align-items: center; justify-content: center; min-height: 48px;   /* [FICHA-AL-PEDIDO] 151d · Consultar 48 */
+      width: 100%; text-align: center; padding: .75rem;
       font-family: var(--font-body); font-size: .75rem; font-weight: 700;
       letter-spacing: .12em; text-transform: uppercase; text-decoration: none;
       background: var(--amarillo); color: #000; border: none; border-radius: 8px;
@@ -3678,6 +3689,7 @@
     .bs-btn-primary:hover { background: var(--amarillo-claro); }
     .bs-btn-row { display: flex; gap: .4rem; }
     .bs-btn-secondary {
+      min-height: 44px;   /* [FICHA-AL-PEDIDO] 151d · Agregar, 🔗, Favoritos y Comparar, 44 */
       flex: 1; text-align: center; padding: .6rem;
       font-family: var(--font-body); font-size: .65rem; font-weight: 600;
       letter-spacing: .1em; text-transform: uppercase;
@@ -3686,6 +3698,7 @@
     }
     .bs-btn-secondary:hover { background: rgba(232,184,0,.1); border-color: var(--amarillo); }
     .bs-btn-cart {
+      min-height: 44px;   /* [FICHA-AL-PEDIDO] 151d */
       flex: 1; text-align: center; padding: .6rem;
       font-family: var(--font-body); font-size: .65rem; font-weight: 600;
       letter-spacing: .1em; text-transform: uppercase;

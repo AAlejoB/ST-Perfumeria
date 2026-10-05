@@ -6099,7 +6099,9 @@
         cart.push(slug);
         if (btn) { btn.textContent = '\u2713 Agregado'; btn.classList.add('added'); }
         flyToCart(slug, btn);
-        showCartToast(slug);
+        // [FICHA-AL-PEDIDO] 151c · con la ficha abierta no sale el aviso «Agregado al pedido»: el botón de la ficha ya lo dice
+        var _fichaAbierta = document.getElementById('bsOverlay');
+        if (!(_fichaAbierta && _fichaAbierta.classList.contains('active'))) showCartToast(slug);
         playCartSound();      // \ud83d\udd0a feedback sonoro premium
       }
       updateCartUI();
@@ -6557,16 +6559,19 @@
         btnSim.style.display = 'none';
       }
 
-      // Botón carrito
+      // Botón carrito · [FICHA-AL-PEDIDO] 151: «🛒 Agregar» pasa a «✓ Agregado · Ver pedido →» (el mismo botón). Con el perfume ya en el
+      // pedido, tocarlo cierra la ficha y abre «Tu pedido» (antes un 2.º toque lo QUITABA del pedido; sacar uno se hace con la × del pedido).
       var btnCart = document.getElementById('bsBtnCart');
-      var inCart = cart.indexOf(slug) !== -1;
-      btnCart.textContent = inCart ? '\u2713 Agregado' : '\uD83D\uDED2 Agregar';
-      btnCart.classList.toggle('added', inCart);
+      function pintarBtnCart() {
+        var ya = cart.indexOf(slug) !== -1;
+        btnCart.textContent = ya ? '\u2713 Agregado \u00b7 Ver pedido \u2192' : '\uD83D\uDED2 Agregar';
+        btnCart.classList.toggle('added', ya);
+      }
+      pintarBtnCart();
       btnCart.onclick = function(e) {
+        if (cart.indexOf(slug) !== -1) { if (e) e.preventDefault(); closeBottomSheet(); openCartPanel(); return; }
         addToCart(slug, null, e);
-        var nowInCart = cart.indexOf(slug) !== -1;
-        btnCart.textContent = nowInCart ? '\u2713 Agregado' : '\uD83D\uDED2 Agregar';
-        btnCart.classList.toggle('added', nowInCart);
+        pintarBtnCart();
       };
 
       // Botón compartir
