@@ -10151,6 +10151,13 @@
       .vid-seg-b[aria-pressed="true"] { background: var(--amarillo); color: #111; }
       .vid-seg-b svg { width: 18px; height: 18px; }
       .vid-btn, .vid-orden .sort-wrapper { flex: 1 1 0; min-width: 0; }
+      /* 149f · «Ordenar» guarda su lugar desde el primer cuadro: el .sort-wrapper se muda a esta fila con JS (vidAcomodar), y hasta
+         entonces «Filtros» ocupaba todo el ancho y se angostaba al llegar. Un hueco del mismo flex (1 1 0), invisible, entre ▦ ☰ y
+         «Filtros»; cuando el botón llega, el hueco se va y el ancho final no cambia. */
+      .vid-orden .vid-seg { order: 1; }
+      .vid-orden .sort-wrapper { order: 2; }
+      .vid-orden .vid-btn-filtros { order: 3; }
+      .vid-orden:not(:has(.sort-wrapper))::before { content: ''; order: 2; flex: 1 1 0; min-width: 0; height: 44px; }
       .vid-btn, .vid-orden .sort-wrapper > .filter-btn { height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0; border: 1px solid var(--borde); border-radius: 8px;
         background: var(--v-sup); color: var(--blanco); font-family: var(--font-body); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
       .vid-orden .sort-wrapper > .filter-btn { width: 100%; }
