@@ -10324,4 +10324,6 @@
       body[class] nav .nav-logo { min-width: 44px; min-height: 44px; justify-content: center; }
       body[class] nav .nav-icons { gap: 0; }
       body[class] nav .nav-icons .nav-fav-btn { width: 44px; height: 44px; }
+      /* 152a · en claro el ♥ era gris #444 sobre el nav oscuro (1,87): toma el color del ☰ (el amarillo). En oscuro no cambia. */
+      body:not(.dark-mode) nav .nav-icons .nav-fav-btn { color: var(--amarillo); }
     }
