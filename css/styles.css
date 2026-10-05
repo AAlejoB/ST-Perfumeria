@@ -3704,6 +3704,25 @@
     .bs-btn-agregar svg { width: 18px; height: 18px; flex: 0 0 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .bs-btn-agregar.added, .bs-btn-agregar.added:hover { background: rgba(46,204,113,.15); border: 1px solid #2ecc71; color: #2ecc71; }
     body:not(.dark-mode) .bs-btn-agregar.added, body:not(.dark-mode) .bs-btn-agregar.added:hover { background: rgba(46,204,113,.15); border-color: #2e7d32; color: #1b5e20; }
+    /* [SIN-STOCK-NO-ENTRA] 3 · ficha de un sin stock o un pausado (default del PREPARADOR, lo mira el DISEÑADOR): el cartel de la card junto a las
+       etiquetas (el mismo rojo de .badge-sin-stock; «Próximamente» en gris #555 como en la vista de lista) y «Agregar» en el mismo lugar pasa a
+       «🔔 Avisame cuando vuelva» (mismo amarillo). Ya anotado, el mismo botón en verde («✓ Te avisamos», con el número del invitado debajo). */
+    .bs-tags .badge-sin-stock, .bs-tags .badge-proximamente {
+      position: static; transform: none; align-self: center; box-shadow: none; white-space: nowrap;
+      font-family: var(--font-body); font-size: .6rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+      padding: 3px 7px; border-radius: 3px; border: 0; color: #fff;
+    }
+    .bs-tags .badge-sin-stock { background: #c0392b; }
+    .bs-tags .badge-proximamente { background: #555; }
+    .bs-btn-agregar.avisar .waitlist-ico { font-size: 1rem; line-height: 1; }
+    .bs-btn-agregar.avisar.added { display: grid; grid-template-columns: auto auto; justify-content: center; align-content: center; column-gap: .4rem; row-gap: 0; cursor: default; }
+    .bs-btn-agregar.avisar.added .waitlist-tel { grid-column: 1 / -1; text-align: center; font-size: .72rem; font-weight: 400; letter-spacing: .02em; text-transform: none; white-space: nowrap; }
+    /* [SIN-STOCK-NO-ENTRA] 7 · Comparar: en la columna de uno que no se puede pedir, el estado en gris en lugar de «Elegir este» */
+    .compare-col-sin-stock {
+      width: 100%; margin-top: .9rem; padding: .65rem 1rem; text-align: center;
+      font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      color: #9a9a9a; border: 1px solid currentColor; border-radius: 24px;   /* el modal de Comparar es oscuro (#111) en los dos temas: var(--gris) en claro es #5e564a (2,4); #9a9a9a da 6,3 */
+    }
     .bs-btn-row { display: flex; gap: .4rem; }
     .bs-btn-secondary {
       min-height: 44px;   /* [FICHA-AL-PEDIDO] 151d · Agregar, 🔗, Favoritos y Comparar, 44 */

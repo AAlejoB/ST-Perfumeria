@@ -2414,6 +2414,7 @@
             if (overridesPorSlug[c.slug]) applyOverrideToPerfume(overridesPorSlug[c.slug]);
           });
           renderSets();
+          limpiarPedido();   // [SIN-STOCK-NO-ENTRA] los sets llegan diferidos: uno pausado que estaba en el pedido guardado se saca acá
         }
       } catch(e) {}
     }
@@ -2436,7 +2437,8 @@
         // [PAUSADO-OCULTO] no mostrar destacados pausados ni eliminados. Antes
         // sólo se chequeaba que existiera, así que un perfume dado de baja podía
         // seguir apareciendo en el podio.
-        if (!p || p._oculto || p._pausado) return;
+        // [SIN-STOCK-NO-ENTRA] 6 (A) · un perfume sin stock tampoco sale en la Selección mientras no haya: vuelve solo cuando lo ponen «En stock»
+        if (!sePuedePedir(p)) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var imgHTML = p.foto
           ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" width="300" height="300">'
@@ -5467,6 +5469,7 @@
       return loadOverrides(pedidoOverrides);
     }).then(function() {
       console.log('[catalog] STEP 3: loadOverrides OK');
+      limpiarPedido();   // [SIN-STOCK-NO-ENTRA] un pedido guardado (sessionStorage) con algo que se quedó sin stock: se saca y se avisa
       markNewPerfumes();
       console.log('[catalog] STEP 4: markNewPerfumes OK, llamando renderCatalog...');
       renderCatalog();
@@ -6042,6 +6045,68 @@
     var cart = JSON.parse(sessionStorage.getItem('st_cart') || '[]');
     var CART_LIMIT = 15;
 
+    // [SIN-STOCK-NO-ENTRA] La ÚNICA regla de qué entra al pedido (NO ROMPER #26). Un perfume sin stock, pausado («Próximamente») o dado de baja
+    // no se pide: ni desde la card, ni desde la ficha, ni desde Comparar, ni desde los favoritos, ni desde un pedido guardado. «Último» (low) sí.
+    // Una puerta nueva al pedido la usa; nunca un cart.push suelto.
+    function sePuedePedir(p) {
+      return !!p && !p._oculto && !p._pausado && p._stockStatus !== 'out';
+    }
+
+    // [SIN-STOCK-NO-ENTRA] El aviso chico del pedido. #cartLimitMsg vive DENTRO del panel «Tu pedido» (sólo se ve con el panel abierto), así que
+    // desde una card o la ficha no se veía: se usa #avisoToast (la caja de .cart-toast, centrada y por encima de la ficha y del panel).
+    var avisoPedidoReloj = null, avisoPedidoActivo = false;
+    function avisoPedido(texto) {
+      var el = document.getElementById('avisoToast');
+      if (!el) { showCartLimitMsg(texto); return; }
+      var txt = el.querySelector('.aviso-toast-texto');
+      if (avisoPedidoActivo) {   // ya está a la vista: cambia el texto y reinicia el reloj
+        if (txt) txt.textContent = texto;
+        clearTimeout(avisoPedidoReloj);
+        avisoPedidoReloj = setTimeout(avisoReentrarCerrar, 4500);
+        return;
+      }
+      var mostrar = function() {
+        var cerrado = false;
+        var cerrar = function() {
+          if (cerrado) return;
+          cerrado = true;
+          avisoPedidoActivo = false;
+          clearTimeout(avisoPedidoReloj);
+          if (avisoReentrarCerrar === cerrar) avisoReentrarCerrar = null;
+          el.classList.add('leaving');
+          setTimeout(function() { el.classList.remove('active', 'leaving'); }, 300);
+        };
+        if (txt) txt.textContent = texto;
+        el.classList.remove('leaving');
+        el.classList.add('active');
+        el.onclick = cerrar;
+        avisoReentrarCerrar = cerrar;   // lo cierra también showCartToast / el login (cerrarAvisoReentrar)
+        avisoPedidoActivo = true;
+        avisoPedidoReloj = setTimeout(cerrar, 4500);
+      };
+      if (avisoReentrarCerrar) { cerrarAvisoReentrar(); setTimeout(mostrar, 320); }   // el aviso 130 (sesión) usa la misma caja: que termine de irse
+      else mostrar();
+    }
+
+    // [SIN-STOCK-NO-ENTRA] Saca del pedido lo que ya no se puede pedir (se quedó sin stock o se pausó después de agregarlo; el pedido vive en
+    // sessionStorage). Un slug que todavía no llegó a PERFUMES (un set: los combos cargan diferidos) se queda y se limpia cuando llegue.
+    function limpiarPedido() {
+      var sacados = [];
+      cart = cart.filter(function(slug) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!p || sePuedePedir(p)) return true;
+        sacados.push(p.name || slug);
+        return false;
+      });
+      if (!sacados.length) return 0;
+      updateCartUI();
+      resetCartButtons();
+      avisoPedido(sacados.length === 1
+        ? 'Sacamos ' + sacados[0] + ' del pedido: se quedó sin stock'
+        : 'Sacamos ' + sacados.length + ' perfumes del pedido: se quedaron sin stock');
+      return sacados.length;
+    }
+
     function updateCartUI() {
       var btn = document.getElementById('cartFloat');
       var countEl = document.getElementById('cartFloatCount');
@@ -6143,6 +6208,11 @@
         cart = cart.filter(function(s) { return s !== slug; });
         if (btn) { btn.innerHTML = ICONO_CARRITO + 'Agregar al pedido'; btn.classList.remove('added'); }   // 153: el SVG de la barra, no el emoji
       } else {
+        // [SIN-STOCK-NO-ENTRA] sacar uno que ya estaba sigue andando (arriba); sumar uno que no se puede pedir, no
+        if (!sePuedePedir(PERFUMES.find(function(pf) { return pf.slug === slug; }))) {
+          avisoPedido('Sin stock por ahora \u00b7 toc\u00e1 \u00abAvisame\u00bb y te escribimos cuando vuelva');
+          return;
+        }
         if (cart.length >= CART_LIMIT) {
           showCartLimitMsg('M\u00e1ximo ' + CART_LIMIT + ' fragancias por pedido \ud83d\ude0a');
           return;
@@ -6266,8 +6336,12 @@
     function addFavsToCart() {
       var added = 0;
       var skipped = 0;
+      var sinStock = 0;   // [SIN-STOCK-NO-ENTRA] los ♥ que no se pueden pedir se saltan y se dice
       favs.forEach(function(slug) {
         if (cart.indexOf(slug) !== -1) return; // ya en carrito
+        var pf = PERFUMES.find(function(x) { return x.slug === slug; });
+        if (!pf) return;   // un favorito que ya no está en el catálogo no se cuenta ni se agrega
+        if (!sePuedePedir(pf)) { sinStock++; return; }
         if (cart.length >= CART_LIMIT) { skipped++; return; }
         cart.push(slug);
         added++;
@@ -6284,16 +6358,20 @@
         }
       });
       if (added > 0) openCartPanel(); // refrescar panel
+      var avisoSinStock = sinStock > 0 ? (sinStock === 1 ? '1 está sin stock' : sinStock + ' están sin stock') : '';
       if (skipped > 0) {
-        showCartLimitMsg('Se agregaron ' + added + ', pero ' + skipped + ' no entraron (máx. ' + CART_LIMIT + ')');
+        showCartLimitMsg('Se agregaron ' + added + ', pero ' + skipped + ' no entraron (máx. ' + CART_LIMIT + ')' + (avisoSinStock ? ' · ' + avisoSinStock : ''));
       } else if (added === 0) {
-        showCartLimitMsg('Tus favoritos ya están en el pedido ✓');
+        showCartLimitMsg(avisoSinStock ? 'No se agregó ninguno · ' + avisoSinStock : 'Tus favoritos ya están en el pedido ✓');
+      } else if (avisoSinStock) {
+        showCartLimitMsg('Se agregaron ' + added + ' · ' + avisoSinStock);
       } else {
         showCartLimitMsg(added + ' favorito' + (added > 1 ? 's' : '') + ' agregado' + (added > 1 ? 's' : '') + ' al pedido ❤️');
       }
     }
 
     function openCartPanel() {
+      limpiarPedido();   // [SIN-STOCK-NO-ENTRA] por si la página quedó abierta horas y algo se quedó sin stock
       var container = document.getElementById('cartItems');
       var totalEl = document.getElementById('cartTotal');
       var cashEl = document.getElementById('cartCash');
@@ -6403,6 +6481,8 @@
     }
 
     function sendCartToWA() {
+      // [SIN-STOCK-NO-ENTRA] lo que ya no se puede pedir no se manda; si se sacó algo, el pedido cambió: se repinta y se revisa antes de enviar
+      if (limpiarPedido()) { openCartPanel(); return; }
       if (cart.length === 0) return;
       var note = document.getElementById('cartNote').value.trim();
       var items = cart.map(function(slug) {
@@ -6562,8 +6642,11 @@
       var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
       var prodType = detectProductType(p);
       var tipoBadge = prodType ? '<span class="badge-tipo">' + escapeHTML(prodType) + '</span>' : '';
-      document.getElementById('bsTags').innerHTML =
-        '<span class="card-tag tag-cat">' + escapeHTML(pCat) + '</span>'
+      // [SIN-STOCK-NO-ENTRA] 3 · la ficha de un sin stock o un pausado lleva el mismo cartel que la card, junto a las etiquetas
+      var estadoBadge = p._stockStatus === 'out' ? '<span class="badge-sin-stock">Sin stock</span>'
+        : (p._pausado ? '<span class="badge-proximamente">Próximamente</span>' : '');
+      document.getElementById('bsTags').innerHTML = estadoBadge
+        + '<span class="card-tag tag-cat">' + escapeHTML(pCat) + '</span>'
         + '<span class="card-tag tag-ml">' + escapeHTML(p.ml || 100) + ' ml</span>'
         + '<span class="card-tag tag-acorde">' + escapeHTML(p.perfil || '') + '</span>'
         + tipoBadge;
@@ -6596,7 +6679,9 @@
       document.getElementById('bsNotes').innerHTML = notesHTML;
 
       // Botón consultar
-      document.getElementById('bsBtnConsultar').onclick = function(e) {
+      var btnConsultar = document.getElementById('bsBtnConsultar');
+      btnConsultar.style.display = sePuedePedir(p) ? '' : 'none';   // [SIN-STOCK-NO-ENTRA] como en la card: sin stock / pausado no tiene «Consultar →» (y la ficha se reusa: al abrir otra vuelve)
+      btnConsultar.onclick = function(e) {
         e.preventDefault();
         closeBottomSheet();
         goToWA(slug, e);
@@ -6614,14 +6699,33 @@
       // Botón carrito · [FICHA-AL-PEDIDO] 151: «🛒 Agregar» pasa a «✓ Agregado · Ver pedido →» (el mismo botón). Con el perfume ya en el
       // pedido, tocarlo cierra la ficha y abre «Tu pedido» (antes un 2.º toque lo QUITABA del pedido; sacar uno se hace con la × del pedido).
       // [AGREGAR-ARRIBA] 153: \u00ABAgregar\u00BB va arriba en amarillo; el carrito es el SVG de la barra (el emoji \uD83D\uDED2 sobre el amarillo se ve gris).
+      // [SIN-STOCK-NO-ENTRA] 3 \u00b7 sin stock o pausado: \u00abAgregar\u00bb pasa a \u00ab\ud83d\udd14 Avisame cuando vuelva\u00bb en el mismo lugar (abre la hoja de espera; ya anotado,
+      // lo que dice la card). La hoja de espera va por debajo de la ficha (z 9999 contra 10000): se cierra la ficha y despu\u00e9s se abre. Un perfume dado
+      // de baja (_oculto) no tiene bot\u00f3n.
       var btnCart = document.getElementById('bsBtnCart');
+      var pedible = sePuedePedir(p);
       function pintarBtnCart() {
+        btnCart.style.display = p._oculto ? 'none' : '';
+        btnCart.classList.toggle('avisar', !pedible);
+        if (!pedible) {
+          var anotado = waitlistSlugs.indexOf(slug) !== -1;
+          btnCart.innerHTML = anotado ? esperaAvisadoHTML() : '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span>Avisame cuando vuelva';
+          btnCart.classList.toggle('added', anotado);
+          return;
+        }
         var ya = cart.indexOf(slug) !== -1;
         btnCart.innerHTML = ya ? '\u2713 Agregado \u00b7 Ver pedido \u2192' : ICONO_CARRITO + 'Agregar';
         btnCart.classList.toggle('added', ya);
       }
       pintarBtnCart();
       btnCart.onclick = function(e) {
+        if (!pedible) {
+          if (e) e.preventDefault();
+          if (waitlistSlugs.indexOf(slug) !== -1) return;   // ya anotado: el bot\u00f3n es s\u00f3lo el estado
+          closeBottomSheet();
+          setTimeout(function() { openWaitlist(slug); }, 280);   // despu\u00e9s de los 260 ms con que closeBottomSheet suelta el scroll del body
+          return;
+        }
         if (cart.indexOf(slug) !== -1) { if (e) e.preventDefault(); closeBottomSheet(); openCartPanel(); return; }
         addToCart(slug, null, e);
         pintarBtnCart();
@@ -7004,10 +7108,13 @@
             + '<div class="compare-row"><p class="compare-row-label">Base</p><p class="compare-row-value">' + escapeHTML(p.notas_base || '\u2014') + '</p></div>'
           + '</div>'
           // [COMPARE-2B] Boton "Elegir este" \u2014 cierra el ciclo comparacion -> decision.
-          + '<button type="button" class="compare-col-cta" onclick="elegirCompare(' + jsAttr(p.slug) + ', this, event)" aria-label="Elegir este perfume">'
-            + '<span class="compare-col-cta-ico" aria-hidden="true">\ud83d\udc95</span>'
-            + '<span class="compare-col-cta-text">Elegir este</span>'
-          + '</button>'
+          // [SIN-STOCK-NO-ENTRA] 7 \u00b7 en la columna de uno que no se puede pedir, \u00abElegir este\u00bb no se ve: en su lugar, el estado en gris
+          + (sePuedePedir(p)
+            ? '<button type="button" class="compare-col-cta" onclick="elegirCompare(' + jsAttr(p.slug) + ', this, event)" aria-label="Elegir este perfume">'
+                + '<span class="compare-col-cta-ico" aria-hidden="true">\ud83d\udc95</span>'
+                + '<span class="compare-col-cta-text">Elegir este</span>'
+              + '</button>'
+            : '<p class="compare-col-sin-stock">' + (p._pausado ? 'Pr\u00f3ximamente' : (p._oculto ? 'No disponible' : 'Sin stock')) + '</p>')
         + '</div>';
       });
       grid.innerHTML = html;
@@ -7132,6 +7239,8 @@
     // ────────────────────────────────────────────────────────────────
     function elegirCompare(slug, btn, event) {
       if (event) { event.preventDefault(); event.stopPropagation(); }
+      // [SIN-STOCK-NO-ENTRA] defensa: el botón no se dibuja para un sin stock; si llega igual, no entra y la comparación queda abierta
+      if (!sePuedePedir(PERFUMES.find(function(pf) { return pf.slug === slug; }))) return;
       if (typeof addToCart === 'function') {
         addToCart(slug, btn, event);
       }

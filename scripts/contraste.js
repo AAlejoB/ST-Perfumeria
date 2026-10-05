@@ -935,6 +935,11 @@ function mezcla(hex, fondo, a) {
      ['8 cartel «Ahora no» .push-banner-btn--no', '.push-banner-btn--no', null, '.push-banner-btn--no', cartel, 'cartel'],
      ['153 hover de la card «Agregar» .cart-add-btn.reveal-add', '.cart-add-btn.reveal-add:not(.added)', null, '.cart-add-btn.reveal-add:not(.added)', reveal, 'compu 1280'],
      ['153 hover de la card «Consultar →» .reveal-actions .reveal-cta', '.reveal-actions .reveal-cta', null, '.reveal-actions .reveal-cta', reveal, 'compu 1280'],
+     // [SIN-STOCK-NO-ENTRA] 5-oct-2026 · el cartel de la ficha de un sin stock / pausado, el «Sin stock» de la columna de Comparar y el aviso «Sacamos … del pedido»
+     ['sin-stock cartel «Sin stock» .bs-tags .badge-sin-stock', '.bs-tags .badge-sin-stock', null, '.bs-tags .badge-sin-stock', hoja_, 'ficha'],
+     ['sin-stock cartel «Próximamente» .bs-tags .badge-proximamente', '.bs-tags .badge-proximamente', null, '.bs-tags .badge-proximamente', hoja_, 'ficha'],
+     ['sin-stock «Sin stock» de Comparar .compare-col-sin-stock', '.compare-col-sin-stock', null, null, fondo('.compare-modal', c, '#111111'), 'comparar'],
+     ['sin-stock aviso «Sacamos … del pedido» .aviso-toast-texto', '.aviso-toast-texto', null, null, fondo('.cart-toast', c, '#0a0a0a'), 'aviso'],
      ['título del quiz', '.quiz-title', 'p', null, hoja_],
      ['subtítulo', '.quiz-subtitle', 'p', null, hoja_],
      ['pregunta', '.quiz-question', 'p', null, hoja_],
