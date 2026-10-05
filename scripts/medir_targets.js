@@ -43,7 +43,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 const RAIZ = path.join(__dirname, '..');
 const args = process.argv.slice(2);
@@ -288,11 +288,47 @@ async function abrirNavegador() {
   process.exit(2);
 }
 
-function borrar(dir) { try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) {} }
+// Sincrónico y con reintentos a propósito: todas las salidas del script hacen process.exit() justo
+// después de limpiar(), y eso cancelaba el setTimeout que antes borraba el perfil (se acumulaban
+// carpetas st-medir-* en %TEMP%: [MEDIR-TEMP-SWEEP]). En Windows, además, el perfil queda tomado
+// por los procesos hijos de Chromium ~1 s después del kill (EPERM), y el maxRetries de rmSync no
+// alcanzó: por eso el ciclo propio, hasta ~6 s, con espera real entre intentos.
+function dormir(ms) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); }
+function borrar(dir) {
+  for (let i = 0; i < 24; i++) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) { /* tomado todavía: reintenta */ }
+    if (!fs.existsSync(dir)) return;
+    dormir(250);
+  }
+}
+
+// Mata el navegador y todos sus hijos (en Windows proc.kill() mata sólo al padre).
+function matarArbol(proc) {
+  if (!proc || !proc.pid) return;
+  try {
+    if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(proc.pid), '/T', '/F'], { stdio: 'ignore' });
+    else proc.kill();
+  } catch (e) {}
+}
+
+// Al arrancar: barre los perfiles st-medir-* que dejó una corrida anterior (cortada con Ctrl+C,
+// matada por el timeout del sistema, etc.). Se salta los de menos de 10 minutos por si hay otra
+// corrida en marcha a la vez.
+function barrerViejos() {
+  try {
+    const tmp = os.tmpdir(), corte = Date.now() - 10 * 60 * 1000;
+    for (const nombre of fs.readdirSync(tmp)) {
+      if (!nombre.startsWith('st-medir-')) continue;
+      const dir = path.join(tmp, nombre);
+      try { if (fs.statSync(dir).mtimeMs < corte) borrar(dir); } catch (e) {}
+    }
+  } catch (e) {}
+}
 
 (async () => {
   let srv, nav, c, bin, perfil;
-  const limpiar = () => { try { c && c.cerrar(); } catch (e) {} try { nav && nav.proc.kill(); } catch (e) {} try { srv && srv.close(); } catch (e) {} setTimeout(() => { if (perfil) borrar(perfil); }, 500); };
+  barrerViejos();
+  const limpiar = () => { try { c && c.cerrar(); } catch (e) {} try { srv && srv.close(); } catch (e) {} if (nav) matarArbol(nav.proc); if (perfil) borrar(perfil); };
   const reloj = setTimeout(() => { console.error('❌ Timeout general (90 s).'); limpiar(); process.exit(2); }, 90000);
   try {
     const servidor = await servir(); srv = servidor.srv; const base = servidor.url;
