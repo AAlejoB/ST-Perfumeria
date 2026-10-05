@@ -4880,6 +4880,7 @@
     .push-banner-text { font-size: .72rem; color: #bbb; line-height: 1.4; margin-bottom: .8rem; }
     .push-banner-btns { display: flex; gap: .5rem; }
     .push-banner-btn {
+      min-height: 44px;   /* [CELU-RETOQUES] 8 · los botones del cartel medían 34 */
       flex: 1; font-family: inherit; font-size: .68rem; font-weight: 600;
       letter-spacing: .05em; text-transform: uppercase; padding: .55rem .8rem;
       border-radius: 6px; cursor: pointer; transition: all .2s; border: none;

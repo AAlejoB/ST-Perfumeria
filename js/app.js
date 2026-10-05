@@ -1495,6 +1495,7 @@
         }
       } else {
         favs.push(slug);
+        if (window.pushGestoVisita) window.pushGestoVisita();   // [CELU-RETOQUES] 8 \u00b7 primer gesto: habilita el cartel de notificaciones
         btn.classList.add('liked');
         btn.innerHTML = '\u2665';
         // \u2764\ufe0f Efecto "pop" al agregar a favoritos
@@ -6138,6 +6139,7 @@
           return;
         }
         cart.push(slug);
+        if (window.pushGestoVisita) window.pushGestoVisita();   // [CELU-RETOQUES] 8 \u00b7 primer gesto: habilita el cartel de notificaciones
         if (btn) { btn.textContent = '\u2713 Agregado'; btn.classList.add('added'); }
         flyToCart(slug, btn);
         // [FICHA-AL-PEDIDO] 151c · con la ficha abierta no sale el aviso «Agregado al pedido»: el botón de la ficha ya lo dice
@@ -7473,19 +7475,31 @@
       var pushSubscribed = localStorage.getItem('st_push_subscribed');
       if (pushDismissed || pushSubscribed) return;
 
-      // Mostrar banner después de 15s de navegación
-      setTimeout(function() {
-        // Verificar que no haya permiso ya concedido
-        if (Notification.permission === 'granted') {
-          // Ya tiene permiso, intentar suscribir silenciosamente
-          subscribeToPush();
-          return;
-        }
-        if (Notification.permission === 'denied') return; // Bloqueó las notificaciones
+      if (Notification.permission === 'denied') return; // Bloqueó las notificaciones
+      if (Notification.permission === 'granted') {
+        // Ya tiene permiso, intentar suscribir silenciosamente (a los 15 s, como siempre; no muestra nada)
+        setTimeout(function() { subscribeToPush(); }, 15000);
+        return;
+      }
 
-        var banner = document.getElementById('pushBanner');
-        if (banner) banner.style.display = 'block';
-      }, 15000);
+      // [CELU-RETOQUES] 8 · el cartel «¿Querés recibir novedades?» ya no sale a los 15 s (tapaba el 14,9 % de la pantalla a 390 sin que el
+      // cliente hubiera hecho nada): sale DESPUÉS DEL PRIMER GESTO de la visita («Agregar» o ♥, que llaman a pushGestoVisita) y NUNCA encima de
+      // algo abierto (ficha, pedido, hojas, menú, ventanas): si hay algo abierto, espera a que se cierre. Sin ningún gesto, no sale nunca.
+      // Las reglas de siempre quedan: si ya aceptó o ya dijo que no (st_push_*), no sale.
+      var pushAlgoAbierto = '[class*="-overlay"].active, [class*="-overlay"].open, .nav-drawer.open';
+      var pushGestoHecho = false;
+      window.pushGestoVisita = function() {
+        if (pushGestoHecho) return;
+        pushGestoHecho = true;
+        var espera = setInterval(function() {
+          // 600 ms: deja pasar la animación de «Agregar» y el aviso; si hay algo abierto, vuelve a probar
+          var banner = document.getElementById('pushBanner');
+          if (!banner || localStorage.getItem('st_push_dismissed') || localStorage.getItem('st_push_subscribed')) { clearInterval(espera); return; }
+          if (document.querySelector(pushAlgoAbierto)) return;
+          clearInterval(espera);
+          banner.style.display = 'block';
+        }, 600);
+      };
     })();
 
     function acceptPush() {
