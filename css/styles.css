@@ -4863,57 +4863,7 @@
     .push-banner-btn--no:hover { color: #fff; border-color: rgba(255,255,255,.2); }
     @media (min-width: 768px) { .push-banner { bottom: 100px; right: 30px; } }
 
-    /* Banner de bienvenida */
-    .welcome-overlay {
-      position: fixed; inset: 0; z-index: 10000;
-      background: rgba(0,0,0,.75); backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      padding: 1.5rem; animation: welcomeFadeIn .5s ease;
-    }
-    @keyframes welcomeFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .welcome-box {
-      background: linear-gradient(145deg, #141414 0%, #0d0d0d 100%);
-      border: 1px solid rgba(232,184,0,.25); border-radius: 20px;
-      padding: 2.5rem 2rem; max-width: 420px; width: 100%;
-      text-align: center; position: relative;
-      box-shadow: 0 20px 60px rgba(0,0,0,.7), 0 0 40px rgba(232,184,0,.06);
-      animation: welcomeSlide .5s ease .1s both;
-    }
-    @keyframes welcomeSlide {
-      from { opacity: 0; transform: translateY(30px) scale(.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .welcome-logo {
-      width: 70px; height: 70px; border-radius: 50%;
-      object-fit: cover; margin: 0 auto .8rem;
-      border: 2px solid rgba(232,184,0,.3);
-    }
-    .welcome-brand {
-      font-size: .6rem; font-weight: 600; letter-spacing: .25em;
-      text-transform: uppercase; color: var(--amarillo); margin-bottom: .3rem;
-    }
-    .welcome-title {
-      font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: .4rem;
-      line-height: 1.3;
-    }
-    .welcome-sub {
-      font-size: .78rem; color: var(--gris); line-height: 1.5; margin-bottom: 1.5rem;
-    }
-    .welcome-cta {
-      display: inline-block; font-family: inherit; font-size: .72rem; font-weight: 700;
-      letter-spacing: .12em; text-transform: uppercase;
-      background: var(--amarillo); color: #000; border: none;
-      padding: .7rem 2rem; border-radius: 8px; cursor: pointer;
-      transition: all .2s; text-decoration: none;
-    }
-    @media (hover: hover) { .welcome-cta:hover { background: var(--amarillo-claro); transform: translateY(-1px); } }
-    .welcome-city {
-      font-size: .6rem; color: rgba(255,255,255,.25); margin-top: 1rem;
-      letter-spacing: .08em;
-    }
+    /* [SIN-BIENVENIDA] 148 · la ventana de bienvenida se sacó (index.html, js/app.js y su CSS). */
 
     /* Tooltip horario sobre WhatsApp */
     .wa-status {
@@ -8612,16 +8562,6 @@
     }
     body:not(.dark-mode) .modal-input::placeholder { color: #888 !important; }
 
-    /* ── Welcome overlay (bienvenida) ── */
-    body:not(.dark-mode) .welcome-box {
-      background: #f5efde !important;
-      color: #1a1a1d !important;
-    }
-    body:not(.dark-mode) .welcome-title,
-    body:not(.dark-mode) .welcome-brand { color: #1a1a1d !important; }
-    body:not(.dark-mode) .welcome-sub,
-    body:not(.dark-mode) .welcome-city { color: #5e564a !important; }
-
     /* ── Status pill (Abierto/Cerrado) ── */
     body:not(.dark-mode) .store-status { background: #fff !important; }
 
@@ -10126,8 +10066,9 @@
          Es el mismo <section class="hero">, con su <h1> y su #storeStatus (los escribe calcularEstadoHorario, NO ROMPER #14). */
       body[class] .hero { padding: 10px 16px 8px; min-height: 0; text-align: left; background: var(--v-bg); border: 0; overflow: visible; margin: 0; }
       body[class] .hero::before { display: none; }
-      body[class] .hero-tagline { font-size: 9.8px; font-weight: 600; letter-spacing: .2em; color: var(--amarillo-tinta); margin: 0; opacity: 1; animation: none; white-space: nowrap; }
-      body[class] .hero-tagline .hero-tl-ext { display: none; }
+      /* 148 [SIN-BIENVENIDA] · la franja toma lo que decía la bienvenida: «Perfumería árabe original · Comodoro», a 12 px y .12em; si a 360 no entra en un renglón se saca «original» (la letra no se achica) */
+      body[class] .hero-tagline { font-size: 12px; font-weight: 600; letter-spacing: .12em; color: var(--amarillo-tinta); margin: 0; opacity: 1; animation: none; white-space: nowrap; }
+      body[class] .hero-tagline .hero-tl-ext:not(.hero-tl-orig) { display: none; }
       body[class] .hero-title { font-size: 17px; font-style: italic; font-weight: 500; line-height: 1.25; margin: 4px 0 0; opacity: 1; animation: none; }
       body[class] .hero-title em { font-weight: 600; }
       body[class] .hero .store-status { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; margin-top: 6px; max-width: 100%; }

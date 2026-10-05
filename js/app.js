@@ -7388,28 +7388,7 @@
       }
     })();
 
-    // ============================================================
-    // BANNER DE BIENVENIDA
-    // ============================================================
-    (function() {
-      if (localStorage.getItem('st_welcomed')) return;
-      var overlay = document.getElementById('welcomeOverlay');
-      if (overlay) overlay.style.display = 'flex';
-    })();
-
-    function closeWelcome() {
-      var overlay = document.getElementById('welcomeOverlay');
-      if (overlay) {
-        overlay.style.animation = 'none';
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity .3s ease';
-        setTimeout(function() { overlay.style.display = 'none'; }, 300);
-      }
-      localStorage.setItem('st_welcomed', '1');
-      // Scroll suave al catálogo
-      var cat = document.getElementById('catalogo');
-      if (cat) setTimeout(function() { cat.scrollIntoView({ behavior: 'smooth' }); }, 350);
-    }
+    // [SIN-BIENVENIDA] 148 · la ventana de bienvenida (y su bajada sola al catálogo) se sacó: el cliente nuevo llega a la tienda, en scroll 0.
 
     // ============================================================
     // PUSH NOTIFICATIONS
