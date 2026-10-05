@@ -10306,3 +10306,20 @@
       .vh-tb-tit { display: block; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
       .vh-tb-sub { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; line-height: 1.35; color: var(--gris); }
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       [NAV-SIN-REPETIDOS] 152 · el nav del celu (< 768) queda ☰ · logo centrado · ♥ · DISEÑADOR _bw, PREPARADOR _cj
+       Los tres de 44 × 44 como mínimo y el nav sigue de 58. La cuenta (con su anillo) y el carrito se van del nav y siguen en la barra de
+       abajo (CUENTA y CARRITO, con su número); «Cerrar sesión» está en la hoja «Hola, …» de CUENTA y en el menú. Es sólo CSS: el JS
+       (updateAuthUI, updateCartUI) sigue escribiendo en esos botones, que quedan en el DOM. A ≥ 768, como hoy.
+       ──────────────────────────────────────────────────────────────── */
+    @media (max-width: 767px) {
+      body[class] nav .nav-register-btn,
+      body[class] nav .nav-cart-btn,
+      body[class] nav .nav-logout-btn,
+      body[class] nav .nav-theme-pill { display: none !important; }
+      body[class] nav .nav-hamburger { width: 44px; height: 44px; padding: 0; align-items: center; justify-content: center; }
+      body[class] nav .nav-logo { min-width: 44px; min-height: 44px; justify-content: center; }
+      body[class] nav .nav-icons { gap: 0; }
+      body[class] nav .nav-icons .nav-fav-btn { width: 44px; height: 44px; }
+    }
