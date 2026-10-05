@@ -4890,7 +4890,8 @@
     }
     .push-banner-btn--yes:hover { background: var(--amarillo-claro); }
     .push-banner-btn--no {
-      background: rgba(255,255,255,.06); color: var(--gris); border: 1px solid rgba(255,255,255,.1);
+      /* [CELU-RETOQUES] 8 · el cartel es oscuro en los dos temas: con var(--gris) «Ahora no» daba 4,16 en oscuro y 2,04 en claro (en claro --gris es marrón). #bbb = el gris del texto del cartel. */
+      background: rgba(255,255,255,.06); color: #bbb; border: 1px solid rgba(255,255,255,.1);
     }
     .push-banner-btn--no:hover { color: #fff; border-color: rgba(255,255,255,.2); }
     @media (min-width: 768px) { .push-banner { bottom: 100px; right: 30px; } }
