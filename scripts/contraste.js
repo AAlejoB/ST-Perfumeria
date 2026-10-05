@@ -922,6 +922,7 @@ function mezcla(hex, fondo, a) {
      ['pestaña activa', '.juegos-tab.active', null, '.juegos-tab.active', barra],
      ['× cerrar', '.juegos-x', null, null, hoja_],
      ['deslizá para cerrar', '.juegos-sheet .bs-handle-arrow', null, null, hoja_],
+     ['151 ✕ de la ficha (mismo fondo que la ventana)', '.bottom-sheet .bs-x', null, null, hoja_],
      ['título del quiz', '.quiz-title', 'p', null, hoja_],
      ['subtítulo', '.quiz-subtitle', 'p', null, hoja_],
      ['pregunta', '.quiz-question', 'p', null, hoja_],
@@ -961,7 +962,7 @@ function mezcla(hex, fondo, a) {
     var AMARILLO = '#e8b800', chip = sobre([232, 184, 0], 0.14, F.bg);
     var gris = tk('--gris', c), grisClaro = tk('--gris-claro', c), blanco = tk('--blanco', c), tinta = tk('--amarillo-tinta', c), efectivo = tk('--tinta-efectivo', c), precio = tk('--tinta-precio', c);
     // [rol, nombre, texto, fondo]
-    [['franja', '146h «PERFUMERÍA ÁRABE · COMODORO» .hero-tagline', tinta, F.bg],
+    [['franja', '146h/148 «PERFUMERÍA ÁRABE ORIGINAL · COMODORO» .hero-tagline (12 px)', tinta, F.bg],
      ['franja', '146h «Tu aroma, tu identidad.» .hero-title', blanco, F.bg],
      ['buscador', '146b lo que se escribe .search-input', blanco, F.sup],
      ['buscador', '146b el texto de ejemplo .search-input::placeholder', gris, F.sup],
