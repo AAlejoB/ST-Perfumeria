@@ -10085,6 +10085,8 @@
       /* 148 [SIN-BIENVENIDA] · la franja toma lo que decía la bienvenida: «Perfumería árabe original · Comodoro», a 12 px y .12em; si a 360 no entra en un renglón se saca «original» (la letra no se achica) */
       body[class] .hero-tagline { font-size: 12px; font-weight: 600; letter-spacing: .12em; color: var(--amarillo-tinta); margin: 0; opacity: 1; animation: none; white-space: nowrap; }
       body[class] .hero-tagline .hero-tl-ext:not(.hero-tl-orig) { display: none; }
+      /* 148a · a menos de 360 de ancho el renglón dice «Perfumería árabe · Comodoro» (a 320 con «original» no entra: 302 de 288); la letra y el espaciado no cambian */
+      @media (max-width: 359px) { body[class] .hero-tagline .hero-tl-orig { display: none; } }
       body[class] .hero-title { font-size: 17px; font-style: italic; font-weight: 500; line-height: 1.25; margin: 4px 0 0; opacity: 1; animation: none; }
       body[class] .hero-title em { font-weight: 600; }
       body[class] .hero .store-status { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; margin-top: 6px; max-width: 100%; }
