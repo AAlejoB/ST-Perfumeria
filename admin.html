@@ -4408,8 +4408,12 @@
       var sBanner = document.getElementById('resetSuccessBanner');
       if (sBanner) sBanner.innerHTML = '';
       cont.innerHTML = '<p style="color:var(--gris);">Cargando…</p>';
+      // [RESET-EXPIRES] la tabla pone 24 h de vida (expires_at): un pedido vencido no se muestra
+      // (el cliente vuelve a pedir). Sin fecha de vencimiento (null) se muestra.
       var res = await sb.from('password_reset_requests')
-        .select('*, clientes(nombre)').eq('status', 'pending').order('created_at', { ascending: false });
+        .select('*, clientes(nombre)').eq('status', 'pending')
+        .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+        .order('created_at', { ascending: false });
       if (res.error) { cont.innerHTML = '<p style="color:var(--tinta-error);">' + escHtml(errorEnCriollo(res.error, null, 'cargar los pedidos', 'recargar')) + '</p>'; return; }   // 128j
       var data = res.data || [];
       if (data.length === 0) {
@@ -4430,7 +4434,7 @@
           : '';
         return '<div class="caja-pedido" style="border-radius:8px;padding:1rem;margin-bottom:.75rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;">' +
             '<div>' + ident +
-              '<br><span style="color:var(--gris);font-size:.75rem;">Pedido: ' + fecha + '</span></div>' +
+              '<br><span style="color:var(--gris);font-size:.75rem;">Pedido: ' + fecha + ' · ' + auditFormatTime(r.created_at) + '</span></div>' +
             '<div style="display:flex;gap:.5rem;flex-wrap:wrap;">' +
               '<a class="action-btn btn-whatsapp" href="' + wa + '" target="_blank">💬 WhatsApp</a>' +
               resetBtn +
