@@ -1324,6 +1324,8 @@
     // [XSS-CATALOGO-STAFF] Un valor adentro de un onclick="…(…)" armado con texto: JSON + escapeHTML (el valor queda como
     // un string de JS bien cerrado, y el atributo, bien escapado).
     function jsAttr(v) { return escapeHTML(JSON.stringify(String(v == null ? '' : v))); }
+    // [AGREGAR-ARRIBA] 153 · el carrito de «Agregar» es el SVG de la barra (el emoji 🛒 sobre el amarillo se ve gris): lo usan la ficha y el hover de la card
+    var ICONO_CARRITO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>';
     // [XSS-CATALOGO-STAFF] Una URL que sale de datos (el link de los badges, el del anuncio): sólo http(s) o relativa.
     // Antes de mirar el esquema se sacan los caracteres de control y espacios, como hace el navegador.
     function urlSegura(u) {
@@ -2241,10 +2243,11 @@
                   + '<p class="scent-note">Precio: ' + pricingHTML + '</p>'
             )
           + '</div>'
-          + '<button onclick="goToWA(' + jsAttr(p.slug) + ', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</button>'
+          // [AGREGAR-ARRIBA] 153: «Agregar» arriba en amarillo; «Consultar →» abajo en gris, con el 🔗 al lado
+          + '<button class="cart-add-btn reveal-add" onclick="addToCart(' + jsAttr(p.slug) + ', this, event)">' + ICONO_CARRITO + 'Agregar</button>'
           + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base || (p.similares_nota && p.similares_nota.trim()) || (Array.isArray(p.similares_manuales) && p.similares_manuales.length > 0))) ? '<button class="reveal-similares" onclick="showSimilares(' + jsAttr(p.slug) + ', event)">&#9830; Ver similares</button>' : '')
           + '<div class="reveal-actions">'
-            + '<button class="cart-add-btn" onclick="addToCart(' + jsAttr(p.slug) + ', this, event)">&#128722; Agregar</button>'
+            + '<button onclick="goToWA(' + jsAttr(p.slug) + ', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</button>'
             + '<button class="reveal-share" onclick="sharePerfume(' + jsAttr(p.slug) + ', this, event)">&#128279;</button>'
           + '</div>'
         + '</div>'
@@ -6050,7 +6053,7 @@
         if (!card) return;
         var slug = card.dataset.slug;
         if (cart.indexOf(slug) === -1) {
-          btn.textContent = '🛒 Agregar al pedido';
+          btn.innerHTML = ICONO_CARRITO + 'Agregar al pedido';   // 153: el SVG de la barra, no el emoji
           btn.classList.remove('added');
         }
       });
@@ -6127,7 +6130,7 @@
       if (cart.indexOf(slug) !== -1) {
         // Ya está, quitar
         cart = cart.filter(function(s) { return s !== slug; });
-        if (btn) { btn.textContent = '\ud83d\uded2 Agregar al pedido'; btn.classList.remove('added'); }
+        if (btn) { btn.innerHTML = ICONO_CARRITO + 'Agregar al pedido'; btn.classList.remove('added'); }   // 153: el SVG de la barra, no el emoji
       } else {
         if (cart.length >= CART_LIMIT) {
           showCartLimitMsg('M\u00e1ximo ' + CART_LIMIT + ' fragancias por pedido \ud83d\ude0a');
@@ -6598,10 +6601,11 @@
 
       // Botón carrito · [FICHA-AL-PEDIDO] 151: «🛒 Agregar» pasa a «✓ Agregado · Ver pedido →» (el mismo botón). Con el perfume ya en el
       // pedido, tocarlo cierra la ficha y abre «Tu pedido» (antes un 2.º toque lo QUITABA del pedido; sacar uno se hace con la × del pedido).
+      // [AGREGAR-ARRIBA] 153: \u00ABAgregar\u00BB va arriba en amarillo; el carrito es el SVG de la barra (el emoji \uD83D\uDED2 sobre el amarillo se ve gris).
       var btnCart = document.getElementById('bsBtnCart');
       function pintarBtnCart() {
         var ya = cart.indexOf(slug) !== -1;
-        btnCart.textContent = ya ? '\u2713 Agregado \u00b7 Ver pedido \u2192' : '\uD83D\uDED2 Agregar';
+        btnCart.innerHTML = ya ? '\u2713 Agregado \u00b7 Ver pedido \u2192' : ICONO_CARRITO + 'Agregar';
         btnCart.classList.toggle('added', ya);
       }
       pintarBtnCart();
