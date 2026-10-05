@@ -950,7 +950,7 @@ function mezcla(hex, fondo, a) {
   var rs = reglas(hoja('css/styles.css'));
   var raiz = tokens(rs, ':root'), luz = tokens(rs, 'body:not(.dark-mode)');
   var cfg = { oscuro: { capas: [raiz] }, claro: { capas: [luz, raiz] } };
-  var FONDOS = { oscuro: { bg: '#121214', sup: '#1a1a1d' }, claro: { bg: '#f5efde', sup: '#ffffff' } };
+  var FONDOS = { oscuro: { bg: '#121214', sup: '#1a1a1d', bgCompu: '#121214' }, claro: { bg: '#f5efde', sup: '#ffffff', bgCompu: '#e3d6b3' } };   // bgCompu: el fondo de la página a >= 768 (--negro / el crema de la paleta clara), donde vive la sección «¿A qué huele?» de la compu
   function tk(nombre, c) { var h = resolver('var(' + nombre + ')', c.capas); return h.length ? h[0] : null; }
   function sobre(rgb, a, abajo) {
     var f = [1, 3, 5].map(function (i) { return parseInt(abajo.substr(i, 2), 16); });
@@ -992,6 +992,10 @@ function mezcla(hex, fondo, a) {
      ['hoja Filtros', '146m ✕ .vh-x', gris, F.sup],
      ['hoja Filtros', '146m «Limpiar» .vh-b1', blanco, F.sup],
      ['hoja Filtros', '146m «Ver N perfumes» .vh-b2', '#111111', AMARILLO],
+     ['hoja Filtros', '147c chip apagado (con 3 elegidos) #vhNotas .note-chip.apagado', gris, F.sup],
+     ['hoja Filtros', '147c «Elegiste 3: tocá uno para sacarlo.» #vhNotas .note-tope', gris, F.sup],
+     ['compu 1280', '147c chip apagado en la sección de la compu .note-chip.apagado', gris, F.bgCompu],
+     ['compu 1280', '147c «Elegiste 3…» en la sección de la compu .note-tope', gris, F.bgCompu],
      ['hoja Cómo comprar', '146p título del beneficio .vh-tb-tit', blanco, F.sup],
      ['hoja Cómo comprar', '146p bajada del beneficio .vh-tb-sub', gris, F.sup],
      ['hoja Cómo comprar', '146p ícono en su cuadro oscuro .vh-tb-ico', '#e8b800', '#000000']
