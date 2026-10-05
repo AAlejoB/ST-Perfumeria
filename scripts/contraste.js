@@ -917,12 +917,24 @@ function mezcla(hex, fondo, a) {
     var c = cfg[tema];
     var hoja_ = fondo('.juegos-sheet', c, '#ffffff');
     var barra = fondo('.juegos-tabs', c, hoja_);
+    var pedido = fondo('.cart-panel', c, '#ffffff'), cartel = fondo('.push-banner', c, '#111111'), reveal = fondo('.card-reveal', c, '#121214');   // [CELU-RETOQUES]
     // [nombre, selector del texto, etiqueta que compite, fondo propio (selector) o null, sobre qué está]
     [['pestaña', '.juegos-tab', null, '.juegos-tab', barra],
      ['pestaña activa', '.juegos-tab.active', null, '.juegos-tab.active', barra],
      ['× cerrar', '.juegos-x', null, null, hoja_],
      ['deslizá para cerrar', '.juegos-sheet .bs-handle-arrow', null, null, hoja_],
      ['151 ✕ de la ficha (mismo fondo que la ventana)', '.bottom-sheet .bs-x', null, null, hoja_],
+     // [CELU-RETOQUES] 5-oct-2026 · lo nuevo de la ficha (153: «Agregar» arriba en amarillo, «Consultar →» en gris, 🔗 de línea), de «Tu pedido» (✕),
+     // del cartel de notificaciones y del hover de la card de la compu. Sexto elemento: el rol con el que sale en la tabla.
+     ['153 «Agregar» amarillo .bs-btn-primary', '.bs-btn-primary', null, '.bs-btn-primary', hoja_, 'ficha'],
+     ['153 «✓ Agregado · Ver pedido →» .bs-btn-agregar.added', '.bs-btn-agregar.added', null, '.bs-btn-agregar.added', hoja_, 'ficha'],
+     ['153 «Consultar →» gris .bs-btn-cart', '.bs-btn-cart', null, '.bs-btn-cart', hoja_, 'ficha'],
+     ['153b 🔗 (ícono, currentColor) y «Similares» .bs-btn-secondary', '.bottom-sheet .bs-btn-secondary', null, '.bottom-sheet .bs-btn-secondary', hoja_, 'ficha'],
+     ['✕ de «Tu pedido» .cart-x', '.cart-x', null, null, pedido, 'pedido'],
+     ['8 cartel «Activar» .push-banner-btn--yes', '.push-banner-btn--yes', null, '.push-banner-btn--yes', cartel, 'cartel'],
+     ['8 cartel «Ahora no» .push-banner-btn--no', '.push-banner-btn--no', null, '.push-banner-btn--no', cartel, 'cartel'],
+     ['153 hover de la card «Agregar» .cart-add-btn.reveal-add', '.cart-add-btn.reveal-add:not(.added)', null, '.cart-add-btn.reveal-add:not(.added)', reveal, 'compu 1280'],
+     ['153 hover de la card «Consultar →» .reveal-actions .reveal-cta', '.reveal-actions .reveal-cta', null, '.reveal-actions .reveal-cta', reveal, 'compu 1280'],
      ['título del quiz', '.quiz-title', 'p', null, hoja_],
      ['subtítulo', '.quiz-subtitle', 'p', null, hoja_],
      ['pregunta', '.quiz-question', 'p', null, hoja_],
@@ -931,7 +943,7 @@ function mezcla(hex, fondo, a) {
      ['🔒 Iniciá sesión', '.misel-lock', null, '.misel-lock', hoja_]].forEach(function (x) {
       var bg = x[3] ? fondo(x[3], c, x[4]) : x[4];
       var fg = tinta(x[1], x[2], c, bg);
-      medir({ superficie: 'catálogo', tema: tema, rol: 'juegos', nombre: x[0] + ' ' + x[1], texto: fg && fg.hex, fondos: [bg], impone: fg ? fg.impone : '' });
+      medir({ superficie: 'catálogo', tema: tema, rol: x[5] || 'juegos', nombre: x[0] + ' ' + x[1], texto: fg && fg.hex, fondos: [bg], impone: fg ? fg.impone : '' });
     });
     // [JUEGOS-VENTANA-PULIDO] los puntos del quiz no son texto, pero son lo único que dice cuánto falta: el anillo de los
     // que faltan (el color de su borde) y el relleno del hecho, contra la ventana, con el mismo piso.
@@ -962,7 +974,9 @@ function mezcla(hex, fondo, a) {
     var AMARILLO = '#e8b800', chip = sobre([232, 184, 0], 0.14, F.bg);
     var gris = tk('--gris', c), grisClaro = tk('--gris-claro', c), blanco = tk('--blanco', c), tinta = tk('--amarillo-tinta', c), efectivo = tk('--tinta-efectivo', c), precio = tk('--tinta-precio', c);
     // [rol, nombre, texto, fondo]
-    [['franja', '146h/148 «PERFUMERÍA ÁRABE ORIGINAL · COMODORO» .hero-tagline (12 px)', tinta, F.bg],
+    [['nav', '152a el ♥ del nav .nav-fav-btn (en claro toma el color del ☰: var(--amarillo); en oscuro, el de siempre #bbb)', tema === 'claro' ? AMARILLO : '#bbbbbb', '#080808'],
+     ['nav', '152 el ☰ del nav .nav-hamburger span (en claro var(--amarillo); en oscuro #f0ede8)', tema === 'claro' ? AMARILLO : '#f0ede8', '#080808'],
+     ['franja', '146h/148 «PERFUMERÍA ÁRABE ORIGINAL · COMODORO» .hero-tagline (12 px)', tinta, F.bg],
      ['franja', '146h «Tu aroma, tu identidad.» .hero-title', blanco, F.bg],
      ['buscador', '146b lo que se escribe .search-input', blanco, F.sup],
      ['buscador', '146b el texto de ejemplo .search-input::placeholder', gris, F.sup],
