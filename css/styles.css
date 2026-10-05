@@ -6887,6 +6887,9 @@
     .store-status .dot {
       width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
     }
+    /* [PRIMER-CUADRO-ARMADO] 149c · antes de que calcularEstadoHorario le ponga su estado, la píldora no se ve (a ≥ 768 ocupa lugar sólo cuando ya tiene estado, como siempre;
+       a < 768 guarda sus 22 px desde el primer cuadro, ver el bloque [VIDRIERA]). Antes lo hacía el style="display:none" del HTML. */
+    .store-status:not(.open):not(.closed):not(.holiday) { display: none; }
     .store-status.open { background: rgba(46,204,113,.12); color: #2ecc71; }
     .store-status.open .dot { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
     /* [CERRADO-HERO] decisión 81: cambian sólo la letra y el punto; el fondo, no. Oscuro #ff6b6b (era #e74c3c: 4,47);
@@ -10072,6 +10075,8 @@
       body[class] .hero-title { font-size: 17px; font-style: italic; font-weight: 500; line-height: 1.25; margin: 4px 0 0; opacity: 1; animation: none; }
       body[class] .hero-title em { font-weight: 600; }
       body[class] .hero .store-status { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; margin-top: 6px; max-width: 100%; }
+      /* 149c [PRIMER-CUADRO-ARMADO] · la franja guarda el alto final (la píldora de 22 px) desde el primer cuadro: sin estado, la píldora está pero no se ve */
+      body[class] .hero .store-status:not(.open):not(.closed):not(.holiday) { display: inline-flex; min-height: 22px; box-sizing: border-box; visibility: hidden; }
 
       /* 146b [VIDRIERA-ORDEN] · lo que se va de arriba (los beneficios, el banner «Explorá» y el CTA del juego pasan a la tira o a
          «Cómo comprar»); el aviso de puntos se muda a la fila de arriba de la fila de orden (JS). */

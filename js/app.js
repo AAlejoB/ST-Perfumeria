@@ -3433,16 +3433,8 @@
         }
       });
       grid.innerHTML = cardsHTML;
-      // [LCP-PRELOAD] Boost al loading de la PRIMERA imagen visible
-      // del catálogo — es el LCP candidato más probable en mobile.
-      // Cambia loading="lazy" → "eager" + fetchpriority="high" en la 1ra card.
-      try {
-        var firstImg = grid.querySelector('.product-card img');
-        if (firstImg) {
-          firstImg.removeAttribute('loading');
-          firstImg.setAttribute('fetchpriority', 'high');
-        }
-      } catch(e) {}
+      // [LCP-PRELOAD] (la 1.ª foto sin lazy y con prioridad alta pasó a priorizarFotosDeArriba(), que corre DESPUÉS de ordenar: antes
+      // tocaba la 1.ª card del DOM, que con price-desc no es la 1.ª que se ve.)
       if (failedCount > 0) console.warn('[renderCatalog] cards saltadas por error:', failedCount);
 
       cardsShown = CARDS_INITIAL;    // mostrar solo las primeras N cards
@@ -3458,6 +3450,22 @@
       try { renderRecentViews(); }   catch(e) { console.warn('[renderCatalog] renderRecentViews:', e); }
       // Default sort: precio descendente (más caro primero) — siempre.
       try { sortCards('price-desc'); } catch(e) { console.warn('[renderCatalog] sortCards:', e); }
+      try { priorizarFotosDeArriba(); } catch(e) { console.warn('[renderCatalog] priorizarFotosDeArriba:', e); }
+    }
+
+    // [PRIMER-CUADRO-ARMADO] 149e · las fotos de las 4 primeras filas que se ven cargan con la página (sin lazy) y la 1.ª con prioridad alta
+    // (era el candidato a LCP, descubierto tarde y con loading="lazy"). Las demás siguen lazy. Se llama después de ordenar y de aplicar
+    // la visibilidad: la fila que cuenta es la que de verdad está arriba.
+    function priorizarFotosDeArriba() {
+      var cards = document.querySelectorAll('#catalogGrid > .product-card'), n = 0;
+      for (var i = 0; i < cards.length && n < 4; i++) {
+        if (cards[i].style.display === 'none') continue;
+        var img = cards[i].querySelector('img');
+        if (!img) continue;
+        img.loading = 'eager';
+        if (n === 0) img.setAttribute('fetchpriority', 'high');
+        n++;
+      }
     }
 
     // ============================================================

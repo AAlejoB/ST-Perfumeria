@@ -406,13 +406,10 @@
        (mejora FCP/LCP en mobile lento) -->
   <link rel="preload" as="image" href="img/logo-st.webp" fetchpriority="high"/>
 
-  <!-- [FCP-CSS] CSS principal cargado de forma NO bloqueante.
-       Patrón estándar: preload + onload swap a stylesheet.
-       Esto mejora FCP porque el browser puede pintar el HTML antes
-       de descargar 280KB de CSS. El mini critical CSS inline de abajo
-       cubre el primer paint para evitar FOUC. -->
-  <link rel="preload" as="style" href="css/styles.css" onload="this.onload=null;this.rel='stylesheet'"/>
-  <noscript><link rel="stylesheet" href="css/styles.css"/></noscript>
+  <!-- [PRIMER-CUADRO-ARMADO] 149a · el CSS principal BLOQUEA el pintado a propósito: la primera pantalla llega armada, sin HTML crudo
+       ni saltos (antes: preload + onload, que pintaba el HTML sin estilos y después saltaba: CLS 1,0). El <style> de abajo queda
+       DESPUÉS del link, así que gana en la cascada a igual especificidad (igual que antes). -->
+  <link rel="stylesheet" href="css/styles.css"/>
 
   <!-- Critical CSS inline (above-the-fold) — evita Flash of Unstyled
        Content durante los ~100-300ms que tarda en llegar styles.css.
@@ -471,6 +468,9 @@
   <script>try { var _v = localStorage.getItem('st_vista'); document.documentElement.setAttribute('data-vista', _v === 'grid' ? 'grid' : 'lista'); } catch (e) { document.documentElement.setAttribute('data-vista', 'lista'); }</script>
 </head>
 <body class="is-guest dark-mode">
+  <!-- [PRIMER-CUADRO-ARMADO] 149d · el tema guardado se aplica ANTES del primer cuadro (app.js sigue manejando el botón de cambiar tema).
+       El nuevo (sin st_dark_mode) arranca en oscuro, que es la marca. Va como primer hijo del body porque el tema es una clase del body. -->
+  <script>try { if (localStorage.getItem('st_dark_mode') === '0') document.body.classList.remove('dark-mode'); } catch (e) {}</script>
 
   <!-- DVD BOUNCER — desactivado por feedback de usuarios (era distractor) -->
   <!-- <div class="dvd-bouncer" id="dvdBouncer" aria-hidden="true">
@@ -584,9 +584,9 @@
        Tabla Supabase: home_top_banner (id, texto, activo, modo_marquee).
        Diseño minimalista: blanco sobre negro, ~38px de alto en mobile.
        Si modo_marquee=true y el texto no entra, hace scroll horizontal infinito. -->
-  <div id="topPaymentBanner" class="home-top-banner" style="display:none;" aria-label="Información de pagos">
+  <div id="topPaymentBanner" class="home-top-banner" style="display:block;" aria-label="Información de pagos">
     <div class="home-top-banner-track" id="homeTopBannerTrack">
-      <span class="home-top-banner-text" id="homeTopBannerText"></span>
+      <span class="home-top-banner-text" id="homeTopBannerText">3 CUOTAS SIN INTERÉS · ACEPTAMOS TODOS LOS MEDIOS DE PAGO</span>
     </div>
   </div>
 
@@ -600,7 +600,7 @@
          cuotas, envíos) se movió a #nosotros como párrafo intro. Hero queda
          con tagline + title solamente · menos contenido = menos CLS por swap
          de fuentes · keywords mantenidos para SEO en otra sección de la página. -->
-    <div class="store-status" id="storeStatus" style="display:none;">
+    <div class="store-status" id="storeStatus">
       <span class="dot"></span>
       <span id="storeStatusText"></span>
     </div>
