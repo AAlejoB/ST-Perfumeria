@@ -2143,10 +2143,7 @@
       // ML del producto
       var mlText = (p.ml || 100) + ' ml';
 
-      // Visitas
-      var viewCount = perfumeViews[p.slug] || 0;
-      var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
-
+      // Visitas: «ojo + N» y «N mirando ahora» salen de vistasCardHTML (más abajo en el archivo, junto a perfumeViews)
       // 👑 PERFUME DEL MES — badge dorado para el ganador de votación
       var perfumeDelMesHTML = '';
       if (p._perfumeDelMes) {
@@ -2162,20 +2159,6 @@
       if (stockQty !== null && stockQty >= 1 && stockQty <= 3 && !isPaused) {
         var urgencyText = stockQty === 1 ? '🔥 Solo queda 1' : '🔥 Solo quedan ' + stockQty;
         urgencyHTML = '<span class="card-urgency" title="Stock real del local — ¡apurate!">' + urgencyText + '</span>';
-      }
-
-      // ✨ SOCIAL PROOF — "X personas mirando ahora"
-      // Algoritmo determinista basado en slug + ventana de 5 min:
-      // genera un número 1-5 estable que cambia cada 5 min. Da sensación
-      // de tracking en vivo sin Realtime real (caro). Solo aparece en
-      // perfumes con tracking acumulado (viewCount > 3) para evitar
-      // mostrar el badge en todos.
-      var liveViewersHTML = '';
-      if (viewCount > 3) {
-        var liveN = computeLiveViewers(p.slug);
-        if (liveN > 0) {
-          liveViewersHTML = '<div class="card-live-viewers" data-slug="' + escapeHTML(p.slug) + '"><span class="card-live-dot"></span><span class="card-live-count">' + liveN + '</span> mirando ahora</div>';
-        }
       }
 
       var isOutOfStock = stockStatus === 'out';
@@ -2230,8 +2213,7 @@
           + '<div class="card-pricing">' + pricingHTML + '</div>'
           + perfumeDelMesHTML
           + urgencyHTML
-          + viewsHTML
-          + liveViewersHTML
+          + vistasCardHTML(p.slug)
           + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
           + waitlistHTML
         + '</div>'
@@ -3362,6 +3344,48 @@
     // VIEWS — cargar contadores desde Supabase
     // ============================================================
     var perfumeViews = {};
+
+    // [LCP-VISTAS-SIN-RENDER] El «ojo + N» (.card-views) y el «N mirando ahora» (.card-live-viewers) de una card, desde perfumeViews.
+    // Los usan buildCard y actualizarVistasEnCards: la etiqueta sale idéntica al armar la card y al ponerla después, cuando llegan las vistas.
+    function vistasCardHTML(slug) {
+      var viewCount = perfumeViews[slug] || 0;
+      var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
+      // ✨ SOCIAL PROOF — "X personas mirando ahora"
+      // Algoritmo determinista basado en slug + ventana de 5 min:
+      // genera un número 1-5 estable que cambia cada 5 min. Da sensación
+      // de tracking en vivo sin Realtime real (caro). Solo aparece en
+      // perfumes con tracking acumulado (viewCount > 3) para evitar
+      // mostrar el badge en todos.
+      var liveViewersHTML = '';
+      if (viewCount > 3) {
+        var liveN = computeLiveViewers(slug);
+        if (liveN > 0) {
+          liveViewersHTML = '<div class="card-live-viewers" data-slug="' + escapeHTML(slug) + '"><span class="card-live-dot"></span><span class="card-live-count">' + liveN + '</span> mirando ahora</div>';
+        }
+      }
+      return viewsHTML + liveViewersHTML;
+    }
+
+    // [LCP-VISTAS-SIN-RENDER] Cuando llegan las vistas se actualiza SÓLO esa etiqueta en las cards que ya existen: antes corría un
+    // renderCatalog() entero (grid.innerHTML otra vez, la <img> de la 1.ª fila rehecha) y de paso volvía el orden a «Precio: mayor a
+    // menor», la lista a las primeras 20 y se perdía lo que la persona ya había hecho. La etiqueta va donde la pone buildCard: antes del
+    // «Consultar →» de la card (.card-cta-mobile). Si el orden activo depende de las vistas, se vuelve a aplicar ese orden y nada más.
+    function actualizarVistasEnCards() {
+      document.querySelectorAll('#catalogGrid > .product-card').forEach(function(card) {
+        var info = card.querySelector('.card-info');
+        if (!info) return;
+        var html = vistasCardHTML(card.dataset.slug);
+        var viejos = info.querySelectorAll(':scope > .card-views, :scope > .card-live-viewers');
+        if (!viejos.length && !html) return;
+        viejos.forEach(function(el) { el.remove(); });
+        var cta = info.querySelector(':scope > .card-cta-mobile');
+        if (cta) cta.insertAdjacentHTML('beforebegin', html);
+        else info.insertAdjacentHTML('beforeend', html);
+      });
+      var act = document.querySelector('.sort-menu button.active-sort');
+      var m = act && /sortCards\('([^']+)'\)/.exec(act.getAttribute('onclick') || '');
+      if (m && (m[1] === 'views-desc' || m[1] === 'views-asc')) sortCards(m[1]);
+    }
 
     async function loadPerfumeViews() {
       try {
@@ -5247,7 +5271,23 @@
       } catch(e) {}
     }
 
-    async function loadPerfumesNuevos() {
+    // [LCP-EN-PARALELO] «Pedir» y «aplicar» van separados: los dos select (perfumes_nuevos y perfume_overrides) salen juntos y lo que
+    // se aplica sigue en el orden de siempre (caché de nuevos → nuevos → caché de overrides → overrides). El pedido nunca rechaza:
+    // devuelve { r: respuesta } o { e: error }, así que uno que todavía no se espera no deja un rechazo sin atender. Mismos timeouts.
+    function pedirNuevos() {
+      try {
+        return withTimeout(sb.from('perfumes_nuevos').select('*'), 3000, 'perfumes_nuevos')
+          .then(function(r) { return { r: r }; }, function(e) { return { e: e }; });
+      } catch(e) { return Promise.resolve({ e: e }); }
+    }
+    function pedirOverrides() {
+      try {
+        return withTimeout(sb.from('perfume_overrides').select('*'), 3000, 'perfume_overrides')
+          .then(function(r) { return { r: r }; }, function(e) { return { e: e }; });
+      } catch(e) { return Promise.resolve({ e: e }); }
+    }
+
+    async function loadPerfumesNuevos(pedido) {
       // Pre-aplicar cache si existe (instant fallback)
       var cached = readCache('perfumes_nuevos');
       if (cached && Array.isArray(cached)) {
@@ -5258,11 +5298,9 @@
         console.log('[loadPerfumesNuevos] aplicado desde cache:', cached.length, 'items');
       }
       try {
-        var { data, error } = await withTimeout(
-          sb.from('perfumes_nuevos').select('*'),
-          3000,
-          'perfumes_nuevos'
-        );
+        var res = await (pedido || pedirNuevos());
+        if (res.e) throw res.e;
+        var { data, error } = res.r;
         if (error) { console.warn('[loadPerfumesNuevos] supabase error:', error.message); return; }
         // Cachear los rows transformados (igual estructura que se pushea)
         var newPerfumesToCache = [];
@@ -5351,7 +5389,7 @@
     }
 
     // Cargar overrides desde Supabase y aplicar sobre perfumes.js
-    async function loadOverrides() {
+    async function loadOverrides(pedido) {
       // Pre-aplicar cache si existe (instant fallback)
       var cached = readCache('perfume_overrides');
       // [DECANT-PRECIO-MANUAL] applyOverrideToPerfume sólo pisa cuando el valor
@@ -5382,11 +5420,9 @@
         console.log('[loadOverrides] aplicado desde cache:', cached.length, 'overrides');
       }
       try {
-        var { data, error } = await withTimeout(
-          sb.from('perfume_overrides').select('*'),
-          3000,
-          'perfume_overrides'
-        );
+        var res = await (pedido || pedirOverrides());
+        if (res.e) throw res.e;
+        var { data, error } = res.r;
         if (error) { console.warn('[loadOverrides] supabase error:', error.message); return; }
         if (data && data.length > 0) {
           writeCache('perfume_overrides', data);
@@ -5410,22 +5446,24 @@
     // Path crítico: nuevos perfumes + overrides → render del catálogo.
     // loadPerfumeViews (stats) NO bloquea el render — se difiere.
     console.log('[catalog] STEP 1: PERFUMES base =', PERFUMES.length, 'items');
-    loadPerfumesNuevos().then(function() {
+    // [LCP-EN-PARALELO] los dos pedidos salen juntos (antes el de overrides esperaba la respuesta del de nuevos)
+    var pedidoNuevos = pedirNuevos(), pedidoOverrides = pedirOverrides();
+    loadPerfumesNuevos(pedidoNuevos).then(function() {
       console.log('[catalog] STEP 2: loadPerfumesNuevos OK, PERFUMES =', PERFUMES.length);
-      return loadOverrides();
+      return loadOverrides(pedidoOverrides);
     }).then(function() {
       console.log('[catalog] STEP 3: loadOverrides OK');
       markNewPerfumes();
       console.log('[catalog] STEP 4: markNewPerfumes OK, llamando renderCatalog...');
       renderCatalog();
       console.log('[catalog] STEP 5: renderCatalog OK, grid tiene', document.querySelectorAll('#catalogGrid .product-card').length, 'cards');
-      sortCards('price-desc');
+      // (renderCatalog ya termina con sortCards('price-desc'): no se repite acá)
       checkDeepLink();
       // Stats de views: diferido, solo afecta el contador "+N personas vieron…"
       deferTask(function() {
         loadPerfumeViews().then(function() {
-          // Re-render selectivo si hay views nuevos (no rompe nada si no hay)
-          if (typeof renderCatalog === 'function') renderCatalog();
+          // [LCP-VISTAS-SIN-RENDER] sólo la etiqueta de vistas de las cards que ya están (antes: otro renderCatalog() entero)
+          actualizarVistasEnCards();
         });
       });
     }).catch(function(err) {
@@ -5434,8 +5472,7 @@
       // datos de perfumes.js (seed) para que el cliente no quede sin nada.
       console.error('[catalog] FALLO en cadena de carga:', err);
       try {
-        renderCatalog();
-        sortCards('price-desc');
+        renderCatalog();   // ya ordena por precio de mayor a menor
         console.warn('[catalog] FALLBACK: renderizado con seed solo');
       } catch(e) {
         console.error('[catalog] FALLBACK también falló:', e);
