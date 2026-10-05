@@ -2011,6 +2011,9 @@
       cursor: pointer; display: inline-flex; align-items: center; gap: .3rem;
     }
     .log-chip.active { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    /* 147b [A-QUE-HUELE-AUTO] · «¿A qué huele?» de Agregar y de Editar: con 3 acordes elegidos, los otros quedan apagados (gris, borde punteado) */
+    .log-chip.apagado { background: transparent; color: var(--gris); border-style: dashed; cursor: default; }
+    .acordes-tope { margin: .1rem 0 0; font-size: .62rem; color: var(--gris); }
     /* [LOG-PULIDO-2] decisión 43 · el jefe tiene dos filas a cualquier ancho: 1 = familias, 2 = 👑 + toggle.
        Cada fila es un envoltorio de ancho 100 % dentro de .log-chips, así la separación entre filas es UNA
        (el gap de .log-chips). Un separador de alto 0 con flex-basis 100 % armaba una línea más y la duplicaba. */
@@ -2606,6 +2609,11 @@
               <label class="modal-label">Notas de base</label>
               <input type="text" class="modal-input" id="editBase" style="margin-bottom:0;"/>
             </div>
+            <div style="grid-column:1/-1;" data-field="notas">
+              <label class="modal-label">¿A qué huele? (hasta 3)</label>
+              <div class="log-chips" id="editAcordes" style="margin-bottom:.2rem;"></div>
+              <p class="acordes-tope" id="editAcordesTope" hidden>Elegiste 3: tocá uno para sacarlo.</p>
+            </div>
 
             <!-- SIMILARES MANUALES — override humano sobre el algoritmo -->
             <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
@@ -2777,6 +2785,11 @@
             <div style="grid-column:1/-1;">
               <label class="modal-label">Notas de base</label>
               <input type="text" class="modal-input" id="nuevoBase" placeholder="Vainilla, Ámbar, Almizcle" style="margin-bottom:0;"/>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">¿A qué huele? (hasta 3)</label>
+              <div class="log-chips" id="nuevoAcordes" style="margin-bottom:.2rem;"></div>
+              <p class="acordes-tope" id="nuevoAcordesTope" hidden>Elegiste 3: tocá uno para sacarlo.</p>
             </div>
             <div style="grid-column:1/-1;">
               <label class="modal-label">🔎 Apodos / palabras clave (búsqueda + orientación del equipo)</label>
@@ -4826,6 +4839,7 @@
           if (o.notas_salida) p.notas_salida = o.notas_salida;
           if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
           if (o.notas_base) p.notas_base = o.notas_base;
+          if (Array.isArray(o.acordes)) p.acordes = o.acordes;   // [A-QUE-HUELE-AUTO] 147 · SINCRO con js/app.js (applyOverrideToPerfume): un array pisa, aunque esté vacío; null = sin cambio
           if (o.stock_status) p._stockStatus = o.stock_status;
           if (o.stock_qty !== null && o.stock_qty !== undefined) p._stockQty = o.stock_qty;
           // [DEPOSITO] unidades en depósito, separadas del stock del local
@@ -6672,6 +6686,7 @@
             notas_salida: p.notas_salida || '',
             notas_corazon: p.notas_corazon || '',
             notas_base: p.notas_base || '',
+            acordes: Array.isArray(p.acordes) ? p.acordes : undefined,   // [A-QUE-HUELE-AUTO] 147 · perfumes_nuevos.acordes (null = todavía sin cargar)
             // [PROMO-DECANTS] como el sitio (js/app.js ~L4586): la promo y el armador los miran
             _precioDecant: (p.precio_decant != null ? p.precio_decant : undefined),
             _decantExcluido: !!p.decant_excluido,
@@ -6877,7 +6892,7 @@
 
       var esPerfume = sel.value === '';
       // En tab-nuevos las notas no tienen data-field todavía, las identifico por id
-      var notasIds = ['nuevoSalida', 'nuevoCorazon', 'nuevoBase'];
+      var notasIds = ['nuevoSalida', 'nuevoCorazon', 'nuevoBase', 'nuevoAcordes'];
       notasIds.forEach(function(id) {
         var field = document.getElementById(id);
         if (field && field.parentElement) field.parentElement.style.display = esPerfume ? '' : 'none';
@@ -7013,6 +7028,7 @@
       document.getElementById('editSalida').value = p.notas_salida || '';
       document.getElementById('editCorazon').value = p.notas_corazon || '';
       document.getElementById('editBase').value = p.notas_base || '';
+      acordesAdminAbrir('edit', p.acordes);   // [A-QUE-HUELE-AUTO] 147b
 
       // Tipo de producto: si el valor guardado no coincide con ninguna opción, va a "Otro..."
       var tipoVal = p.tipo || '';
@@ -7074,6 +7090,60 @@
       barraError(document.getElementById('btnSaveEdit'), '');   // [MOTIVO-QUEDA] el motivo no sobrevive a otro perfume
       editConOverrides = overridesCargado;   // [GUARDAR-SIN-LEER]
       faltaOverrides(document.getElementById('editMsg'));
+    }
+
+    // ============================================================
+    // ¿A QUÉ HUELE? — [A-QUE-HUELE-AUTO] 147b · hasta 3 acordes de una lista fija de 12 (los mismos que el catálogo: ACORDES de js/app.js, SINCRO).
+    // Sirve para CORREGIR, no para cargar (los carga Claude Code en cada tanda). Las notas de salida / corazón / base quedan donde están.
+    // Dónde se guarda: perfumes de perfumes.js → perfume_overrides.acordes; perfumes de perfumes_nuevos → su propia columna. Sólo se manda si cambió:
+    // [] quiere decir «sin acordes» a propósito, y no tocar el bloque no escribe nada.
+    // ============================================================
+    var ACORDES_ADMIN = [
+      ['dulce', 'Dulce'], ['vainilla', 'Vainilla'], ['especiado', 'Especiado'], ['amaderado', 'Amaderado'], ['oud', 'Oud'], ['ambar', '\u00c1mbar'],
+      ['floral', 'Floral'], ['frutal', 'Frutal'], ['citrico', 'C\u00edtrico'], ['fresco', 'Fresco'], ['cuero', 'Cuero'], ['almizcle', 'Almizcle']
+    ];
+    var ACORDES_ADMIN_MAX = 3;
+    var acordesForm = { edit: [], nuevo: [] };    // lo que hay elegido ahora en cada formulario
+    var acordesOrig = { edit: null, nuevo: null };   // lo que había al abrirlo (null = la base no tenía nada)
+
+    function acordesAdminValidos(lista) {
+      var out = [];
+      if (!Array.isArray(lista)) return out;
+      lista.forEach(function(s) {
+        s = String(s || '').toLowerCase();
+        if (out.length < ACORDES_ADMIN_MAX && out.indexOf(s) === -1 && ACORDES_ADMIN.some(function(a) { return a[0] === s; })) out.push(s);
+      });
+      return out;
+    }
+    function acordesAdminAbrir(prefix, guardado) {
+      acordesOrig[prefix] = Array.isArray(guardado) ? acordesAdminValidos(guardado) : null;
+      acordesForm[prefix] = (acordesOrig[prefix] || []).slice();
+      pintarAcordesAdmin(prefix);
+    }
+    function pintarAcordesAdmin(prefix) {
+      var cont = document.getElementById(prefix + 'Acordes');
+      if (!cont) return;
+      var elegidos = acordesForm[prefix], lleno = elegidos.length >= ACORDES_ADMIN_MAX;
+      cont.innerHTML = ACORDES_ADMIN.map(function(a) {
+        var on = elegidos.indexOf(a[0]) !== -1;
+        return '<button type="button" class="log-chip' + (on ? ' active' : '') + (lleno && !on ? ' apagado' : '') + '" aria-pressed="' + (on ? 'true' : 'false') + '"'
+          + (lleno && !on ? ' aria-disabled="true"' : '') + ' onclick="toggleAcordeAdmin(\'' + prefix + '\',\'' + a[0] + '\')">' + a[1] + '</button>';
+      }).join('');
+      var tope = document.getElementById(prefix + 'AcordesTope');
+      if (tope) tope.hidden = !lleno;
+    }
+    function toggleAcordeAdmin(prefix, slug) {
+      var l = acordesForm[prefix], i = l.indexOf(slug);
+      if (i !== -1) l.splice(i, 1);
+      else if (l.length < ACORDES_ADMIN_MAX) l.push(slug);
+      else return;   // con 3 elegidos, un chip apagado no hace nada
+      pintarAcordesAdmin(prefix);
+    }
+    pintarAcordesAdmin('edit'); pintarAcordesAdmin('nuevo');   // los 12 chips ya están antes de abrir el formulario
+
+    // ¿cambió lo elegido contra lo que había? (sin importar el orden; «nada» y «sin acordes» son lo mismo)
+    function acordesAdminCambiaron(prefix) {
+      return acordesForm[prefix].slice().sort().join(',') !== (acordesOrig[prefix] || []).slice().sort().join(',');
     }
 
     // ============================================================
@@ -7281,11 +7351,34 @@
       };
 
       var msgEl = document.getElementById('editMsg');
+
+      // [A-QUE-HUELE-AUTO] 147b · los acordes se mandan sólo si cambiaron. Un perfume de perfumes_nuevos los guarda en su propia columna; el resto, en perfume_overrides.acordes.
+      var pAcordes = PERFUMES.find(function(pf) { return pf.slug === slug; }) || {};
+      var acordesCambio = acordesAdminCambiaron('edit') ? acordesForm.edit.slice() : null;
+      if (acordesCambio && pAcordes._fromDB) {
+        var rAc = await sb.from('perfumes_nuevos').update({ acordes: acordesCambio }).eq('slug', slug);
+        if (rAc.error) {
+          msgEl.textContent = /acordes/i.test(rAc.error.message || '') ? 'No se guardó: falta correr el SQL de los acordes (columna perfumes_nuevos.acordes).' : errorEnCriollo(rAc.error, 'perfume', null, true);
+          msgEl.style.color = 'var(--tinta-error)';
+          return { ok: false, error: msgEl.textContent };
+        }
+      } else if (acordesCambio) {
+        obj.acordes = acordesCambio;
+      }
+
       msgEl.textContent = 'Guardando...';
       msgEl.style.color = 'var(--tinta-aviso)';
 
       // Upsert: insert si no existe, update si ya existe
       var { error } = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
+
+      // [A-QUE-HUELE-AUTO] Si todavía no se corrió el SQL de los acordes, se guarda el resto y se avisa (como con los datos de decant).
+      var acordesSinColumna = false;
+      if (error && obj.acordes !== undefined && /acordes/i.test(error.message || '')) {
+        delete obj.acordes; acordesSinColumna = true;
+        var retryAc = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
+        error = retryAc.error;
+      }
 
       // [DECANT-PRECIO-MANUAL] Si todavía no se corrió el ALTER TABLE, reintentamos
       // sin esas columnas para no perder TODO el resto de la edición.
@@ -7315,12 +7408,13 @@
         fotos_extra: 'Fotos extra', alias: 'Apodos',
         similares_nota: 'Nota similares', similares_manuales: 'Similares manuales',
         nota_sin_stock: 'Nota "Sin stock"', nota_proximamente: 'Nota "Próximamente"',
-        nota_jefe: 'Quote del jefe'
+        nota_jefe: 'Quote del jefe', acordes: 'Acordes'
       };
       var logs = [];
+      var valoresLog = Object.assign({}, obj, { acordes: (acordesCambio && !acordesSinColumna) ? acordesCambio : oldP.acordes });   // [A-QUE-HUELE-AUTO] sin cambio, no hay renglón
       Object.keys(fieldsToLog).forEach(function(key) {
         var oldVal = String(oldP[key] || '');
-        var newVal = String(obj[key] || '');
+        var newVal = String(valoresLog[key] || '');
         if (oldVal !== newVal && (oldVal || newVal)) {
           logs.push({
             slug: slug,
@@ -7359,6 +7453,7 @@
           merged.promo = null;
         }
         Object.assign(PERFUMES[idx], merged);
+        if (acordesCambio && !acordesSinColumna) PERFUMES[idx].acordes = acordesCambio;   // [A-QUE-HUELE-AUTO] también el de perfumes_nuevos, que no pasa por obj
       }
 
       // Re-renderizar TODAS las tablas del admin inmediatamente
@@ -7374,6 +7469,7 @@
 
       msgEl.textContent = '\u2713 ' + obj.name + ' actualizado';
       msgEl.style.color = 'var(--tinta-ok)';
+      if (acordesSinColumna) { msgEl.textContent = '\u26a0 ' + obj.name + ' guardado SIN los acordes (falta correr el SQL de los acordes).'; msgEl.style.color = 'var(--tinta-aviso)'; }
       notifyTelegram('\u270f\ufe0f Perfume editado: ' + obj.name + '\n\ud83d\udccb Cambios guardados en Supabase');
       return { ok: true };
     }
@@ -7871,6 +7967,9 @@
         alias: aliasN,
         precio_decant: precioDecantN, decant_excluido: decantExclN
       };
+      // [A-QUE-HUELE-AUTO] 147b · los acordes se mandan sólo si hay algo que guardar (un perfume nuevo sin elegir ninguno queda en null, para que los complete Claude Code)
+      var acordesCambioN = acordesAdminCambiaron('nuevo') ? acordesForm.nuevo.slice() : null;
+      if (acordesCambioN) obj.acordes = acordesCambioN;
 
       var result;
       var doSave = async function() {
@@ -7879,6 +7978,13 @@
           : await sb.from('perfumes_nuevos').insert(obj);
       };
       result = await doSave();
+
+      // [A-QUE-HUELE-AUTO] Si todavía no se corrió el SQL de los acordes, se guarda el resto y se avisa.
+      var acordesSinColumnaN = false;
+      if (result.error && obj.acordes !== undefined && /acordes/i.test(result.error.message || '')) {
+        delete obj.acordes; acordesSinColumnaN = true;
+        result = await doSave();
+      }
 
       // [DECANT-PRECIO-MANUAL] Retry sin las columnas nuevas si falta el ALTER TABLE.
       if (result.error && /precio_decant|decant_excluido/i.test(result.error.message || '')) {
@@ -7900,6 +8006,7 @@
       logAdminAction(editId ? 'nuevo_update' : 'nuevo_create', slug, { name: name, marca: marca, price: price, promo: promo });
       msgEl.textContent = name + ' ' + action + ' correctamente';
       msgEl.style.color = 'var(--tinta-ok)';
+      if (acordesSinColumnaN) { msgEl.textContent = '\u26a0 ' + name + ' ' + action + ' SIN los acordes (falta correr el SQL de los acordes).'; msgEl.style.color = 'var(--tinta-aviso)'; }
       notifyTelegram('🆕 Perfume ' + action + ': ' + name + '\n💰 $' + price.toLocaleString('es-AR') + '\n📋 ' + cat + ' · ' + perfil);
 
       // Mergear inmediatamente en PERFUMES para que EDITAR/PRECIOS/STOCK lo vean
@@ -7908,6 +8015,7 @@
       // vuelven a leer (y hasta entonces el stock no cuenta como cargado, así la próxima vuelta del resync lo trae entero)
       var faltabanNuevos = !!SIN_LEER.nuevos;
       await mergeNuevosIntoPerfumes();
+      if (editId && acordesCambioN && !acordesSinColumnaN) { var peN = PERFUMES.find(function(pf) { return pf.slug === slug; }); if (peN) peN.acordes = acordesCambioN; }   // [A-QUE-HUELE-AUTO] mergeNuevosIntoPerfumes no pisa lo que ya estaba en memoria
       if (faltabanNuevos && !SIN_LEER.nuevos) { stockCargado = false; await loadOverridesIntoPerfumes(); }
       renderPrecios();
       renderStock();
@@ -7949,6 +8057,7 @@
       document.getElementById('nuevoSalida').value = data.notas_salida || '';
       document.getElementById('nuevoCorazon').value = data.notas_corazon || '';
       document.getElementById('nuevoBase').value = data.notas_base || '';
+      acordesAdminAbrir('nuevo', data.acordes);   // [A-QUE-HUELE-AUTO] 147b
       document.getElementById('nuevoAlias').value = data.alias || '';
 
       // Tipo de producto
@@ -7999,6 +8108,7 @@
       document.getElementById('nuevoPrecioDecant').value = '';
       document.getElementById('nuevoDecantExcluido').checked = false;
       decantHintAdmin('nuevo');
+      acordesAdminAbrir('nuevo', null);   // [A-QUE-HUELE-AUTO] 147b
       document.getElementById('nuevoSalida').value = '';
       document.getElementById('nuevoCorazon').value = '';
       document.getElementById('nuevoBase').value = '';
@@ -10016,7 +10126,7 @@
 
     // ============================================================
     // DOCTOR DEL CATÁLOGO — diagnóstico de calidad de los perfumes.
-    // - Sin foto, sin precio, sin notas, sin marca, sin categoría, sin ml
+    // - Sin foto, sin precio, sin acordes, sin marca, sin categoría, sin ml
     // Genera un reporte con puntaje de salud y lista de ajustes.
     // ============================================================
     var doctorResults = [];
@@ -10040,15 +10150,9 @@
           issues.push({ type: 'critical', icon: '💰', msg: 'Sin precio — el cliente no puede saber cuánto sale' });
         }
 
-        // 🎵 Notas incompletas
-        if (!p.notas_salida || p.notas_salida.trim() === '') {
-          issues.push({ type: 'warning', icon: '🎵', msg: 'Sin notas de salida' });
-        }
-        if (!p.notas_corazon || p.notas_corazon.trim() === '') {
-          issues.push({ type: 'warning', icon: '🎵', msg: 'Sin notas de corazón' });
-        }
-        if (!p.notas_base || p.notas_base.trim() === '') {
-          issues.push({ type: 'warning', icon: '🎵', msg: 'Sin notas de base' });
+        // 👃 Sin acordes — [A-QUE-HUELE-AUTO] 147b · los tres «Sin notas…» dejaron de ser aviso: lo que arma «¿A qué huele?» son los acordes (las notas siguen donde están)
+        if (!Array.isArray(p.acordes) || p.acordes.length === 0) {
+          issues.push({ type: 'warning', icon: '👃', msg: 'Sin acordes — no aparece al filtrar por «¿A qué huele?»' });
         }
 
         // 🏷️ Sin apodo/abreviación — perdés búsquedas por apodo informal
