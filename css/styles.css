@@ -3714,7 +3714,9 @@
     }
     .bs-tags .badge-sin-stock { background: #c0392b; }
     .bs-tags .badge-proximamente { background: #555; }
-    .bs-btn-agregar.avisar .waitlist-ico { font-size: 1rem; line-height: 1; }
+    /* [SIN-STOCK-NO-ENTRA] 159 · la campana de línea (la misma en la ficha, la hoja de espera y la card): 18 px y currentColor en la ficha y la hoja (el 🔔 dorado sobre el amarillo daba 1,25); 1em en la card */
+    .ico-campana { width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.2em; }
+    .waitlist-ico .ico-campana { width: 1em; height: 1em; flex: none; vertical-align: -.125em; }
     .bs-btn-agregar.avisar.added { display: grid; grid-template-columns: auto auto; justify-content: center; align-content: center; column-gap: .4rem; row-gap: 0; cursor: default; }
     .bs-btn-agregar.avisar.added .waitlist-tel { grid-column: 1 / -1; text-align: center; font-size: .72rem; font-weight: 400; letter-spacing: .02em; text-transform: none; white-space: nowrap; }
     /* [SIN-STOCK-NO-ENTRA] 7 · Comparar: en la columna de uno que no se puede pedir, el estado en gris en lugar de «Elegir este» */
@@ -5588,7 +5590,7 @@
     .espera-cartel-titulo { margin: 0; font-size: .95rem; font-weight: 700; color: #fff; }
     .espera-cartel-lista { margin: .35rem 0 0; padding: 0; list-style: none; font-size: .82rem; line-height: 1.5; color: #f0ede8; }
     .espera-cartel-sub { margin: .45rem 0 0; font-size: .72rem; color: var(--gris); }
-    .aviso-toast-texto { margin: 0; font-size: .85rem; line-height: 1.45; color: #f0ede8; }
+    .aviso-toast-texto { margin: 0; font-size: .85rem; line-height: 1.45; color: #f0ede8; text-wrap: balance; }   /* [SIN-STOCK-NO-ENTRA] 160 · el aviso no deja una palabra sola */
     /* Fly-to-cart animation */
     .fly-to-cart {
       position: fixed; z-index: 99999; pointer-events: none;

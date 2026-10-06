@@ -2179,7 +2179,7 @@
           + '</button>';
         } else {
           waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
-            + '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span> '   // [ESPERA-INVITADO] sin el candado ni «Ingresá para avisarte»: el invitado se anota igual
+            + '<span class="waitlist-ico waitlist-ico--bell"><svg class="ico-campana" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span> '   // [SIN-STOCK-NO-ENTRA] 159 · la campana de línea (el 🔔 dorado daba 1,25 sobre el amarillo) · [ESPERA-INVITADO] sin el candado ni «Ingresá para avisarte»: el invitado se anota igual
             + '<span class="waitlist-label">Avisame cuando vuelva</span>'
           + '</button>';
         }
@@ -4994,7 +4994,7 @@
       var nom = document.getElementById('waitlistNombreWrap'), login = document.getElementById('waitlistLoginBtn'), btn = document.getElementById('waitlistSubmitBtn');
       if (nom) nom.style.display = invitado ? '' : 'none';
       if (login) login.style.display = invitado ? '' : 'none';
-      if (btn) btn.innerHTML = '&#128276; Avisame';   // 142m1: el 🔔 de la card que la abre (el 📣 es el de «Banner» del panel), en los dos modos
+      if (btn) btn.innerHTML = '<svg class="ico-campana" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg> Avisame';   // [SIN-STOCK-NO-ENTRA] 159 · la campana de línea · 142m1: el 🔔 de la card que la abre (el 📣 es el de «Banner» del panel), en los dos modos
       var desc = document.getElementById('waitlistDesc');
       if (desc) desc.textContent = invitado ? 'Te escribimos por WhatsApp apenas vuelva. No hace falta crear una cuenta.' : 'Te avisamos por WhatsApp apenas vuelva a estar disponible.';
       var wrapTel = document.querySelector('#waitlistOverlay .waitlist-input-wrap');
@@ -6045,7 +6045,7 @@
     var cart = JSON.parse(sessionStorage.getItem('st_cart') || '[]');
     var CART_LIMIT = 15;
 
-    // [SIN-STOCK-NO-ENTRA] La ÚNICA regla de qué entra al pedido (NO ROMPER #26). Un perfume sin stock, pausado («Próximamente») o dado de baja
+    // [SIN-STOCK-NO-ENTRA] La ÚNICA regla de qué entra al pedido (NO ROMPER #28). Un perfume sin stock, pausado («Próximamente») o dado de baja
     // no se pide: ni desde la card, ni desde la ficha, ni desde Comparar, ni desde los favoritos, ni desde un pedido guardado. «Último» (low) sí.
     // Una puerta nueva al pedido la usa; nunca un cart.push suelto.
     function sePuedePedir(p) {
@@ -6209,8 +6209,9 @@
         if (btn) { btn.innerHTML = ICONO_CARRITO + 'Agregar al pedido'; btn.classList.remove('added'); }   // 153: el SVG de la barra, no el emoji
       } else {
         // [SIN-STOCK-NO-ENTRA] sacar uno que ya estaba sigue andando (arriba); sumar uno que no se puede pedir, no
-        if (!sePuedePedir(PERFUMES.find(function(pf) { return pf.slug === slug; }))) {
-          avisoPedido('Sin stock por ahora \u00b7 toc\u00e1 \u00abAvisame\u00bb y te escribimos cuando vuelva');
+        var sinPedido = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        if (!sePuedePedir(sinPedido)) {
+          avisoPedido(sinPedido && sinPedido.name ? sinPedido.name + ' est\u00e1 sin stock por ahora: toc\u00e1 \u00abAvisame\u00bb en su ficha y te escribimos cuando vuelva' : 'Sin stock por ahora \u00b7 toc\u00e1 \u00abAvisame\u00bb y te escribimos cuando vuelva');   // 161
           return;
         }
         if (cart.length >= CART_LIMIT) {
@@ -6336,12 +6337,13 @@
     function addFavsToCart() {
       var added = 0;
       var skipped = 0;
+      var sinStockNombre = '';
       var sinStock = 0;   // [SIN-STOCK-NO-ENTRA] los ♥ que no se pueden pedir se saltan y se dice
       favs.forEach(function(slug) {
         if (cart.indexOf(slug) !== -1) return; // ya en carrito
         var pf = PERFUMES.find(function(x) { return x.slug === slug; });
         if (!pf) return;   // un favorito que ya no está en el catálogo no se cuenta ni se agrega
-        if (!sePuedePedir(pf)) { sinStock++; return; }
+        if (!sePuedePedir(pf)) { sinStock++; sinStockNombre = pf.name; return; }
         if (cart.length >= CART_LIMIT) { skipped++; return; }
         cart.push(slug);
         added++;
@@ -6358,7 +6360,7 @@
         }
       });
       if (added > 0) openCartPanel(); // refrescar panel
-      var avisoSinStock = sinStock > 0 ? (sinStock === 1 ? '1 está sin stock' : sinStock + ' están sin stock') : '';
+      var avisoSinStock = sinStock > 0 ? (sinStock === 1 ? (sinStockNombre || '1') + ' está sin stock' : sinStock + ' están sin stock') : '';
       // con algún sin stock, el aviso va por avisoPedido (el toast, legible en los dos temas); .cart-limit-msg es amarillo sobre el crema del panel en claro (≈1,6)
       var decir = avisoSinStock ? avisoPedido : showCartLimitMsg;
       if (skipped > 0) {
@@ -6711,7 +6713,7 @@
         btnCart.classList.toggle('avisar', !pedible);
         if (!pedible) {
           var anotado = waitlistSlugs.indexOf(slug) !== -1;
-          btnCart.innerHTML = anotado ? esperaAvisadoHTML() : '<span class="waitlist-ico waitlist-ico--bell">&#128276;</span>Avisame cuando vuelva';
+          btnCart.innerHTML = anotado ? esperaAvisadoHTML() : '<svg class="ico-campana" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Avisame cuando vuelva';
           btnCart.classList.toggle('added', anotado);
           return;
         }

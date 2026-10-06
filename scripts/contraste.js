@@ -940,6 +940,9 @@ function mezcla(hex, fondo, a) {
      ['sin-stock cartel «Próximamente» .bs-tags .badge-proximamente', '.bs-tags .badge-proximamente', null, '.bs-tags .badge-proximamente', hoja_, 'ficha'],
      ['sin-stock «Sin stock» de Comparar .compare-col-sin-stock', '.compare-col-sin-stock', null, null, fondo('.compare-modal', c, '#111111'), 'comparar'],
      ['sin-stock aviso «Sacamos … del pedido» .aviso-toast-texto', '.aviso-toast-texto', null, null, fondo('.cart-toast', c, '#0a0a0a'), 'aviso'],
+     // 159 · la campana de línea es currentColor: su contraste es el del texto del botón que la lleva (mínimo 3 para un ícono)
+     ['sin-stock 159 campana de la ficha (currentColor de .bs-btn-primary)', '.bs-btn-primary', null, '.bs-btn-primary', hoja_, 'ficha'],
+     ['sin-stock 159 campana de la hoja de espera (currentColor de .waitlist-submit)', '.waitlist-submit', null, '.waitlist-submit', fondo('.waitlist-box', c, '#111111'), 'hoja de espera'],
      ['título del quiz', '.quiz-title', 'p', null, hoja_],
      ['subtítulo', '.quiz-subtitle', 'p', null, hoja_],
      ['pregunta', '.quiz-question', 'p', null, hoja_],
@@ -1002,6 +1005,7 @@ function mezcla(hex, fondo, a) {
      ['fila', '146f precio .price-promo', precio, F.bg],
      ['fila', '146f efectivo .price-cash', efectivo, F.bg],
      ['fila', '146o «🔔 Avisame cuando vuelva» .waitlist-btn', tinta, F.bg],
+     ['fila', '159 la campana de la card .waitlist-btn .ico-campana (currentColor, igual que el texto)', tinta, F.bg],
      ['fila', '146o «✓ Te avisamos» .waitlist-btn.subscribed', efectivo, F.bg],
      ['hoja Filtros', '146m título .vh-tit', blanco, F.sup],
      ['hoja Filtros', '146m grupo («Para quién», «Ocasión»…) .vh-tg', gris, F.sup],
