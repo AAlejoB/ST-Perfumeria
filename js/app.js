@@ -6359,12 +6359,14 @@
       });
       if (added > 0) openCartPanel(); // refrescar panel
       var avisoSinStock = sinStock > 0 ? (sinStock === 1 ? '1 está sin stock' : sinStock + ' están sin stock') : '';
+      // con algún sin stock, el aviso va por avisoPedido (el toast, legible en los dos temas); .cart-limit-msg es amarillo sobre el crema del panel en claro (≈1,6)
+      var decir = avisoSinStock ? avisoPedido : showCartLimitMsg;
       if (skipped > 0) {
-        showCartLimitMsg('Se agregaron ' + added + ', pero ' + skipped + ' no entraron (máx. ' + CART_LIMIT + ')' + (avisoSinStock ? ' · ' + avisoSinStock : ''));
+        decir('Se agregaron ' + added + ', pero ' + skipped + ' no entraron (máx. ' + CART_LIMIT + ')' + (avisoSinStock ? ' · ' + avisoSinStock : ''));
       } else if (added === 0) {
-        showCartLimitMsg(avisoSinStock ? 'No se agregó ninguno · ' + avisoSinStock : 'Tus favoritos ya están en el pedido ✓');
+        decir(avisoSinStock ? 'No se agregó ninguno · ' + avisoSinStock : 'Tus favoritos ya están en el pedido ✓');
       } else if (avisoSinStock) {
-        showCartLimitMsg('Se agregaron ' + added + ' · ' + avisoSinStock);
+        decir('Se agregaron ' + added + ' · ' + avisoSinStock);
       } else {
         showCartLimitMsg(added + ' favorito' + (added > 1 ? 's' : '') + ' agregado' + (added > 1 ? 's' : '') + ' al pedido ❤️');
       }
