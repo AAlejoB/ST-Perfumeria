@@ -7114,7 +7114,7 @@
                 + '<span class="compare-col-cta-ico" aria-hidden="true">\ud83d\udc95</span>'
                 + '<span class="compare-col-cta-text">Elegir este</span>'
               + '</button>'
-            : '<p class="compare-col-sin-stock">' + (p._pausado ? 'Pr\u00f3ximamente' : (p._oculto ? 'No disponible' : 'Sin stock')) + '</p>')
+            : '<div class="compare-col-sin-stock">' + (p._pausado ? 'Pr\u00f3ximamente' : (p._oculto ? 'No disponible' : 'Sin stock')) + '</div>')   // <div> y no <p>: en claro, body:not(.dark-mode) p { color: #2a2a2d } lo dejaba en 1,32 sobre el modal oscuro
         + '</div>';
       });
       grid.innerHTML = html;

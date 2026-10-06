@@ -3721,7 +3721,7 @@
     .compare-col-sin-stock {
       width: 100%; margin-top: .9rem; padding: .65rem 1rem; text-align: center;
       font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
-      color: #9a9a9a; border: 1px solid currentColor; border-radius: 24px;   /* el modal de Comparar es oscuro (#111) en los dos temas: var(--gris) en claro es #5e564a (2,4); #9a9a9a da 6,3 */
+      color: #9a9a9a; border: 1px solid currentColor; border-radius: 24px;   /* el modal de Comparar es oscuro (#111) en los dos temas: var(--gris) en claro es #5e564a (2,4); #9a9a9a da 6,71. Es un <div>: un <p> cae en body:not(.dark-mode) p (#2a2a2d, 1,32) */
     }
     .bs-btn-row { display: flex; gap: .4rem; }
     .bs-btn-secondary {
