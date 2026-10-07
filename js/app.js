@@ -5,7 +5,7 @@
     // un estado, «Consultá disponibilidad por WhatsApp». Lo que entra al pedido NO cambia (sePuedePedir, NO ROMPER #28).
     // Al cambiarlo, bumpear CACHE_VERSION en sw.js (NO ROMPER #4).
     // ============================================================
-    var STOCK_OCULTO = true;
+    var STOCK_OCULTO = false;
     var TXT_CONSULTA_DISPONIBILIDAD = 'Consultá disponibilidad por WhatsApp';
 
     // ============================================================
