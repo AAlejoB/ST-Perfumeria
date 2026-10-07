@@ -1,4 +1,14 @@
     // ============================================================
+    // [STOCK-OCULTO] EL INTERRUPTOR · false = la web de siempre · true = no dice ni que hay ni que no hay
+    // Para la noche del domingo 25-oct (ST pasa a la caja nueva y el stock de acá deja de actualizarse).
+    // Prendido: sin «Sin stock», «Próximamente», «Último», «🔥 Solo quedan N» ni «Avisame cuando vuelva»; donde había
+    // un estado, «Consultá disponibilidad por WhatsApp». Lo que entra al pedido NO cambia (sePuedePedir, NO ROMPER #28).
+    // Al cambiarlo, bumpear CACHE_VERSION en sw.js (NO ROMPER #4).
+    // ============================================================
+    var STOCK_OCULTO = false;
+    var TXT_CONSULTA_DISPONIBILIDAD = 'Consultá disponibilidad por WhatsApp';
+
+    // ============================================================
     // SUPABASE INIT
     // ============================================================
     var SUPABASE_URL = 'https://znmjhproimtprptheumy.supabase.co';
@@ -1996,6 +2006,7 @@
     }
     function etiquetasCard(p, stockStatus) {
       if (stockStatus === 'out' || stockStatus === 'pausado') return '';
+      if (STOCK_OCULTO && stockStatus === 'low') stockStatus = 'ok';   // [STOCK-OCULTO] sin «Último»
       var cinta = p.etiqueta ? normCinta(p.etiqueta) : '';
       var items = [];
       var promo = promoVigente();
@@ -2124,6 +2135,7 @@
       // [PROMO-DECANTS] N3 · «Último» y «Nuevo» van en la pila de etiquetas (etiquetasCard).
       if (stockStatus === 'out') stockBadge = '<span class="badge-sin-stock' + badgeExtraAttrs + '>Sin stock</span>';
       if (isPaused)             stockBadge = '<span class="badge-proximamente' + badgeExtraAttrs + '>Próximamente</span>';
+      if (STOCK_OCULTO) stockBadge = '';   // [STOCK-OCULTO]
 
 
       // Tipo de producto (campo explícito del admin, fallback a keyword en nombre)
@@ -2132,7 +2144,8 @@
 
       // Cinta de etiqueta personalizada (se configura desde el admin)
       var ribbonHTML = '';
-      if (p.etiqueta && stockStatus !== 'out' && !isPaused) {   // [PROMO-DECANTS] N3 · «Sin stock» y «Próximamente» tapan también la cinta
+      if (p.etiqueta && stockStatus !== 'out' && !isPaused
+          && !(STOCK_OCULTO && CINTA_IGUAL_ULTIMO.indexOf(normCinta(p.etiqueta)) !== -1)) {   // [PROMO-DECANTS] N3 · «Sin stock» y «Próximamente» tapan también la cinta · [STOCK-OCULTO] una cinta «Último» / «Últimas unidades» tampoco sale
         // [CINTA-TINTA] el texto escapado, el color validado y la letra según el color (antes, blanca siempre y sin escapar)
         var ribbonColor = colorCinta(p.etiqueta_color);
         ribbonHTML = '<div class="card-ribbon" style="background:' + ribbonColor + ';color:' + letraSobre(ribbonColor) + ';">' + escapeHTML(p.etiqueta) + '</div>';
@@ -2159,7 +2172,7 @@
       // basado en data verdadera, no en marketing falso.
       var urgencyHTML = '';
       var stockQty = typeof p._stockQty === 'number' ? p._stockQty : null;
-      if (stockQty !== null && stockQty >= 1 && stockQty <= 3 && !isPaused) {
+      if (stockQty !== null && stockQty >= 1 && stockQty <= 3 && !isPaused && !STOCK_OCULTO) {   // [STOCK-OCULTO] sin «Solo quedan N»
         var urgencyText = stockQty === 1 ? '🔥 Solo queda 1' : '🔥 Solo quedan ' + stockQty;
         urgencyHTML = '<span class="card-urgency" title="Stock real del local — ¡apurate!">' + urgencyText + '</span>';
       }
@@ -2171,7 +2184,13 @@
       // para que CSS pueda mostrarlos/ocultarlos segun auth (body.is-guest)
       // sin re-renderizar la card cuando el usuario logea/desloga.
       var waitlistHTML = '';
-      if (isOutOfStock || isPaused) {
+      if (STOCK_OCULTO && (isOutOfStock || isPaused)) {
+        // [STOCK-OCULTO] en el lugar de «Avisame cuando vuelva», el WhatsApp de siempre con el mensaje de «Consultar →» (termina en «¿Tienen disponibilidad?»).
+        // Lleva .waitlist-btn por el lugar y el aspecto (también en la vista ☰, donde es texto y la fila abre la ficha) y porque la card no abre la ficha al tocarlo.
+        waitlistHTML = '<a class="waitlist-btn consulta-wa" href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
+          + '<span class="waitlist-label">' + TXT_CONSULTA_DISPONIBILIDAD + '</span>'
+        + '</a>';
+      } else if (isOutOfStock || isPaused) {
         var alreadyWaiting = waitlistSlugs.indexOf(p.slug) !== -1;
         if (alreadyWaiting) {
           waitlistHTML = '<button class="waitlist-btn subscribed" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
@@ -2617,6 +2636,9 @@
         if (s.setTipo === 'mini-collection') badgeText = 'MINI x' + itemCount;
 
         var setPaused = s._stockStatus === 'pausado';
+        // [STOCK-OCULTO] un set pausado se ve como los demás (sin atenuar ni «Próximamente») y, en vez de «Consultar →», la consulta de disponibilidad
+        var setConsulta = STOCK_OCULTO && setPaused;
+        if (setConsulta) setPaused = false;
         html += '<div class="set-card" style="' + (setPaused ? 'opacity:.45;pointer-events:none;position:relative;' : '') + '">'
           + (setPaused ? '<span class="badge-proximamente">Próximamente</span>' : '')
           + '<div class="set-images ' + itemsClass + '">' + imgsHTML + '</div>'
@@ -2629,7 +2651,7 @@
               + (origHTML ? '<span class="set-price-original">' + origHTML + '</span>' : '')
             + '</div>'
             + ahorroHTML
-            + (setPaused ? '' : '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([s], '')) + '" target="_blank" class="set-cta">Consultar &#8594;</a>')
+            + (setPaused ? '' : '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([s], '')) + '" target="_blank" class="set-cta">' + (setConsulta ? TXT_CONSULTA_DISPONIBILIDAD : 'Consultar &#8594;') + '</a>')
           + '</div>'
         + '</div>';
       });
@@ -5056,7 +5078,7 @@
         var todas = res.data.filter(function(s) { return typeof s === 'string'; });
         // lo libre llega como «libre:…»: cuenta para el cartel de B pero no marca ninguna card (ni se guarda acá)
         var nuevos = todas.filter(function(s) { return s.indexOf('libre:') !== 0; });
-        if (entro === true && currentUser && todas.length) mostrarCartelEspera(todas);   // [ESPERA-INVITADO] B · sólo al entrar, no al retomar la sesión
+        if (entro === true && currentUser && todas.length && !STOCK_OCULTO) mostrarCartelEspera(todas);   // [STOCK-OCULTO] el cartel «Tenés N avisos pendientes» no sale   // [ESPERA-INVITADO] B · sólo al entrar, no al retomar la sesión
         // Lo que el cliente anotó mientras la RPC estaba en vuelo no viene en la respuesta: se conserva.
         (waitlistMarcadosDurante || []).forEach(function(s) { if (nuevos.indexOf(s) === -1) nuevos.push(s); });
         var antes = JSON.stringify((waitlistSlugs || []).slice().sort());
@@ -6101,7 +6123,9 @@
       if (!sacados.length) return 0;
       updateCartUI();
       resetCartButtons();
-      avisoPedido(sacados.length === 1
+      avisoPedido(STOCK_OCULTO   // [STOCK-OCULTO]
+        ? (sacados.length === 1 ? 'Sacamos ' + sacados[0] + ' del pedido: ' : 'Sacamos ' + sacados.length + ' perfumes del pedido: ') + 'consultá disponibilidad por WhatsApp'
+        : sacados.length === 1
         ? 'Sacamos ' + sacados[0] + ' del pedido: se quedó sin stock'
         : 'Sacamos ' + sacados.length + ' perfumes del pedido: se quedaron sin stock');
       return sacados.length;
@@ -6211,6 +6235,7 @@
         // [SIN-STOCK-NO-ENTRA] sacar uno que ya estaba sigue andando (arriba); sumar uno que no se puede pedir, no
         var sinPedido = PERFUMES.find(function(pf) { return pf.slug === slug; });
         if (!sePuedePedir(sinPedido)) {
+          if (STOCK_OCULTO) { avisoPedido((sinPedido && sinPedido.name ? sinPedido.name + ': c' : 'C') + 'onsultá disponibilidad por WhatsApp'); return; }   // [STOCK-OCULTO]
           avisoPedido(sinPedido && sinPedido.name ? sinPedido.name + ' est\u00e1 sin stock por ahora: toc\u00e1 \u00abAvisame\u00bb en su ficha y te escribimos cuando vuelva' : 'Sin stock por ahora \u00b7 toc\u00e1 \u00abAvisame\u00bb y te escribimos cuando vuelva');   // 161
           return;
         }
@@ -6361,6 +6386,7 @@
       });
       if (added > 0) openCartPanel(); // refrescar panel
       var avisoSinStock = sinStock > 0 ? (sinStock === 1 ? (sinStockNombre || '1') + ' está sin stock' : sinStock + ' están sin stock') : '';
+      if (STOCK_OCULTO && sinStock > 0) avisoSinStock = (sinStock === 1 ? (sinStockNombre || '1') + ': c' : sinStock + ' para c') + 'onsultá disponibilidad por WhatsApp';   // [STOCK-OCULTO]
       // con algún sin stock, el aviso va por avisoPedido (el toast, legible en los dos temas); .cart-limit-msg es amarillo sobre el crema del panel en claro (≈1,6)
       var decir = avisoSinStock ? avisoPedido : showCartLimitMsg;
       if (skipped > 0) {
@@ -6647,7 +6673,8 @@
       var prodType = detectProductType(p);
       var tipoBadge = prodType ? '<span class="badge-tipo">' + escapeHTML(prodType) + '</span>' : '';
       // [SIN-STOCK-NO-ENTRA] 3 · la ficha de un sin stock o un pausado lleva el mismo cartel que la card, junto a las etiquetas
-      var estadoBadge = p._stockStatus === 'out' ? '<span class="badge-sin-stock">Sin stock</span>'
+      var estadoBadge = STOCK_OCULTO ? ''   // [STOCK-OCULTO]
+        : p._stockStatus === 'out' ? '<span class="badge-sin-stock">Sin stock</span>'
         : (p._pausado ? '<span class="badge-proximamente">Próximamente</span>' : '');
       document.getElementById('bsTags').innerHTML = estadoBadge
         + '<span class="card-tag tag-cat">' + escapeHTML(pCat) + '</span>'
@@ -6711,6 +6738,11 @@
       function pintarBtnCart() {
         btnCart.style.display = p._oculto ? 'none' : '';
         btnCart.classList.toggle('avisar', !pedible);
+        if (!pedible && STOCK_OCULTO) {   // [STOCK-OCULTO] en el lugar de «Avisame cuando vuelva»
+          btnCart.textContent = TXT_CONSULTA_DISPONIBILIDAD;
+          btnCart.classList.remove('added');
+          return;
+        }
         if (!pedible) {
           var anotado = waitlistSlugs.indexOf(slug) !== -1;
           btnCart.innerHTML = anotado ? esperaAvisadoHTML() : '<svg class="ico-campana" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Avisame cuando vuelva';
@@ -6723,6 +6755,7 @@
       }
       pintarBtnCart();
       btnCart.onclick = function(e) {
+        if (!pedible && STOCK_OCULTO) { closeBottomSheet(); goToWA(slug, e); return; }   // [STOCK-OCULTO] el WhatsApp de «Consultar →»
         if (!pedible) {
           if (e) e.preventDefault();
           if (waitlistSlugs.indexOf(slug) !== -1) return;   // ya anotado: el bot\u00f3n es s\u00f3lo el estado
@@ -7118,6 +7151,10 @@
                 + '<span class="compare-col-cta-ico" aria-hidden="true">\ud83d\udc95</span>'
                 + '<span class="compare-col-cta-text">Elegir este</span>'
               + '</button>'
+            : (STOCK_OCULTO && !p._oculto)   // [STOCK-OCULTO] en vez del estado, la consulta (el WhatsApp de \u00abConsultar \u2192\u00bb)
+              ? '<button type="button" class="compare-col-cta compare-col-consulta" onclick="goToWA(' + jsAttr(p.slug) + ', event)">'
+                  + '<span class="compare-col-cta-text">' + TXT_CONSULTA_DISPONIBILIDAD + '</span>'
+                + '</button>'
             : '<div class="compare-col-sin-stock">' + (p._pausado ? 'Pr\u00f3ximamente' : (p._oculto ? 'No disponible' : 'Sin stock')) + '</div>')   // <div> y no <p>: en claro, body:not(.dark-mode) p { color: #2a2a2d } lo dejaba en 1,32 sobre el modal oscuro
         + '</div>';
       });

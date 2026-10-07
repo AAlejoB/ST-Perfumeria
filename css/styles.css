@@ -5038,6 +5038,11 @@
     @media (max-width: 767px) {
       .waitlist-btn { min-height: 44px; font-size: .78rem; }
     }
+    /* [STOCK-OCULTO] «Consultá disponibilidad por WhatsApp»: es un <a> con el aspecto del botón de espera (sólo existe con el interruptor prendido) */
+    a.waitlist-btn.consulta-wa { text-decoration: none; }
+    @media (max-width: 767px) {
+      a.waitlist-btn.consulta-wa { display: flex; align-items: center; justify-content: center; }
+    }
 
     /* OVERLAY LISTA DE ESPERA */
     .waitlist-overlay {
