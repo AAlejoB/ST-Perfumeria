@@ -3,6 +3,16 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
+## [WA-EMOJIS-ROTOS] · 💡 idea · 7-oct-2026
+
+**En palabras de Alejo:** "anotá lo de los emojis" (hallazgo de Claude Code, 7-oct, probando `[STOCK-OCULTO]` en el Chrome de Alejo).
+**Qué es:** los emojis del mensaje de WhatsApp (👋 💰 📦 💳 💵 🙏) llegan como «�» al abrir desde la compu. Los rompe `wa.me` al redirigir a `api.whatsapp.com`: con un link mínimo (`wa.me/…?text=Hola!%20%F0%9F%91%8B…`) el 👋 llega como `%EF%BF%BD` y el «¿» llega bien. No es del código de la web: el `href` lleva el emoji bien codificado.
+**Hechos del repo:** 15 links `wa.me/` (`js/app.js` 10, `index.html` 4, `js/extras.js` 1): «Consultar →», el pedido (`sendCartToWA`), el armador, «Consultá disponibilidad». El texto sale de `buildWaMessage` (`js/app.js`). `admin.html` también usa `wa.me` (no revisé si con emojis). En el celu no se probó.
+**Tamaño:** S — cambiar el dominio, probar en celu.
+**Le toca primero a:** 🤖 Claude Code (probar `api.whatsapp.com/send` en compu y celu, sin enviar, antes de tocar nada).
+
+> **🧾 Para el PREPARADOR — mandale esto tal cual:** `[WA-EMOJIS-ROTOS]`: los emojis de todos los WhatsApp de stperfumeria.com llegan como «�» desde la compu (lo rompe la redirección de `wa.me`; medido el 7-oct). Arreglo probable: `https://api.whatsapp.com/send?phone=…&text=…` en los 15 links. Antes: probar en un celu Android y un iPhone que abra la app con el mensaje entero. Viene de antes, no de `[STOCK-OCULTO]`.
+
 ## [STOCK-OCULTO] · 💡 idea · 7-oct-2026
 
 **En palabras de Alejo:** "Interruptor «stock oculto» para la noche del domingo 25/10 (día del cambio de ST a la caja nueva). Prendido, esconde en toda la web «Sin stock», «Próximamente», «Último», «Solo quedan N» y el botón «Avisame cuando vuelva», y muestra «Consultá disponibilidad por WhatsApp». Se sube apagado (la web igual que hoy), se prueba en una vista previa y el domingo sólo se prende. Con su CACHE_VERSION. Si hay vuelta atrás, se apaga."
