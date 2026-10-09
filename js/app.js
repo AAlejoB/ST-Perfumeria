@@ -4367,7 +4367,7 @@
 
       var matches = [];
       PERFUMES.forEach(function(p) {
-        if (p.esSet || p._oculto) return;
+        if (p.esSet || p._oculto || p._pausado) return;   // [PAUSADO-OCULTO] el autocompletado también: un pausado no se ofrece (salía «Próximamente» al buscarlo)
         var nameNorm = stripAccents(p.name.toLowerCase());
         var marcaNorm = stripAccents((p.marca_real || p.marca || '').toLowerCase());
         var notasNorm = stripAccents(((p.notas_salida || '') + ' ' + (p.notas_corazon || '') + ' ' + (p.notas_base || '')).toLowerCase());
@@ -7357,7 +7357,7 @@
       if (q.length < 1) { dropdown.classList.remove('open'); return; }
 
       var results = PERFUMES.filter(function(p) {
-        if (p.esSet || p._oculto) return false;
+        if (p.esSet || p._oculto || p._pausado) return false;   // [PAUSADO-OCULTO]
         if (miselSlugs.indexOf(p.slug) !== -1) return false;
         return p.name.toLowerCase().indexOf(q) !== -1 || (p.marca_real || p.marca || '').toLowerCase().indexOf(q) !== -1;
       }).slice(0, 8);
@@ -7412,7 +7412,7 @@
 
       // Puntuar perfumes por notas en común
       var scored = PERFUMES.filter(function(p) {
-        return !p.esSet && miselSlugs.indexOf(p.slug) === -1 && !p._oculto;
+        return !p.esSet && miselSlugs.indexOf(p.slug) === -1 && !p._oculto && !p._pausado;   // [PAUSADO-OCULTO] no se recomienda lo que no se vende
       }).map(function(p) {
         var score = 0;
         var allNotes = ((p.notas_salida || '') + ',' + (p.notas_corazon || '') + ',' + (p.notas_base || '')).toLowerCase();
