@@ -10123,7 +10123,7 @@
        dentro del @media: a ≥ 768 no existe (los elementos nuevos son display: none) y el catálogo queda igual a main.
        Tokens: --v-bg (fondo del catálogo) y --v-sup (tarjetas, chips y hojas).
        ──────────────────────────────────────────────────────────────── */
-    .vid-tira, .vid-orden, .vh-overlay, .card-huele, .cv-cel { display: none; }
+    .vid-tira, .vid-orden, .vh-overlay, .card-huele, .cv-cel, .col-filtros { display: none; }
     @media (max-width: 767px) {
       body { --v-bg: #121214; --v-sup: #1a1a1d; --v-velo: rgba(0,0,0,.6); }
       body:not(.dark-mode) { --v-bg: #f5efde; --v-sup: #ffffff; --v-velo: rgba(0,0,0,.45); }
@@ -10238,7 +10238,10 @@
       .favs-empty, .sin-resultados, .catalog-section > .cta-register { margin-left: 1.2rem; margin-right: 1.2rem; }
       .catalog-section > .load-more-wrap { padding: 0 1.2rem; }
 
-      /* 146g [A-QUE-HUELE] · el perfil y hasta 3 notas, debajo de la marca (en la card ▦ y en la fila ☰) */
+      }
+    /* [CATALOGO-COMPU] desde acá y hasta el cierre: las reglas de la card y de la fila se comparten con la compu (>= 1024). */
+    @media (max-width: 767px), (min-width: 1024px) {
+    /* 146g [A-QUE-HUELE] · el perfil y hasta 3 notas, debajo de la marca (en la card ▦ y en la fila ☰) */
       /* [A-QUE-HUELE] una sola frase, sin las mayúsculas que hereda de .card-info, en un renglón con «…» en las dos vistas */
       .card-huele { display: block; max-width: 100%; margin: 0; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--gris-claro); text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .card-huele b { color: var(--amarillo-tinta); font-weight: 700; }
@@ -10253,11 +10256,15 @@
       /* 146q [PERFIL-UNA-VEZ] el perfil lo dice la línea de «a qué huele»: el chip de la card se va. SIEMPRE bajo #catalogGrid: la ficha (#bsTags) usa la misma clase y ahí el chip sigue. */
       #catalogGrid .product-card .tag-acorde { display: none; }
 
-      /* ▦ grilla: la card de hoy, con la línea de «a qué huele». Sólo se le da aire arriba. */
+      }
+    @media (max-width: 767px) {
+    /* ▦ grilla: la card de hoy, con la línea de «a qué huele». Sólo se le da aire arriba. */
       html[data-vista="grid"] body[class] .catalog-grid { padding-top: 8px; }
       html[data-vista="grid"] #catalogGrid > #destacados, html[data-vista="grid"] #catalogGrid > #decants, html[data-vista="grid"] #catalogGrid > .price-banner-wrap { margin-left: -1rem; margin-right: -1rem; }
 
-      /* 146f [VISTA-LISTA] + 146o [FILA-ESTADOS] · ☰ lista: la misma card, vista como fila de 121 como mínimo. Tocar la fila abre la ficha.
+      }
+    @media (max-width: 767px), (min-width: 1024px) {
+    /* 146f [VISTA-LISTA] + 146o [FILA-ESTADOS] · ☰ lista: la misma card, vista como fila de 121 como mínimo. Tocar la fila abre la ficha.
          [FICHA-IGUAL-DESDE-LISTA] todo va bajo #catalogGrid: la ficha (#bottomSheet) usa las mismas clases (.price-cash, .price-cuotas-line, .tag-acorde…) y no tiene que tocarse. */
       html[data-vista="lista"] body[class] .catalog-grid { padding: 0; gap: 0; min-height: 480px; }
       html[data-vista="lista"] body[class] #catalogGrid .product-card { display: grid; grid-template-columns: 96px minmax(0, 1fr); column-gap: 12px; align-items: start; min-height: 121px;
@@ -10308,7 +10315,9 @@
       html[data-vista="lista"] body[class] #catalogGrid .card-skel-img { flex: 0 0 96px; width: 96px !important; height: 96px; aspect-ratio: auto; border-radius: 8px; }
       html[data-vista="lista"] body[class] #catalogGrid .card-skel-body { flex: 1 1 auto; padding: 0; }
 
-      /* los estantes (Selección ST, decants) dentro de la grilla ocupan todo el ancho */
+      }
+    @media (max-width: 767px) {
+    /* los estantes (Selección ST, decants) dentro de la grilla ocupan todo el ancho */
       /* Ojo con el ancho: un hijo de grilla con margin: auto (la Selección tiene margin: 0 auto) NO se estira, se ajusta a su contenido, y el de la Selección
          (cinco cards en fila) mide 670: ensanchaba toda la página. Por eso minmax(0, 1fr), stretch y los márgenes en 0. */
       body[class] .catalog-grid { grid-template-columns: minmax(0, 1fr); }
@@ -10331,7 +10340,10 @@
       .vh-tit { margin: 0; font-family: var(--font-body); font-size: 16px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--blanco); }
       .vh-x { width: 44px; height: 44px; margin: 0 -12px 0 0; padding: 0; border: 0; background: none; color: var(--gris); font-size: 26px; line-height: 1; cursor: pointer; }
       .vh-cuerpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-      .vh-grupo { margin-top: 12px; }
+      }
+    /* [CATALOGO-COMPU] los grupos de filtros (Para quién, Ocasión, Notas, Precio) y «Cómo comprar» se comparten con la compu: ahí viven en la columna y en un cuadro centrado. */
+    @media (max-width: 767px), (min-width: 1024px) {
+    .vh-grupo { margin-top: 12px; }
       .vh-tg { margin: 0 0 7px; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--gris); }
       .vh-chips { display: flex; flex-wrap: wrap; gap: 7px; }
       .vh-chip, #vhOcasion .occasion-label, #vhNotas .note-chip { height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid var(--borde); background: transparent; color: var(--blanco);
@@ -10352,11 +10364,15 @@
       #vhPrecio .price-slider-label { min-width: 0; font-size: 12px; font-weight: 600; color: var(--blanco); }
       #vhPrecio .price-slider-track { min-width: 0; height: 44px; }
       #vhPrecio .price-clear-btn { display: none; }
-      .vh-pie { flex: 0 0 auto; display: flex; gap: 10px; margin-top: 16px; }
+      }
+    @media (max-width: 767px) {
+    .vh-pie { flex: 0 0 auto; display: flex; gap: 10px; margin-top: 16px; }
       .vh-b1, .vh-b2 { height: 48px; border-radius: 8px; font-family: var(--font-body); text-transform: uppercase; cursor: pointer; }
       .vh-b1 { flex: 1; border: 1px solid var(--borde); background: none; color: var(--blanco); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
       .vh-b2 { flex: 2.2; border: 0; background: var(--amarillo); color: #111; font-size: 13px; font-weight: 800; letter-spacing: .04em; }
-      /* «Cómo comprar»: los trust badges de la base. El ícono va en su cuadro oscuro en los dos temas (NO ROMPER #7). */
+      }
+    @media (max-width: 767px), (min-width: 1024px) {
+    /* «Cómo comprar»: los trust badges de la base. El ícono va en su cuadro oscuro en los dos temas (NO ROMPER #7). */
       .vh-tb { display: flex; gap: 12px; align-items: center;   /* 146s [BENEFICIO-CENTRADO] */ width: 100%; padding: 12px 0; margin: 0; border: 0; border-bottom: 1px solid var(--borde); background: none; text-align: left; color: var(--blanco); font-family: var(--font-body); }
       .vh-tb:last-child { border-bottom: 0; }
       button.vh-tb { cursor: pointer; }
@@ -10383,4 +10399,119 @@
       body[class] nav .nav-icons .nav-fav-btn { width: 44px; height: 44px; }
       /* 152a · en claro el ♥ era gris #444 sobre el nav oscuro (1,87): toma el color del ☰ (el amarillo). En oscuro no cambia. */
       body:not(.dark-mode) nav .nav-icons .nav-fav-btn { color: var(--amarillo); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       [CATALOGO-COMPU] la vitrina del celu llevada a la compu (>= 1024) · decisiones de Alejo, 9-oct-2026:
+       lista por defecto · filtros en columna fija · desde 1024 · letra Archivo (sólo acá: a < 1024 la letra no cambia).
+       Mismo mecanismo que [VIDRIERA]: los nodos se MUDAN con JS (vidAcomodar), nada se copia. De 768 a 1023 (tablet) queda como en main.
+       Orden: nav · aviso · franja de marca con el buscador a la derecha · [columna de filtros | atajos · barra de orden · lista].
+       Va al final a propósito (les gana por orden) y con `body[class]` por especificidad, como el bloque del celu.
+       ──────────────────────────────────────────────────────────────── */
+    @media (min-width: 1024px) {
+      body { --v-bg: #121214; --v-sup: #1a1a1d; --v-velo: rgba(0,0,0,.6); --font-body: 'Archivo', 'Inter', system-ui, sans-serif; --font-display: 'Archivo', 'Inter', system-ui, sans-serif; }
+      body:not(.dark-mode) { --v-bg: #f5efde; --v-sup: #ffffff; --v-velo: rgba(0,0,0,.45); }
+      body[class] { font-family: var(--font-body); }   /* el body tenía una pila fija: sin esto el texto suelto no tomaba Archivo */
+
+      /* lo que se va de arriba: los beneficios, el banner «Explorá» y el CTA del juego pasan a la tira o a «Cómo comprar» (igual que en el celu) */
+      .trust-badges, .price-banner-wrap--big, .quiz-cta-wrap { display: none; }
+      body > #destacados, body > #decants, body > #decants + .price-banner-wrap { display: none; }
+      .vid-estante-off { display: none !important; }
+
+      /* la franja de marca (84): marca + horario arriba, la frase abajo, el buscador a la derecha (el .filter-zone--center se muda acá) */
+      body[class] .hero { display: grid; grid-template-columns: auto auto minmax(300px, 480px); justify-content: space-between; grid-template-areas: "tag stat search" "title title search";
+        column-gap: 28px; row-gap: 4px; align-items: center; justify-items: start; text-align: left; height: 84px; min-height: 0; margin: 0;
+        padding: 0 max(40px, calc((100% - 1280px) / 2)); background: var(--v-bg); border-bottom: 1px solid var(--borde); overflow: visible; z-index: 95; }
+      body[class] .hero::before, body[class] .hero .hero-blob { display: none; }
+      body[class] .hero-tagline { grid-area: tag; font-size: 11.5px; font-weight: 600; letter-spacing: .22em; color: var(--amarillo-tinta); margin: 0; opacity: 1; animation: none; white-space: nowrap; }
+      body[class] .hero-tagline .hero-tl-ext:not(.hero-tl-orig) { display: none; }
+      body[class] .hero-title { grid-area: title; font-family: var(--font-display); font-size: 30px; font-style: normal; font-weight: 900; line-height: 1.05; letter-spacing: -.01em; text-transform: uppercase;
+        margin: 0; opacity: 1; animation: none; white-space: nowrap; }
+      body[class] .hero-title em { font-style: normal; font-weight: 900; }
+      body[class] .hero .store-status { grid-area: stat; white-space: nowrap; margin: 0; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; justify-self: start; }
+      body[class] .hero .store-status:not(.open):not(.closed):not(.holiday) { display: inline-flex; min-height: 22px; box-sizing: border-box; visibility: hidden; }
+      body[class] .hero > .filter-zone--center { grid-area: search; order: 0; width: 100%; justify-self: stretch; z-index: 96; }
+      body[class] .hero .search-wrapper { z-index: auto; }
+      body[class] .search-input { height: 48px; padding: 0 44px; border-radius: 12px; background: var(--v-sup); border: 1px solid var(--borde); color: var(--blanco); }
+      body[class] .search-input:focus { border-color: var(--amarillo); background: var(--v-sup); }
+      body[class] .search-icon { left: 16px; width: 17px; height: 17px; }
+      body[class] .search-clear { right: 4px; width: 44px; height: 44px; }
+
+      /* el catálogo: la columna de filtros (264) y todo lo demás en la otra */
+      .catalogo-scope { display: grid; grid-template-columns: 264px minmax(0, 1fr); column-gap: 40px; align-items: start;
+        padding: 24px max(40px, calc((100% - 1280px) / 2)) 72px; background: var(--v-bg); }
+      .catalogo-scope > * { grid-column: 2; min-width: 0; }
+      .catalogo-scope > .col-filtros { grid-column: 1; grid-row: 1 / span 12; display: block; }
+      /* la barra de filtros de siempre queda vacía (el buscador subió, el orden y el contador bajaron, los géneros son chips de la columna): sin alto, pero en el DOM, porque es el destino de #catalogo */
+      body[class] .filter-bar { position: static; height: 0; min-height: 0; padding: 0; margin: 0; border: 0; overflow: hidden; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+      body[class] .filter-zone--left, body[class] .filters-bar { display: none; }   /* los géneros y Nuevos viven en la columna; Ocasión, notas y precio también */
+      body[class] .catalog-section { background: transparent; padding: 0; }
+      .catalogo-scope > .puntos-context-banner { margin: 0 0 16px; }
+
+      .col-filtros { padding-top: 4px; }
+      .cf-cab { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+      .cf-tit { margin: 0; font-family: var(--font-body); font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--blanco); }
+      .cf-limpiar { background: none; border: 0; padding: 6px 0; color: var(--amarillo-tinta); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; }
+      .cf-body .vh-cuerpo { overflow: visible; }
+      .cf-body .vh-grupo { margin-top: 0; padding: 18px 0; border-top: 1px solid var(--borde-sutil, rgba(255,255,255,.08)); }
+      body:not(.dark-mode) .cf-body .vh-grupo { border-top-color: rgba(0,0,0,.1); }
+      .cf-body .vh-grupo:first-child { border-top: 0; padding-top: 12px; }
+      .cf-body .vh-tg { margin-bottom: 11px; }
+
+      /* la tira de atajos: cuatro tarjetas parejas, de 84 de alto */
+      .vid-tira { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 0; margin: 0 0 22px; overflow: visible; background: none; }
+      .vid-t { min-width: 0; height: 84px; flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; padding: 0 16px; border-radius: 14px; background: var(--v-sup); border: 1px solid var(--borde); color: var(--blanco); font-family: var(--font-body); cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+      .vid-t:hover { border-color: var(--amarillo); }
+      .vid-t-ico { flex: 0 0 42px; width: 42px; height: 42px; border-radius: 50%; background: rgba(232,184,0,.14); display: flex; align-items: center; justify-content: center; font-size: 20px; line-height: 1; }
+      .vid-t-txt { min-width: 0; }
+      .vid-t-tit { display: block; font-size: 15px; font-weight: 800; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .vid-t-sub { display: block; margin-top: 3px; font-size: 12.5px; font-weight: 500; color: var(--gris); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      @media (max-width: 1199px) {
+        .vid-t { flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 0; padding: 10px 12px; }
+        .vid-t-ico { flex: 0 0 28px; width: 28px; height: 28px; font-size: 15px; }
+        .vid-t-tit { font-size: 12.5px; }
+        .vid-t-sub { font-size: 10.5px; margin-top: 2px; }
+      }
+
+      /* la barra de orden: «N fragancias» a la izquierda, ▦ ☰ y Ordenar a la derecha. Ya no se pega al scroll (NO ROMPER #1) */
+      .vid-orden { display: flex; align-items: center; gap: 12px; height: 54px; padding: 0; margin: 0 0 20px; position: static; background: none; border-top: 1px solid var(--borde); border-bottom: 1px solid var(--borde); }
+      body[class] .vid-orden .filter-count { order: 0; margin-right: auto; font-family: var(--font-body); font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--blanco); }
+      .vid-orden .vid-seg { order: 1; height: 40px; border-radius: 10px; }
+      .vid-orden .vid-seg-b { width: 46px; height: 40px; }
+      .vid-orden .sort-wrapper { order: 2; flex: 0 0 auto; }
+      .vid-orden:not(:has(.sort-wrapper))::before { display: none; }
+      .vid-orden .sort-wrapper > .filter-btn { width: auto; height: 40px; padding: 0 16px; border-radius: 10px; }
+      .vid-btn-filtros { display: none; }
+      .vid-orden .sort-menu button { min-height: 40px; display: flex; align-items: center; }
+
+      /* la línea de filtros prendidos: debajo de la barra, como en el celu pero sin el contador (ya está arriba) */
+      body[class] .active-filters-bar { background: transparent; border: 0; margin: 0; padding: 0 0 16px; min-height: 0; gap: 8px; align-items: center; }
+      body[class] .active-filters-clear { margin-left: auto; }
+
+      /* la lista y la grilla: ocupan la columna entera */
+      body[class] .catalog-grid { max-width: none; margin: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+      html[data-vista="grid"] body[class] .catalog-grid { row-gap: 1.6rem; padding-top: 0; }
+      html[data-vista="lista"] body[class] .catalog-grid { padding: 0; row-gap: 0; min-height: 480px; }
+      /* sin el efecto espejo de la compu (foto a la derecha y texto alineado a la derecha en las cards pares): en la lista todas son iguales */
+      html[data-vista="lista"] body[class] #catalogGrid .product-card.mirror { flex-direction: row; }
+      html[data-vista="lista"] body[class] #catalogGrid .product-card .card-info { text-align: left; }
+      html[data-vista="lista"] body[class] #catalogGrid .product-card .card-pricing { justify-content: flex-start; }
+      /* la foto de la fila: la base de la compu le da a la galería un mínimo de 250 y al img un tope de 250 a 340; en la fila de 96 hay que soltarlos */
+      html[data-vista="lista"] body[class] #catalogGrid .card-gallery, html[data-vista="lista"] body[class] #catalogGrid .card-gallery-slide { min-height: 0; height: 100%; width: 100%; }
+      html[data-vista="lista"] body[class] #catalogGrid .card-image img { width: 100%; height: 100%; max-height: none; object-fit: contain; }
+      html[data-vista="lista"] body[class] #catalogGrid .card-etiquetas { right: auto; }   /* la etiqueta sobre la foto (en la compu la card base la ancla a la derecha) */
+      #catalogGrid > #destacados, #catalogGrid > #decants, #catalogGrid > .price-banner-wrap { grid-column: 1 / -1; min-width: 0; justify-self: stretch; margin-left: 0; margin-right: 0; }
+      body[class] #catalogGrid > #destacados { min-height: 0; }
+      .favs-empty, .sin-resultados { margin-left: 0; margin-right: 0; }
+
+      /* las hojas «Cómo comprar» y compañía: acá un cuadro centrado, no una hoja de abajo (la hoja de Filtros no se abre: la columna la reemplaza) */
+      .vh-overlay { position: fixed; inset: 0; z-index: 9994; background: var(--v-velo); align-items: center; justify-content: center; }
+      .vh-overlay.open { display: flex; }
+      .vh-hoja { width: min(520px, 92vw); max-height: 86vh; display: flex; flex-direction: column; background: var(--v-sup); color: var(--blanco); border-radius: 16px; padding: 20px 24px 24px; }
+      .vh-manija { display: none; }
+      .vh-cab { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; }
+      .vh-tit { margin: 0; font-family: var(--font-body); font-size: 17px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--blanco); }
+      .vh-x { width: 44px; height: 44px; margin: 0 -12px 0 0; padding: 0; border: 0; background: none; color: var(--gris); font-size: 26px; line-height: 1; cursor: pointer; }
+      .vh-cuerpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
     }

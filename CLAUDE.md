@@ -207,6 +207,14 @@ Estrategias por tipo de recurso (definidas en `sw.js`):
 - Los números salen de `updateCartUI` / `updateDecantUI`, los mismos contadores de `.cart-float` / `.decant-float`, que en el celu no se muestran (tampoco `.scroll-top` ni `.dark-float`).
 - El final de la página se reserva con el `padding-bottom` del **`footer`** (`1.5rem` + 140 + `env(safe-area-inset-bottom)`, y +49 con «comparar»: `[FINAL-COMPARANDO]`, decisión 101), así la reserva se pinta con el fondo del pie. Hasta v1.1.129 iba en `html body` y en claro dejaba una franja crema de ~80 px debajo del pie.
 
+### Catálogo en la compu (`[CATALOGO-COMPU]`, 9-oct-2026, v1.1.195)
+- **Desde 1024 px** el catálogo usa la vitrina del celu: es el mismo mecanismo de `[VIDRIERA]` (los nodos se MUDAN con `vidAcomodar`, nada se copia). `vidEsCelu()` quiere decir «modo vitrina» (< 768 **o** >= 1024) y `vidEsCompu()` sólo la compu; **de 768 a 1023 (tablet) queda como en `main`**.
+- Orden: nav · aviso de pagos · **franja de 84 con el buscador a la derecha** (el `.filter-zone--center` se muda al `.hero`) · **columna fija de filtros de 264** a la izquierda (`#colFiltros`: el `.vh-cuerpo` de la hoja se muda a `#cfBody`; a >= 1024 la hoja «Filtros» no se abre) · tira de 4 atajos · barra de orden (`N fragancias` a la izquierda, ▦ ☰ y Ordenar a la derecha; el `#filterCount` se muda ahí) · **lista por defecto** (2 columnas, sin el efecto espejo).
+- Los beneficios, el banner «Explorá» y el CTA del juego se esconden como en el celu (los beneficios están en «Cómo comprar», que acá es un cuadro centrado, no una hoja de abajo). La Selección ST y los decants bajan dentro de la lista (`vidUbicarEstantes`).
+- **Letra Archivo, sólo desde 1024** (decisión de Alejo: menos «look IA» que Playfair itálica): `fonts/archivo-v25-latin-normal-var.woff2` + 6 `@font-face` en `fonts/fonts.css` (400 a 900) + `OFL-Archivo.txt`; se aplica pisando `--font-body` y `--font-display` en `body` dentro del `@media (min-width: 1024px)`. A < 1024 la letra NO cambió (el celu queda con Inter y Playfair).
+- Para compartir reglas con la compu se partió el bloque `@media (max-width: 767px)` de `[VIDRIERA]` en tramos con `@media (max-width: 767px), (min-width: 1024px)` (la card en fila, `.card-huele`, la foto rota, los grupos de la hoja y «Cómo comprar»). **Si tocás una de esas reglas, mirá los dos anchos.** El bloque propio de la compu está al final de `styles.css`.
+- La barra de la compu **no se pega** (NO ROMPER #1) y la columna de filtros tampoco. Pendiente aparte: `[TABLET-DESBORDE-24]` (🟢, de antes: a 800 px la página mide 824, lo causa `.filter-zone--right`).
+
 ### Sort default
 - `renderCatalog()` SIEMPRE termina con `sortCards('price-desc')`. No removerlo.
 

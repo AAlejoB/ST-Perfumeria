@@ -4668,8 +4668,12 @@
     // Reglas de oro: (1) a >= 768 todo queda como en main; (2) NADA se copia: lo que cambia de lugar según el ancho se MUDA (el nodo, con su id y su
     // código) y vuelve a su casa al cruzar los 768; (3) lo que viene de la base se pide UNA vez y se escapa con escapeHTML.
     // ============================================================
-    var vidCelu = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+    // [CATALOGO-COMPU] desde el 9-oct la vitrina también vale desde 1024 (la tablet, de 768 a 1023, sigue como hoy). vidEsCelu() quiere decir «modo vitrina»
+    // (celu o compu); vidEsCompu() es sólo la compu: ahí el buscador va a la franja y los filtros a una columna fija, en lugar de la hoja.
+    var vidCelu = window.matchMedia ? window.matchMedia('(max-width: 767px), (min-width: 1024px)') : null;
+    var vidCompu = window.matchMedia ? window.matchMedia('(min-width: 1024px)') : null;
     function vidEsCelu() { return !!(vidCelu && vidCelu.matches); }
+    function vidEsCompu() { return !!(vidCompu && vidCompu.matches); }
 
     // La casa de cada nodo en escritorio: un marcador (comentario) en su lugar de siempre.
     function vidMover(nodo, padre, antes) {
@@ -4713,7 +4717,7 @@
         var cnt = document.getElementById('activeFiltersCount');
         if (!cnt) { cnt = document.createElement('span'); cnt.id = 'activeFiltersCount'; cnt.className = 'af-count'; barra.insertBefore(cnt, barra.firstChild); }
         cnt.textContent = vidTotal === null ? '' : vidTotal + (vidTotal === 1 ? ' perfume' : ' perfumes');
-        cnt.style.display = vidEsCelu() ? '' : 'none';
+        cnt.style.display = (vidEsCelu() && !vidEsCompu()) ? '' : 'none';   // en la compu el número va en la barra de orden (#filterCount)
       }
       vidUbicarEstantes();
     }
@@ -4763,6 +4767,15 @@
         [document.getElementById('priceFilterWrap'), document.getElementById('vhPrecio'), null]
       ];
       for (var i = 0; i < lista.length; i++) { if (celu) vidMover(lista[i][0], lista[i][1], lista[i][2]); else vidDevolver(lista[i][0]); }
+      // [CATALOGO-COMPU] sólo desde 1024: el buscador sube a la franja, el contador va a la barra de orden y el cuerpo de la hoja (los mismos nodos de los filtros) a la columna.
+      var compu = vidEsCompu();
+      var hero = document.querySelector('.hero');
+      var listaCompu = [
+        [document.querySelector('.filter-zone--center'), hero, null],
+        [document.getElementById('filterCount'), orden, orden && orden.firstElementChild],
+        [document.querySelector('#vhFiltrosOverlay .vh-cuerpo') || document.querySelector('#cfBody .vh-cuerpo'), document.getElementById('cfBody'), null]   // el cuerpo de la hoja: en la hoja o ya en la columna (si no, al volver de la compu no se lo encuentra)
+      ];
+      for (var k = 0; k < listaCompu.length; k++) { if (compu) vidMover(listaCompu[k][0], listaCompu[k][1], listaCompu[k][2]); else vidDevolver(listaCompu[k][0]); }
       if (!celu) { var abiertas = document.querySelectorAll('.vh-overlay.open'); for (var j = 0; j < abiertas.length; j++) abiertas[j].classList.remove('open'); vidHojaAbierta = ''; }
       vidPintarVista();
       vidActualizar();
@@ -4897,6 +4910,13 @@
     })();
 
     if (vidCelu) { if (vidCelu.addEventListener) vidCelu.addEventListener('change', vidAcomodar); else if (vidCelu.addListener) vidCelu.addListener(vidAcomodar); }
+    if (vidCompu) { if (vidCompu.addEventListener) vidCompu.addEventListener('change', vidAcomodar); else if (vidCompu.addListener) vidCompu.addListener(vidAcomodar); }
+    // respaldo: si el navegador no avisa el cambio de ancho (algunos emuladores no lo hacen), un resize con el modo cambiado vuelve a acomodar todo
+    var vidModo = (vidEsCelu() ? 'v' : 't') + (vidEsCompu() ? 'c' : 'm'), vidTimerResize = null;
+    window.addEventListener('resize', function() {
+      if (vidTimerResize) clearTimeout(vidTimerResize);
+      vidTimerResize = setTimeout(function() { var m = (vidEsCelu() ? 'v' : 't') + (vidEsCompu() ? 'c' : 'm'); if (m !== vidModo) { vidModo = m; vidAcomodar(); } }, 150);
+    });
     vidAcomodar();
 
     // ============================================================

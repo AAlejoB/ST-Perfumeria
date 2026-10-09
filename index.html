@@ -788,6 +788,11 @@
        donde termina este contenedor (con la sección del catálogo). Antes era hija del body y quedaba pegada
        hasta el pie. Sin estilos propios. id="catalogo" sigue siendo el destino de «Ver catálogo» y de la URL. -->
   <div class="catalogo-scope">
+  <!-- [CATALOGO-COMPU] (sólo >= 1024) · la columna de filtros: lo que a < 768 vive en la hoja «Filtros» (el .vh-cuerpo, con los mismos nodos) se muda acá con JS (vidAcomodar). Vacía y oculta a < 1024. -->
+  <aside class="col-filtros" id="colFiltros" aria-label="Filtros">
+    <div class="cf-cab"><h2 class="cf-tit">Filtros</h2><button type="button" class="cf-limpiar" onclick="clearAllFilters()">Limpiar</button></div>
+    <div class="cf-body" id="cfBody"></div>
+  </aside>
   <div class="filter-bar" id="catalogo">
     <div class="filter-zone filter-zone--left" id="filterDeck">
       <div class="deck-label" id="deckLabel">
