@@ -7231,7 +7231,7 @@
     }
 
     // ── Paso 1 · «Qué querés hacer» ──
-    // Al leer un perfume ya registrado: stock del local, depósito, lista de espera (si no hay stock), editar (sólo el jefe) y compartir.
+    // Al leer un perfume ya registrado: stock del local, depósito, lista de espera (siempre: es el registro de lo que preguntan los clientes), editar (sólo el jefe) y compartir.
     // No escribe nada: cada botón abre la pantalla de siempre (los mismos modales de Precios & Stock, Depósito y Espera).
     var ACC = { slug: '', tab: 'precios' };
     function accBoton(ico, titulo, sub, fn) {
@@ -7251,7 +7251,7 @@
       var b = [];
       b.push(accBoton('📦', 'Stock del local', !stockCargado ? 'Cambiar la cantidad' : (local === null ? 'Sin dato: cargar la cantidad' : 'Hay ' + local + ' u.'), 'accStock()'));
       b.push(accBoton('🏬', 'Depósito', !stockCargado ? 'Cambiar la cantidad' : 'Hay ' + dep + ' u.', 'accDeposito()'));
-      if (stockCargado && statPasa(p, 'sin')) b.push(accBoton('🔔', 'Anotar en la lista de espera', 'Para avisarle al cliente cuando vuelva', 'accEspera()'));
+      b.push(accBoton('🔔', 'Anotar en la lista de espera', 'Un cliente preguntó por este perfume', 'accEspera()'));   // siempre, haya o no stock: es el registro de lo que preguntan (decisión de Alejo, 12-oct)
       if (currentRole === 'jefe') b.push(accBoton('✏️', 'Editar el perfume', 'Precio, notas, foto y más', 'accEditar()'));
       b.push(accBoton('🔗', 'Compartir el link', 'Se manda o se copia', 'accCompartir()'));
       document.getElementById('accBotones').innerHTML = b.join('');
