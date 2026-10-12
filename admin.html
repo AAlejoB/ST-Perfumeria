@@ -2390,10 +2390,10 @@
 
       <!-- [STAT-FILTRO] «Perfumes con depósito» hace lo mismo que la casilla de abajo; «Sin local pero con depósito» deja sólo los que hay que traer -->
       <div class="stock-stats stock-stats--filtros" style="grid-template-columns:repeat(3,1fr);">
-        <div class="stat-card stat-btn stat-fijo">
+        <button type="button" class="stat-card stat-btn" id="statBtnDepUnidades" aria-pressed="false" onclick="depStat('unidades')">
           <span class="stat-icon">📦</span><span class="stat-value" id="statDepUnidades">—</span>
           <span class="stat-label">Unidades en depósito</span>
-        </div>
+        </button>
         <button type="button" class="stat-card stat-btn" id="statBtnDepCon" aria-pressed="false" onclick="depStat('con')">
           <span class="stat-icon">🌸</span><span class="stat-value" id="statDepPerfumes">—</span>
           <span class="stat-label">Perfumes con depósito</span>
@@ -5005,27 +5005,30 @@
       return depQty(p) > 0 && (p._stockQty === 0 || p._stockStatus === 'out');
     }
 
-    // [STAT-FILTRO] las tarjetas del Depósito: «Perfumes con depósito» tilda/destilda la casilla «Sólo los que tienen unidades»
-    // (es la misma cuenta) y «Sin local pero con depósito» filtra con depParaReponer. La casilla y la tarjeta se ven iguales.
-    var DEP_REPONER = false;
+    // [STAT-FILTRO] las tarjetas del Depósito. «Perfumes con depósito» tilda/destilda la casilla «Sólo los que tienen unidades» (es la
+    // misma cuenta); «Unidades en depósito» deja los que tienen unidades, de más a menos (y pone el orden así); «Sin local pero con
+    // depósito» filtra con depParaReponer. DEP_MODO: null | 'unidades' | 'reponer' (una a la vez; 'con' es la casilla).
+    var DEP_MODO = null;
     function depStat(clave) {
       if (clave === 'con') {
         var chk = document.getElementById('chkSoloConDeposito');
-        if (chk) chk.checked = DEP_REPONER ? true : !chk.checked;   // viniendo de «Sin local…», pasa a «con depósito» en vez de apagar todo
-        DEP_REPONER = false;
+        if (chk) chk.checked = DEP_MODO ? true : !chk.checked;   // viniendo de otra tarjeta, pasa a «con depósito» en vez de apagar todo
+        DEP_MODO = null;
       } else {
-        DEP_REPONER = !DEP_REPONER;
+        DEP_MODO = (DEP_MODO === clave) ? null : clave;
+        if (DEP_MODO === 'unidades') { var s = document.getElementById('sortDeposito'); if (s) s.value = 'dep-desc'; }
       }
       renderDeposito();
     }
-    function pintarDepStat(con, reponer) {
-      var b1 = document.getElementById('statBtnDepCon'), b2 = document.getElementById('statBtnDepReponer');
-      if (b1) { b1.setAttribute('aria-pressed', con && !reponer ? 'true' : 'false'); b1.disabled = !stockCargado; }
-      if (b2) { b2.setAttribute('aria-pressed', reponer ? 'true' : 'false'); b2.disabled = !stockCargado; }
+    function pintarDepStat(con, modo) {
+      var set = function(id, on) { var b = document.getElementById(id); if (b) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.disabled = !stockCargado; } };
+      set('statBtnDepCon', con && !modo);
+      set('statBtnDepUnidades', modo === 'unidades');
+      set('statBtnDepReponer', modo === 'reponer');
       var nota = document.getElementById('depFiltroNota');
       if (!nota) return;
-      nota.hidden = !reponer;
-      nota.innerHTML = reponer ? 'Mostrando sólo: <strong>Sin local pero con depósito</strong><button type="button" onclick="depStat(\'reponer\')">Ver todos</button>' : '';
+      nota.hidden = !modo;
+      nota.innerHTML = modo ? 'Mostrando sólo: <strong>' + (modo === 'reponer' ? 'Sin local pero con depósito' : 'Con unidades en depósito, de más a menos') + '</strong><button type="button" onclick="depStat(null)">Ver todos</button>' : '';
     }
 
     function renderDeposito() {
@@ -5051,10 +5054,11 @@
       pintarValorInventario();   // [VALOR-INV-DEPOSITO] la parte del depósito del valor total
 
       var list = soloCon ? todos.filter(function(p) { return depQty(p) > 0; }) : todos.slice();
-      // [STAT-FILTRO] «Sin local pero con depósito»: sólo los que hay que ir a traer. «Perfumes con depósito» es la casilla de arriba.
-      var reponerActivo = DEP_REPONER && stockCargado;
-      if (reponerActivo) list = list.filter(depParaReponer);
-      pintarDepStat(soloCon && stockCargado, reponerActivo);
+      // [STAT-FILTRO] una tarjeta del Depósito prendida (ver depStat); sin la lectura del stock no filtra.
+      var modo = stockCargado ? DEP_MODO : null;
+      if (modo === 'reponer') list = list.filter(depParaReponer);
+      if (modo === 'unidades') { list = list.filter(function(p) { return depQty(p) > 0; }); sortKey = 'dep-desc'; }
+      pintarDepStat(soloCon && stockCargado, modo);
 
       list.sort(function(a, b) {
         switch (sortKey) {
