@@ -440,7 +440,7 @@ Un prompt que llega "de 3" ya pasó por dos revisiones: menos preguntas de alcan
 
 Alejo es el único humano de la cadena: cada mensaje extra que tiene que clasificar es carga suya, no de Claude Code. El objetivo sigue siendo que los tres trabajen a la vez y él sólo copie y pegue — **una vez por turno**.
 
-**Skills globales** (21-sep, en `C:\Users\Alejo\.claude\skills\`, valen en todos los proyectos): `/idea` (ficha en `docs/IDEAS.md`, sin tocar código), `/arranque` (tablero de quién espera qué), `/enrutar` (el bloque único de arriba, sistemático), `/bases` (commit + blob + EOL + SW real para el PREPARADOR). Detalle en `docs/SLASH_COMMANDS.md` § Skills globales.
+**Skills globales** (21-sep, en `C:\Users\Alejo\.claude\skills\`, valen en todos los proyectos): `/idea` (ficha en `docs/IDEAS.md`, sin tocar código), `/tanda` (antes `/arranque`, 12-oct: tablero de quién espera qué; en plataforma-saas hace el bucle de tandas; `/tanda cerrar` en ST llama a `/handoff`), `/enrutar` (el bloque único de arriba, sistemático), `/bases` (commit + blob + EOL + SW real para el PREPARADOR). Detalle en `docs/SLASH_COMMANDS.md` § Skills globales.
 
 **Flujos de trabajo multi-agente: sí, pero sólo cuando hace falta** (decisión de Alejo, 23-sep-2026). Para barridos y auditorías (seguridad, inventarios, revisar un cambio grande antes de mergear). No para aplicar un prompt ya decidido. **Antes de lanzar uno, Claude Code le dice a Alejo qué va a barrer y con cuántos agentes, y espera su OK.**
 
