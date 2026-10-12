@@ -35,8 +35,9 @@ comment on table public.perfume_codigos is
 
 alter table public.perfume_codigos enable row level security;
 
--- Nada para anon ni para PUBLIC: ni siquiera permisos de tabla.
-revoke all on public.perfume_codigos from anon, public;
+-- Nada para anon ni para PUBLIC: ni siquiera permisos de tabla. A authenticated se le sacan los que Supabase da por defecto
+-- (update, truncate, references, trigger) y se le devuelven sólo los tres que usa el panel.
+revoke all on public.perfume_codigos from anon, public, authenticated;
 grant select, insert, delete on public.perfume_codigos to authenticated;
 
 drop policy if exists perfume_codigos_select_staff on public.perfume_codigos;
