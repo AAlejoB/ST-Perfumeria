@@ -1146,6 +1146,22 @@
     /* 163a · a 360 entra en la fila del buscador y «Ordenar» baja: el buscador pide 180 y el panel da ~298 */
     @media (max-width: 420px) { .btn-escanear { padding: 0 .5rem; gap: .3rem; font-size: .68rem; letter-spacing: .03em; } .btn-escanear svg { width: 20px; height: 20px; } }
     #modalCodigoNuevo .modal-close { width: 44px; height: 44px; top: .4rem; right: .4rem; display: inline-flex; align-items: center; justify-content: center; }
+    /* [ESCANER] paso 1 · la hoja «Qué querés hacer» al leer un perfume ya registrado: las pantallas de siempre, a un toque */
+    #modalAccionesPerfume .modal-close { width: 44px; height: 44px; top: .4rem; right: .4rem; display: inline-flex; align-items: center; justify-content: center; }
+    .acc-nombre { text-align: center; font-size: 1.05rem; font-weight: 700; margin: 0; padding: 0 2rem; }
+    .acc-marca { text-align: center; font-size: .75rem; color: var(--gris-claro); margin: .15rem 0 .5rem; }
+    .acc-nota { text-align: center; font-size: .78rem; font-weight: 600; color: var(--tinta-ok); margin: 0 0 .5rem; }
+    .acc-nota:empty { display: none; }
+    .acc-estado { display: flex; justify-content: center; align-items: center; gap: .4rem .8rem; flex-wrap: wrap; margin: 0 0 .7rem; font-size: .7rem; color: var(--gris-claro); }
+    .acc-btn {
+      display: flex; align-items: center; gap: .8rem; width: 100%; min-height: 56px; padding: .5rem .9rem; margin-top: .5rem; text-align: left;
+      font-family: inherit; color: inherit; background: rgba(128,128,128,.1); border: 1px solid var(--borde); border-radius: 6px; cursor: pointer;
+    }
+    .acc-btn:hover { border-color: var(--amarillo-tinta); }
+    .acc-ico { font-size: 1.4rem; width: 1.8rem; text-align: center; flex-shrink: 0; }
+    .acc-btn b { display: block; font-size: .85rem; font-weight: 700; }
+    .acc-btn small { display: block; font-size: .7rem; color: var(--gris-claro); font-weight: 400; margin-top: 1px; }
+    .acc-msg { text-align: center; font-size: .78rem; min-height: 1.2rem; margin: .5rem 0 0; }
     /* [PUNTOS-DELTA-TINTA] 141j · el + y el − de los dos historiales de puntos (la tabla y las tarjetas): las mismas tintas que «+ Sumar» / «− Restar» del modal (141d) */
     .puntos-delta--mas   { color: var(--tinta-ok); }
     .puntos-delta--menos { color: var(--tinta-error); }
@@ -4090,6 +4106,21 @@
         <p class="cod-msg" id="codMsg" role="alert"></p>
         <button type="button" class="modal-btn cod-btn-texto" onclick="codVolverPaso1()">Atrás</button>
       </div>
+    </div>
+  </div>
+
+  <!-- [ESCANER] paso 1 · «QUÉ QUERÉS HACER»: aparece al leer un perfume que ya tiene código. Los botones los arma accAbrir (la lista cambia con el stock y el rol). -->
+  <div class="modal-overlay" id="modalAccionesPerfume" data-sin-enter="true" onclick="accCerrar(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="accCerrar()" aria-label="Cerrar">&times;</button>
+      <p class="modal-title">Qué querés hacer</p>
+      <p class="acc-nombre" id="accNombre"></p>
+      <p class="acc-marca" id="accMarca"></p>
+      <p class="acc-nota" id="accNota" role="status"></p>
+      <div class="acc-estado" id="accEstado"></div>
+      <div id="accBotones"></div>
+      <p class="acc-msg" id="accMsg" role="status"></p>
+      <button type="button" class="modal-btn cod-btn-texto" onclick="accCerrar()">Cerrar</button>
     </div>
   </div>
 
@@ -7186,13 +7217,80 @@
       inp.dispatchEvent(new Event('input', { bubbles: true }));   // la ✕ del campo y filterTable
       if (tab === 'deposito') renderDeposito(); else renderPrecios();
       escNota(tab, nota);
+      accAbrir(p, tab, nota);   // [ESCANER] paso 1 · la hoja «Qué querés hacer»; la fila se marca al cerrarla (accCerrar), para que no quede tapada
+    }
+    // La fila del perfume se marca 2 s y se trae a la vista (163c).
+    function escMarcarFila(tab, slug) {
       var tb = document.getElementById(escId('tbody', tab)), fila = null;
       var filas = tb ? tb.querySelectorAll('tr[data-slug]') : [];
-      for (var i = 0; i < filas.length; i++) { if (filas[i].getAttribute('data-slug') === p.slug) { fila = filas[i]; break; } }
+      for (var i = 0; i < filas.length; i++) { if (filas[i].getAttribute('data-slug') === slug) { fila = filas[i]; break; } }
       if (!fila) return;
       fila.classList.add('fila-escaneada');
       try { fila.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
       setTimeout(function() { fila.classList.remove('fila-escaneada'); }, 2000);
+    }
+
+    // ── Paso 1 · «Qué querés hacer» ──
+    // Al leer un perfume ya registrado: stock del local, depósito, lista de espera (si no hay stock), editar (sólo el jefe) y compartir.
+    // No escribe nada: cada botón abre la pantalla de siempre (los mismos modales de Precios & Stock, Depósito y Espera).
+    var ACC = { slug: '', tab: 'precios' };
+    function accBoton(ico, titulo, sub, fn) {
+      return '<button type="button" class="acc-btn" onclick="' + fn + '"><span class="acc-ico">' + ico + '</span><span><b>' + escHtml(titulo) + '</b><small>' + escHtml(sub) + '</small></span></button>';
+    }
+    function accAbrir(p, tab, nota) {
+      ACC.slug = p.slug; ACC.tab = tab;
+      document.getElementById('accNombre').textContent = p.name || p.slug;
+      document.getElementById('accMarca').textContent = p.marca_real || '';
+      document.getElementById('accNota').textContent = nota || '';
+      document.getElementById('accMsg').textContent = '';
+      var local = (typeof p._stockQty === 'number') ? p._stockQty : null, dep = depQty(p);
+      var info = stockCargado ? deriveStockInfo(p) : null, dinfo = stockCargado ? deriveDepositoInfo(dep) : null;
+      document.getElementById('accEstado').innerHTML = info
+        ? '<span>Local <span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span></span><span>Depósito <span class="badge-stock ' + dinfo.badgeClass + '">' + escHtml(dinfo.badgeText) + '</span></span>'
+        : '<span>El stock no se pudo leer.</span>';
+      var b = [];
+      b.push(accBoton('📦', 'Stock del local', !stockCargado ? 'Cambiar la cantidad' : (local === null ? 'Sin dato: cargar la cantidad' : 'Hay ' + local + ' u.'), 'accStock()'));
+      b.push(accBoton('🏬', 'Depósito', !stockCargado ? 'Cambiar la cantidad' : 'Hay ' + dep + ' u.', 'accDeposito()'));
+      if (stockCargado && statPasa(p, 'sin')) b.push(accBoton('🔔', 'Anotar en la lista de espera', 'Para avisarle al cliente cuando vuelva', 'accEspera()'));
+      if (currentRole === 'jefe') b.push(accBoton('✏️', 'Editar el perfume', 'Precio, notas, foto y más', 'accEditar()'));
+      b.push(accBoton('🔗', 'Compartir el link', 'Se manda o se copia', 'accCompartir()'));
+      document.getElementById('accBotones').innerHTML = b.join('');
+      document.getElementById('modalAccionesPerfume').classList.add('active');
+    }
+    // Cerrar la hoja (✕, «Cerrar» o tocar afuera): vuelve a la lista con la fila marcada.
+    function accCerrar(e) {
+      if (e && e.target !== e.currentTarget) return;
+      closeModal('modalAccionesPerfume');
+      escMarcarFila(ACC.tab, ACC.slug);
+    }
+    function accPerfume() { return PERFUMES.find(function(pf) { return pf.slug === ACC.slug; }); }
+    function accStock() { closeModal('modalAccionesPerfume'); openStockModal(ACC.slug); }
+    function accDeposito() { closeModal('modalAccionesPerfume'); openDepositoModal(ACC.slug); }
+    function accEspera() {
+      var p = accPerfume(); if (!p) return;
+      closeModal('modalAccionesPerfume');
+      esperaAbrirAnotar();
+      esperaElegidos.push({ slug: p.slug, name: p.name || p.slug, estado: '' });
+      esperaRenderChips();
+    }
+    function accEditar() {
+      closeModal('modalAccionesPerfume');
+      switchTab('editar', document.querySelector('.tab-btn[data-tab="editar"]'));
+      loadEditPerfume(ACC.slug);
+    }
+    // El link de la web: los de perfumes.js tienen su página (/perfume/slug); los que se cargaron desde el panel, no (esa página los manda al inicio): van con ?perfume=.
+    function accCompartir() {
+      var p = accPerfume(); if (!p) return;
+      var url = 'https://www.stperfumeria.com/' + (p._fromDB ? '?perfume=' + encodeURIComponent(p.slug) : 'perfume/' + encodeURIComponent(p.slug));
+      var texto = (p.name || '') + ' · ST Perfumería';
+      var msg = document.getElementById('accMsg');
+      function copiar() {
+        var ok = function() { msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Link copiado'; };
+        var no = function() { msg.style.color = 'var(--tinta-aviso)'; msg.textContent = url; };
+        try { navigator.clipboard.writeText(url).then(ok, no); } catch (e) { no(); }
+      }
+      if (navigator.share) { navigator.share({ title: texto, text: texto, url: url }).catch(function(err) { if (!err || err.name !== 'AbortError') copiar(); }); }
+      else copiar();
     }
 
     // Asocia un código a un perfume (lo hacen el jefe y la empleada; va al Log). Devuelve { ok } o { ok: false, texto }.
