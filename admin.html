@@ -2075,6 +2075,14 @@
     .doc-card--crit[aria-pressed="true"] { border-color: #e74c3c; box-shadow: inset 0 0 0 1px #e74c3c; }
     .doc-card--warn[aria-pressed="true"] { border-color: #f1c40f; box-shadow: inset 0 0 0 1px #f1c40f; }
     .doc-card--ok[aria-pressed="true"] { border-color: #2ecc71; box-shadow: inset 0 0 0 1px #2ecc71; }
+    /* [STAT-FILTRO-MAS] Estadísticas: las tarjetas con una pestaña donde seguir son botones (statCard) que saltan a ella, como los del Inicio.
+       Mismo aspecto que las demás (el texto sigue siendo el de .stat-card), 44 px de alto y «Ir →» chico abajo. */
+    button.stat-atajo {
+      display: block; width: 100%; box-sizing: border-box; text-align: left; min-height: 44px;
+      font: inherit; color: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent;
+    }
+    button.stat-atajo:active { transform: scale(.98); }
+    button.stat-atajo .stat-ir { display: block; margin-top: .35rem; font-size: .65rem; font-weight: 600; letter-spacing: .06em; color: var(--amarillo-tinta); }
     .stat-filtro-nota { font-size: .72rem; color: var(--gris-claro); margin: 0 0 .6rem; }
     .stat-filtro-nota[hidden] { display: none; }
     .stat-filtro-nota button {
@@ -4753,6 +4761,16 @@
     }
     // 133d/f · un toque abre la pestaña igual que desde el menú, con su carga, y el menú queda con esa pestaña marcada:
     // es el mismo botón del menú (y la misma regla de roles: si la cuenta no lo ve, no hace nada).
+    // [STAT-FILTRO-MAS] 12-oct · una tarjeta de Estadísticas. Con `tab` y si esta cuenta puede entrar a esa pestaña (canAccessTab: la misma regla
+    // del Inicio), es un botón «Ir →» que salta a ella (irDesdeInicio); si no (sin destino, o una pestaña del jefe vista por la empleada), es la
+    // tarjeta de siempre. `destino` y `etiqueta` ya vienen escritos para HTML (se escriben acá, no vienen del usuario).
+    function statCard(tab, destino, etiqueta, valor) {
+      var cuerpo = '<p class="stat-label">' + etiqueta + '</p><p class="stat-value">' + valor + '</p>';
+      if (tab && canAccessTab(tab) && document.querySelector('.sidebar .tab-btn[data-tab="' + tab + '"]'))
+        return '<button type="button" class="stat-card stat-atajo" onclick="irDesdeInicio(\'' + tab + '\')" aria-label="' + etiqueta.replace(/^\S+\s/, '') + ': ir a ' + destino + '">'
+          + cuerpo + '<span class="stat-ir" aria-hidden="true">Ir a ' + destino + ' →</span></button>';
+      return '<div class="stat-card">' + cuerpo + '</div>';
+    }
     function irDesdeInicio(tab) {
       var b = document.querySelector('.sidebar .tab-btn[data-tab="' + tab + '"]');
       if (!b || b.style.display === 'none' || !canAccessTab(tab)) return;
@@ -5987,11 +6005,11 @@
 
       // === CARDS RESUMEN ===
       statsGrid.innerHTML = ''
-        + '<div class="stat-card"><p class="stat-label">🧴 Perfumes</p><p class="stat-value">' + totalPerfumes + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">👥 Clientes</p><p class="stat-value">' + totalClientes + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">💬 Opiniones</p><p class="stat-value">' + totalOpiniones + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">👁️ Visitas totales</p><p class="stat-value">' + (clicksErr ? '—' : totalClicks) + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">📊 Promedio/perfume</p><p class="stat-value">' + (clicksErr ? '—' : avgViews) + '</p></div>';
+        + statCard('precios', 'Precios &amp; Stock', '🧴 Perfumes', totalPerfumes)
+        + statCard('clientes', 'Clientes', '👥 Clientes', totalClientes)
+        + statCard('opiniones', 'Opiniones', '💬 Opiniones', totalOpiniones)
+        + statCard('analytics', 'Analytics', '👁️ Visitas totales', (clicksErr ? '—' : totalClicks))
+        + statCard(null, '', '📊 Promedio/perfume', (clicksErr ? '—' : avgViews));
 
       // === TOP 10 — Gráfico de barras ===
       var barChart = document.getElementById('statsBarChart');
@@ -6064,10 +6082,10 @@
       if (precioMin === Infinity) precioMin = 0;
 
       catalogGrid.innerHTML = ''
-        + '<div class="stat-card"><p class="stat-label">📸 Con foto</p><p class="stat-value">' + conFoto + '/' + totalPerfumes + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">🎵 Notas completas</p><p class="stat-value">' + conNotas + '/' + totalPerfumes + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">🏷️ Con promo</p><p class="stat-value">' + conPromo + '</p></div>'
-        + '<div class="stat-card"><p class="stat-label">💰 Precio promedio</p><p class="stat-value">$' + precioAvg.toLocaleString('es-AR') + '</p></div>';
+        + statCard('doctor', 'Doctor', '📸 Con foto', conFoto + '/' + totalPerfumes)
+        + statCard('doctor', 'Doctor', '🎵 Notas completas', conNotas + '/' + totalPerfumes)
+        + statCard(null, '', '🏷️ Con promo', conPromo)
+        + statCard(null, '', '💰 Precio promedio', '$' + precioAvg.toLocaleString('es-AR'));
 
       // === DISTRIBUCIÓN POR CATEGORÍA ===
       var catDiv = document.getElementById('statsCatDistrib');
