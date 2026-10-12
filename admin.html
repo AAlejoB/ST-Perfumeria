@@ -1188,6 +1188,57 @@
     }
     .acc-mover-botones #accBtnSuma { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
     .acc-mover-botones button:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── [LLEGO-MERCADERIA] paso 3 · el botón fijo del Inicio, el del encabezado y el modo de carga seguida ── */
+    .inicio-merc {
+      display: flex; align-items: center; gap: .9rem; width: 100%; min-height: 72px; padding: .8rem 1.1rem; margin: 0 0 12px; text-align: left;
+      font-family: inherit; cursor: pointer; background: var(--amarillo); color: #000; border: 1px solid var(--amarillo); border-radius: 12px;
+    }
+    .inicio-merc-ico { font-size: 1.9rem; flex-shrink: 0; }
+    .inicio-merc b { display: block; font-size: 1.05rem; font-weight: 800; }
+    .inicio-merc small { display: block; font-size: .75rem; font-weight: 500; margin-top: 1px; }
+    .panel-merc {
+      display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem;
+      font-family: inherit; font-size: .7rem; font-weight: 700; letter-spacing: .04em; cursor: pointer;
+      background: var(--amarillo); color: #000; border: 1px solid var(--amarillo); border-radius: 6px;
+    }
+    @media (max-width: 700px) { .panel-merc { width: var(--tap-min); padding: 0; } .panel-merc .panel-merc-txt { display: none; } }
+    .merc-box { max-width: 480px; max-height: calc(100vh - 2rem); overflow-y: auto; }
+    #modalMercaderia .modal-close { width: 44px; height: 44px; top: .4rem; right: .4rem; display: inline-flex; align-items: center; justify-content: center; }
+    .merc-buscar { display: flex; gap: .5rem; align-items: center; margin: 0 0 .3rem; }
+    .merc-buscar input { flex: 1; min-width: 0; margin-bottom: 0; }
+    .merc-ayuda { font-size: .7rem; color: var(--gris-claro); margin: .2rem 0 .5rem; }
+    .merc-elegido { border: 1px solid var(--amarillo-tinta); border-radius: 8px; padding: .7rem; margin: .4rem 0 .6rem; }
+    .merc-elegido .acc-nombre { padding: 0; }
+    .merc-elegido .acc-estado { margin: .2rem 0 .6rem; }
+    .merc-elegido-fila { display: flex; align-items: center; gap: .5rem; }
+    .merc-elegido-fila #mercCant { width: 84px; min-height: 48px; margin-bottom: 0; text-align: center; font-size: 1.4rem; font-weight: 700; }
+    #mercAgregarBtn { flex: 1; min-height: 48px; margin-top: 0; }
+    .merc-asignando { border: 1px dashed var(--tinta-aviso); border-radius: 8px; padding: .6rem; margin: .4rem 0; font-size: .78rem; color: var(--tinta-aviso); display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .merc-asignando[hidden], .merc-elegido[hidden], #mercResultados[hidden], #mercVistaCarga[hidden], #mercVistaResumen[hidden] { display: none; }
+    .merc-titulo-lista { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo-tinta); margin: .9rem 0 .2rem; }
+    .merc-fila { display: flex; align-items: center; gap: .5rem; padding: .45rem 0; border-bottom: 1px solid var(--borde); }
+    .merc-nombre { flex: 1; min-width: 0; font-size: .85rem; font-weight: 600; }
+    .merc-nombre small { display: block; font-size: .68rem; font-weight: 400; color: var(--gris-claro); }
+    .merc-pend .merc-nombre small { color: var(--tinta-aviso); }
+    .merc-pend { flex-wrap: wrap; }   /* a 360 con 3 controles el nombre quedaba de una letra por renglón: nombre arriba, controles abajo */
+    .merc-pend .merc-nombre { flex: 1 1 100%; }
+    .merc-pend .merc-asignar { flex: 1; }
+    .merc-qty { width: 68px; min-height: 44px; margin-bottom: 0; text-align: center; font-weight: 700; flex-shrink: 0; padding-left: .2rem; padding-right: .2rem; }
+    .merc-x {
+      width: 44px; min-width: 44px; height: 44px; flex-shrink: 0; font-size: 1.1rem; font-family: inherit; color: inherit; cursor: pointer;
+      background: rgba(128,128,128,.12); border: 1px solid var(--borde); border-radius: 6px;
+    }
+    .merc-asignar { min-height: 44px; padding: 0 .6rem; font-family: inherit; font-size: .7rem; font-weight: 700; color: var(--amarillo-tinta); background: transparent; border: 1px solid var(--amarillo-tinta); border-radius: 6px; cursor: pointer; }
+    .merc-vacio { font-size: .78rem; color: var(--gris-claro); margin: .4rem 0; }
+    .merc-pie { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .8rem; padding-top: .6rem; border-top: 1px solid var(--borde); position: sticky; bottom: -1.9rem; background: inherit; }
+    .merc-total { font-size: .85rem; font-weight: 700; }
+    .merc-pie .modal-btn { width: auto; margin-top: 0; padding: 0 1.2rem; min-height: 48px; }
+    .merc-res-grande { text-align: center; font-size: 1.3rem; font-weight: 800; margin: .3rem 0 0; color: var(--amarillo-tinta); }
+    .merc-res-sub { text-align: center; font-size: .78rem; color: var(--gris-claro); margin: .1rem 0 .6rem; }
+    .merc-res-aviso { font-size: .78rem; color: var(--tinta-aviso); margin: .6rem 0; }
+    .merc-res-botones { display: flex; gap: .5rem; margin-top: .8rem; }
+    .merc-res-botones .modal-btn { margin-top: 0; min-height: 48px; }
     /* [PUNTOS-DELTA-TINTA] 141j · el + y el − de los dos historiales de puntos (la tabla y las tarjetas): las mismas tintas que «+ Sumar» / «− Restar» del modal (141d) */
     .puntos-delta--mas   { color: var(--tinta-ok); }
     .puntos-delta--menos { color: var(--tinta-error); }
@@ -2369,6 +2420,7 @@
         <p class="panel-title" style="margin:0;">ST Admin<span class="panel-title-extra"> Panel</span> <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:var(--badge-ml,.5rem);vertical-align:middle;"></span></p>
       </div>
       <div style="display:flex;align-items:center;gap:.5rem;">
+        <button type="button" class="panel-merc" onclick="mercAbrir()" aria-label="Llegó mercadería" title="Llegó mercadería"><span aria-hidden="true">&#128230;</span><span class="panel-merc-txt">Llegó mercadería</span></button>
         <span id="syncIndicator" class="sync-indicator" style="display:none;" title="Estado de sincronización entre tablets"></span>
         <button id="themeToggleBtn" onclick="toggleAdminTheme()" title="Alternar tema claro / oscuro"
           style="background:transparent;border:1px solid var(--borde);color:var(--gris-claro);font-size:.7rem;padding:.35rem .6rem;border-radius:4px;cursor:pointer;letter-spacing:.05em;display:flex;align-items:center;gap:.3rem;">
@@ -2456,6 +2508,8 @@
     <!-- [PANEL-INICIO] 133 · TAB: INICIO (la pantalla con la que arranca el panel, las dos cuentas). Los botones hacen lo mismo
          que el menú: .click() sobre la pestaña del menú (con su carga y su marca). -->
     <div class="tab-content active" id="tab-inicio">
+      <!-- [LLEGO-MERCADERIA] paso 3 · botón fijo, para las dos cuentas -->
+      <button type="button" class="inicio-merc" onclick="mercAbrir()"><span class="inicio-merc-ico" aria-hidden="true">&#128230;</span><span><b>Llegó mercadería</b><small>Cargá el pedido: escaneás y se suma</small></span></button>
       <div class="inicio-grid">
         <button type="button" class="inicio-btn" onclick="irDesdeInicio('precios')"><span class="inicio-ico" aria-hidden="true">&#128176;</span><span class="inicio-nombre">Precios &amp; Stock</span><span class="inicio-sub"></span></button>
         <button type="button" class="inicio-btn" onclick="irDesdeInicio('deposito')"><span class="inicio-ico" aria-hidden="true">&#128230;</span><span class="inicio-nombre">Depósito</span><span class="inicio-sub"></span></button>
@@ -4131,6 +4185,53 @@
         <button type="button" class="modal-btn modal-btn-price" id="codGuardar" onclick="codGuardar()" disabled>Guardar código</button>
         <p class="cod-msg" id="codMsg" role="alert"></p>
         <button type="button" class="modal-btn cod-btn-texto" onclick="codVolverPaso1()">Atrás</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [LLEGO-MERCADERIA] paso 3 · «LLEGÓ MERCADERÍA»: carga seguida del pedido. Lo cargado se suma al toque; «Terminé» da el resumen. -->
+  <div class="modal-overlay" id="modalMercaderia" data-sin-enter="true">
+    <div class="modal-box merc-box">
+      <button class="modal-close" onclick="mercCerrar()" aria-label="Cerrar">&times;</button>
+      <div id="mercVistaCarga">
+        <p class="modal-title">Llegó mercadería</p>
+        <div class="acc-seg" id="mercLugar" role="radiogroup" aria-label="Dónde se suma">
+          <button type="button" role="radio" aria-checked="true" data-lugar="local" onclick="mercLugar('local')">Al local</button>
+          <button type="button" role="radio" aria-checked="false" data-lugar="deposito" onclick="mercLugar('deposito')">Al depósito</button>
+        </div>
+        <div class="merc-buscar">
+          <input type="text" class="modal-input" id="mercBuscar" placeholder="Código o nombre del perfume" autocomplete="off" data-sin-x="1" oninput="mercBuscarInput()" onkeydown="mercBuscarTecla(event)"/>
+          <button type="button" class="btn-escanear" onclick="mercEscanear()" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
+        </div>
+        <p class="merc-ayuda" id="mercAyuda">Escaneá con la cámara o la pistola, o escribí el código o el nombre.</p>
+        <div class="cod-lista" id="mercResultados" hidden></div>
+        <div class="merc-asignando" id="mercAsignando" hidden><span id="mercAsignandoTxt"></span><button type="button" class="merc-asignar" onclick="mercAsignarCancelar()">Cancelar</button></div>
+        <div class="merc-elegido" id="mercElegido" hidden>
+          <p class="acc-nombre" id="mercElegidoNombre"></p>
+          <p class="acc-marca" id="mercElegidoMarca"></p>
+          <div class="acc-estado" id="mercElegidoEstado"></div>
+          <div class="merc-elegido-fila">
+            <button type="button" class="acc-paso" onclick="mercPaso(-1)" aria-label="Una menos">&minus;</button>
+            <input type="number" class="modal-input" id="mercCant" inputmode="numeric" min="1" max="999" value="1" aria-label="Cantidad" data-sin-x="1" onkeydown="if(event.key==='Enter'){mercAgregar();}"/>
+            <button type="button" class="acc-paso" onclick="mercPaso(1)" aria-label="Una más">+</button>
+            <button type="button" class="modal-btn modal-btn-price" id="mercAgregarBtn" onclick="mercAgregar()">&#10133; Agregar</button>
+          </div>
+        </div>
+        <p class="acc-msg" id="mercMsg" role="status"></p>
+        <div id="mercPendientes"></div>
+        <div id="mercLista"></div>
+        <div class="merc-pie">
+          <span class="merc-total" id="mercTotal">Todavía no cargaste nada</span>
+          <button type="button" class="modal-btn modal-btn-price" onclick="mercTerminar()">Terminé</button>
+        </div>
+      </div>
+      <div id="mercVistaResumen" hidden>
+        <p class="modal-title">Resumen</p>
+        <div id="mercResumenCuerpo"></div>
+        <div class="merc-res-botones">
+          <button type="button" class="modal-btn cod-btn-borde" onclick="mercVolver()">Volver a editar</button>
+          <button type="button" class="modal-btn modal-btn-price" onclick="mercConfirmar()">&#10003; Confirmar y cerrar</button>
+        </div>
       </div>
     </div>
   </div>
@@ -7181,7 +7282,7 @@
       try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) {}
       var tab = ESC.tab;
       escanearCerrar();
-      escProcesar(codigo, tab);
+      if (tab === 'merc') mercCodigo(codigo); else escProcesar(codigo, tab);   // [LLEGO-MERCADERIA] la carga seguida usa la misma cámara
     }
     function escLinternaDetectar(stream) {
       var t = stream.getVideoTracks()[0], caps = {};
@@ -7225,7 +7326,7 @@
       if (!n.ok) return;
       var tab = ESC.tab;
       escanearCerrar();
-      escProcesar(n.codigo, tab);
+      if (tab === 'merc') mercCodigo(n.codigo); else escProcesar(n.codigo, tab);
     }
 
     // ── 163c / 163d · qué hace un código leído ──
@@ -7372,55 +7473,311 @@
         notifyTelegram('📬 Waitlist PENDIENTE de aviso\n🌶 ' + p.name + '\n👥 ' + notified.length + ' persona(s)');
       }
     }
-    async function accMoverLocal(p, signo, n) {
-      var prevQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
-      var prevStatus = p._stockStatus || 'ok';
-      if (signo < 0 && prevQty === null) { accAviso('No hay dato del stock del local: cargá la cantidad en «Stock del local».', 'aviso'); return; }
-      var base = (prevQty === null ? 0 : prevQty), nuevo = base + signo * n;
-      if (nuevo < 0) { accAviso('Solo hay ' + base + ' en el local: no se restó nada.', 'error'); return; }
-      if (nuevo > 999) { accAviso('Pasa de 999 en el local: revisá la cantidad.', 'error'); return; }
-      var info = deriveStockInfo({ _stockQty: nuevo, _stockStatus: prevStatus === 'pausado' ? 'pausado' : null });
+    // Núcleo del movimiento de stock: lo usan la hoja «Llegaron / Vendí» y el modo «Llegó mercadería». Devuelve
+    // { ok: true, texto, prevStatus, newStatus, cambioLocal } o { ok: false, texto, tipo: 'error' | 'aviso' }. No toca la pantalla del que llama.
+    // SINCRO: es copia del núcleo de saveStock y saveDeposito (si cambiás uno, cambiá el otro).
+    async function stockMover(p, lugar, signo, n, pasan) {
+      function err(texto, tipo) { return { ok: false, texto: texto, tipo: tipo || 'error' }; }
       var r;
-      try { r = await sb.from('perfume_overrides').upsert({ slug: p.slug, stock_status: info.status, stock_qty: nuevo }, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
-      if (r.error) { accAviso(errorEnCriollo(r.error, null, 'cambiar el stock'), 'error'); return; }
+      if (lugar === 'deposito') {
+        var prev = depQty(p), nuevo = prev + signo * n;
+        if (nuevo < 0) return err('Solo hay ' + prev + ' en el depósito: no se restó nada.');
+        if (nuevo > 999) return err('Pasa de 999 en el depósito: revisá la cantidad.');
+        var pasa = signo < 0 && !!pasan;   // lo que baja del depósito sube al local, salvo que no lo pidan (DEP-SUMAR)
+        var payload = { slug: p.slug, stock_deposito: nuevo };
+        var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : 0, prevStatus = p._stockStatus || 'ok', newLocal = prevLocal, newStatus = prevStatus;
+        if (pasa) {
+          newLocal = prevLocal + n;
+          if (newLocal > 999) return err('Pasa de 999 en el local: revisá la cantidad.');
+          newStatus = deriveStockInfo({ _stockQty: newLocal, _stockStatus: prevStatus === 'pausado' ? 'pausado' : null }).status;
+          payload.stock_qty = newLocal; payload.stock_status = newStatus;
+        }
+        try { r = await sb.from('perfume_overrides').upsert(payload, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
+        if (r.error) return err(errorEnCriollo(r.error, null, 'cambiar el stock del depósito'));
+        p._stockDeposito = nuevo;
+        logAdminAction('deposito_update', p.slug, { stock_deposito: { old: prev, new: nuevo } });
+        if (pasa) {
+          p._stockQty = newLocal; p._stockStatus = newStatus;
+          lastLocalUpsert = { slug: p.slug, at: Date.now() };
+          logAdminAction('stock_update', p.slug, { stock_qty: { old: prevLocal, new: newLocal }, stock_status: { old: prevStatus, new: newStatus } });
+          try { renderStock && renderStock(); } catch (e) {}
+        }
+        renderPrecios(); renderDeposito();
+        var txtD = signo > 0 ? (n === 1 ? '✓ Llegó 1 al depósito: ' : '✓ Llegaron ' + n + ' al depósito: ') + prev + ' → ' + nuevo
+          : (n === 1 ? '✓ Salió 1 del depósito: ' : '✓ Salieron ' + n + ' del depósito: ') + prev + ' → ' + nuevo + (pasa ? ' · +' + n + ' al local: ' + prevLocal + ' → ' + newLocal : '');
+        return { ok: true, texto: txtD, prevStatus: prevStatus, newStatus: newStatus, cambioLocal: pasa };
+      }
+      var prevQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      var prevSt = p._stockStatus || 'ok';
+      if (signo < 0 && prevQty === null) return err('No hay dato del stock del local: cargá la cantidad en «Stock del local».', 'aviso');
+      var base = (prevQty === null ? 0 : prevQty), nuevoL = base + signo * n;
+      if (nuevoL < 0) return err('Solo hay ' + base + ' en el local: no se restó nada.');
+      if (nuevoL > 999) return err('Pasa de 999 en el local: revisá la cantidad.');
+      var info = deriveStockInfo({ _stockQty: nuevoL, _stockStatus: prevSt === 'pausado' ? 'pausado' : null });
+      try { r = await sb.from('perfume_overrides').upsert({ slug: p.slug, stock_status: info.status, stock_qty: nuevoL }, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
+      if (r.error) return err(errorEnCriollo(r.error, null, 'cambiar el stock'));
       lastLocalUpsert = { slug: p.slug, at: Date.now() };
-      logAdminAction('stock_update', p.slug, { stock_status: { old: prevStatus, new: info.status }, stock_qty: { old: prevQty, new: nuevo } });
-      p._stockStatus = info.status; p._stockQty = nuevo;
+      logAdminAction('stock_update', p.slug, { stock_status: { old: prevSt, new: info.status }, stock_qty: { old: prevQty, new: nuevoL } });
+      p._stockStatus = info.status; p._stockQty = nuevoL;
       renderPrecios(); renderDeposito();
-      var txt = (signo > 0 ? (n === 1 ? '✓ Llegó 1 al local: ' : '✓ Llegaron ' + n + ' al local: ') : (n === 1 ? '✓ Se restó 1 del local: ' : '✓ Se restaron ' + n + ' del local: ')) + base + ' → ' + nuevo;
-      accAviso(txt, 'ok');
-      await accAvisarEspera(p, prevStatus, info.status, txt);
+      var txt = (signo > 0 ? (n === 1 ? '✓ Llegó 1 al local: ' : '✓ Llegaron ' + n + ' al local: ') : (n === 1 ? '✓ Se restó 1 del local: ' : '✓ Se restaron ' + n + ' del local: ')) + base + ' → ' + nuevoL;
+      return { ok: true, texto: txt, prevStatus: prevSt, newStatus: info.status, cambioLocal: true };
+    }
+    async function accMoverLocal(p, signo, n) {
+      var r = await stockMover(p, 'local', signo, n, false);
+      accAviso(r.texto, r.ok ? 'ok' : r.tipo);
+      if (r.ok) await accAvisarEspera(p, r.prevStatus, r.newStatus, r.texto);
     }
     async function accMoverDeposito(p, signo, n) {
-      var prev = depQty(p), nuevo = prev + signo * n;
-      if (nuevo < 0) { accAviso('Solo hay ' + prev + ' en el depósito: no se restó nada.', 'error'); return; }
-      if (nuevo > 999) { accAviso('Pasa de 999 en el depósito: revisá la cantidad.', 'error'); return; }
-      var pasan = signo < 0 && document.getElementById('accPasan').checked;   // lo que baja del depósito sube al local, salvo que destilden la casilla
-      var payload = { slug: p.slug, stock_deposito: nuevo };
-      var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : 0, prevStatus = p._stockStatus || 'ok', newLocal = prevLocal, newStatus = prevStatus;
-      if (pasan) {
-        newLocal = prevLocal + n;
-        if (newLocal > 999) { accAviso('Pasa de 999 en el local: revisá la cantidad.', 'error'); return; }
-        newStatus = deriveStockInfo({ _stockQty: newLocal, _stockStatus: prevStatus === 'pausado' ? 'pausado' : null }).status;
-        payload.stock_qty = newLocal; payload.stock_status = newStatus;
-      }
-      var r;
-      try { r = await sb.from('perfume_overrides').upsert(payload, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
-      if (r.error) { accAviso(errorEnCriollo(r.error, null, 'cambiar el stock del depósito'), 'error'); return; }
-      p._stockDeposito = nuevo;
-      logAdminAction('deposito_update', p.slug, { stock_deposito: { old: prev, new: nuevo } });
-      if (pasan) {
-        p._stockQty = newLocal; p._stockStatus = newStatus;
-        lastLocalUpsert = { slug: p.slug, at: Date.now() };
-        logAdminAction('stock_update', p.slug, { stock_qty: { old: prevLocal, new: newLocal }, stock_status: { old: prevStatus, new: newStatus } });
-        try { renderStock && renderStock(); } catch (e) {}
-      }
-      renderPrecios(); renderDeposito();
-      var txt = signo > 0 ? (n === 1 ? '✓ Llegó 1 al depósito: ' : '✓ Llegaron ' + n + ' al depósito: ') + prev + ' → ' + nuevo
-        : (n === 1 ? '✓ Salió 1 del depósito: ' : '✓ Salieron ' + n + ' del depósito: ') + prev + ' → ' + nuevo + (pasan ? ' · +' + n + ' al local: ' + prevLocal + ' → ' + newLocal : '');
-      accAviso(txt, 'ok');
-      if (pasan) await accAvisarEspera(p, prevStatus, newStatus, txt);
+      var r = await stockMover(p, 'deposito', signo, n, signo < 0 && document.getElementById('accPasan').checked);
+      accAviso(r.texto, r.ok ? 'ok' : r.tipo);
+      if (r.ok && r.cambioLocal) await accAvisarEspera(p, r.prevStatus, r.newStatus, r.texto);
     }
+    // ============================================================
+    // [LLEGO-MERCADERIA] paso 3 · «Llegó mercadería» (12-oct-2026, pedido de Alejo)
+    // Carga seguida del pedido semanal: se escanea (cámara o pistola) o se escribe el código o el nombre, se pone la cantidad y se
+    // suma AL TOQUE al local o al depósito (stockMover: el mismo núcleo que «Llegaron / Vendí»). Lo cargado queda en una lista donde
+    // se corrige la cantidad o se deshace; «Terminé» muestra el resumen. Un código sin registrar NO frena la carga: queda pendiente
+    // (no se suma nada, no se sabe de qué perfume es) y se le asigna perfume al final o en el momento. El estado vive en memoria: lo
+    // sumado ya está en la base y en el Log; cerrar sin «Terminé» no deshace nada.
+    // ============================================================
+    var MERC = { lugar: 'local', sel: null, entradas: [], pendientes: [], asignando: 0, ocupado: false, id: 0 };
+    function mercEl(id) { return document.getElementById(id); }
+    function mercNuevoEstado() { MERC = { lugar: 'local', sel: null, entradas: [], pendientes: [], asignando: 0, ocupado: false, id: 0 }; }
+    function mercMsg(texto, tipo) {
+      var m = mercEl('mercMsg');
+      m.style.color = tipo === 'error' ? 'var(--tinta-error)' : (tipo === 'aviso' ? 'var(--tinta-aviso)' : 'var(--tinta-ok)');
+      m.textContent = texto || '';
+    }
+    function mercFoco() { if (!window.matchMedia('(pointer: coarse)').matches) { try { mercEl('mercBuscar').focus(); } catch (e) {} } }   // en un celu no se fuerza el teclado
+    function mercAbrir() {
+      mercNuevoEstado();
+      mercEl('mercBuscar').value = ''; mercEl('mercResultados').hidden = true; mercEl('mercResultados').innerHTML = '';
+      mercEl('mercVistaCarga').hidden = false; mercEl('mercVistaResumen').hidden = true;
+      mercMsg('');
+      mercRender();
+      mercEl('modalMercaderia').classList.add('active');
+      mercFoco();
+    }
+    function mercLugar(l) { MERC.lugar = l; mercRender(); }
+    function mercPaso(d) { var n = (parseInt(mercEl('mercCant').value, 10) || 1) + d; if (n < 1) n = 1; if (n > 999) n = 999; mercEl('mercCant').value = n; }
+    function mercNombre(slug) { var p = PERFUMES.find(function(pf) { return pf.slug === slug; }); return p ? (p.name || slug) : slug; }
+    function mercRender() {
+      document.querySelectorAll('#mercLugar button').forEach(function(b) { b.setAttribute('aria-checked', b.getAttribute('data-lugar') === MERC.lugar ? 'true' : 'false'); });
+      var box = mercEl('mercElegido');
+      if (MERC.sel) {
+        var p = MERC.sel, info = deriveStockInfo(p), dinfo = deriveDepositoInfo(depQty(p));
+        box.hidden = false;
+        mercEl('mercElegidoNombre').textContent = p.name || p.slug;
+        mercEl('mercElegidoMarca').textContent = p.marca_real || '';
+        mercEl('mercElegidoEstado').innerHTML = '<span>Local <span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span></span><span>Depósito <span class="badge-stock ' + dinfo.badgeClass + '">' + escHtml(dinfo.badgeText) + '</span></span>';
+        mercEl('mercAgregarBtn').innerHTML = '&#10133; Al ' + (MERC.lugar === 'local' ? 'local' : 'depósito');
+      } else box.hidden = true;
+      var as = MERC.asignando ? MERC.pendientes.filter(function(x) { return x.id === MERC.asignando; })[0] : null;
+      mercEl('mercAsignando').hidden = !as;
+      if (as) mercEl('mercAsignandoTxt').textContent = 'Elegí el perfume del código ' + as.codigo;
+      mercEl('mercLista').innerHTML = MERC.entradas.length
+        ? '<p class="merc-titulo-lista">Cargado</p>' + MERC.entradas.map(function(e) {
+            return '<div class="merc-fila"><span class="merc-nombre">' + escHtml(mercNombre(e.slug)) + '<small>' + (e.lugar === 'local' ? 'Local' : 'Depósito')
+              + (e.espera ? ' · 📬 ' + e.espera + (e.espera === 1 ? ' persona esperaba' : ' personas esperaban') + ': avisales desde Precios & Stock' : '') + '</small></span>'
+              + '<input type="number" class="modal-input merc-qty" inputmode="numeric" min="0" max="999" value="' + e.qty + '" aria-label="Cantidad de ' + escHtml(mercNombre(e.slug)) + '" onchange="mercCambiar(' + e.id + ', this.value)"/>'
+              + '<button type="button" class="merc-x" onclick="mercDeshacer(' + e.id + ')" aria-label="Deshacer ' + escHtml(mercNombre(e.slug)) + '" title="Deshacer">&#8617;</button></div>';
+          }).join('')
+        : '';
+      mercEl('mercPendientes').innerHTML = MERC.pendientes.length
+        ? '<p class="merc-titulo-lista">Pendientes</p>' + MERC.pendientes.map(function(x) {
+            return '<div class="merc-fila merc-pend"><span class="merc-nombre">⚠ ' + escHtml(x.codigo) + '<small>Sin registrar · todavía no se sumó</small></span>'
+              + '<input type="number" class="modal-input merc-qty" inputmode="numeric" min="1" max="999" value="' + x.qty + '" aria-label="Cantidad del código ' + escHtml(x.codigo) + '" onchange="mercPendCant(' + x.id + ', this.value)"/>'
+              + '<button type="button" class="merc-asignar" onclick="mercAsignarIniciar(' + x.id + ')">Asignar perfume</button>'
+              + '<button type="button" class="merc-x" onclick="mercPendQuitar(' + x.id + ')" aria-label="Quitar el código ' + escHtml(x.codigo) + '" title="Quitar">&times;</button></div>';
+          }).join('')
+        : '';
+      var tot = 0, slugs = {};
+      MERC.entradas.forEach(function(e) { tot += e.qty; slugs[e.slug] = 1; });
+      var k = Object.keys(slugs).length;
+      mercEl('mercTotal').textContent = tot ? tot + ' u. · ' + k + (k === 1 ? ' perfume' : ' perfumes') : 'Todavía no cargaste nada';
+    }
+    // La búsqueda: un número de 8 a 14 cifras es un código (Enter, o la pistola); lo demás, un nombre (como el panel: nombre, fabricante, apodo).
+    function mercBuscarInput() {
+      var q = mercEl('mercBuscar').value.trim(), cont = mercEl('mercResultados'), ayuda = mercEl('mercAyuda');
+      if (!q) { cont.hidden = true; cont.innerHTML = ''; ayuda.textContent = 'Escaneá con la cámara o la pistola, o escribí el código o el nombre.'; return; }
+      if (/^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.hidden = true; cont.innerHTML = ''; ayuda.textContent = 'Tocá Enter para buscar el código.'; return; }
+      ayuda.textContent = 'Tocá el perfume.';
+      var n = codNorm(q);
+      var lista = PERFUMES.filter(function(p) {
+        return !p.esSet && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(n) !== -1;
+      }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 8);
+      cont.innerHTML = lista.length ? lista.map(function(p) {
+        var info = stockCargado ? deriveStockInfo(p) : null;
+        return '<button type="button" class="cod-fila" onclick="mercElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
+          + '<span class="cod-nombre">' + escHtml(p.name || '') + (p.marca_real ? '<small>' + escHtml(p.marca_real) + '</small>' : '') + '</span>'
+          + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '') + '</button>';
+      }).join('') : '<p class="cod-msg" style="padding:.8rem;color:var(--gris);">No hay perfumes con ese nombre.</p>';
+      cont.hidden = false;
+    }
+    function mercBuscarTecla(e) {
+      if (e.key !== 'Enter') return;
+      if (/^\d{8,14}$/.test(mercEl('mercBuscar').value.replace(/\s/g, ''))) return;   // un código lo toma pistolaTecla
+      var primero = mercEl('mercResultados').querySelector('.cod-fila');
+      if (primero) { e.preventDefault(); primero.click(); }
+    }
+    function mercEscanear() { escanearAbrir('merc'); }
+    async function mercCodigo(codigo) {
+      var r; try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
+      if (r.error) { mercMsg(codErrorTexto(r.error, 'buscar el código'), 'error'); return; }
+      var fila = r.data && r.data[0];
+      var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
+      if (fila && p) { mercElegir(p.slug); mercMsg('✓ Escaneado: ' + codigo, 'ok'); return; }
+      if (fila) { mercMsg('Ese código es de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe.', 'aviso'); return; }
+      // sin registrar: no frena la carga, queda pendiente (otro escaneo del mismo código suma uno)
+      var ya = MERC.pendientes.filter(function(x) { return x.codigo === codigo; })[0];
+      if (ya) ya.qty = Math.min(999, ya.qty + 1); else MERC.pendientes.push({ id: ++MERC.id, codigo: codigo, qty: 1 });
+      mercEl('mercBuscar').value = ''; mercEl('mercResultados').hidden = true; mercEl('mercResultados').innerHTML = '';
+      mercMsg('Código ' + codigo + ' sin registrar: queda pendiente (no se sumó nada).', 'aviso');
+      mercRender(); mercFoco();
+    }
+    function mercElegir(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; }); if (!p) return;
+      if (MERC.asignando) { mercAsignar(p); return; }
+      MERC.sel = p;
+      mercEl('mercBuscar').value = ''; mercEl('mercResultados').hidden = true; mercEl('mercResultados').innerHTML = '';
+      mercEl('mercAyuda').textContent = 'Escaneá con la cámara o la pistola, o escribí el código o el nombre.';
+      mercEl('mercCant').value = 1; mercMsg('');
+      mercRender();
+      try { var c = mercEl('mercCant'); c.focus(); c.select(); } catch (e) {}
+    }
+    // Si el perfume estaba sin stock o pausado y vuelve a tener, la lista de espera se entera (queda en la fila para el resumen).
+    async function mercAvisarEspera(entrada, p, r) {
+      if (!r.cambioLocal || !((r.prevStatus === 'out' || r.prevStatus === 'pausado') && (r.newStatus === 'ok' || r.newStatus === 'low'))) return;
+      var notified = await autoNotifyWaitlist(p.slug);
+      if (notified.length) { entrada.espera = notified.length; notifyTelegram('📬 Waitlist PENDIENTE de aviso\n🌶 ' + p.name + '\n👥 ' + notified.length + ' persona(s)'); }
+    }
+    function mercSumarEntrada(p, lugar, n) {
+      var e = MERC.entradas.filter(function(x) { return x.slug === p.slug && x.lugar === lugar; })[0];
+      if (e) e.qty += n; else { e = { id: ++MERC.id, slug: p.slug, lugar: lugar, qty: n, espera: 0 }; MERC.entradas.push(e); }
+      return e;
+    }
+    async function mercAgregar() {
+      var p = MERC.sel; if (!p || MERC.ocupado) return;
+      var n = parseInt(mercEl('mercCant').value, 10);
+      if (isNaN(n) || n < 1) { mercMsg('Poné una cantidad de 1 o más.', 'error'); return; }
+      if (faltaStock(mercEl('mercMsg'))) return;
+      MERC.ocupado = true; mercEl('mercAgregarBtn').disabled = true;
+      try {
+        var r = await stockMover(p, MERC.lugar, 1, n, false);
+        if (!r.ok) { mercMsg(r.texto, r.tipo); return; }
+        var e = mercSumarEntrada(p, MERC.lugar, n);
+        await mercAvisarEspera(e, p, r);
+        MERC.sel = null; mercEl('mercBuscar').value = '';
+        mercMsg(r.texto, 'ok');
+        mercRender(); mercFoco();
+      } finally { MERC.ocupado = false; mercEl('mercAgregarBtn').disabled = false; }
+    }
+    // Corregir la cantidad de una fila (se escribe la diferencia) o deshacerla (se escribe lo contrario).
+    async function mercCambiar(id, valor) {
+      var e = MERC.entradas.filter(function(x) { return x.id === id; })[0];
+      if (!e || MERC.ocupado) { mercRender(); return; }
+      var nuevo = parseInt(valor, 10);
+      if (isNaN(nuevo) || nuevo < 0 || nuevo > 999) { mercMsg('Poné una cantidad de 0 a 999.', 'error'); mercRender(); return; }
+      if (nuevo === 0) { mercDeshacer(id); return; }
+      var dif = nuevo - e.qty;
+      if (!dif) return;
+      var p = PERFUMES.filter(function(pf) { return pf.slug === e.slug; })[0]; if (!p) { mercRender(); return; }
+      if (faltaStock(mercEl('mercMsg'))) { mercRender(); return; }
+      MERC.ocupado = true;
+      try {
+        var r = await stockMover(p, e.lugar, dif > 0 ? 1 : -1, Math.abs(dif), false);
+        if (r.ok) { e.qty = nuevo; mercMsg(r.texto, 'ok'); } else mercMsg(r.texto, r.tipo);
+      } finally { MERC.ocupado = false; }
+      mercRender();
+    }
+    async function mercDeshacer(id) {
+      var e = MERC.entradas.filter(function(x) { return x.id === id; })[0];
+      if (!e || MERC.ocupado) return;
+      var p = PERFUMES.filter(function(pf) { return pf.slug === e.slug; })[0]; if (!p) return;
+      if (faltaStock(mercEl('mercMsg'))) return;
+      MERC.ocupado = true;
+      try {
+        var r = await stockMover(p, e.lugar, -1, e.qty, false);
+        if (r.ok) { MERC.entradas = MERC.entradas.filter(function(x) { return x.id !== id; }); mercMsg('Deshecho: ' + p.name + ' (' + r.texto.replace('✓ ', '') + ')', 'ok'); }
+        else mercMsg('No se pudo deshacer: ' + r.texto, r.tipo);
+      } finally { MERC.ocupado = false; }
+      mercRender();
+    }
+    // Pendientes (códigos que todavía no son de ningún perfume)
+    function mercPendCant(id, valor) {
+      var x = MERC.pendientes.filter(function(y) { return y.id === id; })[0]; if (!x) return;
+      var n = parseInt(valor, 10);
+      if (isNaN(n) || n < 1 || n > 999) { mercMsg('Poné una cantidad de 1 a 999.', 'error'); mercRender(); return; }
+      x.qty = n;
+    }
+    function mercPendQuitar(id) {
+      MERC.pendientes = MERC.pendientes.filter(function(x) { return x.id !== id; });
+      if (MERC.asignando === id) MERC.asignando = 0;
+      mercRender();
+    }
+    function mercAsignarIniciar(id) {
+      MERC.asignando = id; MERC.sel = null; mercMsg('');
+      mercRender(); mercFoco();
+      try { mercEl('mercBuscar').scrollIntoView({ block: 'nearest' }); } catch (e) {}
+    }
+    function mercAsignarCancelar() { MERC.asignando = 0; mercRender(); }
+    // Asignar: se guarda el código en el perfume (como «Es uno que ya está») y recién ahí se suma lo pendiente.
+    async function mercAsignar(p) {
+      var pend = MERC.pendientes.filter(function(x) { return x.id === MERC.asignando; })[0];
+      if (!pend || MERC.ocupado) return;
+      if (faltaStock(mercEl('mercMsg'))) return;
+      MERC.ocupado = true;
+      try {
+        var rc = await codAsociar(pend.codigo, p.slug);
+        if (!rc.ok) { mercMsg(rc.texto, 'error'); return; }
+        MERC.pendientes = MERC.pendientes.filter(function(x) { return x.id !== pend.id; }); MERC.asignando = 0;
+        var r = await stockMover(p, MERC.lugar, 1, pend.qty, false);
+        if (!r.ok) mercMsg('Código guardado en ' + p.name + ', pero no se pudo sumar: ' + r.texto + ' Sumalo a mano.', 'error');
+        else { var e = mercSumarEntrada(p, MERC.lugar, pend.qty); await mercAvisarEspera(e, p, r); mercMsg('✓ Código guardado en ' + p.name + ' · ' + r.texto.replace('✓ ', ''), 'ok'); }
+      } finally { MERC.ocupado = false; }
+      mercEl('mercBuscar').value = ''; mercEl('mercResultados').hidden = true; mercEl('mercResultados').innerHTML = '';
+      mercRender(); mercFoco();
+    }
+    // «Terminé»: el resumen para confirmar o volver a editar. Lo sumado ya está guardado; «Confirmar» deja un renglón en el Log y cierra.
+    function mercTerminar() {
+      if (MERC.ocupado) return;
+      var tot = 0, tl = 0, td = 0, slugs = {};
+      MERC.entradas.forEach(function(e) { tot += e.qty; slugs[e.slug] = 1; if (e.lugar === 'local') tl += e.qty; else td += e.qty; });
+      var k = Object.keys(slugs).length, partes = [];
+      if (tl) partes.push('Local +' + tl); if (td) partes.push('Depósito +' + td);
+      var html = tot
+        ? '<p class="merc-res-grande">' + tot + (tot === 1 ? ' unidad' : ' unidades') + ' · ' + k + (k === 1 ? ' perfume' : ' perfumes') + '</p><p class="merc-res-sub">' + partes.join(' · ') + '</p>'
+          + MERC.entradas.map(function(e) { return '<div class="merc-fila"><span class="merc-nombre">' + escHtml(mercNombre(e.slug)) + '<small>' + (e.lugar === 'local' ? 'Local' : 'Depósito') + (e.espera ? ' · 📬 ' + e.espera + ' en espera' : '') + '</small></span><b>+' + e.qty + '</b></div>'; }).join('')
+        : '<p class="merc-res-sub">No cargaste nada.</p>';
+      if (MERC.pendientes.length) html += '<p class="merc-res-aviso">⚠ ' + MERC.pendientes.length + (MERC.pendientes.length === 1 ? ' código sin registrar' : ' códigos sin registrar') + ' (' + MERC.pendientes.map(function(x) { return x.codigo + ' ×' + x.qty; }).join(', ') + '): <b>no se sumó nada</b>. Volvé a editar para asignarles un perfume.</p>';
+      mercEl('mercResumenCuerpo').innerHTML = html;
+      mercEl('mercVistaCarga').hidden = true; mercEl('mercVistaResumen').hidden = false;
+    }
+    function mercVolver() { mercEl('mercVistaResumen').hidden = true; mercEl('mercVistaCarga').hidden = false; mercRender(); }
+    function mercConfirmar() {
+      if (MERC.entradas.length) {
+        var tot = 0, slugs = {};
+        MERC.entradas.forEach(function(e) { tot += e.qty; slugs[e.slug] = 1; });
+        logAdminAction('mercaderia_recibida', null, {
+          total: tot, perfumes: Object.keys(slugs).length, pendientes: MERC.pendientes.length,
+          items: MERC.entradas.map(function(e) { return { slug: e.slug, nombre: mercNombre(e.slug), lugar: e.lugar, cant: e.qty }; })
+        });
+      }
+      mercEl('modalMercaderia').classList.remove('active');
+      mercNuevoEstado();
+    }
+    // ✕: lo sumado ya está guardado; se avisa si quedó algo cargado o pendiente para no cerrar por error.
+    function mercCerrar() {
+      if (MERC.ocupado) return;
+      if (MERC.entradas.length || MERC.pendientes.length) {
+        var aviso = (MERC.entradas.length ? 'Lo que cargaste ya está sumado al stock.' : '') + (MERC.pendientes.length ? ' Hay ' + MERC.pendientes.length + ' código(s) sin registrar: no se suman.' : '');
+        if (!confirm(aviso.trim() + '\n\n¿Cerrar sin ver el resumen?')) return;
+      }
+      mercEl('modalMercaderia').classList.remove('active');
+      mercNuevoEstado();
+    }
+
     // El link de la web: los de perfumes.js tienen su página (/perfume/slug); los que se cargaron desde el panel, no (esa página los manda al inicio): van con ?perfume=.
     function accCompartir() {
       var p = accPerfume(); if (!p) return;
@@ -7561,11 +7918,13 @@
     var PISTOLA = { buf: '', t: 0 };
     function pistolaTecla(e) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      var tab = escTabActiva();
-      if (!tab || document.querySelector('.modal-overlay.active, .escaner-overlay.active')) { PISTOLA.buf = ''; return; }
+      var mercActiva = document.getElementById('modalMercaderia').classList.contains('active');   // [LLEGO-MERCADERIA] dentro de la carga seguida la pistola cuenta (nunca en la cantidad)
+      var tab = mercActiva ? 'merc' : escTabActiva();
+      var bloqueado = mercActiva ? !!document.querySelector('.escaner-overlay.active, .modal-overlay.active:not(#modalMercaderia)') : !!document.querySelector('.modal-overlay.active, .escaner-overlay.active');
+      if (!tab || bloqueado) { PISTOLA.buf = ''; return; }
       var el = document.activeElement, tag = el && el.tagName;
       var enCampo = !!el && (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable);
-      var enBuscador = !!el && el.id === escId('search', tab);
+      var enBuscador = !!el && el.id === (tab === 'merc' ? 'mercBuscar' : escId('search', tab));
       if (enCampo && !enBuscador) { PISTOLA.buf = ''; return; }
       if (e.key === 'Enter') {
         var cand = '';
@@ -7576,6 +7935,7 @@
         e.preventDefault();
         if (enBuscador) { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
         var n = normalizarCodigo(cand);
+        if (tab === 'merc') { if (n.ok) mercCodigo(n.codigo); else mercMsg(n.msg, 'error'); return; }
         if (n.ok) escProcesar(n.codigo, tab); else escNota(tab, n.msg, 'error');
         return;
       }
@@ -12771,7 +13131,9 @@
       'espera_quitar':        { icon: '📍', label: 'Quitar de la espera' },
       // [ESCANER] 163 · el código de barras de un frasco (familia Catálogo: lo ve el jefe)
       'codigo_asociado':      { icon: '🔖', label: 'Código asociado' },
-      'codigo_quitado':       { icon: '🔖', label: 'Código quitado' }
+      'codigo_quitado':       { icon: '🔖', label: 'Código quitado' },
+      // [LLEGO-MERCADERIA] paso 3 · el resumen de «Llegó mercadería» (familia Stock: lo ve el jefe)
+      'mercaderia_recibida':  { icon: '📦', label: 'Llegó mercadería' }
     };
 
     /* ── [LOG-LEGIBLE] Traducir la jerga de la base al castellano ──
@@ -12943,7 +13305,7 @@
     var LOG_CLAVES_PRECIO = ['Precio', 'Promo', 'price', 'promo'];
     function logFamilias(e) {
       var action = e.action;
-      if (action === 'stock_update') return ['stock'];
+      if (action === 'stock_update' || action === 'mercaderia_recibida') return ['stock'];
       if (action === 'deposito_update') return ['deposito'];
       if (action === 'price_update') return ['precios'];
       // [LOG-SISTEMA-CHIP] Un filtro cuyo trabajo es sacar ruido no puede tener adentro
@@ -13015,6 +13377,12 @@
       if (e.action === 'espera_quitar') return escHtml((e.changes && e.changes.nombre) || 'Sin nombre');
       // [ESCANER] 163 · el número del código (el perfume ya es el nombre de la fila)
       if (e.action === 'codigo_asociado' || e.action === 'codigo_quitado') return escHtml(String((e.changes && e.changes.codigo) || ''));
+      // [LLEGO-MERCADERIA] «25 u. en 3 perfumes: Java Ice +10, Hayati +5…»
+      if (e.action === 'mercaderia_recibida' && e.changes && typeof e.changes === 'object') {
+        var cm = e.changes, items = Array.isArray(cm.items) ? cm.items : [];
+        var detalle = items.map(function(i) { return String(i.nombre || i.slug) + ' +' + i.cant + (i.lugar === 'deposito' ? ' (dep.)' : ''); }).join(', ');
+        return escHtml(cm.total + ' u. en ' + cm.perfumes + (cm.perfumes === 1 ? ' perfume' : ' perfumes') + (detalle ? ': ' + (detalle.length > 160 ? detalle.slice(0, 157) + '…' : detalle) : '') + (cm.pendientes ? ' · ' + cm.pendientes + ' sin registrar' : ''));
+      }
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
       function esPar(v) { return v && typeof v === 'object' && 'old' in v && 'new' in v; }
