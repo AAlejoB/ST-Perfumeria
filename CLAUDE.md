@@ -290,6 +290,8 @@ Cosas que aprendimos a la mala y NO hay que volver a tocar:
 - **Jefe**: rol `jefe` — ve TODAS las tabs
 - **Empleadas**: rol `empleado` — ve solo las tabs sin `data-role="jefe"`
 
+> **Desde 12-oct-2026** (decisión de Alejo, junto con la hoja «Qué querés hacer» del escáner, v1.1.200) la pestaña **«Editar» es de las dos cuentas** (perdió su `data-role="jefe"`): la empleada puede cambiar todo lo que cambia el jefe, **precio y promo incluidos** (con la confirmación «ST», como siempre). La base nunca lo impidió (`perfume_overrides_write_staff` y `is_admin_authenticated()` dejan escribir a cualquier sesión del panel): era sólo de pantalla. **Siguen sólo del jefe** (con `data-role="jefe"` adentro de Editar): el botón «🔧 Migrar tipos (1 vez)» y los chips de códigos de barras con su ✕ (la base: borrar en `perfume_codigos` es sólo `is_jefe()`). Sin cuenta por persona (`[CUENTAS-POR-EMPLEADA]`) no se puede saber cuál de las chicas cambió un precio: el Log del jefe dice «empleado».
+
 Definido en la lógica de admin.html (`currentRole`).
 
 > **Desde 15-may-2026** (commit `eaae7cf`) la tab "💧 Decants" es visible para empleadas también (antes era solo jefe). Si querés esconder solo la sección de "config global de precios escalera" a empleadas pero dejarles cargar decants de diseñador, podés agregar `data-role="jefe"` a las cards específicas en lugar de a toda la tab.

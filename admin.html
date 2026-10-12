@@ -2391,7 +2391,7 @@
           <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>&#128230; Productos</span><span class="sb-chev">&#9662;</span></div>
           <div class="sb-tab-list">
             <button class="tab-btn" data-tab="nuevos" title="Perfume" onclick="switchTab('nuevos',this);closeMobileSidebar()"><span class="sb-ico">&#10133;</span><span class="sb-label">Perfume</span></button>
-            <button class="tab-btn" data-role="jefe" data-tab="editar" title="Editar" onclick="switchTab('editar',this);closeMobileSidebar()"><span class="sb-ico">&#9999;&#65039;</span><span class="sb-label">Editar</span></button>
+            <button class="tab-btn" data-tab="editar" title="Editar" onclick="switchTab('editar',this);closeMobileSidebar()"><span class="sb-ico">&#9999;&#65039;</span><span class="sb-label">Editar</span></button>
           </div>
         </div>
 
@@ -2609,7 +2609,7 @@
           <div style="flex:1;min-width:220px;">
             <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">Editar perfume existente</p>
           </div>
-          <button onclick="migrarTipos()" title="Asigna tipo (Desodorante, Crema, etc.) a productos viejos basado en keywords del nombre. Correr 1 sola vez."
+          <button data-role="jefe" onclick="migrarTipos()" title="Asigna tipo (Desodorante, Crema, etc.) a productos viejos basado en keywords del nombre. Correr 1 sola vez."
             style="background:transparent;border:1px solid rgba(232,184,0,.3);color:var(--amarillo-tinta);font-size:.6rem;padding:.4rem .7rem;border-radius:4px;cursor:pointer;white-space:nowrap;letter-spacing:.05em;">
             🔧 Migrar tipos (1 vez)
           </button>
@@ -7231,7 +7231,7 @@
     }
 
     // ── Paso 1 · «Qué querés hacer» ──
-    // Al leer un perfume ya registrado: stock del local, depósito, lista de espera (siempre: es el registro de lo que preguntan los clientes), editar (sólo el jefe) y compartir.
+    // Al leer un perfume ya registrado: stock del local, depósito, lista de espera (siempre: es el registro de lo que preguntan los clientes), editar (las dos cuentas) y compartir.
     // No escribe nada: cada botón abre la pantalla de siempre (los mismos modales de Precios & Stock, Depósito y Espera).
     var ACC = { slug: '', tab: 'precios' };
     function accBoton(ico, titulo, sub, fn) {
@@ -7252,7 +7252,7 @@
       b.push(accBoton('📦', 'Stock del local', !stockCargado ? 'Cambiar la cantidad' : (local === null ? 'Sin dato: cargar la cantidad' : 'Hay ' + local + ' u.'), 'accStock()'));
       b.push(accBoton('🏬', 'Depósito', !stockCargado ? 'Cambiar la cantidad' : 'Hay ' + dep + ' u.', 'accDeposito()'));
       b.push(accBoton('🔔', 'Anotar en la lista de espera', 'Un cliente preguntó por este perfume', 'accEspera()'));   // siempre, haya o no stock: es el registro de lo que preguntan (decisión de Alejo, 12-oct)
-      if (currentRole === 'jefe') b.push(accBoton('✏️', 'Editar el perfume', 'Precio, notas, foto y más', 'accEditar()'));
+      b.push(accBoton('✏️', 'Editar el perfume', 'Precio, notas, foto y más', 'accEditar()'));   // las dos cuentas (decisión de Alejo, 12-oct: la pestaña Editar ya no es sólo del jefe)
       b.push(accBoton('🔗', 'Compartir el link', 'Se manda o se copia', 'accCompartir()'));
       document.getElementById('accBotones').innerHTML = b.join('');
       document.getElementById('modalAccionesPerfume').classList.add('active');
