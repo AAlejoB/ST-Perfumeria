@@ -886,6 +886,13 @@
     .espera-stat--pend .espera-stat-titulo { color: var(--amarillo-tinta); }
     .espera-stat-num { font-size: 1.8rem; font-weight: 700; }
     .espera-stat-sub { font-size: .6rem; color: var(--gris); }
+    /* [STAT-FILTRO] las tarjetas ESPERANDO y PARA AVISAR YA son botones: la activa, con el borde dorado */
+    button.espera-stat { font: inherit; color: inherit; cursor: pointer; min-height: 44px; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; }
+    button.espera-stat > span { display: block; }
+    button.espera-stat:active { transform: scale(.98); }
+    button.espera-stat[aria-pressed="true"] { border-color: var(--amarillo); box-shadow: inset 0 0 0 1px var(--amarillo); }
+    button.espera-stat:disabled { cursor: default; opacity: .6; }
+    .espera-stat--avisar .espera-stat-titulo { color: var(--tinta-ok); }
     .espera-ayuda { font-size: .7rem; color: var(--gris); margin-bottom: 1rem; line-height: 1.5; }
     .espera-controles { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin-bottom: 1rem; }
     .espera-lista { display: flex; flex-direction: column; gap: 1rem; }
@@ -1867,6 +1874,17 @@
     button.stat-btn[aria-pressed="true"] {
       border-color: var(--amarillo); box-shadow: inset 0 0 0 1px var(--amarillo);
     }
+    /* [STAT-FILTRO] Doctor: las 3 tarjetas de arriba son botones (mismos colores de antes); la activa, con el borde en su color */
+    #doctorSummary .doc-card { display: block; width: 100%; font: inherit; border-radius: 8px; padding: .7rem; text-align: center; cursor: pointer; min-height: 44px; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; }
+    #doctorSummary .doc-card:active { transform: scale(.98); }
+    .doc-card-num { display: block; font-size: 1.3rem; font-weight: 700; }
+    .doc-card-txt { display: block; font-size: .6rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+    .doc-card--crit { background: rgba(231,76,60,.12); border: 1px solid rgba(231,76,60,.3); color: #e74c3c; }
+    .doc-card--warn { background: rgba(241,196,15,.12); border: 1px solid rgba(241,196,15,.3); color: #f1c40f; }
+    .doc-card--ok { background: rgba(46,204,113,.12); border: 1px solid rgba(46,204,113,.3); color: #2ecc71; }
+    .doc-card--crit[aria-pressed="true"] { border-color: #e74c3c; box-shadow: inset 0 0 0 1px #e74c3c; }
+    .doc-card--warn[aria-pressed="true"] { border-color: #f1c40f; box-shadow: inset 0 0 0 1px #f1c40f; }
+    .doc-card--ok[aria-pressed="true"] { border-color: #2ecc71; box-shadow: inset 0 0 0 1px #2ecc71; }
     .stat-filtro-nota { font-size: .72rem; color: var(--gris-claro); margin: 0 0 .6rem; }
     .stat-filtro-nota[hidden] { display: none; }
     .stat-filtro-nota button {
@@ -3295,12 +3313,18 @@
     <!-- TAB: LISTA DE ESPERA -->
     <!-- [ESPERA-MAS] 42 / v3 / 124 · para las dos cuentas; los colores, por clase (los dos temas). -->
     <div class="tab-content" id="tab-espera">
+      <!-- [STAT-FILTRO] ESPERANDO = ver a todos los pendientes; PARA AVISAR YA = sólo los de perfumes que ya tienen stock; PERFUMES es sólo un número -->
       <div class="espera-stats">
-        <div class="espera-stat espera-stat--pend">
-          <p class="espera-stat-titulo">ESPERANDO</p>
-          <p class="espera-stat-num" id="esperaTotal">—</p>
-          <p class="espera-stat-sub">personas en lista</p>
-        </div>
+        <button type="button" class="espera-stat espera-stat--pend" id="esperaCardTodos" aria-pressed="true" onclick="esperaCard('todos')">
+          <span class="espera-stat-titulo">ESPERANDO</span>
+          <span class="espera-stat-num" id="esperaTotal">—</span>
+          <span class="espera-stat-sub">personas en lista</span>
+        </button>
+        <button type="button" class="espera-stat espera-stat--avisar" id="esperaCardAvisar" aria-pressed="false" onclick="esperaCard('avisar')">
+          <span class="espera-stat-titulo">🔔 PARA AVISAR YA</span>
+          <span class="espera-stat-num" id="esperaParaAvisar">—</span>
+          <span class="espera-stat-sub">personas · el perfume ya tiene stock</span>
+        </button>
         <div class="espera-stat">
           <p class="espera-stat-titulo">PERFUMES</p>
           <p class="espera-stat-num" id="esperaPerfumes">—</p>
@@ -10315,21 +10339,15 @@
       fill.style.width = score + '%';
       fill.style.background = score >= 80 ? '#2ecc71' : (score >= 50 ? '#f1c40f' : '#e74c3c');
 
-      // Cards de resumen
+      // Cards de resumen ([STAT-FILTRO] botones: filtran la lista de abajo, igual que los chips de Todos / Críticos / Avisos / Sanos)
       var summary = document.getElementById('doctorSummary');
-      summary.innerHTML =
-        '<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:.7rem;text-align:center;">'
-          + '<p style="font-size:1.3rem;font-weight:700;color:#e74c3c;">' + critical + '</p>'
-          + '<p style="font-size:.6rem;color:#e74c3c;font-weight:600;letter-spacing:.06em;text-transform:uppercase;">Críticos</p>'
-        + '</div>'
-        + '<div style="background:rgba(241,196,15,.12);border:1px solid rgba(241,196,15,.3);border-radius:8px;padding:.7rem;text-align:center;">'
-          + '<p style="font-size:1.3rem;font-weight:700;color:#f1c40f;">' + warning + '</p>'
-          + '<p style="font-size:.6rem;color:#f1c40f;font-weight:600;letter-spacing:.06em;text-transform:uppercase;">Con avisos</p>'
-        + '</div>'
-        + '<div style="background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);border-radius:8px;padding:.7rem;text-align:center;">'
-          + '<p style="font-size:1.3rem;font-weight:700;color:#2ecc71;">' + ok + '</p>'
-          + '<p style="font-size:.6rem;color:#2ecc71;font-weight:600;letter-spacing:.06em;text-transform:uppercase;">Sanos</p>'
-        + '</div>';
+      var card = function(f, clase, n, txt) {
+        return '<button type="button" class="doc-card ' + clase + '" data-f="' + f + '" aria-pressed="' + (doctorFilter === f ? 'true' : 'false') + '" onclick="doctorCard(\'' + f + '\')">'
+          + '<span class="doc-card-num">' + n + '</span><span class="doc-card-txt">' + txt + '</span></button>';
+      };
+      summary.innerHTML = card('critical', 'doc-card--crit', critical, 'Críticos')
+        + card('warning', 'doc-card--warn', warning, 'Con avisos')
+        + card('ok', 'doc-card--ok', ok, 'Sanos');
     }
 
     function renderDoctorResults() {
@@ -10492,6 +10510,21 @@
       esperaOrigen = (o === 'web' || o === 'local') ? o : 'todo';
       renderListaEspera();
     }
+    // [STAT-FILTRO] las tarjetas de arriba. 'todos' = todos los pendientes (sin filtro de origen ni de stock); 'avisar' = sólo los pendientes
+    // cuyo perfume ya tiene stock (la misma cuenta que la marca EN STOCK de cada grupo: ok y low; lo libre y lo que no está en PERFUMES, no).
+    var esperaSoloStock = false;
+    function esperaTieneStock(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return false;
+      var st = p._stockStatus || 'ok';
+      return st === 'ok' || st === 'low';
+    }
+    function esperaCard(cual) {
+      esperaView = 'pending';
+      if (cual === 'avisar') { esperaSoloStock = !esperaSoloStock; }
+      else { esperaSoloStock = false; esperaOrigen = 'todo'; }
+      renderListaEspera();
+    }
 
     // El filtro de origen: el mismo para la lista y para «Avisar a todos» (si no, el botón decía «(2)» y abría a todos).
     function esperaPasaFiltro(r) {
@@ -10527,6 +10560,14 @@
       document.getElementById('esperaTotal').textContent = esperaError ? '—' : todosPend.length;
       document.getElementById('esperaPerfumes').textContent = esperaError ? '—' : Object.keys(slugsPend).length;
       pintarInicioEspera(esperaError ? null : todosPend.length);   // [PANEL-INICIO] 133e
+      // [STAT-FILTRO] «PARA AVISAR YA»: personas pendientes cuyo perfume ya tiene stock (sin la lectura del stock no se sabe: «—»)
+      var paraAvisar = todosPend.filter(function(r) { return !esperaEsLibre(r) && esperaTieneStock(r.slug); }).length;
+      var sinStockLeido = esperaError || !stockCargado;
+      document.getElementById('esperaParaAvisar').textContent = sinStockLeido ? '—' : paraAvisar;
+      var soloStock = esperaSoloStock && !sinStockLeido && esperaView === 'pending';
+      var cT = document.getElementById('esperaCardTodos'), cA = document.getElementById('esperaCardAvisar');
+      if (cT) cT.setAttribute('aria-pressed', (esperaView === 'pending' && !soloStock && (!esperaTieneOrigen || esperaOrigen === 'todo')) ? 'true' : 'false');
+      if (cA) { cA.setAttribute('aria-pressed', soloStock ? 'true' : 'false'); cA.disabled = !!sinStockLeido; }
 
       var filtrando = esperaTieneOrigen && esperaOrigen !== 'todo';
       var bajoFiltro = esperaData.filter(esperaPasaFiltro);
@@ -10535,6 +10576,7 @@
       esperaRenderControles(esperaError ? '—' : pending.length, esperaError ? '—' : history.length);
 
       var rows = (esperaView === 'history') ? history : pending;
+      if (soloStock) rows = rows.filter(function(r) { return !esperaEsLibre(r) && esperaTieneStock(r.slug); });   // [STAT-FILTRO]
       var grouped = Object.create(null);   // sin prototipo: un slug «constructor» o «__proto__» no corta la lista
       rows.forEach(function(row) {
         if (!grouped[row.slug]) grouped[row.slug] = { name: row.perfume_name || row.slug, items: [], vieja: row };
@@ -10550,7 +10592,8 @@
         list.innerHTML = '';
         emptyEl.style.display = '';
         if (esperaError) { emptyEl.textContent = esperaError; return; }   // [CARGA-FALLIDA-CERO] no «Nadie esperando»
-        emptyEl.textContent = filtrando
+        emptyEl.textContent = soloStock ? 'Ningún perfume de la lista tiene stock todavía'
+          : filtrando
           ? (esperaOrigen === 'local' ? 'Nadie anotado desde el local' : 'Nadie anotado desde la web')
           : ((esperaView === 'history') ? 'Todav\u00eda no avisaste a nadie \ud83d\udcec' : 'Nadie esperando \ud83d\ude0a');
         return;
@@ -10966,8 +11009,11 @@
         var btn = document.getElementById('docFilter' + (f === 'all' ? 'All' : (f === 'critical' ? 'Crit' : (f === 'warning' ? 'Warn' : 'Ok'))));
         if (btn) btn.classList.toggle('active', f === filter);   // [ACTION-BTN-BASE] los filtros del Doctor son .log-chip
       });
+      document.querySelectorAll('#doctorSummary .doc-card').forEach(function(b) { b.setAttribute('aria-pressed', b.dataset.f === filter ? 'true' : 'false'); });   // [STAT-FILTRO]
       renderDoctorResults();
     }
+    // [STAT-FILTRO] tocar la tarjeta filtra; la misma otra vez vuelve a Todos
+    function doctorCard(f) { filterDoctor(doctorFilter === f ? 'all' : f); }
 
     // ========================================================
     // DECANTS CONFIG (admin)
