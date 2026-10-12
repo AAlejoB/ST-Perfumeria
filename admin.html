@@ -1162,6 +1162,32 @@
     .acc-btn b { display: block; font-size: .85rem; font-weight: 700; }
     .acc-btn small { display: block; font-size: .7rem; color: var(--gris-claro); font-weight: 400; margin-top: 1px; }
     .acc-msg { text-align: center; font-size: .78rem; min-height: 1.2rem; margin: .5rem 0 0; }
+    /* [ESCANER] paso 2 · «Llegaron» / «Vendí»: sumar o restar unidades de una vez, en el local o en el depósito */
+    #modalAccionesPerfume .modal-box { max-height: calc(100vh - 2rem); overflow-y: auto; }
+    .acc-mover { border: 1px solid var(--borde); border-radius: 8px; padding: .7rem; margin: 0 0 .4rem; }
+    .acc-mover-fila { display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem; }
+    .acc-mover-fila > span { flex: 1; font-size: .75rem; font-weight: 600; }
+    .acc-paso {
+      width: 48px; min-width: 48px; flex-shrink: 0; height: 48px; font-size: 1.4rem; font-weight: 700; font-family: inherit; color: inherit; cursor: pointer;
+      background: rgba(128,128,128,.12); border: 1px solid var(--borde); border-radius: 6px;
+    }
+    #accCant { width: 84px; min-height: 48px; margin-bottom: 0; text-align: center; font-size: 1.4rem; font-weight: 700; }
+    .acc-seg { display: flex; gap: .4rem; margin-bottom: .6rem; }
+    .acc-seg button {
+      flex: 1; min-height: 44px; font-family: inherit; font-size: .8rem; font-weight: 700; color: inherit; cursor: pointer;
+      background: transparent; border: 1px solid var(--borde); border-radius: 6px;
+    }
+    .acc-seg button[aria-checked="true"] { background: rgba(232,184,0,.18); border-color: var(--amarillo-tinta); color: var(--amarillo-tinta); }
+    .acc-pasan { display: flex; align-items: center; gap: .5rem; min-height: 44px; margin-bottom: .4rem; font-size: .78rem; cursor: pointer; }
+    .acc-pasan[hidden] { display: none; }
+    .acc-pasan input { width: 20px; height: 20px; accent-color: var(--amarillo); flex-shrink: 0; }
+    .acc-mover-botones { display: flex; gap: .5rem; }
+    .acc-mover-botones button {
+      flex: 1; min-height: 52px; font-family: inherit; font-size: .8rem; font-weight: 700; letter-spacing: .04em; color: inherit; cursor: pointer;
+      background: rgba(128,128,128,.1); border: 1px solid var(--borde); border-radius: 6px;
+    }
+    .acc-mover-botones #accBtnSuma { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    .acc-mover-botones button:disabled { opacity: .4; cursor: not-allowed; }
     /* [PUNTOS-DELTA-TINTA] 141j · el + y el − de los dos historiales de puntos (la tabla y las tarjetas): las mismas tintas que «+ Sumar» / «− Restar» del modal (141d) */
     .puntos-delta--mas   { color: var(--tinta-ok); }
     .puntos-delta--menos { color: var(--tinta-error); }
@@ -4118,8 +4144,26 @@
       <p class="acc-marca" id="accMarca"></p>
       <p class="acc-nota" id="accNota" role="status"></p>
       <div class="acc-estado" id="accEstado"></div>
+      <!-- [ESCANER] paso 2 · «Llegaron» / «Vendí» -->
+      <div class="acc-mover" id="accMover">
+        <div class="acc-mover-fila">
+          <span>Cantidad</span>
+          <button type="button" class="acc-paso" onclick="accPaso(-1)" aria-label="Una menos">&minus;</button>
+          <input type="number" class="modal-input" id="accCant" inputmode="numeric" min="1" max="999" value="1" aria-label="Cantidad" data-sin-x="1"/>
+          <button type="button" class="acc-paso" onclick="accPaso(1)" aria-label="Una más">+</button>
+        </div>
+        <div class="acc-seg" id="accLugar" role="radiogroup" aria-label="Dónde">
+          <button type="button" role="radio" aria-checked="true" data-lugar="local" onclick="accLugar('local')">Local</button>
+          <button type="button" role="radio" aria-checked="false" data-lugar="deposito" onclick="accLugar('deposito')">Depósito</button>
+        </div>
+        <label class="acc-pasan" id="accPasanWrap" hidden><input type="checkbox" id="accPasan" checked/> Pasan al local (como en el modal de Depósito)</label>
+        <div class="acc-mover-botones">
+          <button type="button" id="accBtnSuma" onclick="accMover(1)">&#10133; Llegaron</button>
+          <button type="button" id="accBtnResta" onclick="accMover(-1)">&#10134; Vendí</button>
+        </div>
+      </div>
+      <p class="acc-msg" id="accMsg" role="status"></p>   <!-- el resultado va arriba, pegado a Llegaron / Vendí: en un celu chico lo de abajo no se ve sin deslizar -->
       <div id="accBotones"></div>
-      <p class="acc-msg" id="accMsg" role="status"></p>
       <button type="button" class="modal-btn cod-btn-texto" onclick="accCerrar()">Cerrar</button>
     </div>
   </div>
@@ -7237,12 +7281,18 @@
     function accBoton(ico, titulo, sub, fn) {
       return '<button type="button" class="acc-btn" onclick="' + fn + '"><span class="acc-ico">' + ico + '</span><span><b>' + escHtml(titulo) + '</b><small>' + escHtml(sub) + '</small></span></button>';
     }
-    function accAbrir(p, tab, nota) {
+    function accAbrir(p, tab, nota, mantener) {
       ACC.slug = p.slug; ACC.tab = tab;
       document.getElementById('accNombre').textContent = p.name || p.slug;
       document.getElementById('accMarca').textContent = p.marca_real || '';
       document.getElementById('accNota').textContent = nota || '';
-      document.getElementById('accMsg').textContent = '';
+      if (!mantener) {   // hoja nueva: Local, 1 y «pasan al local»; después de mover, se repinta y queda lo elegido y el mensaje
+        document.getElementById('accMsg').textContent = '';
+        document.getElementById('accCant').value = 1;
+        document.getElementById('accPasan').checked = true;
+        ACC.lugar = 'local';
+      }
+      accLugar(ACC.lugar || 'local');
       var local = (typeof p._stockQty === 'number') ? p._stockQty : null, dep = depQty(p);
       var info = stockCargado ? deriveStockInfo(p) : null, dinfo = stockCargado ? deriveDepositoInfo(dep) : null;
       document.getElementById('accEstado').innerHTML = info
@@ -7277,6 +7327,99 @@
       closeModal('modalAccionesPerfume');
       switchTab('editar', document.querySelector('.tab-btn[data-tab="editar"]'));
       loadEditPerfume(ACC.slug);
+    }
+    // ── Paso 2 · «Llegaron» / «Vendí» ──
+    // Suma o resta N al local o al depósito. Escribe como los modales de siempre (SINCRO: copia del núcleo de saveStock y de saveDeposito;
+    // si cambiás uno, cambiá el otro): perfume_overrides, mismo Log (stock_update / deposito_update con old y new), mismo anti-eco del
+    // watchdog, y el estado se recalcula de la cantidad (un pausado sigue pausado). Nunca baja de 0 ni pasa de 999. Un depósito que baja
+    // pasa al local si la casilla está tildada, como el modal de Depósito (DEP-SUMAR).
+    var ACC_OCUPADO = false;
+    function accCant() { var n = parseInt(document.getElementById('accCant').value, 10); return (isNaN(n) || n < 1) ? 0 : n; }
+    function accPaso(d) { var n = (accCant() || 1) + d; if (n < 1) n = 1; if (n > 999) n = 999; document.getElementById('accCant').value = n; }
+    function accLugar(l) {
+      ACC.lugar = l;
+      document.querySelectorAll('#accLugar button').forEach(function(b) { b.setAttribute('aria-checked', b.getAttribute('data-lugar') === l ? 'true' : 'false'); });
+      document.getElementById('accBtnResta').innerHTML = (l === 'local') ? '&#10134; Vendí' : '&#10134; Salieron';
+      document.getElementById('accPasanWrap').hidden = (l === 'local');
+    }
+    function accAviso(texto, tipo) {
+      var m = document.getElementById('accMsg');
+      m.style.color = tipo === 'error' ? 'var(--tinta-error)' : (tipo === 'aviso' ? 'var(--tinta-aviso)' : 'var(--tinta-ok)');
+      m.textContent = texto;
+    }
+    async function accMover(signo) {
+      if (ACC_OCUPADO) return;
+      var p = accPerfume(); if (!p) return;
+      var n = accCant();
+      if (!n) { accAviso('Poné una cantidad de 1 o más.', 'error'); return; }
+      if (faltaStock(document.getElementById('accMsg'))) return;
+      ACC_OCUPADO = true;
+      document.getElementById('accBtnSuma').disabled = true; document.getElementById('accBtnResta').disabled = true;
+      try {
+        if (ACC.lugar === 'deposito') await accMoverDeposito(p, signo, n); else await accMoverLocal(p, signo, n);
+      } finally {
+        ACC_OCUPADO = false;
+        document.getElementById('accBtnSuma').disabled = false; document.getElementById('accBtnResta').disabled = false;
+        if (document.getElementById('modalAccionesPerfume').classList.contains('active')) accAbrir(p, ACC.tab, document.getElementById('accNota').textContent, true);   // las badges y los «Hay N u.» con lo nuevo
+      }
+    }
+    // Si el perfume estaba sin stock o pausado y vuelve a tener, la lista de espera se entera (igual que en el modal de stock).
+    async function accAvisarEspera(p, prevStatus, newStatus, txt) {
+      if (!((prevStatus === 'out' || prevStatus === 'pausado') && (newStatus === 'ok' || newStatus === 'low'))) return;
+      var notified = await autoNotifyWaitlist(p.slug);
+      if (notified.length > 0) {
+        accAviso(txt + ' · 📬 ' + notified.length + (notified.length !== 1 ? ' personas esperaban' : ' persona esperaba') + ' este perfume: avisales desde Precios & Stock o Espera', 'ok');
+        notifyTelegram('📬 Waitlist PENDIENTE de aviso\n🌶 ' + p.name + '\n👥 ' + notified.length + ' persona(s)');
+      }
+    }
+    async function accMoverLocal(p, signo, n) {
+      var prevQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      var prevStatus = p._stockStatus || 'ok';
+      if (signo < 0 && prevQty === null) { accAviso('No hay dato del stock del local: cargá la cantidad en «Stock del local».', 'aviso'); return; }
+      var base = (prevQty === null ? 0 : prevQty), nuevo = base + signo * n;
+      if (nuevo < 0) { accAviso('Solo hay ' + base + ' en el local: no se restó nada.', 'error'); return; }
+      if (nuevo > 999) { accAviso('Pasa de 999 en el local: revisá la cantidad.', 'error'); return; }
+      var info = deriveStockInfo({ _stockQty: nuevo, _stockStatus: prevStatus === 'pausado' ? 'pausado' : null });
+      var r;
+      try { r = await sb.from('perfume_overrides').upsert({ slug: p.slug, stock_status: info.status, stock_qty: nuevo }, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
+      if (r.error) { accAviso(errorEnCriollo(r.error, null, 'cambiar el stock'), 'error'); return; }
+      lastLocalUpsert = { slug: p.slug, at: Date.now() };
+      logAdminAction('stock_update', p.slug, { stock_status: { old: prevStatus, new: info.status }, stock_qty: { old: prevQty, new: nuevo } });
+      p._stockStatus = info.status; p._stockQty = nuevo;
+      renderPrecios(); renderDeposito();
+      var txt = (signo > 0 ? (n === 1 ? '✓ Llegó 1 al local: ' : '✓ Llegaron ' + n + ' al local: ') : (n === 1 ? '✓ Se restó 1 del local: ' : '✓ Se restaron ' + n + ' del local: ')) + base + ' → ' + nuevo;
+      accAviso(txt, 'ok');
+      await accAvisarEspera(p, prevStatus, info.status, txt);
+    }
+    async function accMoverDeposito(p, signo, n) {
+      var prev = depQty(p), nuevo = prev + signo * n;
+      if (nuevo < 0) { accAviso('Solo hay ' + prev + ' en el depósito: no se restó nada.', 'error'); return; }
+      if (nuevo > 999) { accAviso('Pasa de 999 en el depósito: revisá la cantidad.', 'error'); return; }
+      var pasan = signo < 0 && document.getElementById('accPasan').checked;   // lo que baja del depósito sube al local, salvo que destilden la casilla
+      var payload = { slug: p.slug, stock_deposito: nuevo };
+      var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : 0, prevStatus = p._stockStatus || 'ok', newLocal = prevLocal, newStatus = prevStatus;
+      if (pasan) {
+        newLocal = prevLocal + n;
+        if (newLocal > 999) { accAviso('Pasa de 999 en el local: revisá la cantidad.', 'error'); return; }
+        newStatus = deriveStockInfo({ _stockQty: newLocal, _stockStatus: prevStatus === 'pausado' ? 'pausado' : null }).status;
+        payload.stock_qty = newLocal; payload.stock_status = newStatus;
+      }
+      var r;
+      try { r = await sb.from('perfume_overrides').upsert(payload, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
+      if (r.error) { accAviso(errorEnCriollo(r.error, null, 'cambiar el stock del depósito'), 'error'); return; }
+      p._stockDeposito = nuevo;
+      logAdminAction('deposito_update', p.slug, { stock_deposito: { old: prev, new: nuevo } });
+      if (pasan) {
+        p._stockQty = newLocal; p._stockStatus = newStatus;
+        lastLocalUpsert = { slug: p.slug, at: Date.now() };
+        logAdminAction('stock_update', p.slug, { stock_qty: { old: prevLocal, new: newLocal }, stock_status: { old: prevStatus, new: newStatus } });
+        try { renderStock && renderStock(); } catch (e) {}
+      }
+      renderPrecios(); renderDeposito();
+      var txt = signo > 0 ? (n === 1 ? '✓ Llegó 1 al depósito: ' : '✓ Llegaron ' + n + ' al depósito: ') + prev + ' → ' + nuevo
+        : (n === 1 ? '✓ Salió 1 del depósito: ' : '✓ Salieron ' + n + ' del depósito: ') + prev + ' → ' + nuevo + (pasan ? ' · +' + n + ' al local: ' + prevLocal + ' → ' + newLocal : '');
+      accAviso(txt, 'ok');
+      if (pasan) await accAvisarEspera(p, prevStatus, newStatus, txt);
     }
     // El link de la web: los de perfumes.js tienen su página (/perfume/slug); los que se cargaron desde el panel, no (esa página los manda al inicio): van con ?perfume=.
     function accCompartir() {
