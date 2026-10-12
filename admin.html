@@ -7545,6 +7545,21 @@
     var MERC = { lugar: 'local', sel: null, entradas: [], pendientes: [], asignando: 0, ocupado: false, id: 0 };
     function mercEl(id) { return document.getElementById(id); }
     function mercNuevoEstado() { MERC = { lugar: 'local', sel: null, entradas: [], pendientes: [], asignando: 0, ocupado: false, id: 0 }; }
+    // [LLEGO-PENDIENTES-PERSISTE] 12-oct-2026 · los códigos sin registrar sobreviven al cierre del modo: se guardan en esta tablet
+    // (localStorage, con try/catch: sin acceso, el modo anda igual y se pierden como antes) y vuelven en la próxima apertura, hasta que se les
+    // asigna un perfume o se quitan. Lo cargado (`entradas`) NO se guarda: ya está sumado en la base y en el Log.
+    var MERC_PEND_KEY = 'st_merc_pendientes';
+    function mercGuardarPend() {
+      try { if (MERC.pendientes.length) localStorage.setItem(MERC_PEND_KEY, JSON.stringify(MERC.pendientes)); else localStorage.removeItem(MERC_PEND_KEY); } catch (e) {}
+    }
+    function mercLeerPend() {
+      try {
+        var a = JSON.parse(localStorage.getItem(MERC_PEND_KEY) || '[]');
+        if (!Array.isArray(a)) return [];
+        return a.filter(function(x) { return x && /^\d{8,14}$/.test(String(x.codigo)) && x.qty >= 1 && x.qty <= 999 && Math.floor(x.qty) === x.qty; })
+          .map(function(x) { return { codigo: String(x.codigo), qty: x.qty }; });
+      } catch (e) { return []; }
+    }
     function mercMsg(texto, tipo) {
       var m = mercEl('mercMsg');
       m.style.color = tipo === 'error' ? 'var(--tinta-error)' : (tipo === 'aviso' ? 'var(--tinta-aviso)' : 'var(--tinta-ok)');
@@ -7553,9 +7568,11 @@
     function mercFoco() { if (!window.matchMedia('(pointer: coarse)').matches) { try { mercEl('mercBuscar').focus(); } catch (e) {} } }   // en un celu no se fuerza el teclado
     function mercAbrir() {
       mercNuevoEstado();
+      MERC.pendientes = mercLeerPend().map(function(x) { x.id = ++MERC.id; return x; });
       mercEl('mercBuscar').value = ''; mercEl('mercResultados').hidden = true; mercEl('mercResultados').innerHTML = '';
       mercEl('mercVistaCarga').hidden = false; mercEl('mercVistaResumen').hidden = true;
-      mercMsg('');
+      var np = MERC.pendientes.length;
+      mercMsg(np ? 'Quedaron ' + np + (np === 1 ? ' código sin registrar' : ' códigos sin registrar') + ' de la vez anterior (abajo, en Pendientes).' : '', 'aviso');
       mercRender();
       mercEl('modalMercaderia').classList.add('active');
       mercFoco();
@@ -7633,6 +7650,7 @@
       // sin registrar: no frena la carga, queda pendiente (otro escaneo del mismo código suma uno)
       var ya = MERC.pendientes.filter(function(x) { return x.codigo === codigo; })[0];
       if (ya) ya.qty = Math.min(999, ya.qty + 1); else MERC.pendientes.push({ id: ++MERC.id, codigo: codigo, qty: 1 });
+      mercGuardarPend();
       mercEl('mercBuscar').value = ''; mercEl('mercResultados').hidden = true; mercEl('mercResultados').innerHTML = '';
       mercMsg('Código ' + codigo + ' sin registrar: queda pendiente (no se sumó nada).', 'aviso');
       mercRender(); mercFoco();
@@ -7711,9 +7729,11 @@
       var n = parseInt(valor, 10);
       if (isNaN(n) || n < 1 || n > 999) { mercMsg('Poné una cantidad de 1 a 999.', 'error'); mercRender(); return; }
       x.qty = n;
+      mercGuardarPend();
     }
     function mercPendQuitar(id) {
       MERC.pendientes = MERC.pendientes.filter(function(x) { return x.id !== id; });
+      mercGuardarPend();
       if (MERC.asignando === id) MERC.asignando = 0;
       mercRender();
     }
@@ -7733,6 +7753,7 @@
         var rc = await codAsociar(pend.codigo, p.slug);
         if (!rc.ok) { mercMsg(rc.texto, 'error'); return; }
         MERC.pendientes = MERC.pendientes.filter(function(x) { return x.id !== pend.id; }); MERC.asignando = 0;
+        mercGuardarPend();
         var r = await stockMover(p, MERC.lugar, 1, pend.qty, false);
         if (!r.ok) mercMsg('Código guardado en ' + p.name + ', pero no se pudo sumar: ' + r.texto + ' Sumalo a mano.', 'error');
         else { var e = mercSumarEntrada(p, MERC.lugar, pend.qty); await mercAvisarEspera(e, p, r); mercMsg('✓ Código guardado en ' + p.name + ' · ' + r.texto.replace('✓ ', ''), 'ok'); }
@@ -7751,7 +7772,7 @@
         ? '<p class="merc-res-grande">' + tot + (tot === 1 ? ' unidad' : ' unidades') + ' · ' + k + (k === 1 ? ' perfume' : ' perfumes') + '</p><p class="merc-res-sub">' + partes.join(' · ') + '</p>'
           + MERC.entradas.map(function(e) { return '<div class="merc-fila"><span class="merc-nombre">' + escHtml(mercNombre(e.slug)) + '<small>' + (e.lugar === 'local' ? 'Local' : 'Depósito') + (e.espera ? ' · 📬 ' + e.espera + ' en espera' : '') + '</small></span><b>+' + e.qty + '</b></div>'; }).join('')
         : '<p class="merc-res-sub">No cargaste nada.</p>';
-      if (MERC.pendientes.length) html += '<p class="merc-res-aviso">⚠ ' + MERC.pendientes.length + (MERC.pendientes.length === 1 ? ' código sin registrar' : ' códigos sin registrar') + ' (' + MERC.pendientes.map(function(x) { return x.codigo + ' ×' + x.qty; }).join(', ') + '): <b>no se sumó nada</b>. Volvé a editar para asignarles un perfume.</p>';
+      if (MERC.pendientes.length) html += '<p class="merc-res-aviso">⚠ ' + MERC.pendientes.length + (MERC.pendientes.length === 1 ? ' código sin registrar' : ' códigos sin registrar') + ' (' + MERC.pendientes.map(function(x) { return x.codigo + ' ×' + x.qty; }).join(', ') + '): <b>no se sumó nada</b>. Quedan guardados en esta tablet para la próxima vez; o volvé a editar para asignarles un perfume ahora.</p>';
       mercEl('mercResumenCuerpo').innerHTML = html;
       mercEl('mercVistaCarga').hidden = true; mercEl('mercVistaResumen').hidden = false;
     }
@@ -7772,7 +7793,7 @@
     function mercCerrar() {
       if (MERC.ocupado) return;
       if (MERC.entradas.length || MERC.pendientes.length) {
-        var aviso = (MERC.entradas.length ? 'Lo que cargaste ya está sumado al stock.' : '') + (MERC.pendientes.length ? ' Hay ' + MERC.pendientes.length + ' código(s) sin registrar: no se suman.' : '');
+        var aviso = (MERC.entradas.length ? 'Lo que cargaste ya está sumado al stock.' : '') + (MERC.pendientes.length ? ' Hay ' + MERC.pendientes.length + ' código(s) sin registrar: no se suman, pero quedan guardados para la próxima vez.' : '');
         if (!confirm(aviso.trim() + '\n\n¿Cerrar sin ver el resumen?')) return;
       }
       mercEl('modalMercaderia').classList.remove('active');
