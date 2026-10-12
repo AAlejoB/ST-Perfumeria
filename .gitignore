@@ -12,6 +12,8 @@ compress-images.js
 !api/*.js
 !api/**/*.js
 !scripts/*.js
+# [ESCANER] el lector de código de barras de terceros (js/vendor/, MIT) se sube al repo y se sirve: sin esta línea *.js lo ignora y el escáner del iPhone no anda en producción
+!js/vendor/*.js
 notas.json
 notas_pendientes.xlsx
 ~$*
