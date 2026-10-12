@@ -54,6 +54,7 @@ const BACKUP_TABLES = [
   'seleccion_st_config',
   'announcements',
   'puntos_config',            // [PUNTOS-LOG] la regla de puntos (una fila)
+  'perfume_codigos',          // [ESCANER] 163 · código de barras -> perfume (sin lectura pública; el cron lo trae con la clave de servicio)
   // Data de negocio
   'clientes',
   'opiniones',

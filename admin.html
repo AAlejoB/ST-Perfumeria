@@ -1050,6 +1050,102 @@
     .modal-success {
       font-size: .75rem; color: var(--tinta-ok); text-align: center; margin-top: .5rem; min-height: 1.2rem;
     }
+
+    /* ── [ESCANER] 163 · el escáner de código de barras ──
+       163a «Escanear» junto al buscador · 163b la cámara (oscura en los dos temas) · 163c la fila marcada y la nota ·
+       163d/e el modal «Código nuevo» · 163g escribir el número · 163h los chips de Editar. Todo lo que se toca, de 44 o más. */
+    .btn-escanear {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      min-height: 48px; padding: 0 1rem; font-family: inherit; font-size: .75rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; cursor: pointer; flex-shrink: 0;
+      background: transparent; color: var(--amarillo-tinta); border: 1px solid var(--amarillo-tinta); border-radius: 4px;
+    }
+    .btn-escanear svg { width: 22px; height: 22px; flex-shrink: 0; }
+    .btn-escanear:hover { background: rgba(232,184,0,.1); }
+    .escaneo-nota { font-size: .78rem; font-weight: 600; color: var(--tinta-ok); margin: 0 0 .6rem; }
+    .escaneo-nota[hidden] { display: none; }
+    .admin-table tr.fila-escaneada td { background: rgba(232,184,0,.14); }
+    .admin-table tr.fila-escaneada td:first-child { box-shadow: inset 4px 0 0 var(--amarillo); }
+
+    .escaner-overlay {
+      position: fixed; inset: 0; z-index: 10000; background: #000; color: #fff;
+      display: none; flex-direction: column; font-family: inherit;
+    }
+    .escaner-overlay.active { display: flex; }
+    .escaner-top { display: flex; align-items: center; justify-content: space-between; padding: .6rem .8rem .6rem 1.2rem; }
+    .escaner-titulo { font-size: .8rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: #E8B800; }
+    .escaner-x {
+      width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.12); color: #fff; border: none; border-radius: 50%; font-size: 1.6rem; cursor: pointer;
+    }
+    .escaner-camara { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #0a0a0c; }
+    .escaner-camara video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .escaner-marco {
+      position: absolute; left: 50%; top: 50%; width: min(86%, 560px); aspect-ratio: 2 / 1; transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .escaner-marco i { position: absolute; width: 34px; height: 34px; border: 0 solid #E8B800; }
+    .escaner-marco i:nth-child(1) { left: 0; top: 0; border-left-width: 4px; border-top-width: 4px; border-top-left-radius: 8px; }
+    .escaner-marco i:nth-child(2) { right: 0; top: 0; border-right-width: 4px; border-top-width: 4px; border-top-right-radius: 8px; }
+    .escaner-marco i:nth-child(3) { left: 0; bottom: 0; border-left-width: 4px; border-bottom-width: 4px; border-bottom-left-radius: 8px; }
+    .escaner-marco i:nth-child(4) { right: 0; bottom: 0; border-right-width: 4px; border-bottom-width: 4px; border-bottom-right-radius: 8px; }
+    .escaner-texto { text-align: center; font-size: .9rem; font-weight: 600; line-height: 1.4; margin: 0; padding: .8rem 1rem .3rem; }
+    .escaner-texto span { display: block; font-size: .75rem; font-weight: 400; color: #c8c8cc; }
+    .escaner-error { text-align: center; font-size: .85rem; line-height: 1.45; margin: 0; padding: .8rem 1.2rem .3rem; color: #ff8a80; }
+    .escaner-error[hidden], .escaner-manual[hidden], .escaner-texto[hidden], .escaner-camara[hidden] { display: none; }
+    .escaner-manual { padding: 1rem 1.2rem .4rem; max-width: 520px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+    .escaner-manual label { display: block; font-size: .72rem; color: #c8c8cc; margin-bottom: .4rem; }
+    .escaner-manual input {
+      width: 100%; box-sizing: border-box; min-height: 56px; padding: .6rem 1rem; font-family: inherit; font-size: 1.5rem;
+      letter-spacing: .12em; text-align: center; color: #fff; background: rgba(255,255,255,.08);
+      border: 2px solid rgba(255,255,255,.3); border-radius: 6px; outline: none;
+    }
+    .escaner-manual input:focus { border-color: #E8B800; }
+    .escaner-manual-msg { min-height: 2.4em; margin: .5rem 0 0; font-size: .8rem; line-height: 1.4; color: #c8c8cc; }
+    .escaner-manual-msg.error { color: #ff8a80; }
+    .escaner-manual-msg.ok { color: #2ecc71; }
+    .escaner-pie { display: flex; gap: .6rem; padding: .6rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)); justify-content: center; flex-wrap: wrap; }
+    .escaner-pie button, .escaner-manual .esc-buscar {
+      min-height: 48px; padding: 0 1.2rem; font-family: inherit; font-size: .75rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; border-radius: 4px; cursor: pointer; color: #fff; background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.3);
+    }
+    .escaner-pie button[hidden] { display: none; }
+    .escaner-pie button.on { background: #E8B800; color: #000; border-color: #E8B800; }
+    .escaner-manual .esc-buscar { width: 100%; background: #E8B800; color: #000; border-color: #E8B800; margin-top: .4rem; }
+    .escaner-manual .esc-buscar:disabled { opacity: .3; cursor: not-allowed; }
+
+    .cod-numero { text-align: center; font-size: 1.5rem; font-weight: 700; letter-spacing: .12em; margin: .2rem 0 .6rem; color: var(--amarillo-tinta); }
+    .cod-sub { text-align: center; font-size: .8rem; line-height: 1.5; color: var(--gris-claro); margin: 0 0 1rem; }
+    .cod-btn-borde { background: transparent; color: var(--amarillo-tinta); border: 1px solid var(--amarillo-tinta); }
+    .cod-btn-texto { background: transparent; color: var(--gris-claro); text-decoration: underline; }
+    .cod-lista { max-height: 46vh; overflow-y: auto; margin: .4rem 0 .6rem; border: 1px solid var(--borde); border-radius: 6px; }
+    .cod-fila {
+      display: flex; align-items: center; gap: .7rem; width: 100%; min-height: 52px; padding: .4rem .7rem; text-align: left;
+      font-family: inherit; color: inherit; background: transparent; border: none; border-bottom: 1px solid var(--borde); cursor: pointer;
+    }
+    .cod-fila:last-child { border-bottom: none; }
+    .cod-fila[aria-checked="true"] { background: rgba(232,184,0,.14); }
+    .cod-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--gris); flex-shrink: 0; position: relative; }
+    .cod-fila[aria-checked="true"] .cod-radio { border-color: var(--amarillo-tinta); }
+    .cod-fila[aria-checked="true"] .cod-radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--amarillo-tinta); }
+    .cod-nombre { flex: 1; min-width: 0; font-size: .85rem; font-weight: 600; }
+    .cod-nombre small { display: block; font-size: .68rem; font-weight: 400; color: var(--gris-claro); }
+    .cod-nombre .cod-ya { display: block; font-size: .68rem; font-weight: 600; color: var(--tinta-aviso); }
+    .cod-msg { font-size: .78rem; min-height: 1.2rem; text-align: center; margin: .4rem 0 0; }
+    .cod-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .cod-chip {
+      display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; padding: 0 .3rem 0 .9rem;
+      border: 1px solid var(--borde); border-radius: 22px; font-size: .85rem; font-weight: 600; letter-spacing: .05em;
+    }
+    .cod-chip button {
+      width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+      border: none; border-radius: 50%; background: transparent; color: var(--tinta-error); font-size: 1.2rem; cursor: pointer;
+    }
+    .cod-chip button:hover { background: rgba(255,138,128,.15); }
+    /* 163a · a 360 entra en la fila del buscador y «Ordenar» baja: el buscador pide 180 y el panel da ~298 */
+    @media (max-width: 420px) { .btn-escanear { padding: 0 .5rem; gap: .3rem; font-size: .68rem; letter-spacing: .03em; } .btn-escanear svg { width: 20px; height: 20px; } }
+    #modalCodigoNuevo .modal-close { width: 44px; height: 44px; top: .4rem; right: .4rem; display: inline-flex; align-items: center; justify-content: center; }
     /* [PUNTOS-DELTA-TINTA] 141j · el + y el − de los dos historiales de puntos (la tabla y las tarjetas): las mismas tintas que «+ Sumar» / «− Restar» del modal (141d) */
     .puntos-delta--mas   { color: var(--tinta-ok); }
     .puntos-delta--menos { color: var(--tinta-error); }
@@ -2364,6 +2460,8 @@
 
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
+        <!-- [ESCANER] 163a · el código de barras es una forma más de buscar -->
+        <button type="button" class="btn-escanear" id="btnEscanearPrecios" onclick="escanearAbrir('precios')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
         <select class="admin-search" id="sortPrecios" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="name-asc" selected>Nombre A-Z</option>
           <option value="name-desc">Nombre Z-A</option>
@@ -2379,6 +2477,7 @@
           Mostrar pausados
         </label>
       </div>
+      <p class="escaneo-nota" id="escaneoNotaPrecios" role="status" hidden></p>
       <p id="tipPrecios" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá una tarjeta de arriba para ver sólo esos perfumes, y la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
       <p class="stat-filtro-nota" id="statFiltroNota" hidden></p>
       <!-- [PRECIOS-EN-UN-LUGAR] 123a + 123d · la escalera de decants (y la promo si está vigente) y el filtro. Sólo se mira:
@@ -2425,6 +2524,8 @@
 
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchDeposito" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('deposito')" style="margin-bottom:0;flex:1;min-width:180px;"/>
+        <!-- [ESCANER] 163a -->
+        <button type="button" class="btn-escanear" id="btnEscanearDeposito" onclick="escanearAbrir('deposito')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
         <select class="admin-search" id="sortDeposito" onchange="renderDeposito()" style="margin-bottom:0;width:auto;min-width:150px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="dep-desc" selected>Más en depósito</option>
           <option value="dep-asc">Menos en depósito</option>
@@ -2436,6 +2537,7 @@
           Sólo los que tienen unidades
         </label>
       </div>
+      <p class="escaneo-nota" id="escaneoNotaDeposito" role="status" hidden></p>
       <p id="tipDeposito" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> o la badge de <strong>Local</strong> para cambiarlos. Es el mismo control que en <strong>Precios &amp; Stock</strong>.</p>
       <p class="aviso-lectura-tabla" id="avisoStockDep" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
@@ -2532,6 +2634,12 @@
             <div style="grid-column:1/-1;">
               <label class="modal-label">Nombre</label>
               <input type="text" class="modal-input" id="editName" style="margin-bottom:0;"/>
+            </div>
+            <!-- [ESCANER] 163h · los códigos de barras del perfume. Sólo el jefe quita; para sumar uno se escanea el frasco -->
+            <div style="grid-column:1/-1;" data-role="jefe" id="editCodigosWrap">
+              <label class="modal-label">Códigos de barras</label>
+              <div class="cod-chips" id="editCodigos"><span style="font-size:.75rem;color:var(--gris);">—</span></div>
+              <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;" id="editCodigosMsg">Para sumar un código, escaneá el frasco desde Precios &amp; Stock o Depósito.</p>
             </div>
             <div>
               <label class="modal-label">Marca</label>
@@ -2735,6 +2843,8 @@
         <div class="con-barra" style="flex:1;min-width:300px;background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
           <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;" id="formNuevoTitle">Agregar perfume</p>
           <input type="hidden" id="nuevoEditId" value=""/>
+          <input type="hidden" id="nuevoEditSlug" value=""/><!-- [ESCANER] al editar un nuevo el slug NO cambia aunque cambie el nombre: los códigos y el stock cuelgan de él -->
+
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
               <label class="modal-label">Tipo de producto</label>
@@ -2755,6 +2865,12 @@
               <label class="modal-label">Nombre *</label>
               <input type="text" class="modal-input" id="nuevoName" placeholder="Ej: EMEER GOLD" style="margin-bottom:0;"/>
               <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;" id="nuevoNameHint">Ya no hace falta escribir el tipo en el nombre — se elige arriba.</p>
+            </div>
+            <!-- [ESCANER] 163f · «Es nuevo» del escáner llega acá con el código puesto; también se puede escribir a mano (opcional) -->
+            <div style="grid-column:1/-1;">
+              <label class="modal-label" for="nuevoCodigo">Código de barras</label>
+              <input type="text" class="modal-input" id="nuevoCodigo" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Opcional" style="margin-bottom:0;"/>
+              <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;" id="nuevoCodigoHint">Opcional. Se escanea o se escribe a mano.</p>
             </div>
             <div>
               <label class="modal-label">Marca</label>
@@ -3930,6 +4046,53 @@
     </div>
   </div>
 
+  <!-- [ESCANER] 163b · LA CÁMARA (pantalla completa, oscura en los dos temas) y 163g · ESCRIBIR EL NÚMERO -->
+  <div class="escaner-overlay" id="escanerOverlay" role="dialog" aria-modal="true" aria-label="Escanear código de barras">
+    <div class="escaner-top">
+      <span class="escaner-titulo">Escanear</span>
+      <button type="button" class="escaner-x" onclick="escanearCerrar()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="escaner-camara" id="escCamara">
+      <video id="escVideo" playsinline muted autoplay></video>
+      <div class="escaner-marco"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <p class="escaner-texto" id="escTexto">Apuntá al código de barras del frasco<span>Se lee solo. Si la caja brilla, inclinala un poco.</span></p>
+    <p class="escaner-error" id="escError" role="alert" hidden></p>
+    <div class="escaner-manual" id="escManual" hidden>
+      <label for="escNumero">Número del código de barras</label>
+      <input type="text" id="escNumero" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="20" data-sin-x="1" placeholder="6291108730010" oninput="escManualValidar()" onkeydown="if(event.key==='Enter'){escManualBuscar();}"/>
+      <p class="escaner-manual-msg" id="escNumeroMsg" role="status"></p>
+      <button type="button" class="esc-buscar" id="escBuscar" onclick="escManualBuscar()" disabled>Buscar</button>
+    </div>
+    <div class="escaner-pie">
+      <button type="button" id="escBtnManual" onclick="escManualAbrir()">Escribir el número</button>
+      <button type="button" id="escBtnCamara" onclick="escCamaraVolver()" hidden>Usar la cámara</button>
+      <button type="button" id="escBtnLinterna" onclick="escLinterna()" hidden>Linterna</button>
+    </div>
+  </div>
+
+  <!-- [ESCANER] 163d/163e · CÓDIGO NUEVO: «¿Qué es?» -->
+  <div class="modal-overlay" id="modalCodigoNuevo" data-sin-enter="true" onclick="closeModal('modalCodigoNuevo',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalCodigoNuevo')" aria-label="Cerrar">&times;</button>
+      <p class="modal-title">Código nuevo</p>
+      <p class="cod-numero" id="codNuevoNumero"></p>
+      <div id="codPaso1">
+        <p class="cod-sub">Todavía no sabemos de qué perfume es. La próxima vez que lo escaneen, sale solo.</p>
+        <button type="button" class="modal-btn modal-btn-price" onclick="codYaEsta()">Es uno que ya está</button>
+        <button type="button" class="modal-btn cod-btn-borde" onclick="codEsNuevo()">Es nuevo: cargarlo</button>
+        <button type="button" class="modal-btn cod-btn-texto" onclick="closeModal('modalCodigoNuevo')">Cancelar</button>
+      </div>
+      <div id="codPaso2" hidden>
+        <input type="text" class="modal-input" id="codBuscar" placeholder="Buscar por nombre, fabricante o apodo..." oninput="codPintarLista()" autocomplete="off" style="margin-bottom:0;" data-sin-x="1"/>
+        <div class="cod-lista" id="codLista" role="radiogroup" aria-label="Perfume"></div>
+        <button type="button" class="modal-btn modal-btn-price" id="codGuardar" onclick="codGuardar()" disabled>Guardar código</button>
+        <p class="cod-msg" id="codMsg" role="alert"></p>
+        <button type="button" class="modal-btn cod-btn-texto" onclick="codVolverPaso1()">Atrás</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: EDITAR CLIENTE -->
   <div class="modal-overlay" id="modalClientEdit" onclick="closeModal('modalClientEdit',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -5032,6 +5195,7 @@
     // [STAT-FILTRO] las tarjetas del Depósito. «Perfumes con depósito» tilda/destilda la casilla «Sólo los que tienen unidades» (es la
     // misma cuenta); «Unidades en depósito» deja los que tienen unidades, de más a menos (y pone el orden así); «Sin local pero con
     // depósito» filtra con depParaReponer. DEP_MODO: null | 'unidades' | 'reponer' (una a la vez; 'con' es la casilla).
+    var ESCANEO_SLUG = '', ESCANEO_NOMBRE = '';   // [ESCANER] 163c · el perfume que acaba de leer el escáner: se ve aunque un filtro lo esconda (ver escMostrar)
     var DEP_MODO = null;
     function depStat(clave) {
       if (clave === 'con') {
@@ -5077,11 +5241,11 @@
       setText('statDepReponer', stockCargado ? reponer : '—');
       pintarValorInventario();   // [VALOR-INV-DEPOSITO] la parte del depósito del valor total
 
-      var list = soloCon ? todos.filter(function(p) { return depQty(p) > 0; }) : todos.slice();
+      var list = soloCon ? todos.filter(function(p) { return depQty(p) > 0 || p.slug === ESCANEO_SLUG; }) : todos.slice();   // [ESCANER] 163c · el escaneado se ve aunque no tenga depósito
       // [STAT-FILTRO] una tarjeta del Depósito prendida (ver depStat); sin la lectura del stock no filtra.
       var modo = stockCargado ? DEP_MODO : null;
-      if (modo === 'reponer') list = list.filter(depParaReponer);
-      if (modo === 'unidades') { list = list.filter(function(p) { return depQty(p) > 0; }); sortKey = 'dep-desc'; }
+      if (modo === 'reponer') list = list.filter(function(p) { return p.slug === ESCANEO_SLUG || depParaReponer(p); });
+      if (modo === 'unidades') { list = list.filter(function(p) { return p.slug === ESCANEO_SLUG || depQty(p) > 0; }); sortKey = 'dep-desc'; }
       pintarDepStat(soloCon && stockCargado, modo);
 
       list.sort(function(a, b) {
@@ -5105,7 +5269,7 @@
         var alerta = (stockCargado && depParaReponer(p))
           ? ' <span style="color:#e67e22;font-size:.62rem;white-space:nowrap;">← traer al local</span>' : '';
         var sinLect = '<td class="td-stock"><span class="stock-sin-lectura" title="El stock no se leyó">—</span></td>';   // 128n
-        html += '<tr data-search="' + searchStr + '">' +
+        html += '<tr data-search="' + searchStr + '" data-slug="' + escHtml(String(p.slug)) + '">' +   // [ESCANER] data-slug: la fila escaneada se marca
             '<td class="td-name">' + escapeHtml(p.name) + alerta + '</td>' +
             // [DEPOSITO-LOCAL-CLICK] La badge de Local abre el MISMO modal de Precios & Stock.
             (stockCargado
@@ -5484,12 +5648,12 @@
       var ocultosPausados = 0;
       if (!verPausadosActivo()) {
         var antesLen = list.length;
-        list = list.filter(function(p) { return p._stockStatus !== 'pausado'; });
+        list = list.filter(function(p) { return p._stockStatus !== 'pausado' || p.slug === ESCANEO_SLUG; });   // [ESCANER] 163c · el escaneado se ve aunque esté pausado
         ocultosPausados = antesLen - list.length;
       }
       // [STAT-FILTRO] una tarjeta de arriba prendida deja sólo esos perfumes (sin la lectura del stock no filtra: no hay con qué)
       var statActivo = (PRECIOS_STAT && stockCargado) ? PRECIOS_STAT : null;
-      if (statActivo) list = list.filter(function(p) { return statPasa(p, statActivo); });
+      if (statActivo) list = list.filter(function(p) { return p.slug === ESCANEO_SLUG || statPasa(p, statActivo); });
       pintarStatFiltro(statActivo);
       var avisoEl = document.getElementById('avisoPausados');
       if (avisoEl) {
@@ -5527,7 +5691,7 @@
         // 123j · con decant de diseñador va sólo la línea 💎 (el armador usa ese: su dedup esconde el del catálogo).
         if (fijo > 0 && !dec) exc.push('💧 ' + promoPesos(fijo) + ' fijo');   // ronda g: sin «decant», el 💧 ya lo dice
         if (oferta && PRECIOS_DATOS.customs && promoEnLista(p, customs) && promoConEscalera(p) && !promoEntraPanel(p, oferta, customs)) exc.push('sin promo ' + oferta.n + '×');
-        return '<tr data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
+        return '<tr data-search="' + escHtml(searchStr) + '" data-slug="' + escHtml(String(p.slug)) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'   // [ESCANER] data-slug: la fila escaneada se marca
           + '<td class="td-name"><span class="td-nombre">' + escHtml(p.name || '') + '</span>'
           +   (p.marca_real ? '<span class="td-sub">' + escHtml(p.marca_real) + '</span>' : '')
           +   (dec ? '<span class="td-sub td-excepcion">💎 ' + escHtml(String(mlDecant)) + ' ml '   // 123k: sin «decant» (el 💎 ya lo dice)
@@ -6753,6 +6917,453 @@
       if (tab === 'precios') preciosAjustarGrupos();   // [PRECIOS-EN-UN-LUGAR] 123e · un título no queda solo
     }
 
+    // ============================================================
+    // [ESCANER] 163 · escáner de código de barras (12-oct-2026)
+    // Escanear es una forma más de buscar: el número se busca en `perfume_codigos` (sql/perfume_codigos.sql) y, si es de un
+    // perfume, abre su fila en Precios & Stock o en Depósito (sin cambiar nada solo). Si no se conoce, «Código nuevo» pregunta
+    // qué es. La cámara usa el BarcodeDetector del equipo (Chrome en Android) y, si no hay, el lector de js/vendor/ (iPhone,
+    // Chrome en Windows), que se baja recién al tocar «Escanear». La pistola USB/Bluetooth escribe el número y manda Enter.
+    // NO ROMPER #30: el número se normaliza SÓLO con normalizarCodigo (cámara, pistola y teclado dan lo mismo).
+    // ============================================================
+
+    /* NORMALIZAR-CODIGO:INICIO (scripts/probar_normalizar_codigo.js corta el texto entre estas dos marcas y lo prueba) */
+    var COD_MSG_CONTROL = 'Ese número no es un código de barras: revisalo.';
+    // Dígito de control: pesos 3, 1, 3, 1… de derecha a izquierda sobre todos menos el último (vale para EAN-13, EAN-8 y UPC-A).
+    function codigoControlOk(d) {
+      var suma = 0, w = 3;
+      for (var i = d.length - 2; i >= 0; i--) { suma += parseInt(d.charAt(i), 10) * w; w = (w === 3) ? 1 : 3; }
+      return ((10 - (suma % 10)) % 10) === parseInt(d.charAt(d.length - 1), 10);
+    }
+    // UPC-E (8 dígitos: sistema 0 o 1 + 6 + control) → UPC-A (12), o '' si no es un UPC-E posible.
+    function upcEaUpcA(e) {
+      var n = e.charAt(0);
+      if (n !== '0' && n !== '1') return '';
+      var d = e.slice(1, 7), c = e.charAt(7), u = d.charAt(5), a;
+      if (u === '0' || u === '1' || u === '2') a = d.slice(0, 2) + u + '0000' + d.slice(2, 5);
+      else if (u === '3') a = d.slice(0, 3) + '00000' + d.slice(3, 5);
+      else if (u === '4') a = d.slice(0, 4) + '00000' + d.slice(4, 5);
+      else a = d.slice(0, 5) + '0000' + u;
+      return n + a + c;
+    }
+    // Devuelve { ok: true, codigo } (13 dígitos, o 8) o { ok: false, motivo: 'faltan' | 'sobran' | 'control', msg }.
+    function normalizarCodigo(txt) {
+      var d = String(txt == null ? '' : txt).replace(/\D/g, '');
+      if (d.length === 12) d = '0' + d;                                    // UPC-A → EAN-13
+      else if (d.length === 14 && d.charAt(0) === '0') d = d.slice(1);     // GTIN-14 que empieza con 0 → EAN-13
+      if (d.length === 13) return codigoControlOk(d) ? { ok: true, codigo: d } : { ok: false, motivo: 'control', msg: COD_MSG_CONTROL };
+      if (d.length === 8) {
+        var upcA = upcEaUpcA(d);
+        return (codigoControlOk(d) || (upcA && codigoControlOk(upcA))) ? { ok: true, codigo: d } : { ok: false, motivo: 'control', msg: COD_MSG_CONTROL };
+      }
+      return d.length < 13
+        ? { ok: false, motivo: 'faltan', msg: 'Faltan números: son 13 (a veces 8 o 12).' }
+        : { ok: false, motivo: 'sobran', msg: 'Sobran números: son 13 (a veces 8 o 12).' };
+    }
+    /* NORMALIZAR-CODIGO:FIN */
+
+    var ESC_FORMATOS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
+    var ESC_JS = '/js/vendor/barcode-detector-3.2.2.ponyfill.js';      // MIT · copiado de npm barcode-detector@3.2.2 (js/vendor/LICENSE-barcode-detector.txt)
+    var ESC_WASM = '/js/vendor/zxing_reader-3.1.3.wasm';               // MIT · zxing-wasm@3.1.3 (1,09 MB; 0,46 MB comprimido): se baja sólo al tocar «Escanear» en un equipo sin lector propio
+    var PISTOLA_MS = 100;                                              // entre dos teclas de la pistola (sin campo): una persona no sostiene 8 dígitos a menos de 100 ms
+    var ESC_MSG_SIN_CAMARA = 'No pudimos abrir la cámara. Para usarla, tocá el candado de la barra de arriba y permití «Cámara».';
+    var ESC = { tab: 'precios', stream: null, det: null, detPromesa: null, api: null, vivo: false, leyendo: false, timer: 0, sesion: 0, linterna: false };
+    var COD = { codigo: '', tab: 'precios', slug: '', conCodigo: {} };
+
+    function escTabActiva() {
+      var a = document.querySelector('.tab-content.active');
+      return a ? ({ 'tab-precios': 'precios', 'tab-deposito': 'deposito' }[a.id] || '') : '';
+    }
+    function escId(base, tab) { return base + (tab === 'deposito' ? 'Deposito' : 'Precios'); }
+    // La línea de debajo del buscador (163c): tipo '' = ok (verde), 'aviso' o 'error'. Sin texto, se esconde.
+    function escNota(tab, texto, tipo) {
+      var el = document.getElementById(escId('escaneoNota', tab));
+      if (!el) return;
+      el.hidden = !texto;
+      el.textContent = texto || '';
+      el.style.color = tipo === 'error' ? 'var(--tinta-error)' : (tipo === 'aviso' ? 'var(--tinta-aviso)' : '');
+    }
+    function codTablaFalta(err) {
+      var txt = err ? [err.code, err.message, err.details].filter(Boolean).join(' ') : '';
+      return /PGRST205|42P01|schema cache|perfume_codigos.*(does not exist|not exist)/i.test(txt);
+    }
+    function codErrorTexto(err, que) {
+      if (codTablaFalta(err)) return 'Todavía no está la tabla de códigos de barras (falta correr sql/perfume_codigos.sql en Supabase).';
+      return errorEnCriollo(err, null, que);
+    }
+
+    // ── 163b · la cámara ──
+    function escanearAbrir(tab) {
+      ESC.tab = tab;
+      document.getElementById('escanerOverlay').classList.add('active');
+      document.getElementById('escNumero').value = '';
+      escMostrarCamaraUI();
+      escCamaraIniciar();
+    }
+    function escMostrarCamaraUI() {
+      document.getElementById('escCamara').hidden = false;
+      document.getElementById('escTexto').hidden = false;
+      document.getElementById('escManual').hidden = true;
+      document.getElementById('escError').hidden = true;
+      document.getElementById('escBtnManual').hidden = false;
+      document.getElementById('escBtnCamara').hidden = true;
+    }
+    function escanearCerrar() {
+      escDetener();
+      document.getElementById('escanerOverlay').classList.remove('active');
+    }
+    function escParar(stream) { stream.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} }); }
+    // Apaga la cámara de verdad (el track en 'ended'): al cerrar, al leer, al ocultarse la pestaña y al irse de la página.
+    function escDetener() {
+      ESC.vivo = false; ESC.sesion++; ESC.leyendo = false;
+      clearTimeout(ESC.timer);
+      if (ESC.stream) { escParar(ESC.stream); ESC.stream = null; }
+      var v = document.getElementById('escVideo');
+      if (v) { try { v.pause(); } catch (e) {} v.srcObject = null; }
+      ESC.linterna = false;
+      var bl = document.getElementById('escBtnLinterna');
+      if (bl) { bl.hidden = true; bl.classList.remove('on'); }
+    }
+    function escError(texto) {   // 163g · sin cámara: el texto y, abajo, escribir el número
+      escManualAbrir();
+      var e = document.getElementById('escError');
+      e.textContent = texto; e.hidden = false;
+    }
+    function escDetector() {
+      if (ESC.detPromesa) return ESC.detPromesa;
+      var nativos = (typeof window.BarcodeDetector === 'function' && window.BarcodeDetector.getSupportedFormats)
+        ? window.BarcodeDetector.getSupportedFormats() : Promise.resolve([]);
+      ESC.detPromesa = Promise.resolve(nativos).catch(function() { return []; }).then(function(lista) {
+        if (lista.indexOf('ean_13') !== -1) {   // Chrome en Android: el lector del equipo
+          return new window.BarcodeDetector({ formats: ESC_FORMATOS.filter(function(f) { return lista.indexOf(f) !== -1; }) });
+        }
+        return escCargarLector().then(function(api) { return new api.BarcodeDetector({ formats: ESC_FORMATOS }); });
+      });
+      ESC.detPromesa.catch(function() { ESC.detPromesa = null; });   // si falló, la próxima vez reintenta
+      return ESC.detPromesa;
+    }
+    function escCargarLector() {
+      function preparar() {
+        if (!ESC.api) {
+          ESC.api = window.BarcodeDetectionAPI;
+          ESC.api.prepareZXingModule({ overrides: { locateFile: function(path, prefix) { return /\.wasm$/.test(path) ? ESC_WASM : prefix + path; } } });   // sin CDN de afuera
+        }
+        return ESC.api;
+      }
+      if (window.BarcodeDetectionAPI) return Promise.resolve(preparar());
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = ESC_JS;
+        s.onload = function() { resolve(preparar()); };
+        s.onerror = function() { s.remove(); reject(errorPropio('No pudimos preparar el lector. Revisá internet o escribí el número.')); };
+        document.head.appendChild(s);
+      });
+    }
+    function escCamaraIniciar() {
+      escDetener();
+      document.getElementById('escError').hidden = true;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { escError(ESC_MSG_SIN_CAMARA); return; }
+      var token = ++ESC.sesion;
+      var enCamara = true;
+      navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } })
+        .then(function(stream) {
+          if (token !== ESC.sesion) { escParar(stream); return null; }
+          ESC.stream = stream;
+          var v = document.getElementById('escVideo');
+          v.srcObject = stream;
+          var pl = v.play(); if (pl && pl.catch) pl.catch(function() {});
+          escLinternaDetectar(stream);
+          enCamara = false;
+          return escDetector();
+        })
+        .then(function(det) {
+          if (!det || token !== ESC.sesion) return;
+          ESC.det = det; ESC.vivo = true; ESC.leyendo = false;
+          escCiclo(token);
+        })
+        .catch(function(err) {
+          if (token !== ESC.sesion) return;
+          escDetener();
+          escError(enCamara ? ESC_MSG_SIN_CAMARA : ((err && err.propio && err.message) || 'No pudimos preparar el lector. Revisá internet o escribí el número.'));
+        });
+    }
+    function escCiclo(token) {
+      if (!ESC.vivo || token !== ESC.sesion) return;
+      var v = document.getElementById('escVideo');
+      if (v.readyState >= 2 && !ESC.leyendo) {
+        ESC.leyendo = true;
+        ESC.det.detect(v).then(function(res) {
+          ESC.leyendo = false;
+          if (!ESC.vivo || token !== ESC.sesion) return;
+          for (var i = 0; i < res.length; i++) {
+            var n = normalizarCodigo(res[i].rawValue);
+            if (n.ok) { escLeyo(n.codigo); return; }   // una lectura con el dígito de control mal se ignora y sigue
+          }
+        }).catch(function() { ESC.leyendo = false; });
+      }
+      ESC.timer = setTimeout(function() { escCiclo(token); }, 150);
+    }
+    function escLeyo(codigo) {
+      try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) {}
+      var tab = ESC.tab;
+      escanearCerrar();
+      escProcesar(codigo, tab);
+    }
+    function escLinternaDetectar(stream) {
+      var t = stream.getVideoTracks()[0], caps = {};
+      try { caps = (t && t.getCapabilities) ? t.getCapabilities() : {}; } catch (e) {}
+      var b = document.getElementById('escBtnLinterna');
+      b.hidden = !caps.torch; b.classList.remove('on'); ESC.linterna = false;
+    }
+    function escLinterna() {
+      var t = ESC.stream && ESC.stream.getVideoTracks()[0];
+      if (!t) return;
+      var on = !ESC.linterna;
+      t.applyConstraints({ advanced: [{ torch: on }] }).then(function() {
+        ESC.linterna = on;
+        document.getElementById('escBtnLinterna').classList.toggle('on', on);
+      }).catch(function() {});
+    }
+
+    // ── 163g · escribir el número ──
+    function escManualAbrir() {
+      escDetener();
+      document.getElementById('escCamara').hidden = true;
+      document.getElementById('escTexto').hidden = true;
+      document.getElementById('escManual').hidden = false;
+      document.getElementById('escBtnManual').hidden = true;
+      document.getElementById('escBtnCamara').hidden = false;
+      escManualValidar();
+      var i = document.getElementById('escNumero'); if (i) { try { i.focus(); } catch (e) {} }
+    }
+    function escCamaraVolver() { escMostrarCamaraUI(); escCamaraIniciar(); }
+    function escManualValidar() {
+      var txt = document.getElementById('escNumero').value.trim();
+      var msg = document.getElementById('escNumeroMsg'), btn = document.getElementById('escBuscar');
+      msg.className = 'escaner-manual-msg';
+      if (!txt) { msg.textContent = ''; btn.disabled = true; return; }
+      var n = normalizarCodigo(txt);
+      if (n.ok) { msg.textContent = '✓ ' + n.codigo; msg.className += ' ok'; btn.disabled = false; }
+      else { msg.textContent = n.msg; msg.className += ' error'; btn.disabled = true; }
+    }
+    function escManualBuscar() {
+      var n = normalizarCodigo(document.getElementById('escNumero').value);
+      if (!n.ok) return;
+      var tab = ESC.tab;
+      escanearCerrar();
+      escProcesar(n.codigo, tab);
+    }
+
+    // ── 163c / 163d · qué hace un código leído ──
+    async function escProcesar(codigo, tab) {
+      escNota(tab, 'Buscando ' + codigo + '…', 'aviso');
+      var r;
+      try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
+      if (r.error) { escNota(tab, codErrorTexto(r.error, 'buscar el código'), 'error'); return; }
+      var fila = r.data && r.data[0];
+      var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
+      if (fila && p) { escMostrar(p, tab, '✓ Escaneado: ' + codigo); return; }
+      if (fila) { escNota(tab, 'Ese código es de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe.', 'aviso'); return; }
+      escNota(tab, '');
+      codNuevoAbrir(codigo, tab);
+    }
+    // El buscador queda con el nombre del perfume y su fila marcada 2 s. No cambia nada solo. Un pausado se muestra aunque
+    // «Mostrar pausados» esté apagado, y las tarjetas y chips de arriba se sueltan para que la fila no quede escondida.
+    function escMostrar(p, tab, nota) {
+      if (tab === 'deposito') {
+        DEP_MODO = null;   // «Sólo los que tienen unidades» no hace falta soltarlo: renderDeposito deja pasar al escaneado
+      } else {
+        PRECIOS_STAT = null;
+        if (PRECIOS_FILTRO !== 'todo') {
+          PRECIOS_FILTRO = 'todo';
+          document.querySelectorAll('#preciosFiltro .log-chip').forEach(function(b) { b.classList.toggle('active', b.dataset.filtro === 'todo'); });
+        }
+      }
+      var texto = String(p.name || '');
+      if (tab === 'deposito') texto = texto.replace(/"/g, '');   // renderDeposito saca las comillas del texto de búsqueda
+      ESCANEO_NOMBRE = texto; ESCANEO_SLUG = p.slug;
+      var inp = document.getElementById(escId('search', tab));
+      inp.value = texto;
+      inp.dispatchEvent(new Event('input', { bubbles: true }));   // la ✕ del campo y filterTable
+      if (tab === 'deposito') renderDeposito(); else renderPrecios();
+      escNota(tab, nota);
+      var tb = document.getElementById(escId('tbody', tab)), fila = null;
+      var filas = tb ? tb.querySelectorAll('tr[data-slug]') : [];
+      for (var i = 0; i < filas.length; i++) { if (filas[i].getAttribute('data-slug') === p.slug) { fila = filas[i]; break; } }
+      if (!fila) return;
+      fila.classList.add('fila-escaneada');
+      try { fila.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+      setTimeout(function() { fila.classList.remove('fila-escaneada'); }, 2000);
+    }
+
+    // Asocia un código a un perfume (lo hacen el jefe y la empleada; va al Log). Devuelve { ok } o { ok: false, texto }.
+    async function codAsociar(codigo, slug) {
+      var r;
+      try { r = await sb.from('perfume_codigos').insert({ codigo: codigo, slug: slug }); } catch (e) { r = { error: e }; }
+      if (!r.error) { logAdminAction('codigo_asociado', slug, { codigo: codigo }); return { ok: true }; }
+      if (String(r.error.code) === '23505') {   // ya existía: ¿de quién es?
+        var q; try { q = await sb.from('perfume_codigos').select('slug').eq('codigo', codigo); } catch (e) { q = {}; }
+        var dueno = (q && q.data && q.data[0]) ? q.data[0].slug : '';
+        if (dueno === slug) return { ok: true };   // ya era de este mismo perfume
+        var dp = dueno ? PERFUMES.find(function(pf) { return pf.slug === dueno; }) : null;
+        return { ok: false, texto: 'Ese código ya es de ' + (dp ? dp.name : 'otro perfume') + '.' };
+      }
+      return { ok: false, texto: codErrorTexto(r.error, 'guardar el código') };
+    }
+
+    function codNuevoAbrir(codigo, tab) {
+      COD.codigo = codigo; COD.tab = tab; COD.slug = '';
+      document.getElementById('codNuevoNumero').textContent = codigo;
+      codVolverPaso1();
+      document.getElementById('modalCodigoNuevo').classList.add('active');
+    }
+    function codVolverPaso1() {
+      document.getElementById('codPaso1').hidden = false;
+      document.getElementById('codPaso2').hidden = true;
+    }
+    // 163e · «Es uno que ya está»: buscar, elegir y después guardar (un toque de más, a propósito)
+    async function codYaEsta() {
+      document.getElementById('codPaso1').hidden = true;
+      document.getElementById('codPaso2').hidden = false;
+      document.getElementById('codBuscar').value = '';
+      document.getElementById('codMsg').textContent = '';
+      COD.slug = '';
+      var g = document.getElementById('codGuardar'); g.disabled = true; g.textContent = 'Guardar código';
+      COD.conCodigo = {};
+      codPintarLista();
+      try {
+        var r = await sb.from('perfume_codigos').select('slug');
+        if (!r.error) (r.data || []).forEach(function(f) { COD.conCodigo[f.slug] = (COD.conCodigo[f.slug] || 0) + 1; });
+      } catch (e) {}
+      codPintarLista();
+      try { document.getElementById('codBuscar').focus(); } catch (e) {}
+    }
+    function codNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+    function codPintarLista() {
+      var q = codNorm(document.getElementById('codBuscar').value).trim();
+      var lista = PERFUMES.filter(function(p) {   // como el panel: nombre, fabricante, apodo; sin sets ni combos (los decants no están en PERFUMES)
+        return !p.esSet && (!q || codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(q) !== -1);
+      }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); });
+      var total = lista.length;
+      var html = lista.slice(0, 40).map(function(p) {
+        var info = stockCargado ? deriveStockInfo(p) : null;
+        var n = COD.conCodigo[p.slug] || 0;
+        return '<button type="button" class="cod-fila" role="radio" aria-checked="' + (COD.slug === p.slug ? 'true' : 'false') + '" data-slug="' + escHtml(String(p.slug)) + '" onclick="codElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
+          + '<span class="cod-radio"></span>'
+          + '<span class="cod-nombre">' + escHtml(p.name || '') + (p.marca_real ? '<small>' + escHtml(p.marca_real) + '</small>' : '')
+          +   (n ? '<span class="cod-ya">Ya tiene ' + (n === 1 ? 'un código' : n + ' códigos') + '</span>' : '') + '</span>'
+          + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '')
+          + '</button>';
+      }).join('');
+      if (!total) html = '<p class="cod-msg" style="padding:.8rem;color:var(--gris);">No hay perfumes con ese nombre.</p>';
+      else if (total > 40) html += '<p class="cod-msg" style="padding:.5rem;color:var(--gris);">Mostrando 40 de ' + total + ': escribí más para achicar.</p>';
+      document.getElementById('codLista').innerHTML = html;
+    }
+    function codElegir(slug) {
+      COD.slug = slug;
+      document.querySelectorAll('#codLista .cod-fila').forEach(function(b) { b.setAttribute('aria-checked', b.getAttribute('data-slug') === slug ? 'true' : 'false'); });
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      var g = document.getElementById('codGuardar');
+      g.disabled = !p; g.textContent = p ? 'Guardar código en ' + p.name : 'Guardar código';
+      document.getElementById('codMsg').textContent = '';
+    }
+    async function codGuardar() {
+      var g = document.getElementById('codGuardar'), msg = document.getElementById('codMsg');
+      var p = COD.slug ? PERFUMES.find(function(pf) { return pf.slug === COD.slug; }) : null;
+      if (!p || g.disabled) return;
+      g.disabled = true; msg.textContent = '';
+      var r = await codAsociar(COD.codigo, p.slug);
+      if (!r.ok) { g.disabled = false; msg.style.color = 'var(--tinta-error)'; msg.textContent = r.texto; return; }
+      closeModal('modalCodigoNuevo');
+      escMostrar(p, COD.tab, '✓ Código guardado en ' + p.name);
+    }
+    // 163f · «Es nuevo»: el alta de Perfume con el código puesto
+    function codEsNuevo() {
+      closeModal('modalCodigoNuevo');
+      switchTab('nuevos', document.querySelector('.tab-btn[data-tab="nuevos"]'));
+      clearNuevoForm();
+      document.getElementById('nuevoCodigo').value = COD.codigo;
+      document.getElementById('nuevoCodigoHint').textContent = 'Lo trajo el escáner. Se puede borrar o escribir a mano.';
+      try { document.getElementById('nuevoName').focus(); } catch (e) {}
+    }
+
+    // 163h · los códigos del perfume en Editar (sólo el jefe quita; para sumar se escanea el frasco)
+    async function editCodigosPintar(slug) {
+      var cont = document.getElementById('editCodigos');
+      if (!cont) return;
+      cont.innerHTML = '<span style="font-size:.75rem;color:var(--gris);">Cargando…</span>';
+      var r; try { r = await sb.from('perfume_codigos').select('codigo').eq('slug', slug).order('creado_en'); } catch (e) { r = { error: e }; }
+      if (document.getElementById('editSlug').value !== slug) return;   // mientras cargaba, abrieron otro perfume
+      if (r.error) { cont.innerHTML = '<span style="font-size:.75rem;color:var(--tinta-error);">' + escHtml(codErrorTexto(r.error, 'cargar los códigos')) + '</span>'; return; }
+      var filas = r.data || [];
+      cont.innerHTML = filas.length ? filas.map(function(f) {
+        return '<span class="cod-chip">' + escHtml(f.codigo) + '<button type="button" aria-label="Quitar el código ' + escHtml(f.codigo) + '" onclick="editCodigoQuitar(' + escHtml(JSON.stringify(f.codigo)) + ')">&times;</button></span>';
+      }).join('') : '<span style="font-size:.75rem;color:var(--gris);">Ninguno todavía</span>';
+    }
+    async function editCodigoQuitar(codigo) {
+      var slug = document.getElementById('editSlug').value;
+      if (!slug || !confirm('¿Quitar el código ' + codigo + ' de este perfume? La próxima vez que lo escaneen va a preguntar de nuevo qué es.')) return;
+      var msg = document.getElementById('editCodigosMsg');
+      var r; try { r = await sb.from('perfume_codigos').delete().eq('codigo', codigo).eq('slug', slug).select('codigo'); } catch (e) { r = { error: e }; }
+      if (r.error || !r.data || !r.data.length) {
+        msg.textContent = r.error ? codErrorTexto(r.error, 'quitar el código') : 'No se pudo quitar: ya no estaba.';
+        msg.style.color = 'var(--tinta-error)';
+        return;
+      }
+      msg.textContent = '✓ Código ' + codigo + ' quitado.'; msg.style.color = 'var(--tinta-ok)';
+      logAdminAction('codigo_quitado', slug, { codigo: codigo });
+      editCodigosPintar(slug);
+    }
+
+    // 163h · la pistola USB o Bluetooth: 8 a 14 números seguidos y un Enter. Sólo en Precios & Stock y en Depósito, con el foco
+    // en su buscador o en ningún campo; nunca en un precio, una cantidad ni un modal. Sin campo, las teclas tienen que venir
+    // juntas (PISTOLA_MS). En el buscador alcanza con que el campo tenga sólo esos números al apretar Enter.
+    var PISTOLA = { buf: '', t: 0 };
+    function pistolaTecla(e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      var tab = escTabActiva();
+      if (!tab || document.querySelector('.modal-overlay.active, .escaner-overlay.active')) { PISTOLA.buf = ''; return; }
+      var el = document.activeElement, tag = el && el.tagName;
+      var enCampo = !!el && (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable);
+      var enBuscador = !!el && el.id === escId('search', tab);
+      if (enCampo && !enBuscador) { PISTOLA.buf = ''; return; }
+      if (e.key === 'Enter') {
+        var cand = '';
+        if (enBuscador) { var v = el.value.replace(/\s/g, ''); if (/^\d{8,14}$/.test(v)) cand = v; }
+        else if (PISTOLA.buf.length >= 8 && PISTOLA.buf.length <= 14) cand = PISTOLA.buf;
+        PISTOLA.buf = '';
+        if (!cand) return;
+        e.preventDefault();
+        if (enBuscador) { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
+        var n = normalizarCodigo(cand);
+        if (n.ok) escProcesar(n.codigo, tab); else escNota(tab, n.msg, 'error');
+        return;
+      }
+      if (/^\d$/.test(e.key)) {
+        var ahora = Date.now();
+        if (ahora - PISTOLA.t > PISTOLA_MS) PISTOLA.buf = '';
+        PISTOLA.buf += e.key; PISTOLA.t = ahora;
+      } else if (e.key.length === 1) {
+        PISTOLA.buf = '';
+      }
+    }
+
+    function escIniciar() {
+      ['precios', 'deposito'].forEach(function(t) {
+        var inp = document.getElementById(escId('search', t));
+        if (!inp) return;
+        inp.addEventListener('input', function() {
+          if (ESCANEO_NOMBRE && inp.value === ESCANEO_NOMBRE) return;   // lo puso el escaneo
+          if (ESCANEO_SLUG) { ESCANEO_SLUG = ''; ESCANEO_NOMBRE = ''; }
+          escNota(t, '');
+        });
+      });
+      document.addEventListener('keydown', pistolaTecla, true);
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && document.getElementById('escanerOverlay').classList.contains('active')) escanearCerrar(); });
+      document.addEventListener('visibilitychange', function() { if (document.hidden) escanearCerrar(); });   // la cámara no queda prendida con la pestaña oculta
+      window.addEventListener('pagehide', escanearCerrar);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', escIniciar); else escIniciar();
+
     // Apply saved price changes on load
     function applySavedChanges() {
       var changes = JSON.parse(localStorage.getItem('st_price_changes') || '{}');
@@ -7117,6 +7728,7 @@
 
       rebuildPerfilesList(); // refresca sugerencias antes de abrir el modal
       document.getElementById('editSlug').value = slug;
+      editCodigosPintar(slug);   // [ESCANER] 163h
       document.getElementById('editingName').textContent = p.name;
       document.getElementById('editName').value = p.name;
       document.getElementById('editMarca').value = p.marca || '';
@@ -8068,7 +8680,15 @@
 
       var aliasN = document.getElementById('nuevoAlias').value.trim();
 
-      var slug = generateSlug(name);
+      // [ESCANER] el slug NO cambia al renombrar un nuevo: de él cuelgan sus códigos de barras, su stock y su depósito (antes se recalculaba del nombre)
+      var slug = (editId && document.getElementById('nuevoEditSlug').value) || generateSlug(name);
+      // [ESCANER] 163f · el código de barras (opcional: lo trae el escáner o se escribe a mano); si está mal escrito, no se guarda nada
+      var codigoTxt = document.getElementById('nuevoCodigo').value.trim(), codigoNuevo = '';
+      if (codigoTxt) {
+        var ncod = normalizarCodigo(codigoTxt);
+        if (!ncod.ok) { msgEl.textContent = 'Código de barras: ' + ncod.msg; msgEl.style.color = 'var(--tinta-error)'; return { ok: false, error: msgEl.textContent }; }
+        codigoNuevo = ncod.codigo;
+      }
       // [DECANT-PRECIO-MANUAL] Precio de decant y exclusión (libres).
       var precioDecantN = parseInt(document.getElementById('nuevoPrecioDecant').value, 10);
       if (isNaN(precioDecantN) || precioDecantN <= 0) precioDecantN = null;
@@ -8122,6 +8742,12 @@
       msgEl.textContent = name + ' ' + action + ' correctamente';
       msgEl.style.color = 'var(--tinta-ok)';
       if (acordesSinColumnaN) { msgEl.textContent = '\u26a0 ' + name + ' ' + action + ' SIN los acordes (falta correr el SQL de los acordes).'; msgEl.style.color = 'var(--tinta-aviso)'; }
+      // [ESCANER] 163f · el perfume ya está guardado; si el código es de otro perfume, sólo el código no se guarda y se dice cuál
+      var avisoCodigo = false;
+      if (codigoNuevo) {
+        var rcod = await codAsociar(codigoNuevo, slug);
+        if (!rcod.ok) { msgEl.textContent = name + ' ' + action + ' correctamente. ' + rcod.texto + ' El código no se guardó.'; msgEl.style.color = 'var(--tinta-aviso)'; avisoCodigo = true; }
+      }
       notifyTelegram('🆕 Perfume ' + action + ': ' + name + '\n💰 $' + price.toLocaleString('es-AR') + '\n📋 ' + cat + ' · ' + perfil);
 
       // Mergear inmediatamente en PERFUMES para que EDITAR/PRECIOS/STOCK lo vean
@@ -8137,7 +8763,7 @@
 
       clearNuevoForm();
       loadNuevos();
-      setTimeout(function() { msgEl.textContent = ''; }, 3000);
+      setTimeout(function() { msgEl.textContent = ''; }, avisoCodigo ? 9000 : 3000);
       return { ok: true };   // clearNuevoForm ya puso «Agregar perfume» en el botón: sin ✓
     }
 
@@ -8147,6 +8773,9 @@
       barraError(document.getElementById('btnSaveNuevo'), '');   // [MOTIVO-QUEDA]
 
       document.getElementById('nuevoEditId').value = data.id;
+      document.getElementById('nuevoEditSlug').value = data.slug || '';   // [ESCANER] el slug no cambia al guardar
+      document.getElementById('nuevoCodigo').value = '';
+      document.getElementById('nuevoCodigoHint').textContent = 'Opcional. Se escanea o se escribe a mano. Los que ya tiene se quitan desde Editar.';
       document.getElementById('nuevoName').value = data.name;
       document.getElementById('nuevoMarca').value = data.marca;
       document.getElementById('nuevoMarcaReal').value = data.marca_real || '';
@@ -8194,7 +8823,9 @@
 
     async function deleteNuevo(id, name) {
       if (!confirm('¿Seguro que querés eliminar ' + name + '?')) return;
+      var slugBorrado = ''; try { var rsl = await sb.from('perfumes_nuevos').select('slug').eq('id', id).single(); slugBorrado = (rsl && rsl.data && rsl.data.slug) || ''; } catch (e) {}   // [ESCANER] sus códigos de barras se van con él
       await sb.from('perfumes_nuevos').delete().eq('id', id);
+      if (slugBorrado) { try { await sb.from('perfume_codigos').delete().eq('slug', slugBorrado); } catch (e) {} }
       logAdminAction('nuevo_delete', null, { id: id, name: name });
       notifyTelegram('🗑️ Perfume eliminado: ' + name);
       loadNuevos();
@@ -8208,6 +8839,9 @@
       rebuildPerfilesList(); // refresca sugerencias del datalist
       barraError(document.getElementById('btnSaveNuevo'), '');   // [MOTIVO-QUEDA]
       document.getElementById('nuevoEditId').value = '';
+      document.getElementById('nuevoEditSlug').value = '';
+      document.getElementById('nuevoCodigo').value = '';   // [ESCANER] 163f
+      document.getElementById('nuevoCodigoHint').textContent = 'Opcional. Se escanea o se escribe a mano.';
       document.getElementById('nuevoName').value = '';
       document.getElementById('nuevoMarca').value = 'ST Perfumería';
       document.getElementById('nuevoMarcaReal').value = '';
@@ -11893,7 +12527,10 @@
       'home_slide_update':    { icon: '✏️', label: 'Editar slide' },
       'home_slide_delete':    { icon: '🗑️', label: 'Borrar slide' },
       // [ESPERA-MAS] 124 · el ícono de la pestaña Espera. Familia: Catálogo (lo ve el jefe; la empleada, sólo stock y depósito).
-      'espera_quitar':        { icon: '📍', label: 'Quitar de la espera' }
+      'espera_quitar':        { icon: '📍', label: 'Quitar de la espera' },
+      // [ESCANER] 163 · el código de barras de un frasco (familia Catálogo: lo ve el jefe)
+      'codigo_asociado':      { icon: '🔖', label: 'Código asociado' },
+      'codigo_quitado':       { icon: '🔖', label: 'Código quitado' }
     };
 
     /* ── [LOG-LEGIBLE] Traducir la jerga de la base al castellano ──
@@ -12135,6 +12772,8 @@
       if (e.action === 'backup_create_fallback') return 'el automático no corrió';
       // [ESPERA-MAS] 124 · a quién se quitó (el perfume ya es el nombre de la fila). Sin teléfono.
       if (e.action === 'espera_quitar') return escHtml((e.changes && e.changes.nombre) || 'Sin nombre');
+      // [ESCANER] 163 · el número del código (el perfume ya es el nombre de la fila)
+      if (e.action === 'codigo_asociado' || e.action === 'codigo_quitado') return escHtml(String((e.changes && e.changes.codigo) || ''));
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
       function esPar(v) { return v && typeof v === 'object' && 'old' in v && 'new' in v; }
@@ -12626,6 +13265,7 @@
       { name: 'seleccion_st_config',     critical: true },
       { name: 'announcements',           critical: true },
       { name: 'puntos_config',           critical: true },   // [PUNTOS-LOG] la regla de puntos (una fila)
+      { name: 'perfume_codigos',         critical: true },   // [ESCANER] 163 · código de barras -> perfume (sin lectura pública)
       // Data de negocio
       { name: 'clientes',                critical: false },
       { name: 'opiniones',               critical: false },
