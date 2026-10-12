@@ -7339,9 +7339,23 @@
       var fila = r.data && r.data[0];
       var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
       if (fila && p) { escMostrar(p, tab, '✓ Escaneado: ' + codigo); return; }
-      if (fila) { escNota(tab, 'Ese código es de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe.', 'aviso'); return; }
+      if (fila) {   // [ESCANER-CODIGO-HUERFANO] 12-oct · de un perfume que ya no está: el jefe lo suelta y sigue como un código nuevo
+        if (currentRole !== 'jefe') { escNota(tab, 'Ese código era de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe: él lo puede soltar.', 'aviso'); return; }
+        var rs = await codSoltarHuerfano(codigo, fila.slug);
+        if (!rs.ok) { escNota(tab, rs.texto, rs.cancelado ? 'aviso' : 'error'); return; }
+      }
       escNota(tab, '');
       codNuevoAbrir(codigo, tab);
+    }
+    // [ESCANER-CODIGO-HUERFANO] Un código que apunta a un slug que ya no existe en el panel (el perfume se borró y sus códigos quedaron). Sólo el jefe
+    // los puede borrar (la base: `is_jefe()`). Antes no había pantalla para soltarlos: el escaneo decía «Avisale al jefe» y no había a dónde ir.
+    async function codSoltarHuerfano(codigo, slug) {
+      if (!confirm('El código ' + codigo + ' era de «' + slug + '», un perfume que ya no está en el panel.\n\n¿Soltarlo para poder registrarlo de nuevo?'))
+        return { ok: false, cancelado: true, texto: 'Código ' + codigo + ' sin tocar (era de «' + slug + '», que ya no está en el panel).' };
+      var r; try { r = await sb.from('perfume_codigos').delete().eq('codigo', codigo).eq('slug', slug).select('codigo'); } catch (e) { r = { error: e }; }
+      if (r.error || !r.data || !r.data.length) return { ok: false, texto: r.error ? codErrorTexto(r.error, 'soltar el código') : 'No se pudo soltar el código ' + codigo + ': ya no estaba o no tenés permiso.' };
+      logAdminAction('codigo_quitado', slug, { codigo: codigo, huerfano: true });
+      return { ok: true };
     }
     // El buscador queda con el nombre del perfume y su fila marcada 2 s. No cambia nada solo. Un pausado se muestra aunque
     // «Mostrar pausados» esté apagado, y las tarjetas y chips de arriba se sueltan para que la fila no quede escondida.
@@ -7646,7 +7660,11 @@
       var fila = r.data && r.data[0];
       var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
       if (fila && p) { mercElegir(p.slug); mercMsg('✓ Escaneado: ' + codigo, 'ok'); return; }
-      if (fila) { mercMsg('Ese código es de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe.', 'aviso'); return; }
+      if (fila) {   // [ESCANER-CODIGO-HUERFANO] el jefe lo suelta y sigue como un código sin registrar; la empleada avisa
+        if (currentRole !== 'jefe') { mercMsg('Ese código era de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe: él lo puede soltar.', 'aviso'); return; }
+        var rs = await codSoltarHuerfano(codigo, fila.slug);
+        if (!rs.ok) { mercMsg(rs.texto, rs.cancelado ? 'aviso' : 'error'); return; }
+      }
       // sin registrar: no frena la carga, queda pendiente (otro escaneo del mismo código suma uno)
       var ya = MERC.pendientes.filter(function(x) { return x.codigo === codigo; })[0];
       if (ya) ya.qty = Math.min(999, ya.qty + 1); else MERC.pendientes.push({ id: ++MERC.id, codigo: codigo, qty: 1 });
