@@ -3,6 +3,16 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
+## [STOCK-CUADRICULA] · 💡 idea · 12-oct-2026
+
+**En palabras de Alejo:** «Que en Precios & Stock y en Depósito, además de la lista, esté la opción de verlo en cuadrículas: cuadraditos de perfumes, tres así o dos en la tablet (capaz más largo el scroll). Para atender a un cliente: "ese justo no lo tenemos, pero te muestro el frasco"; toco o mantengo apretado y aparece la foto. Hay matices, como que no suba la foto o lo que sea. Idea de un amigo; después de lo ya planificado, la charlamos.»
+**Qué es:** un interruptor ▦ / ☰ en esas dos pestañas, como el del catálogo (`[VISTA-LISTA]`). En cuadrícula, cada perfume es un cuadradito con su foto y su stock/depósito; al tocar o mantener apretado se ve la foto grande, sin salir de la pestaña.
+**Hechos del repo:** las dos pantallas se pintan en `renderPrecios` (`admin.html:5784`) y `renderDeposito` (`admin.html:5399`); la foto ya viene en `p.foto` (`admin.html:5228`) y el Doctor y Editar ya la muestran (`admin.html:8407`, `11495`). El interruptor del catálogo (`data-vista` + `localStorage`) es un patrón que se puede copiar. Las tarjetas que filtran (`[STAT-FILTRO]`, NO ROMPER #29) y el escáner (`ESCANEO_SLUG`) tienen que seguir andando en las dos vistas. Las fotos del panel no se medían: no revisé cuánto pesan.
+**Tamaño:** M — dos pantallas, mucho CSS.
+**Le toca primero a:** 🧑 Alejo (charlar los matices) y después 🤖 Claude Code (cuando se cierre lo planificado).
+
+> **🧑 Para Alejo (decidís vos), cuando la charlemos:** (1) ¿tocar abre la foto grande o mantener apretado la muestra mientras la tenés?; (2) ¿la foto carga sólo al tocar (liviano, sin gastar datos en la tablet) o se ven todas las miniaturas en la cuadrícula?; (3) ¿qué número va en cada cuadradito: sólo el stock, o local + depósito?; (4) ¿las dos pestañas o primero una?
+
 ## [WA-EMOJIS-ROTOS] · 💡 idea · 7-oct-2026
 
 **En palabras de Alejo:** "anotá lo de los emojis" (hallazgo de Claude Code, 7-oct, probando `[STOCK-OCULTO]` en el Chrome de Alejo).
