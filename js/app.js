@@ -2439,10 +2439,56 @@
     }
     deferTask(loadCombosFromDB);
 
+    // [SELECCION-ROTA] 12-oct-2026 · la Selección ST cambia sola cada SELECCION_DIAS días, sin carga a mano.
+    // Sale de los SELECCION_POOL perfumes más vistos (los mismos clicks de `perfume_clicks_resumen`) que se pueden pedir
+    // hoy (con stock, sin pausar y con foto; sin sets). De ese pozo, cada ventana de días elige SELECCION_CANTIDAD por un
+    // hash de (ventana + slug): TODOS los visitantes ven los mismos durante esos días, y si un perfume se queda sin stock
+    // sólo entra el siguiente, no se baraja todo. Dentro de la elección, el orden es por vistas (el podio #1/#2/#3).
+    // Interruptor: SELECCION_ROTA = false vuelve a la lista de la tabla `destacados` (la del panel). Sin vistas
+    // (falló la lectura) también se usa `destacados`.
+    var SELECCION_ROTA = true;
+    var SELECCION_DIAS = 3;
+    var SELECCION_CANTIDAD = 6;
+    var SELECCION_POOL = 20;
+    var perfumeViewsListas = false;   // true cuando terminó la lectura de las vistas (bien o mal) o pasaron 8 s: antes de eso la Selección espera, para no mostrar una y cambiarla
+    setTimeout(function() { if (!perfumeViewsListas) { perfumeViewsListas = true; renderSeleccionST(); } }, 8000);
+    function seleccionVentana() {
+      // Días desde 1970 según el calendario de Argentina (NO ROMPER #6: nunca toISOString, que es UTC), dividido en tandas de SELECCION_DIAS.
+      var f = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date()).split('-');
+      return Math.floor(Math.floor(Date.UTC(+f[0], +f[1] - 1, +f[2]) / 86400000) / SELECCION_DIAS);
+    }
+    function seleccionHash(txt) {   // FNV-1a de 32 bits + mezcla final (murmur3): textos que sólo difieren en el final quedaban parecidos y se repetían
+      var h = 2166136261;
+      for (var i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619); }
+      h ^= h >>> 16; h = Math.imul(h, 2246822507); h ^= h >>> 13; h = Math.imul(h, 3266489909); h ^= h >>> 16;
+      return h >>> 0;
+    }
+    function seleccionRotada() {
+      if (!Object.keys(perfumeViews || {}).length) return [];
+      var vistas = function(p) { return perfumeViews[p.slug] || 0; };
+      var pozo = PERFUMES.filter(function(p) { return sePuedePedir(p) && p.foto && !p.esSet; })
+        .sort(function(a, b) { return (vistas(b) - vistas(a)) || (a.slug < b.slug ? -1 : 1); })
+        .slice(0, SELECCION_POOL);
+      var ventana = seleccionVentana();
+      return pozo
+        .map(function(p) { return { p: p, h: seleccionHash(ventana + ':' + p.slug) }; })
+        .sort(function(a, b) { return a.h - b.h; })
+        .slice(0, SELECCION_CANTIDAD)
+        .map(function(x) { return x.p; })
+        .sort(function(a, b) { return (vistas(b) - vistas(a)) || (a.slug < b.slug ? -1 : 1); })
+        .map(function(p) { return p.slug; });
+    }
+
     function renderSeleccionST() {
       var grid = document.getElementById('seleccionGrid');
       if (!grid) return;
       var html = '';
+      var lista = TOP_VENTAS_SLUGS;
+      if (SELECCION_ROTA) {
+        if (!perfumeViewsListas) { grid.innerHTML = ''; return; }
+        var rotada = seleccionRotada();
+        if (rotada.length) lista = rotada;
+      }
       // [SELECCION-ST-1A] Las primeras 3 cards reciben badge de podio (#1/#2/#3
       // con oro/plata/bronce). Convierte la sección en un PODIO real, no un grid
       // genérico. Hace que el cliente sepa cuál es el más vendido a primera vista.
@@ -2451,7 +2497,7 @@
       // la columna se activa con SQL ALTER + UI admin en sesión futura. Mientras
       // tanto el render es no-op si p.nota_jefe es vacío.
       var vistos = 0;   // [PODIO-SIN-HUECO] 146t · el número cuenta los que se ven (un pausado u oculto ya no deja un hueco: #1, #2, #3 seguidos)
-      TOP_VENTAS_SLUGS.forEach(function(slug, idx) {
+      lista.forEach(function(slug, idx) {
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         // [PAUSADO-OCULTO] no mostrar destacados pausados ni eliminados. Antes
         // sólo se chequeaba que existiera, así que un perfume dado de baja podía
@@ -5523,6 +5569,7 @@
         loadPerfumeViews().then(function() {
           // [LCP-VISTAS-SIN-RENDER] sólo la etiqueta de vistas de las cards que ya están (antes: otro renderCatalog() entero)
           actualizarVistasEnCards();
+          perfumeViewsListas = true; renderSeleccionST();   // [SELECCION-ROTA] con las vistas ya cargadas sale la Selección
         });
       });
     }).catch(function(err) {
