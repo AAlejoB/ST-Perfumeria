@@ -1850,6 +1850,30 @@
       font-weight: 500;
     }
 
+    /* [STAT-FILTRO] Las tarjetas de Precios & Stock y Depósito son botones que filtran la lista de abajo. Más chicas (ícono y
+       número en un renglón, la etiqueta abajo), 44 px o más de alto para el dedo, y la activa con el borde dorado. */
+    .stock-stats--filtros { align-items: start; }
+    .stat-btn {
+      display: block; width: 100%; box-sizing: border-box; text-align: left;
+      font: inherit; color: inherit; min-height: 44px; padding: .5rem .8rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button.stat-btn { cursor: pointer; -webkit-appearance: none; appearance: none; }
+    button.stat-btn:active { transform: scale(.98); }
+    .stat-btn .stat-icon { display: inline-block; vertical-align: middle; margin: 0 .35rem 0 0; font-size: .9rem; }
+    .stat-btn .stat-value { display: inline-block; vertical-align: middle; font-size: 1.25rem; margin-bottom: 0; }
+    .stat-btn .stat-label { display: block; margin-top: .1rem; }
+    button.stat-btn:disabled { cursor: default; opacity: .6; }
+    button.stat-btn[aria-pressed="true"] {
+      border-color: var(--amarillo); box-shadow: inset 0 0 0 1px var(--amarillo);
+    }
+    .stat-filtro-nota { font-size: .72rem; color: var(--gris-claro); margin: 0 0 .6rem; }
+    .stat-filtro-nota[hidden] { display: none; }
+    .stat-filtro-nota button {
+      margin-left: .5rem; min-height: 44px; padding: 0 .9rem; font: inherit; font-weight: 600; cursor: pointer;
+      background: transparent; color: var(--amarillo-tinta); border: 1px solid var(--amarillo); border-radius: 6px;
+    }
+
     /* Light mode */
     /* [TEMA-CLARO] El fondo crema y el borde llegan por --stat-fondo / --stat-borde.
        Este color lo traía el grupo de arriba (sin !important) y tiene que viajar con la clase:
@@ -2288,22 +2312,20 @@
     <!-- TAB: PRECIOS & STOCK (unificada) -->
     <div class="tab-content" id="tab-precios">
       <!-- Mini-dashboard de inventario: se actualiza en cada renderPrecios() -->
-      <div class="stock-stats">
-        <div class="stat-card stat-units">
-          <div class="stat-icon">📦</div>
-          <div class="stat-value" id="statTotalUnits">—</div>
-          <div class="stat-label">Unidades en stock</div>
-        </div>
-        <div class="stat-card stat-perfumes">
-          <div class="stat-icon">🌸</div>
-          <div class="stat-value" id="statTotalPerfumes">—</div>
-          <div class="stat-label">Perfumes activos</div>
-        </div>
-        <div class="stat-card stat-out">
-          <div class="stat-icon">⚠️</div>
-          <div class="stat-value" id="statSinStock">—</div>
-          <div class="stat-label">Sin stock</div>
-        </div>
+      <!-- [STAT-FILTRO] las 3 tarjetas son botones: tocás una y la lista de abajo muestra sólo eso; la misma otra vez, vuelve todo -->
+      <div class="stock-stats stock-stats--filtros">
+        <button type="button" class="stat-card stat-btn stat-units" id="statBtnCon" aria-pressed="false" onclick="preciosStat('con')">
+          <span class="stat-icon">📦</span><span class="stat-value" id="statTotalUnits">—</span>
+          <span class="stat-label">Unidades en stock</span>
+        </button>
+        <button type="button" class="stat-card stat-btn stat-perfumes" id="statBtnActivos" aria-pressed="false" onclick="preciosStat('activos')">
+          <span class="stat-icon">🌸</span><span class="stat-value" id="statTotalPerfumes">—</span>
+          <span class="stat-label">Perfumes activos</span>
+        </button>
+        <button type="button" class="stat-card stat-btn stat-out" id="statBtnSin" aria-pressed="false" onclick="preciosStat('sin')">
+          <span class="stat-icon">⚠️</span><span class="stat-value" id="statSinStock">—</span>
+          <span class="stat-label">Sin stock</span>
+        </button>
         <!-- [OCULTAR-VALOR-INV] solo el jefe ve cuánta plata hay en mercadería -->
         <!-- [VALOR-INV-DEPOSITO] el total es local + depósito, y abajo cuánto es de cada uno -->
         <div class="stat-card stat-value-inv" data-role="jefe">
@@ -2339,7 +2361,8 @@
           Mostrar pausados
         </label>
       </div>
-      <p id="tipPrecios" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
+      <p id="tipPrecios" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá una tarjeta de arriba para ver sólo esos perfumes, y la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
+      <p class="stat-filtro-nota" id="statFiltroNota" hidden></p>
       <!-- [PRECIOS-EN-UN-LUGAR] 123a + 123d · la escalera de decants (y la promo si está vigente) y el filtro. Sólo se mira:
            los precios se cambian en Editar y en Decants. -->
       <div class="precios-tira" id="preciosTira" hidden></div>
@@ -2365,23 +2388,22 @@
         Este número <strong style="color:var(--amarillo-tinta);">no se muestra en la web</strong> — el cliente sigue viendo sólo el stock del local.</p>
       </div>
 
-      <div class="stock-stats" style="grid-template-columns:repeat(3,1fr);">
-        <div class="stat-card">
-          <div class="stat-icon">📦</div>
-          <div class="stat-value" id="statDepUnidades">—</div>
-          <div class="stat-label">Unidades en depósito</div>
+      <!-- [STAT-FILTRO] «Perfumes con depósito» hace lo mismo que la casilla de abajo; «Sin local pero con depósito» deja sólo los que hay que traer -->
+      <div class="stock-stats stock-stats--filtros" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card stat-btn stat-fijo">
+          <span class="stat-icon">📦</span><span class="stat-value" id="statDepUnidades">—</span>
+          <span class="stat-label">Unidades en depósito</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">🌸</div>
-          <div class="stat-value" id="statDepPerfumes">—</div>
-          <div class="stat-label">Perfumes con depósito</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⚠️</div>
-          <div class="stat-value" id="statDepReponer">—</div>
-          <div class="stat-label">Sin local pero con depósito</div>
-        </div>
+        <button type="button" class="stat-card stat-btn" id="statBtnDepCon" aria-pressed="false" onclick="depStat('con')">
+          <span class="stat-icon">🌸</span><span class="stat-value" id="statDepPerfumes">—</span>
+          <span class="stat-label">Perfumes con depósito</span>
+        </button>
+        <button type="button" class="stat-card stat-btn stat-out" id="statBtnDepReponer" aria-pressed="false" onclick="depStat('reponer')">
+          <span class="stat-icon">⚠️</span><span class="stat-value" id="statDepReponer">—</span>
+          <span class="stat-label">Sin local pero con depósito</span>
+        </button>
       </div>
+      <p class="stat-filtro-nota" id="depFiltroNota" hidden></p>
 
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchDeposito" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('deposito')" style="margin-bottom:0;flex:1;min-width:180px;"/>
@@ -4983,6 +5005,29 @@
       return depQty(p) > 0 && (p._stockQty === 0 || p._stockStatus === 'out');
     }
 
+    // [STAT-FILTRO] las tarjetas del Depósito: «Perfumes con depósito» tilda/destilda la casilla «Sólo los que tienen unidades»
+    // (es la misma cuenta) y «Sin local pero con depósito» filtra con depParaReponer. La casilla y la tarjeta se ven iguales.
+    var DEP_REPONER = false;
+    function depStat(clave) {
+      if (clave === 'con') {
+        var chk = document.getElementById('chkSoloConDeposito');
+        if (chk) chk.checked = DEP_REPONER ? true : !chk.checked;   // viniendo de «Sin local…», pasa a «con depósito» en vez de apagar todo
+        DEP_REPONER = false;
+      } else {
+        DEP_REPONER = !DEP_REPONER;
+      }
+      renderDeposito();
+    }
+    function pintarDepStat(con, reponer) {
+      var b1 = document.getElementById('statBtnDepCon'), b2 = document.getElementById('statBtnDepReponer');
+      if (b1) { b1.setAttribute('aria-pressed', con && !reponer ? 'true' : 'false'); b1.disabled = !stockCargado; }
+      if (b2) { b2.setAttribute('aria-pressed', reponer ? 'true' : 'false'); b2.disabled = !stockCargado; }
+      var nota = document.getElementById('depFiltroNota');
+      if (!nota) return;
+      nota.hidden = !reponer;
+      nota.innerHTML = reponer ? 'Mostrando sólo: <strong>Sin local pero con depósito</strong><button type="button" onclick="depStat(\'reponer\')">Ver todos</button>' : '';
+    }
+
     function renderDeposito() {
       var tbody = document.getElementById('tbodyDeposito');
       if (!tbody) return;
@@ -5006,6 +5051,10 @@
       pintarValorInventario();   // [VALOR-INV-DEPOSITO] la parte del depósito del valor total
 
       var list = soloCon ? todos.filter(function(p) { return depQty(p) > 0; }) : todos.slice();
+      // [STAT-FILTRO] «Sin local pero con depósito»: sólo los que hay que ir a traer. «Perfumes con depósito» es la casilla de arriba.
+      var reponerActivo = DEP_REPONER && stockCargado;
+      if (reponerActivo) list = list.filter(depParaReponer);
+      pintarDepStat(soloCon && stockCargado, reponerActivo);
 
       list.sort(function(a, b) {
         switch (sortKey) {
@@ -5311,6 +5360,36 @@
     }
 
     // 123d · el filtro (Todo · Frascos · 💎 Diseñador). El buscador funciona sobre lo que muestra.
+    // [STAT-FILTRO] las tarjetas de arriba filtran la lista. Misma cuenta que los números de renderPrecios (los pausados no cuentan):
+    //   'activos' = no pausados · 'sin' = qty 0 (o estado «out» sin cantidad) · 'con' = tiene unidades (o «ok»/«low» sin cantidad cargada).
+    var PRECIOS_STAT = null;                                      // null | 'con' | 'activos' | 'sin'
+    var STAT_TEXTOS = { con: 'Con unidades en stock', activos: 'Perfumes activos', sin: 'Sin stock' };
+    function statPasa(p, clave) {
+      var st = p._stockStatus;
+      if (st === 'pausado') return false;
+      var q = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      var sin = (q !== null) ? q === 0 : st === 'out';
+      if (clave === 'sin') return sin;
+      if (clave === 'con') return q !== null ? q > 0 : (st === 'ok' || st === 'low');
+      return true;
+    }
+    function preciosStat(clave) {
+      PRECIOS_STAT = (PRECIOS_STAT === clave) ? null : clave;   // la misma tarjeta otra vez = volver a ver todo
+      renderPrecios();
+    }
+    function pintarStatFiltro(activo) {
+      [['statBtnCon', 'con'], ['statBtnActivos', 'activos'], ['statBtnSin', 'sin']].forEach(function(x) {
+        var b = document.getElementById(x[0]);
+        if (!b) return;
+        b.setAttribute('aria-pressed', activo === x[1] ? 'true' : 'false');
+        b.disabled = !stockCargado;
+      });
+      var nota = document.getElementById('statFiltroNota');
+      if (!nota) return;
+      nota.hidden = !activo;
+      nota.innerHTML = activo ? 'Mostrando sólo: <strong>' + STAT_TEXTOS[activo] + '</strong><button type="button" onclick="preciosStat(null)">Ver todos</button>' : '';
+    }
+
     function preciosFiltrar(filtro) {
       PRECIOS_FILTRO = filtro;
       document.querySelectorAll('#preciosFiltro .log-chip').forEach(function(b) { b.classList.toggle('active', b.dataset.filtro === filtro); });
@@ -5380,9 +5459,13 @@
         list = list.filter(function(p) { return p._stockStatus !== 'pausado'; });
         ocultosPausados = antesLen - list.length;
       }
+      // [STAT-FILTRO] una tarjeta de arriba prendida deja sólo esos perfumes (sin la lectura del stock no filtra: no hay con qué)
+      var statActivo = (PRECIOS_STAT && stockCargado) ? PRECIOS_STAT : null;
+      if (statActivo) list = list.filter(function(p) { return statPasa(p, statActivo); });
+      pintarStatFiltro(statActivo);
       var avisoEl = document.getElementById('avisoPausados');
       if (avisoEl) {
-        avisoEl.textContent = ocultosPausados
+        avisoEl.textContent = (ocultosPausados && !statActivo)
           ? (ocultosPausados + (ocultosPausados === 1 ? ' pausado oculto' : ' pausados ocultos'))
           : '';
       }
@@ -5465,14 +5548,14 @@
         var marcas = {};
         (MARCAS_DISENADOR || []).forEach(function(m) { var k = marcaNorm(m); if (k) marcas[k] = true; });
         var frascosDis = list.filter(function(p) { return marcas[marcaNorm(p.marca_real)]; });
-        var soloDecant = sinFrasco(frascosDis);   // 123j · «Sólo en decant»: los que no se juntaron con un frasco de acá
+        var soloDecant = statActivo ? [] : sinFrasco(frascosDis);   // [STAT-FILTRO] un decant no tiene stock: con una tarjeta prendida no va. 123j · «Sólo en decant»: los que no se juntaron con un frasco de acá
         html += '<tr class="fila-grupo" data-titulo="frascos"><td colspan="4">Frascos · <span class="grupo-n">' + frascosDis.length + '</span></td></tr>'
           + frascosDis.map(function(p) { return filaFrasco(p, 'frascos'); }).join('')
           + '<tr class="fila-grupo" data-titulo="decants"><td colspan="4">Sólo en decant · <span class="grupo-n">' + soloDecant.length + '</span></td></tr>'
           + soloDecant.map(function(c) { return filaDecant(c, 'decants'); }).join('');
       } else {
         var filas = list.map(function(p) { return { tipo: 'frasco', nombre: String(p.name || ''), html: filaFrasco(p, null) }; });
-        var sueltos = sinFrasco(list);   // 123j · en «Todo», los que se juntaron ya están en la fila de su frasco
+        var sueltos = statActivo ? [] : sinFrasco(list);   // 123j · en «Todo», los que se juntaron ya están en la fila de su frasco ([STAT-FILTRO]: sin decants con una tarjeta prendida)
         if (PRECIOS_FILTRO === 'todo' && sueltos.length) {
           var dFilas = sueltos.map(function(c) { return { tipo: 'decant', nombre: String(c.nombre || ''), html: filaDecant(c, null) }; });
           if (sortKey === 'name-asc' || sortKey === 'name-desc') {
