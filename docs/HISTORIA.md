@@ -4994,9 +4994,58 @@ Alejo abrió con `/tanda` a las 13:28 (rama `panel-prolijo` = `origin/main` = `e
 
 - Uno nuevo en `memory/preferencias_alejo.md` (#131): cuando le pido que mire algo afuera (PageSpeed), decirle en el mismo mensaje exactamente qué captura me sirve. Y no apliqué el #130 (las preguntas A/B con botones): las hice con tablas y contestó igual, pero corresponde `AskUserQuestion`.
 
+### Sesión 13-oct-2026 (tarde-noche) · **`[CELU-INP]`** — cuánto tarda cada toque del catálogo en el celu, y el paso A en producción
+
+Alejo abrió con `/tanda` a las 15:38 (rama `panel-prolijo` = `origin/main` = `cfa4594`, árbol limpio, SW v1.1.222). Eligió `[CELU-INP]`, que yo propuse: es lo único que hace fallar las métricas de Google (INP 377 ms en el campo) y es del catálogo, que sigue después de la mudanza del panel. En el medio preguntó si el panel tiene modo sin conexión, y salió la idea `[PANEL-SIN-CONEXION]`.
+
+#### Qué se hizo
+
+- **Medición sin código** contra producción: Chrome por CDP, celu emulado 412 × 823 táctil, **CPU ×4**, perfil nuevo por vuelta, estadísticas bloqueadas (`analytics_events`, `perfume_clicks`, `perfume_views`). 22 toques reales en secuencia (chips, vista, ordenar, la hoja «Filtros», «Limpiar», «Ver más», la ficha, la barra de abajo y escribir en el buscador). Duración por **Event Timing** (la que usa el INP), atribución por **Long Animation Frames** y trazas de un toque. Todo fuera del repo, en `_correo_agentes\ST_Perfumeria\herramientas\celu-inp\` (`inp.js`, `inp-comun.js`, `traza.js`, `cuadro.js`, `comparar.js`, `sonda-anim.js`, `sonda-entrada.js`, `RELEVAMIENTO.md` y los `.json`).
+- **Hoy (mediana de 3 vueltas):** chip «Mujer» 344 ms · «Todos» 272 · **«Vista ▦» 472** · abrir «Ordenar» 168 · ordenar 248-256 · abrir «Filtros» 272 · chip de la hoja 264 · **«Limpiar» 352** · «Ver más» 248 · abrir ficha 224 · escribir 32-56.
+- **Experimentos inyectados en la página** (sin tocar el código): **A** apagar las animaciones infinitas → nada (ruido); **B** sacar las 23 reglas `:has(` de primer nivel → −10-30 %; **C** sacar las 175 cards ocultas (14.472 → 2.560 elementos) → filtros y orden −30-45 % («Mujer» 344 → 192, «menor a mayor» 256 → 144); **B + C** no suman: queda un piso de ~200 ms, y «Vista ▦» ~470.
+- **`a74342b` · perf(catalogo):** sin el `void _grid.offsetWidth` de `applyCardVisibility` (`[BATCH-REFLOW]`): obligaba a recalcular toda la página en medio del toque y después se recalculaba otra vez (`scrollToCatalog`, el `scroll`). La animación de entrada (`filter-entering`) arranca sola cuando una card pasa de `display: none` a visible: ya no se saca la clase. SW **v1.1.223**. Comparado antes de subir (producción contra producción con el `app.js` del repo, cambiado con `Fetch` de CDP; 3 + 3 vueltas alternadas): −24 a −272 ms en chips, orden, «Limpiar» y «Ver más»; los toques que no pasan por esa función, ±50 (ruido). Las cards nuevas siguen animando (15 de 15 y 3 de 3, igual que antes). Push de Alejo; `curl`: SW v1.1.223, `app.js` con `[CELU-INP]` y sin el reflow.
+- **Medido en producción después:** «Todos» 272 → 200, «menor a mayor» 256 → 192, «Limpiar» 352 → 280, «Ver más» 248 → 200, chip de la hoja 264 → 216; **«Mujer» (344 → 368) y «Vista ▦» (472 → 496) igual**. Mejora real pero más chica que en la comparación (el ruido entre corridas es ±50 ms).
+- **`fff0ff8` · docs(ideas):** ficha `[PANEL-SIN-CONEXION]` en `docs/IDEAS.md`; en este cierre, con las decisiones de Alejo y a Pendientes.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arrancar por `[CELU-INP]` («dale, arrancá con [CELU-INP]»); la opción A («va la A»); el push (lo corrió él); `[PANEL-SIN-CONEXION]` **para este sistema** y que **gane lo que anotaron las chicas**; que entren **la hoja, la lista de espera y todos los movimientos de stock, escáner incluido («todo todo»)**; que el «Cierre del día» sin conexión **se deje para cuando vuelva, como excepción, y deje escribir por qué** («puede ser que NO haya sido corte de luz y pasó algo con algún servicio; como para no inventar causas»); cerrar la tanda.
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):** `[CELU-INP]` como tanda; la A antes que la B y la C (barata y medible); en `[PANEL-SIN-CONEXION]`, que lo que no se pueda guardar quede **siempre** en la tablet y que los ~20 min de Alejo sean sólo para el cartel grande, y que el stock sin conexión viaje como movimiento (−1 / +N) y no como el número final (si no, dos tablets se pisan); dejar la B y la C para una tanda propia.
+- **Hallazgo 1 · las 195 cards viven en la página aunque se ven 20:** 13.355 de 14.472 elementos (68 por card). Es lo que más pesa en filtros y orden.
+- **Hallazgo 2 · las `:has(`:** abrir «Ordenar» recalcula el estilo de sólo 115 elementos y tarda 67 ms (CPU ×4): cada cambio de clase u `style` hace revisar toda la página por reglas como `body:has(.nav-drawer.open) …` y `body:has(.push-banner[style*="block"]) …` (38 en `styles.css`).
+- **Hallazgo 3 · «Vista ▦»:** `setVista` mide después de cambiar `data-vista` en `<html>` (219-351 ms forzados): el recálculo es de toda la página y **no es repetido**, así que la A no lo arregla.
+- **Error mío, corregido en el chat:** le dije a Alejo que la página «nunca descansa» por las animaciones infinitas (hay 10 corriendo: el brillo de `.set-badge` y `.price-banner`, la votación vacía, el humo de decants, la cinta de arriba) antes de probarlo; el experimento dio que no cambian nada (~5 ms por cuadro). Además, mi primera sonda se comía las «s» de los nombres de clase (`.et-badge`) y el primer experimento no apagó nada. **Lección:** no decir una causa antes del experimento que la prueba.
+- **La sonda «reflow true/false» engañaba:** mi comentario nuevo menciona `offsetWidth` adentro de la función; se confirmó con la marca `[CELU-INP]` (antes `false`, después `true`) y con `void _grid.offsetWidth;` (antes sí, después no).
+- **El panel no tiene modo sin conexión** (respuesta a Alejo): sin red puede abrir desde el caché del navegador si ya se abrió, pero los datos van siempre por la red (`sw.js`: Supabase network-only), lo que se guarda falla con «Sin conexión…» y no hay cola; `onOffline` / `onOnline` (`admin.html` ~L11821) sólo apagan y prenden el tiempo real.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| (ninguno) | `[CELU-INP]` sigue abierto: el paso A está en producción, la B y la C sin decidir. |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[CELU-INP]` 🟡 | Decide Alejo: **B** (sólo las cards que se ven en la página; lo que más gana, riesgo alto en temporada), **C** (las `:has` por una clase en el `body`) o esperar el campo (28 días). «Vista ▦» y el piso de ~200 ms, sin explicar. |
+| `[PANEL-SIN-CONEXION]` 🟡 (nuevo) | Diseño técnico: la cola en la tablet, la función de la base que suma o resta stock, «Cierre del día» con el porqué; tamaño L. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (13-oct, ~17:45):** `origin/main` = `a74342b` (SW **v1.1.223** en producción, verificado por `curl`) · rama `panel-prolijo` = `a74342b` + `fff0ff8` (la ficha) + este cierre, 2 adelante · árbol limpio después del commit · stash ajeno del 20-sep sin tocar.
+
+#### 💬 Mensajes meta
+
+- Uno nuevo en `memory/preferencias_alejo.md` (#132): las preguntas que dejo para después las contesta igual en el momento. Tampoco apliqué el #130 esta vez (la A/B fue con tabla y contestó «va la A»).
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 13-oct-2026 (~15:00, cierre de `[CELU-FCP]`) — pasó de `CLAUDE.md` al archivo el 13-oct (~17:45, cierre de `[CELU-INP]` paso A)
+
+**Última actualización:** **Octubre 13, 2026, ~15:00 (cierre de `[CELU-FCP]`)** — `main` = `origin/main` = `2aba198` en producción (deploy READY, verificado por `curl`), **sin bump**: el SW sigue en **v1.1.222** (`9394e84`). Sesión de medición del celu: **`[CELU-FCP]` cerrado.** Las **15 fotos de otros sitios y las 4 pesadas** pasaron a `img/` (webp de 600 px como máximo, 2,9 MB → 329 KB) y la base apunta ahí (`sql/fotos_propias_celu_fcp.sql`, aplicado: 18 + 1 + 2 filas); al abrir la página se bajan 97 a 149 KB de fotos de 3 servidores (antes 1,1 a 2 MB de 9). PageSpeed de Google: **79** en el celu. Los usuarios reales (28 días) pasan LCP, CLS, FCP y TTFB y **fallan sólo por el INP (377 ms)** → **`[CELU-INP]`**, la próxima tanda del catálogo. El FCP de 2,5 s del 5-oct es un efecto del Lighthouse local, no lo vive el cliente. Detalle en `docs/HISTORIA.md` § «Sesión 13-oct-2026 (tarde)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + humo con las chicas + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (medir de nuevo desde el 15-oct) · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-INP]` · `[CELU-LETRA]` · 🟢 `[CUADRADOS-EDITAR]` · `[UPLOADER-WEBP-AUTO]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 13-oct-2026 (~13:30, cierre corto del mediodía) — pasó de `CLAUDE.md` al archivo el 13-oct (~15:00, cierre de `[CELU-FCP]`)
 
