@@ -1283,6 +1283,49 @@
     .hoja-fila-acc button { min-height: var(--tap-min); font-family: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); border-radius: 6px; padding: 0 .9rem; }
     .hoja-fila.anulada { opacity: .55; }
     .hoja-fila.anulada .hoja-fila-texto b { text-decoration: line-through; }
+    /* ── [ANOTAR-VENTA] 13-oct · el recorrido de botones grandes ── */
+    .hoja-venta { background: var(--superficie); border: 1px solid var(--borde); border-radius: 12px; padding: 1rem; margin-bottom: .6rem; }
+    .hv-gigante { display: flex; align-items: center; justify-content: center; gap: .6rem; width: 100%; min-height: 120px; font-family: inherit; font-size: 1.6rem; font-weight: 800; letter-spacing: .02em; cursor: pointer; background: var(--amarillo); color: #000; border: none; border-radius: 16px; }
+    .hv-gigante span { font-size: 2rem; }
+    .hv-sec { display: block; width: 100%; min-height: 56px; margin-top: .7rem; font-family: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); border-radius: 12px; }
+    .hv-cab { display: flex; align-items: center; gap: .7rem; margin-bottom: .8rem; }
+    .hv-atras { width: 52px; height: 52px; flex-shrink: 0; font-family: inherit; font-size: 1.4rem; font-weight: 700; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); border-radius: 12px; }
+    .hv-titulo { font-size: 1.15rem; font-weight: 800; margin: 0; min-width: 0; overflow-wrap: anywhere; }
+    .hv-pregunta { font-size: .95rem; font-weight: 700; margin: .2rem 0 .6rem; }
+    .hv-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; }
+    .hv-tiles--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hv-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; min-height: 130px; padding: .7rem .5rem; text-align: center; font-family: inherit; color: inherit; cursor: pointer; background: transparent; border: 1.5px solid var(--borde); border-radius: 16px; }
+    .hv-tile:hover, .hv-tile:focus-visible { border-color: var(--amarillo-tinta); }
+    .hv-tile b { font-size: 1.1rem; font-weight: 800; }
+    .hv-tile small { font-size: .7rem; color: var(--gris-claro); line-height: 1.35; }
+    .hv-tile--chica { min-height: 84px; }
+    .hv-ico { font-size: 2.2rem; line-height: 1; }
+    .hv-carro { border: 1px solid var(--borde); border-radius: 10px; padding: .3rem .7rem; margin-bottom: .8rem; }
+    .hv-carro-fila { display: flex; align-items: center; gap: .6rem; padding: .45rem 0; border-bottom: 1px solid var(--borde); font-size: .88rem; }
+    .hv-carro-fila:last-child { border-bottom: none; }
+    .hv-carro-fila span { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+    .hv-quitar { width: 40px; height: 40px; flex-shrink: 0; font-family: inherit; font-size: 1.2rem; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); border-radius: 8px; }
+    .hv-listo { display: block; width: 100%; min-height: 64px; margin-top: .9rem; font-family: inherit; font-size: 1.05rem; font-weight: 800; cursor: pointer; background: var(--amarillo); color: #000; border: none; border-radius: 14px; }
+    .hv-listo:disabled { opacity: .5; }
+    .hv-cant { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: .7rem; }
+    .hv-cant-n { font-size: 2.2rem; font-weight: 800; min-width: 3rem; text-align: center; }
+    .hv-nums { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; }
+    .hv-num { min-height: 60px; font-family: inherit; font-size: 1.3rem; font-weight: 800; cursor: pointer; background: transparent; color: inherit; border: 1.5px solid var(--borde); border-radius: 12px; }
+    .hv-cant .hv-num { width: 64px; }
+    .hv-num.on { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    .hv-resumen { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .9rem; padding: .8rem; border: 1px solid var(--borde); border-radius: 10px; font-size: .82rem; }
+    .hv-resumen b { font-size: 1.15rem; font-weight: 800; flex-shrink: 0; }
+    .hv-resultados { display: flex; flex-direction: column; gap: .5rem; margin-top: .4rem; }
+    .hv-fila { display: flex; align-items: center; gap: .7rem; width: 100%; min-height: 64px; padding: .5rem .8rem; text-align: left; font-family: inherit; color: inherit; cursor: pointer; background: transparent; border: 1.5px solid var(--borde); border-radius: 12px; }
+    .hv-fila-nombre { flex: 1; min-width: 0; font-size: .95rem; font-weight: 700; }
+    .hv-fila-nombre small { display: block; font-size: .7rem; font-weight: 400; color: var(--gris-claro); }
+    .hv-input { width: 100%; box-sizing: border-box; min-height: 52px; font-size: 1rem; }
+    .hv-montos-1 { grid-template-columns: minmax(0, 1fr); max-width: 260px; }
+    .hv-pago .hoja-monto { min-height: 110px; }
+    .hv-pago .hoja-monto b { font-size: 1.35rem; }
+    .hv-links { display: flex; flex-wrap: wrap; gap: 0 1.2rem; }
+    .hoja-msg { min-height: 1.2rem; margin: 0 0 1rem; font-size: .85rem; font-weight: 600; }
+    @media (max-width: 600px) { .hv-tiles { gap: .5rem; } .hv-tile { min-height: 116px; } .hv-tile b { font-size: 1rem; } .hv-gigante { min-height: 104px; font-size: 1.4rem; } }
     .hoja-vacio { text-align: center; color: var(--gris); font-size: .8rem; padding: 1.5rem 0; }
     .hoja-hint { font-size: .72rem; color: var(--gris-claro); margin: .2rem 0 .8rem; }
     .inicio-hoja small.pide { color: var(--tinta-aviso); font-weight: 700; }
@@ -3714,34 +3757,10 @@
         <button type="button" onclick="hojaIrHoy()">Hoy</button>
       </div>
       <div class="hoja-pend" id="hojaPend"></div>   <!-- [REEMPLAZO-DE-HOJA] pendientes de cobro (lo que quedó debiendo) -->
-      <div class="hoja-modos" role="group" aria-label="Qué querés anotar">
-        <button type="button" class="log-chip active" id="hojaModoVenta" onclick="hojaModo('venta')">Venta</button>
-        <button type="button" class="log-chip" id="hojaModoNota" onclick="hojaModo('nota')">&#9999;&#65039; Anotar</button>
-      </div>
-      <div class="hoja-form">
-        <div id="hojaBloqueVenta">
-          <label class="modal-label" for="hojaBuscar">Perfume (frasco)</label>
-          <div class="hoja-buscar-fila">
-            <input type="text" id="hojaBuscar" class="modal-input" placeholder="&#128269; Buscar perfume o escribir el código&#8230;" autocomplete="off" oninput="hojaBuscarInput()" onkeydown="hojaBuscarTecla(event)"/>
-            <button type="button" class="btn-escanear" onclick="escanearAbrir('hoja')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
-          </div>
-          <div class="hoja-resultados" id="hojaResultados" hidden></div>
-          <div class="hoja-items" id="hojaItems"></div>
-          <p class="hoja-hint">Los frascos bajan del stock al <b>cerrar el día</b> (más abajo), no al guardar el renglón.</p>
-        </div>
-        <label class="modal-label" for="hojaDetalle" id="hojaDetalleLabel">Detalle (decants, sets o lo que no es un frasco)</label>
-        <input type="text" id="hojaDetalle" class="modal-input" maxlength="120" placeholder="Ej: 2 decants" autocomplete="off" oninput="hojaMontosPintar()"/>
-        <div class="hoja-montos" id="hojaMontos" role="group" aria-label="Cómo pagó">
-          <button type="button" class="hoja-monto" data-medio="efectivo" aria-pressed="false" onclick="hojaTocaMedio('efectivo')"><span>Efec.</span><b>—</b><small></small></button>
-          <button type="button" class="hoja-monto" data-medio="mp" aria-pressed="false" onclick="hojaTocaMedio('mp')"><span>MP</span><b>—</b><small></small></button>
-          <button type="button" class="hoja-monto" data-medio="posnet" aria-pressed="false" onclick="hojaTocaMedio('posnet')"><span>Posnet</span><b>—</b><small></small></button>
-        </div>
-        <button type="button" class="hoja-otro" id="hojaOtroBtn" onclick="hojaOtroMonto()" hidden>Otro monto…</button>
-        <div class="hoja-debe" id="hojaDebeFila" hidden>
-          <button type="button" class="hoja-monto hoja-monto--debe" id="hojaTileDebe" data-medio="debe" aria-pressed="false" onclick="hojaMedio('debe')"><span>Queda debiendo</span><b>—</b><small></small></button>
-          <input type="text" id="hojaQuien" class="modal-input" maxlength="60" placeholder="¿Quién debe? (nombre)" autocomplete="off"/>
-        </div>
-        <div id="hojaTecladoCasa">
+      <!-- [ANOTAR-VENTA] 13-oct · la carga es un recorrido de botones grandes (lo arma hojaVentaPintar): «Anotar venta» → ¿Qué se lleva? → cuántos → ¿Cómo pagó? -->
+      <div class="hoja-venta" id="hojaVenta"></div>
+      <p class="espera-form-msg hoja-msg" id="hojaMsg" role="status"></p>
+      <div id="hojaTecladoCasa" hidden>   <!-- el teclado de números es uno solo: se estaciona acá y se muda a la pantalla que lo usa -->
         <div class="hoja-teclado" id="hojaTeclado" hidden>
           <p class="hoja-teclado-tit" id="hojaTecladoTit"></p>
           <div class="hoja-teclas">
@@ -3752,10 +3771,6 @@
           </div>
           <div class="hoja-teclado-acc"><button type="button" onclick="hojaTecla('clear')">Borrar monto</button><button type="button" class="primario" onclick="hojaMedio(null)">Listo</button></div>
         </div>
-        </div>
-        <p class="hoja-form-total" id="hojaFormTotal"></p>
-        <button type="button" class="modal-btn modal-btn-price" id="hojaGuardarBtn" onclick="hojaGuardar()">Guardar renglón</button>
-        <p class="espera-form-msg" id="hojaMsg" role="status"></p>
       </div>
       <div class="hoja-totales" id="hojaTotales"></div>
       <div class="hoja-cierre" id="hojaCierre"></div>   <!-- [REEMPLAZO-DE-HOJA] sesión 2 · «Cierre del día»: acá se ve lo que falta bajar, la lista previa y el resultado -->
@@ -13847,7 +13862,9 @@
     // ⚠️ Acá el stock NO se toca: lo baja el «Cierre del día» (sesión 2). Los decants y los sets van como TEXTO en el detalle.
     // El día sale de resumenHoyART() (NO ROMPER #6). El `id` lo genera la tablet: un reintento no duplica (23505 = ya estaba).
     // ============================================================
-    var HOJA = { dia: null, modo: 'venta', items: [], filas: null, ocupado: false, idPendiente: null, cierreVista: null, montos: { efectivo: '', mp: '', posnet: '' }, medio: null, manual: false, debe: '', cobro: null, pendientes: null };
+    var HOJA = { dia: null, filas: null, ocupado: false, idPendiente: null, cierreVista: null, cobro: null, pendientes: null,
+      paso: 'inicio', carro: [], sel: null, busca: '', notaTxt: '', quien: '', ultimo: '', montos: { efectivo: '', mp: '', posnet: '' }, debe: '', medio: null,
+      cfgDec: null, disenos: null };
     function hojaEl(id) { return document.getElementById(id); }
     function hojaMsg(texto, tipo) {
       var m = hojaEl('hojaMsg');
@@ -13871,45 +13888,84 @@
       return s;
     }
     function hojaPesos(n) { return '$' + Number(n).toLocaleString('es-AR'); }
-    // ── Cómo se carga la plata (decisión de Alejo, 13-oct): SIN campos de texto. Con perfumes elegidos que tienen precio, el monto sale SOLO y se toca el
-    //    cuadrado de cómo pagó (se guarda ahí mismo). Con «Otro monto…» (o en ANOTAR, o con decants escritos) se elige el cuadrado y se escribe en el teclado propio.
-    //    El precio: la promo si hay, si no el de lista; Efec. y MP llevan 10% off y Posnet va a precio de lista (la misma cuenta que Precios & Stock).
+    // ============================================================
+    // [ANOTAR-VENTA] 13-oct-2026 · la carga de la hoja con botones grandes (decisión de Alejo: «un apartado que solamente es interactivo»)
+    // Recorrido: «Anotar venta» → ¿Qué se lleva? (Perfume · Decant · Otra cosa) → cuántos → se suma al pedido → «Cobrar» → ¿Cómo pagó? (Efec. · MP ·
+    // Posnet, con el monto ya calculado: se guarda al tocar). Se puede sumar más de un producto a la misma venta.
+    // Precios: perfume = la promo o el de lista, y Efec. / MP con 10% off SÓLO en los perfumes en frasco (la cuenta de Precios & Stock); decant ÁRABE =
+    // la escalera de decants_config (precio_1 · precio_3 · precio_5) por la CANTIDAD TOTAL de árabes del pedido; decant de DISEÑADOR = su precio_unit
+    // (decants_custom, aparte de la escalera); «otra cosa» = el monto que se escribe. Una excepción (otro precio, un descuento, una seña o un pago
+    // repartido) va por «Otro monto…». Se anota AUNQUE el panel diga sin stock o pausado (los «grises»): el cierre del día descuenta sólo lo que hay
+    // (NO ROMPER #31). Sólo los perfumes en frasco llevan slug en items (los únicos que tocan stock); decants y «otra cosa» van sin slug.
+    // ============================================================
     var HOJA_MEDIO_NOMBRE = { efectivo: 'Efec.', mp: 'MP', posnet: 'Posnet' };
     function hojaNum(medio) { var v = HOJA.montos[medio]; return v ? Number(v) : 0; }
-    function hojaPrecios() {   // { lista, efectivo } de lo elegido, o null (sin perfumes o alguno sin precio)
-      if (HOJA.modo !== 'venta' || !HOJA.items.length) return null;
-      var lista = 0, efec = 0;
-      for (var i = 0; i < HOJA.items.length; i++) {
-        var it = HOJA.items[i], p = PERFUMES.find(function(pf) { return pf.slug === it.slug; });
-        var base = p ? (p.promo ? parsePrice(p.promo) : parsePrice(p.price)) : 0;
-        if (!(base > 0)) return null;
-        lista += base * it.qty; efec += Math.round(base * 0.9) * it.qty;
+    function hojaArabesTotal(carro) { var n = 0; (carro || []).forEach(function(l) { if (l.tipo === 'arabe') n += l.qty; }); return n; }
+    function hojaUnitArabe(n) { var c = HOJA.cfgDec; if (!c) return 0; return n >= 5 ? (c.p5 || c.p3 || c.p1) : (n >= 3 ? (c.p3 || c.p1) : c.p1); }
+    function hojaLineaPrecio(l, carro) {   // { lista, efectivo } de una línea, o null si le falta el monto
+      if (l.tipo === 'frasco') {
+        if (l.base > 0) return { lista: l.base * l.qty, efectivo: Math.round(l.base * 0.9) * l.qty };
+        var m0 = Number(l.monto) || 0; return m0 > 0 ? { lista: m0, efectivo: m0 } : null;
       }
-      return { lista: lista, efectivo: efec };
+      if (l.tipo === 'arabe') { var u = hojaUnitArabe(hojaArabesTotal(carro)); return u > 0 ? { lista: u * l.qty, efectivo: u * l.qty } : null; }
+      if (l.tipo === 'disenador') return l.precio > 0 ? { lista: l.precio * l.qty, efectivo: l.precio * l.qty } : null;
+      var m = Number(l.monto) || 0; return m > 0 ? { lista: m, efectivo: m } : null;
     }
-    function hojaAuto() { return !HOJA.manual && HOJA.modo === 'venta' && !!hojaPrecios() && !hojaEl('hojaDetalle').value.trim(); }
+    function hojaCarroPrecio(carro) {
+      if (!carro || !carro.length) return null;
+      var s = { lista: 0, efectivo: 0 };
+      for (var i = 0; i < carro.length; i++) { var p = hojaLineaPrecio(carro[i], carro); if (!p) return null; s.lista += p.lista; s.efectivo += p.efectivo; }
+      return s;
+    }
+    function hojaLineaTexto(l) {
+      if (l.tipo === 'frasco') return l.nombre + (l.qty > 1 ? ' ×' + l.qty : '') + (l.llevar ? '' : ' (apartado)');
+      if (l.tipo === 'arabe') return l.qty + (l.qty === 1 ? ' decant árabe' : ' decants árabes');
+      if (l.tipo === 'disenador') return l.qty + (l.qty === 1 ? ' decant ' : ' decants ') + l.nombre;
+      return l.nombre;
+    }
+    function hojaLineaItem(l, carro) {   // lo que se guarda en items (jsonb): el cierre sólo mira los que tienen slug (los frascos)
+      if (l.tipo === 'frasco') return { slug: l.slug, nombre: l.nombre, qty: l.qty, llevar: !!l.llevar, ya_bajado: !!l.ya_bajado, descontado: false, precio: l.base > 0 ? l.base : null };
+      if (l.tipo === 'arabe') return { tipo: 'decant', origen: 'arabe', nombre: 'Decant árabe', qty: l.qty, precio_unit: hojaUnitArabe(hojaArabesTotal(carro)) };
+      if (l.tipo === 'disenador') return { tipo: 'decant', origen: 'disenador', id: l.id, nombre: l.nombre, qty: l.qty, precio_unit: l.precio };
+      return { tipo: 'libre', nombre: l.nombre, qty: 1, monto: Number(l.monto) || 0 };
+    }
+    function hojaValor(k) {
+      if (k === 'debe') return HOJA.debe;
+      if (k === 'cobro') return HOJA.cobro ? HOJA.cobro.parcial : '';
+      if (k === 'precio') return HOJA.sel ? HOJA.sel.monto : '';
+      return HOJA.montos[k];
+    }
+    function hojaPonerValor(k, v) {
+      if (k === 'debe') HOJA.debe = v;
+      else if (k === 'cobro') { if (HOJA.cobro) HOJA.cobro.parcial = v; }
+      else if (k === 'precio') { if (HOJA.sel) HOJA.sel.monto = v; }
+      else HOJA.montos[k] = v;
+    }
     function hojaDebeValor() {   // lo que queda debiendo: lo escrito en su cuadrado o, si no, el precio menos lo pagado (sólo en «Otro monto…»)
-      if (HOJA.modo !== 'venta') return 0;
+      if (HOJA.paso !== 'manual') return 0;
       if (HOJA.debe !== '') return Number(HOJA.debe);
-      var pr = hojaPrecios(), pagado = hojaNum('efectivo') + hojaNum('mp') + hojaNum('posnet');
+      var pr = hojaCarroPrecio(HOJA.carro), pagado = hojaNum('efectivo') + hojaNum('mp') + hojaNum('posnet');
       if (!pr || pagado <= 0) return 0;
       var soloPosnet = hojaNum('posnet') > 0 && !hojaNum('efectivo') && !hojaNum('mp');
       return Math.max(0, (soloPosnet ? pr.lista : pr.efectivo) - pagado);
     }
-    function hojaValor(k) { return k === 'debe' ? HOJA.debe : (k === 'cobro' ? (HOJA.cobro ? HOJA.cobro.parcial : '') : HOJA.montos[k]); }
-    function hojaPonerValor(k, v) { if (k === 'debe') HOJA.debe = v; else if (k === 'cobro') { if (HOJA.cobro) HOJA.cobro.parcial = v; } else HOJA.montos[k] = v; }
-    function hojaTocaMedio(m) {   // con precio automático guarda al toque; si no, elige el cuadrado para escribir el monto
-      if (hojaAuto()) { hojaGuardar({ auto: m }); return; }
-      hojaMedio(m);
+
+    // ── el teclado de números (uno solo): se estaciona en #hojaTecladoCasa y se muda a #hvTeclado (la pantalla que lo usa) o a #hojaCobroTeclado ──
+    function hojaTecladoAparcar() { var tec = hojaEl('hojaTeclado'), casa = hojaEl('hojaTecladoCasa'); if (tec && casa && tec.parentNode !== casa) casa.appendChild(tec); }
+    function hojaTecladoPintar() {
+      var tec = hojaEl('hojaTeclado'); if (!tec) return;
+      var m = HOJA.medio, destino = null;
+      if (m === 'cobro') destino = hojaEl('hojaCobroTeclado'); else if (m) destino = hojaEl('hvTeclado');
+      if (m && !destino) { HOJA.medio = null; m = null; }
+      if (!destino) destino = hojaEl('hojaTecladoCasa');
+      if (tec.parentNode !== destino) destino.appendChild(tec);
+      tec.hidden = !m;
+      if (m) hojaEl('hojaTecladoTit').textContent = m === 'debe' ? 'Lo que queda debiendo' : (m === 'cobro' ? 'Cuánto pagó ahora' : (m === 'precio' ? 'Cuánto cuesta' : 'Monto en ' + HOJA_MEDIO_NOMBRE[m]));
     }
     function hojaMedio(m) {   // elige un cuadrado y abre el teclado; tocarlo de nuevo (o «Listo») lo cierra
       HOJA.medio = (m && HOJA.medio !== m) ? m : null;
-      hojaMontosPintar();
-    }
-    function hojaOtroMonto() {
-      HOJA.manual = !HOJA.manual; HOJA.medio = null;
-      if (!HOJA.manual) { HOJA.montos = { efectivo: '', mp: '', posnet: '' }; HOJA.debe = ''; }
-      hojaMontosPintar();
+      if (HOJA.medio === 'cobro' || (!HOJA.medio && HOJA.cobro)) hojaTecladoPintar();
+      if (HOJA.medio !== 'cobro') hojaVentaPintar();
     }
     function hojaTecla(k) {
       var m = HOJA.medio; if (!m) return;
@@ -13922,66 +13978,7 @@
       else v = (v + k).slice(0, 8);
       if (m === 'cobro' && HOJA.cobro && Number(v) > HOJA.cobro.debe) v = String(HOJA.cobro.debe);
       hojaPonerValor(m, v);
-      if (m === 'cobro') { hojaCobroTiles(); hojaTecladoPintar(); } else hojaMontosPintar();
-    }
-    function hojaTecladoPintar() {   // el teclado es uno solo: vive en el formulario o, al cobrar un resto, dentro de ese pendiente
-      var tec = hojaEl('hojaTeclado'); if (!tec) return;
-      var enCobro = HOJA.medio === 'cobro';
-      var destino = enCobro ? hojaEl('hojaCobroTeclado') : hojaEl('hojaTecladoCasa');
-      if (enCobro && !destino) { HOJA.medio = null; destino = hojaEl('hojaTecladoCasa'); }
-      if (destino && tec.parentNode !== destino) destino.appendChild(tec);
-      tec.hidden = !HOJA.medio;
-      if (HOJA.medio) hojaEl('hojaTecladoTit').textContent = HOJA.medio === 'debe' ? 'Lo que queda debiendo' : (HOJA.medio === 'cobro' ? 'Cuánto pagó ahora' : 'Monto en ' + HOJA_MEDIO_NOMBRE[HOJA.medio]);
-    }
-    function hojaMontosPintar() {
-      var auto = hojaAuto(), pr = hojaPrecios();
-      if (auto && HOJA.medio && HOJA.medio !== 'cobro') HOJA.medio = null;
-      document.querySelectorAll('#hojaMontos .hoja-monto').forEach(function(b) {
-        var m = b.getAttribute('data-medio'), v = HOJA.montos[m], bb = b.querySelector('b'), sm = b.querySelector('small');
-        b.classList.toggle('auto', auto);
-        if (auto) { bb.textContent = hojaPesos(m === 'posnet' ? pr.lista : pr.efectivo); sm.textContent = m === 'posnet' ? 'precio de lista' : '10% off'; b.classList.remove('con-monto'); b.setAttribute('aria-pressed', 'false'); }
-        else { bb.textContent = v ? hojaPesos(Number(v)) : '—'; sm.textContent = ''; b.classList.toggle('con-monto', !!v); b.setAttribute('aria-pressed', HOJA.medio === m ? 'true' : 'false'); }
-      });
-      var venta = HOJA.modo === 'venta';
-      var otro = hojaEl('hojaOtroBtn');
-      otro.hidden = !(venta && (HOJA.manual || auto));
-      otro.textContent = HOJA.manual ? 'Volver al precio automático' : 'Otro monto… (seña, pago repartido o un precio distinto)';
-      hojaEl('hojaDebeFila').hidden = !(venta && !auto);
-      var d = hojaDebeValor(), td = hojaEl('hojaTileDebe');
-      td.querySelector('b').textContent = d > 0 ? hojaPesos(d) : '—';
-      td.querySelector('small').textContent = (HOJA.debe === '' && d > 0) ? 'se calcula solo' : '';
-      td.setAttribute('aria-pressed', HOJA.medio === 'debe' ? 'true' : 'false');
-      td.classList.toggle('con-monto', d > 0);
-      hojaEl('hojaGuardarBtn').hidden = auto;
-      hojaTecladoPintar();
-      hojaTotalPint();
-    }
-    function hojaAbrir() {
-      var hoy = resumenHoyART();
-      if (!HOJA.dia) HOJA.dia = hoy;
-      hojaEl('hojaDia').max = hoy; hojaEl('hojaDia').value = HOJA.dia;
-      hojaItemsPintar(); hojaMontosPintar(); hojaCargar(); hojaPendientesCargar();
-    }
-    function hojaCambioDia(v) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v > resumenHoyART()) { hojaEl('hojaDia').value = HOJA.dia; return; }
-      HOJA.dia = v; HOJA.cierreVista = null; hojaCargar();
-    }
-    function hojaMover(n) {
-      var nuevo = resumenSumarDias(HOJA.dia || resumenHoyART(), n);
-      if (nuevo > resumenHoyART()) return;
-      HOJA.dia = nuevo; HOJA.cierreVista = null; hojaEl('hojaDia').value = nuevo; hojaCargar();
-    }
-    function hojaIrHoy() { HOJA.dia = resumenHoyART(); HOJA.cierreVista = null; hojaEl('hojaDia').value = HOJA.dia; hojaCargar(); }
-    function hojaModo(m) {
-      HOJA.modo = m;
-      hojaEl('hojaModoVenta').classList.toggle('active', m === 'venta');
-      hojaEl('hojaModoNota').classList.toggle('active', m === 'nota');
-      hojaEl('hojaBloqueVenta').hidden = (m === 'nota');
-      hojaEl('hojaDetalleLabel').textContent = m === 'nota' ? 'Qué querés anotar' : 'Detalle (decants, sets o lo que no es un frasco)';
-      hojaEl('hojaDetalle').placeholder = m === 'nota' ? 'Ej: apagar EDU your touch' : 'Ej: 2 decants';
-      hojaEl('hojaGuardarBtn').textContent = m === 'nota' ? 'Anotar' : 'Guardar renglón';
-      hojaMsg('');
-      hojaMontosPintar();
+      if (m === 'cobro') { hojaCobroTiles(); hojaTecladoPintar(); } else hojaVentaPintar();
     }
     // En la compu también se puede escribir con el teclado mientras hay un cuadrado elegido (y no hay un campo con el foco).
     document.addEventListener('keydown', function(e) {
@@ -13993,32 +13990,105 @@
       else if (e.key === 'Backspace') { hojaTecla('del'); e.preventDefault(); }
       else if ((e.key === 'Enter' && tag !== 'BUTTON') || e.key === 'Escape') { hojaMedio(null); e.preventDefault(); }
     });
-    function hojaTotalPint() {
-      var s = hojaNum('efectivo') + hojaNum('mp') + hojaNum('posnet'), d = hojaDebeValor();
-      hojaEl('hojaFormTotal').textContent = hojaAuto() ? '' : ((s ? 'Cobrado ahora: ' + hojaPesos(s) : '') + (d > 0 ? (s ? ' · ' : '') + 'queda debiendo ' + hojaPesos(d) : ''));
+
+    // ── abrir, el día ──
+    function hojaAbrir() {
+      var hoy = resumenHoyART();
+      if (!HOJA.dia) HOJA.dia = hoy;
+      hojaEl('hojaDia').max = hoy; hojaEl('hojaDia').value = HOJA.dia;
+      hojaVentaPintar(); hojaCargar(); hojaPendientesCargar(); hojaDecantsCargar();
     }
-    // El buscador: un número de 8 a 14 cifras es un código (Enter); lo demás, un nombre (como el panel: nombre, fabricante, apodo). Sin sets.
+    function hojaCambioDia(v) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v > resumenHoyART()) { hojaEl('hojaDia').value = HOJA.dia; return; }
+      HOJA.dia = v; HOJA.cierreVista = null; hojaCargar();
+    }
+    function hojaMover(n) {
+      var nuevo = resumenSumarDias(HOJA.dia || resumenHoyART(), n);
+      if (nuevo > resumenHoyART()) return;
+      HOJA.dia = nuevo; HOJA.cierreVista = null; hojaEl('hojaDia').value = nuevo; hojaCargar();
+    }
+    function hojaIrHoy() { HOJA.dia = resumenHoyART(); HOJA.cierreVista = null; hojaEl('hojaDia').value = HOJA.dia; hojaCargar(); }
+    async function hojaDecantsCargar() {   // los precios de los decants: la escalera de los árabes y la lista de los de diseñador
+      var r1; try { r1 = await sb.from('decants_config').select('precio_1, precio_3, precio_5').eq('id', 1); } catch (e) { r1 = { error: e }; }
+      var c = (!r1.error && r1.data && r1.data[0]) ? r1.data[0] : null;
+      HOJA.cfgDec = c && Number(c.precio_1) > 0 ? { p1: Number(c.precio_1), p3: Number(c.precio_3) || 0, p5: Number(c.precio_5) || 0 } : null;
+      var r2; try { r2 = await sb.from('decants_custom').select('id, nombre, marca, precio_unit, orden').eq('activo', true).order('orden', { ascending: true }); } catch (e) { r2 = { error: e }; }
+      HOJA.disenos = r2.error ? null : (r2.data || []);
+      if (['decant', 'disenador', 'cuantos', 'que', 'pago', 'manual'].indexOf(HOJA.paso) !== -1) hojaVentaPintar();
+    }
+
+    // ── el recorrido ──
+    function hojaPaso(p) { HOJA.paso = p; HOJA.medio = (HOJA.medio === 'cobro') ? 'cobro' : null; hojaVentaPintar(); }
+    function hojaEmpezar() {
+      HOJA.carro = []; HOJA.sel = null; HOJA.busca = ''; HOJA.quien = ''; HOJA.debe = ''; HOJA.montos = { efectivo: '', mp: '', posnet: '' };
+      HOJA.ultimo = ''; hojaMsg(''); hojaPaso('que');
+    }
+    function hojaVolverInicio() {
+      if (HOJA.carro.length && !confirm('¿Descartar la venta que estabas armando?')) return;
+      HOJA.carro = []; HOJA.sel = null; hojaPaso('inicio');
+    }
+    function hojaCarroQuitar(i) { HOJA.carro.splice(i, 1); hojaPaso(HOJA.carro.length ? HOJA.paso : 'que'); }
+    function hojaElegir(slug) {   // un perfume de la lista o del escáner
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p || p.esSet) return;
+      var base = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+      HOJA.sel = { tipo: 'frasco', slug: slug, nombre: String(p.name || slug), qty: 1, base: base > 0 ? base : 0, monto: '', llevar: true, ya_bajado: false };
+      HOJA.busca = ''; hojaMsg(''); hojaPaso('cuantos');
+    }
+    function hojaElegirArabe() {
+      if (!HOJA.cfgDec) { hojaMsg('No pude leer los precios de los decants árabes: anotalo en «Otra cosa» con el monto.', 'aviso'); return; }
+      HOJA.sel = { tipo: 'arabe', qty: 1 }; hojaPaso('cuantos');
+    }
+    function hojaElegirDisenador(id) {
+      var d = (HOJA.disenos || []).filter(function(x) { return String(x.id) === String(id); })[0]; if (!d) return;
+      HOJA.sel = { tipo: 'disenador', id: d.id, nombre: String(d.nombre || ''), precio: Number(d.precio_unit) || 0, qty: 1, monto: '' };
+      hojaPaso('cuantos');
+    }
+    function hojaElegirLibre() { HOJA.sel = { tipo: 'libre', nombre: '', monto: '', qty: 1 }; hojaPaso('libre'); }
+    function hojaSelCant(n) { if (!HOJA.sel) return; HOJA.sel.qty = Math.max(1, Math.min(50, n)); hojaVentaPintar(); }
+    function hojaSelTilde(clave, valor) { if (HOJA.sel) HOJA.sel[clave] = !!valor; }
+    function hojaSelListo() {
+      var s = HOJA.sel; if (!s) return;
+      if (s.tipo === 'libre') {
+        s.nombre = String(s.nombre || '').trim().replace(/\s+/g, ' ').slice(0, 80);
+        if (!s.nombre) { hojaMsg('Escribí qué se lleva.', 'error'); return; }
+        if (!(Number(s.monto) > 0)) { hojaMsg('Poné cuánto cuesta (tocá el cuadrado «Monto»).', 'error'); return; }
+      }
+      if (s.tipo === 'frasco' && !(s.base > 0) && !(Number(s.monto) > 0)) { hojaMsg('Ese perfume no tiene precio cargado: poné cuánto se cobró (tocá «Monto»).', 'error'); return; }
+      if (s.tipo === 'disenador' && !(s.precio > 0)) { hojaMsg('Ese decant no tiene precio cargado: anotalo en «Otra cosa» con el monto.', 'error'); return; }
+      if (HOJA.carro.length >= 20) { hojaMsg('Hasta 20 productos por venta: cobrá esta y anotá otra.', 'aviso'); return; }
+      var junto = HOJA.carro.filter(function(l) {
+        return l.tipo === s.tipo && ((s.tipo === 'frasco' && l.slug === s.slug && l.llevar === s.llevar && l.ya_bajado === s.ya_bajado && l.base > 0 && s.base > 0)
+          || s.tipo === 'arabe' || (s.tipo === 'disenador' && String(l.id) === String(s.id)));
+      })[0];
+      if (junto) junto.qty = Math.min(50, junto.qty + s.qty); else HOJA.carro.push(s);
+      HOJA.sel = null; hojaMsg(''); hojaPaso('que');
+    }
+    // El buscador de perfumes: un número de 8 a 14 cifras es un código (Enter); lo demás, un nombre (nombre, fabricante, apodo). Sin sets.
+    // NO filtra por stock ni por pausado: se anota lo que se vendió (el cierre ve después si hay en el panel).
     function hojaBuscarInput() {
-      var q = hojaEl('hojaBuscar').value.trim(), cont = hojaEl('hojaResultados');
-      if (!q || /^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.hidden = true; cont.innerHTML = ''; return; }
+      var inp = hojaEl('hvBuscar'), cont = hojaEl('hvResultados'); if (!inp || !cont) return;
+      HOJA.busca = inp.value;
+      var q = inp.value.trim();
+      if (!q || /^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.innerHTML = q ? '<p class="hoja-hint">Tocá Enter para buscar el código.</p>' : ''; return; }
       var n = codNorm(q);
       var lista = PERFUMES.filter(function(p) {
         return !p.esSet && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(n) !== -1;
-      }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 8);
+      }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 12);
       cont.innerHTML = lista.length ? lista.map(function(p) {
         var info = stockCargado ? deriveStockInfo(p) : null;
-        return '<button type="button" class="cod-fila" onclick="hojaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
-          + '<span class="cod-nombre">' + escHtml(p.name || '') + (p.marca_real ? '<small>' + escHtml(p.marca_real) + '</small>' : '') + '</span>'
+        var base = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+        return '<button type="button" class="hv-fila" onclick="hojaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
+          + '<span class="hv-fila-nombre">' + escHtml(p.name || '') + '<small>' + escHtml(p.marca_real || p.marca || '') + (base > 0 ? ' · ' + hojaPesos(base) : ' · sin precio') + '</small></span>'
           + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '') + '</button>';
-      }).join('') : '<p class="cod-msg" style="padding:.8rem;color:var(--gris);">No hay perfumes con ese nombre.</p>';
-      cont.hidden = false;
+      }).join('') : '<p class="hoja-hint" style="padding:.6rem 0">No hay perfumes con ese nombre. Si no está en el catálogo, volvé y anotalo en «Otra cosa».</p>';
     }
     function hojaBuscarTecla(e) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      var v = hojaEl('hojaBuscar').value.trim();
-      if (/^\d{8,14}$/.test(v.replace(/\s/g, ''))) { var n = normalizarCodigo(v); if (n.ok) hojaCodigo(n.codigo); else hojaMsg(n.msg, 'error'); return; }
-      var primero = hojaEl('hojaResultados').querySelector('.cod-fila'); if (primero) primero.click();
+      var v = (hojaEl('hvBuscar') || {}).value || '';
+      if (/^\d{8,14}$/.test(v.trim().replace(/\s/g, ''))) { var n = normalizarCodigo(v); if (n.ok) hojaCodigo(n.codigo); else hojaMsg(n.msg, 'error'); return; }
+      var primero = hojaEl('hvResultados') && hojaEl('hvResultados').querySelector('.hv-fila'); if (primero) primero.click();
     }
     async function hojaCodigo(codigo) {   // lo llama el escáner (cámara o número escrito) y el Enter del buscador
       var r; try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
@@ -14028,68 +14098,187 @@
       if (p && !p.esSet) { hojaElegir(p.slug); return; }
       hojaMsg(fila ? 'Ese código era de un perfume que ya no está en el panel. Buscalo por nombre.' : 'El código ' + codigo + ' no está registrado. Buscá el perfume por nombre.', 'aviso');
     }
-    function hojaElegir(slug) {
-      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-      if (!p || p.esSet) return;
-      var ya = HOJA.items.filter(function(i) { return i.slug === slug; })[0];
-      if (ya) { if (ya.qty < 9) ya.qty++; }
-      else {
-        if (HOJA.items.length >= 10) { hojaMsg('Hasta 10 perfumes por renglón.', 'aviso'); return; }
-        HOJA.items.push({ slug: slug, nombre: String(p.name || slug), qty: 1, llevar: true, ya_bajado: false });
+
+    // ── las pantallas ──
+    function hojaCab(titulo, volver) {
+      return '<div class="hv-cab">' + (volver ? '<button type="button" class="hv-atras" onclick="' + volver + '" aria-label="Volver">&#8592;</button>' : '') + '<p class="hv-titulo">' + titulo + '</p></div>';
+    }
+    function hojaCarroHTML(conQuitar) {
+      if (!HOJA.carro.length) return '';
+      return '<div class="hv-carro">' + HOJA.carro.map(function(l, i) {
+        var p = hojaLineaPrecio(l, HOJA.carro);
+        return '<div class="hv-carro-fila"><span>' + escHtml(hojaLineaTexto(l)) + '</span><b>' + (p ? hojaPesos(p.lista) : '—') + '</b>'
+          + (conQuitar ? '<button type="button" class="hv-quitar" onclick="hojaCarroQuitar(' + i + ')" aria-label="Sacar ' + escHtml(hojaLineaTexto(l)) + '">&times;</button>' : '') + '</div>';
+      }).join('') + '</div>';
+    }
+    function hojaTileHTML(m, onclick, valor, chico, pulsado, clase) {
+      return '<button type="button" class="hoja-monto ' + (clase || '') + '" data-medio="' + m + '" aria-pressed="' + (pulsado ? 'true' : 'false') + '" onclick="' + onclick + '">'
+        + '<span>' + (m === 'debe' ? 'Queda debiendo' : (m === 'precio' ? 'Monto' : HOJA_MEDIO_NOMBRE[m])) + '</span><b>' + valor + '</b><small>' + (chico || '') + '</small></button>';
+    }
+    function hojaTilesManual() {
+      return '<div class="hoja-montos">' + ['efectivo', 'mp', 'posnet'].map(function(m) {
+        var v = HOJA.montos[m];
+        return hojaTileHTML(m, 'hojaMedio(\'' + m + '\')', v ? hojaPesos(Number(v)) : '—', '', HOJA.medio === m, v ? 'con-monto' : '');
+      }).join('') + '</div>';
+    }
+    function hojaVentaPintar() {
+      var c = hojaEl('hojaVenta'); if (!c) return;
+      hojaTecladoAparcar();
+      var p = HOJA.paso, s = HOJA.sel, h = '';
+      if (p === 'inicio') {
+        h = '<button type="button" class="hv-gigante" onclick="hojaEmpezar()"><span aria-hidden="true">＋</span> Anotar venta</button>'
+          + '<button type="button" class="hv-sec" onclick="hojaPaso(\'nota\')">&#9999;&#65039; Anotar una nota (algo que no es una venta)</button>';
       }
-      hojaEl('hojaBuscar').value = ''; hojaEl('hojaResultados').hidden = true; hojaEl('hojaResultados').innerHTML = '';
-      hojaMsg(''); hojaItemsPintar();
+      else if (p === 'que') {
+        var pr = hojaCarroPrecio(HOJA.carro);
+        h = hojaCab(HOJA.carro.length ? '¿Algo más?' : '¿Qué se lleva?', 'hojaVolverInicio()') + hojaCarroHTML(true)
+          + '<div class="hv-tiles">'
+          + '<button type="button" class="hv-tile" onclick="hojaPaso(\'perfume\')"><span class="hv-ico" aria-hidden="true">&#129524;</span><b>Perfume</b><small>escanear o buscar</small></button>'
+          + '<button type="button" class="hv-tile" onclick="hojaPaso(\'decant\')"><span class="hv-ico" aria-hidden="true">&#128167;</span><b>Decant</b><small>árabe o diseñador</small></button>'
+          + '<button type="button" class="hv-tile" onclick="hojaElegirLibre()"><span class="hv-ico" aria-hidden="true">&#9999;&#65039;</span><b>Otra cosa</b><small>lo que sea</small></button>'
+          + '</div>'
+          + (HOJA.carro.length ? '<button type="button" class="hv-listo" onclick="hojaPaso(\'pago\')">Cobrar' + (pr ? ' · ' + hojaPesos(pr.lista) : '') + ' &#8594;</button>' : '');
+      }
+      else if (p === 'perfume') {
+        h = hojaCab('Perfume', 'hojaPaso(\'que\')')
+          + '<div class="hoja-buscar-fila"><input type="text" id="hvBuscar" class="modal-input" placeholder="&#128269; Nombre o código&#8230;" autocomplete="off" value="' + escHtml(HOJA.busca) + '" oninput="hojaBuscarInput()" onkeydown="hojaBuscarTecla(event)"/>'
+          + '<button type="button" class="btn-escanear" onclick="escanearAbrir(\'hoja\')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button></div>'
+          + '<p class="hoja-hint">Se anota aunque figure sin stock o pausado: el cierre del día descuenta sólo lo que el panel tiene.</p>'
+          + '<div class="hv-resultados" id="hvResultados"></div>';
+      }
+      else if (p === 'decant') {
+        var cd = HOJA.cfgDec;
+        h = hojaCab('¿Qué decant?', 'hojaPaso(\'que\')') + hojaCarroHTML(false)
+          + '<div class="hv-tiles hv-tiles--2">'
+          + '<button type="button" class="hv-tile" onclick="hojaElegirArabe()"><span class="hv-ico" aria-hidden="true">&#127769;</span><b>Árabe</b><small>' + (cd ? hojaPesos(cd.p1) + ' · desde 3 ' + hojaPesos(cd.p3 || cd.p1) + ' · desde 5 ' + hojaPesos(cd.p5 || cd.p3 || cd.p1) + ' c/u' : 'cargando precios…') + '</small></button>'
+          + '<button type="button" class="hv-tile" onclick="hojaPaso(\'disenador\')"><span class="hv-ico" aria-hidden="true">&#128142;</span><b>Diseñador</b><small>se elige de la lista</small></button>'
+          + '</div>';
+      }
+      else if (p === 'disenador') {
+        var ds = HOJA.disenos;
+        h = hojaCab('Decant de diseñador', 'hojaPaso(\'decant\')')
+          + (ds === null ? '<p class="hoja-hint">Cargando la lista… (si no aparece, anotalo en «Otra cosa»)</p>'
+            : (!ds.length ? '<p class="hoja-hint">No hay decants de diseñador cargados: anotalo en «Otra cosa».</p>'
+              : '<div class="hv-tiles hv-tiles--2">' + ds.map(function(d) {
+                  return '<button type="button" class="hv-tile hv-tile--chica" onclick="hojaElegirDisenador(' + escHtml(JSON.stringify(String(d.id))) + ')"><b>' + escHtml(d.nombre || '') + '</b><small>' + escHtml(d.marca || '') + (Number(d.precio_unit) > 0 ? ' · ' + hojaPesos(d.precio_unit) + ' c/u' : ' · sin precio') + '</small></button>';
+                }).join('') + '</div>'));
+      }
+      else if (p === 'cuantos' && s) {
+        var volver = s.tipo === 'frasco' ? 'hojaPaso(\'perfume\')' : (s.tipo === 'arabe' ? 'hojaPaso(\'decant\')' : 'hojaPaso(\'disenador\')');
+        var titulo = s.tipo === 'frasco' ? escHtml(s.nombre) : (s.tipo === 'arabe' ? 'Decants árabes' : 'Decant ' + escHtml(s.nombre));
+        var nums = ''; for (var n = 1; n <= 10; n++) nums += '<button type="button" class="hv-num' + (s.qty === n ? ' on' : '') + '" onclick="hojaSelCant(' + n + ')">' + n + '</button>';
+        var resumen = '';
+        if (s.tipo === 'arabe') {
+          var total = hojaArabesTotal(HOJA.carro) + s.qty, u = hojaUnitArabe(total);
+          resumen = s.qty + (s.qty === 1 ? ' decant árabe' : ' decants árabes') + ' · ' + hojaPesos(u) + ' c/u' + (total !== s.qty ? ' (son ' + total + ' árabes en la venta)' : '') + '<b>' + hojaPesos(u * s.qty) + '</b>';
+        } else if (s.tipo === 'disenador') {
+          resumen = s.qty + (s.qty === 1 ? ' decant' : ' decants') + ' · ' + hojaPesos(s.precio) + ' c/u<b>' + hojaPesos(s.precio * s.qty) + '</b>';
+        } else if (s.base > 0) {
+          resumen = 'Lista ' + hojaPesos(s.base * s.qty) + ' · Efec. / MP ' + hojaPesos(Math.round(s.base * 0.9) * s.qty) + '<b>' + s.qty + (s.qty === 1 ? ' frasco' : ' frascos') + '</b>';
+        }
+        h = hojaCab(titulo, volver) + '<p class="hv-pregunta">¿Cuántos?</p>'
+          + '<div class="hv-cant"><button type="button" class="hv-num" onclick="hojaSelCant(' + (s.qty - 1) + ')" aria-label="Uno menos">&minus;</button><span class="hv-cant-n">' + s.qty + '</span><button type="button" class="hv-num" onclick="hojaSelCant(' + (s.qty + 1) + ')" aria-label="Uno más">+</button></div>'
+          + '<div class="hv-nums">' + nums + '</div>'
+          + (s.tipo === 'frasco' ? '<div class="hoja-tildes"><label><input type="checkbox"' + (s.llevar ? ' checked' : '') + ' onchange="hojaSelTilde(\'llevar\', this.checked)"/> Se lo lleva hoy</label>'
+              + '<label><input type="checkbox"' + (s.ya_bajado ? ' checked' : '') + ' onchange="hojaSelTilde(\'ya_bajado\', this.checked)"/> Ya lo bajé con «Vendí»</label></div>' : '')
+          + (s.tipo === 'frasco' && !(s.base > 0) ? '<p class="hoja-hint">Este perfume no tiene precio cargado: poné cuánto se cobró en total.</p><div class="hoja-montos hv-montos-1">'
+              + hojaTileHTML('precio', 'hojaMedio(\'precio\')', Number(s.monto) > 0 ? hojaPesos(Number(s.monto)) : '—', 'el total', HOJA.medio === 'precio', Number(s.monto) > 0 ? 'con-monto' : '') + '</div><div id="hvTeclado"></div>' : '')
+          + (resumen ? '<div class="hv-resumen">' + resumen + '</div>' : '')
+          + '<button type="button" class="hv-listo" onclick="hojaSelListo()">Listo, sumar a la venta</button>';
+      }
+      else if (p === 'libre' && s) {
+        h = hojaCab('Otra cosa', 'hojaPaso(\'que\')')
+          + '<label class="modal-label" for="hvLibre">Qué se lleva</label>'
+          + '<input type="text" id="hvLibre" class="modal-input hv-input" maxlength="80" placeholder="Ej: cargador, estuche, muestra, lo que sea" autocomplete="off" value="' + escHtml(s.nombre) + '" oninput="HOJA.sel && (HOJA.sel.nombre = this.value)"/>'
+          + '<div class="hoja-montos hv-montos-1">' + hojaTileHTML('precio', 'hojaMedio(\'precio\')', Number(s.monto) > 0 ? hojaPesos(Number(s.monto)) : '—', 'el total', HOJA.medio === 'precio', Number(s.monto) > 0 ? 'con-monto' : '') + '</div>'
+          + '<div id="hvTeclado"></div>'
+          + '<button type="button" class="hv-listo" onclick="hojaSelListo()">Listo, sumar a la venta</button>';
+      }
+      else if (p === 'pago') {
+        var pp = hojaCarroPrecio(HOJA.carro);
+        if (!pp) { HOJA.paso = 'manual'; return hojaVentaPintar(); }
+        var hayFrasco = HOJA.carro.some(function(l) { return l.tipo === 'frasco' && l.base > 0; });
+        h = hojaCab('¿Cómo pagó?', 'hojaPaso(\'que\')') + hojaCarroHTML(false)
+          + '<div class="hoja-montos hv-pago">'
+          + hojaTileHTML('efectivo', 'hojaGuardarVenta({ auto: \'efectivo\' })', hojaPesos(pp.efectivo), hayFrasco ? 'perfumes con 10% off' : '', false, 'auto')
+          + hojaTileHTML('mp', 'hojaGuardarVenta({ auto: \'mp\' })', hojaPesos(pp.efectivo), hayFrasco ? 'perfumes con 10% off' : '', false, 'auto')
+          + hojaTileHTML('posnet', 'hojaGuardarVenta({ auto: \'posnet\' })', hojaPesos(pp.lista), 'precio de lista', false, 'auto')
+          + '</div>'
+          + '<p class="hoja-hint">Tocá cómo pagó y queda anotado. El 10% de Efec. y MP es sólo para los perfumes en frasco; si hay una excepción (otro precio, un descuento, una seña o un pago repartido), usá «Otro monto…».</p>'
+          + '<div class="hv-links"><button type="button" class="hoja-otro" onclick="hojaPaso(\'que\')">+ Sumar otro producto</button>'
+          + '<button type="button" class="hoja-otro" onclick="HOJA.montos = { efectivo: \'\', mp: \'\', posnet: \'\' }; HOJA.debe = \'\'; hojaPaso(\'manual\')">Otro monto… (seña, pago repartido, excepción)</button></div>';
+      }
+      else if (p === 'manual') {
+        var pm = hojaCarroPrecio(HOJA.carro), d = hojaDebeValor(), cob = hojaNum('efectivo') + hojaNum('mp') + hojaNum('posnet');
+        h = hojaCab('Otro monto', 'hojaPaso(\'pago\')') + hojaCarroHTML(false)
+          + (pm ? '<p class="hoja-hint">Precio: Efec. / MP ' + hojaPesos(pm.efectivo) + ' · Posnet ' + hojaPesos(pm.lista) + '. Tocá un cuadrado y escribí cuánto pagó por ese medio.</p>' : '<p class="hoja-hint">Tocá un cuadrado y escribí cuánto pagó por ese medio.</p>')
+          + hojaTilesManual()
+          + '<div class="hoja-debe">' + hojaTileHTML('debe', 'hojaMedio(\'debe\')', d > 0 ? hojaPesos(d) : '—', (HOJA.debe === '' && d > 0) ? 'se calcula solo' : '', HOJA.medio === 'debe', d > 0 ? 'con-monto' : '')
+          + '<input type="text" id="hvQuien" class="modal-input" maxlength="60" placeholder="¿Quién debe? (nombre)" autocomplete="off" value="' + escHtml(HOJA.quien) + '" oninput="HOJA.quien = this.value"/></div>'
+          + '<div id="hvTeclado"></div>'
+          + '<p class="hoja-form-total">' + (cob ? 'Cobrado ahora: ' + hojaPesos(cob) : '') + (d > 0 ? (cob ? ' · ' : '') + 'queda debiendo ' + hojaPesos(d) : '') + '</p>'
+          + '<button type="button" class="hv-listo" id="hojaGuardarBtn" onclick="hojaGuardarVenta({})">Guardar la venta</button>';
+      }
+      else if (p === 'nota') {
+        h = hojaCab('Anotar una nota', 'hojaPaso(\'inicio\')')
+          + '<input type="text" id="hvNota" class="modal-input hv-input" maxlength="300" placeholder="Ej: apagar EDU your touch" autocomplete="off" value="' + escHtml(HOJA.notaTxt) + '" oninput="HOJA.notaTxt = this.value"/>'
+          + '<p class="hoja-hint">El monto es opcional: tocá un cuadrado sólo si hubo plata.</p>'
+          + hojaTilesManual() + '<div id="hvTeclado"></div>'
+          + '<button type="button" class="hv-listo" id="hojaGuardarBtn" onclick="hojaGuardarNota()">Anotar</button>';
+      }
+      else { HOJA.paso = 'inicio'; return hojaVentaPintar(); }
+      c.innerHTML = h;
+      hojaTecladoPintar();
+      if (p === 'perfume') { hojaBuscarInput(); if (!window.matchMedia('(pointer: coarse)').matches) { try { hojaEl('hvBuscar').focus(); } catch (e) {} } }
     }
-    function hojaItemQty(i, d) { var it = HOJA.items[i]; if (!it) return; it.qty = Math.max(1, Math.min(9, it.qty + d)); hojaItemsPintar(); }
-    function hojaItemSacar(i) { HOJA.items.splice(i, 1); hojaItemsPintar(); }
-    function hojaItemTilde(i, clave, valor) { if (HOJA.items[i]) HOJA.items[i][clave] = !!valor; }
-    function hojaItemsPintar() {
-      hojaEl('hojaItems').innerHTML = HOJA.items.map(function(it, i) {
-        return '<div class="hoja-item"><div class="hoja-item-cab"><div class="hoja-item-nombre">' + escHtml(it.nombre) + '</div>'
-          + '<div class="hoja-item-cant"><button type="button" onclick="hojaItemQty(' + i + ',-1)" aria-label="Uno menos">&minus;</button><span>' + it.qty + '</span><button type="button" onclick="hojaItemQty(' + i + ',1)" aria-label="Uno más">+</button></div>'
-          + '<button type="button" class="hoja-item-x" onclick="hojaItemSacar(' + i + ')" aria-label="Sacar ' + escHtml(it.nombre) + '">&times;</button></div>'
-          + '<div class="hoja-tildes"><label><input type="checkbox"' + (it.llevar ? ' checked' : '') + ' onchange="hojaItemTilde(' + i + ',\'llevar\',this.checked)"/> Se lo lleva hoy</label>'
-          + '<label><input type="checkbox"' + (it.ya_bajado ? ' checked' : '') + ' onchange="hojaItemTilde(' + i + ',\'ya_bajado\',this.checked)"/> Ya lo bajé con «Vendí»</label></div></div>';
-      }).join('');
-      hojaMontosPintar();
-    }
+
+    // ── guardar ──
     function hojaLogDatos(f) { return { id: f.id, dia: f.dia, tipo: f.tipo, detalle: f.detalle, efectivo: Number(f.efectivo) || 0, mp: Number(f.mp) || 0, posnet: Number(f.posnet) || 0, items: f.items || [] }; }
-    async function hojaGuardar(opts) {
-      if (HOJA.ocupado) return;
-      opts = opts || {};
-      var nota = HOJA.modo === 'nota', auto = opts.auto || null;
-      var det = hojaEl('hojaDetalle').value.trim().replace(/\s+/g, ' ');
-      var ef, mp, po, debe = 0;
-      if (auto) {   // el monto salió del catálogo y se tocó el cuadrado de cómo pagó
-        var pr = hojaPrecios(); if (!pr) return;
-        ef = auto === 'efectivo' ? pr.efectivo : 0; mp = auto === 'mp' ? pr.efectivo : 0; po = auto === 'posnet' ? pr.lista : 0;
-      } else { ef = hojaNum('efectivo'); mp = hojaNum('mp'); po = hojaNum('posnet'); debe = nota ? 0 : hojaDebeValor(); }
-      var items = nota ? [] : HOJA.items.map(function(i) { return { slug: i.slug, nombre: i.nombre, qty: i.qty, llevar: !!i.llevar, ya_bajado: !!i.ya_bajado, descontado: false }; });
-      if (nota) { if (!det) { hojaMsg('Escribí qué querés anotar.', 'error'); return; } }
-      else {
-        if (!items.length && !det) { hojaMsg('Elegí un perfume o escribí el detalle.', 'error'); return; }
-        if (ef + mp + po <= 0) { hojaMsg('Poné el monto en Efec., MP o Posnet.', 'error'); return; }
-      }
-      var partes = items.map(function(i) { return i.nombre + (i.qty > 1 ? ' ×' + i.qty : '') + (i.llevar ? '' : ' (apartado)'); });
-      var detalle = nota ? det : [partes.join(' + '), det].filter(Boolean).join(' · ');
-      if (detalle.length > 300) { hojaMsg('El detalle es muy largo (máximo 300 letras): sacá algo o partilo en dos renglones.', 'error'); return; }
-      var quien = debe > 0 ? (hojaEl('hojaQuien').value.trim().replace(/\s+/g, ' ').slice(0, 60) || null) : null;
-      if (!HOJA.idPendiente) HOJA.idPendiente = hojaUUID();   // el mismo id en el reintento: no se duplica
-      var fila = { id: HOJA.idPendiente, dia: HOJA.dia || resumenHoyART(), tipo: nota ? 'nota' : 'venta', detalle: detalle, efectivo: ef, mp: mp, posnet: po, items: items, debe: debe, debe_quien: quien };
-      HOJA.ocupado = true; hojaEl('hojaGuardarBtn').disabled = true;
+    async function hojaInsertar(fila) {   // true si quedó guardado; el mismo id en el reintento: no se duplica (23505 = ya estaba)
+      HOJA.ocupado = true;
       try {
         var r; try { r = await sb.from('caja_movimientos').insert(fila); } catch (e) { r = { error: e }; }
-        if (r.error && r.error.code !== '23505') { hojaMsg(hojaErrorTexto(r.error, 'guardar el renglón') + ' Lo que cargaste sigue ahí: tocá de nuevo para reintentar.', 'error'); return; }
+        if (r.error && r.error.code !== '23505') { hojaMsg(hojaErrorTexto(r.error, 'guardar') + ' Lo que cargaste sigue ahí: tocá de nuevo para reintentar.', 'error'); return false; }
         HOJA.idPendiente = null;
-        if (!r.error) logAdminAction('hoja_alta', null, hojaLogDatos(fila));   // un reintento que ya estaba (23505) no deja un segundo renglón en el Log
-        HOJA.items = []; hojaItemsPintar();
-        ['hojaDetalle', 'hojaBuscar', 'hojaQuien'].forEach(function(id) { hojaEl(id).value = ''; });
-        HOJA.montos = { efectivo: '', mp: '', posnet: '' }; HOJA.medio = null; HOJA.manual = false; HOJA.debe = ''; hojaMontosPintar();
-        await hojaCargar();
-        hojaPendientesCargar(); hojaInicioPintar();
-        var cobrado = ef + mp + po;
-        hojaMsg(nota ? '✓ Anotado.' : '✓ Guardado: ' + partes.join(' + ') + (auto ? ' · ' + HOJA_MEDIO_NOMBRE[auto] + ' ' + hojaPesos(cobrado) : '') + (debe > 0 ? '. Quedó debiendo ' + hojaPesos(debe) + (quien ? ' (' + quien + ')' : '') + '.' : '.'), 'ok');
-      } finally { HOJA.ocupado = false; hojaEl('hojaGuardarBtn').disabled = false; }
+        if (!r.error) logAdminAction('hoja_alta', null, hojaLogDatos(fila));
+        return true;
+      } finally { HOJA.ocupado = false; }
+    }
+    async function hojaGuardarVenta(opts) {
+      if (HOJA.ocupado) return;
+      var carro = HOJA.carro; if (!carro.length) { hojaMsg('Sumá al menos un producto.', 'error'); return; }
+      var auto = opts && opts.auto, pr = hojaCarroPrecio(carro), ef, mp, po, debe = 0;
+      if (auto) {
+        if (!pr) { hojaPaso('manual'); return; }
+        ef = auto === 'efectivo' ? pr.efectivo : 0; mp = auto === 'mp' ? pr.efectivo : 0; po = auto === 'posnet' ? pr.lista : 0;
+      } else {
+        ef = hojaNum('efectivo'); mp = hojaNum('mp'); po = hojaNum('posnet'); debe = hojaDebeValor();
+        if (ef + mp + po <= 0) { hojaMsg('Poné cuánto pagó: tocá Efec., MP o Posnet.', 'error'); return; }
+      }
+      var detalle = carro.map(hojaLineaTexto).join(' + ');
+      if (detalle.length > 300) { hojaMsg('La venta tiene demasiadas cosas para un renglón: partila en dos.', 'error'); return; }
+      var quien = debe > 0 ? (String(HOJA.quien || '').trim().replace(/\s+/g, ' ').slice(0, 60) || null) : null;
+      if (!HOJA.idPendiente) HOJA.idPendiente = hojaUUID();
+      var fila = { id: HOJA.idPendiente, dia: HOJA.dia || resumenHoyART(), tipo: 'venta', detalle: detalle, efectivo: ef, mp: mp, posnet: po,
+                   items: carro.map(function(l) { return hojaLineaItem(l, carro); }), debe: debe, debe_quien: quien };
+      if (!(await hojaInsertar(fila))) return;
+      var cobrado = ef + mp + po;
+      var texto = '✓ Anotado: ' + detalle + ' · ' + (auto ? HOJA_MEDIO_NOMBRE[auto] + ' ' + hojaPesos(cobrado) : 'cobrado ' + hojaPesos(cobrado)) + (debe > 0 ? ' · queda debiendo ' + hojaPesos(debe) + (quien ? ' (' + quien + ')' : '') : '');
+      HOJA.carro = []; HOJA.sel = null; HOJA.quien = ''; HOJA.debe = ''; HOJA.montos = { efectivo: '', mp: '', posnet: '' };
+      hojaPaso('inicio'); hojaMsg(texto, 'ok');
+      await hojaCargar(); hojaPendientesCargar(); hojaInicioPintar();
+    }
+    async function hojaGuardarNota() {
+      if (HOJA.ocupado) return;
+      var det = String(HOJA.notaTxt || '').trim().replace(/\s+/g, ' ');
+      if (!det) { hojaMsg('Escribí qué querés anotar.', 'error'); return; }
+      if (det.length > 300) { hojaMsg('Máximo 300 letras.', 'error'); return; }
+      if (!HOJA.idPendiente) HOJA.idPendiente = hojaUUID();
+      var fila = { id: HOJA.idPendiente, dia: HOJA.dia || resumenHoyART(), tipo: 'nota', detalle: det, efectivo: hojaNum('efectivo'), mp: hojaNum('mp'), posnet: hojaNum('posnet'), items: [], debe: 0, debe_quien: null };
+      if (!(await hojaInsertar(fila))) return;
+      HOJA.notaTxt = ''; HOJA.montos = { efectivo: '', mp: '', posnet: '' };
+      hojaPaso('inicio'); hojaMsg('✓ Anotado: ' + det, 'ok');
+      await hojaCargar(); hojaInicioPintar();
     }
     async function hojaCargar() {
       if (HOJA.cierreVista && HOJA.cierreVista.modo === 'previa') HOJA.cierreVista = null;   // la lista previa quedó vieja: algo cambió
