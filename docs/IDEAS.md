@@ -3,6 +3,16 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
+## [LEGAL-ANTES-DE-SIPAGO] · 💡 idea · 12-oct-2026
+
+**En palabras de Alejo:** pegó el prompt de un video («quiero que me demanden por esta web hecha con IA…»: política de privacidad, términos y cookies, consentimiento en los formularios, política de devoluciones, datos del negocio, alt de las imágenes, contraste, reseñas falsas, copyright de las fotos, leyes locales) y preguntó si conviene mirar eso en una tanda. Dijo que sí a anotarla.
+**Qué es:** una tanda para dejar el sitio público en regla **antes de prender SiPago** (noviembre/diciembre): páginas de privacidad, términos y cookies; política de cambios y devoluciones con el botón de arrepentimiento; datos del negocio visibles (razón social, CUIT, domicilio, Defensa del Consumidor); aviso de consentimiento en «Unite a ST», la lista de espera y el registro; revisar «100% Originales» y las opiniones; copyright de las 346 fotos. Los puntos legales de Argentina (Ley 24.240, Ley 25.326, lo que pida SiPago) se **confirman con fuentes, no de memoria**, y no es asesoramiento legal.
+**Hechos del repo (12-oct):** (1) el sitio público no tiene ninguna página ni link legal (`index.html` y `js/app.js` no mencionan privacidad, términos, cookies, arrepentimiento ni CUIT; lo único que aparece es el comentario de `js/app.js:319`); (2) no hay trackers de terceros: los scripts son `supabase-js` (jsdelivr), `js/app.js`, `js/dvd-bouncer.js` y `perfumes.js`, las fuentes son propias y el analytics es propio (`analytics_events`); (3) el HTML fijo de `index.html` no tiene `<img>` sin `alt` (las que arma el JS no se revisaron); «100% Originales / Garantía de autenticidad» está en `index.html:759`. NO ROMPER #10: una página pública nueva no puede caer en `.vercelignore` (que excluye todo `*.md`).
+**Tamaño:** M — varias pantallas y textos, sin SQL; con acuerdo con terceros (SiPago, quizá un abogado o contador).
+**Le toca primero a:** 🧑 Alejo (datos del negocio y reglas de cambio y devolución) y después 🤖 Claude Code (relevamiento con fuentes y páginas; Claude in Chrome para mirar el sitio real).
+
+> **🧑 Para Alejo (decidís vos):** (1) ¿cuáles son los datos del negocio que se muestran (razón social, CUIT, domicilio)?; (2) ¿qué política de cambios y devoluciones querés dar (plazos, perfume abierto o cerrado, decants)?; (3) ¿de dónde salieron las fotos de los frascos?; (4) ¿lo revisa un abogado o contador antes de publicar? Se cruza con `[SIPAGO-VALIDA-STOCK]` y `[STRIX-ANTES-DE-SIPAGO]`: las tres van antes de prender SiPago.
+
 ## [CAJA-CUADERNO] · ❌ descartada · 12-oct-2026
 
 > **❌ Descartada el 12-oct (Alejo, ya anotada la ficha):** no hace falta. En unos días ST se muda al sistema de admin nuevo (plataforma-saas, la caja nueva) que **ya trae punto de venta para cobrar ahí mismo**. Esta ficha queda como registro de cómo anotan hoy las chicas en papel (para cuando se cargue el POS nuevo: un pago puede cubrir varios perfumes, la seña es un renglón aparte, los decants van como «N decants», el precio casi no se anota).
