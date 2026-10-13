@@ -12,7 +12,7 @@
 --       `cierre.devuelto`. Es la única vía para tachar (se le saca el UPDATE de columnas a `authenticated`).
 --
 -- Reglas del cierre (las decidió Alejo):
---   · baja sólo frascos con `llevar` (la seña no baja) y sin `ya_bajado` (los que ya bajó «Vendí») y sin `cierre`;
+--   · baja sólo frascos con `llevar` (un frasco apartado no baja; una «seña» en ST es un frasco que SÍ se llevó: ver sql/caja_deudas.sql) y sin `ya_bajado` (los que ya bajó «Vendí») y sin `cierre`;
 --   · lo tachado no baja; los decants y los sets no tienen slug en `items`: no pasan por acá;
 --   · baja «hasta donde alcanza»: nunca deja el local en negativo; si no hay dato o está en 0, se salta y queda marcado;
 --   · un perfume pausado baja y sigue pausado; el estado se deriva como `deriveStockInfo` (admin.html): ≤0 'out' (0) · 1 'low' · resto 'ok';
