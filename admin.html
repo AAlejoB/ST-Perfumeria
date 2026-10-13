@@ -2847,7 +2847,7 @@
               <input type="text" class="modal-input" id="editName" style="margin-bottom:0;"/>
             </div>
             <!-- [ESCANER] 163h · los códigos de barras del perfume. Sólo el jefe quita; para sumar uno se escanea el frasco -->
-            <div style="grid-column:1/-1;" data-role="jefe" id="editCodigosWrap">
+            <div style="grid-column:1/-1;" id="editCodigosWrap">
               <label class="modal-label">Códigos de barras</label>
               <div class="cod-chips" id="editCodigos"><span style="font-size:.75rem;color:var(--gris);">—</span></div>
               <p style="font-size:.58rem;color:var(--gris);margin-top:4px;line-height:1.4;" id="editCodigosMsg">Para sumar un código, escaneá el frasco desde Precios &amp; Stock o Depósito.</p>
@@ -7558,7 +7558,6 @@
       var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
       if (fila && p) { escMostrar(p, tab, '✓ Escaneado: ' + codigo); return; }
       if (fila) {   // [ESCANER-CODIGO-HUERFANO] 12-oct · de un perfume que ya no está: el jefe lo suelta y sigue como un código nuevo
-        if (currentRole !== 'jefe') { escNota(tab, 'Ese código era de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe: él lo puede soltar.', 'aviso'); return; }
         var rs = await codSoltarHuerfano(codigo, fila.slug);
         if (!rs.ok) { escNota(tab, rs.texto, rs.cancelado ? 'aviso' : 'error'); return; }
       }
@@ -7879,7 +7878,6 @@
       var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
       if (fila && p) { mercElegir(p.slug); mercMsg('✓ Escaneado: ' + codigo, 'ok'); return; }
       if (fila) {   // [ESCANER-CODIGO-HUERFANO] el jefe lo suelta y sigue como un código sin registrar; la empleada avisa
-        if (currentRole !== 'jefe') { mercMsg('Ese código era de un perfume que ya no está en el panel (' + fila.slug + '). Avisale al jefe: él lo puede soltar.', 'aviso'); return; }
         var rs = await codSoltarHuerfano(codigo, fila.slug);
         if (!rs.ok) { mercMsg(rs.texto, rs.cancelado ? 'aviso' : 'error'); return; }
       }
@@ -8142,7 +8140,7 @@
       try { document.getElementById('nuevoName').focus(); } catch (e) {}
     }
 
-    // 163h · los códigos del perfume en Editar (sólo el jefe quita; para sumar se escanea el frasco)
+    // 163h · los códigos del perfume en Editar (las dos cuentas quitan desde el 12-oct; para sumar se escanea el frasco)
     async function editCodigosPintar(slug) {
       var cont = document.getElementById('editCodigos');
       if (!cont) return;

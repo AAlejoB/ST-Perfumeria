@@ -15,7 +15,7 @@
 --   · el código se guarda SOLO con dígitos: 13 (EAN-13; el UPC-A de 12 pasa con un 0 adelante) u 8
 --   · sin FK a propósito: los slugs viven en perfumes.js y en perfumes_nuevos; el panel valida
 --     que el slug exista antes de guardar
---   · insertan el jefe y la empleada (con su propio email en creado_por); borra SOLO el jefe;
+--   · insertan el jefe y la empleada (con su propio email en creado_por); borra SOLO el jefe (cambiado el 12-oct noche: ver sql/perfume_codigos_borrar_staff.sql, ahora borran las dos cuentas);
 --     no hay update (para cambiar un código de perfume: el jefe lo quita y se vuelve a escanear)
 -- ============================================================================
 
