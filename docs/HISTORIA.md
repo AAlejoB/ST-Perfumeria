@@ -3893,6 +3893,10 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 13-oct-2026 (tarde, cierre de `[CELU-FCP]`):** medido con trazas y aplicado lo de las fotos; el primer pintado anda bien para los clientes (1,6 s en el campo). Lo que sigue es `[CELU-INP]`.
+
+- ✅ ~~**`[CELU-FCP]`**~~ (5-oct, PREPARADOR `_co` · 🟡, **abierto**; reemplaza lo que quedaba de `[CELU-LCP]`) — qué frena el primer cuadro en producción. **Relevamiento sin código y sin corridas nuevas** (`herramientas\celu-retoques\datos\primer-cuadro.md`, de las 10 corridas de producción de `celu-lcp\lh-out` + las 5 locales de `main`): (1) el único recurso que bloquea el primer cuadro es `css/styles.css` (99 KB, mismo servidor; Lighthouse estima 350 a 540 ms de ahorro; llega a los ~0,4 s observados); `fonts.css` es un `preload` con `onload` (no bloquea); `supabase.min.js` es de `cdn.jsdelivr.net`, 55 KB, al final del `<body>` con `defer` (no bloquea, termina a ~0,5 s); (2) las fuentes de la primera pantalla son `inter`, `playfair` normal e itálica y `bodoni` (4 woff2 de `www.stperfumeria.com`, `font-display: swap`), pedidas a los ~0,8 s (después de parsear el CSS) y llegadas a ~0,9 s; la franja usa Inter; (3) **en producción el FCP observado es ~2,5 s en 8 de 10 corridas (952 y 1210 ms en las otras 2, con una foto como LCP) aunque el CSS terminó a los ~0,4 s, el DCL a los ~0,55 s y las fuentes a ~0,9 s; la miniatura de la tira de Lighthouse es un fondo oscuro vacío (1,1 KB) hasta ~2,5 s y entonces aparece la página entera de golpe**; (4) en local (mismo equipo, gzip) el FCP observado va de 249 a 1284 ms (mediana 674) y el elemento LCP es la foto de la 1.ª fila. Hay ~1,5 a 2 s entre el DCL y el primer pintado en producción que la red ni las fuentes explican: falta una traza con los eventos de pintado. Lo decide el PREPARADOR (¿tanda `celu-fcp`?). **Cerrado el 13-oct (tarde):** la traza nueva mostró que el 2,5 s es un efecto del Lighthouse local (los cuadros se pintan a ~1,3 s pero no se muestran hasta que corre el script de Lighthouse; un Chrome de verdad, con y sin ventana, emulando el celu, da 0,9 a 1,2 s; PageSpeed de Google da 79 y los usuarios reales FCP 1,6 s). El LCP sí tenía arreglo: la foto de la 1.ª card venía de `fimgs.net` y al abrir se bajaban 2 MB de 9 servidores → 19 fotos a `img/` (`2aba198`) y la base apunta ahí. Detalle en § «Sesión 13-oct-2026 (tarde)».
+
 **Movidos el 13-oct-2026 (mediodía, después del cierre):** Alejo miró la Selección en el celu y salen los 3 que daba la página (STRONGER WITH YOU INTENSELY, ANGHAM, CARAMEL MACCHIATO): con el cambio de día verificado a las 13:15, `[SELECCION-DIARIA-HUMO]` queda cerrado.
 
 - ✅ ~~**`[SELECCION-DIARIA-HUMO]`**~~ (12-oct, 🟡) — la Selección diaria (v1.1.208, en producción desde el 12-oct 22:00) se probó en local (celu 375 y compu 1280, con stock agotado simulado, foto rota simulada y todas las fotos rotas) y se verificó en producción (`curl` + la página real), pero **nadie la miró todavía en la tablet ni en un celu de verdad**. **El cambio de día ya se verificó** (13-oct, 13:10, en producción, con `seleccionRotada()` de la página real): el 12-oct salían FAKHAR GOLD, LIQUID BRUN y RAMZ; el 13-oct salen STRONGER WITH YOU INTENSELY, ANGHAM y CARAMEL MACCHIATO, con ODYSSEY HOMME y SEDLEY en la cola, y ninguno de los tres de ayer entre los 5; los 5 tienen foto y `sePuedePedir`. **Falta sólo:** que Alejo (o una chica) la mire en un celu o en la tablet y avise. Detalle en `docs/HISTORIA.md` § «Sesión 12-oct-2026 (cierre de la noche)» y § «Sesión 13-oct-2026 (mediodía)». **→ Cerrado el 13-oct: Alejo la vio en el celu («Salen esos 3 sii»).**
@@ -4943,9 +4947,60 @@ Alejo abrió con `/tanda` a las 13:10 del 13-oct (rama `panel-prolijo` = `origin
 - Nada nuevo para `memory/preferencias_alejo.md`.
 
 
+### Sesión 13-oct-2026 (tarde) · **`[CELU-FCP]`** — el primer pintado del celu, medido con trazas, y las fotos de otros sitios a `img/`
+
+Alejo abrió con `/tanda` a las 13:28 (rama `panel-prolijo` = `origin/main` = `e0928e2`, árbol limpio, SW v1.1.222). Eligió `[CELU-FCP]`, que yo propuse: lo del catálogo sigue vivo después de la mudanza del panel (~26-oct) y la temporada fuerte se viene. Se midió producción con trazas, se cambiaron 21 fotos y se cerró con los datos reales de PageSpeed.
+
+#### Qué se hizo
+
+- **Medición (sin código):** Lighthouse celu contra producción, 3 corridas con traza (`_correo_agentes\ST_Perfumeria\herramientas\celu-fcp\`, fuera del repo; scripts `analizar.js`, `layouts.js`, `frames.js`, `visible.js`, `visible-celu.js`; todo en `RELEVAMIENTO.md`). Antes del cambio: puntaje 70-74, FCP simulado 1,7-2,2 s, **LCP simulado 5,6-6,0 s**, FCP observado 0,85-1,7 s (el 2,5 s del 5-oct no apareció).
+- **El LCP era la foto de la 1.ª card, ERBA PURA, servida desde `fimgs.net`** (ya tenía `eager` y `fetchpriority="high"`: el retraso era conectarse a otro servidor y que la pide `app.js` al armar el catálogo). Al abrir se bajaban 22-30 fotos, **1,1-2 MB, de 9 servidores**.
+- **En la base:** `perfume_overrides.foto` + `perfumes_nuevos.foto` tenían 167 fotos en Supabase, 75 propias y **19 de 10 sitios ajenos** (juleriaque 4, fimgs.net 4, mlstatic 3, mitiendanube 2, y una de marabika.lt, rougeb2car, walmartimages, jumpseller, gstatic y farmacialeloir), todas de diseñador: caras, y el catálogo ordena del más caro al más barato, así que salen arriba. El bucket `perfume-fotos` tiene 175 archivos (mediana 12 KB); las pesadas: `LE MALE ELIXIR.webp` 743 KB y `9 PM NIGHT OUT.webp` 292 KB (**son PNG con nombre `.webp`**) y dos de decants de diseñador (451 y 284 KB). Hay dos `.mp4` del slider eliminado (2,9 y 1,3 MB) que nadie pide.
+- **`2aba198` · perf(catalogo):** 19 webp (600 px como máximo, calidad 80, con `sharp`) en `img/`, 356 KB en disco: 15 de sitios ajenos (las dos casamorando comparten una), LE MALE ELIXIR, 9 PM NIGHT OUT y los dos decants (`DECANT BORN IN ROMA INTENSE`, `DECANT LE BEAU EDT`). Antes: 2,9 MB; después: 329 KB. Sin bump de SW (archivos nuevos; nada cacheado cambió). Push de Alejo; deploy READY; `curl`: 19 de 19 con 200 e idénticas byte a byte.
+- **`sql/fotos_propias_celu_fcp.sql`, aplicado** (prueba previa sin escribir: 18 + 1 + 2): 18 filas de `perfume_overrides`, 1 de `perfumes_nuevos` (9 PM NIGHT OUT) y 2 de `decants_custom` (ids 15 y 13). Cada UPDATE pide el link viejo exacto; la vuelta atrás está al final del archivo. No se borró nada de Supabase Storage.
+- **Después:** fotos al abrir 97-149 KB de 3 servidores. **PageSpeed de Google (captura de Alejo): 79 en el celu** (FCP 2,1 s, LCP 5,0 s, TBT 110 ms, CLS 0, SI 3,2 s), Accesibilidad 98, Prácticas 96, SEO 100.
+- **Usuarios reales (CrUX, 28 días, captura de Alejo):** Métricas web principales **«No superada»**, sólo por el **INP: 377 ms** (🟠). LCP 2,4 s, CLS 0,03, FCP 1,6 s, TTFB 0,6 s: bien. Todavía no incluye el cambio de hoy.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arrancar por `[CELU-FCP]` («va, arrancá por CELU-FCP»); la opción A, pasar las fotos ajenas y pesadas a lo propio («va la A, mostrame la lista»); el paso 1 («va, hacé el paso 1»), el push (lo corrió él) y el UPDATE de la base («va, corré el UPDATE»); mirar PageSpeed él mismo (A); cerrar la tanda y dejar `[CELU-INP]` para un chat nuevo (A).
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):** `[CELU-FCP]` antes que el arreglo de Comparar en claro; `img/` del propio sitio en vez de Supabase (mismo servidor que la página: sin conexión nueva; y para subir a Storage hace falta una clave que no tengo); que cada UPDATE pida el link viejo exacto; abrir `[CELU-INP]` con los números del campo.
+- **Hallazgo 1 · el FCP de 2,5 s es un efecto del Lighthouse local, no del sitio.** Después del cambio, el Lighthouse de esta compu volvió a dar FCP observado 2,5 s (6 de 6 corridas, con y sin ventana) y el puntaje bajó a 43-49. La traza: DCL 0,5 s, fotos terminadas a 1,5 s, el hilo principal libre de 1,36 a 2,40 s, hay `Paint` a 1,3 s, pero casi ningún `Commit` del compositor hasta 2,4 s, justo cuando corre el script de Lighthouse (2,41 s). Antes, las fotos ajenas que tardaban mantenían los cuadros andando (cada 100 ms desde 0,7 s). Lantern arma el FCP simulado con lo que se pidió antes del observado (68 de 72), y por eso arrastra el TBT y el puntaje. **En un Chrome de verdad no pasa:** la página misma (`performance.getEntriesByType('paint')`, perfil nuevo, sin caché) da 0,90-1,20 s con y sin ventana, también emulando el celu de Lighthouse; PageSpeed de Google, 79; el campo, 1,6 s. La causa adentro de Lighthouse no se identificó. **Regla:** el puntaje del Lighthouse local no sirve para comparar antes y después en este sitio; usar la página misma o PageSpeed.
+- **Hallazgo 2 · tres fotos muertas:** `la-bomba`, `scandal` y `valentino-donna` apuntan a juleriaque y dan 404 (también con un navegador como cliente): hoy esas cards salen con la inicial. Se dejaron como estaban; se le avisó a Alejo (necesitan una foto nueva desde Editar).
+- **Hallazgo 3:** el primer Layout de la página estática (~750 objetos) cuesta 176-276 ms en esta compu, antes del primer pintado. No se buscó la causa; va a `[CELU-INP]` como dato.
+- **El navegador de la app no dejó entrar a stperfumeria.com** («denied»): la medición con Chrome de verdad se hizo con un Chrome lanzado por CDP (`visible.js`). La API de PageSpeed sin clave devolvió 429 (cupo diario agotado): Alejo la miró en la web.
+- El aviso de AgentKeeper («credential_exfil») sobre `visible.js` fue una falsa alarma: el script sólo abre el sitio público y lee `performance`.
+- `.claude/recomendaciones.md` ya existe (13-oct, 13:26): el pendiente «(recomendaciones)» del cierre del mediodía queda resuelto.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[CELU-FCP]` | Medido: el primer pintado anda bien para los clientes (1,6 s); el 2,5 s era del Lighthouse local. Las 15 fotos ajenas y las 4 pesadas a `img/` (`2aba198` + `sql/fotos_propias_celu_fcp.sql`). |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[CELU-INP]` 🟡 (nuevo) | Medir el INP de cada toque principal con la CPU frenada ×4; el campo da 377 ms (lo único que falla). |
+| `[UPLOADER-WEBP-AUTO]` 🟢 | Suma: que el panel no acepte links de otros sitios y achique al subir. |
+| (fotos muertas) | `la-bomba`, `scandal`, `valentino-donna`: foto nueva desde Editar (Alejo / dueños). |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (13-oct, ~15:00):** `origin/main` = `2aba198` (deploy READY; SW **v1.1.222**, sin bump) · rama `panel-prolijo` = `2aba198` + este cierre, 1 adelante · árbol limpio después del commit · checkout principal en `aa5d62e` (36 atrás) · stash ajeno del 20-sep sin tocar.
+
+#### 💬 Mensajes meta
+
+- Uno nuevo en `memory/preferencias_alejo.md` (#131): cuando le pido que mire algo afuera (PageSpeed), decirle en el mismo mensaje exactamente qué captura me sirve. Y no apliqué el #130 (las preguntas A/B con botones): las hice con tablas y contestó igual, pero corresponde `AskUserQuestion`.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 13-oct-2026 (~13:30, cierre corto del mediodía) — pasó de `CLAUDE.md` al archivo el 13-oct (~15:00, cierre de `[CELU-FCP]`)
+
+**Última actualización:** **Octubre 13, 2026, ~13:30 (cierre corto del mediodía)** — `main` = `origin/main` = `9394e84` (**v1.1.222**) en producción, verificada por `curl` a las 13:10: la v1.1.221 (`[HOJA-SIEMPRE-HOY]`) y **`[FRANJA-STAT]`** (los filtros de Precios & Stock y Depósito en una franja partida en tres, «Vista: ☰ Sólo nombres | 🖼️ Con foto» en vez de la casilla y sin el «Llegó mercadería» chico del encabezado; hecho a la 01:50, después del cierre anterior) ya subieron. Sesión corta: **el cambio de día de la Selección se verificó en producción** (12-oct: FAKHAR GOLD, LIQUID BRUN, RAMZ → 13-oct: STRONGER WITH YOU INTENSELY, ANGHAM, CARAMEL MACCHIATO; ninguno repetido entre los 5); y Alejo la vio en el celu el mismo día: **`[SELECCION-DIARIA-HUMO]` cerrado**. Alejo borró una carpeta `C:/ST_Perfumeria` (sin referencias en el repo ni en la memoria; no estaba en la papelera); `C:` tiene 14,1 GB libres. Detalle en `docs/HISTORIA.md` § «Sesión 13-oct-2026 (mediodía)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + humo con las chicas + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (medir de nuevo desde el 15-oct) · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-FCP]` · `[CELU-LETRA]` · 🟢 `[CUADRADOS-EDITAR]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 13-oct-2026 (~01:35, cierre de `[REEMPLAZO-DE-HOJA]`) — pasó de `CLAUDE.md` al archivo el 13-oct (~13:30, cierre del mediodía)
 
