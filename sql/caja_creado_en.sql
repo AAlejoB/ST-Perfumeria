@@ -2,6 +2,8 @@
 -- [PANEL-SIN-CONEXION] · la hora real de un renglón que se anotó sin internet  ·  13-oct-2026 (decisión A de Alejo)
 -- ============================================================================
 -- Requiere sql/caja_movimientos.sql y sql/caja_deudas.sql. NO cambia datos.
+-- APLICADA el 13-oct-2026 a las 18:10 (migración caja_creado_en, por Claude Code con el OK de Alejo). Probada como la empleada en una
+-- transacción deshecha: sin hora OK · hace 3 h OK · hace 8 días 42501 · 1 h adelante 42501 · 0 filas de prueba quedaron.
 --
 -- Sin internet, la hoja guarda el renglón en la tablet y lo sube cuando vuelve (admin.html, colaSubir). Hasta acá `creado_en`
 -- lo ponía siempre la base (default now()): un renglón anotado a las 15 y subido a las 18 decía «18:00» en la hoja.
