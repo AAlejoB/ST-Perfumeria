@@ -708,6 +708,25 @@
     }
     .admin-table tr:hover td { background: rgba(255,255,255,.03); }
     .td-name { font-weight: 600; max-width: 200px; }
+    /* ══ [STOCK-FOTO] la foto del frasco al lado del nombre en Precios & Stock y Depósito (interruptor «📷 Con foto») ══
+       El cuadro es blanco en los dos temas, como la foto de la card del catálogo: los frascos tienen el fondo blanco.
+       La inicial queda detrás: si la foto falta o falla, onerror saca la <img> y se ve el cuadro con la letra. */
+    .td-name--foto { max-width: 280px; }
+    .td-fila-foto { display: flex; align-items: center; gap: .7rem; }
+    .td-textos { min-width: 0; flex: 1 1 auto; }
+    .td-foto {
+      position: relative; flex: 0 0 auto; width: 52px; height: 64px; border-radius: var(--r-lg);
+      background: #fff; border: 1px solid var(--borde); overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .td-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; background: #fff; }
+    .td-foto-ini { font-size: 1.1rem; font-weight: 700; color: rgba(0,0,0,.22); }
+    .chk-foto {
+      display: flex; align-items: center; gap: .45rem; white-space: nowrap; cursor: pointer; min-height: var(--tap-min);
+      font-size: .8rem; color: var(--gris-claro); background: rgba(128,128,128,.12); border: 1px solid var(--borde);
+      border-radius: var(--r-sm); padding: 0 .9rem;
+    }
+    .chk-foto input { width: 15px; height: 15px; accent-color: var(--amarillo); cursor: pointer; margin: 0; flex-shrink: 0; }
     .td-price { color: var(--amarillo-tinta); font-weight: 600; }
     .td-stock { text-align: center; }
     /* ══ [PRECIOS-EN-UN-LUGAR] decisión 123 · Precios & Stock muestra también los precios de decants (sólo se miran) ══
@@ -1667,6 +1686,16 @@
          siguen en uno. El clamp va en el <span> del nombre: -webkit-line-clamp no anda sobre una celda (display: table-cell).
          La marca y las excepciones (.td-sub) no cambian: la marca sigue en un renglón con «…». */
       #tbodyPrecios .td-nombre { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; white-space: normal; }
+      /* [STOCK-FOTO] en el celu la miniatura es más chica y la celda un poco más ancha que los 110 de siempre; medido a 375
+         y a 360: la tabla de Precios & Stock tiene que seguir entrando en el ancho (Efectivo no se corta). */
+      .td-name--foto { max-width: 136px; }
+      .td-fila-foto { gap: .35rem; }
+      .td-foto { width: 36px; height: 46px; border-radius: var(--r-md); }
+      .td-foto img { padding: 2px; }
+      .td-foto-ini { font-size: .9rem; }
+      /* Con la foto la tabla mide ~340 y entre 360 y 375 el panel deja 302 a 317: en vez de cortar «Efectivo» (el panel recorta
+         con overflow-x: clip, NO ROMPER #19), la tabla se desliza de costado. Sin foto no cambia nada. */
+      .admin-table:has(.td-name--foto) { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       /* Botones de acción en tabla: apilados */
       .admin-table .action-btn {
         display: block;
@@ -2575,6 +2604,11 @@
           <option value="stock-max">Mayor stock primero</option>
           <option value="stock-out">Sin stock primero</option>
         </select>
+        <!-- [STOCK-FOTO] interruptor «Con foto» (la misma preferencia que el de Depósito) -->
+        <label class="chk-foto" title="Muestra la foto del frasco al lado del nombre">
+          <input type="checkbox" id="chkFotoPrecios" checked onchange="toggleStockFoto(this)"/>
+          📷 Con foto
+        </label>
         <!-- [OCULTAR-PAUSADOS] Casilla en la misma fila que "Ordenar por".
              Sin data-role: la ven jefe y empleadas por igual. -->
         <label id="lblVerPausados" title="Los perfumes pausados no se muestran en el catálogo público" style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
@@ -2637,6 +2671,11 @@
           <option value="name-asc">Nombre A-Z</option>
           <option value="reponer">Para reponer primero</option>
         </select>
+        <!-- [STOCK-FOTO] interruptor «Con foto» (la misma preferencia que el de Precios & Stock) -->
+        <label class="chk-foto" title="Muestra la foto del frasco al lado del nombre">
+          <input type="checkbox" id="chkFotoDeposito" checked onchange="toggleStockFoto(this)"/>
+          📷 Con foto
+        </label>
         <label style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
           <input type="checkbox" id="chkSoloConDeposito" onchange="renderDeposito()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
           Sólo los que tienen unidades
@@ -5415,6 +5454,7 @@
     }
 
     function renderDeposito() {
+      restoreStockFoto();   // [STOCK-FOTO]
       var tbody = document.getElementById('tbodyDeposito');
       if (!tbody) return;
       var soloCon = !!(document.getElementById('chkSoloConDeposito') || {}).checked;
@@ -5465,7 +5505,7 @@
           ? ' <span style="color:#e67e22;font-size:.62rem;white-space:nowrap;">← traer al local</span>' : '';
         var sinLect = '<td class="td-stock"><span class="stock-sin-lectura" title="El stock no se leyó">—</span></td>';   // 128n
         html += '<tr data-search="' + searchStr + '" data-slug="' + escHtml(String(p.slug)) + '">' +   // [ESCANER] data-slug: la fila escaneada se marca
-            '<td class="td-name">' + escapeHtml(p.name) + alerta + '</td>' +
+            stockCeldaNombre(escapeHtml(p.name) + alerta, p.foto, p.name) +   // [STOCK-FOTO]
             // [DEPOSITO-LOCAL-CLICK] La badge de Local abre el MISMO modal de Precios & Stock.
             (stockCargado
               ? '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock local" ' +
@@ -5639,6 +5679,57 @@
     }
 
     // ============================================================
+    // [STOCK-FOTO] 12-oct-2026 · pedido de Alejo: Precios & Stock y Depósito con la foto del frasco al lado del nombre
+    // (para atender: «ese no lo tengo, pero este es el frasco»). Interruptor «📷 Con foto» en las dos pestañas: una sola
+    // preferencia por dispositivo, PRENDIDA por defecto (decisión de Alejo); sólo '0' en el navegador la apaga. Sin foto,
+    // el HTML de las filas es el de siempre. La foto ya está en memoria (p.foto): no hay ningún pedido nuevo a la base, y
+    // loading="lazy" hace que sólo se bajen las que se ven.
+    // ============================================================
+    var STOCK_FOTO_KEY = 'st_admin_stock_foto';
+    var STOCK_FOTO = true;
+    var _stockFotoRestaurado = false;
+
+    function restoreStockFoto() {
+      if (_stockFotoRestaurado) return;
+      _stockFotoRestaurado = true;
+      var v = null;
+      try { v = localStorage.getItem(STOCK_FOTO_KEY); } catch (e) {}
+      STOCK_FOTO = (v !== '0');
+      stockFotoSync();
+    }
+
+    function stockFotoSync() {
+      ['chkFotoPrecios', 'chkFotoDeposito'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.checked = STOCK_FOTO;
+      });
+    }
+
+    function toggleStockFoto(chk) {
+      STOCK_FOTO = !!chk.checked;
+      try { localStorage.setItem(STOCK_FOTO_KEY, STOCK_FOTO ? '1' : '0'); } catch (e) {}
+      stockFotoSync();
+      renderPrecios();
+      renderDeposito();
+    }
+
+    // La miniatura: un cuadro blanco (como la card del catálogo) con la inicial detrás; si la foto no existe o falla, la
+    // imagen se saca sola y queda la inicial. `src` vacío = sólo la inicial.
+    function stockFotoHTML(src, nombre) {
+      var ini = String(nombre || '').trim().charAt(0).toUpperCase() || '?';
+      return '<span class="td-foto"><span class="td-foto-ini" aria-hidden="true">' + escHtml(ini) + '</span>'
+        + (src ? '<img src="' + escHtml(String(src).replace(/ /g, '%20')) + '" alt="" width="52" height="64" loading="lazy" decoding="async" onerror="this.remove()">' : '')
+        + '</span>';
+    }
+
+    // La celda del nombre de las dos tablas: con foto, la miniatura a la izquierda y los textos (nombre, marca, avisos) a la derecha.
+    function stockCeldaNombre(textos, src, nombre) {
+      if (!STOCK_FOTO) return '<td class="td-name">' + textos + '</td>';
+      return '<td class="td-name td-name--foto"><div class="td-fila-foto">' + stockFotoHTML(src, nombre)
+        + '<div class="td-textos">' + textos + '</div></div></td>';
+    }
+
+    // ============================================================
     // [VALOR-INV-DEPOSITO] 26-sep-2026 · pedido de Alejo. El valor de la mercadería, en la tarjeta 💰 que sólo
     // ve el jefe (data-role="jefe", [OCULTAR-VALOR-INV]): local (_stockQty) + depósito (_stockDeposito), a
     // precio de lista (la promo si la hay: la misma cuenta que tenía la tarjeta para el local). Los sets no
@@ -5803,6 +5894,7 @@
       // Restaurar la preferencia una sola vez, sin importar qué call site
       // dispare el primer render.
       if (!_verPausadosRestaurado) { restoreVerPausados(); _verPausadosRestaurado = true; }
+      restoreStockFoto();   // [STOCK-FOTO]
       var tbody = document.getElementById('tbodyPrecios');
       if (!tbody) return;
       var sortKey = document.getElementById('sortPrecios').value;
@@ -5886,13 +5978,13 @@
         // 123j · con decant de diseñador va sólo la línea 💎 (el armador usa ese: su dedup esconde el del catálogo).
         if (fijo > 0 && !dec) exc.push('💧 ' + promoPesos(fijo) + ' fijo');   // ronda g: sin «decant», el 💧 ya lo dice
         if (oferta && PRECIOS_DATOS.customs && promoEnLista(p, customs) && promoConEscalera(p) && !promoEntraPanel(p, oferta, customs)) exc.push('sin promo ' + oferta.n + '×');
-        return '<tr data-search="' + escHtml(searchStr) + '" data-slug="' + escHtml(String(p.slug)) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'   // [ESCANER] data-slug: la fila escaneada se marca
-          + '<td class="td-name"><span class="td-nombre">' + escHtml(p.name || '') + '</span>'
+        var textos = '<span class="td-nombre">' + escHtml(p.name || '') + '</span>'
           +   (p.marca_real ? '<span class="td-sub">' + escHtml(p.marca_real) + '</span>' : '')
           +   (dec ? '<span class="td-sub td-excepcion">💎 ' + escHtml(String(mlDecant)) + ' ml '   // 123k: sin «decant» (el 💎 ya lo dice)
                 + (promoNum(dec.precio_unit) > 0 ? '<span class="td-decant-precio">' + escHtml(promoPesos(promoNum(dec.precio_unit))) + '</span>' : 'sin precio') + '</span>' : '')   // 123l
-          +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('')
-          + '</td>'
+          +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('');
+        return '<tr data-search="' + escHtml(searchStr) + '" data-slug="' + escHtml(String(p.slug)) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'   // [ESCANER] data-slug: la fila escaneada se marca
+          + stockCeldaNombre(textos, p.foto, p.name)   // [STOCK-FOTO]
           // 128n [PANEL-STOCK-CALLA] sin la lectura del stock, «—» gris y sin toque; sin la de los overrides (de ahí salen los precios
           // que cambió el jefe), el precio y el efectivo también: no se muestra el de perfumes.js como si fuera el vigente.
           + (stockCargado
@@ -5909,8 +6001,8 @@
         var precio = promoNum(c.precio_unit);
         var searchStr = ((c.nombre || '') + ' ' + (c.marca || '') + ' decant diseñador').toLowerCase();
         return '<tr class="fila-decant" data-search="' + escHtml(searchStr) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'
-          + '<td class="td-name"><span class="td-nombre">💎 ' + escHtml(c.nombre || '') + '</span>'
-          +   '<span class="td-sub">' + escHtml((c.marca ? c.marca + ' · ' : '') + mlDecant + ' ml') + '</span></td>'   // 123g: el 💎 y el DECANT ya dicen «decant de diseñador»
+          + stockCeldaNombre('<span class="td-nombre">💎 ' + escHtml(c.nombre || '') + '</span>'
+              + '<span class="td-sub">' + escHtml((c.marca ? c.marca + ' · ' : '') + mlDecant + ' ml') + '</span>', c.foto_url, c.nombre)   // 123g: el 💎 y el DECANT ya dicen «decant de diseñador» · [STOCK-FOTO] la foto del decant, si tiene
           + '<td class="td-stock"><span class="badge-stock badge-decant">Decant</span></td>'
           + '<td class="td-price">' + (precio > 0 ? escHtml(promoPesos(precio)) + ' c/u' : '<span class="td-consultar">sin precio</span>') + '</td>'
           + '<td class="td-price td-sin" title="El armador cobra el precio por unidad, sin el 10 %">—</td>'
