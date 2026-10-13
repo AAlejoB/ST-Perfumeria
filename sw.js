@@ -175,7 +175,9 @@ self.addEventListener('fetch', function(event) {
       /\.(css|js|woff2?|ttf)$/i.test(url.pathname)) {
     event.respondWith(
       fetch(req).then(function(resp) {
-        if (resp && resp.status === 200 && resp.type === 'basic') {
+        // [PANEL-SIN-CONEXION] además de lo propio, la librería de Supabase del CDN (admin.html la pide con crossorigin: llega 'cors',
+        // no 'opaque'): sin ella el panel no abre sin internet.
+        if (resp && resp.status === 200 && (resp.type === 'basic' || (resp.type === 'cors' && url.hostname === 'cdn.jsdelivr.net'))) {
           var copy = resp.clone();
           caches.open(CACHE_STATIC).then(function(cache) { cache.put(req, copy); });
         }

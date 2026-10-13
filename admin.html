@@ -4608,7 +4608,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>   <!-- [PANEL-SIN-CONEXION] crossorigin: el SW la guarda y el panel abre sin internet -->
   <script src="perfumes.js"></script>
   <script>
     // ============================================================
@@ -4804,6 +4804,64 @@
     // Lo que el cartel cuenta y lista: los renglones del Log que quedaron en la cola (tipo 'log') suben callados, no son «cosas» de las chicas.
     function colaVisibles(lista) { return (lista || colaLeer()).filter(function(x) { return x.tipo !== 'log'; }); }
 
+    // [PANEL-SIN-CONEXION] paso 3 · la COPIA de lo que el panel lee al entrar (stock y datos de los perfumes, los nuevos, los sets y los
+    // precios de los decants de la hoja), para abrir sin internet. Se guarda cada vez que una lectura anda (localStorage, st_copia_*) y se
+    // usa SÓLO si la lectura falla por falta de red. Con la copia, Editar no guarda (overridesCargado = false, NO ROMPER #20): el stock sí
+    // (va como movimiento). El cartel dice de cuándo es. Al volver internet, primero sube la cola y después se relee todo de la base.
+    var COPIA_PREFIJO = 'st_copia_';
+    var PANEL_COPIA = { usada: false, desde: null, recargando: false };
+    function copiaGuardar(clave, filas) {
+      try { localStorage.setItem(COPIA_PREFIJO + clave, JSON.stringify({ en: new Date().toISOString(), filas: filas })); } catch (e) { console.warn('[copia] no se pudo guardar', clave, e); }
+    }
+    function copiaLeer(clave) {
+      try { var o = JSON.parse(localStorage.getItem(COPIA_PREFIJO + clave) || 'null'); return (o && Array.isArray(o.filas)) ? o : null; } catch (e) { return null; }
+    }
+    function copiaUsada(c) {
+      PANEL_COPIA.usada = true;
+      if (!PANEL_COPIA.desde || c.en < PANEL_COPIA.desde) PANEL_COPIA.desde = c.en;
+      colaSinRed();
+    }
+    // El stock de la copia se pone al día con lo que muestra el panel (incluidos los movimientos que esperan en la cola): si la tablet se
+    // reinicia sin internet, abre con lo último que se vio. Se llama al cortarse la red, al esconder la página y al mover stock.
+    function copiaStockAlDia() {
+      var c = copiaLeer('overrides'); if (!c) return;
+      var porSlug = {}; c.filas.forEach(function(f) { porSlug[f.slug] = f; });
+      PERFUMES.forEach(function(p) {
+        if (p.esSet && p._fromDB) return;
+        var f = porSlug[p.slug];
+        if (!f) { if (typeof p._stockQty !== 'number' && typeof p._stockDeposito !== 'number') return; f = { slug: p.slug }; c.filas.push(f); }
+        if (typeof p._stockQty === 'number') f.stock_qty = p._stockQty;
+        if (p._stockStatus) f.stock_status = p._stockStatus;
+        if (typeof p._stockDeposito === 'number') f.stock_deposito = p._stockDeposito;
+      });
+      try { localStorage.setItem(COPIA_PREFIJO + 'overrides', JSON.stringify(c)); } catch (e) {}
+    }
+    // Volvió internet y el panel estaba con la copia: se relee todo de la base (después de subir la cola, así trae lo nuestro).
+    async function copiaRecargar() {
+      if (!PANEL_COPIA.usada || PANEL_COPIA.recargando || COLA.sinRedDesde) return;
+      PANEL_COPIA.recargando = true;
+      try {
+        await mergeNuevosIntoPerfumes();
+        await loadStockFromDB();
+        await loadOverridesIntoPerfumes();
+        await loadCombosFromDB();
+        if (overridesCargado) { PANEL_COPIA.usada = false; PANEL_COPIA.desde = null; }
+        try { renderPrecios(); renderDeposito(); } catch (e) {}
+        try { cargarDatosPrecios(); hojaDecantsCargar(); } catch (e) {}
+      } finally { PANEL_COPIA.recargando = false; colaPintar(); }
+    }
+    // Abrir sin internet: si Supabase no puede renovar la sesión (está vencida y no hay red), se entra con la que ya está guardada en esta
+    // tablet (la misma que usaría con red; no se inventa nada). Los datos siguen protegidos por la base: sin red no se lee ni se escribe nada,
+    // y al volver, si la sesión ya no vale, el cartel pide volver a entrar.
+    function sesionGuardadaSinRed(err) {
+      if (!(navigator.onLine === false || (err && colaEsDeRed(err)))) return null;
+      try {
+        var o = JSON.parse(localStorage.getItem('st-admin-auth') || 'null');
+        var u = o && (o.user || (o.currentSession && o.currentSession.user));
+        return (u && u.email) ? u.email : null;
+      } catch (e) { return null; }
+    }
+
     function colaLeer() {
       if (COLA.memoria) return COLA.memoria.slice();
       try { var a = JSON.parse(localStorage.getItem(COLA_CLAVE) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
@@ -4867,7 +4925,13 @@
     async function colaSubir() {
       if (COLA.subiendo || !currentRole) return;
       var lista = colaLeer();
-      if (!lista.length) { if (COLA.sinRedDesde) await colaProbarRed(); colaPintar(); colaProgramar(); return; }
+      if (!lista.length) { if (COLA.sinRedDesde) await colaProbarRed(); if (PANEL_COPIA.usada && !COLA.sinRedDesde) copiaRecargar(); colaPintar(); colaProgramar(); return; }
+      // Sin sesión válida no se sube nada (iría como anónimo y la base lo rechazaría): sin red, se espera; con red, se pide volver a entrar.
+      var ses; try { ses = await sb.auth.getSession(); } catch (e) { ses = { error: e }; }
+      if (!ses || !ses.data || !ses.data.session) {
+        if (navigator.onLine === false || (ses && ses.error && colaEsDeRed(ses.error))) colaSinRed(); else COLA.sesion = true;
+        colaPintar(); colaProgramar(); return;
+      }
       COLA.subiendo = true; COLA.sesion = false; colaPintar();
       var subidos = { caja: 0, espera: 0 }, refrescoSesion = false;
       try {
@@ -4904,6 +4968,7 @@
       colaProgramar();
       if (subidos.caja) { try { if (HOJA.dia) await hojaCargar(); hojaInicioPintar(); } catch (e) {} }
       if (subidos.espera) { try { loadListaEspera(); } catch (e) {} }
+      if (PANEL_COPIA.usada && !COLA.sinRedDesde && !colaLeer().some(function(x) { return !x.trabado; })) copiaRecargar();
     }
     // Sin nada guardado, igual se mira si volvió internet (para sacar el cartel): un pedido chiquito.
     async function colaProbarRed() {
@@ -4919,8 +4984,9 @@
       if (!COLA.escuchando) {
         COLA.escuchando = true;
         window.addEventListener('online', function() { colaSubir(); });
-        window.addEventListener('offline', function() { colaSinRed(); colaPintar(); colaProgramar(); });
-        document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') colaSubir(); });
+        window.addEventListener('offline', function() { colaSinRed(); colaPintar(); colaProgramar(); copiaStockAlDia(); });
+        document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') colaSubir(); else copiaStockAlDia(); });
+        window.addEventListener('pagehide', copiaStockAlDia);
         setInterval(colaPintar, 60000);   // el cartel grande sale aunque nadie toque nada
       }
       if (navigator.onLine === false) colaSinRed();
@@ -4950,7 +5016,7 @@
       var el = document.getElementById('colaAviso'); if (!el) return;
       var lista = colaVisibles(), trabados = lista.filter(function(x) { return x.trabado; }), n = lista.length - trabados.length;
       var min = COLA.sinRedDesde ? Math.floor((Date.now() - COLA.sinRedDesde) / 60000) : 0;
-      if (!currentRole || (!lista.length && !COLA.sinRedDesde && !COLA.avisos.length)) { el.hidden = true; el.innerHTML = ''; return; }
+      if (!currentRole || (!lista.length && !COLA.sinRedDesde && !COLA.avisos.length && !PANEL_COPIA.usada)) { el.hidden = true; el.innerHTML = ''; return; }
       var grande = !!COLA.sinRedDesde && min >= SIN_RED_CARTEL_MIN;
       var cosas = function(k) { return k === 1 ? '1 cosa' : k + ' cosas'; };
       var titulo, sub = '';
@@ -4959,7 +5025,9 @@
         titulo = grande ? 'Modo sin conexión · hace ' + (min >= 120 ? Math.floor(min / 60) + ' h' : min + ' min') + ' que no hay internet' : 'Sin internet';
         sub = n ? cosas(n) + ' ' + (n === 1 ? 'quedó guardada en esta tablet: se sube sola' : 'quedaron guardadas en esta tablet: se suben solas') + ' cuando vuelva.' : 'Lo que anotes (la hoja, la lista de espera y el stock) queda guardado en esta tablet y se sube solo cuando vuelva.';
         if (grande) sub += ' Seguí anotando normal. No cierres la sesión ni borres los datos del navegador.';
+        if (PANEL_COPIA.usada) sub += ' Los números son la copia guardada en esta tablet (' + colaCuando(PANEL_COPIA.desde) + '): pueden no estar al día.';
       } else if (COLA.sesion) { titulo = 'Hay ' + cosas(n) + (n === 1 ? ' guardada' : ' guardadas') + ' en esta tablet'; sub = 'Se venció la sesión: volvé a entrar y ' + (n === 1 ? 'se sube sola.' : 'se suben solas.'); }
+      else if (PANEL_COPIA.usada && !n) { titulo = 'Volvió internet'; sub = 'Poniendo al día los números…'; }
       else if (n) { titulo = 'Hay ' + cosas(n) + (n === 1 ? ' guardada' : ' guardadas') + ' en esta tablet'; sub = n === 1 ? 'Se sube sola en un momento.' : 'Se suben solas en un momento.'; }
       else titulo = '';
       var h = '';
@@ -5156,9 +5224,11 @@
     document.addEventListener('DOMContentLoaded', async function() {
       if (renderLockoutCountdown()) startLockoutTimer();
       try {
-        var { data } = await sb.auth.getSession();
-        if (data && data.session && data.session.user) {
-          var email = data.session.user.email;
+        var { data, error } = await sb.auth.getSession();
+        var emailSinRed = (data && data.session && data.session.user) ? null : sesionGuardadaSinRed(error);   // [PANEL-SIN-CONEXION]
+        if (emailSinRed) { colaSinRed(); console.warn('[session-restore] sin internet: se entra con la sesión guardada en esta tablet'); }
+        if ((data && data.session && data.session.user) || emailSinRed) {
+          var email = emailSinRed || data.session.user.email;
           var role = (email === JEFE_EMAIL) ? 'jefe'
                    : (email === EMPLEADO_EMAIL ? 'empleado' : null);
           if (role) {
@@ -5706,11 +5776,22 @@
       try {
         var { data, error } = await sb.from('perfume_overrides').select('*');
         // [GUARDAR-SIN-LEER] sin los overrides, Editar mostraba lo de perfumes.js y «Guardar» lo escribía encima de lo guardado
-        if (error) { sinLeer('overrides', error, 'cargar los datos de los perfumes'); overridesCargado = false; return; }
+        if (error) {
+          sinLeer('overrides', error, 'cargar los datos de los perfumes'); overridesCargado = false;
+          // [PANEL-SIN-CONEXION] sin red: la copia de esta tablet. El stock se puede mover (va como movimiento); Editar sigue frenado (#20).
+          var cp = colaEsDeRed(error) ? copiaLeer('overrides') : null;
+          if (cp) { copiaUsada(cp); stockCargado = true; leido('stock'); overridesAplicar(cp.filas); }
+          return;
+        }
         stockCargado = true;   // [CARGA-FALLIDA-CERO] también trae stock_qty, stock_status y stock_deposito
         overridesCargado = true;
         leido('stock');
         leido('overrides');
+        copiaGuardar('overrides', data || []);
+        overridesAplicar(data);
+      } catch(e) { sinLeer('overrides', e, 'cargar los datos de los perfumes'); overridesCargado = false; }   // también si se cortó a mitad de camino
+    }
+    function overridesAplicar(data) {
         if (!data || data.length === 0) return;
         data.forEach(function(o) {
           var p = PERFUMES.find(function(pf) { return pf.slug === o.slug; });
@@ -5750,7 +5831,6 @@
           if (o.precio_decant !== undefined && o.precio_decant !== null) p._precioDecant = o.precio_decant;
           if (o.decant_excluido !== undefined && o.decant_excluido !== null) p._decantExcluido = !!o.decant_excluido;
         });
-      } catch(e) { sinLeer('overrides', e, 'cargar los datos de los perfumes'); overridesCargado = false; }   // también si se cortó a mitad de camino
     }
 
     function getStockStatus(slug) {
@@ -8113,6 +8193,7 @@
       colaAgregar({ tipo: 'stock', args: args, slug: p.slug,
         desc: p.name + ' · ' + (lugar === 'deposito' ? 'depósito ' : 'local ') + (delta ? signo : '') + (args.p_pausado === true ? ' (pausado)' : (args.p_pausado === false ? ' (despausado)' : '')) + (args.p_pasan ? ' (pasan al local)' : '') });
       stockPintar(p);
+      copiaStockAlDia();
       // prevStatus = newStatus: el aviso a la lista de espera sale cuando sube (stockSubido), no ahora (sin red no se puede leer la lista)
       return { ok: true, tablet: true, texto: '📴 Sin internet: quedó guardado en esta tablet y se sube solo · ' + String(txt || '').replace(/^✓ /, ''), prevStatus: p._stockStatus, newStatus: p._stockStatus, cambioLocal: false };
     }
@@ -8667,8 +8748,19 @@
       try {
         var { data, error } = await sb.from('perfumes_nuevos').select('*');
         // [GUARDAR-SIN-LEER] sólo se anota, para Editar combo; que la tabla no lo diga es [PANEL-STOCK-CALLA]
-        if (error) { sinLeer('nuevos', error, 'cargar los perfumes nuevos'); return; }
+        if (error) {
+          sinLeer('nuevos', error, 'cargar los perfumes nuevos');
+          var cp = colaEsDeRed(error) ? copiaLeer('nuevos') : null;   // [PANEL-SIN-CONEXION]
+          if (cp) { copiaUsada(cp); nuevosAplicar(cp.filas); }
+          return;
+        }
         leido('nuevos');
+        copiaGuardar('nuevos', data || []);
+        nuevosAplicar(data);
+      } catch(e) {}
+    }
+    function nuevosAplicar(data) {
+      try {
         if (!data || data.length === 0) return;
         data.forEach(function(p) {
           // No duplicar si ya existe en el array estático
@@ -11483,6 +11575,8 @@
     async function loadCombosFromDB() {
       try {
         var { data, error } = await sb.from('combos').select('*');
+        if (error && colaEsDeRed(error) && copiaLeer('combos')) { var cp = copiaLeer('combos'); copiaUsada(cp); data = cp.filas; error = null; }   // [PANEL-SIN-CONEXION]
+        else if (!error) copiaGuardar('combos', data || []);
         if (error) throw error;   // [CARGA-FALLIDA-CERO] antes se ignoraba y quedaban los combos de perfumes.js
         if (data && data.length > 0) {
           // Remove old DB combos in-place (no reasignar const)
@@ -14374,9 +14468,15 @@
     function hojaIrHoy() { HOJA.dia = resumenHoyART(); HOJA.cierreVista = null; hojaEl('hojaDia').value = HOJA.dia; hojaCargar(); }
     async function hojaDecantsCargar() {   // los precios de los decants: la escalera de los árabes y la lista de los de diseñador
       var r1; try { r1 = await sb.from('decants_config').select('precio_1, precio_3, precio_5').eq('id', 1); } catch (e) { r1 = { error: e }; }
+      var r2; try { r2 = await sb.from('decants_custom').select('id, nombre, marca, precio_unit, orden').eq('activo', true).order('orden', { ascending: true }); } catch (e) { r2 = { error: e }; }
+      // [PANEL-SIN-CONEXION] con las dos lecturas bien, se guarda la copia; sin red, se usa la copia
+      if (!r1.error && !r2.error) copiaGuardar('hoja_decants', [{ cfg: (r1.data && r1.data[0]) || null, disenos: r2.data || [] }]);
+      else if ((r1.error && colaEsDeRed(r1.error)) || (r2.error && colaEsDeRed(r2.error))) {
+        var cp = copiaLeer('hoja_decants');
+        if (cp && cp.filas[0]) { copiaUsada(cp); if (r1.error) r1 = { data: [cp.filas[0].cfg] }; if (r2.error) r2 = { data: cp.filas[0].disenos }; }
+      }
       var c = (!r1.error && r1.data && r1.data[0]) ? r1.data[0] : null;
       HOJA.cfgDec = c && Number(c.precio_1) > 0 ? { p1: Number(c.precio_1), p3: Number(c.precio_3) || 0, p5: Number(c.precio_5) || 0 } : null;
-      var r2; try { r2 = await sb.from('decants_custom').select('id, nombre, marca, precio_unit, orden').eq('activo', true).order('orden', { ascending: true }); } catch (e) { r2 = { error: e }; }
       HOJA.disenos = r2.error ? null : (r2.data || []);
       if (['decant', 'disenador', 'cuantos', 'que', 'pago', 'manual'].indexOf(HOJA.paso) !== -1) hojaVentaPintar();
     }
