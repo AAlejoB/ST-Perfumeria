@@ -1261,6 +1261,24 @@
     .hoja-fila.anulada { opacity: .55; }
     .hoja-fila.anulada .hoja-fila-texto b { text-decoration: line-through; }
     .hoja-vacio { text-align: center; color: var(--gris); font-size: .8rem; padding: 1.5rem 0; }
+    .hoja-hint { font-size: .72rem; color: var(--gris-claro); margin: .2rem 0 .8rem; }
+    .inicio-hoja small.pide { color: var(--tinta-aviso); font-weight: 700; }
+    .hoja-cierre { margin-bottom: 1rem; }
+    .hoja-cierre-caja { background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; padding: .9rem 1rem; }
+    .hoja-cierre-caja--pide { border-color: var(--amarillo-tinta); }
+    .hoja-cierre-titulo { font-size: .9rem; font-weight: 800; margin: 0 0 .3rem; }
+    .hoja-cierre-sub { font-size: .78rem; color: var(--gris-claro); margin: 0 0 .7rem; }
+    .hoja-cierre-lista { display: flex; flex-direction: column; margin: .4rem 0 .8rem; }
+    .hoja-cierre-fila { display: flex; gap: .6rem; justify-content: space-between; align-items: baseline; padding: .45rem 0; border-top: 1px solid var(--borde); font-size: .82rem; }
+    .hoja-cierre-fila b { font-weight: 700; }
+    .hoja-cierre-fila small { display: block; font-size: .68rem; color: var(--gris-claro); font-weight: 400; }
+    .hoja-cierre-res { text-align: right; flex-shrink: 0; font-weight: 700; }
+    .hoja-cierre-res.ok { color: var(--tinta-ok); }
+    .hoja-cierre-res.aviso { color: var(--tinta-aviso); }
+    .hoja-cierre-acc { display: flex; gap: .6rem; flex-wrap: wrap; }
+    .hoja-cierre-acc button { min-height: var(--tap-min); font-family: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; border-radius: 6px; padding: 0 1.1rem; border: 1px solid var(--amarillo-tinta); background: transparent; color: var(--amarillo-tinta); }
+    .hoja-cierre-acc button.primario { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    .hoja-cierre-acc button:disabled { opacity: .5; cursor: not-allowed; }
     @media (max-width: 600px) { .hoja-totales { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .panel-merc {
       display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem;
@@ -2596,7 +2614,7 @@
       <!-- [LLEGO-MERCADERIA] paso 3 · botón fijo, para las dos cuentas -->
       <button type="button" class="inicio-merc" onclick="mercAbrir()"><span class="inicio-merc-ico" aria-hidden="true">&#128230;</span><span><b>Llegó mercadería</b><small>Cargá el pedido: escaneás y se suma</small></span></button>
       <!-- [REEMPLAZO-DE-HOJA] el segundo botón fijo: la hoja de caja; mismo .click() sobre el menú que los 4 de abajo (#21) -->
-      <button type="button" class="inicio-merc inicio-hoja" onclick="irDesdeInicio('hoja')"><span class="inicio-merc-ico" aria-hidden="true">&#129534;</span><span><b>Reemplazo de hoja</b><small>Anotá lo que se vendió hoy: efectivo, MP y Posnet</small></span></button>
+      <button type="button" class="inicio-merc inicio-hoja" onclick="irDesdeInicio('hoja')"><span class="inicio-merc-ico" aria-hidden="true">&#129534;</span><span><b>Reemplazo de hoja</b><small id="inicioHoja">Anotá lo que se vendió hoy: efectivo, MP y Posnet</small></span></button>
       <div class="inicio-grid">
         <button type="button" class="inicio-btn" onclick="irDesdeInicio('precios')"><span class="inicio-ico" aria-hidden="true">&#128176;</span><span class="inicio-nombre">Precios &amp; Stock</span><span class="inicio-sub"></span></button>
         <button type="button" class="inicio-btn" onclick="irDesdeInicio('deposito')"><span class="inicio-ico" aria-hidden="true">&#128230;</span><span class="inicio-nombre">Depósito</span><span class="inicio-sub"></span></button>
@@ -3668,6 +3686,7 @@
           </div>
           <div class="hoja-resultados" id="hojaResultados" hidden></div>
           <div class="hoja-items" id="hojaItems"></div>
+          <p class="hoja-hint">Los frascos bajan del stock al <b>cerrar el día</b> (más abajo), no al guardar el renglón.</p>
         </div>
         <label class="modal-label" for="hojaDetalle" id="hojaDetalleLabel">Detalle (decants, sets o lo que no es un frasco)</label>
         <input type="text" id="hojaDetalle" class="modal-input" maxlength="120" placeholder="Ej: 2 decants" autocomplete="off"/>
@@ -3681,6 +3700,7 @@
         <p class="espera-form-msg" id="hojaMsg" role="status"></p>
       </div>
       <div class="hoja-totales" id="hojaTotales"></div>
+      <div class="hoja-cierre" id="hojaCierre"></div>   <!-- [REEMPLAZO-DE-HOJA] sesión 2 · «Cierre del día»: acá se ve lo que falta bajar, la lista previa y el resultado -->
       <div class="hoja-lista" id="hojaLista"></div>
     </div>
 
@@ -4560,6 +4580,7 @@
       loadSidebarPrefs();
       applyRolePermissions();
       switchTab('inicio', null);   // [PANEL-INICIO] 133a · el panel arranca en Inicio cada vez que se abre (entrar o recargar)
+      hojaInicioPintar();          // [REEMPLAZO-DE-HOJA] «hay días sin cerrar» en el botón del Inicio
       startInactivityWatcher();
       // Normalizar precios string → número al arrancar
       PERFUMES.forEach(function(p) {
@@ -4881,6 +4902,7 @@
     function irAInicio() {
       switchTab('inicio', null);
       loadListaEspera();   // [INICIO-ESPERA-VIEJO] el número de Espera no cambiaba hasta entrar a Espera: se vuelve a leer al volver
+      hojaInicioPintar();  // [REEMPLAZO-DE-HOJA] lo mismo para «Reemplazo de hoja»: se vuelve a leer lo que falta cerrar
       document.body.classList.remove('sidebar-open');
       window.scrollTo(0, 0);
     }
@@ -13373,6 +13395,7 @@
       // [REEMPLAZO-DE-HOJA] la hoja de caja (familia Catálogo: lo ve el jefe; la empleada, sólo stock y depósito)
       'hoja_alta':            { icon: '🧾', label: 'Hoja · renglón' },
       'hoja_tachar':          { icon: '🧾', label: 'Hoja · tachado' },
+      'hoja_cierre':          { icon: '🧾', label: 'Hoja · cierre del día' },
       'hoja_borrar':          { icon: '🗑️', label: 'Hoja · borrado' }
     };
 
@@ -13625,11 +13648,21 @@
       }
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
+      // [REEMPLAZO-DE-HOJA] «Mejor renglón: detalle · montos» / «Cierre: Eclaire −1, Azzaro (no bajó)…»
+      if (e.action === 'hoja_alta' || e.action === 'hoja_tachar') {
+        var mm = [['Efec.', c.efectivo], ['MP', c.mp], ['Posnet', c.posnet]].filter(function(x) { return Number(x[1]) > 0; }).map(function(x) { return x[0] + ' ' + hojaPesos(x[1]); }).join(' · ');
+        return escHtml(String(c.detalle || '') + (mm ? ' · ' + mm : ''));
+      }
+      if (e.action === 'hoja_cierre') {
+        var pl = Array.isArray(c.perfumes) ? c.perfumes : [];
+        var tx = pl.map(function(x) { return String(x.nombre || x.slug) + (x.bajar > 0 ? ' −' + x.bajar : ' (no bajó)'); }).join(', ');
+        return escHtml('Día ' + c.dia + (tx ? ': ' + (tx.length > 160 ? tx.slice(0, 157) + '…' : tx) : ''));
+      }
       function esPar(v) { return v && typeof v === 'object' && 'old' in v && 'new' in v; }
       function par(campo, v) { return '<span class="log-old">' + escHtml(auditValueLabel(campo, v.old)) + '</span> → <span class="log-new">' + escHtml(auditValueLabel(campo, v.new)) + '</span>'; }
       var campo = e.action === 'deposito_update' ? 'stock_deposito' : (e.action === 'stock_update' ? 'stock_qty' : null);
       var v = campo && c[campo];
-      if (esPar(v)) return par(campo, v);
+      if (esPar(v)) return par(campo, v) + (c.origen === 'hoja_cierre' ? ' · cierre de la hoja' : (c.origen === 'hoja_tachar' ? ' · se tachó un renglón' : ''));
       // [LOG-PRECIO-PESOS] price_update: la acción ya dice "💰 Precio", así que no se repite la
       // etiqueta. La promo aparece sólo si cambió (sin esto salía "Promo: vacío → vacío").
       if (e.action === 'price_update' && esPar(c.price)) {
@@ -13753,7 +13786,7 @@
     // ⚠️ Acá el stock NO se toca: lo baja el «Cierre del día» (sesión 2). Los decants y los sets van como TEXTO en el detalle.
     // El día sale de resumenHoyART() (NO ROMPER #6). El `id` lo genera la tablet: un reintento no duplica (23505 = ya estaba).
     // ============================================================
-    var HOJA = { dia: null, modo: 'venta', items: [], filas: null, ocupado: false, idPendiente: null };
+    var HOJA = { dia: null, modo: 'venta', items: [], filas: null, ocupado: false, idPendiente: null, cierreVista: null };
     function hojaEl(id) { return document.getElementById(id); }
     function hojaMsg(texto, tipo) {
       var m = hojaEl('hojaMsg');
@@ -13776,9 +13809,6 @@
       }
       return s;
     }
-    async function hojaEmail() {
-      try { var s = await sb.auth.getSession(); return (s && s.data && s.data.session && s.data.session.user) ? s.data.session.user.email : null; } catch (e) { return null; }
-    }
     function hojaPesos(n) { return '$' + Number(n).toLocaleString('es-AR'); }
     function hojaNum(id) {   // 0 si está vacío; NaN si no es un entero de 0 a 99.999.999
       var v = hojaEl(id).value.trim();
@@ -13794,14 +13824,14 @@
     }
     function hojaCambioDia(v) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v > resumenHoyART()) { hojaEl('hojaDia').value = HOJA.dia; return; }
-      HOJA.dia = v; hojaCargar();
+      HOJA.dia = v; HOJA.cierreVista = null; hojaCargar();
     }
     function hojaMover(n) {
       var nuevo = resumenSumarDias(HOJA.dia || resumenHoyART(), n);
       if (nuevo > resumenHoyART()) return;
-      HOJA.dia = nuevo; hojaEl('hojaDia').value = nuevo; hojaCargar();
+      HOJA.dia = nuevo; HOJA.cierreVista = null; hojaEl('hojaDia').value = nuevo; hojaCargar();
     }
-    function hojaIrHoy() { HOJA.dia = resumenHoyART(); hojaEl('hojaDia').value = HOJA.dia; hojaCargar(); }
+    function hojaIrHoy() { HOJA.dia = resumenHoyART(); HOJA.cierreVista = null; hojaEl('hojaDia').value = HOJA.dia; hojaCargar(); }
     function hojaModo(m) {
       HOJA.modo = m;
       hojaEl('hojaModoVenta').classList.toggle('active', m === 'venta');
@@ -13904,6 +13934,7 @@
       } finally { HOJA.ocupado = false; hojaEl('hojaGuardarBtn').disabled = false; }
     }
     async function hojaCargar() {
+      if (HOJA.cierreVista && HOJA.cierreVista.modo === 'previa') HOJA.cierreVista = null;   // la lista previa quedó vieja: algo cambió
       var lista = hojaEl('hojaLista'), tot = hojaEl('hojaTotales');
       var r; try { r = await sb.from('caja_movimientos').select('*').eq('dia', HOJA.dia).order('creado_en', { ascending: true }); } catch (e) { r = { error: e }; }
       if (r.error) {   // [GUARDAR-SIN-LEER] #20: con la lectura fallida no se muestran totales en cero, se muestra el error
@@ -13917,6 +13948,7 @@
       hojaPintar();
     }
     function hojaPintar() {
+      hojaCierrePintar();
       var filas = HOJA.filas || [], te = 0, tm = 0, tp = 0;
       filas.forEach(function(f) { if (f.anulado_en) return; te += Number(f.efectivo) || 0; tm += Number(f.mp) || 0; tp += Number(f.posnet) || 0; });
       hojaEl('hojaTotales').innerHTML = [['Efec.', te], ['MP', tm], ['Posnet', tp], ['Total', te + tm + tp]].map(function(x, i) {
@@ -13942,21 +13974,136 @@
       var f = (HOJA.filas || []).filter(function(x) { return x.id === id; })[0];
       if (!f || f.anulado_en || HOJA.ocupado) return;
       if (!confirm('¿Tachar este renglón?\n\n' + f.detalle + '\n\nQueda en la hoja, tachado, y no suma en los totales.')) return;
-      var email = await hojaEmail();
-      if (!email) { hojaMsg('No pude saber quién sos: volvé a entrar al panel.', 'error'); return; }
       HOJA.ocupado = true;
       try {
-        var r; try { r = await sb.from('caja_movimientos').update({ anulado_en: new Date().toISOString(), anulado_por: email }).eq('id', id).is('anulado_en', null).select('id'); } catch (e) { r = { error: e }; }
+        // Sólo por la función de la base (caja_tachar): si el renglón ya había bajado stock en un cierre, lo DEVUELVE (+n, relativo) y deja su Log.
+        var r; try { r = await sb.rpc('caja_tachar', { p_id: id }); } catch (e) { r = { error: e }; }
         if (r.error) { hojaMsg(hojaErrorTexto(r.error, 'tachar el renglón'), 'error'); return; }
-        if (!r.data || !r.data.length) hojaMsg('Ese renglón ya estaba tachado (o no se pudo). Se actualizó la lista.', 'aviso');
-        else { logAdminAction('hoja_tachar', null, hojaLogDatos(f)); hojaMsg('Renglón tachado.', 'ok'); }
+        var d = r.data || {};
+        if (!d.ok) { hojaMsg(d.motivo === 'ya_tachado' ? 'Ese renglón ya estaba tachado. Se actualizó la lista.' : 'No encontré ese renglón. Se actualizó la lista.', 'aviso'); }
+        else {
+          var devs = d.devueltos || [], sin = d.sin_devolver || [];
+          hojaStockAplicar(devs);
+          hojaMsg('Renglón tachado.'
+            + (devs.length ? ' Stock devuelto: ' + devs.map(function(x) { return x.nombre + ' ' + x.prev + ' → ' + x.new; }).join(', ') + '.' : '')
+            + (sin.length ? ' ⚠️ No pude devolver el stock de ' + sin.map(function(x) { return x.nombre; }).join(', ') + ' (ya no tiene fila de stock): revisalo a mano.' : ''), sin.length ? 'aviso' : 'ok');
+          for (var k = 0; k < devs.length; k++) {   // un perfume que estaba sin stock y vuelve a tener: la lista de espera se entera
+            if (devs[k].status_prev === 'out' && (devs[k].status_new === 'ok' || devs[k].status_new === 'low')) { try { await autoNotifyWaitlist(devs[k].slug); } catch (e) {} }
+          }
+        }
         await hojaCargar();
+        hojaInicioPintar();
       } finally { HOJA.ocupado = false; }
+    }
+    // Lo que la base cambió (cierre o tachado) se copia a la memoria del panel: así Precios & Stock y Depósito lo muestran sin recargar.
+    function hojaStockAplicar(lista) {
+      (lista || []).forEach(function(x) {
+        var p = PERFUMES.find(function(pf) { return pf.slug === x.slug; });
+        if (p) { p._stockQty = x.new; p._stockStatus = x.status_new; }
+      });
+      try { renderPrecios(); renderDeposito(); } catch (e) {}
+    }
+    // ── el «Cierre del día»: lo pendiente se calcula igual que en la base (sql/caja_cierre.sql, _caja_item_pendiente: SINCRO) ──
+    function hojaItemPendiente(it) { return !!it && !!it.slug && Number(it.qty) > 0 && it.llevar !== false && !it.ya_bajado && !it.cierre; }
+    function hojaPendientes(filas) {
+      var u = 0, slugs = {};
+      (filas || []).forEach(function(f) {
+        if (f.anulado_en || f.tipo !== 'venta') return;
+        (f.items || []).forEach(function(it) { if (hojaItemPendiente(it)) { u += Number(it.qty); slugs[it.slug] = 1; } });
+      });
+      return { unidades: u, perfumes: Object.keys(slugs).length };
+    }
+    function hojaCierrePintar() {
+      var c = hojaEl('hojaCierre'); if (!c) return;
+      var v = HOJA.cierreVista;
+      if (HOJA.filas === null) { c.innerHTML = ''; return; }
+      var plural = function(n, a, b) { return n + ' ' + (n === 1 ? a : b); };
+      if (v && v.modo === 'previa') {
+        var d = v.data, plan = d.plan || [], algunoBaja = plan.some(function(x) { return x.bajar > 0; });
+        c.innerHTML = '<div class="hoja-cierre-caja hoja-cierre-caja--pide"><p class="hoja-cierre-titulo">Cerrar el día · esto es lo que va a pasar</p>'
+          + '<p class="hoja-cierre-sub">Todavía no se tocó nada. Los números son los que hay AHORA en la base.</p>'
+          + '<div class="hoja-cierre-lista">' + (plan.map(hojaCierreFilaHTML).join('') || '<p class="hoja-vacio">No hay frascos para descontar.</p>') + '</div>'
+          + ((d.senas || d.ya_bajados) ? '<p class="hoja-cierre-sub">' + (d.senas ? plural(d.senas, 'frasco en seña no baja', 'frascos en seña no bajan') : '') + (d.senas && d.ya_bajados ? ' · ' : '')
+            + (d.ya_bajados ? plural(d.ya_bajados, 'frasco ya bajado con «Vendí» no se toca', 'frascos ya bajados con «Vendí» no se tocan') : '') + '.</p>' : '')
+          + '<div class="hoja-cierre-acc"><button type="button" class="primario" id="hojaCierreOk" onclick="hojaCierreAplicar()">' + (algunoBaja ? 'Confirmar y descontar' : 'Cerrar igual (no baja nada)') + '</button>'
+          + '<button type="button" onclick="hojaCierreCancelar()">Cancelar</button></div></div>';
+        return;
+      }
+      if (v && v.modo === 'hecho') {
+        var dh = v.data, planH = dh.plan || [];
+        c.innerHTML = '<div class="hoja-cierre-caja"><p class="hoja-cierre-titulo">✓ Día cerrado</p>'
+          + '<p class="hoja-cierre-sub">Listo: el stock del local ya está al día.</p>'
+          + '<div class="hoja-cierre-lista">' + (planH.map(hojaCierreFilaHTML).join('') || '') + '</div>'
+          + '<div class="hoja-cierre-acc"><button type="button" onclick="hojaCierreCancelar()">Listo</button></div></div>';
+        return;
+      }
+      var p = hojaPendientes(HOJA.filas);
+      if (p.unidades > 0) {
+        var hoy = HOJA.dia === resumenHoyART();
+        c.innerHTML = '<div class="hoja-cierre-caja' + (hoy ? '' : ' hoja-cierre-caja--pide') + '"><p class="hoja-cierre-titulo">Cierre del día</p>'
+          + '<p class="hoja-cierre-sub">' + plural(p.unidades, 'frasco', 'frascos') + ' (' + plural(p.perfumes, 'perfume', 'perfumes') + ') sin descontar del stock' + (hoy ? '. Se hace al final del día.' : ': este día quedó sin cerrar.') + '</p>'
+          + '<div class="hoja-cierre-acc"><button type="button" class="primario" id="hojaCierreVer" onclick="hojaCierreVer()">Cerrar el día…</button></div></div>';
+        return;
+      }
+      var hubo = (HOJA.filas || []).some(function(f) { return !f.anulado_en && (f.items || []).some(function(it) { return it.cierre; }); });
+      c.innerHTML = hubo ? '<p class="hoja-vacio" style="padding:.4rem 0">✓ Este día ya está cerrado: el stock se descontó.</p>' : '';
+    }
+    function hojaCierreFilaHTML(x) {
+      var res, cls = '';
+      if (x.estado === 'bajado') { res = x.prev + ' → ' + x.new; cls = 'ok'; }
+      else if (x.estado === 'parcial') { res = 'baja ' + x.bajar + ' de ' + x.pedido + ': ' + x.prev + ' → ' + x.new; cls = 'aviso'; }
+      else { res = 'no baja'; cls = 'aviso'; }
+      return '<div class="hoja-cierre-fila"><div><b>' + escHtml(x.nombre) + '</b> ×' + x.pedido + (x.motivo ? '<small>' + escHtml(x.motivo.charAt(0).toUpperCase() + x.motivo.slice(1)) + '</small>' : '') + '</div><div class="hoja-cierre-res ' + cls + '">' + escHtml(res) + '</div></div>';
+    }
+    function hojaCierreCancelar() { HOJA.cierreVista = null; hojaCierrePintar(); }
+    async function hojaCierreVer() {   // la lista previa: la función en modo «sólo mirar» (no escribe nada)
+      if (HOJA.ocupado) return;
+      HOJA.ocupado = true; var b = hojaEl('hojaCierreVer'); if (b) b.disabled = true;
+      try {
+        var r; try { r = await sb.rpc('caja_cerrar_dia', { p_dia: HOJA.dia, p_aplicar: false }); } catch (e) { r = { error: e }; }
+        if (r.error) { hojaMsg(hojaErrorTexto(r.error, 'preparar el cierre'), 'error'); return; }
+        hojaMsg('');
+        HOJA.cierreVista = { modo: 'previa', data: r.data || {} };
+        hojaCierrePintar();
+      } finally { HOJA.ocupado = false; if (b) b.disabled = false; }
+    }
+    async function hojaCierreAplicar() {   // la misma función en modo «aplicar»: baja el stock y marca cada frasco, todo en una transacción
+      if (HOJA.ocupado) return;
+      HOJA.ocupado = true; var b = hojaEl('hojaCierreOk'); if (b) b.disabled = true;
+      try {
+        var r; try { r = await sb.rpc('caja_cerrar_dia', { p_dia: HOJA.dia, p_aplicar: true }); } catch (e) { r = { error: e }; }
+        if (r.error) { hojaMsg(hojaErrorTexto(r.error, 'cerrar el día') + ' No se descontó nada.', 'error'); return; }
+        var d = r.data || {};
+        hojaStockAplicar((d.plan || []).filter(function(x) { return x.bajar > 0; }));
+        HOJA.cierreVista = { modo: 'hecho', data: d };
+        hojaMsg('');
+        await hojaCargar();
+        hojaInicioPintar();
+      } finally { HOJA.ocupado = false; if (b) b.disabled = false; }
+    }
+    // El botón del Inicio: si queda algún día sin cerrar, lo dice (los últimos 14 días; sin la tabla o sin lectura, queda el texto de siempre).
+    async function hojaInicioPintar() {
+      var el = hojaEl('inicioHoja'); if (!el) return;
+      var base = 'Anotá lo que se vendió hoy: efectivo, MP y Posnet';
+      var hoy = resumenHoyART(), desde = resumenSumarDias(hoy, -14);
+      var r; try { r = await sb.from('caja_movimientos').select('dia, tipo, items, anulado_en').eq('tipo', 'venta').is('anulado_en', null).gte('dia', desde).lte('dia', hoy); } catch (e) { r = { error: e }; }
+      if (r.error) return;
+      var porDia = {};
+      (r.data || []).forEach(function(f) { (f.items || []).forEach(function(it) { if (hojaItemPendiente(it)) porDia[f.dia] = (porDia[f.dia] || 0) + Number(it.qty); }); });
+      var viejos = Object.keys(porDia).filter(function(d) { return d < hoy; }).sort();
+      var corto = function(d) { return d.slice(8) + '/' + d.slice(5, 7); };
+      el.classList.toggle('pide', viejos.length > 0);
+      if (viejos.length) el.textContent = '⚠️ Sin cerrar: ' + corto(viejos[0]) + (viejos.length > 1 ? ' y ' + (viejos.length - 1) + ' más' : '');
+      else if (porDia[hoy]) el.textContent = porDia[hoy] + (porDia[hoy] === 1 ? ' frasco' : ' frascos') + ' para cerrar hoy';
+      else el.textContent = base;
     }
     async function hojaBorrar(id) {   // sólo el jefe (la base también: caja_delete_jefe)
       if (currentRole !== 'jefe') return;
       var f = (HOJA.filas || []).filter(function(x) { return x.id === id; })[0];
       if (!f || HOJA.ocupado) return;
+      if (!f.anulado_en && (f.items || []).some(function(it) { return it.cierre && it.cierre.bajo > 0 && !it.cierre.devuelto; })) {
+        hojaMsg('Ese renglón ya bajó stock en un cierre: tachalo primero, así el stock vuelve.', 'aviso'); return;   // la base también lo frena (caja_bloquear_borrado)
+      }
       if (!confirm('¿Borrar este renglón para siempre?\n\n' + f.detalle + '\n\nNo se puede deshacer (si sólo se equivocaron, es mejor tacharlo).')) return;
       HOJA.ocupado = true;
       try {
