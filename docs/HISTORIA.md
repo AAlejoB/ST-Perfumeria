@@ -4892,10 +4892,60 @@ Alejo abrió con `/tanda` a las 22:36 del 12-oct (`main` = `ed35cf6`, árbol lim
 
 - Cinco patrones nuevos, en `memory/preferencias_alejo.md` (#126 a #130): una maqueta antes de construir evita construir lo que no era; las pestañas de prueba se cierran siempre; «todo tocable y que se vea tocable»; reabre decisiones cuando ve el valor (y eso se anota como reapertura); y las preguntas A/B las quiere con botones.
 
+### Sesión 13-oct-2026 (mediodía) · **`[SELECCION-DIARIA-HUMO]`** — el primer cambio de día de la Selección, verificado en producción
+
+Alejo abrió con `/tanda` a las 13:10 del 13-oct (rama `panel-prolijo` = `origin/main` = `9394e84`, árbol limpio, SW v1.1.222 en el repo y en producción). Sesión corta y sin código: se verificó el primer cambio de día de la Selección diaria, se corrigió el `CLAUDE.md` (decía v1.1.221 «por subir») y se cerró. Entra en este cierre también `[FRANJA-STAT]` (`9394e84`), que se hizo a la 01:50, después del cierre anterior (`2ab119e`, 01:35), y no tenía sección propia.
+
+#### Qué se hizo
+
+- **`[FRANJA-STAT]` · `9394e84` · v1.1.222 (madrugada, sin cierre propio):** en Precios & Stock y Depósito, las 3 tarjetas que filtran pasan a **una franja partida en tres** (opción B de Alejo): número grande y nombre abajo, la elegida en dorado con «✓», en el celu en una fila; en Precios, la tarjeta del valor (jefe) al lado desde 900 px. La casilla «📷 Con foto» pasa a **«Vista: ☰ Sólo nombres | 🖼️ Con foto»** (`[VISTA-LISTA-PANEL]`, misma preferencia `st_admin_stock_foto`; `toggleStockFoto` → `setStockFoto`). Se sacó el «Llegó mercadería» chico del encabezado (Alejo: «innecesario»; queda el grande del Inicio) y el CSS muerto (`.stock-stats`, `.stat-btn`, `.chk-foto`, `.panel-merc`). **En producción:** `curl` del SW da v1.1.222 (13-oct, 13:10).
+- **`[SELECCION-DIARIA-HUMO]`, el cambio de día (13:15):** en https://www.stperfumeria.com, con el navegador de la app, se le preguntó a la página real `seleccionRotada()` y `seleccionVisibles()`. Día de Argentina: `2026-10-13`. Se ven **STRONGER WITH YOU INTENSELY** («Último», se puede pedir), **ANGHAM** y **CARAMEL MACCHIATO**; en la cola, **ODYSSEY HOMME** (`odissey-homme-negro`) y **SEDLEY**. Los 5 tienen foto y `sePuedePedir`. Ninguno de los 3 del 12-oct (FAKHAR GOLD, LIQUID BRUN, RAMZ) está entre los 5.
+- **`CLAUDE.md`:** la versión del SW (v1.1.222, `9394e84`, con su eslabón en la cadena), `[SELECCION-DIARIA-HUMO]` (queda sólo verla en un celu o la tablet), `[STOCK-FOTO-HUMO]` (ahora es el selector «Vista») y el pie.
+- **`D:\workspace\CLAUDE.md`** (fuera del repo): `C:` tiene **14,1 GB** libres (medido el 13-oct; decía «~25 GB»).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arrancar por la Selección («dale, mirá la selección»); corregir el `CLAUDE.md` y el dato de `C:` y cerrar («sí a los dos… corregí el md y hacé el cierre»).
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):** empezar por la Selección (el primer cambio de día, sin tocar código).
+- **Hallazgos:**
+  1. **Alejo borró una carpeta `C:/ST_Perfumeria`** y lo avisó. Se verificó: no está, **no quedó en la papelera** (borrado definitivo), `git worktree list` no tenía nada en `C:`, y ni la memoria ni los `CLAUDE.md` la nombran. Si tenía algo sin subir, se perdió; todo lo de producción está en GitHub.
+  2. El checkout principal `D:\workspace\ST_Perfumeria` está en `main` = `aa5d62e`, **33 commits atrás** de `origin/main`. No rompe nada (se trabaja en el worktree), pero conviene un `git pull --ff-only` ahí.
+  3. Sigue el stash ajeno `s10-xss-copia-admin-html-20sep` (del 20-sep). No se tocó.
+  4. No existe `.claude/recomendaciones.md`: la regla global de Alejo pide armarlo con `que-conviene`, pero el `CLAUDE.md` del workspace dice que `.claude\` no se toca. Quedó preguntado; sin respuesta todavía.
+  5. Con el navegador de la app a 800 px (el rango de tablet, que sigue como en `main`) la Selección no se vio en la captura: los datos salieron de la página por JS. Verla a ojo en el celu es justamente lo que queda de `[SELECCION-DIARIA-HUMO]`.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[FRANJA-STAT]` | Los filtros de Precios & Stock y Depósito en una franja partida en tres (v1.1.222, en producción). |
+| `[VISTA-LISTA-PANEL]` | «Vista: ☰ Sólo nombres \| 🖼️ Con foto» en vez de la casilla «📷 Con foto» (v1.1.222). |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[SELECCION-DIARIA-HUMO]` 🟡 | Sólo mirarla en un celu o en la tablet de verdad (el cambio de día ya está verificado). |
+| `[REEMPLAZO-DE-HOJA]` 🟡 | El primer «Cierre del día» real, un día de uso de las chicas y una seña real. |
+| `[DISCO-D-FSYNC]` 🟡 | Medir de nuevo los avisos `Ntfs` / `disk` desde el 15-oct. |
+| (recomendaciones) | Que Alejo diga si se arma `.claude/recomendaciones.md` pese a la regla de no tocar `.claude\`. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (13-oct, ~13:30):** `origin/main` = `9394e84` (SW **v1.1.222** en producción, verificado por `curl`) · rama `panel-prolijo` = `9394e84` + este cierre, 1 adelante · árbol limpio después del commit · checkout principal en `aa5d62e` (33 atrás) · stash ajeno del 20-sep sin tocar.
+
+#### 💬 Mensajes meta
+
+- Nada nuevo para `memory/preferencias_alejo.md`.
+
 
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 13-oct-2026 (~01:35, cierre de `[REEMPLAZO-DE-HOJA]`) — pasó de `CLAUDE.md` al archivo el 13-oct (~13:30, cierre del mediodía)
+
+**Última actualización:** **Octubre 13, 2026, ~01:35 (cierre de la sesión larga de la noche del 12 al 13)** — `main` = `origin/main` = `80cde92` (**v1.1.220**) en producción, verificada por `curl`; la v1.1.221 (`e29f81f`, la hoja abre siempre en hoy) y este cierre suben con el próximo push. La sesión arrancó con `[DOCTOR-LISTA-CLARO]` (cerrado) y terminó armando **`[REEMPLAZO-DE-HOJA]`**: la hoja de caja digital, con «Anotar venta» de botones grandes, los decants (árabes con la escalera, de diseñador con su precio), «otra cosa», cantidades que suman, el pago con un toque o repartido, la seña como deuda con «Pendientes de cobro» y el «Cierre del día» que baja el stock una vez (3 SQL aplicados en Supabase con OK de Alejo). Nacieron **Tarjetero** (nombre de Alejo: elegir tocando tarjetas grandes; NO ROMPER #33) y el **cuadradito de tildar nuevo** de todo el panel (NO ROMPER #32). Las dos cuentas quitan códigos de barras. Idea nueva, sin pendiente: `[LEGAL-ANTES-DE-SIPAGO]` (prioridad baja; Lautaro ya tiene SiPago en plataforma-saas). Detalle en `docs/HISTORIA.md` § «Sesión 12/13-oct-2026 (madrugada)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + humo con las chicas + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[SELECCION-DIARIA-HUMO]` (mirar hoy 13-oct que cambiaron los 3) · `[DISCO-D-FSYNC]` · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-FCP]` · `[CELU-LETRA]` · 🟢 `[CUADRADOS-EDITAR]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 12-oct-2026 (~22:50, `foto-en-listas` en producción) — pasó de `CLAUDE.md` al archivo el 13-oct (~01:35, cierre de `[REEMPLAZO-DE-HOJA]`)
 
