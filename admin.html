@@ -14045,7 +14045,9 @@
     // ── abrir, el día ──
     function hojaAbrir() {
       var hoy = resumenHoyART();
-      if (!HOJA.dia) HOJA.dia = hoy;
+      // [HOJA-SIEMPRE-HOY] 13-oct (Alejo): al entrar a la pestaña se abre SIEMPRE en el día de hoy, aunque el panel haya quedado abierto desde ayer
+      // o se haya mirado otro día. Los días anteriores se siguen viendo con ◀ (y lo que se anota va al día que se está mirando).
+      if (HOJA.dia !== hoy) { HOJA.dia = hoy; HOJA.cierreVista = null; }
       hojaEl('hojaDia').max = hoy; hojaEl('hojaDia').value = HOJA.dia;
       hojaVentaPintar(); hojaCargar(); hojaPendientesCargar(); hojaDecantsCargar();
     }
