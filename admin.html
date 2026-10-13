@@ -721,12 +721,23 @@
     }
     .td-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; background: #fff; }
     .td-foto-ini { font-size: 1.1rem; font-weight: 700; color: rgba(0,0,0,.22); }
-    .chk-foto {
-      display: flex; align-items: center; gap: .45rem; white-space: nowrap; cursor: pointer; min-height: var(--tap-min);
-      font-size: .8rem; color: var(--gris-claro); background: rgba(128,128,128,.12); border: 1px solid var(--borde);
-      border-radius: var(--r-sm); padding: 0 .9rem;
+    /* [VISTA-LISTA-PANEL] (13-oct, Alejo: la casilla «Con foto» confundía) «Vista: Sólo nombres | Con foto», dos botones
+       pegados como el ▦ ☰ del catálogo: dice CÓMO se ve la lista, no prende ni apaga perfumes. La elegida, rellena de amarillo. */
+    .vista-lista {
+      display: inline-flex; align-items: stretch; min-height: var(--tap-min); white-space: nowrap;
+      border: 1.5px solid var(--borde); border-radius: var(--r-sm); overflow: hidden; background: rgba(128,128,128,.08);
     }
-    .chk-foto input { width: 15px; height: 15px; accent-color: var(--amarillo); cursor: pointer; margin: 0; flex-shrink: 0; }
+    .vista-lista-tit {
+      display: flex; align-items: center; padding: 0 .6rem; font-size: .62rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--gris-claro); border-right: 1px solid var(--borde);
+    }
+    .vista-op {
+      font: inherit; font-size: .78rem; padding: 0 .75rem; cursor: pointer; border: 0; border-radius: 0; background: transparent;
+      color: var(--gris-claro); -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent;
+    }
+    .vista-op + .vista-op { border-left: 1px solid var(--borde); }
+    .vista-op[aria-pressed="true"] { background: var(--amarillo); color: #000; font-weight: 700; }
+    .vista-op:focus-visible { outline: 2px solid var(--amarillo); outline-offset: -3px; }
     .td-price { color: var(--amarillo-tinta); font-weight: 600; }
     .td-stock { text-align: center; }
     /* ══ [PRECIOS-EN-UN-LUGAR] decisión 123 · Precios & Stock muestra también los precios de decants (sólo se miran) ══
@@ -1381,12 +1392,6 @@
     .hoja-cierre-acc button.primario { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
     .hoja-cierre-acc button:disabled { opacity: .5; cursor: not-allowed; }
     @media (max-width: 600px) { .hoja-totales { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    .panel-merc {
-      display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem;
-      font-family: inherit; font-size: .7rem; font-weight: 700; letter-spacing: .04em; cursor: pointer;
-      background: var(--amarillo); color: #000; border: 1px solid var(--amarillo); border-radius: 6px;
-    }
-    @media (max-width: 700px) { .panel-merc { width: var(--tap-min); padding: 0; } .panel-merc .panel-merc-txt { display: none; } }
     .merc-box { max-width: 480px; max-height: calc(100vh - 2rem); overflow-y: auto; }
     #modalMercaderia .modal-close { width: 44px; height: 44px; top: .4rem; right: .4rem; display: inline-flex; align-items: center; justify-content: center; }
     .merc-buscar { display: flex; gap: .5rem; align-items: center; margin: 0 0 .3rem; }
@@ -2173,31 +2178,10 @@
 
 
     /* ============================================================
-       MINI-DASHBOARD DE STOCK — 4 stat cards arriba de la tabla
+       MINI-DASHBOARD DE STOCK — la franja de filtros y (jefe) el valor del inventario
+       La grilla vive en .stat-zona / .stat-franja ([FRANJA-STAT], más abajo); la empleada no ve el valor
+       ([OCULTAR-VALOR-INV], data-role="jefe") y la franja ocupa todo el ancho.
        ============================================================ */
-    .stock-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: .6rem;
-      margin-bottom: 1rem;
-    }
-    /* Tablet: 2x2 */
-    @media (max-width: 900px) {
-      .stock-stats { grid-template-columns: repeat(2, 1fr); }
-    }
-    /* Mobile chico: apilado en 1 columna */
-    @media (max-width: 480px) {
-      .stock-stats { grid-template-columns: 1fr; gap: .45rem; }
-    }
-    /* [OCULTAR-VALOR-INV] la empleada no ve "Valor de inventario" (data-role="jefe"),
-       así que su grilla pasa de 4 a 3 columnas y no queda un hueco vacío. */
-    body.role-empleado .stock-stats { grid-template-columns: repeat(3, 1fr); }
-    @media (max-width: 900px) {
-      body.role-empleado .stock-stats { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 480px) {
-      body.role-empleado .stock-stats { grid-template-columns: 1fr; }
-    }
     .stat-card {
       background: var(--stat-fondo);
       border: 1px solid var(--stat-borde);
@@ -2240,23 +2224,36 @@
       font-weight: 500;
     }
 
-    /* [STAT-FILTRO] Las tarjetas de Precios & Stock y Depósito son botones que filtran la lista de abajo. Más chicas (ícono y
-       número en un renglón, la etiqueta abajo), 44 px o más de alto para el dedo, y la activa con el borde dorado. */
-    .stock-stats--filtros { align-items: start; }
-    .stat-btn {
-      display: block; width: 100%; box-sizing: border-box; text-align: left;
-      font: inherit; color: inherit; min-height: 44px; padding: .5rem .8rem;
-      -webkit-tap-highlight-color: transparent;
+    /* [FRANJA-STAT] (13-oct, opción B de Alejo) Los filtros de arriba de Precios & Stock y Depósito son UNA franja partida en
+       tres (antes, tres tarjetas que en el celu quedaban apiladas). Cada parte es un botón (número grande y el nombre abajo,
+       centrados) y la elegida va pintada de dorado con «✓». En Precios, la tarjeta del valor (jefe) va al lado desde 900 px. */
+    .stat-zona { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: .6rem; align-items: start; margin-bottom: 1rem; }
+    body.role-empleado .stat-zona { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 900px) { .stat-zona { grid-template-columns: minmax(0, 1fr); } }
+    .stat-franja {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 1rem;
+      background: var(--stat-fondo); border: 1.5px solid var(--stat-borde); border-radius: 10px; overflow: hidden;
     }
-    button.stat-btn { cursor: pointer; -webkit-appearance: none; appearance: none; }
-    button.stat-btn:active { transform: scale(.98); }
-    .stat-btn .stat-icon { display: inline-block; vertical-align: middle; margin: 0 .35rem 0 0; font-size: .9rem; }
-    .stat-btn .stat-value { display: inline-block; vertical-align: middle; font-size: 1.25rem; margin-bottom: 0; }
-    .stat-btn .stat-label { display: block; margin-top: .1rem; }
-    button.stat-btn:disabled { cursor: default; opacity: .6; }
-    button.stat-btn[aria-pressed="true"] {
-      border-color: var(--amarillo); box-shadow: inset 0 0 0 1px var(--amarillo);
+    .stat-zona .stat-franja { margin-bottom: 0; }
+    .franja-op {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+      min-height: 64px; padding: .55rem .35rem; box-sizing: border-box; text-align: center;
+      font: inherit; color: inherit; background: transparent; border: 0; border-left: 1px solid var(--stat-borde); border-radius: 0;
+      cursor: pointer; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent;
+      transition: background-color .15s ease;
     }
+    .franja-op:first-child { border-left: 0; }
+    .franja-op .stat-value { margin: 0; font-size: 1.45rem; line-height: 1; color: var(--amarillo-tinta); }
+    .franja-op.stat-perfumes .stat-value { color: var(--stat-tinta-perfumes); }
+    .franja-op.stat-out .stat-value { color: var(--stat-tinta-out); }
+    .franja-op .stat-label { font-size: .7rem; letter-spacing: 0; text-transform: none; line-height: 1.2; color: var(--gris-claro); }
+    .franja-op:active { background: rgba(232,184,0,.12); }
+    @media (hover: hover) { .franja-op:not(:disabled):hover { background: rgba(232,184,0,.08); } }
+    .franja-op[aria-pressed="true"] { background: rgba(232,184,0,.2); box-shadow: inset 0 -3px 0 var(--amarillo); }
+    .franja-op[aria-pressed="true"] .stat-label { color: var(--amarillo-tinta); font-weight: 700; }
+    .franja-op[aria-pressed="true"] .stat-label::before { content: '✓ '; }
+    .franja-op:disabled { cursor: default; opacity: .6; }
+    .franja-op:focus-visible { outline: 2px solid var(--amarillo); outline-offset: -3px; }
     /* [STAT-FILTRO] Doctor: las 3 tarjetas de arriba son botones (mismos colores de antes); la activa, con el borde en su color */
     #doctorSummary .doc-card { display: block; width: 100%; font: inherit; border-radius: 8px; padding: .7rem; text-align: center; cursor: pointer; min-height: 44px; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; }
     #doctorSummary .doc-card:active { transform: scale(.98); }
@@ -2640,7 +2637,6 @@
         <p class="panel-title" style="margin:0;">ST Admin<span class="panel-title-extra"> Panel</span> <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:var(--badge-ml,.5rem);vertical-align:middle;"></span></p>
       </div>
       <div style="display:flex;align-items:center;gap:.5rem;">
-        <button type="button" class="panel-merc" onclick="mercAbrir()" aria-label="Llegó mercadería" title="Llegó mercadería"><span aria-hidden="true">&#128230;</span><span class="panel-merc-txt">Llegó mercadería</span></button>
         <span id="syncIndicator" class="sync-indicator" style="display:none;" title="Estado de sincronización entre tablets"></span>
         <button id="themeToggleBtn" onclick="toggleAdminTheme()" title="Alternar tema claro / oscuro"
           style="background:transparent;border:1px solid var(--borde);color:var(--gris-claro);font-size:.7rem;padding:.35rem .6rem;border-radius:4px;cursor:pointer;letter-spacing:.05em;display:flex;align-items:center;gap:.3rem;">
@@ -2746,19 +2742,19 @@
     <div class="tab-content" id="tab-precios">
       <!-- Mini-dashboard de inventario: se actualiza en cada renderPrecios() -->
       <!-- [STAT-FILTRO] las 3 tarjetas son botones: tocás una y la lista de abajo muestra sólo eso; la misma otra vez, vuelve todo -->
-      <div class="stock-stats stock-stats--filtros">
-        <button type="button" class="stat-card stat-btn stat-units" id="statBtnCon" aria-pressed="false" onclick="preciosStat('con')">
-          <span class="stat-icon">📦</span><span class="stat-value" id="statTotalUnits">—</span>
-          <span class="stat-label">Unidades en stock</span>
-        </button>
-        <button type="button" class="stat-card stat-btn stat-perfumes" id="statBtnActivos" aria-pressed="false" onclick="preciosStat('activos')">
-          <span class="stat-icon">🌸</span><span class="stat-value" id="statTotalPerfumes">—</span>
-          <span class="stat-label">Perfumes activos</span>
-        </button>
-        <button type="button" class="stat-card stat-btn stat-out" id="statBtnSin" aria-pressed="false" onclick="preciosStat('sin')">
-          <span class="stat-icon">⚠️</span><span class="stat-value" id="statSinStock">—</span>
-          <span class="stat-label">Sin stock</span>
-        </button>
+      <div class="stat-zona">
+        <!-- [FRANJA-STAT] una franja partida en tres -->
+        <div class="stat-franja" role="group" aria-label="Filtrar la lista">
+          <button type="button" class="franja-op stat-units" id="statBtnCon" aria-pressed="false" onclick="preciosStat('con')">
+            <span class="stat-value" id="statTotalUnits">—</span><span class="stat-label">Unidades en stock</span>
+          </button>
+          <button type="button" class="franja-op stat-perfumes" id="statBtnActivos" aria-pressed="false" onclick="preciosStat('activos')">
+            <span class="stat-value" id="statTotalPerfumes">—</span><span class="stat-label">Perfumes activos</span>
+          </button>
+          <button type="button" class="franja-op stat-out" id="statBtnSin" aria-pressed="false" onclick="preciosStat('sin')">
+            <span class="stat-value" id="statSinStock">—</span><span class="stat-label">Sin stock</span>
+          </button>
+        </div>
         <!-- [OCULTAR-VALOR-INV] solo el jefe ve cuánta plata hay en mercadería -->
         <!-- [VALOR-INV-DEPOSITO] el total es local + depósito, y abajo cuánto es de cada uno -->
         <div class="stat-card stat-value-inv" data-role="jefe">
@@ -2790,10 +2786,12 @@
           <option value="stock-out">Sin stock primero</option>
         </select>
         <!-- [STOCK-FOTO] interruptor «Con foto» (la misma preferencia que el de Depósito) -->
-        <label class="chk-foto" title="Muestra la foto del frasco al lado del nombre">
-          <input type="checkbox" id="chkFotoPrecios" checked onchange="toggleStockFoto(this)"/>
-          📷 Con foto
-        </label>
+        <!-- [VISTA-LISTA-PANEL] no es una casilla: elige cómo se ve la lista -->
+        <div class="vista-lista" role="group" aria-label="Cómo se ve la lista">
+          <span class="vista-lista-tit" aria-hidden="true">Vista</span>
+          <button type="button" class="vista-op" data-foto="0" aria-pressed="false" onclick="setStockFoto(false)">☰ Sólo nombres</button>
+          <button type="button" class="vista-op" data-foto="1" aria-pressed="true" onclick="setStockFoto(true)">🖼️ Con foto</button>
+        </div>
         <!-- [OCULTAR-PAUSADOS] Casilla en la misma fila que "Ordenar por".
              Sin data-role: la ven jefe y empleadas por igual. -->
         <label id="lblVerPausados" title="Los perfumes pausados no se muestran en el catálogo público" style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
@@ -2802,7 +2800,7 @@
         </label>
       </div>
       <p class="escaneo-nota" id="escaneoNotaPrecios" role="status" hidden></p>
-      <p id="tipPrecios" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá una tarjeta de arriba para ver sólo esos perfumes, y la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
+      <p id="tipPrecios" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá un número de arriba para ver sólo esos perfumes, y la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
       <p class="stat-filtro-nota" id="statFiltroNota" hidden></p>
       <!-- [PRECIOS-EN-UN-LUGAR] 123a + 123d · la escalera de decants (y la promo si está vigente) y el filtro. Sólo se mira:
            los precios se cambian en Editar y en Decants. -->
@@ -2830,18 +2828,15 @@
       </div>
 
       <!-- [STAT-FILTRO] «Perfumes con depósito» hace lo mismo que la casilla de abajo; «Sin local pero con depósito» deja sólo los que hay que traer -->
-      <div class="stock-stats stock-stats--filtros" style="grid-template-columns:repeat(3,1fr);">
-        <button type="button" class="stat-card stat-btn" id="statBtnDepUnidades" aria-pressed="false" onclick="depStat('unidades')">
-          <span class="stat-icon">📦</span><span class="stat-value" id="statDepUnidades">—</span>
-          <span class="stat-label">Unidades en depósito</span>
+      <div class="stat-franja" role="group" aria-label="Filtrar la lista">
+        <button type="button" class="franja-op" id="statBtnDepUnidades" aria-pressed="false" onclick="depStat('unidades')">
+          <span class="stat-value" id="statDepUnidades">—</span><span class="stat-label">Unidades en depósito</span>
         </button>
-        <button type="button" class="stat-card stat-btn" id="statBtnDepCon" aria-pressed="false" onclick="depStat('con')">
-          <span class="stat-icon">🌸</span><span class="stat-value" id="statDepPerfumes">—</span>
-          <span class="stat-label">Perfumes con depósito</span>
+        <button type="button" class="franja-op" id="statBtnDepCon" aria-pressed="false" onclick="depStat('con')">
+          <span class="stat-value" id="statDepPerfumes">—</span><span class="stat-label">Perfumes con depósito</span>
         </button>
-        <button type="button" class="stat-card stat-btn stat-out" id="statBtnDepReponer" aria-pressed="false" onclick="depStat('reponer')">
-          <span class="stat-icon">⚠️</span><span class="stat-value" id="statDepReponer">—</span>
-          <span class="stat-label">Sin local pero con depósito</span>
+        <button type="button" class="franja-op stat-out" id="statBtnDepReponer" aria-pressed="false" onclick="depStat('reponer')">
+          <span class="stat-value" id="statDepReponer">—</span><span class="stat-label">Sin local pero con depósito</span>
         </button>
       </div>
       <p class="stat-filtro-nota" id="depFiltroNota" hidden></p>
@@ -2857,10 +2852,11 @@
           <option value="reponer">Para reponer primero</option>
         </select>
         <!-- [STOCK-FOTO] interruptor «Con foto» (la misma preferencia que el de Precios & Stock) -->
-        <label class="chk-foto" title="Muestra la foto del frasco al lado del nombre">
-          <input type="checkbox" id="chkFotoDeposito" checked onchange="toggleStockFoto(this)"/>
-          📷 Con foto
-        </label>
+        <div class="vista-lista" role="group" aria-label="Cómo se ve la lista">
+          <span class="vista-lista-tit" aria-hidden="true">Vista</span>
+          <button type="button" class="vista-op" data-foto="0" aria-pressed="false" onclick="setStockFoto(false)">☰ Sólo nombres</button>
+          <button type="button" class="vista-op" data-foto="1" aria-pressed="true" onclick="setStockFoto(true)">🖼️ Con foto</button>
+        </div>
         <label style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
           <input type="checkbox" id="chkSoloConDeposito" onchange="renderDeposito()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
           Sólo los que tienen unidades
@@ -5897,7 +5893,7 @@
 
     // ============================================================
     // [STOCK-FOTO] 12-oct-2026 · pedido de Alejo: Precios & Stock y Depósito con la foto del frasco al lado del nombre
-    // (para atender: «ese no lo tengo, pero este es el frasco»). Interruptor «📷 Con foto» en las dos pestañas: una sola
+    // (para atender: «ese no lo tengo, pero este es el frasco»). «Vista: Sólo nombres | Con foto» en las dos pestañas: una sola
     // preferencia por dispositivo, PRENDIDA por defecto (decisión de Alejo); sólo '0' en el navegador la apaga. Sin foto,
     // el HTML de las filas es el de siempre. La foto ya está en memoria (p.foto): no hay ningún pedido nuevo a la base, y
     // loading="lazy" hace que sólo se bajen las que se ven.
@@ -5915,15 +5911,16 @@
       stockFotoSync();
     }
 
+    // [VISTA-LISTA-PANEL] los dos «Vista: Sólo nombres | Con foto» (Precios y Depósito) marcan la misma preferencia
     function stockFotoSync() {
-      ['chkFotoPrecios', 'chkFotoDeposito'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.checked = STOCK_FOTO;
+      document.querySelectorAll('.vista-op').forEach(function(b) {
+        b.setAttribute('aria-pressed', (b.dataset.foto === '1') === STOCK_FOTO ? 'true' : 'false');
       });
     }
 
-    function toggleStockFoto(chk) {
-      STOCK_FOTO = !!chk.checked;
+    function setStockFoto(on) {
+      if (STOCK_FOTO === !!on) return;
+      STOCK_FOTO = !!on;
       try { localStorage.setItem(STOCK_FOTO_KEY, STOCK_FOTO ? '1' : '0'); } catch (e) {}
       stockFotoSync();
       renderPrecios();
