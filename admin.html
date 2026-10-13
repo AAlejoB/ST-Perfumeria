@@ -1324,6 +1324,19 @@
     .hv-pago .hoja-monto { min-height: 110px; }
     .hv-pago .hoja-monto b { font-size: 1.35rem; }
     .hv-links { display: flex; flex-wrap: wrap; gap: 0 1.2rem; }
+    /* [CANTIDAD-SUMA] 1 · 2 · 3 · 4 · 5 · 10 que se suman */
+    .hv-nums { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .hv-cant-ayuda { text-align: center; margin: 0 0 .6rem; }
+    .hv-reset { font-size: 1.5rem; }
+    @media (max-width: 420px) { .hv-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    /* «Sumar otro producto» y «Otro monto» en el cobro: botones de verdad, no links (Alejo, 13-oct) */
+    .hv-acc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin-top: .9rem; }
+    .hv-boton { display: flex; align-items: center; gap: .7rem; min-height: 72px; padding: .6rem .8rem; text-align: left; font-family: inherit; color: inherit; cursor: pointer; background: transparent; border: 1.5px solid var(--amarillo-tinta); border-radius: 14px; }
+    .hv-boton:hover, .hv-boton:focus-visible { background: rgba(232,184,0,.12); }
+    .hv-boton-ico { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--amarillo); color: #000; font-size: 1.3rem; font-weight: 800; }
+    .hv-boton b { display: block; font-size: .92rem; font-weight: 800; }
+    .hv-boton small { display: block; font-size: .7rem; color: var(--gris-claro); margin-top: 1px; }
+    @media (max-width: 420px) { .hv-acc { grid-template-columns: minmax(0, 1fr); } }
     .hoja-msg { min-height: 1.2rem; margin: 0 0 1rem; font-size: .85rem; font-weight: 600; }
     @media (max-width: 600px) { .hv-tiles { gap: .5rem; } .hv-tile { min-height: 116px; } .hv-tile b { font-size: 1rem; } .hv-gigante { min-height: 104px; font-size: 1.4rem; } }
     .hoja-vacio { text-align: center; color: var(--gris); font-size: .8rem; padding: 1.5rem 0; }
@@ -14045,7 +14058,10 @@
       hojaPaso('cuantos');
     }
     function hojaElegirLibre() { HOJA.sel = { tipo: 'libre', nombre: '', monto: '', qty: 1 }; hojaPaso('libre'); }
-    function hojaSelCant(n) { if (!HOJA.sel) return; HOJA.sel.qty = Math.max(1, Math.min(50, n)); hojaVentaPintar(); }
+    function hojaSelCant(n) { if (!HOJA.sel) return; HOJA.sel.qty = Math.max(1, Math.min(99, n)); HOJA.sel.tocado = true; hojaVentaPintar(); }
+    // [CANTIDAD-SUMA] los botones de cantidad SUMAN (Alejo, 13-oct): el primer toque reemplaza el 1 de arranque y los siguientes se suman (10 y después 1 = 11).
+    function hojaSelSumar(n) { var s = HOJA.sel; if (!s) return; s.qty = Math.max(1, Math.min(99, s.tocado ? s.qty + n : n)); s.tocado = true; hojaVentaPintar(); }
+    function hojaSelReset() { var s = HOJA.sel; if (!s) return; s.qty = 1; s.tocado = false; hojaVentaPintar(); }
     function hojaSelTilde(clave, valor) { if (HOJA.sel) HOJA.sel[clave] = !!valor; }
     function hojaSelListo() {
       var s = HOJA.sel; if (!s) return;
@@ -14061,7 +14077,7 @@
         return l.tipo === s.tipo && ((s.tipo === 'frasco' && l.slug === s.slug && l.llevar === s.llevar && l.ya_bajado === s.ya_bajado && l.base > 0 && s.base > 0)
           || s.tipo === 'arabe' || (s.tipo === 'disenador' && String(l.id) === String(s.id)));
       })[0];
-      if (junto) junto.qty = Math.min(50, junto.qty + s.qty); else HOJA.carro.push(s);
+      if (junto) junto.qty = Math.min(99, junto.qty + s.qty); else HOJA.carro.push(s);
       HOJA.sel = null; hojaMsg(''); hojaPaso('que');
     }
     // El buscador de perfumes: un número de 8 a 14 cifras es un código (Enter); lo demás, un nombre (nombre, fabricante, apodo). Sin sets.
@@ -14166,7 +14182,7 @@
       else if (p === 'cuantos' && s) {
         var volver = s.tipo === 'frasco' ? 'hojaPaso(\'perfume\')' : (s.tipo === 'arabe' ? 'hojaPaso(\'decant\')' : 'hojaPaso(\'disenador\')');
         var titulo = s.tipo === 'frasco' ? escHtml(s.nombre) : (s.tipo === 'arabe' ? 'Decants árabes' : 'Decant ' + escHtml(s.nombre));
-        var nums = ''; for (var n = 1; n <= 10; n++) nums += '<button type="button" class="hv-num' + (s.qty === n ? ' on' : '') + '" onclick="hojaSelCant(' + n + ')">' + n + '</button>';
+        var nums = [1, 2, 3, 4, 5, 10].map(function(n) { return '<button type="button" class="hv-num hv-suma" onclick="hojaSelSumar(' + n + ')" aria-label="Sumar ' + n + '">' + (s.tocado ? '+' : '') + n + '</button>'; }).join('');
         var resumen = '';
         if (s.tipo === 'arabe') {
           var total = hojaArabesTotal(HOJA.carro) + s.qty, u = hojaUnitArabe(total);
@@ -14177,7 +14193,8 @@
           resumen = 'Lista ' + hojaPesos(s.base * s.qty) + ' · Efec. / MP ' + hojaPesos(Math.round(s.base * 0.9) * s.qty) + '<b>' + s.qty + (s.qty === 1 ? ' frasco' : ' frascos') + '</b>';
         }
         h = hojaCab(titulo, volver) + '<p class="hv-pregunta">¿Cuántos?</p>'
-          + '<div class="hv-cant"><button type="button" class="hv-num" onclick="hojaSelCant(' + (s.qty - 1) + ')" aria-label="Uno menos">&minus;</button><span class="hv-cant-n">' + s.qty + '</span><button type="button" class="hv-num" onclick="hojaSelCant(' + (s.qty + 1) + ')" aria-label="Uno más">+</button></div>'
+          + '<div class="hv-cant"><button type="button" class="hv-num" onclick="hojaSelCant(' + (s.qty - 1) + ')" aria-label="Uno menos">&minus;</button><span class="hv-cant-n">' + s.qty + '</span><button type="button" class="hv-num hv-reset" onclick="hojaSelReset()" aria-label="Volver a 1">&#8634;</button></div>'
+          + '<p class="hoja-hint hv-cant-ayuda">Tocá los números y se suman: 10 y después 1 = 11.</p>'
           + '<div class="hv-nums">' + nums + '</div>'
           + (s.tipo === 'frasco' ? '<div class="hoja-tildes"><label><input type="checkbox"' + (s.llevar ? ' checked' : '') + ' onchange="hojaSelTilde(\'llevar\', this.checked)"/> Se lo lleva hoy</label>'
               + '<label><input type="checkbox"' + (s.ya_bajado ? ' checked' : '') + ' onchange="hojaSelTilde(\'ya_bajado\', this.checked)"/> Ya lo bajé con «Vendí»</label></div>' : '')
@@ -14205,8 +14222,8 @@
           + hojaTileHTML('posnet', 'hojaGuardarVenta({ auto: \'posnet\' })', hojaPesos(pp.lista), 'precio de lista', false, 'auto')
           + '</div>'
           + '<p class="hoja-hint">Tocá cómo pagó y queda anotado. El 10% de Efec. y MP es sólo para los perfumes en frasco; si hay una excepción (otro precio, un descuento, una seña o un pago repartido), usá «Otro monto…».</p>'
-          + '<div class="hv-links"><button type="button" class="hoja-otro" onclick="hojaPaso(\'que\')">+ Sumar otro producto</button>'
-          + '<button type="button" class="hoja-otro" onclick="HOJA.montos = { efectivo: \'\', mp: \'\', posnet: \'\' }; HOJA.debe = \'\'; hojaPaso(\'manual\')">Otro monto… (seña, pago repartido, excepción)</button></div>';
+          + '<div class="hv-acc"><button type="button" class="hv-boton" onclick="hojaPaso(\'que\')"><span class="hv-boton-ico" aria-hidden="true">＋</span><span><b>Sumar otro producto</b><small>perfume, decant u otra cosa</small></span></button>'
+          + '<button type="button" class="hv-boton" onclick="HOJA.montos = { efectivo: \'\', mp: \'\', posnet: \'\' }; HOJA.debe = \'\'; hojaPaso(\'manual\')"><span class="hv-boton-ico" aria-hidden="true">&#9998;</span><span><b>Otro monto</b><small>seña, pago repartido o excepción</small></span></button></div>';
       }
       else if (p === 'manual') {
         var pm = hojaCarroPrecio(HOJA.carro), d = hojaDebeValor(), cob = hojaNum('efectivo') + hojaNum('mp') + hojaNum('posnet');
