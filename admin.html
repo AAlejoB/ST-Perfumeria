@@ -13990,10 +13990,15 @@
     function hojaDebeValor() {   // lo que queda debiendo: lo escrito en su cuadrado o, si no, el precio menos lo pagado (sólo en «Otro monto…»)
       if (HOJA.paso !== 'manual') return 0;
       if (HOJA.debe !== '') return Number(HOJA.debe);
-      var pr = hojaCarroPrecio(HOJA.carro), pagado = hojaNum('efectivo') + hojaNum('mp') + hojaNum('posnet');
-      if (!pr || pagado <= 0) return 0;
-      var soloPosnet = hojaNum('posnet') > 0 && !hojaNum('efectivo') && !hojaNum('mp');
-      return Math.max(0, (soloPosnet ? pr.lista : pr.efectivo) - pagado);
+      var pr = hojaCarroPrecio(HOJA.carro), efmp = hojaNum('efectivo') + hojaNum('mp'), po = hojaNum('posnet');
+      if (!pr || !(pr.lista > 0) || efmp + po <= 0) return 0;
+      // [PAGO-MIXTO] 13-oct (opción A de Alejo): cuenta proporcional. Lo pagado con Posnet cubre su monto a precio de lista; lo pagado en Efec. / MP
+      // cubre más (lleva el 10% de los perfumes: la proporción efectivo / lista de ESTA venta). Lo que falta se muestra al precio de efectivo.
+      // Ej.: lista $100.000 (efectivo $90.000), pagó $50.000 Posnet + $40.000 efectivo → cubre 94.444 de lista → falta 5.556 → debe $5.000.
+      var factor = pr.efectivo / pr.lista;
+      var falta = pr.lista - po - (factor > 0 ? efmp / factor : efmp);
+      var debe = Math.round(falta * factor);
+      return debe >= 1 ? debe : 0;
     }
 
     // ── el teclado de números (uno solo): se estaciona en #hojaTecladoCasa y se muda a #hvTeclado (la pantalla que lo usa) o a #hojaCobroTeclado ──
