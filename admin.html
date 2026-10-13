@@ -11777,7 +11777,7 @@
         // Lista de issues
         if (r.issues.length > 0) {
           r.issues.forEach(function(issue) {
-            var issueColor = issue.type === 'critical' ? '#e74c3c' : '#f1c40f';
+            var issueColor = issue.type === 'critical' ? 'var(--tinta-error)' : 'var(--tinta-aviso)';   // [DOCTOR-LISTA-CLARO] NO ROMPER #22: con #e74c3c / #f1c40f en claro daba ~3,3 / ~1,5
             html += '<p style="font-size:.65rem;color:' + issueColor + ';padding-left:42px;margin-top:.2rem;">'
               + issue.icon + ' ' + issue.msg + '</p>';
           });
