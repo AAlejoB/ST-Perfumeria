@@ -2891,7 +2891,7 @@
             <div style="grid-column:1/-1;margin-top:.6rem;padding-top:.9rem;border-top:1px dashed rgba(232,184,0,.25);">
               <label class="modal-label" style="color:var(--amarillo-tinta);">💬 Quote del jefe — Solo en Selección ST</label>
               <p style="font-size:.6rem;color:var(--gris);margin-top:-.3rem;margin-bottom:.7rem;line-height:1.4;">
-                Mensaje corto en cursiva que aparece bajo el nombre <strong style="color:#ccc;">solo si este perfume está en la "Selección ST" (top 6) de la home</strong>. Pensalo como una mini-reseña personal ("Mi favorito para verano", "Si te gustó X, lo amás", etc.). Si queda vacío, no se muestra nada.
+                Mensaje corto en cursiva que aparece bajo el nombre <strong style="color:#ccc;">solo si este perfume sale ese día en la "Selección ST" de la home (se sortean 3 por día)</strong>. Pensalo como una mini-reseña personal ("Mi favorito para verano", "Si te gustó X, lo amás", etc.). Si queda vacío, no se muestra nada.
               </p>
               <textarea class="modal-input" id="editNotaJefe" rows="2" maxlength="180"
                 placeholder="Ej: Una vainilla cálida que dura todo el día. Mi favorito personal."
@@ -3088,7 +3088,7 @@
     </div>
 
     <!-- TAB: DESTACADOS -->
-    <div class="tab-content" id="tab-destacados">
+    <div class="tab-content" id="tab-destacados"><div id="destacadosAviso" style="background:#111;border:1px solid var(--tinta-aviso);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1rem;"><p style="font-size:.8rem;font-weight:600;color:var(--tinta-aviso);margin-bottom:.3rem;">ℹ️ La Selección ST ahora rota sola, todos los días</p><p style="font-size:.75rem;color:var(--gris-claro);line-height:1.5;max-width:640px;margin:0;">Cada día el sitio sortea entre los perfumes que tienen foto y se pueden pedir (con stock y sin pausar), y muestra 3. Lo que cargues acá <strong>ya no cambia lo que se ve</strong> (ni la lista ni el texto del badge): queda como respaldo y solo vuelve a mandar si se apaga la rotación (<code>SELECCION_ROTA</code> en <code>js/app.js</code>).</p></div>
       <!-- [SELECCION-BADGE] Texto del badge amarillo de las cards de Selección ST.
            Tabla Supabase: seleccion_st_config (single-row, id=1). Default "TOP VENTAS".
            Útil para cambiarlo en campañas: HOT SALE / NUEVO / OFERTA / 50% OFF / BLACK FRIDAY. -->

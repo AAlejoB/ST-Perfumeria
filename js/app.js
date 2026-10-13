@@ -2440,18 +2440,21 @@
     deferTask(loadCombosFromDB);
 
     // [SELECCION-ROTA] 12-oct-2026 · la Selección ST cambia sola cada SELECCION_DIAS días, sin carga a mano.
-    // Sale de los SELECCION_POOL perfumes más vistos (los mismos clicks de `perfume_clicks_resumen`) que se pueden pedir
-    // hoy (con stock, sin pausar y con foto; sin sets). De ese pozo, cada ventana de días elige SELECCION_CANTIDAD por un
-    // hash de (ventana + slug): TODOS los visitantes ven los mismos durante esos días, y si un perfume se queda sin stock
-    // sólo entra el siguiente, no se baraja todo. Dentro de la elección, el orden es por vistas (el podio #1/#2/#3).
-    // Interruptor: SELECCION_ROTA = false vuelve a la lista de la tabla `destacados` (la del panel). Sin vistas
-    // (falló la lectura) también se usa `destacados`.
+    // [SELECCION-DIARIA] 12-oct-2026 · ahora rota por DÍA y se sortea entre TODO lo que se puede pedir hoy (con stock,
+    // sin pausar y con foto; sin sets), ya no entre los más vistos. Cada día se ordena el pozo por un hash de (día + slug):
+    // TODOS los visitantes ven los mismos. Se calculan SELECCION_CANTIDAD + SELECCION_COLA y se muestran SELECCION_CANTIDAD;
+    // los de la cola son sólo slugs en memoria (sus fotos no se bajan) y entran si uno de los visibles deja de poder
+    // pedirse (stock, pausa) o si su foto da error (seleccionFotoRota, tope SELECCION_COLA cambios). Los que se vieron
+    // ayer pasan al final de la fila, así no se repiten dos días seguidos. Sin podio ni «TOP VENTAS»: no son ventas.
+    // Interruptor: SELECCION_ROTA = false vuelve a la lista de la tabla `destacados` (la del panel). Si el pozo queda
+    // vacío también se usa `destacados`.
     var SELECCION_ROTA = true;
-    var SELECCION_DIAS = 3;
-    var SELECCION_CANTIDAD = 6;
-    var SELECCION_POOL = 20;
-    var perfumeViewsListas = false;   // true cuando terminó la lectura de las vistas (bien o mal) o pasaron 8 s: antes de eso la Selección espera, para no mostrar una y cambiarla
-    setTimeout(function() { if (!perfumeViewsListas) { perfumeViewsListas = true; renderSeleccionST(); } }, 8000);
+    var SELECCION_DIAS = 1;
+    var SELECCION_CANTIDAD = 3;
+    var SELECCION_COLA = 2;
+    var seleccionListas = false;      // true cuando ya llegaron los overrides (stock/pausa): antes de eso la Selección espera, para no mostrar una y cambiarla
+    var seleccionRotas = [];          // slugs cuya foto dio error en este navegador: salen del sorteo hasta recargar
+    setTimeout(function() { if (!seleccionListas) { seleccionListas = true; renderSeleccionST(); } }, 8000);
     function seleccionVentana() {
       // Días desde 1970 según el calendario de Argentina (NO ROMPER #6: nunca toISOString, que es UTC), dividido en tandas de SELECCION_DIAS.
       var f = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date()).split('-');
@@ -2463,20 +2466,36 @@
       h ^= h >>> 16; h = Math.imul(h, 2246822507); h ^= h >>> 13; h = Math.imul(h, 3266489909); h ^= h >>> 16;
       return h >>> 0;
     }
-    function seleccionRotada() {
-      if (!Object.keys(perfumeViews || {}).length) return [];
-      var vistas = function(p) { return perfumeViews[p.slug] || 0; };
-      var pozo = PERFUMES.filter(function(p) { return sePuedePedir(p) && p.foto && !p.esSet; })
-        .sort(function(a, b) { return (vistas(b) - vistas(a)) || (a.slug < b.slug ? -1 : 1); })
-        .slice(0, SELECCION_POOL);
-      var ventana = seleccionVentana();
+    function seleccionOrden(pozo, ventana) {   // el pozo ordenado por el hash de (ventana + slug); el slug desempata
       return pozo
-        .map(function(p) { return { p: p, h: seleccionHash(ventana + ':' + p.slug) }; })
-        .sort(function(a, b) { return a.h - b.h; })
-        .slice(0, SELECCION_CANTIDAD)
-        .map(function(x) { return x.p; })
-        .sort(function(a, b) { return (vistas(b) - vistas(a)) || (a.slug < b.slug ? -1 : 1); })
-        .map(function(p) { return p.slug; });
+        .map(function(p) { return { s: p.slug, h: seleccionHash(ventana + ':' + p.slug) }; })
+        .sort(function(a, b) { return (a.h - b.h) || (a.s < b.s ? -1 : 1); })
+        .map(function(x) { return x.s; });
+    }
+    function seleccionRotada() {   // SELECCION_CANTIDAD + SELECCION_COLA slugs: los primeros SELECCION_CANTIDAD son los que se ven
+      var pozo = PERFUMES.filter(function(p) { return sePuedePedir(p) && p.foto && !p.esSet && seleccionRotas.indexOf(p.slug) === -1; });
+      var ventana = seleccionVentana();
+      var ayer = seleccionOrden(pozo, ventana - 1).slice(0, SELECCION_CANTIDAD);
+      var hoy = seleccionOrden(pozo, ventana);
+      return hoy.filter(function(s) { return ayer.indexOf(s) === -1; })
+        .concat(hoy.filter(function(s) { return ayer.indexOf(s) !== -1; }))   // los de ayer, al final de la fila
+        .slice(0, SELECCION_CANTIDAD + SELECCION_COLA);
+    }
+    function seleccionVisibles() {   // los slugs que se ven hoy en la Selección (la cinta «Elegido del día» de Similares usa lo mismo)
+      if (SELECCION_ROTA) {
+        var r = seleccionRotada();
+        if (r.length) return r.slice(0, SELECCION_CANTIDAD);
+      }
+      return TOP_VENTAS_SLUGS.slice(0, 3);
+    }
+    function seleccionFotoRota(img) {   // la foto de una card de la Selección no cargó (archivo borrado, red): entra el siguiente de la cola
+      var slug = img && img.getAttribute('data-slug');
+      if (!slug || seleccionRotas.indexOf(slug) !== -1) return;
+      var hayCola = seleccionRotas.length < SELECCION_COLA;
+      seleccionRotas.push(slug);
+      if (hayCola) { renderSeleccionST(); return; }
+      var card = img.closest('.collectible-card');   // tope: si falla el storage entero no se arma una cascada de cambios, la card sólo se esconde
+      if (card) card.style.display = 'none';
     }
 
     function renderSeleccionST() {
@@ -2484,10 +2503,11 @@
       if (!grid) return;
       var html = '';
       var lista = TOP_VENTAS_SLUGS;
+      var rotando = false;   // [SELECCION-DIARIA] con la rotación andando no hay podio ni «TOP VENTAS»: no son ventas
       if (SELECCION_ROTA) {
-        if (!perfumeViewsListas) { grid.innerHTML = ''; return; }
+        if (!seleccionListas) { grid.innerHTML = ''; return; }
         var rotada = seleccionRotada();
-        if (rotada.length) lista = rotada;
+        if (rotada.length) { lista = rotada.slice(0, SELECCION_CANTIDAD); rotando = true; }
       }
       // [SELECCION-ST-1A] Las primeras 3 cards reciben badge de podio (#1/#2/#3
       // con oro/plata/bronce). Convierte la sección en un PODIO real, no un grid
@@ -2506,11 +2526,11 @@
         if (!sePuedePedir(p)) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
         var imgHTML = p.foto
-          ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" width="300" height="300">'
+          ? '<img src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" width="300" height="300" data-slug="' + escapeHTML(slug) + '" onerror="seleccionFotoRota(this)">'
           : '<div style="color:var(--amarillo);font-size:2rem;opacity:.3;">' + escapeHTML(p.name.charAt(0)) + '</div>';
         var rankNum = ++vistos;
-        var rankClass = rankNum <= 3 ? ' has-rank rank-' + rankNum : '';
-        var rankBadge = rankNum <= 3
+        var rankClass = (!rotando && rankNum <= 3) ? ' has-rank rank-' + rankNum : '';
+        var rankBadge = (!rotando && rankNum <= 3)
           ? '<span class="rank-badge rank-' + rankNum + '" aria-label="Puesto ' + rankNum + ' del ranking">#' + rankNum + '</span>'
           : '';
         var quoteHTML = (p.nota_jefe && (p.nota_jefe + '').trim())
@@ -2523,7 +2543,7 @@
             + '<div class="collectible-info">'
               + '<p class="collectible-name">' + escapeHTML(p.name) + '</p>'
               + quoteHTML
-              + '<span class="collectible-badge">' + escapeHTML(SELECCION_BADGE_TEXT) + '</span>'
+              + (rotando ? '' : '<span class="collectible-badge">' + escapeHTML(SELECCION_BADGE_TEXT) + '</span>')
             + '</div>'
           + '</div>'
         + '</div>';
@@ -2747,7 +2767,7 @@
     //   - 🏆 Mejor match: solo el #1 absoluto de la lista
     //   - 💎 Misma casa: marca_real coincide con el anchor
     //   - 🎯 Mismo perfil: perfil coincide Y pct ≥ 75 ("condición fuerte")
-    //   - 🔥 El más elegido: está en TOP_VENTAS_SLUGS[0..2]
+    //   - 🔥 Elegido del día: está entre los que se ven hoy en la Selección ST (seleccionVisibles)
     //   - Max 2 badges por item · prioridad: best > elegido > casa > perfil
     // ────────────────────────────────────────────────────────────────
 
@@ -2786,9 +2806,9 @@
       if (isBest) {
         badges.push({ ico: '🏆', label: 'Mejor match', cls: 'b-best' });
       }
-      // 🔥 El más elegido — top 3 ventas del mes (TOP_VENTAS_SLUGS)
+      // 🔥 Elegido del día — los 3 de la Selección ST de hoy (seleccionVisibles)
       if (topElegidosSlugs && topElegidosSlugs.indexOf(similarPerfume.slug) !== -1) {
-        badges.push({ ico: '🔥', label: 'El más elegido', cls: 'b-elegido' });
+        badges.push({ ico: '🔥', label: 'Elegido del día', cls: 'b-elegido' });
       }
       // 💎 Misma casa — marca_real coincide
       if (similarPerfume.marca_real && anchorPerfume.marca_real &&
@@ -3045,8 +3065,8 @@
       // [SIMILARES-C+D+A] Top 3 ventas para badge "🔥 El más elegido".
       // Si TOP_VENTAS_SLUGS está cargado desde Supabase usamos los primeros 3,
       // sino default seguro vacío (sin badge "más elegido").
-      var topElegidos = (typeof TOP_VENTAS_SLUGS !== 'undefined' && Array.isArray(TOP_VENTAS_SLUGS))
-        ? TOP_VENTAS_SLUGS.slice(0, 3) : [];
+      // [SELECCION-DIARIA] ahora son los que se ven hoy en la Selección (seleccionVisibles), no los de la tabla `destacados`.
+      var topElegidos = seleccionListas ? seleccionVisibles() : [];
 
       // [SIMILARES-C+D+A] El "mejor match" (badge 🏆) es:
       //   - El primer manual si hay (el equipo lo destacó manualmente)
@@ -3545,6 +3565,7 @@
       // Cada paso aislado: si falla uno, los demás siguen funcionando.
       try { applyCardVisibility(); } catch(e) { console.warn('[renderCatalog] applyCardVisibility:', e); }
       try { updateFavBadge(); }      catch(e) { console.warn('[renderCatalog] updateFavBadge:', e); }
+      seleccionListas = true;   // [SELECCION-DIARIA] ya hay overrides (stock/pausa) o el seed: la Selección puede salir
       try { renderSeleccionST(); }   catch(e) { console.warn('[renderCatalog] renderSeleccionST:', e); }
       try { renderSets(); }          catch(e) { console.warn('[renderCatalog] renderSets:', e); }
       try { renderNoteFilters(); }   catch(e) { console.warn('[renderCatalog] renderNoteFilters:', e); }
@@ -5569,7 +5590,6 @@
         loadPerfumeViews().then(function() {
           // [LCP-VISTAS-SIN-RENDER] sólo la etiqueta de vistas de las cards que ya están (antes: otro renderCatalog() entero)
           actualizarVistasEnCards();
-          perfumeViewsListas = true; renderSeleccionST();   // [SELECCION-ROTA] con las vistas ya cargadas sale la Selección
         });
       });
     }).catch(function(err) {
