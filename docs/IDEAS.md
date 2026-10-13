@@ -3,7 +3,9 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
-## [CAJA-CUADERNO] · 💡 idea · 12-oct-2026
+## [CAJA-CUADERNO] · ❌ descartada · 12-oct-2026
+
+> **❌ Descartada el 12-oct (Alejo, ya anotada la ficha):** no hace falta. En unos días ST se muda al sistema de admin nuevo (plataforma-saas, la caja nueva) que **ya trae punto de venta para cobrar ahí mismo**. Esta ficha queda como registro de cómo anotan hoy las chicas en papel (para cuando se cargue el POS nuevo: un pago puede cubrir varios perfumes, la seña es un renglón aparte, los decants van como «N decants», el precio casi no se anota).
 
 **En palabras de Alejo:** «El punto de venta, pero más resumido: los chicos usan un papel donde anotan fecha, detalle del producto, precio, efectivo, MP y Posnet (el precio no lo suelen anotar). Es un resumen diario, paso a paso, para tenerlo en el momento. Si lo ves piola, lo codificamos después de lo de arriba. Que sea ágil para ellos: no sé si se puede un apartado, incluso sin necesidad de que estén con la pantalla del admin empleado ahí abierta todo el tiempo.» (foto de la hoja: `1d1cd7eb-77af-4d49-91a7-ec98d68f9af3.jpg`, en la raíz del repo, sin commitear).
 **Qué es:** un cuaderno de caja digital que copia la hoja: **un renglón por movimiento de plata** (fecha y hora de Argentina automáticas, detalle en texto libre, monto y medio de pago: Efectivo / MP (transferencia) / Posnet). El total del día por medio sale solo. **No toca el stock** en la primera versión.
