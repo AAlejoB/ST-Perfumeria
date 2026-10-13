@@ -3,6 +3,16 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
+## [PANEL-SIN-CONEXION] · 💡 idea · 13-oct-2026
+
+**En palabras de Alejo:** «que los chicos dentro del panel, una vez que no tengan internet, una vez que se corte la luz, que se les guarde y después se le sobreescriba con el que ya tienen cuando vuelva la luz […] que dure lo que tenga que durar […] y que solamente se active cuando tarda sin internet durante no sé, 20 minutos». Cuando vuelve la conexión **gana lo que anotaron las chicas**, y es **para este sistema** (el panel de acá, no el nuevo).
+**Qué es:** lo que no se puede guardar por falta de red queda en la tablet (cola) y se sube solo al volver, aunque el corte dure horas. **Lo que agrego yo:** que la cola se use siempre que un guardado falle, y que los ~20 min (regulables) sean sólo para el cartel grande «Modo sin conexión». «Gana lo de las chicas» = se SUMA a lo que hay en la base, no lo pisa.
+**Hechos del repo:** (1) hoy no existe: sin red el panel avisa «Sin conexión…» y no guarda; `onOffline`/`onOnline` (`admin.html` ~L11821) sólo apagan y prenden el tiempo real. (2) La hoja de caja inserta renglones (`caja_movimientos.insert`, `admin.html` ~L14295): fácil de encolar. (3) El stock se guarda como número final (`stockMover` ~L7817, SINCRO con `saveStock`/`saveDeposito`, NO ROMPER #30 j-k): sin conexión hay que mandarlo como movimiento (−1 / +N, una función de la base que reste o sume), si no dos tablets se pisan. Datos de Supabase siempre por red (`sw.js`): para abrir el panel sin red, `admin.html` tiene que estar en caché (hoy sólo si ya se abrió).
+**Tamaño:** L — cola + SQL nuevo + varias pantallas.
+**Le toca primero a:** 🧑 Alejo — qué entra (¿sólo la hoja y «Llegaron/Vendí», o también Editar, precios, espera?) y el «Cierre del día» sin conexión (NO ROMPER #31 a: lo baja una función de la base; ¿se deja para cuando vuelva?).
+
+> **🧑 Para Alejo (decidís vos):** el panel de acá vive hasta ~26-oct (mudanza a plataforma-saas): esto lleva 1-2 tandas para ~2 semanas de uso. Ya elegiste hacerlo igual (13-oct).
+
 ## [LEGAL-ANTES-DE-SIPAGO] · 💡 idea · 12-oct-2026
 
 > **Prioridad baja (Alejo, 12-oct):** no darle mucha importancia por ahora. Puede que ni haga falta hacerlo en este repo: el proyecto nuevo armado de cero por Lautaro (plataforma-saas) ya resolvió SiPago y quizá también esto. Antes de arrancar, mirar qué trae ese proyecto. Las páginas legales del sitio de hoy se necesitan igual mientras siga en producción.
