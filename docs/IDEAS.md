@@ -3,7 +3,7 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
-## [PANEL-SIN-CONEXION] · 🔨 en curso (paso 1 hecho en la rama `panel-prolijo`, SW v1.1.224) · 13-oct-2026
+## [PANEL-SIN-CONEXION] · 🔨 en curso (pasos 1 y 2 hechos en la rama `panel-prolijo`, SW v1.1.224; falta abrir el panel sin internet) · 13-oct-2026
 
 **En palabras de Alejo:** «que los chicos dentro del panel, una vez que no tengan internet, una vez que se corte la luz, que se les guarde y después se le sobreescriba con el que ya tienen cuando vuelva la luz […] que dure lo que tenga que durar […] y que solamente se active cuando tarda sin internet durante no sé, 20 minutos». Cuando vuelve la conexión **gana lo que anotaron las chicas**, y es **para este sistema** (el panel de acá, no el nuevo).
 **Qué es:** lo que no se puede guardar por falta de red queda en la tablet (cola) y se sube solo al volver, aunque el corte dure horas. **Lo que agrego yo:** que la cola se use siempre que un guardado falle, y que los ~20 min (regulables) sean sólo para el cartel grande «Modo sin conexión». «Gana lo de las chicas» = se SUMA a lo que hay en la base, no lo pisa.

@@ -4771,13 +4771,16 @@
             email = sessRes.data.session.user.email;
           }
         } catch(_){}
-        await sb.from('admin_actions').insert({
+        var fila = {
           actor_email: email,
           actor_role: currentRole || 'admin',
           action: action,
           target_slug: target_slug || null,
           changes: changes || null
-        });
+        };
+        var r = await sb.from('admin_actions').insert(fila);
+        // [PANEL-SIN-CONEXION] sin red, el renglón del Log espera en la tablet y sube callado (no cuenta en el cartel)
+        if (r && r.error && typeof colaEsDeRed === 'function' && colaEsDeRed(r.error)) colaAgregar({ tipo: 'log', fila: fila, desc: action });
       } catch (e) {
         // El log es secundario. Nunca abortamos la accion real.
         console.warn('[audit log] fallo registrando', action, e);
@@ -4797,7 +4800,9 @@
     var SIN_RED_CARTEL_MIN = 20;   // a los N minutos sin internet sale el cartel grande (Alejo: «no sé, 20 minutos»; regulable)
     var COLA_MS = 12000;           // un guardado que tarda más que esto cuenta como «sin red»: con el router prendido y sin internet, el pedido cuelga
     var COLA_PROBAR_MS = 30000;    // cada cuánto se reintenta mientras haya algo guardado o falte la red
-    var COLA = { subiendo: false, timer: null, sinRedDesde: null, memoria: null, abierta: false };
+    var COLA = { subiendo: false, timer: null, sinRedDesde: null, memoria: null, abierta: false, avisos: [] };
+    // Lo que el cartel cuenta y lista: los renglones del Log que quedaron en la cola (tipo 'log') suben callados, no son «cosas» de las chicas.
+    function colaVisibles(lista) { return (lista || colaLeer()).filter(function(x) { return x.tipo !== 'log'; }); }
 
     function colaLeer() {
       if (COLA.memoria) return COLA.memoria.slice();
@@ -4853,6 +4858,8 @@
         return r;
       }
       if (it.tipo === 'espera') return colaConTope(function() { return sb.from('lista_espera').insert(it.fila); });
+      if (it.tipo === 'stock') return stockRpc(it.args);   // [PANEL-SIN-CONEXION] paso 2: el mismo p_id → la base no lo aplica dos veces
+      if (it.tipo === 'log') return colaConTope(function() { return sb.from('admin_actions').insert(it.fila); });
       return { error: { message: 'tipo desconocido: ' + it.tipo } };
     }
     // Sube lo guardado, de a uno y en orden. Para al primer error de red (vuelve a probar sola); un error de otra clase deja ese
@@ -4878,6 +4885,7 @@
             if (!r.error) {
               subidos[it.tipo] = (subidos[it.tipo] || 0) + 1;
               if (it.tipo === 'caja') logAdminAction('hoja_alta', null, Object.assign(hojaLogDatos(it.fila), { sin_conexion: true, anotado_en: it.cuando }));
+              if (it.tipo === 'stock') await stockSubido(it, r.data);
             }
             var hoy = colaLeer().filter(function(x) { return x.k !== it.k; });
             colaGuardar(hoy);
@@ -4887,6 +4895,7 @@
           if (colaEsSesion(r.error)) { COLA.sesion = true; break; }   // se sube cuando vuelvan a entrar
           colaConRed();   // la base contestó: hay internet, el problema es otro
           console.warn('[cola] no se pudo subir', it, r.error);
+          if (it.tipo === 'log') { colaGuardar(colaLeer().filter(function(x) { return x.k !== it.k; })); continue; }
           var conMotivo = colaLeer().map(function(x) { if (x.k === it.k) x.trabado = errorEnCriollo(r.error, null, 'subir lo guardado'); return x; });
           colaGuardar(conMotivo);
         }
@@ -4919,7 +4928,7 @@
       colaSubir();
     }
     function colaAntesDeSalir() {   // lo guardado no se pierde al salir (queda en la tablet y sube al volver a entrar), pero se avisa
-      var n = colaLeer().length; if (!n) return true;
+      var n = colaVisibles().length; if (!n) return true;
       return confirm('Hay ' + (n === 1 ? '1 cosa guardada' : n + ' cosas guardadas') + ' en esta tablet que todavía no subieron.\n\nSi cerrás la sesión quedan guardadas acá y suben cuando alguien vuelva a entrar en ESTA tablet. ¿Cerrar igual?');
     }
     function colaQuitar(k) {
@@ -4939,16 +4948,16 @@
     // El cartel: chico mientras haya algo guardado o falte la red; grande a los SIN_RED_CARTEL_MIN minutos sin internet.
     function colaPintar() {
       var el = document.getElementById('colaAviso'); if (!el) return;
-      var lista = colaLeer(), trabados = lista.filter(function(x) { return x.trabado; }), n = lista.length - trabados.length;
+      var lista = colaVisibles(), trabados = lista.filter(function(x) { return x.trabado; }), n = lista.length - trabados.length;
       var min = COLA.sinRedDesde ? Math.floor((Date.now() - COLA.sinRedDesde) / 60000) : 0;
-      if (!currentRole || (!lista.length && !COLA.sinRedDesde)) { el.hidden = true; el.innerHTML = ''; return; }
+      if (!currentRole || (!lista.length && !COLA.sinRedDesde && !COLA.avisos.length)) { el.hidden = true; el.innerHTML = ''; return; }
       var grande = !!COLA.sinRedDesde && min >= SIN_RED_CARTEL_MIN;
       var cosas = function(k) { return k === 1 ? '1 cosa' : k + ' cosas'; };
       var titulo, sub = '';
       if (COLA.subiendo) titulo = 'Subiendo ' + cosas(n) + (n === 1 ? ' guardada' : ' guardadas') + ' en esta tablet…';
       else if (COLA.sinRedDesde) {
         titulo = grande ? 'Modo sin conexión · hace ' + (min >= 120 ? Math.floor(min / 60) + ' h' : min + ' min') + ' que no hay internet' : 'Sin internet';
-        sub = n ? cosas(n) + ' ' + (n === 1 ? 'quedó guardada en esta tablet: se sube sola' : 'quedaron guardadas en esta tablet: se suben solas') + ' cuando vuelva.' : 'Lo que anotes en la hoja o en la lista de espera queda guardado en esta tablet y se sube solo cuando vuelva.';
+        sub = n ? cosas(n) + ' ' + (n === 1 ? 'quedó guardada en esta tablet: se sube sola' : 'quedaron guardadas en esta tablet: se suben solas') + ' cuando vuelva.' : 'Lo que anotes (la hoja, la lista de espera y el stock) queda guardado en esta tablet y se sube solo cuando vuelva.';
         if (grande) sub += ' Seguí anotando normal. No cierres la sesión ni borres los datos del navegador.';
       } else if (COLA.sesion) { titulo = 'Hay ' + cosas(n) + (n === 1 ? ' guardada' : ' guardadas') + ' en esta tablet'; sub = 'Se venció la sesión: volvé a entrar y ' + (n === 1 ? 'se sube sola.' : 'se suben solas.'); }
       else if (n) { titulo = 'Hay ' + cosas(n) + (n === 1 ? ' guardada' : ' guardadas') + ' en esta tablet'; sub = n === 1 ? 'Se sube sola en un momento.' : 'Se suben solas en un momento.'; }
@@ -4960,9 +4969,11 @@
       if (trabados.length) h += '<div class="cola-cab cola-cab--error"><span class="cola-ico" aria-hidden="true">⚠️</span><div class="cola-txt"><b>' + (trabados.length === 1 ? '1 cosa no se pudo subir' : trabados.length + ' cosas no se pudieron subir') + '</b><small>No es por internet: mirá el motivo abajo y avisale a Alejo.</small></div>'
         + (COLA.abierta ? '' : '<button type="button" class="cola-btn" onclick="COLA.abierta = true; colaPintar()">Ver</button>') + '<button type="button" class="cola-btn" onclick="colaReintentar()">Reintentar</button></div>';
       if (COLA.abierta && lista.length) h += '<ul class="cola-lista">' + lista.map(function(x) {
-        return '<li><span><b>' + escHtml(x.tipo === 'caja' ? 'Hoja' : 'Lista de espera') + ' · ' + escHtml(x.desc || '') + '</b><small>' + escHtml(colaCuando(x.cuando)) + (x.trabado ? ' · ' + escHtml(x.trabado) : ' · esperando para subir') + '</small></span>'
+        return '<li><span><b>' + escHtml(x.tipo === 'caja' ? 'Hoja' : (x.tipo === 'stock' ? 'Stock' : 'Lista de espera')) + ' · ' + escHtml(x.desc || '') + '</b><small>' + escHtml(colaCuando(x.cuando)) + (x.trabado ? ' · ' + escHtml(x.trabado) : ' · esperando para subir') + '</small></span>'
           + (x.trabado ? '<button type="button" class="cola-btn" onclick="colaQuitar(' + escHtml(JSON.stringify(String(x.k))) + ')">Sacar</button>' : '') + '</li>';
       }).join('') + '</ul>';
+      if (COLA.avisos.length) h += '<div class="cola-cab cola-cab--error"><span class="cola-ico" aria-hidden="true">📦</span><div class="cola-txt"><b>Stock que subió con un ajuste</b><small>'
+        + COLA.avisos.map(escHtml).join('<br>') + '</small></div><button type="button" class="cola-btn" onclick="COLA.avisos = []; colaPintar()">Entendido</button></div>';
       if (COLA.memoria) h += '<p class="cola-nota">⚠️ Esta tablet no deja guardar en el navegador: lo guardado vive sólo en esta pestaña. No la cierres ni recargues.</p>';
       el.className = 'cola-aviso' + (grande ? ' cola-aviso--grande' : '') + (trabados.length ? ' cola-aviso--error' : '');
       el.innerHTML = h;
@@ -6052,9 +6063,21 @@
       }
 
       btn.disabled = true;
-      var res = await sb.from('perfume_overrides').upsert(payload, { onConflict: 'slug' });
+      // [PANEL-SIN-CONEXION] paso 2: sin red, la diferencia va a la cola como movimiento (con «pasan al local» si corresponde)
+      var res = COLA.sinRedDesde ? { error: { message: 'sin red (ya se sabía)' }, yaSinRed: true } : await colaConTope(function() { return sb.from('perfume_overrides').upsert(payload, { onConflict: 'slug' }); });
       btn.disabled = false;
 
+      if (res.error && (res.yaSinRed || colaEsDeRed(res.error))) {
+        var difDep = qty - prev;
+        if (!difDep) { msgEl.textContent = 'Sin cambios: no hay nada para guardar.'; msgEl.style.color = 'var(--tinta-aviso)'; return; }
+        if (Math.abs(difDep) > 999) { msgEl.textContent = 'Sin internet no se puede cambiar más de 999 de una vez.'; msgEl.style.color = 'var(--tinta-error)'; return; }
+        var enTabletDep = stockEncolar(p, { p_id: hojaUUID(), p_slug: editingDepSlug, p_lugar: 'deposito', p_delta: difDep, p_pasan: sumar, p_origen: 'panel' },
+          'Depósito: ' + prev + ' → ' + qty + (sumar ? ' · +' + movidas + ' al local' : ''));
+        if (res.yaSinRed) setTimeout(colaSubir, 0);
+        msgEl.textContent = enTabletDep.texto; msgEl.style.color = 'var(--tinta-aviso)';
+        setTimeout(function() { closeModal('modalDeposito'); }, 2500);
+        return;
+      }
       if (res.error) {
         msgEl.style.color = 'var(--tinta-error)';
         msgEl.textContent = errorEnCriollo(res.error, null, 'cambiar el stock del depósito', true);   // 128h · «Guardar»
@@ -7565,11 +7588,24 @@
       var prevStatus = p._stockStatus || 'ok';
       var prevQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
 
-      var result = await sb.from('perfume_overrides').upsert(
+      // [PANEL-SIN-CONEXION] paso 2: con red, el número final como siempre; sin red, la DIFERENCIA con lo que mostraba la tablet va a la
+      // cola como movimiento (stockEncolar → stock_mover): al volver se suma a lo que haya, no lo pisa.
+      var result = COLA.sinRedDesde ? { error: { message: 'sin red (ya se sabía)' }, yaSinRed: true } : await colaConTope(function() { return sb.from('perfume_overrides').upsert(
         { slug: editingSlug, stock_status: newStatus, stock_qty: qty },
         { onConflict: 'slug' }
-      );
+      ); });
 
+      if (result.error && (result.yaSinRed || colaEsDeRed(result.error))) {
+        var dif = qty - (prevQty === null ? 0 : prevQty), cambiaPausa = paused !== (prevStatus === 'pausado');
+        if (!dif && !cambiaPausa) { msgEl.textContent = 'Sin cambios: no hay nada para guardar.'; msgEl.style.color = 'var(--tinta-aviso)'; return; }
+        if (Math.abs(dif) > 999) { msgEl.textContent = 'Sin internet no se puede cambiar más de 999 de una vez.'; msgEl.style.color = 'var(--tinta-error)'; return; }
+        var enTablet = stockEncolar(p, { p_id: hojaUUID(), p_slug: editingSlug, p_lugar: 'local', p_delta: dif, p_pasan: false, p_origen: 'panel', p_pausado: cambiaPausa ? paused : null },
+          'Stock del local: ' + (prevQty === null ? '—' : prevQty) + ' → ' + qty + (cambiaPausa ? (paused ? ' (pausado)' : ' (despausado)') : ''));
+        if (result.yaSinRed) setTimeout(colaSubir, 0);
+        msgEl.textContent = enTablet.texto; msgEl.style.color = 'var(--tinta-aviso)';
+        setTimeout(function() { closeModal('modalStock'); }, 2500);
+        return;
+      }
       if (result.error) {
         msgEl.textContent = errorEnCriollo(result.error, null, 'cambiar el stock');   // 128h
         msgEl.style.color = 'var(--tinta-error)';
@@ -8029,59 +8065,112 @@
       }
     }
     // Núcleo del movimiento de stock: lo usan la hoja «Llegaron / Vendí» y el modo «Llegó mercadería». Devuelve
-    // { ok: true, texto, prevStatus, newStatus, cambioLocal } o { ok: false, texto, tipo: 'error' | 'aviso' }. No toca la pantalla del que llama.
-    // SINCRO: es copia del núcleo de saveStock y saveDeposito (si cambiás uno, cambiá el otro).
+    // { ok: true, texto, prevStatus, newStatus, cambioLocal, tablet? } o { ok: false, texto, tipo: 'error' | 'aviso' }. No toca la pantalla del que llama.
+    // [PANEL-SIN-CONEXION] paso 2 (13-oct): escribe por stock_mover (sql/stock_mover.sql) como MOVIMIENTO (+N / −N) sobre lo que hay AHORA
+    // en la base, que además deja el Log (stock_update / deposito_update): el panel ya no escribe el número final ni el Log del stock.
+    // Los chequeos de antes (no baja de 0, no pasa de 999, sin dato no resta) se hacen primero con la memoria, con los mismos textos, y la
+    // base los repite (p_estricto: con red no toca nada si no alcanza). Sin red el movimiento queda en la tablet (cola, tipo 'stock') y
+    // la pantalla ya muestra el número nuevo; al subir, la base lo aplica «hasta donde alcanza» (gana lo que anotaron las chicas: se suma).
+    // SINCRO: la regla del estado es la de deriveStockInfo y _caja_estado_stock; saveStock y saveDeposito (los modales) siguen con el
+    // número final cuando hay red y, sin red, encolan la diferencia por acá (stockEncolar).
+    function stockTexto(lugar, signo, n, prev, nuevo, pasa, prevLocal, newLocal) {
+      if (lugar === 'deposito') return signo > 0 ? (n === 1 ? '✓ Llegó 1 al depósito: ' : '✓ Llegaron ' + n + ' al depósito: ') + prev + ' → ' + nuevo
+        : (n === 1 ? '✓ Salió 1 del depósito: ' : '✓ Salieron ' + n + ' del depósito: ') + prev + ' → ' + nuevo + (pasa ? ' · +' + n + ' al local: ' + prevLocal + ' → ' + newLocal : '');
+      return (signo > 0 ? (n === 1 ? '✓ Llegó 1 al local: ' : '✓ Llegaron ' + n + ' al local: ') : (n === 1 ? '✓ Se restó 1 del local: ' : '✓ Se restaron ' + n + ' del local: ')) + prev + ' → ' + nuevo;
+    }
+    function stockRpc(args) { return colaConTope(function() { return sb.rpc('stock_mover', args); }); }
+    // Lo que dice la base se copia a la memoria del panel (puede no ser lo que la tablet creía: otra tablet pudo mover antes).
+    function stockAplicarRes(p, res) {
+      if (!p || !res) return;
+      var l = res.local, d = res.deposito;
+      if (l && typeof l.new === 'number') { p._stockQty = l.new; if (l.status_new) p._stockStatus = l.status_new; }
+      else if (l && typeof l.prev === 'number') { p._stockQty = l.prev; if (l.status_prev) p._stockStatus = l.status_prev; }
+      if (d && typeof d.new === 'number') p._stockDeposito = d.new;
+      else if (d && typeof d.prev === 'number') p._stockDeposito = d.prev;
+    }
+    function stockPintar(p) {
+      lastLocalUpsert = { slug: p.slug, at: Date.now() };   // anti-echo del watchdog
+      try { renderPrecios(); renderDeposito(); } catch (e) {}
+      try { renderStock && renderStock(); } catch (e) {}
+    }
+    // Sin red: el movimiento va a la cola (con el MISMO id si ya se intentó: si había llegado, la base no lo aplica dos veces) y la
+    // memoria del panel muestra el resultado que espera la tablet (sin pasar de 0 ni de 999). Al subir, manda lo que dice la base.
+    function stockEncolar(p, args, txt) {
+      args.p_estricto = false; args.p_anotado_en = new Date().toISOString();
+      var lugar = args.p_lugar, delta = args.p_delta, lim = function(x) { return Math.max(0, Math.min(999, x)); };
+      var prevSt = p._stockStatus || 'ok', prevQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      if (lugar === 'local') {
+        if (delta !== 0 && !(prevQty === null && delta < 0)) p._stockQty = lim((prevQty || 0) + delta);
+        var pausa = args.p_pausado === true ? 'pausado' : (args.p_pausado === false ? null : (prevSt === 'pausado' ? 'pausado' : null));
+        if (typeof p._stockQty === 'number') p._stockStatus = deriveStockInfo({ _stockQty: p._stockQty, _stockStatus: pausa }).status;
+        else if (args.p_pausado !== null && args.p_pausado !== undefined) p._stockStatus = args.p_pausado ? 'pausado' : 'ok';
+      } else {
+        var prevDep = depQty(p), nuevoDep = lim(prevDep + delta), movido = args.p_pasan ? Math.max(prevDep - nuevoDep, 0) : 0;
+        p._stockDeposito = nuevoDep;
+        if (movido) { p._stockQty = lim((prevQty || 0) + movido); p._stockStatus = deriveStockInfo({ _stockQty: p._stockQty, _stockStatus: prevSt === 'pausado' ? 'pausado' : null }).status; }
+      }
+      var signo = delta > 0 ? '+' + delta : String(delta);
+      colaAgregar({ tipo: 'stock', args: args, slug: p.slug,
+        desc: p.name + ' · ' + (lugar === 'deposito' ? 'depósito ' : 'local ') + (delta ? signo : '') + (args.p_pausado === true ? ' (pausado)' : (args.p_pausado === false ? ' (despausado)' : '')) + (args.p_pasan ? ' (pasan al local)' : '') });
+      stockPintar(p);
+      // prevStatus = newStatus: el aviso a la lista de espera sale cuando sube (stockSubido), no ahora (sin red no se puede leer la lista)
+      return { ok: true, tablet: true, texto: '📴 Sin internet: quedó guardado en esta tablet y se sube solo · ' + String(txt || '').replace(/^✓ /, ''), prevStatus: p._stockStatus, newStatus: p._stockStatus, cambioLocal: false };
+    }
+    // Lo que subió de la cola: la memoria toma lo que dice la base; si un perfume sin stock vuelve a tener, la lista de espera se entera.
+    async function stockSubido(it, res) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === (it.slug || (it.args && it.args.p_slug)); });
+      if (!p || !res || res.ya_estaba) return;
+      stockAplicarRes(p, res);
+      stockPintar(p);
+      if (res.parcial || res.ok === false) COLA.avisos.push(p.name + ': ' + (res.ok === false ? 'no había dato del stock del local, no se restó nada' : (it.args.p_lugar === 'deposito' ? 'el depósito' : 'el local') + ' no alcanzaba, quedó en ' + (it.args.p_lugar === 'deposito' ? res.deposito.new : res.local.new)) + ' (anotado ' + colaCuando(it.cuando) + ').');
+      var l = res.local;
+      if (l && (l.status_prev === 'out' || l.status_prev === 'pausado') && (l.status_new === 'ok' || l.status_new === 'low')) {
+        try { await autoNotifyWaitlist(p.slug); } catch (e) {}
+      }
+    }
     async function stockMover(p, lugar, signo, n, pasan) {
       function err(texto, tipo) { return { ok: false, texto: texto, tipo: tipo || 'error' }; }
-      var r;
+      var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : null, prevSt = p._stockStatus || 'ok';
+      var prevDep = depQty(p), pasa = lugar === 'deposito' && signo < 0 && !!pasan, txt;
       if (lugar === 'deposito') {
-        var prev = depQty(p), nuevo = prev + signo * n;
-        if (nuevo < 0) return err('Solo hay ' + prev + ' en el depósito: no se restó nada.');
-        if (nuevo > 999) return err('Pasa de 999 en el depósito: revisá la cantidad.');
-        var pasa = signo < 0 && !!pasan;   // lo que baja del depósito sube al local, salvo que no lo pidan (DEP-SUMAR)
-        var payload = { slug: p.slug, stock_deposito: nuevo };
-        var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : 0, prevStatus = p._stockStatus || 'ok', newLocal = prevLocal, newStatus = prevStatus;
-        if (pasa) {
-          newLocal = prevLocal + n;
-          if (newLocal > 999) return err('Pasa de 999 en el local: revisá la cantidad.');
-          newStatus = deriveStockInfo({ _stockQty: newLocal, _stockStatus: prevStatus === 'pausado' ? 'pausado' : null }).status;
-          payload.stock_qty = newLocal; payload.stock_status = newStatus;
-        }
-        try { r = await sb.from('perfume_overrides').upsert(payload, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
-        if (r.error) return err(errorEnCriollo(r.error, null, 'cambiar el stock del depósito'));
-        p._stockDeposito = nuevo;
-        logAdminAction('deposito_update', p.slug, { stock_deposito: { old: prev, new: nuevo } });
-        if (pasa) {
-          p._stockQty = newLocal; p._stockStatus = newStatus;
-          lastLocalUpsert = { slug: p.slug, at: Date.now() };
-          logAdminAction('stock_update', p.slug, { stock_qty: { old: prevLocal, new: newLocal }, stock_status: { old: prevStatus, new: newStatus } });
-          try { renderStock && renderStock(); } catch (e) {}
-        }
-        renderPrecios(); renderDeposito();
-        var txtD = signo > 0 ? (n === 1 ? '✓ Llegó 1 al depósito: ' : '✓ Llegaron ' + n + ' al depósito: ') + prev + ' → ' + nuevo
-          : (n === 1 ? '✓ Salió 1 del depósito: ' : '✓ Salieron ' + n + ' del depósito: ') + prev + ' → ' + nuevo + (pasa ? ' · +' + n + ' al local: ' + prevLocal + ' → ' + newLocal : '');
-        return { ok: true, texto: txtD, prevStatus: prevStatus, newStatus: newStatus, cambioLocal: pasa };
+        var nuevoDep = prevDep + signo * n;
+        if (nuevoDep < 0) return err('Solo hay ' + prevDep + ' en el depósito: no se restó nada.');
+        if (nuevoDep > 999) return err('Pasa de 999 en el depósito: revisá la cantidad.');
+        if (pasa && (prevLocal || 0) + n > 999) return err('Pasa de 999 en el local: revisá la cantidad.');
+        txt = stockTexto('deposito', signo, n, prevDep, nuevoDep, pasa, prevLocal || 0, (prevLocal || 0) + n);
+      } else {
+        if (signo < 0 && prevLocal === null) return err('No hay dato del stock del local: cargá la cantidad en «Stock del local».', 'aviso');
+        var base = prevLocal === null ? 0 : prevLocal, nuevoL = base + signo * n;
+        if (nuevoL < 0) return err('Solo hay ' + base + ' en el local: no se restó nada.');
+        if (nuevoL > 999) return err('Pasa de 999 en el local: revisá la cantidad.');
+        txt = stockTexto('local', signo, n, base, nuevoL);
       }
-      var prevQty = (typeof p._stockQty === 'number') ? p._stockQty : null;
-      var prevSt = p._stockStatus || 'ok';
-      if (signo < 0 && prevQty === null) return err('No hay dato del stock del local: cargá la cantidad en «Stock del local».', 'aviso');
-      var base = (prevQty === null ? 0 : prevQty), nuevoL = base + signo * n;
-      if (nuevoL < 0) return err('Solo hay ' + base + ' en el local: no se restó nada.');
-      if (nuevoL > 999) return err('Pasa de 999 en el local: revisá la cantidad.');
-      var info = deriveStockInfo({ _stockQty: nuevoL, _stockStatus: prevSt === 'pausado' ? 'pausado' : null });
-      try { r = await sb.from('perfume_overrides').upsert({ slug: p.slug, stock_status: info.status, stock_qty: nuevoL }, { onConflict: 'slug' }); } catch (e) { r = { error: e }; }
-      if (r.error) return err(errorEnCriollo(r.error, null, 'cambiar el stock'));
-      lastLocalUpsert = { slug: p.slug, at: Date.now() };
-      logAdminAction('stock_update', p.slug, { stock_status: { old: prevSt, new: info.status }, stock_qty: { old: prevQty, new: nuevoL } });
-      p._stockStatus = info.status; p._stockQty = nuevoL;
-      renderPrecios(); renderDeposito();
-      var txt = (signo > 0 ? (n === 1 ? '✓ Llegó 1 al local: ' : '✓ Llegaron ' + n + ' al local: ') : (n === 1 ? '✓ Se restó 1 del local: ' : '✓ Se restaron ' + n + ' del local: ')) + base + ' → ' + nuevoL;
-      return { ok: true, texto: txt, prevStatus: prevSt, newStatus: info.status, cambioLocal: true };
+      var args = { p_id: hojaUUID(), p_slug: p.slug, p_lugar: lugar, p_delta: signo * n, p_pasan: pasa, p_estricto: true, p_origen: 'panel' };
+      var r = COLA.sinRedDesde ? { error: { message: 'sin red (ya se sabía)' }, yaSinRed: true } : await stockRpc(args);
+      if (r.error && (r.yaSinRed || colaEsDeRed(r.error))) {
+        var t = stockEncolar(p, args, txt);
+        if (r.yaSinRed) setTimeout(colaSubir, 0);
+        return t;
+      }
+      if (r.error) return err(errorEnCriollo(r.error, null, lugar === 'deposito' ? 'cambiar el stock del depósito' : 'cambiar el stock'));
+      colaConRed();
+      var res = r.data || {};
+      stockAplicarRes(p, res);
+      if (!res.ok) {   // la base tenía otra cosa (otra tablet movió antes): no tocó nada, y la pantalla ya muestra lo de la base
+        stockPintar(p);
+        if (res.motivo === 'sin_dato') return err('No hay dato del stock del local: cargá la cantidad en «Stock del local».', 'aviso');
+        if (res.motivo === 'no_alcanza') return err('Solo hay ' + (lugar === 'deposito' ? res.deposito.prev + ' en el depósito' : res.local.prev + ' en el local') + ': no se restó nada.');
+        return err('Pasa de 999' + (res.motivo === 'tope_local' || lugar === 'local' ? ' en el local' : ' en el depósito') + ': revisá la cantidad.');
+      }
+      stockPintar(p);
+      var l = res.local, d = res.deposito;
+      txt = lugar === 'deposito' ? stockTexto('deposito', signo, n, d.prev, d.new, !!l, l ? (l.prev || 0) : 0, l ? l.new : 0) : stockTexto('local', signo, n, l.prev === null ? 0 : l.prev, l.new);
+      return { ok: true, texto: txt, prevStatus: l ? l.status_prev : prevSt, newStatus: l ? l.status_new : prevSt, cambioLocal: !!l };
     }
     async function accMoverLocal(p, signo, n) {
       var r = await stockMover(p, 'local', signo, n, false);
       accAviso(r.texto, r.ok ? 'ok' : r.tipo);
-      if (r.ok) await accAvisarEspera(p, r.prevStatus, r.newStatus, r.texto);
+      if (r.ok && !r.tablet) await accAvisarEspera(p, r.prevStatus, r.newStatus, r.texto);
     }
     async function accMoverDeposito(p, signo, n) {
       var r = await stockMover(p, 'deposito', signo, n, signo < 0 && document.getElementById('accPasan').checked);
