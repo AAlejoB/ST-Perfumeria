@@ -3893,6 +3893,10 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 13-oct-2026 (mediodía, después del cierre):** Alejo miró la Selección en el celu y salen los 3 que daba la página (STRONGER WITH YOU INTENSELY, ANGHAM, CARAMEL MACCHIATO): con el cambio de día verificado a las 13:15, `[SELECCION-DIARIA-HUMO]` queda cerrado.
+
+- ✅ ~~**`[SELECCION-DIARIA-HUMO]`**~~ (12-oct, 🟡) — la Selección diaria (v1.1.208, en producción desde el 12-oct 22:00) se probó en local (celu 375 y compu 1280, con stock agotado simulado, foto rota simulada y todas las fotos rotas) y se verificó en producción (`curl` + la página real), pero **nadie la miró todavía en la tablet ni en un celu de verdad**. **El cambio de día ya se verificó** (13-oct, 13:10, en producción, con `seleccionRotada()` de la página real): el 12-oct salían FAKHAR GOLD, LIQUID BRUN y RAMZ; el 13-oct salen STRONGER WITH YOU INTENSELY, ANGHAM y CARAMEL MACCHIATO, con ODYSSEY HOMME y SEDLEY en la cola, y ninguno de los tres de ayer entre los 5; los 5 tienen foto y `sePuedePedir`. **Falta sólo:** que Alejo (o una chica) la mire en un celu o en la tablet y avise. Detalle en `docs/HISTORIA.md` § «Sesión 12-oct-2026 (cierre de la noche)» y § «Sesión 13-oct-2026 (mediodía)». **→ Cerrado el 13-oct: Alejo la vio en el celu («Salen esos 3 sii»).**
+
 **Movidos el 13-oct-2026 (cierre de la madrugada, sesión `[REEMPLAZO-DE-HOJA]`):** `[DOCTOR-LISTA-CLARO]` está en producción (`7135322`, v1.1.210, push de Alejo, verificado por `curl`).
 
 - ✅ ~~**`[DOCTOR-LISTA-CLARO]`**~~ (12-oct, salió de `[STAT-FILTRO-CONTRASTE]` · 🟢) — en la lista de perfumes del Doctor (`admin.html` ~L11603 y ~L11630) la letra de cada aviso va con `#e74c3c` / `#f1c40f` escritos en el JS: en claro el amarillo da cerca de 1,5 sobre su fondo (**cálculo mío, no medido en pantalla**). El arreglo es el mismo de las tarjetas de arriba: `var(--tinta-error)` / `var(--tinta-aviso)`. `contraste.js` no la mide. **Hecho el 12-oct (22:40, `7135322`, v1.1.210, en producción):** `var(--tinta-error)` / `var(--tinta-aviso)` en la letra de cada aviso; en claro pasó de ~2,6 / ~1,2 a 4,08 / 4,97 sobre el peor fondo (calculado, no medido en pantalla: el panel pide contraseña).
@@ -4926,7 +4930,7 @@ Alejo abrió con `/tanda` a las 13:10 del 13-oct (rama `panel-prolijo` = `origin
 
 | Keyword | Qué falta |
 |---|---|
-| `[SELECCION-DIARIA-HUMO]` 🟡 | Sólo mirarla en un celu o en la tablet de verdad (el cambio de día ya está verificado). |
+| ~~`[SELECCION-DIARIA-HUMO]`~~ ✅ | Cerrado el mismo día: Alejo la vio en el celu (ver § Resueltos). |
 | `[REEMPLAZO-DE-HOJA]` 🟡 | El primer «Cierre del día» real, un día de uso de las chicas y una seña real. |
 | `[DISCO-D-FSYNC]` 🟡 | Medir de nuevo los avisos `Ntfs` / `disk` desde el 15-oct. |
 | (recomendaciones) | Que Alejo diga si se arma `.claude/recomendaciones.md` pese a la regla de no tocar `.claude\`. |
