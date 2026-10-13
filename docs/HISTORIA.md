@@ -3893,6 +3893,10 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 13-oct-2026 (cierre de la madrugada, sesión `[REEMPLAZO-DE-HOJA]`):** `[DOCTOR-LISTA-CLARO]` está en producción (`7135322`, v1.1.210, push de Alejo, verificado por `curl`).
+
+- ✅ ~~**`[DOCTOR-LISTA-CLARO]`**~~ (12-oct, salió de `[STAT-FILTRO-CONTRASTE]` · 🟢) — en la lista de perfumes del Doctor (`admin.html` ~L11603 y ~L11630) la letra de cada aviso va con `#e74c3c` / `#f1c40f` escritos en el JS: en claro el amarillo da cerca de 1,5 sobre su fondo (**cálculo mío, no medido en pantalla**). El arreglo es el mismo de las tarjetas de arriba: `var(--tinta-error)` / `var(--tinta-aviso)`. `contraste.js` no la mide. **Hecho el 12-oct (22:40, `7135322`, v1.1.210, en producción):** `var(--tinta-error)` / `var(--tinta-aviso)` en la letra de cada aviso; en claro pasó de ~2,6 / ~1,2 a 4,08 / 4,97 sobre el peor fondo (calculado, no medido en pantalla: el panel pide contraseña).
+
 **Movidos el 12-oct-2026 (cierre de la noche, tanda `seleccion-diaria`):** `[SELECCION-DIARIA]` está en producción (`main` = `50e8bde`, v1.1.208, 22:00 ART, verificada por `curl` y en la página real) y con él se cierra `[SELECCION-ROTA-AJUSTES]`.
 
 - ✅ ~~**`[SELECCION-DIARIA]`**~~ (12-oct, pedido de Alejo · 🟡, tanda `seleccion-diaria`, **en producción desde el 12-oct 22:00, v1.1.208, `50e8bde`**) — la Selección ST rota por **día** (`SELECCION_DIAS = 1`, calendario de Argentina, NO ROMPER #6) y sortea entre **todo lo que se puede pedir y tiene foto** (`sePuedePedir`, sin sets; 159 perfumes el 12-oct), ya no entre los 20 más vistos. Ordena el pozo por un hash de (día + slug) (`seleccionOrden`, FNV-1a con mezcla murmur3, el slug desempata): todos ven los mismos. Calcula `SELECCION_CANTIDAD + SELECCION_COLA` = 5 (`seleccionRotada`) y muestra 3; **los 3 de ayer pasan al final de la fila**. La cola son slugs en memoria: sus fotos no se bajan. Si un visible deja de poder pedirse (stock o pausa) entra el siguiente solo (el pozo se recalcula); si su foto da error (`onerror` → `seleccionFotoRota`) entra el siguiente y el slug se anota en `seleccionRotas`, con tope de 2 cambios (después la card se esconde). **Sin podio ni «TOP VENTAS»** con la rotación andando; la Selección ya no espera las vistas (`seleccionListas`, que se prende en `renderCatalog`, reemplazó a `perfumeViewsListas`). Textos: **«Elegidos del día»** (atajo de la tira, subtítulo de la sección y cinta «🔥 Elegido del día» de «Ver similares», que marca los 3 de `seleccionVisibles()`). Aviso `#destacadosAviso` en la pestaña Destacados del panel. `SELECCION_ROTA = false` (o un pozo vacío) vuelve a `destacados` con podio y badge. Probada en local (celu 375, compu 1280, stock agotado, foto rota y todas las fotos rotas) y en producción. Humo y limpieza abiertos: `[SELECCION-DIARIA-HUMO]`, `[SELECCION-DIARIA-LIMPIEZA]`.
@@ -4821,9 +4825,81 @@ Alejo abrió con `/tanda` (22:09; `main` = `96a0c68`, el cierre de la noche, ár
 - Tres patrones nuevos, en `memory/preferencias_alejo.md` (#123 a #125): dicta ideas largas por voz y se corrige a mitad de frase, así que conviene devolverle el resumen y las preguntas abiertas; descarta lo que el sistema nuevo ya trae, así que antes de proponer algo grande en el panel viejo hay que mirar si la mudanza lo cubre; y para los defaults, cuando una opción se luce en pantalla, la prefiere.
 
 
+### Sesión 12/13-oct-2026 (madrugada) · **`[REEMPLAZO-DE-HOJA]`** — la hoja de caja digital: «Anotar venta», el cierre del día que baja el stock, la seña como deuda, Tarjetero y el cuadradito de tildar nuevo
+
+Alejo abrió con `/tanda` a las 22:36 del 12-oct (`main` = `ed35cf6`, árbol limpio, SW v1.1.209) y cerró a la 01:35 del 13-oct. Arrancó con un pendiente chico (`[DOCTOR-LISTA-CLARO]`) y, a partir de la foto de la hoja de papel de las chicas, **reabrió `[CAJA-CUADERNO]`** (descartada horas antes) y se armó entera: la hoja de caja digital del panel, en producción a la medianoche. A mitad de sesión Alejo pasó el modelo a **Opus 5.5** para la pantalla «Anotar venta». 16 commits (12 de código, 4 de docs), **4 migraciones aplicadas en Supabase** con su OK (3 de la hoja y 1 de los códigos), 12 bumps de SW (v1.1.210 → v1.1.221) y 9 pushes que corrió él.
+
+#### Qué se hizo
+
+- **`[DOCTOR-LISTA-CLARO]` · `7135322` · v1.1.210:** la letra de los avisos de la lista del Doctor pasó a `var(--tinta-error)` / `var(--tinta-aviso)`. Push de Alejo, verificado por `curl`.
+- **`[LEGAL-ANTES-DE-SIPAGO]` (idea, `d07eade` + `474724c`):** Alejo pegó el texto de un video («quiero que me demanden…»); se relevó el sitio (no hay privacidad, términos, cookies, devoluciones, arrepentimiento ni datos del negocio; no hay trackers de terceros) y se anotó la ficha en `docs/IDEAS.md`, con **prioridad baja** porque Lautaro ya resolvió SiPago en plataforma-saas.
+- **La foto de la hoja de papel** se movió de la raíz del checkout principal a `D:\workspace\_correo_agentes\Plataforma_SaaS\ST_hoja-de-caja-papel_2026-10-12.jpg`, con una nota `.md` al lado que transcribe la hoja y lista los 6 casos que el POS nuevo tiene que cubrir. **No se publicó en GitHub**: Lautaro no ve el buzón; se la pasa Alejo.
+- **`[REEMPLAZO-DE-HOJA]` · la decisión (`967233c`):** Alejo reabrió la caja («hagámosla bien completa, que se quede 10, 15 o 20 días, ya fue»). Se lanzó **un agente de sólo lectura** (tipo Plan, esfuerzo alto, pedido por Alejo: «metele un fork subiendo el nivel de pensamiento») que estresó el diseño: atomicidad, dos tablets, seña, tachar, decants, Log, backups. De ahí salió la **opción C de Alejo**: el stock baja **una vez, al cierre del día**, con una función en la base.
+- **Sesión 1 · `73daae5` · v1.1.211:** tabla `caja_movimientos` (`sql/caja_movimientos.sql`: sin lectura pública, id generado en la tablet, `dia` en hora de Argentina, tres montos, `items jsonb`, tachado) y la pestaña «Reemplazo de hoja» (grupo «Día a día», las dos cuentas, botón en Inicio). **SQL aplicado por mí con el OK de Alejo** («Aplicalo vos») y verificado (RLS, políticas, permisos, 0 filas).
+- **Sesión 2 · `ee2c34a` · v1.1.212:** `sql/caja_cierre.sql` (`caja_cerrar_dia(dia, aplicar)` relativa, idempotente, «hasta donde alcanza»; `caja_tachar` que devuelve el stock; un trigger que frena borrar un renglón que ya bajó stock; tachar sólo por la función). **Aplicado y probado en producción dentro de una transacción que se deshizo sola** (`raise exception` al final): vista previa sin escribir, cierre parcial (pedían 4, había 3), pausado que sigue pausado, «sin stock» y «sin dato» saltados y marcados, seña y «ya bajado» sin tocar, segundo cierre vacío, borrar frenado, tachar que devuelve +n, tachar dos veces, Log. Se verificó después: 0 renglones, stock igual, 0 en el Log.
+- **`bb3d398` · v1.1.213:** las dos cuentas quitan códigos de barras (Editar sin `data-role`, la empleada suelta un código huérfano); `sql/perfume_codigos_borrar_staff.sql` aplicado. Sin tope de códigos por perfume (ya era así).
+- **`51855b1` · v1.1.214:** montos con cuadrados y teclado propio (sin campo de texto) y un filtro en los totales (que Alejo no había pedido: se sacó en la siguiente).
+- **`2dca58e` · v1.1.215:** el monto sale solo del catálogo y se guarda al tocar el cuadrado; **la seña como deuda** (`sql/caja_deudas.sql`: `debe`, `debe_quien`, `saldado_*`, `salda_a`, `caja_cobrar()`, insert del panel por columna; aplicado y probado en una transacción que se deshizo: cobro parcial, reintento con el mismo id, cobrar de más y cobrar 0 frenados, cobro del resto, tachar el cobro reabre la deuda, la empleada no puede escribir `salda_a` ni hacer update directo); «Pendientes de cobro»; el **cuadradito de tildar nuevo en todo el panel** (17 checkboxes, regla global).
+- **`0a1b83e` · v1.1.216 · `[ANOTAR-VENTA]` (con Opus):** la carga como recorrido de botones grandes: «Anotar venta» → ¿Qué se lleva? (Perfume · Decant · Otra cosa) → cuántos → se suma a la venta → «Cobrar» → ¿Cómo pagó?. Decant árabe con la escalera de `decants_config` (9.500 / 9.000 / 8.500) por el total de árabes; de diseñador con su `precio_unit`; «otra cosa» con el monto escrito; se anota aunque el panel diga sin stock o pausado.
+- **`49ad7f3` · v1.1.217 · `[CANTIDAD-SUMA]`:** 1 · 2 · 3 · 4 · 5 · 10 que suman (el primer toque reemplaza el 1); «Sumar otro producto» y «Otro monto» como botones.
+- **`6fce603` (docs) + artifact:** el nombre **Tarjetero** y una maqueta con las 3 pantallas candidatas (https://claude.ai/artifact/MR27tXfdcdhmgn4UiunSBC, privada).
+- **`7a21e20` · v1.1.218 · `[TARJETERO]`:** `tarjeteroHTML` en el buscador y los decants de diseñador de la hoja, «Llegó mercadería», el código nuevo del escáner (un toque guarda) y «Anotar del mostrador»; «¿Cómo pagó? Tocá uno» con borde dorado y la píldora «COBRAR».
+- **`75fddc0` · v1.1.219 · `[HOJA-AVISO-SE-VA]`**, **`80cde92` · v1.1.220 · `[PAGO-MIXTO]`** (opción A de Alejo: cuenta proporcional) y **`e29f81f` · v1.1.221 · `[HOJA-SIEMPRE-HOY]`** (sin pushear al cierre: sube con este).
+- **La prueba real de Alejo (13-oct, 01:01):** «BADEE AMETHYST + 14 decants árabes + 2 decants LA BOMBA», MP $244.100, por la cuenta de empleado; las cuentas cierran (14 árabes a 8.500 + 2 × 22.500 + el perfume con 10%). La tachó: no quiso tocar el stock de los chicos. **No hubo cierre real.**
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** reabrir la caja y hacerla «completa» aunque viva ~2 semanas; la opción **C** (el stock baja al cierre del día); el nombre **«REEMPLAZO DE HOJA»**; que **una seña es un frasco que se llevó y quedó debiendo** («no lo hagas un estándar»), con un pendiente por nombre y «Cobró»; los montos **sin escribir** («el guioncito que titila queda viejo») y que el monto salga solo; el 10% de Efec. y MP **sólo para los perfumes en frasco** (las excepciones por «Otro monto»); la escalera para los árabes por el total y los de diseñador aparte, eligiendo cuál; anotar **aunque no haya stock** («los grises»); cantidades que **suman**; el nombre **Tarjetero** y las **3** pantallas; que se vea qué se toca; las dos cuentas quitan códigos, **sin tope**; el **pago mixto proporcional (A)**; que la hoja abra **siempre en hoy**; aplicar los 3 SQL («Aplicalo vos», «Dale, aplicá el SQL»); y cambiar a Opus para «Anotar venta».
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):** la V1 sin stock primero (Alejo la superó con la C); el tilde «ya lo bajé con Vendí» para no descontar dos veces; tachar en vez de editar, con la devolución relativa; la función en la base para todo lo que toca stock o plata; el aviso «Sin cerrar» en el Inicio; «Apartado» como caso distinto de la seña; los 3 nombres (Alejo eligió Tarjetero); y **`[CUADRADOS-EDITAR]`** como pendiente.
+- **Hallazgos / workarounds:**
+  1. **La pestaña de prueba engañó a Alejo:** dejé abierta en el navegador de la app mi página local con la base falsa; ahí «anotó» una venta que nunca llegó a Supabase. Se detectó mirando la base y los registros de `edge_logs` (sólo GET, ningún POST). **Desde ahí, cada prueba local cierra su pestaña al terminar.**
+  2. **Probar en producción sin tocar nada:** las funciones se prueban con un `DO` que fija `request.jwt.claims` (y `set local role authenticated` para los permisos) y termina en `raise exception` con el resultado: todo se deshace y el mensaje trae los números.
+  3. `(texto.match(re) || []).length` **cuenta los grupos de captura**, no las coincidencias: un patrón con paréntesis daba «2» y el parche no aplicaba. Se cuenta con una regex `g`.
+  4. Un `node -e` con texto largo dentro de un heredoc de bash rompió el comando: los parches grandes van en un `.js` del scratchpad.
+  5. `admin.html` es CRLF y mis parches con Node escribieron renglones LF adentro (git lo normaliza al commitear); la herramienta Edit respeta lo que hay. Los `.md` de este cierre se editaron respetando su formato.
+  6. `initCamposConX` envuelve los campos en `.admin-search-wrap`: un `width: 100%` sobre el campo no alcanza, hay que darle el ancho al envoltorio.
+  7. El escalón 3 de `[ESCANER]` («elegir y después Guardar código», un toque de más a propósito) se cambió a **un toque guarda** porque Alejo aprobó la maqueta que lo decía; un error se corrige quitando el código, que ahora pueden las dos cuentas.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[DOCTOR-LISTA-CLARO]` | Avisos de la lista del Doctor en las tintas del panel (v1.1.210, en producción). |
+| `[CAJA-CUADERNO]` | Reabierta y hecha como `[REEMPLAZO-DE-HOJA]` (queda abierto sólo su humo). |
+| `[ANOTAR-VENTA]` | «Anotar venta» con botones grandes: perfume, decant árabe / de diseñador, otra cosa (v1.1.216). |
+| `[CANTIDAD-SUMA]` | Cantidades con botones que suman (v1.1.217). |
+| `[TARJETERO]` | Elegir tocando tarjetas grandes en 5 lugares + «COBRAR» visible (v1.1.218; NO ROMPER #33). |
+| `[CHECKBOX-NUEVO]` | El cuadradito de tildar de todo el panel (v1.1.215; NO ROMPER #32). |
+| `[HOJA-AVISO-SE-VA]` | El aviso de la hoja se va solo y se cierra al tocarlo (v1.1.219). |
+| `[PAGO-MIXTO]` | «Queda debiendo» proporcional en un pago repartido (v1.1.220). |
+| `[HOJA-SIEMPRE-HOY]` | La hoja abre siempre en el día de hoy (v1.1.221; sube con el push del cierre). |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[REEMPLAZO-DE-HOJA]` 🟡 | El primer «Cierre del día» real (perfume de prueba + tachado), un día de uso de las chicas y una seña real. |
+| `[CUADRADOS-EDITAR]` 🟢 | Lo mismo en «Editar perfume» y otras pantallas («más tarde», Alejo). |
+| `[LEGAL-ANTES-DE-SIPAGO]` (idea) | Prioridad baja: mirar antes qué trae plataforma-saas. En `docs/IDEAS.md`. |
+| `[MUDANZA-REVISAR-PENDIENTES]` 🟡 | Sigue: qué pendientes del panel viejo valen después de la mudanza. |
+| `[SELECCION-DIARIA-HUMO]` 🟡 | Mirar hoy (13-oct) que cambiaron los 3 elegidos. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (13-oct, ~01:35):** `origin/main` = `80cde92` (SW **v1.1.220** en producción, verificado por `curl`) · rama `hoja-siempre-hoy` = `e29f81f` + este cierre, 2 adelante · árbol limpio · 4 migraciones aplicadas en Supabase (`caja_movimientos`, `caja_cierre_del_dia`, `perfume_codigos_borrar_staff`, `caja_deudas_y_cobro_del_resto`) · `caja_movimientos`: 1 renglón (la prueba de Alejo, tachada).
+
+#### 💬 Mensajes meta
+
+- Cinco patrones nuevos, en `memory/preferencias_alejo.md` (#126 a #130): una maqueta antes de construir evita construir lo que no era; las pestañas de prueba se cierran siempre; «todo tocable y que se vea tocable»; reabre decisiones cuando ve el valor (y eso se anota como reapertura); y las preguntas A/B las quiere con botones.
+
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 12-oct-2026 (~22:50, `foto-en-listas` en producción) — pasó de `CLAUDE.md` al archivo el 13-oct (~01:35, cierre de `[REEMPLAZO-DE-HOJA]`)
+
+**Última actualización:** **Octubre 12, 2026, ~22:50 (la tanda `foto-en-listas` ya está en producción)** — `main` = `origin/main` = `68b0264` (**v1.1.209**; + el commit de docs de este cierre) en producción: Alejo corrió el push `foto-en-listas:main` y se verificó por `curl` (SW v1.1.209; `admin.html` con `chkFotoPrecios`, `chkFotoDeposito` y `STOCK-FOTO`; 13 apariciones). **`[STOCK-FOTO]`:** Precios & Stock y Depósito tienen el interruptor «📷 Con foto» (prendido por defecto, decisión de Alejo; una preferencia por dispositivo) con la miniatura del frasco al lado del nombre; sin pedidos nuevos a la base; en el celu la tabla se desliza de costado si no entra. **`[CAJA-CUADERNO]`** (cuaderno de caja que copiaba la hoja de papel de las chicas) quedó **descartada** por decisión de Alejo: el sistema de admin nuevo, al que ST se muda en unos días, ya trae punto de venta. `[STOCK-CUADRICULA]` queda sólo con la cuadrícula (idea en `docs/IDEAS.md`). Detalle en `docs/HISTORIA.md` § «Sesión 12-oct-2026 (noche tardía)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[STOCK-FOTO-HUMO]` (que una chica la pruebe en la tablet) · `[MUDANZA-REVISAR-PENDIENTES]` (qué pendientes del panel viejo valen después de la mudanza; propuesta mía) · `[DISCO-D-FSYNC]` (medir de nuevo en unos días) · `[SELECCION-DIARIA-HUMO]` (verla en la tablet y en el celu, y ver mañana 13-oct que cambió) · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` (probarlo con un pedido real) · `[STAT-FILTRO-HUMO]` (que una chica pruebe las tarjetas) · `[VERCEL-ENV-VARS]` (sólo el par nuevo de `VAPID_*`) · `[STOCK-OCULTO]` (prender la noche del 25-oct) · `[ALTA-Y-CANDADOS]` (próxima tanda de panel, merge fuera de 10–21; **revisar antes contra la mudanza**) · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` (antes de prender SiPago) · `[CELU-FCP]` · `[CELU-LETRA]` · 🟢 `[SELECCION-DIARIA-LIMPIEZA]` · `[DOCTOR-LISTA-CLARO]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 12-oct-2026 (22:05, `seleccion-diaria` en producción) — pasó de `CLAUDE.md` al archivo el 12-oct (~22:50, cierre de `foto-en-listas`)
 
