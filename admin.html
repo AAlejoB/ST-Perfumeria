@@ -4845,7 +4845,13 @@
     function colaConRed() { COLA.sinRedDesde = null; }
 
     async function colaSubirUno(it) {
-      if (it.tipo === 'caja') return colaConTope(function() { return sb.from('caja_movimientos').insert(it.fila); });
+      if (it.tipo === 'caja') {
+        // Con la hora en que se anotó (sql/caja_creado_en.sql). Si la base no la acepta (SQL sin correr, más de 7 días, reloj
+        // corrido: 42501), se reintenta sin ella y queda la hora de subida; la de la tablet sigue en el Log (anotado_en).
+        var r = await colaConTope(function() { return sb.from('caja_movimientos').insert(Object.assign({}, it.fila, { creado_en: it.cuando })); });
+        if (r.error && String(r.error.code) === '42501') r = await colaConTope(function() { return sb.from('caja_movimientos').insert(it.fila); });
+        return r;
+      }
       if (it.tipo === 'espera') return colaConTope(function() { return sb.from('lista_espera').insert(it.fila); });
       return { error: { message: 'tipo desconocido: ' + it.tipo } };
     }
