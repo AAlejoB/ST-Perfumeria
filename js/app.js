@@ -3910,17 +3910,12 @@
           totalMatch++;
           if (matchIndex < cardsShown) {
             // [BATCH-REFLOW] Si estaba oculta y pasa a visible, marcar para re-animar.
-            // El antiguo patrón hacía `void card.offsetWidth` adentro de este forEach
-            // por CADA card que entraba — 162 reflows forzados = 151ms TBT (reporte
-            // Lighthouse). Ahora batchamos: todas las lecturas/escrituras de display
-            // primero, después UN solo reflow en el contenedor, después la clase.
+            // [CELU-INP] La animación de entrada arranca sola: una card que pasa de display none a visible empieza
+            // de nuevo su animación CSS (así lo dice el estándar). Ya no se saca la clase ni se fuerza un reflow.
             var wasHidden = card.style.display === 'none';
             card.style.display = '';   // 146f · lo decide el CSS (flex en la grilla, grid en la lista del celu); 'none' sigue siendo inline
             card.style.contentVisibility = 'visible';
-            if (wasHidden) {
-              card.classList.remove('filter-entering');
-              _cardsToReAnimate.push(card);
-            }
+            if (wasHidden) _cardsToReAnimate.push(card);
           } else {
             card.style.display = 'none';
             card.style.contentVisibility = 'auto';
@@ -3931,13 +3926,9 @@
           card.style.contentVisibility = 'auto';
         }
       });
-      // [BATCH-REFLOW] UN solo reflow forzado en el contenedor (afecta a todos
-      // los hijos automáticamente) + re-aplicar clase de animación en batch.
-      if (_cardsToReAnimate.length > 0) {
-        var _grid = document.getElementById('catalogGrid');
-        if (_grid) { void _grid.offsetWidth; }
-        _cardsToReAnimate.forEach(function(c) { c.classList.add('filter-entering'); });
-      }
+      // [CELU-INP] Sin el `void _grid.offsetWidth` que había acá: obligaba a recalcular toda la página en medio del toque y
+      // después se volvía a recalcular (scroll, línea de filtros, estantes). Medido con la CPU ×4: 98 + 24 ms de más en el chip «Mujer».
+      _cardsToReAnimate.forEach(function(c) { c.classList.add('filter-entering'); });
       // [FRAGANCIAS-SINGULAR] 143d · «1 fragancia» (y «1 favorito»); con 0 y con 2 o más, en plural
       var label = currentFilter === 'favs' ? totalMatch + (totalMatch === 1 ? ' favorito' : ' favoritos') : totalMatch + (totalMatch === 1 ? ' fragancia' : ' fragancias');
       document.getElementById('filterCount').textContent = label;
