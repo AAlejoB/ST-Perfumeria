@@ -235,6 +235,9 @@ Estrategias por tipo de recurso (definidas en `sw.js`):
 - **En el celu (≤ 600) con foto la tabla de Precios & Stock mide ~340 y el panel deja 302 (a 360) o 317 (a 375):** en vez de cortar «Efectivo» (el panel recorta con `overflow-x: clip`, NO ROMPER #19) la tabla se desliza de costado (`.admin-table:has(.td-name--foto)`). Sin foto no cambia nada. En la tablet (834) y la compu entra completa. Con las filas con foto el alto sube de 49 a 63-84 px; Alejo lo sabía («va a sumar scroll») y por eso es un interruptor.
 - Los códigos de barras, `ESCANEO_SLUG`, las tarjetas que filtran (NO ROMPER #29) y `data-slug` / `data-search` de cada `<tr>` no cambiaron.
 
+### Tarjetero (nombre de Alejo, 13-oct-2026)
+- **«Tarjetero»** es el estilo de la lista de decants de diseñador de «Reemplazo de hoja» (`hv-tiles hv-tiles--2` + `hv-tile hv-tile--chica`): una **grilla de tarjetas grandes para elegir tocando**, dos columnas (una en el celu angosto), cada tarjeta con el **nombre en negrita y grande** y una línea chica abajo (marca · precio, o el dato que haga falta), al menos 84 px de alto, sin campos ni radios. A Alejo le encanta: **cuando una pantalla del panel pide elegir algo de una lista, se propone en Tarjetero.** Dónde podría ir (maqueta en https://claude.ai/artifact/MR27tXfdcdhmgn4UiunSBC): (1) el buscador de perfumes de la misma hoja, (2) elegir el perfume en «Llegó mercadería» / el escáner, (3) «Anotar del mostrador» en Espera. Decide Alejo cuáles y en qué orden (`[TARJETERO]`).
+
 ### Sort default
 - `renderCatalog()` SIEMPRE termina con `sortCards('price-desc')`. No removerlo.
 
