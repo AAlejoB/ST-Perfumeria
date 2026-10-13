@@ -1216,6 +1216,52 @@
     .inicio-merc-ico { font-size: 1.9rem; flex-shrink: 0; }
     .inicio-merc b { display: block; font-size: 1.05rem; font-weight: 800; }
     .inicio-merc small { display: block; font-size: .75rem; font-weight: 500; margin-top: 1px; }
+    /* ── [REEMPLAZO-DE-HOJA] el botón del Inicio (contorno, para que el amarillo lleno siga siendo «Llegó mercadería») y la pestaña ── */
+    .inicio-hoja { background: transparent; color: var(--amarillo-tinta); border: 1.5px solid var(--amarillo-tinta); }
+    .inicio-hoja small { color: var(--gris-claro); }
+    .hoja-dia { display: flex; gap: .5rem; align-items: center; margin-bottom: .9rem; flex-wrap: wrap; }
+    .hoja-dia .modal-input { width: auto; flex: 0 1 11rem; margin: 0; }
+    .hoja-dia button { min-height: var(--tap-min); min-width: var(--tap-min); font-family: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; background: transparent; color: var(--amarillo-tinta); border: 1px solid var(--amarillo-tinta); border-radius: 6px; padding: 0 .8rem; }
+    .hoja-modos { display: flex; gap: .4rem; margin-bottom: .8rem; }
+    .hoja-modos .log-chip { min-height: var(--tap-min); }
+    .hoja-form { background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    .hoja-form > .modal-input { width: 100%; box-sizing: border-box; }
+    .hoja-buscar-fila { display: flex; gap: .5rem; align-items: stretch; }
+    .hoja-buscar-fila .modal-input { flex: 1; min-width: 0; margin: 0; }
+    .hoja-resultados { border: 1px solid var(--borde); border-radius: 8px; margin: .4rem 0; max-height: 260px; overflow-y: auto; }
+    .hoja-items { display: flex; flex-direction: column; gap: .5rem; margin: .6rem 0; }
+    .hoja-item { border: 1px solid var(--borde); border-radius: 8px; padding: .6rem .7rem; }
+    .hoja-item-cab { display: flex; align-items: center; gap: .6rem; }
+    .hoja-item-nombre { flex: 1; min-width: 0; font-size: .85rem; font-weight: 700; }
+    .hoja-item-nombre small { display: block; font-size: .68rem; font-weight: 400; color: var(--gris-claro); }
+    .hoja-item-cant { display: inline-flex; align-items: center; gap: .3rem; }
+    .hoja-item-cant button, .hoja-item-x { width: 40px; height: 40px; font-family: inherit; font-size: 1.1rem; font-weight: 700; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); border-radius: 6px; }
+    .hoja-item-cant span { min-width: 1.4rem; text-align: center; font-weight: 700; }
+    .hoja-tildes { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: .4rem; font-size: .75rem; }
+    .hoja-tildes label { display: inline-flex; align-items: center; gap: .4rem; min-height: var(--tap-min); cursor: pointer; }
+    .hoja-montos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; margin: .5rem 0; }
+    .hoja-montos .modal-input { margin: 0; }
+    .hoja-form-total { font-size: .8rem; color: var(--gris-claro); margin: .2rem 0 .8rem; min-height: 1.1rem; }
+    .hoja-totales { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; margin-bottom: 1rem; }
+    .hoja-total { background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; padding: .7rem .5rem; text-align: center; }
+    .hoja-total span { display: block; font-size: .65rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gris-claro); }
+    .hoja-total b { display: block; font-size: 1.05rem; margin-top: .2rem; }
+    .hoja-total--suma { border-color: var(--amarillo-tinta); }
+    .hoja-lista { display: flex; flex-direction: column; gap: .5rem; }
+    .hoja-fila { border: 1px solid var(--borde); border-radius: 8px; padding: .6rem .8rem; }
+    .hoja-fila-cab { display: flex; gap: .6rem; align-items: baseline; }
+    .hoja-fila-hora { font-size: .7rem; color: var(--gris-claro); flex-shrink: 0; }
+    .hoja-fila-texto { flex: 1; min-width: 0; font-size: .85rem; font-weight: 600; overflow-wrap: anywhere; }
+    .hoja-fila-texto small { display: block; font-size: .68rem; font-weight: 400; color: var(--gris-claro); }
+    .hoja-etq { display: inline-block; font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .1rem .4rem; border-radius: 4px; border: 1px solid var(--borde); margin-left: .4rem; }
+    .hoja-fila-montos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; margin: .4rem 0; font-size: .78rem; }
+    .hoja-fila-montos span { display: block; font-size: .6rem; letter-spacing: .06em; text-transform: uppercase; color: var(--gris-claro); }
+    .hoja-fila-acc { display: flex; gap: .5rem; justify-content: flex-end; }
+    .hoja-fila-acc button { min-height: var(--tap-min); font-family: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); border-radius: 6px; padding: 0 .9rem; }
+    .hoja-fila.anulada { opacity: .55; }
+    .hoja-fila.anulada .hoja-fila-texto b { text-decoration: line-through; }
+    .hoja-vacio { text-align: center; color: var(--gris); font-size: .8rem; padding: 1.5rem 0; }
+    @media (max-width: 600px) { .hoja-totales { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .panel-merc {
       display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: var(--tap-min); padding: 0 .8rem;
       font-family: inherit; font-size: .7rem; font-weight: 700; letter-spacing: .04em; cursor: pointer;
@@ -2497,6 +2543,7 @@
             <button class="tab-btn" data-tab="clientes" title="Clientes" onclick="switchTab('clientes',this);closeMobileSidebar()"><span class="sb-ico">&#128101;</span><span class="sb-label">Clientes</span></button>
             <button class="tab-btn" data-tab="resetpass" title="Reset contraseñas" onclick="switchTab('resetpass',this);loadResetRequests();closeMobileSidebar()"><span class="sb-ico">&#128273;</span><span class="sb-label">Reset contraseñas</span></button>
             <button class="tab-btn" data-tab="espera" title="Espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()"><span class="sb-ico">&#128205;</span><span class="sb-label">Espera</span></button>
+            <button class="tab-btn" data-tab="hoja" title="Reemplazo de hoja" onclick="switchTab('hoja',this);hojaAbrir();closeMobileSidebar()"><span class="sb-ico">&#129534;</span><span class="sb-label">Reemplazo de hoja</span></button>   <!-- [REEMPLAZO-DE-HOJA] las dos cuentas (sin data-role, #8) -->
             <button class="tab-btn" data-role="jefe" data-tab="opiniones" title="Opiniones" onclick="switchTab('opiniones',this);closeMobileSidebar()"><span class="sb-ico">&#128172;</span><span class="sb-label">Opiniones</span></button>
             <button class="tab-btn" data-tab="decants" title="Decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()"><span class="sb-ico">&#128167;</span><span class="sb-label">Decants</span></button>
           </div>
@@ -2548,6 +2595,8 @@
     <div class="tab-content active" id="tab-inicio">
       <!-- [LLEGO-MERCADERIA] paso 3 · botón fijo, para las dos cuentas -->
       <button type="button" class="inicio-merc" onclick="mercAbrir()"><span class="inicio-merc-ico" aria-hidden="true">&#128230;</span><span><b>Llegó mercadería</b><small>Cargá el pedido: escaneás y se suma</small></span></button>
+      <!-- [REEMPLAZO-DE-HOJA] el segundo botón fijo: la hoja de caja; mismo .click() sobre el menú que los 4 de abajo (#21) -->
+      <button type="button" class="inicio-merc inicio-hoja" onclick="irDesdeInicio('hoja')"><span class="inicio-merc-ico" aria-hidden="true">&#129534;</span><span><b>Reemplazo de hoja</b><small>Anotá lo que se vendió hoy: efectivo, MP y Posnet</small></span></button>
       <div class="inicio-grid">
         <button type="button" class="inicio-btn" onclick="irDesdeInicio('precios')"><span class="inicio-ico" aria-hidden="true">&#128176;</span><span class="inicio-nombre">Precios &amp; Stock</span><span class="inicio-sub"></span></button>
         <button type="button" class="inicio-btn" onclick="irDesdeInicio('deposito')"><span class="inicio-ico" aria-hidden="true">&#128230;</span><span class="inicio-nombre">Depósito</span><span class="inicio-sub"></span></button>
@@ -3596,6 +3645,43 @@
       <div class="espera-controles" id="esperaControles"></div>
       <div id="esperaList" class="espera-lista"></div>
       <p id="esperaEmpty" class="espera-vacio" style="display:none;">Nadie en lista de espera &#128522;</p>
+    </div>
+
+    <!-- [REEMPLAZO-DE-HOJA] sesión 1 · TAB: la hoja de caja digital (las dos cuentas). Un renglón por pago; el stock NO se toca acá (el «Cierre del día» es la sesión 2). -->
+    <div class="tab-content" id="tab-hoja">
+      <div class="hoja-dia">
+        <button type="button" onclick="hojaMover(-1)" aria-label="Día anterior">&#9664;</button>
+        <input type="date" id="hojaDia" class="modal-input" aria-label="Día de la hoja" onchange="hojaCambioDia(this.value)"/>
+        <button type="button" onclick="hojaMover(1)" aria-label="Día siguiente">&#9654;</button>
+        <button type="button" onclick="hojaIrHoy()">Hoy</button>
+      </div>
+      <div class="hoja-modos" role="group" aria-label="Qué querés anotar">
+        <button type="button" class="log-chip active" id="hojaModoVenta" onclick="hojaModo('venta')">Venta</button>
+        <button type="button" class="log-chip" id="hojaModoNota" onclick="hojaModo('nota')">&#9999;&#65039; Anotar</button>
+      </div>
+      <div class="hoja-form">
+        <div id="hojaBloqueVenta">
+          <label class="modal-label" for="hojaBuscar">Perfume (frasco)</label>
+          <div class="hoja-buscar-fila">
+            <input type="text" id="hojaBuscar" class="modal-input" placeholder="&#128269; Buscar perfume o escribir el código&#8230;" autocomplete="off" oninput="hojaBuscarInput()" onkeydown="hojaBuscarTecla(event)"/>
+            <button type="button" class="btn-escanear" onclick="escanearAbrir('hoja')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
+          </div>
+          <div class="hoja-resultados" id="hojaResultados" hidden></div>
+          <div class="hoja-items" id="hojaItems"></div>
+        </div>
+        <label class="modal-label" for="hojaDetalle" id="hojaDetalleLabel">Detalle (decants, sets o lo que no es un frasco)</label>
+        <input type="text" id="hojaDetalle" class="modal-input" maxlength="120" placeholder="Ej: 2 decants" autocomplete="off"/>
+        <div class="hoja-montos">
+          <div><label class="modal-label" for="hojaEfec">Efec.</label><input type="number" id="hojaEfec" class="modal-input" inputmode="numeric" min="0" max="99999999" step="1" placeholder="0" oninput="hojaTotalPint()"/></div>
+          <div><label class="modal-label" for="hojaMp">MP</label><input type="number" id="hojaMp" class="modal-input" inputmode="numeric" min="0" max="99999999" step="1" placeholder="0" oninput="hojaTotalPint()"/></div>
+          <div><label class="modal-label" for="hojaPosnet">Posnet</label><input type="number" id="hojaPosnet" class="modal-input" inputmode="numeric" min="0" max="99999999" step="1" placeholder="0" oninput="hojaTotalPint()"/></div>
+        </div>
+        <p class="hoja-form-total" id="hojaFormTotal"></p>
+        <button type="button" class="modal-btn modal-btn-price" id="hojaGuardarBtn" onclick="hojaGuardar()">Guardar renglón</button>
+        <p class="espera-form-msg" id="hojaMsg" role="status"></p>
+      </div>
+      <div class="hoja-totales" id="hojaTotales"></div>
+      <div class="hoja-lista" id="hojaLista"></div>
     </div>
 
     <!-- TAB: DOCTOR DE CATÁLOGO -->
@@ -7393,7 +7479,7 @@
       try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) {}
       var tab = ESC.tab;
       escanearCerrar();
-      if (tab === 'merc') mercCodigo(codigo); else escProcesar(codigo, tab);   // [LLEGO-MERCADERIA] la carga seguida usa la misma cámara
+      if (tab === 'merc') mercCodigo(codigo); else if (tab === 'hoja') hojaCodigo(codigo); else escProcesar(codigo, tab);   // [LLEGO-MERCADERIA] la carga seguida usa la misma cámara; [REEMPLAZO-DE-HOJA] la hoja también
     }
     function escLinternaDetectar(stream) {
       var t = stream.getVideoTracks()[0], caps = {};
@@ -7437,7 +7523,7 @@
       if (!n.ok) return;
       var tab = ESC.tab;
       escanearCerrar();
-      if (tab === 'merc') mercCodigo(n.codigo); else escProcesar(n.codigo, tab);
+      if (tab === 'merc') mercCodigo(n.codigo); else if (tab === 'hoja') hojaCodigo(n.codigo); else escProcesar(n.codigo, tab);
     }
 
     // ── 163c / 163d · qué hace un código leído ──
@@ -13283,7 +13369,11 @@
       'codigo_asociado':      { icon: '🔖', label: 'Código asociado' },
       'codigo_quitado':       { icon: '🔖', label: 'Código quitado' },
       // [LLEGO-MERCADERIA] paso 3 · el resumen de «Llegó mercadería» (familia Stock: lo ve el jefe)
-      'mercaderia_recibida':  { icon: '📦', label: 'Llegó mercadería' }
+      'mercaderia_recibida':  { icon: '📦', label: 'Llegó mercadería' },
+      // [REEMPLAZO-DE-HOJA] la hoja de caja (familia Catálogo: lo ve el jefe; la empleada, sólo stock y depósito)
+      'hoja_alta':            { icon: '🧾', label: 'Hoja · renglón' },
+      'hoja_tachar':          { icon: '🧾', label: 'Hoja · tachado' },
+      'hoja_borrar':          { icon: '🗑️', label: 'Hoja · borrado' }
     };
 
     /* ── [LOG-LEGIBLE] Traducir la jerga de la base al castellano ──
@@ -13656,6 +13746,228 @@
       return m ? escHtml(m[1]) + ' <span class="tel-fin">' + escHtml(m[2]) + '</span>' : escHtml(t);
     }
 
+    // ============================================================
+    // [REEMPLAZO-DE-HOJA] sesión 1 · la hoja de caja digital (tabla sql/caja_movimientos.sql; las dos cuentas)
+    // Reemplaza la hoja de papel: un renglón por pago con tres montos (Efec. / MP / Posnet), los frascos elegidos de la lista o por
+    // escáner, ANOTAR (texto libre, sin perfumes, monto opcional), tachar (las dos cuentas) y borrar (sólo el jefe).
+    // ⚠️ Acá el stock NO se toca: lo baja el «Cierre del día» (sesión 2). Los decants y los sets van como TEXTO en el detalle.
+    // El día sale de resumenHoyART() (NO ROMPER #6). El `id` lo genera la tablet: un reintento no duplica (23505 = ya estaba).
+    // ============================================================
+    var HOJA = { dia: null, modo: 'venta', items: [], filas: null, ocupado: false, idPendiente: null };
+    function hojaEl(id) { return document.getElementById(id); }
+    function hojaMsg(texto, tipo) {
+      var m = hojaEl('hojaMsg');
+      m.style.color = tipo === 'error' ? 'var(--tinta-error)' : (tipo === 'aviso' ? 'var(--tinta-aviso)' : 'var(--tinta-ok)');
+      m.textContent = texto || '';
+    }
+    function hojaTablaFalta(err) { return !!err && (err.code === '42P01' || err.code === 'PGRST205'); }
+    function hojaErrorTexto(err, que) {
+      if (hojaTablaFalta(err)) return 'Todavía no está la tabla de la hoja (falta correr sql/caja_movimientos.sql en Supabase).';
+      return errorEnCriollo(err, null, que);
+    }
+    function hojaUUID() {
+      if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+      var h = '0123456789abcdef', s = '';
+      for (var i = 0; i < 36; i++) {
+        if (i === 8 || i === 13 || i === 18 || i === 23) s += '-';
+        else if (i === 14) s += '4';
+        else if (i === 19) s += h.charAt(8 + Math.floor(Math.random() * 4));
+        else s += h.charAt(Math.floor(Math.random() * 16));
+      }
+      return s;
+    }
+    async function hojaEmail() {
+      try { var s = await sb.auth.getSession(); return (s && s.data && s.data.session && s.data.session.user) ? s.data.session.user.email : null; } catch (e) { return null; }
+    }
+    function hojaPesos(n) { return '$' + Number(n).toLocaleString('es-AR'); }
+    function hojaNum(id) {   // 0 si está vacío; NaN si no es un entero de 0 a 99.999.999
+      var v = hojaEl(id).value.trim();
+      if (v === '') return 0;
+      var n = Number(v);
+      return (isFinite(n) && n >= 0 && n <= 99999999 && Math.floor(n) === n) ? n : NaN;
+    }
+    function hojaAbrir() {
+      var hoy = resumenHoyART();
+      if (!HOJA.dia) HOJA.dia = hoy;
+      hojaEl('hojaDia').max = hoy; hojaEl('hojaDia').value = HOJA.dia;
+      hojaItemsPintar(); hojaTotalPint(); hojaCargar();
+    }
+    function hojaCambioDia(v) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v > resumenHoyART()) { hojaEl('hojaDia').value = HOJA.dia; return; }
+      HOJA.dia = v; hojaCargar();
+    }
+    function hojaMover(n) {
+      var nuevo = resumenSumarDias(HOJA.dia || resumenHoyART(), n);
+      if (nuevo > resumenHoyART()) return;
+      HOJA.dia = nuevo; hojaEl('hojaDia').value = nuevo; hojaCargar();
+    }
+    function hojaIrHoy() { HOJA.dia = resumenHoyART(); hojaEl('hojaDia').value = HOJA.dia; hojaCargar(); }
+    function hojaModo(m) {
+      HOJA.modo = m;
+      hojaEl('hojaModoVenta').classList.toggle('active', m === 'venta');
+      hojaEl('hojaModoNota').classList.toggle('active', m === 'nota');
+      hojaEl('hojaBloqueVenta').hidden = (m === 'nota');
+      hojaEl('hojaDetalleLabel').textContent = m === 'nota' ? 'Qué querés anotar' : 'Detalle (decants, sets o lo que no es un frasco)';
+      hojaEl('hojaDetalle').placeholder = m === 'nota' ? 'Ej: apagar EDU your touch' : 'Ej: 2 decants';
+      hojaEl('hojaGuardarBtn').textContent = m === 'nota' ? 'Anotar' : 'Guardar renglón';
+      hojaMsg('');
+    }
+    function hojaTotalPint() {
+      var e = hojaNum('hojaEfec'), m = hojaNum('hojaMp'), p = hojaNum('hojaPosnet'), t = hojaEl('hojaFormTotal');
+      if (isNaN(e) || isNaN(m) || isNaN(p)) { t.textContent = 'Los montos tienen que ser números enteros, de 0 para arriba.'; return; }
+      t.textContent = (e + m + p) ? 'Total del renglón: ' + hojaPesos(e + m + p) : '';
+    }
+    // El buscador: un número de 8 a 14 cifras es un código (Enter); lo demás, un nombre (como el panel: nombre, fabricante, apodo). Sin sets.
+    function hojaBuscarInput() {
+      var q = hojaEl('hojaBuscar').value.trim(), cont = hojaEl('hojaResultados');
+      if (!q || /^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.hidden = true; cont.innerHTML = ''; return; }
+      var n = codNorm(q);
+      var lista = PERFUMES.filter(function(p) {
+        return !p.esSet && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(n) !== -1;
+      }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 8);
+      cont.innerHTML = lista.length ? lista.map(function(p) {
+        var info = stockCargado ? deriveStockInfo(p) : null;
+        return '<button type="button" class="cod-fila" onclick="hojaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
+          + '<span class="cod-nombre">' + escHtml(p.name || '') + (p.marca_real ? '<small>' + escHtml(p.marca_real) + '</small>' : '') + '</span>'
+          + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '') + '</button>';
+      }).join('') : '<p class="cod-msg" style="padding:.8rem;color:var(--gris);">No hay perfumes con ese nombre.</p>';
+      cont.hidden = false;
+    }
+    function hojaBuscarTecla(e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      var v = hojaEl('hojaBuscar').value.trim();
+      if (/^\d{8,14}$/.test(v.replace(/\s/g, ''))) { var n = normalizarCodigo(v); if (n.ok) hojaCodigo(n.codigo); else hojaMsg(n.msg, 'error'); return; }
+      var primero = hojaEl('hojaResultados').querySelector('.cod-fila'); if (primero) primero.click();
+    }
+    async function hojaCodigo(codigo) {   // lo llama el escáner (cámara o número escrito) y el Enter del buscador
+      var r; try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
+      if (r.error) { hojaMsg(codErrorTexto(r.error, 'buscar el código'), 'error'); return; }
+      var fila = r.data && r.data[0];
+      var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
+      if (p && !p.esSet) { hojaElegir(p.slug); return; }
+      hojaMsg(fila ? 'Ese código era de un perfume que ya no está en el panel. Buscalo por nombre.' : 'El código ' + codigo + ' no está registrado. Buscá el perfume por nombre.', 'aviso');
+    }
+    function hojaElegir(slug) {
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p || p.esSet) return;
+      var ya = HOJA.items.filter(function(i) { return i.slug === slug; })[0];
+      if (ya) { if (ya.qty < 9) ya.qty++; }
+      else {
+        if (HOJA.items.length >= 10) { hojaMsg('Hasta 10 perfumes por renglón.', 'aviso'); return; }
+        HOJA.items.push({ slug: slug, nombre: String(p.name || slug), qty: 1, llevar: true, ya_bajado: false });
+      }
+      hojaEl('hojaBuscar').value = ''; hojaEl('hojaResultados').hidden = true; hojaEl('hojaResultados').innerHTML = '';
+      hojaMsg(''); hojaItemsPintar();
+    }
+    function hojaItemQty(i, d) { var it = HOJA.items[i]; if (!it) return; it.qty = Math.max(1, Math.min(9, it.qty + d)); hojaItemsPintar(); }
+    function hojaItemSacar(i) { HOJA.items.splice(i, 1); hojaItemsPintar(); }
+    function hojaItemTilde(i, clave, valor) { if (HOJA.items[i]) HOJA.items[i][clave] = !!valor; }
+    function hojaItemsPintar() {
+      hojaEl('hojaItems').innerHTML = HOJA.items.map(function(it, i) {
+        return '<div class="hoja-item"><div class="hoja-item-cab"><div class="hoja-item-nombre">' + escHtml(it.nombre) + '</div>'
+          + '<div class="hoja-item-cant"><button type="button" onclick="hojaItemQty(' + i + ',-1)" aria-label="Uno menos">&minus;</button><span>' + it.qty + '</span><button type="button" onclick="hojaItemQty(' + i + ',1)" aria-label="Uno más">+</button></div>'
+          + '<button type="button" class="hoja-item-x" onclick="hojaItemSacar(' + i + ')" aria-label="Sacar ' + escHtml(it.nombre) + '">&times;</button></div>'
+          + '<div class="hoja-tildes"><label><input type="checkbox"' + (it.llevar ? ' checked' : '') + ' onchange="hojaItemTilde(' + i + ',\'llevar\',this.checked)"/> Se lleva hoy (destildá si es una seña)</label>'
+          + '<label><input type="checkbox"' + (it.ya_bajado ? ' checked' : '') + ' onchange="hojaItemTilde(' + i + ',\'ya_bajado\',this.checked)"/> Ya lo bajé con «Vendí»</label></div></div>';
+      }).join('');
+    }
+    function hojaLogDatos(f) { return { id: f.id, dia: f.dia, tipo: f.tipo, detalle: f.detalle, efectivo: Number(f.efectivo) || 0, mp: Number(f.mp) || 0, posnet: Number(f.posnet) || 0, items: f.items || [] }; }
+    async function hojaGuardar() {
+      if (HOJA.ocupado) return;
+      var nota = HOJA.modo === 'nota';
+      var det = hojaEl('hojaDetalle').value.trim().replace(/\s+/g, ' ');
+      var ef = hojaNum('hojaEfec'), mp = hojaNum('hojaMp'), po = hojaNum('hojaPosnet');
+      if (isNaN(ef) || isNaN(mp) || isNaN(po)) { hojaMsg('Los montos tienen que ser números enteros, de 0 para arriba.', 'error'); return; }
+      var items = nota ? [] : HOJA.items.map(function(i) { return { slug: i.slug, nombre: i.nombre, qty: i.qty, llevar: !!i.llevar, ya_bajado: !!i.ya_bajado, descontado: false }; });
+      if (nota) { if (!det) { hojaMsg('Escribí qué querés anotar.', 'error'); return; } }
+      else {
+        if (!items.length && !det) { hojaMsg('Elegí un perfume o escribí el detalle.', 'error'); return; }
+        if (ef + mp + po <= 0) { hojaMsg('Poné el monto en Efec., MP o Posnet.', 'error'); return; }
+      }
+      var partes = items.map(function(i) { return i.nombre + (i.qty > 1 ? ' ×' + i.qty : '') + (i.llevar ? '' : ' (seña)'); });
+      var detalle = nota ? det : [partes.join(' + '), det].filter(Boolean).join(' · ');
+      if (detalle.length > 300) { hojaMsg('El detalle es muy largo (máximo 300 letras): sacá algo o partilo en dos renglones.', 'error'); return; }
+      if (!HOJA.idPendiente) HOJA.idPendiente = hojaUUID();   // el mismo id en el reintento: no se duplica
+      var fila = { id: HOJA.idPendiente, dia: HOJA.dia || resumenHoyART(), tipo: nota ? 'nota' : 'venta', detalle: detalle, efectivo: ef, mp: mp, posnet: po, items: items };
+      HOJA.ocupado = true; hojaEl('hojaGuardarBtn').disabled = true;
+      try {
+        var r; try { r = await sb.from('caja_movimientos').insert(fila); } catch (e) { r = { error: e }; }
+        if (r.error && r.error.code !== '23505') { hojaMsg(hojaErrorTexto(r.error, 'guardar el renglón') + ' Lo que escribiste sigue ahí: tocá de nuevo para reintentar.', 'error'); return; }
+        HOJA.idPendiente = null;
+        if (!r.error) logAdminAction('hoja_alta', null, hojaLogDatos(fila));   // un reintento que ya estaba (23505) no deja un segundo renglón en el Log
+        HOJA.items = []; hojaItemsPintar();
+        ['hojaDetalle', 'hojaEfec', 'hojaMp', 'hojaPosnet', 'hojaBuscar'].forEach(function(id) { hojaEl(id).value = ''; });
+        hojaTotalPint();
+        await hojaCargar();
+        hojaMsg(nota ? '✓ Anotado.' : '✓ Renglón guardado.', 'ok');
+      } finally { HOJA.ocupado = false; hojaEl('hojaGuardarBtn').disabled = false; }
+    }
+    async function hojaCargar() {
+      var lista = hojaEl('hojaLista'), tot = hojaEl('hojaTotales');
+      var r; try { r = await sb.from('caja_movimientos').select('*').eq('dia', HOJA.dia).order('creado_en', { ascending: true }); } catch (e) { r = { error: e }; }
+      if (r.error) {   // [GUARDAR-SIN-LEER] #20: con la lectura fallida no se muestran totales en cero, se muestra el error
+        HOJA.filas = null; tot.innerHTML = '';
+        var t = sinLeer('hoja', r.error, 'leer la hoja');
+        lista.innerHTML = '<p class="hoja-vacio" style="color:var(--tinta-error)">' + escHtml(hojaTablaFalta(r.error) ? hojaErrorTexto(r.error) : t) + '</p>';
+        return;
+      }
+      leido('hoja', null);
+      HOJA.filas = r.data || [];
+      hojaPintar();
+    }
+    function hojaPintar() {
+      var filas = HOJA.filas || [], te = 0, tm = 0, tp = 0;
+      filas.forEach(function(f) { if (f.anulado_en) return; te += Number(f.efectivo) || 0; tm += Number(f.mp) || 0; tp += Number(f.posnet) || 0; });
+      hojaEl('hojaTotales').innerHTML = [['Efec.', te], ['MP', tm], ['Posnet', tp], ['Total', te + tm + tp]].map(function(x, i) {
+        return '<div class="hoja-total' + (i === 3 ? ' hoja-total--suma' : '') + '"><span>' + x[0] + '</span><b>' + hojaPesos(x[1]) + '</b></div>';
+      }).join('');
+      var esJefe = currentRole === 'jefe';
+      hojaEl('hojaLista').innerHTML = filas.length ? filas.map(function(f) {
+        var hora = new Date(f.creado_en).toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit' });
+        var quien = String(f.creado_por || '').split('@')[0];
+        var anulada = !!f.anulado_en;
+        var celda = function(t, v) { return '<div><span>' + t + '</span>' + (Number(v) ? hojaPesos(v) : '—') + '</div>'; };
+        return '<div class="hoja-fila' + (anulada ? ' anulada' : '') + '"><div class="hoja-fila-cab"><span class="hoja-fila-hora">' + escHtml(hora) + '</span>'
+          + '<div class="hoja-fila-texto"><b>' + escHtml(f.detalle) + '</b>' + (f.tipo === 'nota' ? '<span class="hoja-etq">nota</span>' : '') + (anulada ? '<span class="hoja-etq">tachado</span>' : '')
+          + '<small>' + escHtml(quien) + (anulada ? ' · tachó ' + escHtml(String(f.anulado_por || '').split('@')[0]) : '') + '</small></div></div>'
+          + '<div class="hoja-fila-montos">' + celda('Efec.', f.efectivo) + celda('MP', f.mp) + celda('Posnet', f.posnet) + '</div>'
+          + '<div class="hoja-fila-acc">'
+          + (anulada ? '' : '<button type="button" onclick="hojaTachar(' + escHtml(JSON.stringify(String(f.id))) + ')">Tachar</button>')
+          + (esJefe ? '<button type="button" onclick="hojaBorrar(' + escHtml(JSON.stringify(String(f.id))) + ')">Borrar</button>' : '')
+          + '</div></div>';
+      }).join('') : '<p class="hoja-vacio">Todavía no hay renglones este día.</p>';
+    }
+    async function hojaTachar(id) {
+      var f = (HOJA.filas || []).filter(function(x) { return x.id === id; })[0];
+      if (!f || f.anulado_en || HOJA.ocupado) return;
+      if (!confirm('¿Tachar este renglón?\n\n' + f.detalle + '\n\nQueda en la hoja, tachado, y no suma en los totales.')) return;
+      var email = await hojaEmail();
+      if (!email) { hojaMsg('No pude saber quién sos: volvé a entrar al panel.', 'error'); return; }
+      HOJA.ocupado = true;
+      try {
+        var r; try { r = await sb.from('caja_movimientos').update({ anulado_en: new Date().toISOString(), anulado_por: email }).eq('id', id).is('anulado_en', null).select('id'); } catch (e) { r = { error: e }; }
+        if (r.error) { hojaMsg(hojaErrorTexto(r.error, 'tachar el renglón'), 'error'); return; }
+        if (!r.data || !r.data.length) hojaMsg('Ese renglón ya estaba tachado (o no se pudo). Se actualizó la lista.', 'aviso');
+        else { logAdminAction('hoja_tachar', null, hojaLogDatos(f)); hojaMsg('Renglón tachado.', 'ok'); }
+        await hojaCargar();
+      } finally { HOJA.ocupado = false; }
+    }
+    async function hojaBorrar(id) {   // sólo el jefe (la base también: caja_delete_jefe)
+      if (currentRole !== 'jefe') return;
+      var f = (HOJA.filas || []).filter(function(x) { return x.id === id; })[0];
+      if (!f || HOJA.ocupado) return;
+      if (!confirm('¿Borrar este renglón para siempre?\n\n' + f.detalle + '\n\nNo se puede deshacer (si sólo se equivocaron, es mejor tacharlo).')) return;
+      HOJA.ocupado = true;
+      try {
+        var r; try { r = await sb.from('caja_movimientos').delete().eq('id', id).select('id'); } catch (e) { r = { error: e }; }
+        if (r.error) { hojaMsg(hojaErrorTexto(r.error, 'borrar el renglón'), 'error'); return; }
+        if (!r.data || !r.data.length) hojaMsg('No se borró nada (ya no estaba, o la base no te dejó). Se actualizó la lista.', 'aviso');
+        else { logAdminAction('hoja_borrar', null, hojaLogDatos(f)); hojaMsg('Renglón borrado.', 'ok'); }
+        await hojaCargar();
+      } finally { HOJA.ocupado = false; }
+    }
+
     function resumenHoyART() {
       return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     }
@@ -14025,6 +14337,7 @@
       { name: 'announcements',           critical: true },
       { name: 'puntos_config',           critical: true },   // [PUNTOS-LOG] la regla de puntos (una fila)
       { name: 'perfume_codigos',         critical: true },   // [ESCANER] 163 · código de barras -> perfume (sin lectura pública)
+      { name: 'caja_movimientos',        critical: true },   // [REEMPLAZO-DE-HOJA] la hoja de caja (sin lectura pública: hay plata adentro)
       // Data de negocio
       { name: 'clientes',                critical: false },
       { name: 'opiniones',               critical: false },
