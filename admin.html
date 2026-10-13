@@ -979,7 +979,7 @@
     /* [ESPERA-LIBRE] 142 · la lista de resultados (con su scroll de 15rem) y, DEBAJO y fuera de ese scroll, la opción «+ Anotar «…»»: entre
        las dos queda el mismo .25rem que entre dos resultados. Los márgenes de antes pasaron a .espera-busqueda. */
     .espera-busqueda { display: flex; flex-direction: column; gap: .25rem; margin: -.4rem 0 .6rem; }
-    .espera-resultados { display: flex; flex-direction: column; gap: .25rem; max-height: 15rem; overflow-y: auto; }
+    .espera-resultados { display: flex; flex-direction: column; gap: .25rem; max-height: 22rem; overflow-y: auto; padding: 2px; }
     .espera-resultados:empty, #esperaOpcionLibre:empty { display: none; }
     .espera-opcion {
       display: flex; align-items: center; gap: .5rem; width: 100%; min-height: var(--tap-min); padding: 0 .8rem; text-align: left;
@@ -1324,6 +1324,28 @@
     .hv-pago .hoja-monto { min-height: 110px; }
     .hv-pago .hoja-monto b { font-size: 1.35rem; }
     .hv-links { display: flex; flex-wrap: wrap; gap: 0 1.2rem; }
+    /* ── [TARJETERO] 13-oct · elegir tocando (nombre de Alejo): tarjetas grandes en dos columnas; que se note que se tocan ── */
+    .tarjetero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+    .tarjeta {
+      position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; min-height: 84px; padding: .7rem 1.6rem;
+      text-align: center; font-family: inherit; color: inherit; cursor: pointer; background: var(--superficie); border: 1.5px solid var(--borde); border-radius: 14px;
+      transition: border-color .15s, background .15s, transform .08s; -webkit-tap-highlight-color: transparent;
+    }
+    .tarjeta::after { content: '\203A'; position: absolute; right: .7rem; top: 50%; transform: translateY(-50%); font-size: 1.4rem; line-height: 1; color: var(--amarillo-tinta); }
+    .tarjeta:hover, .tarjeta:focus-visible { border-color: var(--amarillo-tinta); }
+    .tarjeta:active { transform: scale(.98); background: rgba(232,184,0,.16); border-color: var(--amarillo-tinta); }
+    .tarjeta--elegida { border-color: var(--amarillo-tinta); box-shadow: inset 0 0 0 1px var(--amarillo-tinta); background: rgba(232,184,0,.14); }
+    .tarjeta-nombre { font-size: 1rem; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
+    .tarjeta-sub { font-size: .72rem; color: var(--gris-claro); }
+    .tarjeta .badge-stock { margin-top: .15rem; }
+    .tarjeta .cod-ya { display: block; font-size: .68rem; font-weight: 600; color: var(--tinta-aviso); }
+    .cod-lista .tarjetero { padding: .5rem; }
+    @media (max-width: 380px) { .tarjetero { grid-template-columns: minmax(0, 1fr); } }
+    /* Cobrar: el cuadrado que cobra al tocarlo se ve como botón (borde dorado y «Cobrar» abajo) */
+    .hoja-monto.auto { border: 2px solid var(--amarillo-tinta); background: rgba(232,184,0,.08); transition: transform .08s, background .15s; }
+    .hoja-monto.auto:hover, .hoja-monto.auto:focus-visible { background: rgba(232,184,0,.16); }
+    .hoja-monto.auto:active { transform: scale(.97); background: rgba(232,184,0,.24); }
+    .hoja-cobrar { display: inline-block; margin-top: .35rem; padding: .3rem .9rem; border-radius: 999px; background: var(--amarillo); color: #000; font-style: normal; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
     /* [CANTIDAD-SUMA] 1 · 2 · 3 · 4 · 5 · 10 que se suman */
     .hv-nums { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     .hv-cant-ayuda { text-align: center; margin: 0 0 .6rem; }
@@ -4422,7 +4444,8 @@
       <div id="codPaso2" hidden>
         <input type="text" class="modal-input" id="codBuscar" placeholder="Buscar por nombre, fabricante o apodo..." oninput="codPintarLista()" autocomplete="off" style="margin-bottom:0;" data-sin-x="1"/>
         <div class="cod-lista" id="codLista" role="radiogroup" aria-label="Perfume"></div>
-        <button type="button" class="modal-btn modal-btn-price" id="codGuardar" onclick="codGuardar()" disabled>Guardar código</button>
+        <p class="cod-sub" style="margin:.6rem 0 0">Tocá el perfume y el código queda guardado.</p>
+        <button type="button" class="modal-btn modal-btn-price" id="codGuardar" onclick="codGuardar()" disabled hidden>Guardar código</button>
         <p class="cod-msg" id="codMsg" role="alert"></p>
         <button type="button" class="modal-btn cod-btn-texto" onclick="codVolverPaso1()">Atrás</button>
       </div>
@@ -7942,18 +7965,17 @@
       var lista = PERFUMES.filter(function(p) {
         return !p.esSet && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(n) !== -1;
       }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 8);
-      cont.innerHTML = lista.length ? lista.map(function(p) {
+      cont.innerHTML = lista.length ? tarjeteroHTML(lista.map(function(p) {   // [TARJETERO]
         var info = stockCargado ? deriveStockInfo(p) : null;
-        return '<button type="button" class="cod-fila" onclick="mercElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
-          + '<span class="cod-nombre">' + escHtml(p.name || '') + (p.marca_real ? '<small>' + escHtml(p.marca_real) + '</small>' : '') + '</span>'
-          + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '') + '</button>';
-      }).join('') : '<p class="cod-msg" style="padding:.8rem;color:var(--gris);">No hay perfumes con ese nombre.</p>';
+        return { onclick: 'mercElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')', nombre: p.name || '', sub: p.marca_real || p.marca || '',
+                 etiqueta: info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '' };
+      })) : '<p class="cod-msg" style="padding:.8rem;color:var(--gris);">No hay perfumes con ese nombre.</p>';
       cont.hidden = false;
     }
     function mercBuscarTecla(e) {
       if (e.key !== 'Enter') return;
       if (/^\d{8,14}$/.test(mercEl('mercBuscar').value.replace(/\s/g, ''))) return;   // un código lo toma pistolaTecla
-      var primero = mercEl('mercResultados').querySelector('.cod-fila');
+      var primero = mercEl('mercResultados').querySelector('.tarjeta');
       if (primero) { e.preventDefault(); primero.click(); }
     }
     function mercEscanear() { escanearAbrir('merc'); }
@@ -8178,41 +8200,50 @@
       try { document.getElementById('codBuscar').focus(); } catch (e) {}
     }
     function codNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+    // [TARJETERO] 13-oct-2026 · el estilo de «elegir tocando» del panel (nombre de Alejo): una grilla de tarjetas grandes, el nombre en negrita
+    // y una línea chica abajo. Se usa en el buscador de la hoja, los decants de diseñador, «Llegó mercadería», el código nuevo del escáner y
+    // «Anotar del mostrador». items: [{ onclick: 'código JS ya escapado para el atributo', nombre, sub, etiqueta: 'html (badge) ya armado', elegida }].
+    // nombre y sub se escapan acá. Una lista nueva de «elegir uno» en el panel usa esto (NO ROMPER #33).
+    function tarjeteroHTML(items) {
+      return '<div class="tarjetero">' + items.map(function(it) {
+        return '<button type="button" class="tarjeta' + (it.elegida ? ' tarjeta--elegida' : '') + '" onclick="' + it.onclick + '">'
+          + '<span class="tarjeta-nombre">' + escHtml(it.nombre || '') + '</span>'
+          + (it.sub ? '<span class="tarjeta-sub">' + escHtml(it.sub) + '</span>' : '')
+          + (it.etiqueta || '') + '</button>';
+      }).join('') + '</div>';
+    }
     function codPintarLista() {
       var q = codNorm(document.getElementById('codBuscar').value).trim();
       var lista = PERFUMES.filter(function(p) {   // como el panel: nombre, fabricante, apodo; sin sets ni combos (los decants no están en PERFUMES)
         return !p.esSet && (!q || codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(q) !== -1);
       }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); });
       var total = lista.length;
-      var html = lista.slice(0, 40).map(function(p) {
+      var html = tarjeteroHTML(lista.slice(0, 40).map(function(p) {   // [TARJETERO] un toque en la tarjeta guarda el código (Alejo, 13-oct)
         var info = stockCargado ? deriveStockInfo(p) : null;
         var n = COD.conCodigo[p.slug] || 0;
-        return '<button type="button" class="cod-fila" role="radio" aria-checked="' + (COD.slug === p.slug ? 'true' : 'false') + '" data-slug="' + escHtml(String(p.slug)) + '" onclick="codElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
-          + '<span class="cod-radio"></span>'
-          + '<span class="cod-nombre">' + escHtml(p.name || '') + (p.marca_real ? '<small>' + escHtml(p.marca_real) + '</small>' : '')
-          +   (n ? '<span class="cod-ya">Ya tiene ' + (n === 1 ? 'un código' : n + ' códigos') + '</span>' : '') + '</span>'
-          + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '')
-          + '</button>';
-      }).join('');
+        return { onclick: 'codElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')', nombre: p.name || '', sub: p.marca_real || p.marca || '', elegida: COD.slug === p.slug,
+                 etiqueta: (n ? '<span class="cod-ya">Ya tiene ' + (n === 1 ? 'un código' : n + ' códigos') + '</span>' : '') + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '') };
+      }));
       if (!total) html = '<p class="cod-msg" style="padding:.8rem;color:var(--gris);">No hay perfumes con ese nombre.</p>';
       else if (total > 40) html += '<p class="cod-msg" style="padding:.5rem;color:var(--gris);">Mostrando 40 de ' + total + ': escribí más para achicar.</p>';
       document.getElementById('codLista').innerHTML = html;
     }
-    function codElegir(slug) {
+    function codElegir(slug) {   // [TARJETERO] un toque guarda: se ve elegida mientras se guarda
+      if (COD.guardando) return;
       COD.slug = slug;
-      document.querySelectorAll('#codLista .cod-fila').forEach(function(b) { b.setAttribute('aria-checked', b.getAttribute('data-slug') === slug ? 'true' : 'false'); });
-      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
-      var g = document.getElementById('codGuardar');
-      g.disabled = !p; g.textContent = p ? 'Guardar código en ' + p.name : 'Guardar código';
-      document.getElementById('codMsg').textContent = '';
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; }); if (!p) return;
+      codPintarLista();
+      var g = document.getElementById('codGuardar'); g.disabled = false;
+      codGuardar();
     }
     async function codGuardar() {
       var g = document.getElementById('codGuardar'), msg = document.getElementById('codMsg');
       var p = COD.slug ? PERFUMES.find(function(pf) { return pf.slug === COD.slug; }) : null;
-      if (!p || g.disabled) return;
-      g.disabled = true; msg.textContent = '';
-      var r = await codAsociar(COD.codigo, p.slug);
-      if (!r.ok) { g.disabled = false; msg.style.color = 'var(--tinta-error)'; msg.textContent = r.texto; return; }
+      if (!p || g.disabled || COD.guardando) return;
+      g.disabled = true; msg.style.color = 'var(--tinta-aviso)'; msg.textContent = 'Guardando el código en ' + p.name + '…';
+      COD.guardando = true;
+      var r; try { r = await codAsociar(COD.codigo, p.slug); } finally { COD.guardando = false; }
+      if (!r.ok) { COD.slug = ''; codPintarLista(); g.disabled = false; msg.style.color = 'var(--tinta-error)'; msg.textContent = r.texto; return; }
       closeModal('modalCodigoNuevo');
       escMostrar(p, COD.tab, '✓ Código guardado en ' + p.name);
     }
@@ -12436,18 +12467,16 @@
           + '<span class="espera-opcion-txt"><span class="espera-opcion-nombre">Anotar \u00ab' + escHtml(texto) + '\u00bb</span><small class="espera-opcion-sub">fuera del cat\u00e1logo</small></span></button>'
         : '';
       cont.innerHTML = hits.length
-        ? hits.map(function(p) {
-            var marca = p.marca_real || p.marca || '';
-            return '<button type="button" class="espera-resultado" onclick="esperaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
-              + escHtml(p.name || p.slug) + (marca ? ' <small>' + escHtml(marca) + '</small>' : '') + '</button>';
-          }).join('')
+        ? tarjeteroHTML(hits.map(function(p) {   // [TARJETERO]
+            return { onclick: 'esperaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')', nombre: p.name || p.slug, sub: p.marca_real || p.marca || '' };
+          }))
         : (hayOpcion ? '' : '<p class="espera-sin-resultados">' + (yaChip ? 'Ya est\u00e1 agregado abajo' : 'No hay perfumes con ese nombre') + '</p>');   // con la opción, ocupa su lugar; 142g: si se esconde porque ya es un chip, lo dice
     }
     // Enter en el buscador elige el primero (y no dispara «Anotar»: [ENTER-GUARDA] escucha en document).
     function esperaBuscarTecla(e) {
       if (e.key !== 'Enter') return;
       e.preventDefault(); e.stopPropagation();
-      var primero = document.querySelector('#esperaResultados .espera-resultado');
+      var primero = document.querySelector('#esperaResultados .tarjeta');
       if (primero) { primero.click(); return; }
       var opcion = document.querySelector('#esperaOpcionLibre .espera-opcion');   // [ESPERA-LIBRE] 142: sin resultados, Enter elige la opción
       if (opcion) opcion.click();
@@ -14091,20 +14120,19 @@
       var lista = PERFUMES.filter(function(p) {
         return !p.esSet && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(n) !== -1;
       }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 12);
-      cont.innerHTML = lista.length ? lista.map(function(p) {
+      cont.innerHTML = lista.length ? tarjeteroHTML(lista.map(function(p) {   // [TARJETERO]
         var info = stockCargado ? deriveStockInfo(p) : null;
         var base = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
-        return '<button type="button" class="hv-fila" onclick="hojaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')">'
-          + '<span class="hv-fila-nombre">' + escHtml(p.name || '') + '<small>' + escHtml(p.marca_real || p.marca || '') + (base > 0 ? ' · ' + hojaPesos(base) : ' · sin precio') + '</small></span>'
-          + (info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '') + '</button>';
-      }).join('') : '<p class="hoja-hint" style="padding:.6rem 0">No hay perfumes con ese nombre. Si no está en el catálogo, volvé y anotalo en «Otra cosa».</p>';
+        return { onclick: 'hojaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')', nombre: p.name || '', sub: (p.marca_real || p.marca || '') + (base > 0 ? ' · ' + hojaPesos(base) : ' · sin precio'),
+                 etiqueta: info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '' };
+      })) : '<p class="hoja-hint" style="padding:.6rem 0">No hay perfumes con ese nombre. Si no está en el catálogo, volvé y anotalo en «Otra cosa».</p>';
     }
     function hojaBuscarTecla(e) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
       var v = (hojaEl('hvBuscar') || {}).value || '';
       if (/^\d{8,14}$/.test(v.trim().replace(/\s/g, ''))) { var n = normalizarCodigo(v); if (n.ok) hojaCodigo(n.codigo); else hojaMsg(n.msg, 'error'); return; }
-      var primero = hojaEl('hvResultados') && hojaEl('hvResultados').querySelector('.hv-fila'); if (primero) primero.click();
+      var primero = hojaEl('hvResultados') && hojaEl('hvResultados').querySelector('.tarjeta'); if (primero) primero.click();
     }
     async function hojaCodigo(codigo) {   // lo llama el escáner (cámara o número escrito) y el Enter del buscador
       var r; try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
@@ -14128,8 +14156,10 @@
       }).join('') + '</div>';
     }
     function hojaTileHTML(m, onclick, valor, chico, pulsado, clase) {
-      return '<button type="button" class="hoja-monto ' + (clase || '') + '" data-medio="' + m + '" aria-pressed="' + (pulsado ? 'true' : 'false') + '" onclick="' + onclick + '">'
-        + '<span>' + (m === 'debe' ? 'Queda debiendo' : (m === 'precio' ? 'Monto' : HOJA_MEDIO_NOMBRE[m])) + '</span><b>' + valor + '</b><small>' + (chico || '') + '</small></button>';
+      var cobra = / auto|^auto/.test(' ' + (clase || ''));   // un cuadrado que COBRA al tocarlo lleva su botón «Cobrar» bien visible (Alejo, 13-oct)
+      return '<button type="button" class="hoja-monto ' + (clase || '') + '" data-medio="' + m + '" aria-pressed="' + (pulsado ? 'true' : 'false') + '" onclick="' + onclick + '"' + (cobra ? ' aria-label="Cobrar ' + valor + ' en ' + (HOJA_MEDIO_NOMBRE[m] || m) + '"' : '') + '>'
+        + '<span>' + (m === 'debe' ? 'Queda debiendo' : (m === 'precio' ? 'Monto' : HOJA_MEDIO_NOMBRE[m])) + '</span><b>' + valor + '</b><small>' + (chico || '') + '</small>'
+        + (cobra ? '<em class="hoja-cobrar">Cobrar</em>' : '') + '</button>';
     }
     function hojaTilesManual() {
       return '<div class="hoja-montos">' + ['efectivo', 'mp', 'posnet'].map(function(m) {
@@ -14175,9 +14205,9 @@
         h = hojaCab('Decant de diseñador', 'hojaPaso(\'decant\')')
           + (ds === null ? '<p class="hoja-hint">Cargando la lista… (si no aparece, anotalo en «Otra cosa»)</p>'
             : (!ds.length ? '<p class="hoja-hint">No hay decants de diseñador cargados: anotalo en «Otra cosa».</p>'
-              : '<div class="hv-tiles hv-tiles--2">' + ds.map(function(d) {
-                  return '<button type="button" class="hv-tile hv-tile--chica" onclick="hojaElegirDisenador(' + escHtml(JSON.stringify(String(d.id))) + ')"><b>' + escHtml(d.nombre || '') + '</b><small>' + escHtml(d.marca || '') + (Number(d.precio_unit) > 0 ? ' · ' + hojaPesos(d.precio_unit) + ' c/u' : ' · sin precio') + '</small></button>';
-                }).join('') + '</div>'));
+              : tarjeteroHTML(ds.map(function(d) {   // [TARJETERO] el original: de acá salió el nombre
+                  return { onclick: 'hojaElegirDisenador(' + escHtml(JSON.stringify(String(d.id))) + ')', nombre: d.nombre || '', sub: (d.marca || '') + (Number(d.precio_unit) > 0 ? ' · ' + hojaPesos(d.precio_unit) + ' c/u' : ' · sin precio') };
+                }))));
       }
       else if (p === 'cuantos' && s) {
         var volver = s.tipo === 'frasco' ? 'hojaPaso(\'perfume\')' : (s.tipo === 'arabe' ? 'hojaPaso(\'decant\')' : 'hojaPaso(\'disenador\')');
@@ -14215,7 +14245,7 @@
         var pp = hojaCarroPrecio(HOJA.carro);
         if (!pp) { HOJA.paso = 'manual'; return hojaVentaPintar(); }
         var hayFrasco = HOJA.carro.some(function(l) { return l.tipo === 'frasco' && l.base > 0; });
-        h = hojaCab('¿Cómo pagó?', 'hojaPaso(\'que\')') + hojaCarroHTML(false)
+        h = hojaCab('¿Cómo pagó? Tocá uno', 'hojaPaso(\'que\')') + hojaCarroHTML(false)
           + '<div class="hoja-montos hv-pago">'
           + hojaTileHTML('efectivo', 'hojaGuardarVenta({ auto: \'efectivo\' })', hojaPesos(pp.efectivo), hayFrasco ? 'perfumes con 10% off' : '', false, 'auto')
           + hojaTileHTML('mp', 'hojaGuardarVenta({ auto: \'mp\' })', hojaPesos(pp.efectivo), hayFrasco ? 'perfumes con 10% off' : '', false, 'auto')
@@ -14477,7 +14507,7 @@
       var idq = escHtml(JSON.stringify(String(x.id)));
       if (HOJA.cobro && HOJA.cobro.id === x.id) {
         var monto = HOJA.cobro.parcial ? Number(HOJA.cobro.parcial) : Number(x.debe);
-        var tile = function(m, n) { return '<button type="button" class="hoja-monto auto" onclick="hojaCobroPagar(\'' + m + '\')"><span>' + n + '</span><b>' + hojaPesos(monto) + '</b><small>tocá para cobrar</small></button>'; };
+        var tile = function(m, n) { return '<button type="button" class="hoja-monto auto" onclick="hojaCobroPagar(\'' + m + '\')"><span>' + n + '</span><b>' + hojaPesos(monto) + '</b><small></small><em class="hoja-cobrar">Cobrar</em></button>'; };
         return '<div class="hoja-cobro-panel"><div class="hoja-cierre-fila" style="border-top:none;padding-top:0"><div>' + cab + '</div><div class="hoja-cierre-res aviso">Debe ' + hojaPesos(x.debe) + '</div></div>'
           + '<div class="hoja-montos" id="hojaCobroTiles">' + tile('efectivo', 'Efec.') + tile('mp', 'MP') + tile('posnet', 'Posnet') + '</div>'
           + '<div class="hoja-cierre-acc"><button type="button" onclick="hojaCobroParcial()">Pagó una parte…</button><button type="button" onclick="hojaCobroCancelar()">Cancelar</button></div>'
