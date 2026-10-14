@@ -3893,6 +3893,10 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movido el 14-oct-2026 (~13:00, cierre de `pedido-claro`):** los tres puntos de `[CELU-LETRA]` que venían de `sin-stock-no-entra`, hechos en `a2944cb` (`[COMPARAR-CLARO]`) y `38c3075` (`[PEDIDO-CLARO]`), los dos en producción. `[CELU-LETRA]` sigue abierto con 156 y 157. Texto tal como estaba adentro de `[CELU-LETRA]`:
+
+- ✅ **Entran también, de `sin-stock-no-entra` (PREPARADOR `_cs`):** ~~(1) el modal de Comparar en tema claro~~ ✅ hecho el 14-oct (`[COMPARAR-CLARO]`, `a2944cb`, v1.1.225: en claro el cuadro es blanco; decisión A de Alejo); ~~(2) `.cart-limit-msg` en claro (1,56) y (3) el «Máximo 15» fuera del panel~~ ✅ hechos el 14-oct (`[PEDIDO-CLARO]`, v1.1.226, rama `pedido-claro`): el aviso del panel va en `var(--amarillo-tinta)` (6,02 en claro, oscuro igual) y el «Máximo 15» sale por `avisoPedido` (`#avisoToast`, se ve encima de la card, la ficha y Comparar). De paso, «¿Pagás con tarjeta?» y «¿No sos de Comodoro?» de la caja de pagos eran `#fff` sobre crema (1,14, invisibles): en claro `#1a1a1d` (15,22). Los «títulos amarillos» de la nota vieja no existían: el título «Tu pedido» en claro ya era `#2a2a2d` (12,46). `contraste.js` mide los tres (637 mediciones, 0 fallas). **Quedan de antes, sin tocar:** en claro la ✕ roja de cada perfume (3,33, 16 px) y «❤️ Agregar mis favoritos» (3,03, 10 px).
+
 **Movido el 14-oct-2026 (~12:25, después del push):** Alejo borró el dump; verificado con `ls` de `D:ackups` (ya no está). En el mismo momento, producción en v1.1.225 (`b10f58b`), verificada por `curl`.
 
 - ✅ ~~**`[DUMP-MAYO-PLANO]`**~~ (14-oct, salió del repaso de `SECURITY.md` · 🟡, **lo hace Alejo**) — `D:\backups\st-perfumeria-pre-migracion-20may2026.sql` (6,4 MB, del 21-may) seguía en el disco: tiene las contraseñas de los clientes **en texto plano**, de antes de `[BCRYPT-MIGRATION]`, y era para guardarlo 7 días. **Alejo decidió borrarlo** (opción A, 14-oct); el comando se le dio en el chat. Se cierra cuando `D:\backups` ya no lo tenga (verificar con `ls`). Ojo: el que borra es Alejo, no Claude Code. **→ Cerrado el 14-oct (~12:23):** borrado por Alejo con `Remove-Item`.
@@ -5221,9 +5225,59 @@ Alejo abrió con `/tanda` a las 11:56 del 14-oct (rama `panel-prolijo` = `origin
 
 - Un comando con `{…}` para PowerShell va entre comillas simples (`git stash drop 'stash@{0}'`): sin comillas, PowerShell lo lee como un bloque de código y git recibe basura («unknown switch `e'»). Va a `memory/preferencias_alejo.md`.
 
+### Sesión 14-oct-2026 (mediodía, tercera) · **`[PEDIDO-CLARO]`** — los puntos 2 y 3 de `[CELU-LETRA]`
+
+Alejo abrió con `/tanda` a las 12:32 del 14-oct (rama `panel-prolijo` = `origin/main` = `3c893b5`, árbol limpio, SW v1.1.225). El tablero propuso lo único del catálogo que se podía hacer sin esperar a nadie: los dos puntos chicos de `[CELU-LETRA]`. Alejo dijo «dale arrancá», que usara Claude in Chrome y que revisara sin errores.
+
+#### Qué se hizo
+
+- **`[PEDIDO-CLARO]` · `38c3075` (SW v1.1.226), rama `pedido-claro` desde `origin/main`:**
+  - `.cart-limit-msg` (el aviso de abajo del panel «Tu pedido»: favoritos agregados, etc.) pasó de `var(--amarillo)` a `var(--amarillo-tinta)`: en claro 1,56 → **6,02** sobre `#f4ebcc`; en oscuro sigue `#E8B800` (8,95).
+  - **De paso, no estaba anotado:** «¿Pagás con tarjeta?» y «¿No sos de Comodoro?» (los `<strong>` de `.cart-mp-text` / `.cart-mp-envios`) eran `#fff` en los dos temas: en claro **1,14**, invisibles. Una regla `body:not(.dark-mode)` al lado de la base los pone en `#1a1a1d` (**15,22**, el mismo del nombre del perfume); en oscuro siguen blancos.
+  - `addToCart`: el «Máximo 15 fragancias por pedido 😊» va por `avisoPedido()` (`#avisoToast`) y no por `showCartLimitMsg`. `#cartLimitMsg` vive dentro del panel, y desde la card, la ficha o Comparar el panel está cerrado: no se veía nunca. `addFavsToCart` (se toca desde adentro del panel) sigue con `showCartLimitMsg`.
+  - `scripts/contraste.js` mide los tres en los dos temas (+6): **637 mediciones, 0 fallas**; con el CSS de `main`, 3 fallas (1,56 / 1,14 / 1,14).
+- **Verificado:** en el navegador interno a 375 px se midió cada texto del panel en claro (el título «Tu pedido» ya estaba bien, 12,46). En el Chrome de Alejo (Claude in Chrome, la página en un iframe de 375 × 812), con 15 en el pedido y la ficha abierta, el toque real en **Agregar** muestra el aviso encima de la ficha, legible en claro; el panel en oscuro, igual que antes; sin errores de JS. Producción: Alejo hizo el push; `origin/main` = `38c3075` y stperfumeria.com sirve `sw.js` v1.1.226 con `styles.css`, `app.js` y `sw.js` idénticos a `main` (`curl`, ~12:50; la primera consulta todavía daba v1.1.225).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arrancar por esto («dale arrancá con eso»), usar Claude in Chrome, y hacer el push (lo corrió él).
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):**
+  - Esta tanda, en el tablero.
+  - Sumar los títulos de la caja de pagos (1,14) aunque no estaban anotados: es el mismo panel y el mismo arreglo. Se lo dije a Alejo con la opción de sacarlo; no dijo que no.
+- **Hallazgos:**
+  1. **Los «títulos amarillos de Tu pedido» de la nota vieja no existían:** la nota original (`ClaudeCode_para_PREPARADOR_2026-10-05_cp.md`, punto 2) hablaba sólo de `.cart-limit-msg`; «y los títulos amarillos» apareció al copiarla. El título «Tu pedido» en claro es `#2a2a2d` desde `c8c349f`.
+  2. **Con el panel del navegador interno oculto, las animaciones CSS no corren:** `#avisoToast` quedaba `active` pero en el primer cuadro de `toastIn` (`opacity: 0`, `scale(.7)`), y parecía que el aviso no salía. En el Chrome de Alejo sí salía. Para probar algo animado: Claude in Chrome, o el panel visible.
+  3. **Quedan dos rojos debajo de 4,5 en el mismo panel, en claro:** la ✕ de cada perfume (3,33) y «❤️ Agregar mis favoritos al pedido» (3,03). Son de antes: van a `[PEDIDO-ROJOS-CLARO]` 🟢. El botón de WhatsApp (`#fff` sobre `#25D366`, 1,98) es el verde de marca que queda fuera de la regla (NO ROMPER #22).
+  4. Los 7 errores 404 de la consola al cargar el sitio local son de otros dominios, no de `localhost`.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[PEDIDO-CLARO]` | «Tu pedido» se lee en claro (aviso 6,02, títulos de pagos 15,22) y el «Máximo 15» se ve con el panel cerrado. `38c3075`, v1.1.226, en producción. Cierra los puntos 2 y 3 de `[CELU-LETRA]`. |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[CELU-LETRA]` 🟡 | Quedan 156 (la letra chica de la fila) y 157 (WhatsApp a 360). |
+| `[PEDIDO-ROJOS-CLARO]` 🟢 (nuevo) | Que Alejo diga si se arreglan la ✕ y «Agregar mis favoritos» en claro. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (14-oct, ~13:00):** `origin/main` = `38c3075` (SW **v1.1.226** en producción) · rama `pedido-claro` = `38c3075` + este cierre, para el push a `main` (fast-forward) · rama `panel-prolijo` ya entera en `main` (se puede borrar con `git branch -d`) · sin stash · servidor local apagado y pestaña de Chrome cerrada.
+
+#### 💬 Mensajes meta
+
+- Alejo pidió verificar con Claude in Chrome «para agilizar» y «no cometer errores al revisar». Va a `memory/preferencias_alejo.md`.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 14-oct-2026 (~12:30, cierre de la tanda chica de `panel-prolijo`) — pasó de `CLAUDE.md` al archivo el 14-oct (~13:00, cierre de `pedido-claro`)
+
+**Última actualización:** **Octubre 14, 2026, ~12:30 (cierre de la tanda chica de `panel-prolijo`)** — `origin/main` = `9cfe497` (SW **v1.1.224** en producción); la rama `panel-prolijo` suma `a2944cb` (**`[COMPARAR-CLARO]`**: en claro el cuadro de Comparar es blanco, SW **v1.1.225**), `6b46b1f` (**`[NUEVO-BORRADO-HUERFANO]`**: borrar un perfume nuevo lo saca del panel al toque y, si la base no borra, avisa), `3cc448a` (**`[RESET-TEMP-PASSWORD-MUERTA]`** y **`[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]`**, docs) y este cierre. **Alejo eligió mergear ya, en horario** (opción B): el push a `main` lo corre él. Se borró el stash ajeno del 20-sep (estaba todo en `main`). `[DUMP-MAYO-PLANO]` abierto y cerrado en el día: Alejo borró el dump de mayo (verificado 12:23). Detalle en `docs/HISTORIA.md` § «Sesión 14-oct-2026 (mediodía, segunda)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + humo con las chicas + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (no tocar el cargador trabajando en `D:` y medir de nuevo en unos días) · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-INP]` (B / C) · `[CELU-LETRA]` · 🟢 `[CUADRADOS-EDITAR]` · `[UPLOADER-WEBP-AUTO]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 14-oct-2026 (~11:55, cierre corto del mediodía) — pasó de `CLAUDE.md` al archivo el 14-oct (~12:30, cierre de la tanda chica de `panel-prolijo`)
 
