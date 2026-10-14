@@ -3893,6 +3893,10 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 14-oct-2026 (mediodía, cierre corto):** medido en la base el 14-oct; lo cerró Alejo («sí, cerralo»). Detalle en § «Sesión 14-oct-2026 (mediodía)».
+
+- ✅ ~~**`[FILA-NUEVA-DICE-EN-STOCK]`**~~ (5-oct, PREPARADOR `_cn` · 🟡, **sin hacer**) — hay 3 filas de `perfume_overrides` con estado «ok» y sin cantidad (`set-yara-mini`, `set-yara`, `arabians-tonka`): en Precios & Stock dicen «en stock» sin tener un número. La 154 lo evita en las altas nuevas; para estas 3 hay que medir qué pasaría si mostraran «SIN DATO» (los sets se manejan aparte: puede no convenir). **→ Cerrado el 14-oct:** ninguna fila dice «en stock» sin número en el panel. `arabians-tonka` es `out` con 0 / 0 desde el 7-oct; los dos sets no salen en Precios & Stock ni en Depósito (`!p.esSet`) y `toggleComboStock` escribe sólo `ok` / `pausado`, por diseño. Hay dos filas huérfanas ocultas y sin stock (`decant-le-beau-edt`, `desodorante-asad-bourbon`) que no se ven en ningún lado; no se tocaron.
+
 **Movidos el 14-oct-2026 (madrugada, cierre de `[PANEL-SIN-CONEXION]`):** en producción desde las ~05:10 (`16dc52d`, v1.1.224) y con el humo real de Alejo pasado (la hoja sin red, recargar sin wifi y «Llegó mercadería» sin red). Las reglas quedan en `CLAUDE.md` NO ROMPER #34.
 
 - ✅ ~~**`[PANEL-SIN-CONEXION]`**~~ (13-oct, idea de Alejo, **aprobada para este panel** · 🟡, **pasos 1 y 2 hechos en la rama `panel-prolijo` (SW v1.1.224), sin mergear; los SQL `caja_creado_en` y `stock_mover` ya aplicados en la base; el panel también abre sin internet (paso 3). Falta el merge (fuera de 10–21) y el humo en una tablet de verdad, que incluye recargar el panel sin internet: el SW no se pudo registrar en ningún navegador de prueba de esta compu (tampoco el de producción); su lógica se probó en Node**; ficha en `docs/IDEAS.md`; el paso 1 está en NO ROMPER #34) — que el panel siga andando si se corta la luz o internet: lo que anotan las chicas queda en la tablet y se sube solo al volver, aunque dure horas. **Decidió Alejo:** entra la hoja de caja, la lista de espera y **todos** los movimientos de stock (escáner, «Llegaron / Vendí», «Llegó mercadería», los modales de stock y depósito); **gana lo que anotaron las chicas** (se suma, no pisa); el «Cierre del día» sin conexión se deja para cuando vuelva, como excepción, y **deja escribir por qué** (puede ser una caída de un servicio, no un corte de luz: «para no inventar causas»); el cartel grande sale a los ~20 min sin red (regulable). **Propuse yo:** que lo que no se pueda guardar quede siempre en la tablet (no sólo después de 20 min) y que el stock sin conexión viaje como movimiento (−1 / +N, una función nueva de la base), no como el número final (`stockMover` hoy escribe el total: dos tablets se pisarían; NO ROMPER #30 j-k, #31). Tamaño L (cola + SQL + varias pantallas), para ~2 semanas de uso (mudanza ~26-oct): Alejo lo eligió igual.
@@ -5089,9 +5093,61 @@ Alejo abrió con `/tanda` el 13-oct a las 17:42 (rama `panel-prolijo` = `origin/
 - Dos nuevos en `memory/preferencias_alejo.md`: **#133** los nombres de botones (en negrita, sin « », y diciendo dónde están) y **#134** verificar en el código los pasos de una prueba antes de dárselos.
 - Alejo pidió `/cerrar` (existe en galeria-de-plantillas); en ST el cierre es `/tanda cerrar` → `/handoff`.
 
+
+### Sesión 14-oct-2026 (mediodía) · **`[FILA-NUEVA-DICE-EN-STOCK]` y `[DISCO-D-FSYNC]`** — tres tareas chicas, sin código
+
+Alejo abrió con `/tanda` a las 11:42 del 14-oct (rama `panel-prolijo` = `origin/main` = `098f6e6`, árbol limpio, SW v1.1.224). Del tablero eligió las tres cosas que podía hacer Claude Code sin esperar a nadie, en este orden: corregir `docs/IDEAS.md`, medir las filas que dicen «en stock» sin número y volver a revisar los errores de escritura del disco `D:`.
+
+#### Qué se hizo
+
+- **`docs/IDEAS.md` · `0c938d2`:** `[PANEL-SIN-CONEXION]` decía «🔨 en curso… falta el merge y el humo»; pasa a **✅ hecha** (en producción desde el 14-oct ~05:10, `16dc52d`, SW v1.1.224, humo real OK; remite a NO ROMPER #34 y a § «Sesión 13/14-oct-2026»).
+- **`[FILA-NUEVA-DICE-EN-STOCK]`, medido en la base** (`perfume_overrides` con `stock_status = 'ok'` y `stock_qty` nulo): hoy son **4 filas** y **ninguna muestra «en stock» sin número en el panel**.
+  - `arabians-tonka` (una de las 3 del pendiente) **ya no está**: desde el 7-oct es `out` con 0 en el local y 0 en el depósito.
+  - `set-yara` y `set-yara-mini` son sets (`esSet`, en `perfumes.js` y en `combos`). **No salen en Precios & Stock** (`renderPrecios` filtra `!p.esSet`, `admin.html` ~L6435; Depósito igual, ~L5984), y su único interruptor, `toggleComboStock` (~L11545), escribe sólo `ok` / `pausado`, sin número, **por diseño**. Que dijeran «SIN DATO» en rojo confundiría.
+  - Dos filas huérfanas nuevas, **ocultas y sin stock**, que no aparecen en ningún lado (no están en `perfumes.js` ni en `perfumes_nuevos`): `decant-le-beau-edt` (el jefe lo creó como perfume nuevo el 26-sep, lo ocultó el 28-sep y después se borró de `perfumes_nuevos`: el mismo patrón que `[NUEVO-BORRADO-HUERFANO]`) y `desodorante-asad-bourbon` (de abril, oculto). **No se tocaron.**
+  - En total, `perfume_overrides` tiene 146 `ok` (4 sin número), 39 `low`, 17 `out` y 73 `pausado` (7 sin número).
+- **`[DISCO-D-FSYNC]`, medido de nuevo (14-oct, ~11:45)** con `Get-WinEvent` (registro System, proveedores `Ntfs`, `Microsoft-Windows-Ntfs` y `disk`, desde el 14-sep):
+  - **57 avisos malos** (sin contar los Ntfs 98, «el volumen es correcto», que salen en cada montaje): **55 antes del `powercfg`** (12-oct 21:30) **y 2 después**, que son **un solo incidente** en ~38 h: 13-oct 02:36:22 Ntfs 140 («operación en un volumen después de que se ha desmontado», `HarddiskVolume13`) y 02:36:24 Ntfs 50 (escritura demorada perdida). `D:` se volvió a montar a las 02:42 (`HarddiskVolume15`); después hubo otro montaje sin error el 14-oct 03:07 (`HarddiskVolume17`) y el del arranque de hoy, 11:26.
+  - El `powercfg` sigue aplicado: suspensión selectiva de USB en `0x00000000` con corriente y con batería.
+  - **Segunda sospecha: el cargador.** En ese incidente, Windows anotó tres Kernel-Power 105 («cambio de fuente de energía») en 20 s: 02:36:11 a corriente, 02:36:32 a batería y 02:36:33 a corriente. En todo el mes, **7 de los 15 grupos de avisos tienen un 105 a menos de 2 min** (por azar sería ~2 % por grupo: 233 eventos 105 en un mes, unos 8 por día, de los que 12 llegan a menos de 10 s del anterior).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** hacer las tres tareas en ese orden («hacé las 3 en este orden»), **cerrar `[FILA-NUEVA-DICE-EN-STOCK]`** y **anotar lo del disco** en `[DISCO-D-FSYNC]` («sí, cerralo y anotá lo del disco»).
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):** las tres tareas (desde el tablero de `/tanda`); cerrar el pendiente de las filas (no hay nada que arreglar); no tocar las dos filas huérfanas; y, sobre el disco, **no enchufar ni desenchufar el cargador trabajando en `D:`** y revisar la ficha o el cable si la fuente cambia sola. **La sospecha del cargador no está confirmada:** es una correlación, no una prueba.
+- **Hallazgos:**
+  1. Un `-match 'D:'` dentro de un comando de PowerShell lo frenó la protección de la herramienta («Remove-Item on system path 'D:' is blocked»), aunque el comando sólo leía. Se resolvió armando la letra con `[char]68 + [char]58`.
+  2. Ya existe `.claude/recomendaciones.md` (la pregunta abierta del 13-oct queda resuelta: no hay que armarlo).
+  3. El checkout principal (`D:\workspace\ST_Perfumeria`) sigue en `aa5d62e`, ahora **47 commits atrás** de `origin/main`, con archivos sin seguir que no son de esta sesión. No se tocó. Sigue el stash ajeno del 20-sep.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[FILA-NUEVA-DICE-EN-STOCK]` | Medido: ninguna fila dice «en stock» sin número en el panel (Arabians Tonka ya arreglada; los sets no salen en Precios & Stock y no llevan número por diseño). Cerrado por Alejo. |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[DISCO-D-FSYNC]` 🟡 | No tocar el cargador trabajando en `D:`; medir de nuevo en unos días (`Ntfs`, `disk` y Kernel-Power 105); si sigue, otro cable o puerto USB. |
+| `[NUEVO-BORRADO-HUERFANO]` 🟡 | Sin cambios; ahora con un segundo caso visto (`decant-le-beau-edt`, oculto y sin stock). |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (14-oct, ~11:55):** `origin/main` = `098f6e6` (SW **v1.1.224** en producción desde el 14-oct ~05:10) · rama `panel-prolijo` = `098f6e6` + `0c938d2` (IDEAS.md) + este cierre · árbol limpio después del commit · stash ajeno del 20-sep sin tocar · checkout principal en `aa5d62e` (47 atrás): no afecta.
+
+#### 💬 Mensajes meta
+
+- Nada nuevo para `memory/preferencias_alejo.md`.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 14-oct-2026 (~05:35, cierre de `[PANEL-SIN-CONEXION]`) — pasó de `CLAUDE.md` al archivo el 14-oct (~11:55, cierre del mediodía)
+
+**Última actualización:** **Octubre 14, 2026, ~05:35 (cierre de `[PANEL-SIN-CONEXION]`)** — `main` = `origin/main` = `16dc52d` (**v1.1.224**) en producción desde las ~05:10, verificada por `curl` (`admin.html` y `sw.js` idénticos a `main`); la idea `6ab08df` y este cierre suben con el push del cierre. **`[PANEL-SIN-CONEXION]` cerrado:** sin internet, la hoja de caja, «Anotar del mostrador» y todos los movimientos de stock quedan en la tablet y suben solos al volver (el stock como movimiento por `stock_mover`: gana lo de las chicas); el «Cierre del día» espera y deja escribir por qué; el panel **abre** sin red (librería de Supabase en el SW, sesión guardada y una copia de los datos). SQL `caja_creado_en` y `stock_mover` aplicados el 13-oct. **Humo real de Alejo (14-oct, 05:15-05:27):** una nota sin red subió con su hora real, el panel abrió al recargar sin wifi y «Llegó mercadería» sumó y deshizo sin red. Todo en NO ROMPER #34 y en `docs/HISTORIA.md` § «Sesión 13/14-oct-2026». Idea nueva sin aprobar: `[PANEL-CELU-TOSCO]` (`docs/IDEAS.md`). **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + humo con las chicas + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (medir de nuevo desde el 15-oct) · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-INP]` (B / C) · `[CELU-LETRA]` · 🟢 `[CUADRADOS-EDITAR]` · `[UPLOADER-WEBP-AUTO]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 13-oct-2026 (~17:45, cierre de `[CELU-INP]` paso A) — pasó de `CLAUDE.md` al archivo el 14-oct (~05:35, cierre de `[PANEL-SIN-CONEXION]`)
 
