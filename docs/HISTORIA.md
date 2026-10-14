@@ -3893,6 +3893,11 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 14-oct-2026 (~14:00, cierre de `celu-letra`):** hechos en `4250296` y `b1b9b07` (SW v1.1.227); suben con el push del cierre. Detalle en § «Sesión 14-oct-2026 (tarde)».
+
+- ✅ ~~**`[CELU-LETRA]`**~~ (5-oct, PREPARADOR `_co` · 🟡, **sin hacer**; el DISEÑADOR las dibuja ahora: decisiones 156 y 157; va después de `alta-y-candados`) — salieron de «lo que no entró» de `[PRIMER-CUADRO]`: **156** la letra chica de la fila (la marca mide 11 px, el efectivo 11 y «Último» 8,5; 34 de 42 textos de la primera pantalla miden menos de 14 px; cambia el alto de la fila, así que lleva su propia medición: tamaños nuevos, alto de la fila antes y después a 360 y 390, cuántas filas entran en la primera pantalla) y **157** WhatsApp a 360 (tapa 50 × 22 px del 3.er nombre). Los tres puntos que venían de `sin-stock-no-entra` (Comparar en claro, el aviso de «Tu pedido» y el «Máximo 15») están hechos (`[COMPARAR-CLARO]` y `[PEDIDO-CLARO]`, 14-oct): ver `docs/HISTORIA.md` § «✅ Resueltos». → ✅ **14-oct (`b1b9b07`):** 156 con la opción «Bastante» de Alejo (marca y efectivo 12,5, «a qué huele» 13, etiqueta 10, «Avisame» 12,5; sólo < 768; a 360 la fila pasa de 123 a 124 de promedio, máx. 129 → 132, y siguen entrando 2 enteras; 390 no se midió aparte) y 157 con la opción de Alejo «que se esconda al bajar y vuelva al subir».
+- ✅ ~~**`[PEDIDO-ROJOS-CLARO]`**~~ (14-oct, salió de `[PEDIDO-CLARO]` · 🟢, **decide Alejo si vale la pena**) — en el panel «Tu pedido», en tema claro, dos rojos quedan debajo de 4,5: la ✕ para sacar cada perfume (`.cart-item-remove`, `#e74c3c` con `opacity: .6`, 3,33 a 16 px) y «❤️ Agregar mis favoritos al pedido» (`.cart-favs-btn`, 3,03 a 10,4 px). Son de antes; no se tocaron. → ✅ **14-oct (`4250296` y `b1b9b07`):** Alejo dijo que sí; en claro las dos en `--tinta-error` (5,13 y 4,67) y, también por decisión de Alejo, la ✕ sin el 60 % en oscuro (~2,4 → 4,94).
+
 **Movido el 14-oct-2026 (~13:00, cierre de `pedido-claro`):** los tres puntos de `[CELU-LETRA]` que venían de `sin-stock-no-entra`, hechos en `a2944cb` (`[COMPARAR-CLARO]`) y `38c3075` (`[PEDIDO-CLARO]`), los dos en producción. `[CELU-LETRA]` sigue abierto con 156 y 157. Texto tal como estaba adentro de `[CELU-LETRA]`:
 
 - ✅ **Entran también, de `sin-stock-no-entra` (PREPARADOR `_cs`):** ~~(1) el modal de Comparar en tema claro~~ ✅ hecho el 14-oct (`[COMPARAR-CLARO]`, `a2944cb`, v1.1.225: en claro el cuadro es blanco; decisión A de Alejo); ~~(2) `.cart-limit-msg` en claro (1,56) y (3) el «Máximo 15» fuera del panel~~ ✅ hechos el 14-oct (`[PEDIDO-CLARO]`, v1.1.226, rama `pedido-claro`): el aviso del panel va en `var(--amarillo-tinta)` (6,02 en claro, oscuro igual) y el «Máximo 15» sale por `avisoPedido` (`#avisoToast`, se ve encima de la card, la ficha y Comparar). De paso, «¿Pagás con tarjeta?» y «¿No sos de Comodoro?» de la caja de pagos eran `#fff` sobre crema (1,14, invisibles): en claro `#1a1a1d` (15,22). Los «títulos amarillos» de la nota vieja no existían: el título «Tu pedido» en claro ya era `#2a2a2d` (12,46). `contraste.js` mide los tres (637 mediciones, 0 fallas). **Quedan de antes, sin tocar:** en claro la ✕ roja de cada perfume (3,33, 16 px) y «❤️ Agregar mis favoritos» (3,03, 10 px).
@@ -5271,9 +5276,62 @@ Alejo abrió con `/tanda` a las 12:32 del 14-oct (rama `panel-prolijo` = `origin
 
 - Alejo pidió verificar con Claude in Chrome «para agilizar» y «no cometer errores al revisar». Va a `memory/preferencias_alejo.md`.
 
+### Sesión 14-oct-2026 (tarde) · **`[CELU-LETRA]` 156 y 157 + `[PEDIDO-ROJOS-CLARO]`** — la fila del celu se lee mejor y WhatsApp deja de tapar
+
+Alejo abrió con `/tanda` a las 13:25 del 14-oct (rama `pedido-claro` = `origin/main` = `213b77f`, árbol limpio, SW v1.1.226). El tablero propuso `[CELU-LETRA]` (es el catálogo en el celu, lo que tiene que convencer en temporada, y no toca el panel) y, de paso, `[PEDIDO-ROJOS-CLARO]`. Alejo: «hacé todo esto». También contó lo que ya había probado y preguntó qué eran dos de los humos.
+
+#### Qué se hizo
+
+- **Copia principal al día:** `D:\workspace\ST_Perfumeria` (rama `main`) estaba 56 commits atrás de `origin/main`; sólo tenía archivos sin seguimiento, así que `git merge --ff-only origin/main` la dejó en `213b77f` sin tocar nada suyo.
+- **`[PEDIDO-ROJOS-CLARO]` · `4250296` (SW v1.1.227), rama `celu-letra` desde `origin/main`:** en claro, `body:not(.dark-mode) .cart-item-remove` y `.cart-favs-btn` en `var(--tinta-error)` (`#b8342a`): la ✕ de cada perfume 3,33 → **5,13** y «❤️ Agregar mis favoritos al pedido» 3,03 → **4,67**. En `b1b9b07`, la ✕ perdió el `opacity: .6` en los dos temas (y su `:hover`): en oscuro ~2,4 (calculado a mano: `contraste.js` no mide opacidad) → **4,94**. `contraste.js` suma las dos: **641 mediciones, 0 fallas**.
+- **`[CELU-LETRA]` 156 · `b1b9b07`:** un bloque `@media (max-width: 767px)` nuevo, justo después del tramo compartido `(max-width: 767px), (min-width: 1024px)` de la vista lista, con los mismos selectores: marca, efectivo y «Avisame» (`.waitlist-btn`) 11 → **12,5**, «a qué huele» 11,5 → **13**, la etiqueta de la foto (`.card-etiquetas > span`, `.card-ribbon`, `.badge-sin-stock`, `.badge-proximamente`) 8,5 → **10**. La compu no cambia (medido a 1280: 11 / 11,5 / 11). **Medido antes de decidir (360, 20 filas):** el alto lo manda la foto (96): promedio 123 → 124, máximo 129 → 132, mínimo 121; siguen entrando **2 filas enteras** en la primera pantalla; los nombres en dos renglones siguen siendo 3. La opción «Un poco» (12 / 12,5 / 12 / 9,5) daba lo mismo de alto. A 390 no se midió aparte.
+- **`[CELU-LETRA]` 157 · `b1b9b07`:** medido a 360: `.wa-float` (56 × 56) queda en x 280-336, y 668-724 (16 px arriba de la barra); en **8 de las primeras 20 filas** el nombre llega a x 280, y al deslizar la punta queda debajo (en la 3.ª fila, «VALENTINO DONNA», 11 × 19 px a scroll 0). Arreglo: `waOcultoActualizar` en `js/app.js` (junto a `waPildoraActualizar`, misma IIFE del horario), con su propio `scroll` pasivo + `requestAnimationFrame`: sólo `waEsCelu()`; a menos de `WA_OCULTO_DESDE` (160) px del principio, visible; si el recorrido desde el último cambio pasa de `WA_OCULTO_PASO` (12) hacia abajo, `data-wa-oculto` en el `body`; hacia arriba, se saca. CSS (en el bloque de `[PILDORA-PUNTO]`): `body[data-wa-oculto] .wa-float, body[data-wa-oculto] .wa-status { transform: translateY(180px); opacity: 0; pointer-events: none; }`; baja detrás de la barra (z 999 < 9990); `.wa-float` y `.wa-status` suman `transform` y `opacity` a su `transition` (.25 s) y, con `prefers-reduced-motion`, sin transición.
+- **Verificado en el navegador interno:** a 360, deslizando con la rueda (5 pasos abajo → `data-wa-oculto`, opacidad bajando; 1 paso arriba → vuelve, 0,89 a mitad de la transición); la letra medida en la página (12,5 / 13 / 12,5 / 10 / 12,5); a 1280, WhatsApp nunca se esconde y la letra no cambió. La consola sólo tiene 404 de recursos que el servidor local no sirve. **No se probó en el Chrome de Alejo ni en un celu de verdad**: queda para después del deploy (lo mira Alejo).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo** (con tarjetas, 14-oct):
+  - 156: «Bastante» (la opción recomendada).
+  - 157: «que se esconda al bajar, pero que cuando vuelvas con el dedo (scroll hacia arriba) vuelva a aparecer». No pidió que vuelva al quedarse quieto, y no se hizo.
+  - La ✕ en oscuro: «Arreglala también».
+  - «Hacemos esto rápido y cuando estemos ok te doy orden y subís todo»: un solo push, que corre él.
+- **Contó Alejo (para los pendientes):** escaneó cajas de verdad (`[ESCANER]`; no dijo en qué equipo); simuló en la hoja de caja una venta de perfumes + decants y otra sólo de decants, «no muy complejo» (`[REEMPLAZO-DE-HOJA]`: siguen faltando el primer cierre real, las chicas un día y una seña); «Llegó mercadería» todavía no se lo dijeron.
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):** esta tanda, en el tablero; las opciones A recomendadas de las tarjetas; poner al día la copia principal con avance rápido; arreglar la ✕ de oscuro (la encontré al medir y Alejo dijo que sí).
+- **Hallazgos:**
+  1. **Con el panel del navegador interno oculto no corre `requestAnimationFrame`** (medido: «raf NO en 1 s»), así que `scrollTo` desde JS no disparaba nada y parecía que el código no andaba. Con capturas en el medio (que fuerzan cuadros) y la rueda de verdad, anduvo. Es la misma familia que el hallazgo 2 de la sesión anterior (las animaciones trabadas).
+  2. **`scroll-behavior: smooth` en el `html`**: `scrollTo(0, y)` desde la consola no mueve nada con el panel oculto; hace falta `{ behavior: 'instant' }`.
+  3. El dato viejo de 157 («tapa 50 × 22 px del 3.er nombre») no se reprodujo igual: hoy a scroll 0 son 11 × 19 px; el problema real es al deslizar, cuando pasan por debajo los 8 de 20 nombres largos.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[CELU-LETRA]` | En el celu la letra chica de la fila sube a 12,5 / 13 / 10 sin cambiar el alto, y WhatsApp se va al bajar y vuelve al subir. `b1b9b07`, v1.1.227. |
+| `[PEDIDO-ROJOS-CLARO]` | La ✕ y «Agregar mis favoritos» de «Tu pedido» se leen en claro (5,13 / 4,67) y la ✕ en oscuro (4,94). `4250296` + `b1b9b07`, v1.1.227. |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| (humo de esta tanda) | Que Alejo lo mire en su celu después del deploy: la letra de la fila y WhatsApp yéndose y volviendo. |
+| `[ESCANER]` 🟡 | Sólo «Es nuevo» con el alta de `[ALTA-Y-CANDADOS]`; el humo con cajas reales lo hizo Alejo. |
+| `[REEMPLAZO-DE-HOJA]` 🟡 | El primer «Cierre del día» real, las chicas un día y una seña real. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (14-oct, ~14:00):** `origin/main` = `213b77f` (SW **v1.1.226** en producción) · rama `celu-letra` = `213b77f` + `4250296` + `b1b9b07` + este cierre, para el push a `main` (fast-forward) que corre Alejo · copia principal `D:\workspace\ST_Perfumeria` en `213b77f` · rama `pedido-claro` = `213b77f` (ya está en `main`, se puede borrar).
+
+#### 💬 Mensajes meta
+
+- Alejo no sabía qué eran `[STAT-FILTRO-HUMO]` y `[STOCK-FOTO-HUMO]`, porque en el tablero salieron sólo con la keyword. Va a `memory/preferencias_alejo.md` (#137).
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 14-oct-2026 (~13:00, cierre de la tanda chica `pedido-claro`) — pasó de `CLAUDE.md` al archivo el 14-oct (~14:00, cierre de `celu-letra`)
+
+**Última actualización:** **Octubre 14, 2026, ~13:00 (cierre de la tanda chica `pedido-claro`)** — `origin/main` = `38c3075` (SW **v1.1.226** en producción desde ~12:50, verificada por `curl`: `styles.css`, `app.js` y `sw.js` idénticos a `main`); este cierre sube con su push. **`[PEDIDO-CLARO]` cerrado** (cierra los puntos 2 y 3 de `[CELU-LETRA]`): en tema claro el aviso de «Tu pedido» pasó de 1,56 a 6,02, «¿Pagás con tarjeta?» y «¿No sos de Comodoro?» de 1,14 a 15,22, y el «Máximo 15 fragancias» sale por `avisoPedido` (se ve con el panel cerrado, encima de la ficha). `contraste.js` suma 6 mediciones (637, 0 fallas). Probado en el Chrome de Alejo (Claude in Chrome, iframe de 375 px). Detalle en `docs/HISTORIA.md` § «Sesión 14-oct-2026 (mediodía, tercera)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + humo con las chicas + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (no tocar el cargador trabajando en `D:` y medir de nuevo en unos días) · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-INP]` (B / C) · `[CELU-LETRA]` (156 y 157) · 🟢 `[PEDIDO-ROJOS-CLARO]` · `[CUADRADOS-EDITAR]` · `[UPLOADER-WEBP-AUTO]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 14-oct-2026 (~12:30, cierre de la tanda chica de `panel-prolijo`) — pasó de `CLAUDE.md` al archivo el 14-oct (~13:00, cierre de `pedido-claro`)
 
