@@ -7222,7 +7222,10 @@
           ? '<img class="compare-col-img" src="' + escapeHTML(fotoSrc) + '" alt="' + escapeHTML(p.name) + '">'
           : '<div class="compare-col-placeholder">' + escapeHTML(p.name.charAt(0)) + '</div>';
 
-        var priceNum = p.promo ? parseFloat(String(p.promo).replace(/,/g, '')) : parseFloat(String(p.price).replace(/,/g, ''));
+        // [COMPARAR-PRECIOS] el mismo precio que la card y la ficha: el de lista grande y el de efectivo abajo.
+        // Antes mostraba la promo (efectivo) de los que tienen Hot Sale y el de lista del resto, sin decir cuál.
+        var cmpLista = '$' + getListaPrice(p).toLocaleString('es-AR').replace(/,/g, '.');
+        var cmpCash = '$' + getCashPrice(p).toLocaleString('es-AR').replace(/,/g, '.');
         var pCat = p.cat.indexOf(',') !== -1 ? p.cat.split(',')[0].trim() : p.cat;
 
         // Estructura nueva:
@@ -7235,7 +7238,8 @@
             + '<div class="compare-col-info">'
               + '<p class="compare-col-name">' + escapeHTML(p.name) + '</p>'
               + '<p class="compare-col-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
-              + '<p class="compare-col-price">$' + Math.round(priceNum).toLocaleString('es-AR').replace(/,/g, '.') + '</p>'
+              + '<p class="compare-col-price">' + cmpLista + '</p>'
+              + '<p class="compare-col-cash">' + (hasHotSale(p) ? '🔥 ' : '') + cmpCash + ' efectivo/transf.</p>'
             + '</div>'
           + '</div>'
           + '<div class="compare-rows">'

@@ -2820,6 +2820,7 @@
       font-size: 1.05rem; font-weight: 700; color: var(--amarillo);
       margin-top: .35rem;
     }
+    .compare-col-cash { font-size: .72rem; font-weight: 600; color: var(--tinta-efectivo); margin-top: .1rem; }   /* [COMPARAR-PRECIOS] el efectivo, como en la card */
     /* Layout nuevo: cada par label-value envuelto en .compare-row, sin
        desfases. El header agrupa foto + info + precio destacado. */
     .compare-col-head {
@@ -2976,6 +2977,7 @@
     body:not(.dark-mode) .compare-modal .compare-row-label,
     body:not(.dark-mode) .compare-modal .compare-common-title { color: var(--amarillo-tinta); }
     body:not(.dark-mode) .compare-modal .compare-row-value { color: #2a2a2d; }
+    body:not(.dark-mode) .compare-modal .compare-col-cash { color: var(--tinta-efectivo); }   /* [COMPARAR-PRECIOS] */
     body:not(.dark-mode) .compare-row { border-bottom-color: rgba(26,26,29,.08); }
     body:not(.dark-mode) .compare-common { background: rgba(120,90,0,.06); border-color: rgba(120,90,0,.2); }
     body:not(.dark-mode) .compare-common-chip {
