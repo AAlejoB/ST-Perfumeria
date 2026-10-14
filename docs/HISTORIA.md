@@ -5325,9 +5325,45 @@ Alejo abrió con `/tanda` a las 13:25 del 14-oct (rama `pedido-claro` = `origin/
 
 - Alejo no sabía qué eran `[STAT-FILTRO-HUMO]` y `[STOCK-FOTO-HUMO]`, porque en el tablero salieron sólo con la keyword. Va a `memory/preferencias_alejo.md` (#137).
 
+### Sesión 14-oct-2026 (tarde, después del cierre) · **`[AVISAME-PILDORA]`** — «Quiero que me avisen» se toca en la lista del celu
+
+Con la v1.1.227 ya en producción (14:06), Alejo pidió que se note más el «Avisame cuando vuelva» de los sin stock: «haría algo para que se note más». Después tiró una idea más grande (preguntarle cosas al cliente al anotarse) y pidió charlarla.
+
+#### Qué se hizo
+
+- **`[AVISAME-PILDORA]` · `1528c35` (SW v1.1.228), en producción desde las 14:29** (verificada por `curl`: `styles.css`, `app.js` y `sw.js` idénticos a `main`). Sólo a < 768, en la vista ☰: el aviso de un sin stock / pausado era texto con `pointer-events: none` (al tocarlo se abría la ficha, y ahí estaba el botón). Ahora es una píldora (`.waitlist-btn:not(.subscribed):not(.consulta-wa)` en el bloque `[CELU-LETRA]` del celu: `inline-flex`, borde de 1,5 px `--amarillo-tinta`, fondo `rgba(232,184,0,.12)`, `border-radius: 999px`, 32 de alto, 44 de toque con un `::after` de −6 / −4 px) que abre directo la ventana de espera: el clic de la fila ya salteaba `.waitlist-btn` (`js/app.js` ~L3812). **Medido a 360:** 167 × 32; contraste oscuro **8,12** (`#E8B800` sobre `#121214` con el 12 %), claro **5,86** (`#6b5500` sobre `#f3e8c3`); `elementFromPoint` en el centro da la píldora; al tocarla, `#waitlistOverlay.active` y la ficha cerrada. Anotado («✓ Te avisamos») sigue como texto verde.
+- **El texto del botón de la card** (todas las vistas y anchos) pasó a **«Quiero que me avisen»**; la ficha (`openBottomSheet`, ~L6850) y la ventana siguen con «Avisame cuando vuelva».
+- **Opciones mostradas a Alejo** (maqueta con tres filas): A píldora (recomendada), B botón dorado lleno, C texto más fuerte que sigue abriendo la ficha. Texto: «Avisame cuando vuelva» (recomendado) / «Avisame cuando llegue» / «Quiero que me avisen».
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** la píldora (A) y el texto «Quiero que me avisen» (no era el recomendado). Para la idea de las preguntas, la **B**: va a la plataforma nueva de Lautaro, no a este sitio. Hizo el push.
+- **Propuse yo (Claude Code):** las tres opciones y las recomendadas; para la idea de las preguntas, que sean opcionales, en la misma ventana (botoncitos sin escribir, dos como mucho: «¿Dónde lo viste?» y «¿Es para vos o para regalar?») y que las respuestas viajen junto con el alta, porque `anon` sólo inserta en `lista_espera` (no lee ni modifica: NO ROMPER #11). Le recomendé la B porque con `[STOCK-OCULTO]` el avisame del catálogo se va el 25-oct. Le dejé a Alejo el texto para Lautaro.
+- **Contó Alejo:** con la plataforma compartida «tenemos problemas con CI, con los pull requests», y no se puede subir nada al repo en común por ahora; eso atrasó el proyecto. No se anotó como pendiente de acá.
+- **No es tarea de este repo:** la idea de las preguntas no entra en `docs/IDEAS.md` (es de la plataforma nueva).
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[AVISAME-PILDORA]` | En la lista del celu, «Quiero que me avisen» es una píldora dorada que abre directo la ventana de espera. `1528c35`, v1.1.228, en producción. |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| (humo de esta tarde) | Que Alejo mire en su celu la letra de la fila, el WhatsApp que se va al bajar y la píldora. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (14-oct, ~14:35):** `main` = `origin/main` = `1528c35` (SW **v1.1.228** en producción) · rama `celu-letra` = `1528c35` + este cierre, para el push a `main` (fast-forward) · rama `pedido-claro` ya está en `main` (se puede borrar).
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 14-oct-2026 (~14:00, cierre de la tanda `celu-letra`) — pasó de `CLAUDE.md` al archivo el 14-oct (~14:35, cierre corto)
+
+**Última actualización:** **Octubre 14, 2026, ~14:00 (cierre de la tanda `celu-letra`)** — `origin/main` = `213b77f` (SW v1.1.226 en producción); la rama `celu-letra` suma `4250296` (**`[PEDIDO-ROJOS-CLARO]`**) y `b1b9b07` (**`[CELU-LETRA]` 156 y 157**), SW **v1.1.227**, más este cierre: suben juntos con el push de Alejo (fast-forward). **En el celu (< 768; la compu no cambió, medido a 1280):** la letra chica de la fila sube (marca y efectivo 11 → 12,5, «a qué huele» 11,5 → 13, la etiqueta de la foto 8,5 → 10, «Avisame» 11 → 12,5; la fila +1 px de promedio a 360) y WhatsApp se va al deslizar hacia abajo y vuelve al deslizar hacia arriba (las dos, decisiones de Alejo). **«Tu pedido»:** la ✕ y «Agregar mis favoritos» van en `--tinta-error` en claro (3,33 → 5,13 y 3,03 → 4,67) y la ✕ ya no va al 60 % en oscuro (~2,4 → 4,94). `contraste.js`: 641 mediciones, 0 fallas. Probado en el navegador interno a 360 (deslizando de verdad) y 1280; **falta mirarlo en un celu de verdad** después del deploy. Alejo contó que el escáner ya leyó cajas reales y que simuló ventas en la hoja de caja. Detalle en `docs/HISTORIA.md` § «Sesión 14-oct-2026 (tarde)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + las chicas un día + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (no tocar el cargador trabajando en `D:` y medir de nuevo en unos días) · `[ESCANER]` («Es nuevo» con el alta de `[ALTA-Y-CANDADOS]`) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-INP]` (B / C) · 🟢 `[CUADRADOS-EDITAR]` · `[UPLOADER-WEBP-AUTO]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 14-oct-2026 (~13:00, cierre de la tanda chica `pedido-claro`) — pasó de `CLAUDE.md` al archivo el 14-oct (~14:00, cierre de `celu-letra`)
 
