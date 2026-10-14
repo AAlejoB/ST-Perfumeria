@@ -5699,6 +5699,7 @@
       cursor: pointer; padding: .3rem; opacity: .6; transition: opacity .2s;
     }
     .cart-item-remove:hover { opacity: 1; }
+    body:not(.dark-mode) .cart-item-remove { color: var(--tinta-error); opacity: 1; }   /* [PEDIDO-ROJOS-CLARO] en claro el #e74c3c al 60 % daba 3,33 sobre el crema del panel; oscuro igual */
     .cart-total {
       display: flex; justify-content: space-between; align-items: center;
       padding: .8rem 0; margin-top: .5rem;
@@ -5742,6 +5743,7 @@
       border-radius: 6px; cursor: pointer; text-align: center; transition: all .2s;
     }
     .cart-favs-btn:hover { background: rgba(231,76,60,.15); }
+    body:not(.dark-mode) .cart-favs-btn { color: var(--tinta-error); }   /* [PEDIDO-ROJOS-CLARO] en claro el #e74c3c daba 3,03; el fondo y el borde rojos quedan igual */
     .cart-note {
       display: block; width: 100%; margin-top: .8rem; padding: .6rem .8rem;
       font-family: var(--font-body); font-size: .72rem; color: var(--blanco);

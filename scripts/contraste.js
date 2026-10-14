@@ -943,6 +943,9 @@ function mezcla(hex, fondo, a) {
      ['aviso de «Tu pedido» .cart-limit-msg', '.cart-limit-msg', null, '.cart-limit-msg', pedido, 'pedido'],
      ['«¿Pagás con tarjeta?» .cart-mp-text strong', '.cart-mp-text strong', null, '.cart-mp-info', pedido, 'pedido'],
      ['«¿No sos de Comodoro?» .cart-mp-envios strong', '.cart-mp-envios strong', null, '.cart-mp-info', pedido, 'pedido'],
+     // [PEDIDO-ROJOS-CLARO] 14-oct-2026 · la ✕ de cada perfume (en oscuro va al 60 %: esto no mide la opacidad) y «❤️ Agregar mis favoritos al pedido»
+     ['✕ de cada perfume .cart-item-remove', '.cart-item-remove', null, null, pedido, 'pedido'],
+     ['«Agregar mis favoritos» .cart-favs-btn', '.cart-favs-btn', null, '.cart-favs-btn', pedido, 'pedido'],
      ['8 cartel «Activar» .push-banner-btn--yes', '.push-banner-btn--yes', null, '.push-banner-btn--yes', cartel, 'cartel'],
      ['8 cartel «Ahora no» .push-banner-btn--no', '.push-banner-btn--no', null, '.push-banner-btn--no', cartel, 'cartel'],
      ['153 hover de la card «Agregar» .cart-add-btn.reveal-add', '.cart-add-btn.reveal-add:not(.added)', null, '.cart-add-btn.reveal-add:not(.added)', reveal, 'compu 1280'],
