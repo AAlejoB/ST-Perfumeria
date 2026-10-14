@@ -86,10 +86,12 @@ CREATE TABLE public.password_reset_requests (
   expires_at    timestamptz DEFAULT (now() + interval '24 hours'),
   resolved_by   text,           -- 'jefe' | 'empleado'
   resolved_at   timestamptz,
-  temp_password text,           -- reservado · hoy NO se usa (el reset pone clientes.password=NULL)
+  temp_password text,           -- COLUMNA MUERTA · ver la nota de abajo
   notes         text
 );
 ```
+
+> **`temp_password` es una columna muerta** (`[RESET-TEMP-PASSWORD-MUERTA]`, medido el 14-oct-2026): existe en la base y está vacía en las 11 filas. Se reservó en `[FORGOT-PASS-A]`, pero ni el panel, ni el catálogo, ni las RPC (`cliente_reset_solicitar`) la leen o la escriben: el reset pone `clientes.password = NULL`. **No usarla** (una contraseña temporal en texto plano en una tabla iría contra `[BCRYPT-MIGRATION]`). Si Alejo decide sacarla: `alter table public.password_reset_requests drop column temp_password;` (no la usa nadie y no está en las listas de backups, #23).
 
 **RLS (clave · distinto del patrón estándar):**
 - `prr_insert_open` · INSERT TO **anon**, authenticated · el cliente NO está logueado en Supabase Auth cuando pide reset (usa anon key). Sin esto, el botón no funciona.

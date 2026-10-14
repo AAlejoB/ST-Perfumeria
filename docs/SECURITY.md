@@ -27,7 +27,7 @@
 > **Antes (23-sep, tarde):** — **S15, S16 y S17 RESUELTOS** en v1.1.114: el dominio ya no sirve los documentos internos (`.vercelignore`), el teléfono de "Pedidos pass" se escapa y la RPC del reset valida dígitos (`[XSS-PEDIDOS-PASS]`), y `anon` ya no lee `lista_espera` (`[ESPERA-SEGURA]`). **S1:** contraseñas rotadas el 19-sep; lo que queda va con la keyword sola. **S18 abierto** (`[S10-TER-XSS-COMBOS]`, 🟠, sólo escribible por el panel).
 >
 > **Antes (20-sep-2026):** — **S10 y S10-bis RESUELTOS** (stored XSS del panel admin: Clientes `f457b89`, Lista de espera + Opiniones `033ab70`/`ce52def`, SW v1.1.104). De yapa, `[WA-LINK-549-DUPLICADO]` (no es seguridad) también resuelto. Antes: 17-sep (**S2 RESUELTO** · `[BCRYPT-MIGRATION]` · `98b556c` + FASE 1/3 en producción · anon sin acceso directo a `clientes`, bcrypt con migración perezosa, rate-limit server-side; token de Telegram y chat_id sacados de este doc y rotado; regla nueva de no llevar valores de credenciales; S13 nuevo). Antes: 12-ago (`[FOTOS-OREGON]` · S2 medido en 82/78 · S11 arreglado · S12 nuevo).
-> **Estado general:** ⚠️ **Hay vulnerabilidades CRÍTICAS pendientes de fix.** Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
+> **Estado general (revisado el 14-oct-2026, `[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]`):** los dos críticos (S1 y S2) están resueltos; los abiertos van con la keyword sola (§ 📏) y son los de `CLAUDE.md` § Pendientes. **Debajo de cada «✅ RESUELTO», lo que está después de «Lo que sigue abajo es el análisis original» es historia: describe cómo estaba antes, no cómo está hoy.** Lo mismo vale para § «Plan de acción» y § «Acciones URGENTES», de mayo. Este documento es el ground truth de qué sabemos sobre seguridad del proyecto, qué está roto, qué está OK, y qué planeamos arreglar.
 >
 > **Audiencia:** Alejo + Claude Code de próximas sesiones. Cuando arranque la sesión `[SECURITY-AUDIT-S1]`, **leer este archivo primero.**
 
@@ -203,6 +203,8 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 > `escapeHtml(` pasa de 20 a 28 ocurrencias (25 líneas, verificado con grep). Verificado también: `node --check` sobre el `<script>` inline sigue pasando (no se rompió ninguna comilla), y el `href` de WhatsApp de Lista de espera queda con solo dígitos ante teléfonos con comillas/espacios/intentos de inyección. `item.id` (Lista de espera) y `o.id` (Opiniones) quedaron sin escapar en sus `onclick` a propósito — son `bigint`/`uuid` generados por la DB, no texto libre de usuario, mismo criterio que el resto del panel. Detalle completo en `docs/HISTORIA.md` § "✅ Resueltos" (movidos 20-sep-2026, más tarde).
 >
 > **De yapa, no es XSS:** `[WA-LINK-549-DUPLICADO]` resuelto en el mismo push (`ce52def`) — `renderClientes` armaba el link de WhatsApp con `'https://wa.me/549' + tel` cuando `tel` ya trae el `549` guardado, generando un número de 16 dígitos que no abría WhatsApp. Ahora son 13. No afecta a `renderListaEspera`, que nunca tuvo el prefijo de más.
+>
+> Lo que sigue abajo es el análisis original (27-jun), se conserva como historia: las líneas y el «signup abierto» son de entonces (el registro se cerró el 23-sep, S19).
 
 **Dónde está:**
 - `admin.html` (~L3900) · la tab "Clientes" (`renderClients`) inyecta `c.nombre` directo vía `innerHTML` sin escapar:
@@ -283,6 +285,8 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 > - **De yapa, el mismo agujero en `admin_actions_cleanup`**: `SECURITY DEFINER`, borra filas de `admin_actions` (2.625) y era ejecutable por `anon` — cualquiera con la anon key podía purgar la auditoría. Cerrada igual.
 > - **Verificado en producción:** `has_function_privilege('anon', …)` → false en las dos · POST anónimo con la anon key a `/rpc/send_telegram` y `/rpc/admin_actions_cleanup` → **401 permission denied** · `cliente_login` sigue 200 · ACL sin `=X/` · `proconfig` con `search_path` en las 4 funciones · **los 5 avisos entregados con `200` en `net._http_response`** (04:03:18 → 04:04:04) · el 6º intento estando bloqueado no volvió a avisar.
 > - **Queda:** opción (b) `admin_notificar()` si algún día se quiere cerrar también a `authenticated` · `[S3-VAULT]`.
+>
+> Lo que sigue abajo es el análisis original (17-sep), se conserva como historia: hoy `anon` NO tiene EXECUTE sobre `send_telegram` y `app.js` ya no tiene `notifyTG` (ver arriba).
 
 **Dónde está:** `public.send_telegram(msg text)` es `SECURITY DEFINER` y tiene **EXECUTE para `anon`** (`has_function_privilege('anon', 'public.send_telegram(text)', 'execute')` → `true`). El front la llama con `sb.rpc('send_telegram', { msg })` (`notifyTG` en `js/app.js`) para los avisos de "Primer ingreso" y "Pedido de RESET".
 
@@ -501,7 +505,7 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 | Cosa | Estado |
 |---|---|
 | Auth de admin via Supabase Auth | ✓ Funciona post Plan B (hashes bcrypt preservados) |
-| RLS pública en tablas (`select_public USING true`) | ⚠️ Configurado en las 28 tablas · OK para el catálogo, **pero en `clientes` filtra teléfonos + passwords en plano a `anon`** (ver addendum de S2) · NO es "OK" para esa tabla |
+| RLS pública en tablas (`select_public USING true`) | ✓ Para lo que lee el catálogo. **Excepciones a propósito, sin lectura de `anon`:** `clientes` (desde el 17-sep, S2: sólo por RPC), `lista_espera` (S17), `perfume_codigos`, `caja_movimientos` y `stock_movimientos` (ver `CLAUDE.md` § NO ROMPER #30, #31 y #34). *(Hasta el 17-sep esta fila decía que `clientes` filtraba teléfonos y contraseñas a `anon`: eso se cerró con S2.)* |
 | RLS escritura `auth.role() = 'authenticated'` | ✓ Configurado |
 | Service role keys NO en frontend | ✓ Solo en env vars o `.env` local (borrado) |
 | HTTPS en producción | ✓ Vercel auto |
@@ -522,7 +526,7 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 | **Proyecto Supabase activo** | sa-east-1 São Paulo · ref `znmjhproimtprptheumy` |
 | **Proyecto Supabase legacy** | ver `[S4-OREGON]` (detalle fuera del repo) |
 | **Anon key activa** | `sb_publishable_Bb4Jo74f4Wh7vhz...` (nuevo formato Supabase, ~46 chars) |
-| **DB password expuesta** | ⚠️ Sí · ambas en chat de esta sesión. Reset pendiente |
+| **DB password expuesta** | ✅ La de São Paulo se rotó el 23-sep-2026 (S5). La de Oregon va con `[S4-OREGON]` |
 | **Bot Telegram token** | **Rotado el 19-sep-2026 y verificado por entrega (`200` en `pg_net`)** · el del 17-sep quedó mal pegado (404, nada se entregó ~31 h) y además salió en una captura → rotado de nuevo · vive sólo en `public.send_telegram` · `anon` sin EXECUTE (S14 ✅) · pendiente Vault |
 | **Service role keys** | NUNCA en repo · estuvieron en `D:\tmp\.env` (borrado) |
 | **Backup dump pre-migración** | `D:\backups\st-perfumeria-pre-migracion-20may2026.sql` · 6.2 MB · conservar 7 días · contiene passwords en plano de clientes |
@@ -530,6 +534,8 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 ---
 
 ## 📅 Plan de acción priorizado · `[SECURITY-AUDIT-S1]`
+
+> 🗄️ **Histórico (21-may-2026).** `[SECURITY-AUDIT-S1]` se cerró el 27-sep (S1), y S2, S5 y S8 también están resueltos. Se conserva como estaba; lo abierto está en `CLAUDE.md` § Pendientes.
 
 **Próxima sesión (1-2 días desde hoy):**
 
@@ -557,6 +563,8 @@ Ejecutada con la **clave pública** desde el navegador contra producción, sin e
 ---
 
 ## 🚨 Acciones URGENTES Alejo puede hacer YA (sin sesión Claude)
+
+> 🗄️ **Histórico (21-may-2026): ya están hechas.** Las contraseñas del panel se rotaron el 19-sep (S1), la DB password de São Paulo el 23-sep (S5) y el token del bot el 17 y el 19-sep (S3/S14). Se conserva como estaba.
 
 Estas son cosas que podés hacer vos solo desde la UI · 5-10 min total:
 
