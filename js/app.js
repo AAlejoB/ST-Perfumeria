@@ -2179,7 +2179,7 @@
 
       var isOutOfStock = stockStatus === 'out';
 
-      // Boton "Avisame cuando vuelva" para sin stock y pausados.
+      // Boton "Quiero que me avisen" (era «Avisame cuando vuelva»; [AVISAME-PILDORA], 14-oct-2026) para sin stock y pausados.
       // Renderizamos los iconos en spans separados (bell / lock / check)
       // para que CSS pueda mostrarlos/ocultarlos segun auth (body.is-guest)
       // sin re-renderizar la card cuando el usuario logea/desloga.
@@ -2199,7 +2199,7 @@
         } else {
           waitlistHTML = '<button class="waitlist-btn" onclick="openWaitlist(' + jsAttr(p.slug) + ', event)">'
             + '<span class="waitlist-ico waitlist-ico--bell"><svg class="ico-campana" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span> '   // [SIN-STOCK-NO-ENTRA] 159 · la campana de línea (el 🔔 dorado daba 1,25 sobre el amarillo) · [ESPERA-INVITADO] sin el candado ni «Ingresá para avisarte»: el invitado se anota igual
-            + '<span class="waitlist-label">Avisame cuando vuelva</span>'
+            + '<span class="waitlist-label">Quiero que me avisen</span>'
           + '</button>';
         }
       }

@@ -10354,6 +10354,13 @@
       html[data-vista="lista"] body[class] #catalogGrid .card-huele { font-size: 13px; }
       html[data-vista="lista"] body[class] #catalogGrid .card-etiquetas > span, html[data-vista="lista"] body[class] #catalogGrid .card-ribbon, html[data-vista="lista"] body[class] #catalogGrid .badge-sin-stock,
       html[data-vista="lista"] body[class] #catalogGrid .badge-proximamente { font-size: 10px; }
+      /* [AVISAME-PILDORA] (decisión A de Alejo, 14-oct-2026) · «Quiero que me avisen» deja de ser texto: es una píldora dorada que se toca y abre directo
+         la ventana de la lista de espera (el clic de la fila ya ignora .waitlist-btn). El área de toque llega a 44 con el ::after. Anotado («✓ Te avisamos»)
+         sigue como texto verde: no hay nada que tocar (pointer-events: none de siempre). */
+      html[data-vista="lista"] body[class] #catalogGrid .waitlist-btn:not(.subscribed):not(.consulta-wa) { position: relative; display: inline-flex; align-items: center; gap: 5px;
+        min-height: 32px; margin-top: 2px; padding: 4px 11px; border: 1.5px solid var(--amarillo-tinta); border-radius: 999px; background: rgba(232,184,0,.12);
+        font-weight: 700; pointer-events: auto; cursor: pointer; }
+      html[data-vista="lista"] body[class] #catalogGrid .waitlist-btn:not(.subscribed):not(.consulta-wa)::after { content: ''; position: absolute; inset: -6px -4px; }
     }
     @media (max-width: 767px) {
     /* los estantes (Selección ST, decants) dentro de la grilla ocupan todo el ancho */
