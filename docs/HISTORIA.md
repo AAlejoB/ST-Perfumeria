@@ -3893,6 +3893,11 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 14-oct-2026 (~15:10, cierre de `wa-emojis`):** hechos en `7e7b003` + `dd305e9` (`[WA-EMOJIS-ROTOS]`, v1.1.229 y v1.1.230) y `2a56690` (`[COMPARAR-PRECIOS]`, v1.1.231), los tres en producción; humo de Alejo en su celu OK. Detalle en § «Sesión 14-oct-2026 (tarde, `wa-emojis`)».
+
+- ✅ ~~**`[WA-EMOJIS-ROTOS]`**~~ (7-oct · 🟢, idea en `docs/IDEAS.md`) — los emojis de los WhatsApp de stperfumeria.com llegan como «�» desde la compu (la redirección del link de WhatsApp). Sin hacer.
+- ✅ ~~**`[COMPARAR-PRECIOS]`**~~ (5-oct, DISEÑADOR `_cd` · 🟢) — Comparar muestra el precio de hot sale en efectivo de un perfume y el de lista de otro, y la ficha muestra otro: viene de antes (`main` igual). No se tocó.
+
 **Movidos el 14-oct-2026 (~14:00, cierre de `celu-letra`):** hechos en `4250296` y `b1b9b07` (SW v1.1.227); suben con el push del cierre. Detalle en § «Sesión 14-oct-2026 (tarde)».
 
 - ✅ ~~**`[CELU-LETRA]`**~~ (5-oct, PREPARADOR `_co` · 🟡, **sin hacer**; el DISEÑADOR las dibuja ahora: decisiones 156 y 157; va después de `alta-y-candados`) — salieron de «lo que no entró» de `[PRIMER-CUADRO]`: **156** la letra chica de la fila (la marca mide 11 px, el efectivo 11 y «Último» 8,5; 34 de 42 textos de la primera pantalla miden menos de 14 px; cambia el alto de la fila, así que lleva su propia medición: tamaños nuevos, alto de la fila antes y después a 360 y 390, cuántas filas entran en la primera pantalla) y **157** WhatsApp a 360 (tapa 50 × 22 px del 3.er nombre). Los tres puntos que venían de `sin-stock-no-entra` (Comparar en claro, el aviso de «Tu pedido» y el «Máximo 15») están hechos (`[COMPARAR-CLARO]` y `[PEDIDO-CLARO]`, 14-oct): ver `docs/HISTORIA.md` § «✅ Resueltos». → ✅ **14-oct (`b1b9b07`):** 156 con la opción «Bastante» de Alejo (marca y efectivo 12,5, «a qué huele» 13, etiqueta 10, «Avisame» 12,5; sólo < 768; a 360 la fila pasa de 123 a 124 de promedio, máx. 129 → 132, y siguen entrando 2 enteras; 390 no se midió aparte) y 157 con la opción de Alejo «que se esconda al bajar y vuelva al subir».
@@ -5357,9 +5362,57 @@ Con la v1.1.227 ya en producción (14:06), Alejo pidió que se note más el «Av
 
 **Estado del repo al cierre (14-oct, ~14:35):** `main` = `origin/main` = `1528c35` (SW **v1.1.228** en producción) · rama `celu-letra` = `1528c35` + este cierre, para el push a `main` (fast-forward) · rama `pedido-claro` ya está en `main` (se puede borrar).
 
+### Sesión 14-oct-2026 (tarde, `wa-emojis`) · **`[WA-EMOJIS-ROTOS]` y `[COMPARAR-PRECIOS]`** — los emojis del WhatsApp llegan enteros y Comparar deja de mezclar precios
+
+Alejo abrió con `/tanda` a las 14:43 (rama `celu-letra` = `origin/main` = `9cb800a`, árbol limpio, SW v1.1.228). Propuse `[WA-EMOJIS-ROTOS]` (cada pedido del catálogo termina en un WhatsApp) y Alejo contestó: «dale, arrancá con WA-EMOJIS-ROTOS y después con lo otro que podes hacer "sin titubear"». Rama nueva `wa-emojis` desde `main`.
+
+#### Qué se hizo
+
+- **Medición antes de tocar (sin mandar ningún mensaje):** `curl` a `wa.me/5492975416017?text=…` con un 👋 devuelve `302` a `api.whatsapp.com/send/?…&text=Hola+%EF%BF%BD…`: **la redirección de `wa.me` cambia el emoji por «�» (U+FFFD)**, con navegador de compu, de Android y de iPhone (por user-agent). El «¿» y la «é» llegan bien: sólo se rompen los caracteres de 4 bytes. Con el mensaje real del pedido (Erba Pura, sacado del `href` de «Consultar» en el sitio local): **6 de 6 emojis rotos** con `wa.me`, **0 con `api.whatsapp.com/send`**, y el texto que llega a `web.whatsapp.com/send` (compu) y a `whatsapp://send` (la app, Android e iPhone) es **idéntico** al original. Lo mismo con `api.whatsapp.com/send?text=` sin número (compartir el Desafío).
+- **`7e7b003` · `[WA-EMOJIS-ROTOS]` catálogo (SW v1.1.229):** los 12 links con mensaje pasan a `https://api.whatsapp.com/send?phone=…&text=…`: «Consultar» y «Consultá disponibilidad» de la card y del set, el aviso de un sin stock con consulta, «Enviar pedido» (`sendCartToWA`), los demás `window.open` de `js/app.js`, el decant del Desafío (`btnDecant`), compartir el Desafío (`?text=` sin número), el armador (`js/extras.js`) y el botón verde flotante (`index.html`). El `dns-prefetch` pasa a `//api.whatsapp.com` y el SW suma `whatsapp.com` a la lista de «sólo red». Los links **sin** mensaje (mapa, pie, el `url` de los datos para Google) quedan con `wa.me`.
+- **`dd305e9` · `[WA-EMOJIS-ROTOS]` panel (SW v1.1.230):** los WhatsApp del panel con mensaje también llevaban emojis y pasaban por `wa.me`: el reseteo de contraseña (🌸 💛), la bienvenida de un cliente nuevo (🙌 1️⃣ ✍️), el aviso de la lista de espera de a uno y en tanda (👋 🎉, `buildWaitlistMsg`) y el Resumen del día (`resWa`, sin número). Mismo cambio. Va en un commit aparte (con su propio bump) por la regla de no mergear el panel de 10 a 21: así se podía subir el catálogo solo.
+- **`2a56690` · `[COMPARAR-PRECIOS]` (SW v1.1.231):** medido en el sitio local: Comparar mostraba `p.promo` (el precio en **efectivo** del Hot Sale) si existía y si no `p.price` (el de **lista**), sin decir cuál: SET ASAD x2 «$98.100» al lado de Your Touch Intense «$75.000» (271 perfumes, 4 con Hot Sale). Ahora cada columna lleva el de lista grande (`getListaPrice`, el mismo número grande de la card y de la ficha) y abajo «$X efectivo/transf.» (`getCashPrice`), con 🔥 si es Hot Sale (`.compare-col-cash`, `--tinta-efectivo`). En claro una regla general de `.compare-modal` lo pintaba `#2a2a2d`: se agregó su regla de claro. Contraste: **6,38** en oscuro (sobre `#181818`) y **7,28** en claro (sobre `#faf6ea`). La cabecera de la columna mide 107 px.
+- **Verificado en el navegador interno** (sitio local, `http-server`): el `href` de «Consultar» y el `window.open` de «Enviar pedido» ya salen con `api.whatsapp.com`; la consola sin errores de JS (sólo los 404 de siempre de las fotos en local); Comparar a 375 px en oscuro y en claro. `node --check` de `js/app.js`, `js/extras.js` y `sw.js`, y el `<script>` de `admin.html` compila. `git diff --check` limpio.
+- **En producción:** Alejo hizo el push (`git push origin wa-emojis:main`, fast-forward). Verificado por `curl`: SW **v1.1.231** y `sw.js`, `js/app.js`, `js/extras.js`, `index.html`, `admin.html` y `css/styles.css` servidos idénticos a `main` (`2a56690`). **Humo de Alejo en su celu:** tocó «Consultar» y el mensaje apareció con los emojis bien («hecha la prueba todo ok»).
+- **Documentación:** NO ROMPER #35 en `CLAUDE.md` (un WhatsApp con texto va por `api.whatsapp.com/send`); `docs/IDEAS.md` § `[WA-EMOJIS-ROTOS]` marcada como hecha.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arrancar por `[WA-EMOJIS-ROTOS]` y seguir con «lo otro que podés hacer sin titubear» (la lista 🤖 del tablero: `[COMPARAR-PRECIOS]` y `[DISCO-D-FSYNC]`). Subió los tres commits juntos en horario de local (la opción A que le recomendé).
+- **Propuse yo (Claude Code):** el arreglo de Comparar (lista grande + efectivo abajo, como la card) en vez de mostrar sólo uno de los dos: no le pregunté a Alejo porque copia lo que ya está en la card y la ficha; si prefiere otra cosa, es un cambio chico. También partir el panel en otro commit con su bump, y dejar `wa.me` en los links sin mensaje.
+- **`[DISCO-D-FSYNC]` no se midió:** la última medición fue a las 11:45 de ese mismo día; volver a contar los avisos a las 3 horas no dice nada. Sigue «medir en unos días».
+- **Dato para saber:** en un celu de verdad, `wa.me` puede abrir la app directo (sin pasar por la redirección) y por eso quizás en el teléfono ya llegaba bien; desde la compu seguro estaba roto. Con `api.whatsapp.com` anda por los dos caminos.
+- **Workaround de medición:** en el Git Bash de esta compu, `node -e` con barras invertidas en el código no las respetaba (MSYS) y un heredoc largo con comillas cortó el comando; escrito en un archivo `.js` anduvo.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[WA-EMOJIS-ROTOS]` | Los WhatsApp con mensaje (catálogo y panel) van por `api.whatsapp.com/send`: los emojis llegan enteros. `7e7b003` + `dd305e9`, v1.1.229 y v1.1.230, en producción; humo de Alejo OK. NO ROMPER #35. |
+| `[COMPARAR-PRECIOS]` | Comparar muestra el precio de lista grande y el de efectivo abajo, como la card y la ficha. `2a56690`, v1.1.231, en producción. |
+| (humo de `celu-letra`) | Alejo miró en su celu la letra de la fila, el WhatsApp que se va al bajar y la píldora «Quiero que me avisen»: todo bien. |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[DISCO-D-FSYNC]` | Medir de nuevo en unos días los avisos de `D:` (`Ntfs`, `disk` y Kernel-Power 105). |
+| `[PANEL-CELU-TOSCO]` | Idea del 14-oct (`docs/IDEAS.md`): que Alejo diga qué pantallas del panel se sienten peor en el celu y si vale la pena antes de la mudanza. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+#### 💬 Mensajes meta
+
+- «Lo otro que podés hacer sin titubear» = la línea 🤖 del tablero de `/tanda`, en orden; lo que no tiene sentido hacer todavía (la medición del disco) se dice y no se fuerza. Anotado en `memory/preferencias_alejo.md` #138.
+
+**Estado del repo al cierre (14-oct, ~15:10):** `main` = `origin/main` = `2a56690` (SW **v1.1.231** en producción) · rama `wa-emojis` = `2a56690` + este cierre, para el push a `main` (fast-forward) · la rama `celu-letra` ya está en `main` (se puede borrar) · árbol limpio.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 14-oct-2026 (~14:35, cierre corto después de `celu-letra`) — pasó de `CLAUDE.md` al archivo el 14-oct (~15:10, cierre de `wa-emojis`)
+
+**Última actualización:** **Octubre 14, 2026, ~14:35 (cierre corto después de `celu-letra`)** — `main` = `origin/main` = `1528c35` (SW **v1.1.228** en producción desde las 14:29, verificada por `curl`). Después del cierre de las 14:00 (v1.1.227: `[CELU-LETRA]` y `[PEDIDO-ROJOS-CLARO]`, en producción desde las 14:06) salió **`[AVISAME-PILDORA]`**: en la lista del celu el aviso de un sin stock es una píldora dorada **«Quiero que me avisen»** que abre directo la ventana de espera (oscuro 8,12, claro 5,86). La idea de Alejo de **preguntarle al cliente** al anotarse («¿Dónde lo viste?», «¿Para regalar?») **va a la plataforma nueva de Lautaro** (opción B; el texto se lo pasó Alejo): acá no se hace porque el avisame se va el 25-oct con `[STOCK-OCULTO]`. **Falta que Alejo mire en su celu** la letra de la fila, el WhatsApp que se va al bajar y la píldora. Detalle en `docs/HISTORIA.md` § «Sesión 14-oct-2026 (tarde)» y § «… (tarde, después del cierre)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + las chicas un día + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (no tocar el cargador trabajando en `D:` y medir de nuevo en unos días) · `[ESCANER]` («Es nuevo» con el alta de `[ALTA-Y-CANDADOS]`) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-INP]` (B / C) · 🟢 `[CUADRADOS-EDITAR]` · `[UPLOADER-WEBP-AUTO]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 14-oct-2026 (~14:00, cierre de la tanda `celu-letra`) — pasó de `CLAUDE.md` al archivo el 14-oct (~14:35, cierre corto)
 

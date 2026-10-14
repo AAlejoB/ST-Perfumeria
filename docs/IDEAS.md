@@ -73,7 +73,7 @@
 
 > **🧑 Para Alejo (decidís vos), cuando la charlemos:** (1) ¿tocar abre la foto grande o mantener apretado la muestra mientras la tenés?; (2) ¿la foto carga sólo al tocar (liviano, sin gastar datos en la tablet) o se ven todas las miniaturas en la cuadrícula?; (3) ¿qué número va en cada cuadradito: sólo el stock, o local + depósito?; (4) ¿las dos pestañas o primero una?
 
-## [WA-EMOJIS-ROTOS] · 💡 idea · 7-oct-2026
+## [WA-EMOJIS-ROTOS] · ✅ hecha (14-oct-2026: `7e7b003` + `dd305e9`, SW v1.1.229 y v1.1.230, en producción; los links con texto van por `api.whatsapp.com/send`, NO ROMPER #35) · 7-oct-2026
 
 **En palabras de Alejo:** "anotá lo de los emojis" (hallazgo de Claude Code, 7-oct, probando `[STOCK-OCULTO]` en el Chrome de Alejo).
 **Qué es:** los emojis del mensaje de WhatsApp (👋 💰 📦 💳 💵 🙏) llegan como «�» al abrir desde la compu. Los rompe `wa.me` al redirigir a `api.whatsapp.com`: con un link mínimo (`wa.me/…?text=Hola!%20%F0%9F%91%8B…`) el 👋 llega como `%EF%BF%BD` y el «¿» llega bien. No es del código de la web: el `href` lleva el emoji bien codificado.
