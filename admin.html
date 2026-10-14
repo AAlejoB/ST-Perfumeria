@@ -10193,10 +10193,27 @@
     async function deleteNuevo(id, name) {
       if (!confirm('¿Seguro que querés eliminar ' + name + '?')) return;
       var slugBorrado = ''; try { var rsl = await sb.from('perfumes_nuevos').select('slug').eq('id', id).single(); slugBorrado = (rsl && rsl.data && rsl.data.slug) || ''; } catch (e) {}   // [ESCANER] sus códigos de barras se van con él
-      await sb.from('perfumes_nuevos').delete().eq('id', id);
+      // [NUEVO-BORRADO-HUERFANO] si la base no borró (error o 0 filas), no se sigue: antes se avisaba y se registraba igual
+      var rdel = await sb.from('perfumes_nuevos').delete().eq('id', id).select('id');
+      if (rdel.error || !rdel.data || !rdel.data.length) {
+        alert(rdel.error ? errorEnCriollo(rdel.error, null, 'eliminar el perfume', null) : 'No se pudo eliminar ' + name + ': la base no lo borró (ya no estaba, o esta cuenta no puede). Recargá el panel; si sigue, avisale a Alejo.');
+        return;
+      }
       if (slugBorrado) { try { await sb.from('perfume_codigos').delete().eq('slug', slugBorrado); } catch (e) {} }
       logAdminAction('nuevo_delete', null, { id: id, name: name });
       notifyTelegram('🗑️ Perfume eliminado: ' + name);
+      // [NUEVO-BORRADO-HUERFANO] sacarlo también de PERFUMES: hasta recargar, Precios & Stock, Depósito y el escáner lo
+      // seguían mostrando y se le podía cargar stock (21-sep: «VICTORIA SECRET»). Sólo el que vino de la base (_fromDB):
+      // si el slug es también de perfumes.js, nuevosAplicar nunca lo sumó. Su fila de perfume_overrides queda en la base.
+      if (slugBorrado) {
+        var iBorrado = PERFUMES.findIndex(function(pf) { return pf.slug === slugBorrado && pf._fromDB; });
+        if (iBorrado !== -1) PERFUMES.splice(iBorrado, 1);
+        if (ESCANEO_SLUG === slugBorrado) { ESCANEO_SLUG = ''; ESCANEO_NOMBRE = ''; }
+      }
+      if (String(document.getElementById('nuevoEditId').value) === String(id)) clearNuevoForm();   // estaba abierto en el formulario
+      await mergeNuevosIntoPerfumes();   // relee la tabla: la copia sin conexión ([PANEL-SIN-CONEXION]) queda sin el borrado
+      renderPrecios();
+      renderDeposito();
       loadNuevos();
     }
 
