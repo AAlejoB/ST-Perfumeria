@@ -2187,7 +2187,7 @@
       if (STOCK_OCULTO && (isOutOfStock || isPaused)) {
         // [STOCK-OCULTO] en el lugar de «Avisame cuando vuelva», el WhatsApp de siempre con el mensaje de «Consultar →» (termina en «¿Tienen disponibilidad?»).
         // Lleva .waitlist-btn por el lugar y el aspecto (también en la vista ☰, donde es texto y la fila abre la ficha) y porque la card no abre la ficha al tocarlo.
-        waitlistHTML = '<a class="waitlist-btn consulta-wa" href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
+        waitlistHTML = '<a class="waitlist-btn consulta-wa" href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
           + '<span class="waitlist-label">' + TXT_CONSULTA_DISPONIBILIDAD + '</span>'
         + '</a>';
       } else if (isOutOfStock || isPaused) {
@@ -2236,7 +2236,7 @@
           + perfumeDelMesHTML
           + urgencyHTML
           + vistasCardHTML(p.slug)
-          + '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
+          + '<a href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
           + waitlistHTML
         + '</div>'
         + '<div class="card-reveal">'
@@ -2717,7 +2717,7 @@
               + (origHTML ? '<span class="set-price-original">' + origHTML + '</span>' : '')
             + '</div>'
             + ahorroHTML
-            + (setPaused ? '' : '<a href="https://wa.me/5492975416017?text=' + encodeURIComponent(buildWaMessage([s], '')) + '" target="_blank" class="set-cta">' + (setConsulta ? TXT_CONSULTA_DISPONIBILIDAD : 'Consultar &#8594;') + '</a>')
+            + (setPaused ? '' : '<a href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([s], '')) + '" target="_blank" class="set-cta">' + (setConsulta ? TXT_CONSULTA_DISPONIBILIDAD : 'Consultar &#8594;') + '</a>')
           + '</div>'
         + '</div>';
       });
@@ -3155,7 +3155,7 @@
       if (c.estado === 'out')           msg = 'Hola! Avísenme cuando vuelva a haber stock del ' + c.name + ', por favor.';
       else if (c.estado === 'pausado')  msg = 'Hola! Quiero reservar el ' + c.name + ' con seña para cuando llegue. ¿Cómo hacemos?';
       else                               msg = 'Hola! Consulto por el ' + c.name + '.';
-      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+      window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
     }
 
     // ============================================================
@@ -3165,7 +3165,7 @@
       var nombre = (currentUser && currentUser.nombre) ? String(currentUser.nombre).trim().split(' ')[0] : '';
       var saludo = nombre ? ('Hola, soy ' + nombre + '!') : 'Hola!';
       var msg = saludo + ' Quisiera saber más información acerca de los decants de diseñador 🤩';
-      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+      window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
     }
     window.openDecantsBannerWA = openDecantsBannerWA;
 
@@ -6627,7 +6627,7 @@
       // IMPORTANTE: abrir WhatsApp PRIMERO, sincrónicamente.
       // Si lo hacemos dentro del callback del splash (3s después), Chrome/Firefox
       // bloquean window.open por anti-popup (ya no se considera user-initiated).
-      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+      window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
 
       // Después mostrar el splash como feedback visual y limpiar el carrito al terminar
       var firstP = PERFUMES.find(function(pf) { return pf.slug === cart[0]; });
@@ -6674,7 +6674,7 @@
       trackEvent('wa_click', { slug: slug, meta: { isSet: !!p.esSet } });
       var msg = buildWaMessage([p], '');
       // Abrir WhatsApp sincrónicamente para que no lo bloquee el anti-popup
-      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+      window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
       showSplash(p);
     }
 
@@ -7558,7 +7558,7 @@
       };
       var tel = '5492974564545';
       var msg = encodeURIComponent('Hola ST! Me interesa un decant de 5ml de *' + p.name + '* (' + brand + '). \u00bfTienen disponible?');
-      document.getElementById('btnDecant').href = 'https://wa.me/' + tel + '?text=' + msg;
+      document.getElementById('btnDecant').href = 'https://api.whatsapp.com/send?phone=' + tel + '&text=' + msg;   // [WA-EMOJIS-ROTOS] wa.me cambia los emojis por «�» al redirigir
 
       // Ocultar picker, mostrar carta
       document.querySelector('.misel-picker').style.display = 'none';
@@ -7591,7 +7591,7 @@
         + 'Elegí mis 3 perfumes favoritos: ' + elegidos + '\n\n'
         + '🔮 Me recomendaron: *' + p.name + '* de ' + (p.marca_real || p.marca || '') + '\n\n'
         + '¿Vos cuáles elegirías? Probá acá 👇\nhttps://www.stperfumeria.com';
-      var url = 'https://wa.me/?text=' + encodeURIComponent(texto);
+      var url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(texto);
       window.open(url, '_blank');
     }
 
@@ -8139,7 +8139,7 @@
       var saludo = nombre ? ('Hola, soy ' + nombre + '!') : 'Hola!';
       var msg = saludo + ' Quería consultar el precio del decant de '
               + (p ? p.name : 'un perfume') + ' 🙂';
-      window.open('https://wa.me/5492975416017?text=' + encodeURIComponent(msg), '_blank');
+      window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
     }
     window.consultarDecantWA = consultarDecantWA;
 

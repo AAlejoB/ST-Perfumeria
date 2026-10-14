@@ -48,7 +48,7 @@
 //     invierte a pill dark con texto dorado.
 //   - JS toggleDarkMode: actualiza emoji + label simultáneo. Init sets
 //     navThemeLabel a "LIGHT" si dark / "DARK" si light.
-var CACHE_VERSION = 'v1.1.228';
+var CACHE_VERSION = 'v1.1.229';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
@@ -125,6 +125,7 @@ self.addEventListener('fetch', function(event) {
   // Ignorar Supabase API, analytics, WhatsApp, etc. (network-only)
   if (url.hostname.indexOf('supabase.co') !== -1 ||
       url.hostname.indexOf('wa.me') !== -1 ||
+      url.hostname.indexOf('whatsapp.com') !== -1 ||
       url.hostname.indexOf('api.telegram.org') !== -1) {
     return; // dejamos que el navegador maneje normalmente
   }

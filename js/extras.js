@@ -517,7 +517,7 @@
       + cuenta.lineas.join('\n') + '\n\n'
       + cuenta.resumen + '\n\n'
       + '¿Confirmás stock? 🙏';
-    var url = 'https://wa.me/5492975416017?text=' + encodeURIComponent(msg);
+    var url = 'https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg);
     window.open(url, '_blank');
   }
 
