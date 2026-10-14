@@ -5418,7 +5418,7 @@
         '3. Tu número: ' + tel + '\n' +
         '4. Donde dice Contraseña, escribí *la clave nueva que quieras* — la que pongas ahí queda guardada.\n\n' +
         '*Anotala*, porque es la que vas a usar de ahora en más. Cualquier cosa avisame 💛');
-      var waUrl = 'https://wa.me/' + tel + '?text=' + msg;
+      var waUrl = 'https://api.whatsapp.com/send?phone=' + tel + '&text=' + msg;   // [WA-EMOJIS-ROTOS] wa.me cambia los emojis por «�» al redirigir
       var banner = document.getElementById('resetSuccessBanner');
       if (banner) {
         banner.innerHTML =
@@ -7014,7 +7014,7 @@
         '2️⃣ Tocá "Iniciar sesión"\n' +
         '3️⃣ Ingresá tu número y elegí una contraseña — la primera que pongas queda como la tuya.\n\n' +
         '¡Cualquier duda me la podés describir por acá!✍️';
-      var waLink = 'https://wa.me/' + phoneClean + '?text=' + encodeURIComponent(welcomeMsg);
+      var waLink = 'https://api.whatsapp.com/send?phone=' + phoneClean + '&text=' + encodeURIComponent(welcomeMsg);
       document.getElementById('newClientWhatsAppLink').href = waLink;
       document.getElementById('newClientWhatsApp').style.display = 'block';
 
@@ -7592,7 +7592,7 @@
               '<span style="display:flex;gap:.5rem;align-items:center;">' +
                 '<span data-estado style="font-size:.7rem;color:#8fae9c;"></span>' +
                 '<a class="action-btn btn-whatsapp" style="font-weight:600;" ' +
-                  'target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + msgEnc + '" ' +
+                  'target="_blank" rel="noopener" href="https://api.whatsapp.com/send?phone=' + tel + '&text=' + msgEnc + '" ' +
                   'onclick="marcarAvisadoWaitlist(\'' + e.id + '\', this)">💬 Avisar</a>' +
               '</span>' +
             '</div>';
@@ -12660,7 +12660,7 @@
           var id = Number(item.id);
 
           var tel = String(item.telefono || '').replace(/[^0-9]/g, '');
-          var waLink = 'https://wa.me/' + tel + '?text=' + (esperaEsLibre(item) ? encodeURIComponent(buildWaitlistMsg(item.perfume_name)) : msgEnc);   // [ESPERA-LIBRE] 142c · cada fila libre manda su propio mensaje
+          var waLink = 'https://api.whatsapp.com/send?phone=' + tel + '&text=' + (esperaEsLibre(item) ? encodeURIComponent(buildWaitlistMsg(item.perfume_name)) : msgEnc);   // [ESPERA-LIBRE] 142c · cada fila libre manda su propio mensaje
           html += '<div class="espera-fila">';
           html += '<div class="espera-fila-datos">';
           html += '<p class="espera-nombre">' + escHtml(item.nombre || 'Sin nombre') + '</p>';
@@ -13020,7 +13020,7 @@
       var msgEnc = encodeURIComponent(buildWaitlistMsg());
       // Abrir cada WA en nueva pesta\u00f1a
       group.forEach(function(item, i) {
-        var waLink = 'https://wa.me/' + String(item.telefono || '').replace(/[^0-9]/g, '') + '?text=' + (esperaEsLibre(item) ? encodeURIComponent(buildWaitlistMsg(item.perfume_name)) : msgEnc);   // [ESPERA-LIBRE] 142c   // [ESPERA-MAS] sólo dígitos, como la fila: el teléfono lo escribe anon
+        var waLink = 'https://api.whatsapp.com/send?phone=' + String(item.telefono || '').replace(/[^0-9]/g, '') + '&text=' + (esperaEsLibre(item) ? encodeURIComponent(buildWaitlistMsg(item.perfume_name)) : msgEnc);   // [ESPERA-LIBRE] 142c   // [ESPERA-MAS] sólo dígitos, como la fila: el teléfono lo escribe anon
         setTimeout(function() { window.open(waLink, '_blank'); }, i * 800);
       });
       // [WAITLIST-AVISO-REAL] Acá antes iba una UPDATE marcando a TODO el grupo
@@ -15172,7 +15172,7 @@
         : '<div class="res-card res-nada">Sin movimientos ' + (d.es_hoy ? 'hoy' : 'ese día') + ' 😴</div>') + '</div>';
       var wa = document.getElementById('resWa');
       if (wa) {
-        wa.href = 'https://wa.me/?text=' + encodeURIComponent(String(d.texto || ''));   // sin número: abre el selector de contacto
+        wa.href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(String(d.texto || ''));   // sin número: abre el selector de contacto
         wa.removeAttribute('aria-disabled');
       }
     }
