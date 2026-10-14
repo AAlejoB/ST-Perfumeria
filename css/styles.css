@@ -2961,6 +2961,28 @@
     body:not(.dark-mode) .compare-col-cta:hover {
       box-shadow: 0 6px 18px rgba(138,109,0,.45);
     }
+    /* [COMPARAR-CLARO] 14-oct (decisión A de Alejo, como la 53 de «Avisame») · en claro el cuadro de Comparar es blanco.
+       Era #111 en los dos temas y body:not(.dark-mode) p (0,1,2) le ganaba al nombre, la marca, el precio y las filas (0,1,0):
+       #2a2a2d sobre #111 = 1,32. Estas son (0,2,1) o más: le ganan sin !important. En oscuro no cambia nada. */
+    body:not(.dark-mode) .compare-modal { background: #fff; border-color: rgba(120,90,0,.28); }
+    body:not(.dark-mode) .compare-modal .compare-title { color: var(--amarillo-tinta); }
+    body:not(.dark-mode) .compare-close { color: #5e564a; }
+    body:not(.dark-mode) .compare-close:hover { color: #1a1a1d; }   /* en táctil el hover queda pegado: el #fff de oscuro desaparecía */
+    body:not(.dark-mode) .compare-col { background: #faf6ea; border-color: rgba(120,90,0,.16); }
+    body:not(.dark-mode) .compare-col-placeholder { background: #ede2c2; color: rgba(26,26,29,.3); }
+    body:not(.dark-mode) .compare-modal .compare-col-name { color: #1a1a1d; }
+    body:not(.dark-mode) .compare-modal .compare-col-brand { color: var(--gris); }
+    body:not(.dark-mode) .compare-modal .compare-col-price,
+    body:not(.dark-mode) .compare-modal .compare-row-label,
+    body:not(.dark-mode) .compare-modal .compare-common-title { color: var(--amarillo-tinta); }
+    body:not(.dark-mode) .compare-modal .compare-row-value { color: #2a2a2d; }
+    body:not(.dark-mode) .compare-row { border-bottom-color: rgba(26,26,29,.08); }
+    body:not(.dark-mode) .compare-common { background: rgba(120,90,0,.06); border-color: rgba(120,90,0,.2); }
+    body:not(.dark-mode) .compare-common-chip {
+      background: rgba(120,90,0,.08); color: var(--amarillo-tinta);
+      border-color: rgba(120,90,0,.3);
+    }
+    body:not(.dark-mode) .compare-col-sin-stock { color: #5e564a; }
     /* Responsive compare grid:
        - Mobile (default): 1 columna por perfume, todo apilado. Header con
          foto al lado izquierdo + info a la derecha; rows abajo en tabla.
@@ -3723,7 +3745,7 @@
     .compare-col-sin-stock {
       width: 100%; margin-top: .9rem; padding: .65rem 1rem; text-align: center;
       font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
-      color: #9a9a9a; border: 1px solid currentColor; border-radius: 24px;   /* el modal de Comparar es oscuro (#111) en los dos temas: var(--gris) en claro es #5e564a (2,4); #9a9a9a da 6,71. Es un <div>: un <p> cae en body:not(.dark-mode) p (#2a2a2d, 1,32) */
+      color: #9a9a9a; border: 1px solid currentColor; border-radius: 24px;   /* oscuro: #9a9a9a sobre #111 = 6,71. En claro el modal es blanco desde [COMPARAR-CLARO] y va #5e564a (regla junto a .compare-col-cta) */
     }
     .bs-btn-row { display: flex; gap: .4rem; }
     .bs-btn-secondary {

@@ -947,6 +947,14 @@ function mezcla(hex, fondo, a) {
      ['sin-stock cartel «Sin stock» .bs-tags .badge-sin-stock', '.bs-tags .badge-sin-stock', null, '.bs-tags .badge-sin-stock', hoja_, 'ficha'],
      ['sin-stock cartel «Próximamente» .bs-tags .badge-proximamente', '.bs-tags .badge-proximamente', null, '.bs-tags .badge-proximamente', hoja_, 'ficha'],
      ['sin-stock «Sin stock» de Comparar .compare-col-sin-stock', '.compare-col-sin-stock', null, null, fondo('.compare-modal', c, '#111111'), 'comparar'],
+     // [COMPARAR-CLARO] 14-oct-2026 · los textos del cuadro de Comparar (son <p>: compiten con body:not(.dark-mode) p, que los dejaba en 1,32)
+     ['comparar título .compare-title', '.compare-modal .compare-title', 'p', null, fondo('.compare-modal', c, '#111111'), 'comparar'],
+     ['comparar nombre .compare-col-name', '.compare-modal .compare-col-name', 'p', null, fondo('.compare-col', c, fondo('.compare-modal', c, '#111111')), 'comparar'],
+     ['comparar marca .compare-col-brand', '.compare-modal .compare-col-brand', 'p', null, fondo('.compare-col', c, fondo('.compare-modal', c, '#111111')), 'comparar'],
+     ['comparar precio .compare-col-price', '.compare-modal .compare-col-price', 'p', null, fondo('.compare-col', c, fondo('.compare-modal', c, '#111111')), 'comparar'],
+     ['comparar «CATEGORÍA» .compare-row-label', '.compare-modal .compare-row-label', 'p', null, fondo('.compare-col', c, fondo('.compare-modal', c, '#111111')), 'comparar'],
+     ['comparar valor de la fila .compare-row-value', '.compare-modal .compare-row-value', 'p', null, fondo('.compare-col', c, fondo('.compare-modal', c, '#111111')), 'comparar'],
+     ['comparar chip «Notas en común» .compare-common-chip', '.compare-common-chip', null, '.compare-common-chip', fondo('.compare-modal', c, '#111111'), 'comparar'],
      ['sin-stock aviso «Sacamos … del pedido» .aviso-toast-texto', '.aviso-toast-texto', null, null, fondo('.cart-toast', c, '#0a0a0a'), 'aviso'],
      // 159 · la campana de línea es currentColor: su contraste es el del texto del botón que la lleva (mínimo 3 para un ícono)
      ['sin-stock 159 campana de la ficha (currentColor de .bs-btn-primary)', '.bs-btn-primary', null, '.bs-btn-primary', hoja_, 'ficha'],
