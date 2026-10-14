@@ -6051,6 +6051,30 @@
       }
       window.addEventListener('scroll', waPildoraProgramar, { passive: true });
       window.addEventListener('resize', waPildoraProgramar);
+
+      // [CELU-LETRA] 157 (decisión de Alejo, 14-oct-2026) · sólo < 768: WhatsApp (y su píldora / punto) se va al deslizar hacia abajo y vuelve al deslizar
+      // hacia arriba o cerca del principio (WA_OCULTO_DESDE). Cuenta el recorrido desde el último cambio, así un deslizar lento también llega a WA_OCULTO_PASO.
+      // El atributo vive en el body (data-wa-oculto); el CSS lo baja detrás de la barra.
+      var WA_OCULTO_DESDE = 160, WA_OCULTO_PASO = 12;
+      var waUltY = window.pageYOffset || 0, waOcultoRaf = 0;
+      function waOcultoPoner(si) {
+        if (si === document.body.hasAttribute('data-wa-oculto')) return;
+        if (si) document.body.setAttribute('data-wa-oculto', '');
+        else document.body.removeAttribute('data-wa-oculto');
+      }
+      function waOcultoActualizar() {
+        var y = window.pageYOffset || 0, d = y - waUltY;
+        if (!waEsCelu() || y < WA_OCULTO_DESDE) { waOcultoPoner(false); waUltY = y; return; }
+        if (d > WA_OCULTO_PASO) waOcultoPoner(true);
+        else if (d < -WA_OCULTO_PASO) waOcultoPoner(false);
+        else return;
+        waUltY = y;
+      }
+      window.addEventListener('scroll', function() {
+        if (waOcultoRaf) return;
+        waOcultoRaf = requestAnimationFrame(function() { waOcultoRaf = 0; waOcultoActualizar(); });
+      }, { passive: true });
+      window.addEventListener('resize', waOcultoActualizar);
       function waPildoraAlPintar(el, texto) {
         // 144d: el aria-label de WhatsApp suma el estado, con el mismo texto de la píldora y desde esta misma función; no se reescribe si el texto no cambió
         var wl = document.querySelector('.wa-float');

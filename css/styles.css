@@ -4985,8 +4985,12 @@
     @media (max-width: 767px) {
       .wa-status {
         box-sizing: border-box; width: var(--wa-w, auto); height: var(--wa-h, auto); overflow: hidden; pointer-events: none;
-        transition: width .2s ease, height .2s ease, right .2s ease, bottom .2s ease, padding .2s ease, font-size .2s ease, border-width .2s ease, box-shadow .2s ease;
+        transition: width .2s ease, height .2s ease, right .2s ease, bottom .2s ease, padding .2s ease, font-size .2s ease, border-width .2s ease, box-shadow .2s ease, transform .25s ease, opacity .25s ease;
       }
+      /* [CELU-LETRA] 157 (decisión de Alejo, 14-oct-2026) · WhatsApp tapaba la punta de los nombres largos (8 de las primeras 20 filas a 360): al deslizar hacia
+         abajo se va (baja detrás de la barra, z 999 < 9990) y vuelve apenas se desliza hacia arriba o se está cerca del principio. data-wa-oculto lo pone js/app.js (waOcultoActualizar). */
+      .wa-float { transition: transform .25s ease, box-shadow .25s ease, opacity .25s ease; }
+      body[data-wa-oculto] .wa-float, body[data-wa-oculto] .wa-status { transform: translateY(180px); opacity: 0; pointer-events: none; }
       .wa-status .wa-status-dot { transition: width .2s ease, margin .2s ease, opacity .2s ease; }
       .wa-status[data-punto] {
         width: 12px; height: 12px; padding: 0; font-size: 0; border-width: 0; z-index: 1000;
@@ -4997,7 +5001,7 @@
       body:has(.compare-bar.visible) .wa-status[data-punto] { bottom: calc(167px + env(safe-area-inset-bottom)); }
       .wa-status[data-quieto], .wa-status[data-quieto] .wa-status-dot { transition: none; }
     }
-    @media (max-width: 767px) and (prefers-reduced-motion: reduce) { .wa-status, .wa-status .wa-status-dot { transition: none; } }
+    @media (max-width: 767px) and (prefers-reduced-motion: reduce) { .wa-status, .wa-status .wa-status-dot, .wa-float { transition: none; } }
 
     /* Badge "Último disponible" en card */
     .badge-ultimo {
@@ -5696,10 +5700,9 @@
     .cart-item-price { font-size: .75rem; font-weight: 700; color: var(--amarillo-tinta); white-space: nowrap; }   /* [AMARILLO-CATALOGO-CLARO] claro #6b5500, oscuro igual */
     .cart-item-remove {
       background: none; border: none; color: #e74c3c; font-size: 1rem;
-      cursor: pointer; padding: .3rem; opacity: .6; transition: opacity .2s;
+      cursor: pointer; padding: .3rem;   /* [PEDIDO-ROJOS-CLARO] sin el 60 % de antes: en oscuro daba ~2,4; entera, 4,94 */
     }
-    .cart-item-remove:hover { opacity: 1; }
-    body:not(.dark-mode) .cart-item-remove { color: var(--tinta-error); opacity: 1; }   /* [PEDIDO-ROJOS-CLARO] en claro el #e74c3c al 60 % daba 3,33 sobre el crema del panel; oscuro igual */
+    body:not(.dark-mode) .cart-item-remove { color: var(--tinta-error); }   /* [PEDIDO-ROJOS-CLARO] en claro el #e74c3c al 60 % daba 3,33 sobre el crema del panel */
     .cart-total {
       display: flex; justify-content: space-between; align-items: center;
       padding: .8rem 0; margin-top: .5rem;
@@ -10341,6 +10344,17 @@
       html[data-vista="lista"] body[class] #catalogGrid .card-skel-body { flex: 1 1 auto; padding: 0; }
 
       }
+    /* [CELU-LETRA] 156 (decisión de Alejo, 14-oct-2026: «Bastante») · sólo el celu: en la compu la fila queda como arriba. La letra chica de la fila sube
+       (marca y efectivo 11 → 12,5 · «a qué huele» 11,5 → 13 · la etiqueta de la foto 8,5 → 10 · «Avisame» 11 → 12,5). El alto lo manda la foto (96):
+       medido a 360, la fila pasa de 123 a 124 de promedio (máx. 129 → 132) y siguen entrando 2 filas enteras en la primera pantalla. */
+    @media (max-width: 767px) {
+      html[data-vista="lista"] body[class] #catalogGrid .card-info .card-brand,
+      html[data-vista="lista"] body[class] #catalogGrid .card-info .price-cash,
+      html[data-vista="lista"] body[class] #catalogGrid .waitlist-btn { font-size: 12.5px; }
+      html[data-vista="lista"] body[class] #catalogGrid .card-huele { font-size: 13px; }
+      html[data-vista="lista"] body[class] #catalogGrid .card-etiquetas > span, html[data-vista="lista"] body[class] #catalogGrid .card-ribbon, html[data-vista="lista"] body[class] #catalogGrid .badge-sin-stock,
+      html[data-vista="lista"] body[class] #catalogGrid .badge-proximamente { font-size: 10px; }
+    }
     @media (max-width: 767px) {
     /* los estantes (Selección ST, decants) dentro de la grilla ocupan todo el ancho */
       /* Ojo con el ancho: un hijo de grilla con margin: auto (la Selección tiene margin: 0 auto) NO se estira, se ajusta a su contenido, y el de la Selección
