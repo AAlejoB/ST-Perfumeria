@@ -939,6 +939,10 @@ function mezcla(hex, fondo, a) {
      ['153 «Consultar →» gris .bs-btn-cart', '.bs-btn-cart', null, '.bs-btn-cart', hoja_, 'ficha'],
      ['153b 🔗 (ícono, currentColor) y «Similares» .bs-btn-secondary', '.bottom-sheet .bs-btn-secondary', null, '.bottom-sheet .bs-btn-secondary', hoja_, 'ficha'],
      ['✕ de «Tu pedido» .cart-x', '.cart-x', null, null, pedido, 'pedido'],
+     // [PEDIDO-CLARO] 14-oct-2026 · el aviso de abajo del panel (máx. 15, favoritos…) y los títulos de la caja de pagos y envíos
+     ['aviso de «Tu pedido» .cart-limit-msg', '.cart-limit-msg', null, '.cart-limit-msg', pedido, 'pedido'],
+     ['«¿Pagás con tarjeta?» .cart-mp-text strong', '.cart-mp-text strong', null, '.cart-mp-info', pedido, 'pedido'],
+     ['«¿No sos de Comodoro?» .cart-mp-envios strong', '.cart-mp-envios strong', null, '.cart-mp-info', pedido, 'pedido'],
      ['8 cartel «Activar» .push-banner-btn--yes', '.push-banner-btn--yes', null, '.push-banner-btn--yes', cartel, 'cartel'],
      ['8 cartel «Ahora no» .push-banner-btn--no', '.push-banner-btn--no', null, '.push-banner-btn--no', cartel, 'cartel'],
      ['153 hover de la card «Agregar» .cart-add-btn.reveal-add', '.cart-add-btn.reveal-add:not(.added)', null, '.cart-add-btn.reveal-add:not(.added)', reveal, 'compu 1280'],

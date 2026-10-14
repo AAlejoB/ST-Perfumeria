@@ -6318,7 +6318,7 @@
           return;
         }
         if (cart.length >= CART_LIMIT) {
-          showCartLimitMsg('M\u00e1ximo ' + CART_LIMIT + ' fragancias por pedido \ud83d\ude0a');
+          avisoPedido('M\u00e1ximo ' + CART_LIMIT + ' fragancias por pedido \ud83d\ude0a');   // [PEDIDO-CLARO] desde la card, la ficha o Comparar el panel est\u00e1 cerrado y #cartLimitMsg no se ve\u00eda
           return;
         }
         cart.push(slug);

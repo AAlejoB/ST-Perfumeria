@@ -5726,6 +5726,7 @@
       font-size: .68rem; color: var(--gris-claro); line-height: 1.5; margin: 0;
     }
     .cart-mp-text strong, .cart-mp-envios strong { color: #fff; }
+    body:not(.dark-mode) .cart-mp-text strong, body:not(.dark-mode) .cart-mp-envios strong { color: #1a1a1d; }   /* [PEDIDO-CLARO] en claro el #fff daba 1,14 sobre el crema del panel; #1a1a1d = el nombre del perfume (15,12) */
     .cart-mp-envios { margin-top: .4rem; padding-top: .4rem; border-top: 1px solid rgba(255,255,255,.06); }
     .cart-clear-btn {
       display: block; width: 100%; margin-top: .5rem; padding: .5rem;
@@ -5750,7 +5751,7 @@
     .cart-note:focus { border-color: var(--amarillo); }
     .cart-note::placeholder { color: var(--gris); font-size: .65rem; }
     .cart-limit-msg {
-      text-align: center; font-size: .65rem; color: var(--amarillo); padding: .4rem;
+      text-align: center; font-size: .65rem; color: var(--amarillo-tinta); padding: .4rem;   /* [PEDIDO-CLARO] en claro --amarillo daba 1,56 sobre el crema; oscuro igual */
       background: rgba(232,184,0,.08); border-radius: 6px; margin-top: .5rem;
     }
 
