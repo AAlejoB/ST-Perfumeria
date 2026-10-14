@@ -3893,6 +3893,14 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 14-oct-2026 (~12:30, cierre de la tanda chica de `panel-prolijo`):** hechos en `6b46b1f` y `3cc448a`; suben con el push del cierre. Detalle en § «Sesión 14-oct-2026 (mediodía, segunda)».
+
+- ✅ ~~**`[NUEVO-BORRADO-HUERFANO]`**~~ (27-sep, salió de contar «💎 Diseñador» · 🟡, prioridad propuesta por Claude Code) — `deleteNuevo` (`admin.html`) borra la fila de `perfumes_nuevos` pero no saca el perfume de `PERFUMES` ni toca su `perfume_overrides`: hasta recargar, el panel lo sigue mostrando y se le puede cargar stock. Pasó el 21-sep: a las 16:34 ART se borró el nuevo «VICTORIA SECRET» (id 90) y hasta las 16:42 el panel siguió escribiendo en `victoria-secret` (ML 100 → 250, depósito 3 → 8). Hoy ese override («AQUA KISS», Body Splash) tiene **2 en el local y 8 en el depósito** y no aparece ni en el panel ni en el sitio (no está en `perfumes.js` ni en `perfumes_nuevos`). Además, la pestaña Nuevos muestra el nombre de `perfumes_nuevos` («VICTORIA SECRET») y no el del override («AQUA KISS»). Las 10 unidades: **Alejo decidió no tocarlas** (27-sep); quedan como están. Sigue abierto el arreglo del borrado (del PREPARADOR). No se tocó. **→ Cerrado el 14-oct (`6b46b1f`):** `deleteNuevo` saca el perfume de `PERFUMES` (sólo `_fromDB`), vuelve a dibujar Precios y Depósito, suelta el escáner y, si la base no borra, avisa y no sigue. La fila de `perfume_overrides` sigue quedando en la base (también la de `decant-le-beau-edt`, vista el 14-oct).
+
+- ✅ ~~**`[RESET-TEMP-PASSWORD-MUERTA]`**~~ (17-sep) — `password_reset_requests.temp_password` es **columna muerta** (reservada en `[FORGOT-PASS-A]`, el panel nunca la usa): dropearla o documentarla como no usada en `DATABASE.md`. **→ Cerrado el 14-oct (`3cc448a`):** documentada como columna muerta en `docs/DATABASE.md` (vacía en las 11 filas, ninguna función la nombra), con el SQL para sacarla si Alejo decide.
+
+- ✅ ~~**`[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]`**~~ (20-sep, salió de `[CLICKS-RESUMEN]`) — `docs/SECURITY.md` tiene descripciones del problema *original* en presente debajo de headers "✅ RESUELTO" (ej. S14 § `send_telegram`, L368) que pueden citarse por error como estado vigente. Pasarlas a pasado o marcarlas como históricas. **→ Cerrado el 14-oct (`3cc448a`):** S10 y S14 marcan su análisis original como historia; el estado general, la fila de RLS, la de la DB password y las secciones de mayo dicen cómo están hoy.
+
 **Movidos el 14-oct-2026 (mediodía, cierre corto):** medido en la base el 14-oct; lo cerró Alejo («sí, cerralo»). Detalle en § «Sesión 14-oct-2026 (mediodía)».
 
 - ✅ ~~**`[FILA-NUEVA-DICE-EN-STOCK]`**~~ (5-oct, PREPARADOR `_cn` · 🟡, **sin hacer**) — hay 3 filas de `perfume_overrides` con estado «ok» y sin cantidad (`set-yara-mini`, `set-yara`, `arabians-tonka`): en Precios & Stock dicen «en stock» sin tener un número. La 154 lo evita en las altas nuevas; para estas 3 hay que medir qué pasaría si mostraran «SIN DATO» (los sets se manejan aparte: puede no convenir). **→ Cerrado el 14-oct:** ninguna fila dice «en stock» sin número en el panel. `arabians-tonka` es `out` con 0 / 0 desde el 7-oct; los dos sets no salen en Precios & Stock ni en Depósito (`!p.esSet`) y `toggleComboStock` escribe sólo `ok` / `pausado`, por diseño. Hay dos filas huérfanas ocultas y sin stock (`decant-le-beau-edt`, `desodorante-asad-bourbon`) que no se ven en ningún lado; no se tocaron.
@@ -5141,9 +5149,81 @@ Alejo abrió con `/tanda` a las 11:42 del 14-oct (rama `panel-prolijo` = `origin
 
 - Nada nuevo para `memory/preferencias_alejo.md`.
 
+### Sesión 14-oct-2026 (mediodía, segunda) · **`[COMPARAR-CLARO]`, `[NUEVO-BORRADO-HUERFANO]` y dos de docs** — la tanda chica de `panel-prolijo`
+
+Alejo abrió con `/tanda` a las 11:56 del 14-oct (rama `panel-prolijo` = `origin/main` = `9cfe497`, árbol limpio, SW v1.1.224). Pidió primero ver el stash viejo y decidir, y después hacer las tres cosas que el tablero marcaba como «puedo hacer ya, sin esperar a nadie».
+
+#### Qué se hizo
+
+- **El stash ajeno del 20-sep (`s10-xss-copia-admin-html-20sep`, `f74eaa7`), revisado y borrado.** Eran 9 líneas de `admin.html` sobre `b0c60c0` (19-sep): los escapes de S10 en Clientes y en el ranking de Puntos. Todo eso ya estaba en `main`, y mejor (`escapeHtml` en la inicial, el nombre y la nota; `telHtml` en los teléfonos; el id entre comillas en «Ajustar»). Lo borró Alejo. Su primer intento falló porque PowerShell lee `stash@{0}` como un bloque de código: con comillas (`'stash@{0}'`) anduvo.
+- **`[COMPARAR-CLARO]` · `a2944cb` (SW v1.1.225):** el cuadro de Comparar era `#111` en los dos temas, y en claro `body:not(.dark-mode) p` (0,1,2) le ganaba al nombre, la marca, el precio y las filas (0,1,0): `#2a2a2d` sobre `#111` = 1,32. **En claro ahora es blanco** (las reglas van junto a `.compare-col-cta` en `styles.css`, son (0,2,1) o más y no llevan `!important`). Las columnas quedan `#faf6ea`, el texto `#1a1a1d` / `#2a2a2d`, el dorado de texto es `--amarillo-tinta`, la marca `--gris` y «Próximamente» / «Sin stock» `#5e564a`. **Medido** en el navegador (390 × 844 y 360 × 800, con datos reales): el mínimo es **4,71** (los chips de «Diferencias destacadas», que ya estaban) y el cuadro mide 342 de 360 sin desbordar. En oscuro, los colores son los mismos que antes, uno por uno. `scripts/contraste.js` suma 7 filas del cuadro: **0 fallas en 631 mediciones** (el ⚠️ de `.card-brand` es de antes, `[LIGHT-MAYO-56]`).
+- **`[NUEVO-BORRADO-HUERFANO]` · `6b46b1f`:** `deleteNuevo` (`admin.html`) ahora:
+  1. Borra con `.select('id')`: si la base no borra (un error, o 0 filas por RLS o porque ya no estaba), avisa y no sigue. Antes registraba `nuevo_delete` y mandaba el Telegram igual.
+  2. Saca el perfume de `PERFUMES`, sólo el que vino de la base (`_fromDB`): si el slug también es de `perfumes.js`, `nuevosAplicar` nunca lo había sumado.
+  3. Suelta `ESCANEO_SLUG` / `ESCANEO_NOMBRE` si era ese.
+  4. Limpia el formulario si estaba abierto con ese perfume.
+  5. Relee los nuevos con `mergeNuevosIntoPerfumes`, así la copia sin conexión (`[PANEL-SIN-CONEXION]`) queda sin el borrado.
+  6. Vuelve a dibujar Precios & Stock y Depósito.
+
+  La fila de `perfume_overrides` sigue en la base, como antes. **Probado** en Node con `deleteNuevo` sacada del archivo tal cual y una base de mentira, en tres casos: borra bien, borra 0 filas y da error. También se chequeó la sintaxis del `<script>` del panel. **No se probó en el panel real:** hace falta entrar con una cuenta.
+- **`[RESET-TEMP-PASSWORD-MUERTA]` · `3cc448a`:** medido en la base (sólo lectura), `password_reset_requests.temp_password` existe, está vacía en las 11 filas y ninguna función de `public` la nombra (`pg_proc.prosrc`). `docs/DATABASE.md` la documenta como columna muerta, «no usarla» (una contraseña temporal en plano iría contra `[BCRYPT-MIGRATION]`), con el `alter table … drop column` por si Alejo decide sacarla.
+- **`[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]` · `3cc448a`:** en `docs/SECURITY.md`:
+  - El «Estado general» ya no dice que hay críticos abiertos (S1 y S2 están resueltos).
+  - S10 y S14 marcan su análisis original como historia, igual que S2, S5 y S8.
+  - La fila de RLS de «Lo que SÍ está OK» dice las excepciones de hoy: `clientes`, `lista_espera`, `perfume_codigos`, `caja_movimientos` y `stock_movimientos` sin lectura de `anon`. Antes decía que `clientes` filtraba contraseñas.
+  - La fila «DB password expuesta» del cuadro post-Plan-B dice que la de São Paulo se rotó el 23-sep.
+  - «Plan de acción» y «Acciones URGENTES» (de mayo) quedan marcados como históricos.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:**
+  - Ver el stash primero y **borrarlo** (lo corrió él).
+  - Hacer las tres cosas del tablero.
+  - Para Comparar, **opción A, el cuadro blanco en claro** (la B era dejarlo negro y proteger sus textos).
+  - **Borrar el dump de mayo** (A).
+  - **Mergear ya, en horario** (B), aunque `6b46b1f` toca el panel y la regla es mergear fuera de 10–21.
+- **Recomendó el cowork:** nada (no hay cowork desde el 9-oct).
+- **Propuse yo (Claude Code):**
+  - Borrar el stash (A).
+  - La opción A de Comparar, siguiendo la decisión 53 de «Avisame».
+  - Dejar la fila de `perfume_overrides` del perfume borrado en la base, sin decidir por Alejo si se borra.
+  - Esperar a las 21 para mergear (A). Alejo eligió B.
+- **Hallazgos:**
+  1. **El modo automático de Claude Code se trabó:** después de que le negó a Claude Code el `git stash drop` («Irreversible Local Destruction»), negó **todo**, hasta `git status` y abrir el sitio para medir. Leer con Read/Grep sí andaba. Se destrabó solo cuando Alejo borró el stash a mano. Si vuelve a pasar: dejar de intentar, explicarlo y darle el comando a Alejo.
+  2. **`D:\backups\st-perfumeria-pre-migracion-20may2026.sql` seguía en el disco** (6,4 MB, del 21-may, con las contraseñas de los clientes en plano, de antes del bcrypt). `SECURITY.md` decía «conservar 7 días». Alejo decidió borrarlo: queda como `[DUMP-MAYO-PLANO]` hasta verificar que no está.
+  3. El botón «Elegir este» en claro es un degradé `#8a6d00` → `#b08c00` con letra blanca: en la punta clara da ~3,0, para letra de 11,5 px en negrita. **No se tocó** (es de antes y no estaba en el pedido); se anota acá.
+  4. Con el cambio de `deleteNuevo`, si la base no deja borrar a la cuenta que tocó «Eliminar», ahora sale el aviso (antes no se veía nada y el perfume seguía ahí).
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[COMPARAR-CLARO]` | Era el punto (1) de `[CELU-LETRA]`: el cuadro de Comparar se lee en claro (blanco, mínimo 4,71). `a2944cb`, v1.1.225. |
+| `[NUEVO-BORRADO-HUERFANO]` | Borrar un perfume nuevo lo saca del panel al toque; si la base no borra, avisa y no sigue. `6b46b1f`. |
+| `[RESET-TEMP-PASSWORD-MUERTA]` | `temp_password` documentada como columna muerta (vacía en las 11 filas), con el SQL para sacarla. `3cc448a`. |
+| `[SECURITY-MD-DESCRIPCIONES-EN-PRESENTE]` | `SECURITY.md` ya no dice en presente lo que está resuelto. `3cc448a`. |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[DUMP-MAYO-PLANO]` 🟡 | Que Alejo borre el dump de mayo y verificar que `D:\backups` ya no lo tiene. |
+| `[CELU-LETRA]` 🟡 | Quedan 156, 157 y los puntos (2) y (3); el (1) se hizo. |
+| (los de siempre) | Ver `CLAUDE.md` § Pendientes. |
+
+**Estado del repo al cierre (14-oct, ~12:30):** `origin/main` = `9cfe497` (SW **v1.1.224** en producción) · rama `panel-prolijo` = `9cfe497` + `a2944cb` + `6b46b1f` + `3cc448a` + este cierre (SW **v1.1.225**), lista para que Alejo haga el push a `main` (fast-forward) · árbol limpio después del commit · sin stash · el checkout principal sigue en `aa5d62e`, atrás: no afecta.
+
+#### 💬 Mensajes meta
+
+- Un comando con `{…}` para PowerShell va entre comillas simples (`git stash drop 'stash@{0}'`): sin comillas, PowerShell lo lee como un bloque de código y git recibe basura («unknown switch `e'»). Va a `memory/preferencias_alejo.md`.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 14-oct-2026 (~11:55, cierre corto del mediodía) — pasó de `CLAUDE.md` al archivo el 14-oct (~12:30, cierre de la tanda chica de `panel-prolijo`)
+
+**Última actualización:** **Octubre 14, 2026, ~11:55 (cierre corto del mediodía)** — `main` = `origin/main` = `098f6e6` (**v1.1.224** en producción desde el 14-oct ~05:10, `16dc52d`; `[PANEL-SIN-CONEXION]` cerrado y en NO ROMPER #34). Sesión sin código: `docs/IDEAS.md` marca `[PANEL-SIN-CONEXION]` como hecha (`0c938d2`); **`[FILA-NUEVA-DICE-EN-STOCK]` cerrado** (medido en la base: ninguna fila dice «en stock» sin número en el panel; los sets no salen en Precios & Stock); **`[DISCO-D-FSYNC]` medido de nuevo**: de 55 avisos en un mes a un solo incidente en ~38 h después del `powercfg`, y una segunda sospecha, el cargador. Detalle en `docs/HISTORIA.md` § «Sesión 14-oct-2026 (mediodía)». **Pendientes (mismo orden que § Pendientes):** 🟡 `[REEMPLAZO-DE-HOJA]` (primer cierre real + humo con las chicas + una seña real) · `[STOCK-FOTO-HUMO]` · `[MUDANZA-REVISAR-PENDIENTES]` · `[DISCO-D-FSYNC]` (no tocar el cargador trabajando en `D:` y medir de nuevo en unos días) · `[ESCANER]` (humo con cajas reales) · `[LLEGO-MERCADERIA]` · `[STAT-FILTRO-HUMO]` · `[VERCEL-ENV-VARS]` · `[STOCK-OCULTO]` (25-oct) · `[ALTA-Y-CANDADOS]` · `[SIPAGO-VALIDA-STOCK]` + `[STRIX-ANTES-DE-SIPAGO]` · `[CELU-INP]` (B / C) · `[CELU-LETRA]` · 🟢 `[CUADRADOS-EDITAR]` · `[UPLOADER-WEBP-AUTO]` · `[SELECCION-DIARIA-LIMPIEZA]` · `[EDITAR-EMPLEADA-SIN-PRECIO]` · `[TABLET-DESBORDE-24]` · `[ARCHIVO-EN-CELU]` · `[WA-EMOJIS-ROTOS]` · `[COMPARAR-PRECIOS]`. **Congelados hasta después de la temporada:** `[TAP-44]` tanda 2, `[DISEÑOACORTADOR-PANELADMIN]`, `[FUSION-CLIENTES-PUNTOS]`, `VAPID_*` y B de `[PUNTOS-JSONB-FUERA]`.
 
 ### Última actualización del 14-oct-2026 (~05:35, cierre de `[PANEL-SIN-CONEXION]`) — pasó de `CLAUDE.md` al archivo el 14-oct (~11:55, cierre del mediodía)
 
