@@ -3,6 +3,14 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
+## [PANEL-CELU-TOSCO] · 💡 idea · 14-oct-2026
+
+**En palabras de Alejo:** "lo uso en el celu y siento que está medio tosca, toco algo y como que se me hace… cuando seleccionás el numerito, los botones, son medio raros. Capaz no hay tanta interacción con la interfaz del teléfono en sí, no puedo arrastrar archivos y eso." Para después: está con otras cosas.
+**Qué es:** que el panel se sienta de celular al tocarlo: botones que respondan al toque, números que se eligen sin pelear con el teclado, y gestos del teléfono (arrastrar, deslizar) donde sirvan.
+**Hechos del repo:** (1) `admin.html` tiene 36 campos `type="number"` y sólo 10 `inputmode=`: en el celu casi todos los números se escriben con el teclado del sistema, sin los botones grandes de la hoja de caja. (2) Sólo 9 reglas de toque (`touch-action`, `user-select: none`, `-webkit-tap-highlight-color`). (3) Se cruza con `[CUADRADOS-EDITAR]` (llevar los cuadrados de la hoja a Editar) y `[TAP-44]` tanda 2 (37 controles < 44 px, congelado): puede ser la misma tanda.
+**Tamaño:** M: muchas pantallas, sólo CSS/JS.
+**Le toca primero a:** 🧑 Alejo: decir qué pantallas se sienten peor (o grabar 30 s del celu usándolo) y si vale la pena antes de la mudanza (~26-oct, `[MUDANZA-REVISAR-PENDIENTES]`).
+
 ## [PANEL-SIN-CONEXION] · 🔨 en curso (pasos 1, 2 y 3 hechos en la rama `panel-prolijo`, SW v1.1.224; falta el merge y el humo en la tablet) · 13-oct-2026
 
 **En palabras de Alejo:** «que los chicos dentro del panel, una vez que no tengan internet, una vez que se corte la luz, que se les guarde y después se le sobreescriba con el que ya tienen cuando vuelva la luz […] que dure lo que tenga que durar […] y que solamente se active cuando tarda sin internet durante no sé, 20 minutos». Cuando vuelve la conexión **gana lo que anotaron las chicas**, y es **para este sistema** (el panel de acá, no el nuevo).
