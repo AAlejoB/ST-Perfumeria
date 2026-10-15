@@ -2552,6 +2552,14 @@
     .res-monto { white-space: nowrap; }       /* …pero el monto, nunca */
     .res-sin { color: var(--gris); font-weight: 600; }
     .res-tipo { font-size: .62rem; font-weight: 400; color: var(--gris); }
+    /* [RESUMEN-PRECIOS] 15-oct · el precio en el renglón gris del perfume («Creed · lista $139.000 · transf. $125.100»),
+       el subtotal debajo de la flecha con 2 o más unidades, y el pie de la tarjeta con el total del día. El de
+       transferencia va en la tinta dorada de texto (la de «precio nuevo»), que es el que cuadra con lo que entró. */
+    .res-transf { color: var(--amarillo-tinta); font-weight: 600; }
+    .res-card-stock .res-nombre { flex: 1 1 0; }   /* con el renglón del precio, el nombre se achica y parte: la flecha no baja de línea */
+    .res-precio-unit { white-space: nowrap; }
+    .res-dato .res-subtotal { display: block; font-size: .62rem; font-weight: 400; color: var(--gris); text-align: right; }
+    .res-pie { margin-top: .3rem; padding-top: .4rem; border-top: 1px solid var(--borde); font-size: .72rem; font-weight: 700; }
     .res-vacio { font-size: .72rem; color: var(--gris); }   /* la sección vacía: un renglón gris, «🏬 Depósito · sin cambios» */
     .res-nada { text-align: center; font-size: .8rem; color: var(--gris); padding: 1.2rem .8rem; }
     .res-wa-cli { flex: 0 0 auto; margin: 0 0 0 auto; min-height: var(--tap-min); display: inline-flex; align-items: center; padding: 0 .8rem; }
@@ -15112,13 +15120,60 @@
       var p = (typeof PERFUMES !== 'undefined' && PERFUMES) ? PERFUMES.find(function(x) { return x.slug === slug; }) : null;
       return p && p.marca_real ? String(p.marca_real) : '';   // el fabricante, como el renglón gris de Precios & Stock (p.marca es la de la casa)
     }
-    function resumenFilaDelta(it) {
+    // [RESUMEN-PRECIOS] (15-oct-2026, pedido de Alejo): el precio de cada perfume que salió del local, para cruzar una
+    // transferencia con el renglón que cuadra. Sale de la MEMORIA del panel (p.price / p.promo, los mismos de Precios &
+    // Stock), no de resumen_dia(): es el precio de HOY, no el del día que se vendió (si cambió después, no coincide).
+    // «transf.» = 10% off sobre promo o lista, la misma cuenta que la columna Efectivo (efectivo o transferencia).
+    // Sin la lectura de los overrides (NO ROMPER #20) no se muestra ninguno: no se da el de perfumes.js como vigente.
+    function resumenPrecioDe(slug) {
+      if (!overridesCargado || typeof PERFUMES === 'undefined' || !PERFUMES) return null;
+      var p = PERFUMES.find(function(x) { return x.slug === slug; });
+      if (!p) return null;
+      var lista = parsePrice(p.price), promo = p.promo ? parsePrice(p.promo) : 0;
+      if (!(lista > 0) && !(promo > 0)) return null;
+      var base = promo > 0 ? promo : lista;
+      return { lista: lista, promo: promo > 0 ? promo : null, transf: Math.round(base * 0.9) };
+    }
+    function resumenFilaDelta(it, conPrecio) {
       var n = Number(it.delta) || 0, marca = resumenMarca(it.slug);
       // 126g · ▲ ▼ como texto (los emojis 🔺🔻 los pinta el sistema, rojos los dos): flecha, signo y color dicen lo mismo.
-      var dato = n < 0 ? '<span class="res-dato res-baja">▼ −' + Math.abs(n) + '</span>'
+      // Sólo lo que SALIÓ lleva precio (lo que entró no es una venta). Con 2 o más unidades, el subtotal a precio de
+      // transferencia va debajo de la flecha (con 1, el unitario ya lo dice).
+      var pr = (conPrecio && n < 0) ? resumenPrecioDe(it.slug) : null;
+      var subtotal = (pr && Math.abs(n) >= 2) ? '<span class="res-subtotal">' + escHtml(promoPesos(pr.transf * Math.abs(n))) + ' transf.</span>' : '';
+      var dato = n < 0 ? '<span class="res-dato res-baja">▼ −' + Math.abs(n) + subtotal + '</span>'
                        : '<span class="res-dato res-sube">▲ +' + n + '</span>';
-      return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.name || it.slug || '')
-        + (marca ? '<div class="res-sub">' + escHtml(marca) + '</div>' : '') + '</div>' + dato + '</div>';
+      var sub = marca ? '<div class="res-sub">' + escHtml(marca) + '</div>' : '';
+      if (pr) {
+        sub += '<div class="res-sub res-precio-unit">'
+          + (pr.promo ? 'promo <span class="res-monto">' + escHtml(promoPesos(pr.promo)) + '</span>' : 'lista <span class="res-monto">' + escHtml(promoPesos(pr.lista)) + '</span>')
+          + ' · transf. <span class="res-monto res-transf">' + escHtml(promoPesos(pr.transf)) + '</span></div>';
+      }
+      return '<div class="res-fila"><div class="res-nombre">' + escHtml(it.name || it.slug || '') + sub + '</div>' + dato + '</div>';
+    }
+    // El pie de «Stock del local»: cuántas salieron y cuánto suman a precio de transferencia y de lista (sólo las que
+    // tienen precio; si a alguna le falta, lo dice). Las entradas no se suman: no son ventas.
+    function resumenPieStock(items) {
+      var salieron = 0, transf = 0, lista = 0, sinPrecio = 0;
+      items.forEach(function(it) {
+        var n = Number(it.delta) || 0;
+        if (n >= 0) return;
+        salieron += Math.abs(n);
+        var pr = resumenPrecioDe(it.slug);
+        if (!pr) { sinPrecio += Math.abs(n); return; }
+        transf += pr.transf * Math.abs(n);
+        lista += (pr.promo || pr.lista) * Math.abs(n);
+      });
+      if (!salieron) return '';
+      var texto = 'Salieron ' + salieron;
+      if (overridesCargado) {
+        texto += ' · transf. <span class="res-monto res-transf">' + escHtml(promoPesos(transf)) + '</span>'
+               + ' · lista <span class="res-monto">' + escHtml(promoPesos(lista)) + '</span>'
+               + (sinPrecio ? ' <span class="res-tipo">(' + sinPrecio + ' sin precio)</span>' : '');
+      } else {
+        texto += ' <span class="res-tipo">· precios no disponibles: no se leyeron los datos de los perfumes</span>';
+      }
+      return '<div class="res-pie">' + texto + '</div>';
     }
     function resumenFilaPrecio(it) {
       var o = it.old, nv = it.new;
@@ -15157,8 +15212,8 @@
       var lista = function(x) { return Array.isArray(x) ? x : []; };
       // El orden es el de la decisión 126c: stock → depósito → precios → clientes → puntos.
       var secciones = [
-        { clave: 'stock',    titulo: '📦 Stock del local', filas: lista(d.stock).map(resumenFilaDelta) },
-        { clave: 'deposito', titulo: '🏬 Depósito',        filas: lista(d.deposito).map(resumenFilaDelta) },
+        { clave: 'stock',    titulo: '📦 Stock del local', filas: lista(d.stock).map(function(it) { return resumenFilaDelta(it, true); }), pie: resumenPieStock(lista(d.stock)) },   // [RESUMEN-PRECIOS]
+        { clave: 'deposito', titulo: '🏬 Depósito',        filas: lista(d.deposito).map(function(it) { return resumenFilaDelta(it, false); }) },
         { clave: 'precios',  titulo: '💰 Precios',         filas: lista(d.precios).map(resumenFilaPrecio).filter(Boolean) },
         { clave: 'clientes', titulo: '👤 Clientes nuevos', filas: lista(d.clientes).map(resumenFilaCliente) },
         { clave: 'puntos',   titulo: '⭐ Puntos',          filas: lista(d.puntos).map(resumenFilaPuntos) }
@@ -15167,7 +15222,7 @@
       cuerpo.innerHTML = '<div class="res-grilla">' + (hay
         ? secciones.map(function(x) {
             if (!x.filas.length) return '<section class="res-card res-card-' + x.clave + '"><div class="res-vacio">' + x.titulo + ' · sin cambios</div></section>';
-            return '<section class="res-card res-card-' + x.clave + '"><div class="res-card-titulo">' + x.titulo + ' · ' + x.filas.length + '</div>' + x.filas.join('') + '</section>';
+            return '<section class="res-card res-card-' + x.clave + '"><div class="res-card-titulo">' + x.titulo + ' · ' + x.filas.length + '</div>' + x.filas.join('') + (x.pie || '') + '</section>';
           }).join('')
         : '<div class="res-card res-nada">Sin movimientos ' + (d.es_hoy ? 'hoy' : 'ese día') + ' 😴</div>') + '</div>';
       var wa = document.getElementById('resWa');
