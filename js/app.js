@@ -225,11 +225,11 @@
       var digitCount = clean.length;
       // Argentina: 549 + 10 dígitos = 13 total
       if (digitCount === 13) {
-        el.innerHTML = '📱 ' + display + ' <span class="tel-ok">✓</span>';   // [LOGIN-CLARO-TELEFONO] por clase
+        el.innerHTML = display + ' <span class="tel-ok">✓</span>';   // [LOGIN-CLARO-TELEFONO] por clase
       } else if (digitCount > 13) {
-        el.innerHTML = '⚠️ ' + display + ' <span class="tel-mal">(demasiados dígitos)</span>';
+        el.innerHTML = display + ' <span class="tel-mal">(demasiados dígitos)</span>';
       } else {
-        el.innerHTML = '📱 ' + display + ' <span class="tel-falta">(' + (13 - digitCount) + ' dígitos faltan)</span>';
+        el.innerHTML = display + ' <span class="tel-falta">(' + (13 - digitCount) + ' dígitos faltan)</span>';
       }
     }
 
@@ -297,7 +297,7 @@
         if (phone2El) phone2El.style.display = 'none';
         passEl.style.display = 'none';
         titleEl.textContent = 'Recuperá tu cuenta';
-        subEl.innerHTML = 'No te preocupes 🌸 Escribí abajo tu número de WhatsApp (el mismo con el que te registraste) y nuestro equipo te va a contactar para ayudarte a entrar de nuevo.';
+        subEl.innerHTML = 'No te preocupes. Escribí abajo tu número de WhatsApp (el mismo con el que te registraste) y nuestro equipo te va a contactar para ayudarte a entrar de nuevo.';
         btnEl.textContent = 'Pedir ayuda';
         if (forgotEl) forgotEl.innerHTML = '<a href="#" onclick="event.preventDefault();switchAuthMode(\'login\')" class="auth-link-sec">← Volver a iniciar sesión</a>';
         if (forgotEl) forgotEl.style.display = 'block';
@@ -628,7 +628,7 @@
         closeEditProfile();
         authMsgOk(errEl, true);
         // Mostrar confirmación breve
-        alert('✅ Perfil actualizado correctamente');
+        alert('Perfil actualizado correctamente');
       } catch(e) { errEl.textContent = 'Error de conexión'; }
       btn.disabled = false;
     }
@@ -784,7 +784,7 @@
         regBtn.innerHTML = '<span class="auth-user-bar"><svg class="auth-user-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><strong>' + escapeHTML(_firstName) + '</strong></span>';   // [XSS-NOMBRE-CLIENTE]
         regBtn.setAttribute('onclick', 'event.preventDefault();openEditProfile()');
         regBtn.setAttribute('title', 'Editar perfil');
-        if (drawerAuth) { drawerAuth.textContent = '\u270f\ufe0f Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
+        if (drawerAuth) { drawerAuth.textContent = 'Editar perfil'; drawerAuth.setAttribute('onclick', 'event.preventDefault();toggleDrawer();openEditProfile()'); }
         if (drawerLogout) drawerLogout.style.display = '';
         // Mostrar el boton "Cerrar sesion" en la nav-bar (antes solo estaba
         // en el drawer hamburguesa, no muy visible). Asi queda a un click.
@@ -947,7 +947,7 @@
       var top3 = scored.slice(0,3);
 
       var resultsEl = document.getElementById('quizResults');
-      var html = '<p class="quiz-question" style="margin-bottom:.5rem">&#128142; Tus 3 recomendaciones:</p>';
+      var html = '<p class="quiz-question" style="margin-bottom:.5rem">Tus 3 recomendaciones:</p>';
 
       top3.forEach(function(item) {
         var p = item.perfume;
@@ -1625,12 +1625,12 @@
           candidatosFem = data.candidatos_fem || [];
           renderVotoButtons();
         } else {
-          document.getElementById('votoMasc').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
-          document.getElementById('votoFem').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
+          document.getElementById('votoMasc').innerHTML = '<div class="voto-empty-card"><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
+          document.getElementById('votoFem').innerHTML = '<div class="voto-empty-card"><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
         }
       } catch(e) {
-        document.getElementById('votoMasc').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
-        document.getElementById('votoFem').innerHTML = '<div class="voto-empty-card"><span class="voto-empty-ico" aria-hidden="true">\u23f3</span><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
+        document.getElementById('votoMasc').innerHTML = '<div class="voto-empty-card"><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
+        document.getElementById('votoFem').innerHTML = '<div class="voto-empty-card"><p class="voto-empty-title">Eligiendo los candidatos del mes</p><p class="voto-empty-sub">Volv\u00e9 pronto para votar tu favorito</p></div>';
       }
     }
 
@@ -1752,7 +1752,7 @@
     // [HOTSALE] Pricing helpers — fuente única de verdad.
     // Modelo: p.price = precio TARJETA (base para cuotas). p.promo = precio EFECTIVO/TRANSFER override.
     // Cuando hay promo, ese ES el cash final (no aplicar otro 0.9). Default: cash = price * 0.9.
-    var HOT_SALE_LABEL = '🔥 HOT SALE EFECTIVO';
+    var HOT_SALE_LABEL = 'HOT SALE EFECTIVO';
     function getListaPrice(p) {
       var n = parseFloat(String(p && p.price || '').replace(/[^0-9.\-]/g, ''));
       return isNaN(n) ? 0 : n;
@@ -1999,7 +1999,7 @@
     // El número de día en hora argentina (la misma cuenta que diaCortoART: UTC−3 fijo).
     function diaART(ms) { return Math.floor((ms - 3 * 3600e3) / 86400e3); }
     function textoEtiquetaPromo(promo) {
-      var base = '🧪 ' + promo.n + ' decants por ' + precioAR(promo.precio_pack);
+      var base = promo.n + ' decants por ' + precioAR(promo.precio_pack);
       var falta = promo.hasta - Date.now();
       if (falta > 24 * 3600e3) return base + ' · hasta el ' + diaCortoART(promo.hasta - 1);   // −1 ms: un «hasta» a las 00:00 es el día anterior
       return base + (diaART(promo.hasta - 1) === diaART(Date.now()) ? ' · termina hoy' : ' · termina mañana');
@@ -2163,7 +2163,7 @@
       // 👑 PERFUME DEL MES — badge dorado para el ganador de votación
       var perfumeDelMesHTML = '';
       if (p._perfumeDelMes) {
-        perfumeDelMesHTML = '<span class="card-pdm-badge" title="Ganador del mes anterior — votación de clientes">👑 Perfume del mes</span>';
+        perfumeDelMesHTML = '<span class="card-pdm-badge" title="Ganador del mes anterior — votación de clientes">Perfume del mes</span>';
       }
 
       // 🔥 URGENCY — "Solo queda N" cuando stock real es 1-3
@@ -2173,7 +2173,7 @@
       var urgencyHTML = '';
       var stockQty = typeof p._stockQty === 'number' ? p._stockQty : null;
       if (stockQty !== null && stockQty >= 1 && stockQty <= 3 && !isPaused && !STOCK_OCULTO) {   // [STOCK-OCULTO] sin «Solo quedan N»
-        var urgencyText = stockQty === 1 ? '🔥 Solo queda 1' : '🔥 Solo quedan ' + stockQty;
+        var urgencyText = stockQty === 1 ? 'Solo queda 1' : 'Solo quedan ' + stockQty;
         urgencyHTML = '<span class="card-urgency" title="Stock real del local — ¡apurate!">' + urgencyText + '</span>';
       }
 
@@ -2268,7 +2268,7 @@
           + ((!p.esSet && (p.notas_salida || p.notas_corazon || p.notas_base || (p.similares_nota && p.similares_nota.trim()) || (Array.isArray(p.similares_manuales) && p.similares_manuales.length > 0))) ? '<button class="reveal-similares" onclick="showSimilares(' + jsAttr(p.slug) + ', event)">&#9830; Ver similares</button>' : '')
           + '<div class="reveal-actions">'
             + '<button onclick="goToWA(' + jsAttr(p.slug) + ', event)" class="reveal-cta">' + (p.esSet ? 'Consultar set &#8594;' : 'Consultar &#8594;') + '</button>'
-            + '<button class="reveal-share" onclick="sharePerfume(' + jsAttr(p.slug) + ', this, event)">&#128279;</button>'
+            + '<button class="reveal-share" onclick="sharePerfume(' + jsAttr(p.slug) + ', this, event)" aria-label="Compartir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.7-1.7"/></svg></button>'
           + '</div>'
         + '</div>'
       + '</div>';
@@ -2371,7 +2371,6 @@
           var bodyHtml = esc(ann.body || '');
           if (ann.url && urlSegura(ann.url)) bodyHtml += ' <a href="' + esc(ann.url) + '">Ver más →</a>';   // [XSS-CATALOGO-STAFF] sólo http(s) o relativa
           return '<div class="pub-ann-inner" data-ann-id="' + esc(ann.id) + '">'
-            + '<span class="pub-ann-ico" aria-hidden="true">📣</span>'
             + '<div class="pub-ann-body">'
             +   '<p class="pub-ann-title">' + esc(ann.title || 'Aviso ST Perfumería') + '</p>'
             +   '<p class="pub-ann-text">' + bodyHtml + '</p>'
@@ -2804,21 +2803,21 @@
       var badges = [];
       // 🏆 Mejor match — solo el #1 absoluto
       if (isBest) {
-        badges.push({ ico: '🏆', label: 'Mejor match', cls: 'b-best' });
+        badges.push({ ico: '', label: 'Mejor match', cls: 'b-best' });
       }
       // 🔥 Elegido del día — los 3 de la Selección ST de hoy (seleccionVisibles)
       if (topElegidosSlugs && topElegidosSlugs.indexOf(similarPerfume.slug) !== -1) {
-        badges.push({ ico: '🔥', label: 'Elegido del día', cls: 'b-elegido' });
+        badges.push({ ico: '', label: 'Elegido del día', cls: 'b-elegido' });
       }
       // 💎 Misma casa — marca_real coincide
       if (similarPerfume.marca_real && anchorPerfume.marca_real &&
           similarPerfume.marca_real === anchorPerfume.marca_real) {
-        badges.push({ ico: '💎', label: 'Misma casa', cls: 'b-casa' });
+        badges.push({ ico: '', label: 'Misma casa', cls: 'b-casa' });
       }
       // 🎯 Mismo perfil — SOLO si además pct >= 75 (condición fuerte)
       if (similarPerfume.perfil && anchorPerfume.perfil &&
           similarPerfume.perfil === anchorPerfume.perfil && pct >= 75) {
-        badges.push({ ico: '🎯', label: 'Mismo perfil', cls: 'b-perfil' });
+        badges.push({ ico: '', label: 'Mismo perfil', cls: 'b-perfil' });
       }
       // Max 2 badges — el orden de inserción ya es la prioridad correcta.
       return badges.slice(0, 2);
@@ -2974,7 +2973,6 @@
             '<div class="sim-badges">'
               + badges.map(function(b) {
                   return '<span class="sim-badge ' + b.cls + '">'
-                    + '<span class="sim-badge-ico" aria-hidden="true">' + b.ico + '</span>'
                     + b.label
                   + '</span>';
                 }).join('')
@@ -3037,10 +3035,9 @@
       // Caso: nada que mostrar → mensaje fallback "es único".
       if (!hasNota && !hasManual && !hasAuto) {
         content.innerHTML = '<div style="text-align:center;padding:1.5rem .5rem;">'
-          + '<p style="font-size:1.8rem;margin-bottom:.6rem;">🔮</p>'
           + '<p style="color:#fff;font-size:.85rem;font-weight:600;margin-bottom:.4rem;">¡Este perfume es único!</p>'
           + '<p style="color:var(--gris);font-size:.72rem;line-height:1.5;">Ningún otro perfume de nuestro catálogo comparte más del 60% de sus notas con <strong style="color:var(--amarillo);">' + escapeHTML(perfume.name) + '</strong>.</p>'
-          + '<p style="color:var(--gris);font-size:.65rem;margin-top:.8rem;opacity:.7;">Estamos sumando nuevas fragancias constantemente 👀</p>'
+          + '<p style="color:var(--gris);font-size:.65rem;margin-top:.8rem;opacity:.7;">Estamos sumando nuevas fragancias constantemente</p>'
           + '</div>';
         document.getElementById('similaresOverlay').classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -3056,7 +3053,7 @@
           .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
           .replace(/\n/g, '<br>');
         html += '<div class="similares-nota-equipo" style="background:rgba(232,184,0,.08);border-left:3px solid var(--amarillo);padding:.7rem .85rem;border-radius:4px;margin-bottom:.9rem;">'
-          + '<p style="font-size:.58rem;font-weight:700;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem;">💬 Nota del equipo ST</p>'
+          + '<p style="font-size:.58rem;font-weight:700;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem;">Nota del equipo ST</p>'
           + '<p style="color:#e8e8e8;font-size:.72rem;line-height:1.5;margin:0;">' + esc + '</p>'
           + '</div>';
       }
@@ -3075,7 +3072,7 @@
                    : hasAuto ? algoritmicos[0].perfume.slug : null;
 
       if (hasManual) {
-        html += '<p class="similares-section-title" style="font-size:.6rem;font-weight:700;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin:.3rem 0 .5rem 0;">⭐ Recomendados por ST</p>';
+        html += '<p class="similares-section-title" style="font-size:.6rem;font-weight:700;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin:.3rem 0 .5rem 0;">Recomendados por ST</p>';
         recomendadosManuales.forEach(function(p) {
           html += buildSimilarItemHTML(p, {
             anchorPerfume: perfume,
@@ -3274,10 +3271,10 @@
       var hint = document.getElementById('occasionHint');
       if (!hint) return;
       if (currentOccasion === 'dia') {
-        hint.textContent = '☀️ Frescos, cítricos y versátiles';
+        hint.textContent = 'Frescos, cítricos y versátiles';
         hint.classList.add('visible');
       } else if (currentOccasion === 'noche') {
-        hint.textContent = '🌙 Intensos, dulces y orientales';
+        hint.textContent = 'Intensos, dulces y orientales';
         hint.classList.add('visible');
       } else {
         hint.classList.remove('visible');
@@ -3364,7 +3361,7 @@
       var isOpen = wrap.classList.contains('open');
       wrap.classList.toggle('open');
       btn.classList.toggle('open');
-      btn.innerHTML = isOpen ? '&#128176; Precio \u25be' : '&#128176; Precio \u25b4';
+      btn.innerHTML = isOpen ? 'Precio \u25be' : 'Precio \u25b4';
       if (!isOpen) initPriceSlider();
     }
 
@@ -3437,7 +3434,7 @@
       var isOpen = wrap.classList.contains('open');
       wrap.classList.toggle('open');
       btn.classList.toggle('open');
-      btn.innerHTML = isOpen ? '🎵 ¿A qué huele? ▾' : '🎵 ¿A qué huele? ▴';
+      btn.innerHTML = isOpen ? '¿A qué huele? ▾' : '¿A qué huele? ▴';
     }
 
     // ============================================================
@@ -6498,7 +6495,7 @@
       } else if (avisoSinStock) {
         decir('Se agregaron ' + added + ' · ' + avisoSinStock);
       } else {
-        showCartLimitMsg(added + ' favorito' + (added > 1 ? 's' : '') + ' agregado' + (added > 1 ? 's' : '') + ' al pedido ❤️');
+        showCartLimitMsg(added + ' favorito' + (added > 1 ? 's' : '') + ' agregado' + (added > 1 ? 's' : '') + ' al pedido');
       }
     }
 
@@ -7239,7 +7236,7 @@
               + '<p class="compare-col-name">' + escapeHTML(p.name) + '</p>'
               + '<p class="compare-col-brand">' + escapeHTML(p.marca_real || p.marca || '') + '</p>'
               + '<p class="compare-col-price">' + cmpLista + '</p>'
-              + '<p class="compare-col-cash">' + (hasHotSale(p) ? '🔥 ' : '') + cmpCash + ' efectivo/transf.</p>'
+              + '<p class="compare-col-cash">' + '' + cmpCash + ' efectivo/transf.</p>'
             + '</div>'
           + '</div>'
           + '<div class="compare-rows">'
@@ -7667,19 +7664,7 @@
       var body = document.body;
       body.classList.toggle('dark-mode');
       var isDark = body.classList.contains('dark-mode');
-      // [LIGHT-TOGGLE-V2] emoji + label sincronizados.
-      // Dark activo → ofrecemos "LIGHT" (cambia AL light si tocás)
-      // Light activo → ofrecemos "DARK" (cambia AL dark si tocás)
-      var emoji = isDark ? '🌙' : '☀️';
-      var label = isDark ? 'LIGHT' : 'DARK';
-      var icon = document.querySelector('.dark-toggle-icon');
-      var floatIcon = document.getElementById('darkFloatIcon');
-      if (icon) icon.textContent = emoji;
-      if (floatIcon) floatIcon.textContent = emoji;
-      var navIcon = document.getElementById('navThemeIcon');
-      if (navIcon) navIcon.textContent = emoji;
-      var navLabel = document.getElementById('navThemeLabel');
-      if (navLabel) navLabel.textContent = label;
+      // Luna en oscuro, sol en claro: lo resuelve el CSS por la clase del body (.ico-luna / .ico-sol), sin tocar el DOM.
       localStorage.setItem('st_dark_mode', isDark ? '1' : '0');
     }
 
@@ -7689,25 +7674,8 @@
     // dark-mode y ajustamos íconos/label del toggle.
     (function() {
       var saved = localStorage.getItem('st_dark_mode');
-      if (saved !== '0') {
-        // Dark mode (default · ya está en HTML body)
-        var icon = document.querySelector('.dark-toggle-icon');
-        var floatIcon = document.getElementById('darkFloatIcon');
-        if (icon) icon.textContent = '🌙';
-        if (floatIcon) floatIcon.textContent = '🌙';
-        // navThemeIcon/navThemeLabel ya están en HTML default (🌙 LIGHT)
-      } else {
-        // Light mode · QUITAR dark-mode del body (que vino por default)
-        document.body.classList.remove('dark-mode');
-        var navIcon = document.getElementById('navThemeIcon');
-        if (navIcon) navIcon.textContent = '☀️';
-        var navLabel = document.getElementById('navThemeLabel');
-        if (navLabel) navLabel.textContent = 'DARK';
-        var drawerIcon = document.querySelector('.dark-toggle-icon');
-        if (drawerIcon) drawerIcon.textContent = '☀️';
-        var floatIcon = document.getElementById('darkFloatIcon');
-        if (floatIcon) floatIcon.textContent = '☀️';
-      }
+      // Oscuro es el default (ya viene en el body del HTML); sólo se saca la clase si eligió claro. Los íconos van por CSS.
+      if (saved === '0') document.body.classList.remove('dark-mode');
     })();
 
     // [SIN-BIENVENIDA] 148 · la ventana de bienvenida (y su bajada sola al catálogo) se sacó: el cliente nuevo llega a la tienda, en scroll 0.
@@ -8156,7 +8124,7 @@
         if (pBloq && decantAConsultar(pBloq)) {
           var msgTope = document.getElementById('decantLadder');
           if (msgTope) {
-            msgTope.textContent = '💬 ' + pBloq.name + ' se cotiza aparte — consultanos el precio.';
+            msgTope.textContent = pBloq.name + ' se cotiza aparte — consultanos el precio.';
             msgTope.style.color = '#e8b800';
             setTimeout(function() { msgTope.style.color = ''; updateDecantUI(); }, 2600);
           }
@@ -8166,7 +8134,7 @@
       if (decantsPack.length >= DECANTS_CONFIG.max_decants) {
         var msgEl = document.getElementById('decantLadder');
         if (msgEl) {
-          msgEl.textContent = '⚠️ Ya llegaste al máximo de ' + DECANTS_CONFIG.max_decants + ' decants.';
+          msgEl.textContent = 'Ya llegaste al máximo de ' + DECANTS_CONFIG.max_decants + ' decants.';
           msgEl.style.color = '#e74c3c';
           setTimeout(function() { msgEl.style.color = ''; updateDecantUI(); }, 1800);
         }
@@ -8287,17 +8255,17 @@
       if (fixedCount > 0) {
         ladder = '';   // ocultamos la escalera cuando hay especiales con precio fijo
       } else if (qty === 0) {
-        ladder = '💡 1-2: $' + p1.toLocaleString('es-AR') + ' · 3-4: $' + p3.toLocaleString('es-AR') + ' · 5+: $' + p5.toLocaleString('es-AR') + ' c/u';
+        ladder = '1-2: $' + p1.toLocaleString('es-AR') + ' · 3-4: $' + p3.toLocaleString('es-AR') + ' · 5+: $' + p5.toLocaleString('es-AR') + ' c/u';
       } else if (qty < 3) {
         var falta1 = 3 - qty;
         var ahorro1 = qty * (p1 - p3) + (p3 * falta1);
-        ladder = '💡 Sumá ' + falta1 + ' más y cada uno pasa a $' + p3.toLocaleString('es-AR') + ' (ahorrás $' + (qty * (p1 - p3)).toLocaleString('es-AR') + ')';
+        ladder = 'Sumá ' + falta1 + ' más y cada uno pasa a $' + p3.toLocaleString('es-AR') + ' (ahorrás $' + (qty * (p1 - p3)).toLocaleString('es-AR') + ')';
       } else if (qty < 5) {
         var falta2 = 5 - qty;
         var ahorro2 = qty * (p3 - p5);
-        ladder = '🔥 Sumá ' + falta2 + ' más y cada uno pasa a $' + p5.toLocaleString('es-AR') + ' (ahorrás $' + ahorro2.toLocaleString('es-AR') + ')';
+        ladder = 'Sumá ' + falta2 + ' más y cada uno pasa a $' + p5.toLocaleString('es-AR') + ' (ahorrás $' + ahorro2.toLocaleString('es-AR') + ')';
       } else {
-        ladder = '✨ Precio óptimo: $' + p5.toLocaleString('es-AR') + ' c/u';
+        ladder = 'Precio óptimo: $' + p5.toLocaleString('es-AR') + ' c/u';
       }
       setTxt('decantLadder', ladder);
       // [PROMO-DECANTS] N2 · Con la promo vigente y de 1 a n−1 con 3× en el pack: «Sumá 1 más con 3×» (también con precio
@@ -8313,7 +8281,7 @@
           var cadaUno = cuenta.promo.precio_pack / cuenta.promo.n;
           if (cadaUno < getDecantUnitPrice(cuenta.escalera + cuenta.faltan)) txtPromo = 'Sumá ' + cuenta.faltan + ' más con ' + cuenta.promo.n + '× y cada uno te sale ' + precioAR(cadaUno);
         } else if (cuenta.promoUnidades > 0) {
-          txtPromo = '🧪 Promo ' + cuenta.promo.n + '×: ' + cuenta.promoUnidades + ' × ' + precioAR(cuenta.unidadPromo);
+          txtPromo = 'Promo ' + cuenta.promo.n + '×: ' + cuenta.promoUnidades + ' × ' + precioAR(cuenta.unidadPromo);
         }
         avisoPromo.textContent = txtPromo;
         avisoPromo.hidden = !txtPromo;
@@ -8340,12 +8308,12 @@
           var ahorroReal = precioSinPack - total;
           var pctOff = precioSinPack > 0 ? Math.round((ahorroReal / precioSinPack) * 100) : 0;
           if (qty >= 5) {
-            savingsEl.innerHTML = '🔥 Te ahorrás $' + ahorroReal.toLocaleString('es-AR')
+            savingsEl.innerHTML = 'Te ahorrás $' + ahorroReal.toLocaleString('es-AR')
               + ' vs comprarlos sueltos'
               + '<span class="savings-off">' + pctOff + '% OFF</span>';
             savingsEl.classList.add('is-max');
           } else {
-            savingsEl.textContent = '🎁 Te ahorrás $' + ahorroReal.toLocaleString('es-AR') + ' vs comprarlos sueltos';
+            savingsEl.textContent = 'Te ahorrás $' + ahorroReal.toLocaleString('es-AR') + ' vs comprarlos sueltos';
             savingsEl.classList.remove('is-max');
           }
           savingsEl.hidden = false;
@@ -8380,7 +8348,7 @@
           }
           var fillEl = document.getElementById('decantProgressFill');
           if (fillEl) fillEl.style.width = Math.min(100, Math.max(5, fillPct)) + '%';
-          msg = '🎯 Te falta <strong>' + falta + ' decant' + (falta > 1 ? 's' : '') + '</strong> para bajar a $' + tierTo.toLocaleString('es-AR') + ' c/u';
+          msg = 'Te falta <strong>' + falta + ' decant' + (falta > 1 ? 's' : '') + '</strong> para bajar a $' + tierTo.toLocaleString('es-AR') + ' c/u';
           if (ahorroAlSiguiente > 0) {
             msg += '<span class="savings-tag">Ahorrás $' + Math.round(ahorroAlSiguiente).toLocaleString('es-AR') + '</span>';
           }
@@ -8404,7 +8372,7 @@
           var msgEl2 = document.getElementById('decantProgressMsg');
           if (msgEl2) {
             msgEl2.classList.add('locked-max');
-            msgEl2.innerHTML = '✨ <strong>Precio óptimo desbloqueado</strong> · $' + p5.toLocaleString('es-AR') + ' c/u';
+            msgEl2.innerHTML = '<strong>Precio óptimo desbloqueado</strong> · $' + p5.toLocaleString('es-AR') + ' c/u';
           }
           var tiersEl2 = document.getElementById('decantProgressTiers');
           if (tiersEl2) {
@@ -8509,7 +8477,7 @@
         var cliRow = (cliRes && cliRes.data && cliRes.data[0]) ? cliRes.data[0] : null;
         var puntos = (cliRow && Number(cliRow.puntos)) || 0;
         var nombreCli = (cliRow && cliRow.nombre) || (currentUser.nombre || 'Cliente');
-        var cfg = (cfgRes && cfgRes.data && cfgRes.data[0]) || { threshold_proximo_premio: 5, mensaje_promo: 'SUMÁ 1 MÁS Y CONSULTÁ POR TU PREMIO 📲' };
+        var cfg = (cfgRes && cfgRes.data && cfgRes.data[0]) || { threshold_proximo_premio: 5, mensaje_promo: 'SUMÁ 1 MÁS Y CONSULTÁ POR TU PREMIO' };
         // Lógica de mensaje:
         //  - puntos === 0: invitamos a sumar
         //  - puntos múltiplo del threshold: aviso "Estás listo, consultanos"
@@ -8521,9 +8489,9 @@
         if (puntos === 0) {
           msg = '¡Hola ' + escapeHTML(nombreCli) + '! Sumá <strong>puntos por cada compra</strong> y consultanos por premios.';
         } else if (resto === 0 && puntos >= threshold) {
-          msg = '⭐ Tenés <strong>' + (Math.round(puntos*10)/10) + ' puntos</strong> · ¡Pedinos un premio en tu próxima compra!';
+          msg = 'Tenés <strong>' + (Math.round(puntos*10)/10) + ' puntos</strong> · ¡Pedinos un premio en tu próxima compra!';
         } else if (resto >= threshold - 1) {
-          msg = '⭐ Tenés <strong>' + (Math.round(puntos*10)/10) + ' puntos</strong> · ' + escapeHTML(cfg.mensaje_promo || '¡Estás cerca de un premio!');
+          msg = 'Tenés <strong>' + (Math.round(puntos*10)/10) + ' puntos</strong> · ' + escapeHTML(cfg.mensaje_promo || '¡Estás cerca de un premio!');
         } else {
           msg = 'Hola ' + escapeHTML(nombreCli) + '! Saldo de puntos: <strong>' + (Math.round(puntos*10)/10) + '</strong>';
         }

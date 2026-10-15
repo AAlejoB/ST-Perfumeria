@@ -292,9 +292,8 @@
     if (decantActiveTab === 'mis' && seleccionadosCount === 0) {
       rebuildGrid(
         '<div class="decant-mis-empty">'
-          + '<div class="decant-mis-empty-ico">📭</div>'
-          + 'Todavía no agregaste ningún decant.<br>'
-          + 'Cambiá a <strong>Catálogo</strong> y armá tu pack ✨'
+                    + 'Todavía no agregaste ningún decant.<br>'
+          + 'Cambiá a <strong>Catálogo</strong> y armá tu pack'
           + '<br><button type="button" class="decant-mis-empty-cta" onclick="switchDecantTab(\'catalogo\')">→ Ir al Catálogo</button>'
         + '</div>'
       );
@@ -334,7 +333,7 @@
           + '<div class="decant-card-info">'
             + '<p class="decant-card-name">' + nombreHTML + '</p>'
             + '<p class="decant-card-brand">' + marcaHTML + '</p>'
-            + '<p class="decant-card-price decant-card-price-pending">💬 Precio a consultar</p>'
+            + '<p class="decant-card-price decant-card-price-pending">Precio a consultar</p>'
           + '</div>'
           + '<div class="decant-card-ctrl">'
             + '<button class="decant-ctrl-btn decant-ctrl-consultar" onclick="consultarDecantWA(' + jsAttr(p.slug) + ')" title="Consultar por WhatsApp" aria-label="Consultar precio por WhatsApp">Consultar</button>'
@@ -379,7 +378,7 @@
       if (hasPrecio) {
         priceTag = '<p class="decant-card-price">$' + Math.round(parseFloat(c.precio_unit)).toLocaleString('es-AR') + ' c/u</p>';
       } else {
-        priceTag = '<p class="decant-card-price decant-card-price-pending">⏳ Precio pendiente</p>';
+        priceTag = '<p class="decant-card-price decant-card-price-pending">Precio pendiente</p>';
       }
       // Imagen: si tiene foto_url usa la imagen, sino el placeholder ⭐
       var hasFoto = !!(c.foto_url && (c.foto_url + '').trim());
@@ -423,7 +422,7 @@
       // orden alfabético para que se vean primero — son los más rentables
       // y el jefe los quiere bien visibles)
       if (disponiblesCustom.length > 0) {
-        html += '<p class="decant-grid-section-title">💎 Decants de diseñador (' + disponiblesCustom.length + ')</p>';
+        html += '<p class="decant-grid-section-title">Decants de diseñador (' + disponiblesCustom.length + ')</p>';
         html += disponiblesCustom.map(customCardHTML).join('');
       }
       // Sección 3 — RESTO del catálogo (regulares A → Z)

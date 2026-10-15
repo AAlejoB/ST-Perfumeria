@@ -703,23 +703,25 @@
       .nav-catalog-btn { display: none; }
     }
 
-    /* [LIGHT-TOGGLE-V2] Botón theme toggle desktop · pill amarilla con texto.
-       El jefe pidió destacarlo más en desktop · ahora es imposible pasarlo
-       por alto. Mobile sigue con .dark-float flotante abajo a la izq. */
+    /* Ícono del tema: luna en oscuro, sol en claro (SVG de línea, sin emoji ni texto). Lo decide la clase del body, no el JS. */
+    .ico-tema { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    body.dark-mode .ico-sol,
+    body:not(.dark-mode) .ico-luna { display: none; }
+    .drawer-link-tema, .cuenta-hoja-tema { margin-left: auto; display: inline-flex; align-items: center; }
+    .drawer-link-tema .ico-tema { width: 18px; height: 18px; }
+
+    /* [LIGHT-TOGGLE-V2] Botón de tema en el nav (desktop): círculo amarillo con la luna (oscuro) o el sol (claro).
+       Mobile sigue con el menú y la hoja de Cuenta (el .dark-float flotante está apagado). */
     .nav-theme-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
       background: linear-gradient(135deg, #f5d442, #E8B800);
       color: #1a1a1d !important;
       border: 0;
-      padding: 7px 14px 7px 12px;
-      border-radius: 20px;
-      font-size: .68rem;
-      font-weight: 800;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-family: inherit;
+      padding: 0;
+      width: 40px; height: 40px;
+      border-radius: 50%;
       cursor: pointer;
       box-shadow: 0 0 0 1px rgba(232,184,0,.4), 0 2px 10px rgba(232,184,0,.18);
       transition: transform .15s ease, box-shadow .15s ease;
@@ -729,9 +731,7 @@
       transform: translateY(-1px);
       box-shadow: 0 0 0 1px rgba(232,184,0,.55), 0 4px 14px rgba(232,184,0,.28);
     }
-    .nav-theme-pill .nav-theme-ico { font-size: 1rem; line-height: 1; }
-    .nav-theme-pill .nav-theme-label { letter-spacing: .1em; }
-    /* Light mode: el botón cambia su label a "DARK" via JS · invertimos paleta */
+    /* Light mode: invertimos paleta (círculo oscuro, sol amarillo) */
     body:not(.dark-mode) .nav-theme-pill {
       background: linear-gradient(135deg, #1a1a1d, #2a2a2d);
       color: #E8B800 !important;
@@ -2593,7 +2593,8 @@
         backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       }
       .dark-float:active { transform: scale(.9); }
-      .dark-float-icon { font-size: 1.3rem; transition: transform .4s ease; }
+      .dark-float { color: var(--amarillo); }
+      .dark-float .ico-tema { width: 22px; height: 22px; }
       @media (hover: hover) { .dark-float:hover { box-shadow: 0 4px 24px rgba(232,184,0,.5); } }
       body.dark-mode .dark-float {
         background: rgba(232,184,0,.15);
@@ -5307,6 +5308,8 @@
       margin-top: .4rem; font-family: inherit;
     }
     .reveal-share:hover { color: #fff; border-color: var(--gris-claro); }
+    .reveal-share svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .vid-t-ico svg { width: 1em; height: 1em; fill: none; stroke: var(--amarillo-tinta, var(--amarillo)); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .reveal-share.copied { color: #2ecc71; border-color: #2ecc71; }
 
     /* Contador de visitas en card (sutil) */
@@ -6004,6 +6007,7 @@
       gap: .9rem;
       align-items: flex-start;
     }
+    .map-info-icon svg { width: 20px; height: 20px; fill: none; stroke: var(--amarillo-tinta, var(--amarillo)); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .map-info-icon {
       font-size: 1.4rem;
       line-height: 1;
