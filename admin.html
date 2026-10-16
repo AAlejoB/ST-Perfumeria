@@ -12983,6 +12983,27 @@
         document.getElementById('votacionMsg').style.color = 'var(--tinta-error)';
         return;
       }
+      // [VALIDAR-VOTACION] 16-oct · B6 del QA: se guardaban nombres de 300 letras y candidatos repetidos. Cada candidato es un botón en la web
+      // (no un slug) y la base no acepta un voto de más de 120 letras (voto_guardar): con uno así no se podía votar.
+      var votoMal = function(id, texto) {
+        var mv = document.getElementById('votacionMsg'); mv.textContent = texto; mv.style.color = 'var(--tinta-error)';
+        try { document.getElementById(id).focus(); } catch (e) {}
+      };
+      var vistos = { M: {}, F: {} };
+      for (var j = 1; j <= 4; j++) {
+        var pares = [['M', 'votoM' + j, 'masculinos'], ['F', 'votoF' + j, 'femeninos']];
+        for (var k = 0; k < pares.length; k++) {
+          var idV = pares[k][1], tV = document.getElementById(idV).value.trim().replace(/\s+/g, ' ');
+          if (!tV) continue;
+          if (tV.length > 60) return votoMal(idV, 'El nombre de un candidato es muy largo (máximo 60 letras).');
+          if (/[\u0000-\u001f\u007f]/.test(tV)) return votoMal(idV, 'El nombre de un candidato tiene un carácter raro: escribilo de nuevo.');
+          var claveV = busqNorm(tV);
+          if (vistos[pares[k][0]][claveV]) return votoMal(idV, '«' + tV + '» está dos veces en los candidatos ' + pares[k][2] + '.');
+          vistos[pares[k][0]][claveV] = true;
+        }
+      }
+      masc = masc.map(function(x) { return x.replace(/\s+/g, ' '); });
+      fem = fem.map(function(x) { return x.replace(/\s+/g, ' '); });
       var { error } = await sb.from('votacion_config').upsert({
         mes: adminMes,
         candidatos_masc: masc,
