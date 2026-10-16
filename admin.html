@@ -1119,10 +1119,16 @@
       padding: 2rem; max-width: 420px; width: 100%; position: relative;
     }
     .modal-close {
-      position: absolute; top: .8rem; right: 1rem; background: none; border: none;
+      position: absolute; top: .4rem; right: .4rem; background: none; border: none;
       color: var(--gris); font-size: 1.5rem; cursor: pointer;
+      width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;   /* [VENTANAS-CIERRE] B8: era 14 × 28 */
     }
     .modal-close:hover { color: #fff; }
+    /* [VENTANAS-CIERRE] B8 · tocar afuera (o Escape) con cambios sin guardar no cierra: la ventana se sacude y avisa */
+    @keyframes modal-sacude { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .modal-box.modal-frena { animation: modal-sacude .25s ease-in-out 2; }
+    @media (prefers-reduced-motion: reduce) { .modal-box.modal-frena { animation: none; } }
+    .modal-aviso-sucio { margin: .8rem 0 0; font-size: .85rem; font-weight: 600; text-align: center; color: var(--tinta-aviso); }
     .modal-title {
       font-size: .8rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
       color: var(--amarillo-tinta); margin-bottom: 1rem; text-align: center;
@@ -3312,7 +3318,7 @@
     <!-- [DEPOSITO] MODAL: editar unidades en depósito -->
     <div class="modal-overlay" id="modalDeposito" onclick="closeModal('modalDeposito',event)">
       <div class="modal-box" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeModal('modalDeposito')">&times;</button>
+        <button class="modal-close" onclick="closeModal('modalDeposito')" aria-label="Cerrar">&times;</button>
         <p class="modal-title">📦 Stock en depósito</p>
         <p id="modalDepNombre" style="text-align:center;font-weight:600;margin-bottom:.25rem;"></p>
         <p id="modalDepLocal" style="text-align:center;font-size:.75rem;color:var(--gris);margin-bottom:1rem;"></p>
@@ -4798,7 +4804,7 @@
 
   <div class="modal-overlay" id="modalPuntos" onclick="closeModal('modalPuntos',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalPuntos')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalPuntos')" aria-label="Cerrar">&times;</button>
       <p class="modal-title">Ajustar puntos</p>
       <p id="modalPuntosCliente" style="text-align:center;font-weight:600;margin-bottom:.3rem;"></p>
       <p id="modalPuntosActual" style="text-align:center;font-size:.78rem;color:var(--gris-claro);margin-bottom:1rem;"></p>
@@ -4831,7 +4837,7 @@
   <!-- MODAL: CAMBIAR PRECIO -->
   <div class="modal-overlay" id="modalPrice" onclick="closeModal('modalPrice',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalPrice')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalPrice')" aria-label="Cerrar">&times;</button>
       <p class="modal-title">Cambiar precio</p>
       <p id="modalPriceName" style="text-align:center;font-weight:600;margin-bottom:1rem;"></p>
       <label class="modal-label">Nuevo precio (sin punto ni coma)</label>
@@ -4850,14 +4856,14 @@
   <!-- MODAL: CAMBIAR STOCK -->
   <div class="modal-overlay" id="modalStock" onclick="closeModal('modalStock',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalStock')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalStock')" aria-label="Cerrar">&times;</button>
       <p class="modal-title">Cambiar stock</p>
       <p id="modalStockName" style="text-align:center;font-weight:600;margin-bottom:1rem;"></p>
 
       <label class="modal-label">Cantidad en stock</label>
       <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;">
         <button type="button" class="action-btn btn-stock" id="modalStockMinus" onclick="stockQtyStep(-1)" style="font-size:1.1rem;padding:.6rem 1.1rem;min-width:44px;">−</button>
-        <input type="number" id="modalStockQty" min="0" max="999" value="0" class="modal-input" style="text-align:center;font-size:1.4rem;font-weight:700;margin-bottom:0;flex:1;" oninput="updateStockPreview()"/>
+        <input type="number" id="modalStockQty" min="0" max="999" step="1" inputmode="numeric" value="0" class="modal-input" style="text-align:center;font-size:1.4rem;font-weight:700;margin-bottom:0;flex:1;" oninput="updateStockPreview()"/>
         <button type="button" class="action-btn btn-stock" id="modalStockPlus" onclick="stockQtyStep(1)" style="font-size:1.1rem;padding:.6rem 1.1rem;min-width:44px;">+</button>
       </div>
 
@@ -4900,7 +4906,7 @@
   <!-- MODAL: EDICIÓN RÁPIDA · [EDICION-RAPIDA] C11 (16-oct) · precio y notas de un perfume desde cualquier lista; sólo el jefe -->
   <div class="modal-overlay" id="modalEdr" onclick="closeModal('modalEdr',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalEdr')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalEdr')" aria-label="Cerrar">&times;</button>
       <p class="modal-title" id="edrTitulo">Edición rápida</p>
       <p class="promo-nota" id="edrSub" style="margin:-.3rem 0 .8rem;"></p>
       <label class="modal-label" for="edrPrecio">Precio de lista ($, sin puntos)</label>
@@ -4924,7 +4930,7 @@
   <!-- MODAL: DECANT DE DISEÑADOR · [DECANTS-TARJETERO] (16-oct) · una ventana para agregar o editar; «Quitar» con confirmación -->
   <div class="modal-overlay" id="modalDecantCustom" onclick="closeModal('modalDecantCustom',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalDecantCustom')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalDecantCustom')" aria-label="Cerrar">&times;</button>
       <p class="modal-title" id="dcTitulo">Decant de diseñador</p>
 
       <div class="dc-foto-fila" id="dcFotoFila">
@@ -5086,7 +5092,7 @@
   <!-- MODAL: EDITAR CLIENTE -->
   <div class="modal-overlay" id="modalClientEdit" onclick="closeModal('modalClientEdit',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalClientEdit')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalClientEdit')" aria-label="Cerrar">&times;</button>
       <p class="modal-title">Editar cliente</p>
       <p id="modalClientHeader" style="text-align:center;font-weight:600;margin-bottom:1rem;color:var(--amarillo-tinta);"></p>
       <label class="modal-label">Nombre / Apodo</label>
@@ -5110,7 +5116,7 @@
   <!-- MODAL: HISTORIAL DE PUNTOS (los últimos 20 movimientos, de la tabla puntos_log) -->
   <div class="modal-overlay" id="modalClientPuntosLog" onclick="closeModal('modalClientPuntosLog',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalClientPuntosLog')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalClientPuntosLog')" aria-label="Cerrar">&times;</button>
       <p class="modal-title">Historial de puntos</p>
       <p id="modalPuntosLogHeader" style="text-align:center;font-weight:600;margin-bottom:.4rem;color:var(--amarillo-tinta);"></p>
       <p id="modalPuntosLogPie" style="display:none;text-align:center;font-size:.65rem;color:var(--gris);margin-bottom:1rem;">Últimos 20 movimientos</p>   <!-- 141m: sólo se muestra si hay al menos un movimiento -->
@@ -5121,7 +5127,7 @@
   <!-- MODAL: ELIMINAR CLIENTE -->
   <div class="modal-overlay" id="modalClientDelete" data-sin-enter="true" onclick="closeModal('modalClientDelete',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModal('modalClientDelete')">&times;</button>
+      <button class="modal-close" onclick="closeModal('modalClientDelete')" aria-label="Cerrar">&times;</button>
       <p class="modal-title">Eliminar cliente</p>
       <p id="modalDeleteName" style="text-align:center;font-weight:600;margin-bottom:.5rem;"></p>
       <p style="text-align:center;font-size:.75rem;color:#e74c3c;margin-bottom:1rem;">Esta acci&oacute;n no se puede deshacer</p>
@@ -6678,6 +6684,7 @@
       document.getElementById('modalDepNoSumar').checked = false;
       toggleDepSumar();
       document.getElementById('modalDeposito').classList.add('active');
+      modalEnfocar(document.getElementById('modalDepQty'));   // [VENTANAS-CIERRE]
     }
 
     // [DEPOSITO-MISMO-+/-] Calcado de stockQtyStep: mismo tope 0..999, y en cada
@@ -6688,7 +6695,7 @@
       if (isNaN(curr)) curr = 0;
       curr = Math.max(0, Math.min(999, curr + delta));
       inp.value = curr;
-      toggleDepSumar();
+      inp.dispatchEvent(new Event('input', { bubbles: true }));   // [VENTANAS-CIERRE] cuenta como cambio (y llama a toggleDepSumar)
     }
 
     // [DEP-SUMAR] Muestra la casilla sólo si el depósito baja de ≥2 directo a 0,
@@ -8318,6 +8325,13 @@
       faltaStock(document.getElementById('modalStockMsg'));
       updateStockPreview();
       document.getElementById('modalStock').classList.add('active');
+      modalEnfocar(qtyInp);
+    }
+    // [VENTANAS-CIERRE] B8 · con mouse, el campo de la cantidad queda listo para escribir (seleccionado). En la tablet y el celu NO:
+    // el teclado taparía los + / − y el OK, que es lo que se usa en el mostrador; al tocar el campo sube el teclado numérico.
+    function modalEnfocar(inp) {
+      if (!inp || window.matchMedia('(pointer: coarse)').matches) return;
+      try { inp.focus(); inp.select(); } catch (e) {}
     }
 
     // Helpers del modal de stock (+/-, preview en vivo)
@@ -8329,7 +8343,7 @@
       if (isNaN(curr)) curr = 0;
       curr = Math.max(0, Math.min(999, curr + delta));
       inp.value = curr;
-      updateStockPreview();
+      inp.dispatchEvent(new Event('input', { bubbles: true }));   // [VENTANAS-CIERRE] cuenta como cambio (y pinta la vista previa)
     }
 
     function updateStockPreview() {
@@ -8349,9 +8363,59 @@
 
     function closeModal(id, e) {
       if (e && e.target !== e.currentTarget) return;
+      if (e && modalFrenaSucio(document.getElementById(id))) return;   // [VENTANAS-CIERRE] tocar afuera no tira lo escrito
       document.getElementById(id).classList.remove('active');
       editingSlug = '';
     }
+
+    // [VENTANAS-CIERRE] 16-oct-2026 · B8 del QA. (a) Una ventana queda «con cambios» cuando la persona escribe, tilda o toca un
+    // cuadrado adentro (eventos input / change; los +/− de stock y depósito disparan input). Se limpia cada vez que se abre.
+    // (b) Tocar afuera o Escape con cambios NO cierra: la caja se sacude y avisa; la × y «Cancelar» cierran siempre (es a propósito).
+    // (c) Escape sin cambios = tocar la × de la ventana de arriba (así cada una cierra con su propia función: accCerrar, mercCerrar…).
+    // «Sin conexión» (modalSinRedVenta) no tiene × ni cierra con Escape: se lee y se toca su botón.
+    function modalFrenaSucio(ov) {
+      if (!ov || ov.dataset.sucio !== '1') return false;
+      var box = ov.querySelector('.modal-box') || ov.firstElementChild;
+      if (box) {
+        box.classList.remove('modal-frena'); void box.offsetWidth; box.classList.add('modal-frena');
+        var av = box.querySelector('.modal-aviso-sucio');
+        if (!av) { av = document.createElement('p'); av.className = 'modal-aviso-sucio'; av.setAttribute('role', 'status'); box.appendChild(av); }
+        av.textContent = 'Tenés cambios sin guardar: guardalos, o tocá × para salir sin guardar.';
+        av.hidden = false;
+        clearTimeout(av._t); av._t = setTimeout(function() { av.hidden = true; }, 4000);
+      }
+      return true;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.modal-overlay').forEach(function(ov) {
+        var marcar = function() { ov.dataset.sucio = '1'; };   // también los de los cuadrados (data-cuadros) y los +/−, que no son «isTrusted»
+        ov.addEventListener('input', marcar);
+        ov.addEventListener('change', marcar);
+        new MutationObserver(function(recs) {
+          // recién abierta (aunque se haya cerrado y abierto en el mismo momento): sin cambios y sin el aviso de la vez anterior
+          var estuvoCerrada = recs.some(function(r) { return !/(^|\s)active(\s|$)/.test(r.oldValue || ''); });
+          if (estuvoCerrada && ov.classList.contains('active')) {
+            delete ov.dataset.sucio;
+            var av = ov.querySelector('.modal-aviso-sucio'); if (av) av.hidden = true;
+          }
+        }).observe(ov, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+      });
+    });
+    // En captura (antes que los demás): si está el aviso «Deshacer» o el escáner abierto, Escape es de ellos.
+    window.addEventListener('keydown', function(e) {
+      if (e.key !== 'Escape') return;
+      if (typeof DESHACER !== 'undefined' && DESHACER.el) return;
+      var esc = document.getElementById('escanerOverlay');
+      if (esc && esc.classList.contains('active')) return;
+      var abiertas = document.querySelectorAll('.modal-overlay.active');
+      var ov = abiertas[abiertas.length - 1];
+      if (!ov || ov.id === 'modalSinRedVenta') return;
+      var x = ov.querySelector('.modal-close');
+      if (!x) return;
+      e.preventDefault();
+      if (modalFrenaSucio(ov)) return;
+      x.click();
+    }, true);
 
     // Doble verificación: el empleado tipea "ST" (siglas) para confirmar.
     // Es una barrera anti-click-accidental, no un control de autenticación
