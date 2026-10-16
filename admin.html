@@ -841,6 +841,9 @@
     /* [SETS-EN-PRECIOS] 16-oct · «+ Nuevo set» punteado al final de la tira (sólo con el chip Sets) y el link «Editar en Combos →» debajo del nombre */
     .precios-nuevo-set { border-style: dashed; border-color: var(--amarillo-tinta); color: var(--amarillo-tinta); margin-left: auto; }
     .precios-nuevo-set[hidden] { display: none; }
+    /* [COMBOS-A-SETS] 16-oct · la pestaña Combos ya no está en el menú: sus sets se crean y se editan desde el chip «📦 Sets» de Precios &amp; Stock.
+       El botón queda en el DOM (escondido) porque canAccessTab() decide el acceso mirando los botones del menú. */
+    .sidebar .tab-btn.tab-btn--escondido { display: none !important; }
     .td-link { background: none; border: 0; padding: .2rem 0; font: inherit; font-size: .66rem; font-weight: 700; color: var(--amarillo-tinta); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; min-height: 32px; }
     .fila-grupo td {
       font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
@@ -2907,7 +2910,7 @@
         <div class="sb-group collapsed" data-group="avanzado" data-default-collapsed="true">
           <div class="sb-group-header" onclick="toggleSbGroup(this)"><span>&#128295; Avanzado</span><span class="sb-chev">&#9662;</span></div>
           <div class="sb-tab-list">
-            <button class="tab-btn" data-tab="combos" title="Combos" onclick="switchTab('combos',this);closeMobileSidebar()"><span class="sb-ico">&#127857;</span><span class="sb-label">Combos</span></button>
+            <button class="tab-btn tab-btn--escondido" hidden data-tab="combos" title="Sets" onclick="switchTab('combos',this);closeMobileSidebar()"><span class="sb-ico">&#127857;</span><span class="sb-label">Combos</span></button>
             <button class="tab-btn" data-tab="destacados" title="Destacados" onclick="switchTab('destacados',this);closeMobileSidebar()"><span class="sb-ico">&#11088;</span><span class="sb-label">Destacados</span></button>
             <button class="tab-btn" data-tab="badges" title="Beneficios" onclick="switchTab('badges',this);loadBadgesAdmin();closeMobileSidebar()"><span class="sb-ico">&#127991;&#65039;</span><span class="sb-label">Beneficios</span></button>
             <button class="tab-btn" data-tab="home" title="Banner" onclick="switchTab('home',this);loadHomeAdmin();closeMobileSidebar()"><span class="sb-ico">&#128227;</span><span class="sb-label">Banner</span></button>   <!-- 133g: «Home» se confundía con «Inicio» -->
@@ -3865,8 +3868,9 @@
     <!-- TAB: COMBOS -->
     <div class="tab-content" id="tab-combos">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-        <span class="client-count" id="comboCount">— combos</span>
-        <button class="action-btn btn-price" onclick="openComboCreator()" style="font-size:.72rem;padding:.5rem 1rem;">+ NUEVO COMBO</button>
+        <button type="button" class="action-btn" onclick="volverASets()" style="font-size:.72rem;padding:.5rem 1rem;min-height:44px;">&larr; Volver a Sets</button>   <!-- [COMBOS-A-SETS] -->
+        <span class="client-count" id="comboCount">— sets</span>
+        <button class="action-btn btn-price" onclick="openComboCreator()" style="font-size:.72rem;padding:.5rem 1rem;min-height:44px;">+ NUEVO SET</button>
       </div>
       <div id="combosList"></div>
 
@@ -6665,10 +6669,18 @@
     // su estado es el interruptor de Combos (toggleComboStock: ok ↔ pausado) y se edita en Combos (editCombo).
     function setTipoTexto(t) { return t === 'mini-collection' ? 'mini colección' : (t === 'duo' ? 'dúo' : (t || 'pack')); }
     function irACombo(slug) {
-      var b = document.querySelector('.sidebar .tab-btn[data-tab="combos"]');
-      if (!b || !canAccessTab('combos')) return;
-      b.click();
+      if (!canAccessTab('combos')) return;
+      switchTab('combos', null);   // [COMBOS-A-SETS] el editor ya no tiene botón en el menú: se abre directo desde Sets
+      closeMobileSidebar();
+      window.scrollTo(0, 0);
       setTimeout(function() { if (slug) editCombo(slug); else openComboCreator(); }, 150);
+    }
+    // [COMBOS-A-SETS] el botón «← Volver a Sets» del editor: de vuelta a Precios & Stock con el chip Sets prendido
+    function volverASets() {
+      var b = document.querySelector('.sidebar .tab-btn[data-tab="precios"]');
+      switchTab('precios', b);
+      preciosFiltrar('sets');
+      window.scrollTo(0, 0);
     }
     async function setToggleStock(slug) {
       await toggleComboStock(slug);   // escribe, loguea y vuelve a pintar Combos
@@ -11600,12 +11612,12 @@
     function loadCombos() {
       var container = document.getElementById('combosList');
       if (!combosCargados || combosError) {
-        document.getElementById('comboCount').textContent = '— combos';
+        document.getElementById('comboCount').textContent = '— sets';
         container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">' + (combosError ? escHtml(combosError) : 'Cargando...') + '</p>';
         return;
       }
       var sets = PERFUMES.filter(function(p) { return p.esSet; });
-      document.getElementById('comboCount').textContent = sets.length + ' combo' + (sets.length !== 1 ? 's' : '');
+      document.getElementById('comboCount').textContent = sets.length + ' set' + (sets.length !== 1 ? 's' : '');
 
       if (sets.length === 0) {
         container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">No hay combos creados</p>';
