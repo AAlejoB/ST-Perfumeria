@@ -2596,6 +2596,25 @@
       .res-card-titulo, .res-new, .res-transf, .res-baja, .res-sube, .res-sub, .res-old, .res-sin, .res-tipo, .res-subtotal { color: #000 !important; }   /* ▲ ▼ y el signo ya dicen si subió o bajó (126g) */
     }
 
+    /* ══ [SEMANA-STATS] · «La semana» de Estadísticas (16-oct): el selector es el mismo del Resumen (sin calendario),
+       cuatro tarjetas statCard con un renglón chico debajo del número, y «los 5 que más salieron» con barra. ══ */
+    .sem-selector { margin-bottom: 1rem; }
+    .sem-dia { border: 0; cursor: default; }
+    .sem-grid { margin-bottom: 1.2rem; }
+    @media (min-width: 420px) { #tab-stats .stats-grid { grid-template-columns: repeat(2, 1fr) !important; } }   /* las tarjetas de a dos (la regla de ≤ 600 las pone en una, y a 600 —la tablet— quedaban enormes) */
+    .stat-value .sem-sub { display: block; font-size: .66rem; font-weight: 600; color: var(--gris); margin-top: .15rem; }
+    .stat-value .sem-avisar { color: var(--tinta-aviso); }
+    .sem-nota { font-size: .7rem; color: var(--gris); margin: .2rem 0 1rem; }
+    .sem-h3 { font-size: .8rem; color: var(--amarillo-tinta); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 .8rem; }
+    .sem-top { margin-bottom: 2rem; }
+    .sem-fila { display: flex; align-items: center; gap: .6rem; min-height: var(--tap-min); padding: .4rem 0; border-top: 1px solid var(--borde); font-size: .78rem; }
+    .sem-fila:first-of-type { border-top: 0; }
+    .sem-pos { flex: 0 0 22px; text-align: center; font-size: .7rem; font-weight: 700; color: var(--gris); }
+    .sem-nombre { flex: 1 1 0; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+    .sem-barra { height: 6px; border-radius: 4px; background: rgba(128,128,128,.18); overflow: hidden; margin-top: .3rem; }
+    .sem-barra > div { height: 100%; background: var(--amarillo); border-radius: 4px; }
+    .sem-n { flex: 0 0 auto; font-weight: 700; color: var(--stat-tinta-out); font-size: .9rem; }
+
     /* ══ [PROMO-DECANTS] N4 · la promo de decants en la pestaña Decants (decisiones 106, 113 y 114) ══ */
     .promo-caja { background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; padding: 1.2rem; margin-top: 1.5rem; }
     .promo-titulo { font-size: .8rem; font-weight: 600; color: var(--amarillo-tinta); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 .8rem; }
@@ -3571,7 +3590,23 @@
 
     <!-- TAB: STATS -->
     <div class="tab-content" id="tab-stats">
-      <!-- Resumen general -->
+      <!-- [SEMANA-STATS] (pedido 13 de Alejo, 16-oct, opción A): Estadísticas cuenta LA SEMANA del negocio — lo que salió y
+           cuánto suma, lo que entró, clientes nuevos y la lista de espera, cada número con su «Ir a →» — y abajo, chico,
+           lo de la web. Sale de resumen_dia() de cada día (la misma fuente que el Resumen) y de lista_espera. -->
+      <div class="res-selector sem-selector">
+        <button type="button" class="res-nav" id="semAntes" onclick="semanaMover(-1)" aria-label="Semana anterior">&#8249;</button>
+        <div class="res-dia sem-dia">
+          <div class="res-titulo" id="semTitulo">Esta semana</div>
+          <div class="res-estado" id="semEstado"></div>
+        </div>
+        <button type="button" class="res-nav" id="semDespues" onclick="semanaMover(1)" aria-label="Semana siguiente" disabled>&#8250;</button>
+        <button type="button" class="res-nav" onclick="loadStats()" aria-label="Recargar">&#8634;</button>
+      </div>
+      <div class="stats-grid sem-grid" id="semGrid"><p class="log-vacio">Cargando…</p></div>
+      <div class="sem-top" id="semTop"></div>
+
+      <!-- Lo de la web, chico -->
+      <h3 class="sem-h3">🌐 La web</h3>
       <div class="stats-grid" id="statsGrid"></div>
 
       <!-- Gráfico de barras: Top 10 más vistos -->
@@ -3580,27 +3615,29 @@
         <div id="statsBarChart" style="display:flex;flex-direction:column;gap:.4rem;"></div>
       </div>
 
-      <!-- Perfumes sin visitas (los olvidados) -->
-      <div style="margin-bottom:2rem;">
+      <!-- Perfumes sin visitas (los olvidados) · [SEMANA-STATS] escondido: 144 chips rojos de 146 perfumes no dicen nada (sacar el hidden lo devuelve) -->
+      <div hidden style="margin-bottom:2rem;">
         <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">👻 Los olvidados (0 visitas)</h3>
         <p style="font-size:.62rem;color:var(--gris);margin-bottom:.8rem;">Estos perfumes no recibieron ni un clic. Considerá destacarlos o mejorar su foto/nombre.</p>
         <div id="statsZeroVisits" style="display:flex;flex-wrap:wrap;gap:.4rem;"></div>
       </div>
 
+      <!-- [SEMANA-STATS] Métricas del catálogo, Distribución por categoría y Rango de precios: escondidas (Alejo, 16-oct:
+           «datos del catálogo, no del negocio»). loadStats sigue llenándolas; sacar los hidden las devuelve. -->
       <!-- Métricas de catálogo -->
-      <div style="margin-bottom:2rem;">
+      <div hidden style="margin-bottom:2rem;">
         <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📊 Métricas del catálogo</h3>
         <div class="stats-grid" id="statsCatalogGrid"></div>
       </div>
 
       <!-- Distribución por categoría -->
-      <div style="margin-bottom:2rem;">
+      <div hidden style="margin-bottom:2rem;">
         <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">📦 Distribución por categoría</h3>
         <div id="statsCatDistrib" style="display:flex;flex-direction:column;gap:.4rem;"></div>
       </div>
 
       <!-- Rango de precios -->
-      <div>
+      <div hidden>
         <h3 style="font-size:.8rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">💰 Rango de precios</h3>
         <div id="statsPriceRange" style="display:flex;flex-direction:column;gap:.4rem;"></div>
       </div>
@@ -6652,6 +6689,121 @@
     // ============================================================
     // STATS
     // ============================================================
+    // ============================================================
+    // [SEMANA-STATS] · «La semana» de Estadísticas (pedido 13 de Alejo, 16-oct-2026, opción A)
+    // Semana de lunes a domingo en hora de Argentina (resumenHoyART, NO ROMPER #6). Cada día es UNA llamada a
+    // resumen_dia(p_dia): los números son los mismos del Resumen (decisión 14) y el precio sale de la memoria del panel
+    // ([RESUMEN-PRECIOS]). «Salieron» son bajas del stock del local, no ventas cobradas. Hasta 8 semanas atrás
+    // (RESUMEN_DIAS_ATRAS = 60 días de retención).
+    // ============================================================
+    var semanaOffset = 0;      // 0 = esta semana; −1 = la pasada…
+    var semanaPedido = 0;      // la última llamada gana (cambiar de semana rápido no pisa con una vieja)
+    var SEMANA_MAX_ATRAS = 8;
+
+    function semanaLunes(dia) {
+      var p = String(dia).split('-').map(Number);
+      var dow = new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay();   // 0 = domingo
+      return resumenSumarDias(dia, -((dow + 6) % 7));
+    }
+    function semanaDias(offset) {
+      var hoy = resumenHoyART();
+      var lunes = resumenSumarDias(semanaLunes(hoy), 7 * offset);
+      var dias = [];
+      for (var i = 0; i < 7; i++) {
+        var d = resumenSumarDias(lunes, i);
+        if (d > hoy || d < resumenMinimo()) continue;
+        dias.push(d);
+      }
+      return { lunes: lunes, dias: dias, hoy: hoy };
+    }
+    function semanaTexto(dia) {   // «lun 13 oct»
+      var p = String(dia).split('-').map(Number);
+      return new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(p[0], p[1] - 1, p[2]))).replace(/[.,]/g, '');
+    }
+    function semanaMover(n) {
+      var nuevo = semanaOffset + n;
+      if (nuevo > 0 || nuevo < -SEMANA_MAX_ATRAS) return;
+      semanaOffset = nuevo;
+      loadSemana();
+    }
+    function semanaPintarSelector(info) {
+      var tit = document.getElementById('semTitulo'), est = document.getElementById('semEstado');
+      var antes = document.getElementById('semAntes'), despues = document.getElementById('semDespues');
+      var fin = info.dias.length ? info.dias[info.dias.length - 1] : info.lunes;
+      if (tit) tit.textContent = semanaOffset === 0 ? 'Esta semana' : (semanaOffset === -1 ? 'La semana pasada' : 'Hace ' + (-semanaOffset) + ' semanas');
+      if (est) est.textContent = semanaTexto(info.lunes) + ' → ' + (fin === info.hoy ? 'hoy' : semanaTexto(fin));
+      if (antes) antes.disabled = semanaOffset <= -SEMANA_MAX_ATRAS;
+      if (despues) despues.disabled = semanaOffset >= 0;
+    }
+    async function loadSemana() {
+      var grid = document.getElementById('semGrid'), top = document.getElementById('semTop');
+      if (!grid) return;
+      var mio = ++semanaPedido;
+      var info = semanaDias(semanaOffset);
+      semanaPintarSelector(info);
+      grid.innerHTML = '<p class="log-vacio">Cargando la semana…</p>';
+      if (top) top.innerHTML = '';
+      var dias = [];
+      try {
+        var res = await Promise.all(info.dias.map(function(d) { return sb.rpc('resumen_dia', { p_dia: d }); }));
+        if (mio !== semanaPedido) return;
+        res.forEach(function(r) { if (r && !r.error && r.data) dias.push(r.data); });
+        if (!dias.length && info.dias.length) throw (res[0] && res[0].error) || new Error('sin datos');
+      } catch (e) {
+        if (mio !== semanaPedido) return;
+        console.warn('[semana] no disponible:', e);
+        grid.innerHTML = '<p class="log-vacio">' + escHtml(errorEnCriollo(e, null, 'cargar la semana', '↺')) + '</p>';
+        return;
+      }
+      // Lista de espera: pendientes y «para avisar ya» (la misma regla que la pestaña Espera: con stock, no libre).
+      var esperando = null, paraAvisar = null;
+      try {
+        var le = await sb.from('lista_espera').select('slug,libre').is('notified_at', null);
+        if (mio !== semanaPedido) return;
+        if (!le.error && le.data) {
+          esperando = le.data.length;
+          paraAvisar = stockCargado ? le.data.filter(function(r) { return r.libre !== true && esperaTieneStock(r.slug); }).length : null;
+        }
+      } catch (e2) { console.warn('[semana] espera:', e2); }
+
+      var lista = function(x) { return Array.isArray(x) ? x : []; };
+      var salieron = 0, entraron = 0, transf = 0, sinPrecio = 0, clientes = 0, porSlug = Object.create(null), nombres = Object.create(null);
+      dias.forEach(function(d) {
+        lista(d.stock).forEach(function(it) {
+          var n = Number(it.delta) || 0;
+          if (n > 0) { entraron += n; return; }
+          if (n === 0) return;
+          salieron += -n;
+          porSlug[it.slug] = (porSlug[it.slug] || 0) - n;
+          nombres[it.slug] = it.name || it.slug;
+          var pr = resumenPrecioDe(it.slug);
+          if (pr) transf += pr.transf * -n; else sinPrecio += -n;
+        });
+        clientes += lista(d.clientes).length;
+      });
+      var sinDatos = info.dias.length && dias.length < info.dias.length;
+      var vSalieron = '' + salieron + (overridesCargado && salieron
+        ? '<span class="sem-sub">' + escHtml(promoPesos(transf)) + ' transf.' + (sinPrecio ? ' · ' + sinPrecio + ' sin precio' : '') + '</span>' : '');
+      var vEspera = esperando === null ? '—' : ('' + esperando + (paraAvisar ? '<span class="sem-sub sem-avisar">' + paraAvisar + ' para avisar ya</span>' : ''));
+      grid.innerHTML = ''
+        + statCard('resumen', 'Resumen', '📦 Salieron', vSalieron)
+        + statCard('precios', 'Precios &amp; Stock', '📥 Entraron', '' + entraron)
+        + statCard('clientes', 'Clientes', '👤 Clientes nuevos', '' + clientes)
+        + statCard('espera', 'Espera', '📍 Esperando', vEspera)
+        + (sinDatos ? '<p class="sem-nota">Faltan ' + (info.dias.length - dias.length) + ' día(s) que no se pudieron leer.</p>' : '');
+      if (!top) return;
+      var slugs = Object.keys(porSlug).sort(function(a, b) { return porSlug[b] - porSlug[a]; }).slice(0, 5);
+      if (!slugs.length) { top.innerHTML = '<p class="sem-nota">' + (semanaOffset === 0 ? 'Todavía no salió nada esta semana.' : 'No salió nada esa semana.') + '</p>'; return; }
+      var max = porSlug[slugs[0]];
+      top.innerHTML = '<h3 class="sem-h3">🏆 Los ' + slugs.length + ' que más salieron</h3>' + slugs.map(function(s, i) {
+        var pr = resumenPrecioDe(s), marca = resumenMarca(s);
+        return '<div class="sem-fila"><span class="sem-pos">' + (i + 1) + '</span><div class="sem-nombre">' + escHtml(nombres[s])
+          + (marca ? '<div class="res-sub">' + escHtml(marca) + (pr ? ' · transf. ' + escHtml(promoPesos(pr.transf)) : '') + '</div>' : '')
+          + '<div class="sem-barra"><div style="width:' + Math.round(porSlug[s] / max * 100) + '%"></div></div></div>'
+          + '<span class="sem-n">' + porSlug[s] + '</span></div>';
+      }).join('');
+    }
+
     async function loadStats() {
       var statsGrid = document.getElementById('statsGrid');
       var perfumes = PERFUMES.filter(function(p) { return !p.esSet; });
@@ -6681,13 +6833,15 @@
       // Promedio visitas por perfume
       var avgViews = totalPerfumes > 0 ? Math.round(totalClicks / totalPerfumes) : 0;
 
-      // === CARDS RESUMEN ===
+      // === LA SEMANA === [SEMANA-STATS] arriba de todo; corre aparte para que lo de la web no espere a las 7 llamadas
+      loadSemana();
+
+      // === CARDS DE LA WEB === (desde [SEMANA-STATS] sin «🧴 Perfumes» ni «📊 Promedio/perfume»: datos del catálogo)
       statsGrid.innerHTML = ''
-        + statCard('precios', 'Precios &amp; Stock', '🧴 Perfumes', totalPerfumes)
-        + statCard('clientes', 'Clientes', '👥 Clientes', totalClientes)
-        + statCard('opiniones', 'Opiniones', '💬 Opiniones', totalOpiniones)
         + statCard('analytics', 'Analytics', '👁️ Visitas totales', (clicksErr ? '—' : totalClicks))
-        + statCard(null, '', '📊 Promedio/perfume', (clicksErr ? '—' : avgViews));
+        + statCard('opiniones', 'Opiniones', '💬 Opiniones', totalOpiniones)
+        + statCard('clientes', 'Clientes', '👥 Clientes en total', totalClientes);
+      void avgViews;   // ya no se muestra; la cuenta queda por si vuelve
 
       // === TOP 10 — Gráfico de barras ===
       var barChart = document.getElementById('statsBarChart');
