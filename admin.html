@@ -5612,7 +5612,12 @@
       }
 
       var pass = document.getElementById('loginPass').value;
-      if (!pass) return;
+      if (!pass) {   // [LOGIN-VACIO] B10 del QA: antes no decía nada y parecía que el botón no andaba
+        var errVacio = document.getElementById('loginError');
+        if (errVacio) { errVacio.style.color = 'var(--tinta-aviso)'; errVacio.textContent = 'Escribí la contraseña.'; }
+        try { document.getElementById('loginPass').focus(); } catch (e) {}
+        return;
+      }
 
       // UX: deshabilitar input + indicar "verificando" para que el user no
       // piense que el bot\u00f3n no respondi\u00f3 cuando Supabase est\u00e1 lento.
