@@ -8724,3 +8724,125 @@
       }
       requestAnimationFrame(animateCursor);
     })();
+    // ============================================================
+    // [PISTAS-CATALOGO] 16-oct-2026 · pedido de Alejo: los globitos de [PISTAS] del panel, en el catálogo. Un globito amarillo con flechita
+    // al lado de algo que conviene descubrir; lo señalado late con un borde amarillo. Reglas para no molestar a un cliente:
+    //   · UNO por visita (sessionStorage) y cada uno UNA vez por dispositivo (localStorage `st_pistas_cat`; sin acceso, no sale ninguno);
+    //   · recién a los 6 s de cargar y sólo si lo señalado se ve entero en la pantalla y nada lo tapa (elementFromPoint): si no, se vuelve a
+    //     mirar cuando el cliente deja de deslizar;
+    //   · se va con «Entendido», tocando cualquier otra cosa o solo a los 15 s, y cuenta como visto;
+    //   · si el cliente usa eso (toca un ♡, un ⚖ o abre el armador de decants, en cualquier lado), esa pista ya no sale.
+    // No usa MutationObserver (el catálogo vuelve a pintar 195 cards: INP, [CELU-INP]) y no cambia el layout (va con position: absolute).
+    // Una pista nueva: una fila más en PISTAS_CAT (`sel` = dónde apunta, `usa` = lo que cuenta como usado).
+    // ============================================================
+    (function() {
+      var PISTAS_CAT = [
+        { id: 'decants', sel: '#tiraAtajos .vid-t[onclick^="openDecantBuilder"]', usa: '[onclick*="openDecantBuilder"]', lado: 'arriba',   // abajo está la fila pegada de Ordenar
+          html: '<b>¿Querés probarlo antes?</b> Armá tu pack de decants de 5 ml.' },
+        // ♡ y ⚖: en la grilla, los de la card; en la lista del celu (la vista de entrada) la card no los muestra y salen en la ficha
+        { id: 'favorito', sel: '.product-card .fav-heart, #bsBtnFav', usa: '.fav-heart, #bsBtnFav',
+          html: 'Tocá <b>&#9825;</b> para guardarlo y encontrarlo después.' },
+        { id: 'comparar', sel: '.product-card .compare-btn, #bsBtnCompare', usa: '.compare-btn, #bsBtnCompare',
+          html: '<b>¿Dudás entre dos?</b> Tocá &#9878; en cada uno y comparalos.' }
+      ];
+      var CLAVE = 'st_pistas_cat', SES = 'st_pista_cat_ses';
+      var P = { el: null, ancla: null, id: null, lado: '', t: 0, fin: 0, raf: 0 };
+      function vistas() { try { return JSON.parse(localStorage.getItem(CLAVE) || '{}') || {}; } catch (e) { return null; } }
+      function marcar(id) {
+        var v = vistas(); if (!v) return;
+        v[id] = 1;
+        try { localStorage.setItem(CLAVE, JSON.stringify(v)); } catch (e) {}
+      }
+      function yaHuboEnLaVisita() { try { return sessionStorage.getItem(SES) === '1'; } catch (e) { return true; } }
+      function quitar() {
+        clearTimeout(P.fin);
+        if (P.ancla) P.ancla.classList.remove('pista-cat-ancla');
+        if (P.el) P.el.remove();
+        P.el = P.ancla = P.id = null;
+      }
+      function cerrar() { if (P.id) marcar(P.id); quitar(); }
+      // Se ve entera, entre lo pegado de arriba (nav + aviso + fila de orden, hasta ~160) y la barra de abajo del celu, y nada la tapa.
+      // De costado puede estar cortada sólo adentro de la tira de atajos (se desliza): `mirar` la desliza hasta que se vea.
+      // En la ficha (#bsOverlay, encima de todo) no hay nada pegado: vale toda la pantalla.
+      function enFicha(el) { return !!(el && el.closest && el.closest('#bsOverlay')); }
+      function bandaArriba(el) { return enFicha(el) ? 8 : 160; }
+      function bandaAbajo(el) { return window.innerHeight - (enFicha(el) ? 8 : (vidEsCelu() && window.innerWidth < 768 ? 80 : 16)); }
+      function seVe(el) {
+        if (!el || !el.getClientRects().length) return false;
+        var r = el.getBoundingClientRect(), abajo = bandaAbajo(el);
+        var vw = document.documentElement.clientWidth, enTira = !!el.closest('#tiraAtajos');
+        if (r.width < 1 || r.top < bandaArriba(el) || r.bottom > abajo) return false;
+        if (!enTira && (r.left < 0 || r.right > vw)) return false;
+        if (enTira && (r.left > vw - 40 || r.right < 40)) return false;   // casi toda afuera: no
+        var cx = Math.max(4, Math.min(r.left + r.width / 2, vw - 4));
+        var x = document.elementFromPoint(enTira ? (r.left < 0 ? Math.min(r.right - 8, vw - 4) : Math.max(r.left + 8, 4)) : cx, r.top + r.height / 2);
+        return !!x && (x === el || el.contains(x));
+      }
+      function ubicar() {
+        var g = P.el, a = P.ancla;
+        if (!g || !a) return;
+        if (!a.isConnected || !a.getClientRects().length) { quitar(); return; }
+        var r = a.getBoundingClientRect(), w = g.offsetWidth, h = g.offsetHeight, vw = document.documentElement.clientWidth;
+        var fija = enFicha(a), tope = bandaArriba(a) - 10;
+        var centro = Math.max(16, Math.min(r.left + r.width / 2, vw - 16)), izq = Math.max(12, Math.min(centro - 26, vw - w - 12));
+        var cabeArriba = r.top - 12 - h > tope;
+        var arriba;
+        if (!P.puesto) { arriba = cabeArriba && (P.lado === 'arriba' || r.bottom + 12 + h > bandaAbajo(a)); P.puesto = true; }
+        else arriba = g.classList.contains('arriba');
+        // Se va (y cuenta como visto) antes de meterse debajo de lo pegado de arriba o si lo señalado salió de la pantalla.
+        if ((arriba ? r.top - 12 - h : r.top) < tope - 10 || r.bottom > window.innerHeight) { cerrar(); return; }
+        g.classList.toggle('arriba', arriba); g.classList.toggle('abajo', !arriba);
+        g.classList.toggle('pista-cat--ficha', fija);   // en la ficha: fija y encima de ella
+        g.style.left = (izq + (fija ? 0 : window.scrollX)) + 'px';
+        g.style.top = ((arriba ? r.top - 12 - h : r.bottom + 12) + (fija ? 0 : window.scrollY)) + 'px';
+        g.style.setProperty('--pista-flecha', Math.max(18, Math.min(centro - izq, w - 18)) + 'px');
+      }
+      function mirar() {
+        if (P.el || P.listo) return;
+        var v = vistas();
+        if (!v || yaHuboEnLaVisita() || PISTAS_CAT.every(function(p) { return v[p.id]; })) { P.listo = true; return; }   // nada más en esta visita: el scroll y los toques dejan de mirar
+        for (var i = 0; i < PISTAS_CAT.length; i++) {
+          var p = PISTAS_CAT[i];
+          if (v[p.id]) continue;
+          var cand = document.querySelectorAll(p.sel), ancla = null;
+          for (var j = 0; j < cand.length && !ancla; j++) if (seVe(cand[j])) ancla = cand[j];   // los escondidos (display: none) se descartan sin medir
+          if (!ancla) continue;
+          var g = document.createElement('div');
+          g.className = 'pista-cat abajo';
+          g.setAttribute('role', 'status');
+          g.innerHTML = '<span class="pista-cat-txt">' + p.html + '</span><button type="button" class="pista-cat-ok">Entendido</button>';
+          g.querySelector('.pista-cat-ok').addEventListener('click', function(e) { e.stopPropagation(); cerrar(); });
+          document.body.appendChild(g);
+          ancla.classList.add('pista-cat-ancla');
+          P.el = g; P.ancla = ancla; P.id = p.id; P.lado = p.lado || ''; P.puesto = false;   // el lado se elige una vez: no salta al deslizar
+          try { sessionStorage.setItem(SES, '1'); } catch (e) {}
+          P.listo = true;
+          var tira = ancla.closest('#tiraAtajos');
+          if (tira) {   // la tira se desliza sola hasta que se vea entera (sólo de costado: la página no se mueve)
+            var ra = ancla.getBoundingClientRect(), rt = tira.getBoundingClientRect();
+            if (ra.left < rt.left || ra.right > rt.right) {
+              try { tira.scrollBy({ left: ra.right > rt.right ? ra.right - rt.right + 14 : ra.left - rt.left - 14, behavior: 'smooth' }); } catch (e) {}
+              setTimeout(ubicar, 450);
+            }
+          }
+          ubicar();
+          P.fin = setTimeout(cerrar, 15000);
+          return;
+        }
+      }
+      // Usar la cosa (en cualquier lado) la da por aprendida; tocar cualquier otra cosa con el globito afuera, lo cierra.
+      document.addEventListener('click', function(e) {
+        var t = e.target;
+        if (!t || !t.closest) return;
+        PISTAS_CAT.forEach(function(p) { if (t.closest(p.usa)) { marcar(p.id); if (P.id === p.id) quitar(); } });
+        if (P.el && !P.el.contains(t)) cerrar();
+        if (!P.el && !P.listo) { clearTimeout(P.t); P.t = setTimeout(mirar, 900); }   // p. ej. acaba de abrir una ficha
+      }, true);
+      window.addEventListener('popstate', function() { if (P.el) cerrar(); });
+      window.addEventListener('scroll', function() {
+        if (P.el && !P.raf) P.raf = requestAnimationFrame(function() { P.raf = 0; ubicar(); });
+        if (!P.el && !P.listo) { clearTimeout(P.t); P.t = setTimeout(mirar, 700); }   // cuando deja de deslizar
+      }, { passive: true, capture: true });   // capture: también la tira de atajos, que se desliza de costado
+      window.addEventListener('resize', function() { if (P.el) ubicar(); }, { passive: true });
+      deferTask(function() { setTimeout(mirar, 6000); });
+    })();

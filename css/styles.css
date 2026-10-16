@@ -10575,3 +10575,25 @@
       .vh-x { width: 44px; height: 44px; margin: 0 -12px 0 0; padding: 0; border: 0; background: none; color: var(--gris); font-size: 26px; line-height: 1; cursor: pointer; }
       .vh-cuerpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
     }
+
+    /* ══ [PISTAS-CATALOGO] 16-oct-2026 (Alejo: los globitos del panel, también en el catálogo) · un globito amarillo con flechita al lado de
+       algo que conviene descubrir (decants, ♡, comparar). Amarillo con letra negra en los dos temas (la letra la decide el fondo). Va en 101
+       (arriba de «Ordenar», 100, y de la fila pegada, 90) y debajo de la barra del celu y de todo lo que se abre encima (9990+); se cierra
+       sola antes de llegar al nav. En la ficha, fija y en 10001. */
+    .pista-cat { position: absolute; z-index: 101; width: max-content; max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box;
+      display: flex; align-items: center; gap: 10px; padding: 9px 9px 9px 13px; background: #E8B800; color: #000; border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35); font-family: var(--font-body); font-size: 14px; line-height: 1.3; animation: pistaCatEntra .25s ease-out; }
+    .pista-cat::before { content: ''; position: absolute; left: var(--pista-flecha, 24px); width: 14px; height: 14px; background: #E8B800; transform: translateX(-50%) rotate(45deg); }
+    .pista-cat--ficha { position: fixed; z-index: 10001; }   /* en la ficha del perfume (10000): encima, y fija como ella */
+    .pista-cat.abajo::before { top: -6px; }
+    .pista-cat.arriba::before { bottom: -6px; }
+    .pista-cat-txt { position: relative; flex: 1 1 auto; min-width: 0; }
+    .pista-cat-txt b { font-weight: 800; }
+    .pista-cat-ok { position: relative; flex: 0 0 auto; min-height: 44px; padding: 0 12px; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: .04em;
+      color: #000; background: transparent; border: 1.5px solid #000; border-radius: 8px; cursor: pointer; }
+    .pista-cat-ok:active { background: rgba(0,0,0,.12); }
+    .pista-cat-ok:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+    .pista-cat-ancla { outline: 3px solid #E8B800; outline-offset: 2px; animation: pistaCatLate 1.6s ease-in-out infinite; }
+    @keyframes pistaCatEntra { from { opacity: 0; transform: translateY(6px); } }
+    @keyframes pistaCatLate { 50% { outline-color: rgba(232,184,0,.25); } }
+    @media (prefers-reduced-motion: reduce) { .pista-cat, .pista-cat-ancla { animation: none; } }

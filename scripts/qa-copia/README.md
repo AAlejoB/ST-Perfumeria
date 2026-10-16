@@ -10,7 +10,7 @@ se reinicia al recargar). No va a producción: `scripts/` está en `.vercelignor
 node scripts/qa-copia/qa-server.js . 8777
 ```
 
-Abrí `http://localhost:8777/admin.html`. Contraseñas de la copia (sólo existen acá): jefe `qa-jefe`, empleada `qa-empleada`,
+Abrí `http://localhost:8777/admin.html`. Desde el 16-oct también el catálogo (`http://localhost:8777/`) usa la base de mentira y no manda analíticas a la tienda real. Contraseñas de la copia (sólo existen acá): jefe `qa-jefe`, empleada `qa-empleada`,
 laboratorio `qa-lab`. Los clientes y teléfonos son inventados.
 
 Desde la consola del navegador existe `window.__QA`:
