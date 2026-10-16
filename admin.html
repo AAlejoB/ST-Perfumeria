@@ -799,6 +799,10 @@
     }
     .precios-tira-nota { color: var(--gris); }
     .precios-filtro { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin: 0 0 .6rem; }
+    /* [SETS-EN-PRECIOS] 16-oct · «+ Nuevo set» punteado al final de la tira (sólo con el chip Sets) y el link «Editar en Combos →» debajo del nombre */
+    .precios-nuevo-set { border-style: dashed; border-color: var(--amarillo-tinta); color: var(--amarillo-tinta); margin-left: auto; }
+    .precios-nuevo-set[hidden] { display: none; }
+    .td-link { background: none; border: 0; padding: .2rem 0; font: inherit; font-size: .66rem; font-weight: 700; color: var(--amarillo-tinta); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; min-height: 32px; }
     .fila-grupo td {
       font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
       color: var(--amarillo-tinta); padding: .7rem .4rem .3rem;
@@ -2930,6 +2934,9 @@
         <button type="button" class="log-chip active" data-filtro="todo" onclick="preciosFiltrar('todo')">Todo</button>
         <button type="button" class="log-chip" data-filtro="frascos" onclick="preciosFiltrar('frascos')">Árabes</button>   <!-- [TANDA-1-RAPIDOS] 1a · decía «Frascos» (Alejo, 16-oct); el valor interno sigue siendo frascos -->
         <button type="button" class="log-chip" data-filtro="disenador" onclick="preciosFiltrar('disenador')">💎 Diseñador</button>
+        <!-- [SETS-EN-PRECIOS] (pedido 1b de Alejo, 16-oct, opción A): los sets (combos) en la misma tira; «+ Nuevo set» abre Combos -->
+        <button type="button" class="log-chip" data-filtro="sets" onclick="preciosFiltrar('sets')">📦 Sets</button>
+        <button type="button" class="log-chip precios-nuevo-set" id="btnNuevoSet" hidden onclick="irACombo(null)">+ Nuevo set</button>
       </div>
       <p class="aviso-lectura-tabla" id="avisoStockPrecios" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
@@ -6544,7 +6551,21 @@
 
     function preciosFiltrar(filtro) {
       PRECIOS_FILTRO = filtro;
-      document.querySelectorAll('#preciosFiltro .log-chip').forEach(function(b) { b.classList.toggle('active', b.dataset.filtro === filtro); });
+      document.querySelectorAll('#preciosFiltro .log-chip[data-filtro]').forEach(function(b) { b.classList.toggle('active', b.dataset.filtro === filtro); });
+      var nuevo = document.getElementById('btnNuevoSet'); if (nuevo) nuevo.hidden = filtro !== 'sets';   // [SETS-EN-PRECIOS]
+      renderPrecios();
+    }
+    // [SETS-EN-PRECIOS] 1b · los sets en Precios & Stock. Un set es un perfume con esSet en PERFUMES (viene de combos);
+    // su estado es el interruptor de Combos (toggleComboStock: ok ↔ pausado) y se edita en Combos (editCombo).
+    function setTipoTexto(t) { return t === 'mini-collection' ? 'mini colección' : (t === 'duo' ? 'dúo' : (t || 'pack')); }
+    function irACombo(slug) {
+      var b = document.querySelector('.sidebar .tab-btn[data-tab="combos"]');
+      if (!b || !canAccessTab('combos')) return;
+      b.click();
+      setTimeout(function() { if (slug) editCombo(slug); else openComboCreator(); }, 150);
+    }
+    async function setToggleStock(slug) {
+      await toggleComboStock(slug);   // escribe, loguea y vuelve a pintar Combos
       renderPrecios();
     }
     // 123e · con el buscador, un título de grupo no queda solo y su número cuenta lo visible.
@@ -6696,7 +6717,32 @@
         return decants.filter(function(c) { return !hay[promoNorm(c.nombre)]; });
       };
       var html = '';
-      if (PRECIOS_FILTRO === 'disenador') {
+      if (PRECIOS_FILTRO === 'sets') {
+        // [SETS-EN-PRECIOS] 1b · una fila por set: nombre (con «Editar en Combos →»), cuántos perfumes trae y de qué tipo,
+        // el estado como badge que se toca (En stock ↔ Pausado), precio y efectivo (10 % sobre promo o lista, como los frascos).
+        var sets = PERFUMES.filter(function(p) { return p.esSet; }).sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || '')); });
+        var filaSet = function(p) {
+          var n = Array.isArray(p.items) ? p.items.length : 0;
+          var pausado = getStockStatus(p.slug) === 'pausado';
+          var basePrice = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+          var textos = '<span class="td-nombre">' + escHtml(p.name || '') + '</span>'
+            + '<span class="td-sub">' + (n ? n + (n === 1 ? ' perfume' : ' perfumes') + ' · ' : '') + escHtml(setTipoTexto(p.setTipo)) + '</span>'
+            + '<span class="td-sub"><button type="button" class="td-link" onclick="irACombo(' + escHtml(JSON.stringify(String(p.slug))) + ')">Editar →</button></span>';
+          return '<tr data-search="' + escHtml(String(p.name || '').toLowerCase() + ' set combo') + '" data-slug="' + escHtml(String(p.slug)) + '">'
+            + stockCeldaNombre(textos, p.foto, p.name)   // [STOCK-FOTO] la misma celda: con «Con foto», la foto del set
+            + (stockCargado
+                ? '<td class="td-stock"><span class="badge-stock ' + (pausado ? 'badge-paused' : 'badge-ok') + '" style="cursor:pointer;user-select:none;" title="Tocá para ' + (pausado ? 'activarlo' : 'pausarlo') + '" onclick="setToggleStock(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + (pausado ? 'Pausado' : 'En stock') + '</span></td>'
+                : '<td class="td-stock"><span class="stock-sin-lectura" title="El stock no se leyó">—</span></td>')
+            + (overridesCargado
+                ? '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + (p.promo ? '<span class="td-sub">promo $' + parsePrice(p.promo).toLocaleString('es-AR') + '</span>' : '') + '</td>'
+                  + '<td class="td-price td-efectivo" title="10% off (efectivo o transferencia)">$' + Math.round(basePrice * 0.9).toLocaleString('es-AR') + '</td>'
+                : '<td class="td-price td-sin">—</td><td class="td-price td-sin">—</td>')
+            + '</tr>';
+        };
+        html = sets.length
+          ? sets.map(filaSet).join('')
+          : '<tr><td colspan="4" style="text-align:center;color:var(--gris);padding:1.2rem;font-size:.78rem;">Todavía no hay sets. Tocá «+ Nuevo set».</td></tr>';
+      } else if (PRECIOS_FILTRO === 'disenador') {
         // 123e · dos grupos con título: los frascos de las marcas de diseñador y los decants de diseñador.
         var marcas = {};
         (MARCAS_DISENADOR || []).forEach(function(m) { var k = marcaNorm(m); if (k) marcas[k] = true; });
