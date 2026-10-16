@@ -2659,6 +2659,20 @@
     .td-fila-foto .edr-lapiz { float: none; margin: 0 0 0 auto; flex: 0 0 auto; }
     .edr-lapiz:hover, .edr-lapiz:focus-visible { background: rgba(232,184,0,.14); border-color: var(--amarillo-tinta); }
     .edr-transf { font-size: .78rem; margin: -.2rem 0 .9rem; }
+    /* [ESPERA-QUIEN] B12 · «Quién espera qué»: una tarjeta por persona, con sus perfumes debajo */
+    .espera-stat--quien { border-color: var(--amarillo-tinta); }
+    .espera-stat--quien .espera-stat-titulo { color: var(--amarillo-tinta); }
+    .eq-persona { border: 1px solid var(--borde); border-radius: 10px; padding: .6rem .8rem; margin-bottom: .6rem; }
+    .eq-quien { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: .6rem; margin-bottom: .3rem; }
+    .eq-quien b { font-size: .95rem; }
+    .eq-tel { font-size: .74rem; color: var(--gris-claro); }
+    .eq-fila { display: flex; align-items: center; gap: .6rem; min-height: 44px; padding: .25rem 0; border-top: 1px solid var(--borde); font-size: .8rem; }
+    .eq-fila:first-of-type { border-top: 0; }
+    .eq-perfume { flex: 1 1 auto; min-width: 0; font-weight: 600; }
+    .eq-perfume small { display: block; font-weight: 400; color: var(--gris); }
+    .eq-origen { flex: 0 0 auto; font-size: .64rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: .15rem .5rem; border-radius: 999px; border: 1px solid var(--borde); }
+    .eq-origen--local { border-color: var(--amarillo-tinta); color: var(--amarillo-tinta); }
+    .eq-fila .edr-lapiz { float: none; margin: 0; }
     .edr-transf b { color: var(--tinta-ok); }
     .edr-abrir-editar { margin-top: .5rem; }
     .stats-banda { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; column-gap: .8rem; row-gap: .1rem; min-height: 44px; padding: .6rem 1rem; margin: 0 0 .8rem; border-radius: var(--r-lg); }
@@ -4034,11 +4048,12 @@
           <span class="espera-stat-num" id="esperaParaAvisar">—</span>
           <span class="espera-stat-sub">personas · el perfume ya tiene stock</span>
         </button>
-        <div class="espera-stat">
-          <p class="espera-stat-titulo">PERFUMES</p>
-          <p class="espera-stat-num" id="esperaPerfumes">—</p>
-          <p class="espera-stat-sub">con gente esperando</p>
-        </div>
+        <!-- [ESPERA-QUIEN] B12 (16-oct): el cuadro es un botón; abre «Quién espera qué» (la lista al revés: por persona) -->
+        <button type="button" class="espera-stat espera-stat--quien" id="esperaCardQuien" onclick="esperaQuienAbrir()">
+          <span class="espera-stat-titulo">PERFUMES</span>
+          <span class="espera-stat-num" id="esperaPerfumes">—</span>
+          <span class="espera-stat-sub">con gente esperando · tocá para ver quién espera qué</span>
+        </button>
       </div>
       <p class="espera-ayuda">Cuando vuelve el stock, tocá «Avisar»: se abre WhatsApp con el mensaje listo. Los que ya avisaste pasan al <em>Historial</em>.</p>   <!-- [ESPERA-AYUDA-AUTOMATICO] el aviso no es automático desde [WAITLIST-AVISO-REAL] -->
       <button type="button" class="espera-anotar" id="esperaAnotarAbrir" onclick="esperaAbrirAnotar()">+ Anotar del mostrador</button>
@@ -4659,6 +4674,17 @@
 
       <button class="modal-btn modal-btn-price" id="modalStockBtn" onclick="saveStock()">✓ OK, actualizar stock</button>
       <p class="modal-success" id="modalStockMsg"></p>
+    </div>
+  </div>
+
+  <!-- MODAL: QUIÉN ESPERA QUÉ · [ESPERA-QUIEN] B12 (16-oct) · la lista de espera por persona; cierra con la ✕, tocando afuera o con Esc -->
+  <div class="modal-overlay" id="modalEsperaQuien" onclick="closeModal('modalEsperaQuien',event)">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:560px;">
+      <button class="modal-close" onclick="closeModal('modalEsperaQuien')" aria-label="Cerrar">&times;</button>
+      <p class="modal-title">Quién espera qué</p>
+      <p class="promo-nota" id="eqResumen" style="margin:-.3rem 0 .8rem;"></p>
+      <div id="eqLista"></div>
+      <button type="button" class="modal-btn" onclick="closeModal('modalEsperaQuien')" style="margin-top:.6rem;">Cerrar</button>
     </div>
   </div>
 
@@ -13773,6 +13799,51 @@
     // no inventa una (un insert con el resto en null pisaría nombre y precio en las otras tablets por Realtime) y manda a Editar.
     // El precio de transferencia NO es un dato guardado: es la promo (o la lista) menos 10 %, se calcula; acá se muestra, no se edita.
     // ============================================================
+    // ============================================================
+    // [ESPERA-QUIEN] B12 (16-oct-2026) · «Quién espera qué»: la lista de espera al revés. Por cada PERSONA (mismo teléfono; sin teléfono, mismo
+    // nombre) sus perfumes pendientes, con la fecha en que se anotó y si fue del local o de la web. La persona que espera hace más tiempo, primero.
+    // Sale de esperaData (la misma lectura de la pestaña Espera): no hace pedidos nuevos. Sólo pendientes (los avisados están en el Historial).
+    // ============================================================
+    function esperaQuienFecha(iso) {
+      try { return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date(iso)).replace(/\./g, ''); } catch (e) { return ''; }
+    }
+    function esperaQuienAbrir() {
+      var lista = document.getElementById('eqLista'), resumen = document.getElementById('eqResumen');
+      if (esperaError) { lista.innerHTML = '<p class="log-vacio">' + escHtml(esperaError) + '</p>'; resumen.textContent = ''; document.getElementById('modalEsperaQuien').classList.add('active'); return; }
+      var pend = esperaData.filter(function(r) { return !r.notified_at; });
+      var personas = Object.create(null), orden = [];
+      pend.forEach(function(r) {
+        var tel = String(r.telefono || '').replace(/\D/g, ''), nom = String(r.nombre || '').trim();
+        var k = tel || (nom ? 'n:' + nom.toLowerCase() : 'id:' + r.id);
+        if (!personas[k]) { personas[k] = { tel: String(r.telefono || ''), nombre: nom, filas: [] }; orden.push(k); }
+        if (!personas[k].nombre && nom) personas[k].nombre = nom;
+        personas[k].filas.push(r);
+      });
+      orden.forEach(function(k) { personas[k].filas.sort(function(a, b) { return String(a.created_at).localeCompare(String(b.created_at)); }); });
+      orden.sort(function(a, b) { return String(personas[a].filas[0].created_at).localeCompare(String(personas[b].filas[0].created_at)); });
+      resumen.textContent = pend.length ? orden.length + (orden.length === 1 ? ' persona espera ' : ' personas esperan ') + pend.length + (pend.length === 1 ? ' perfume' : ' perfumes') + '. Arriba, quien espera hace más tiempo.' : '';
+      lista.innerHTML = pend.length ? orden.map(function(k) {
+        var pe = personas[k];
+        var filas = pe.filas.map(function(r) {
+          var libre = esperaEsLibre(r), pf = libre ? null : PERFUMES.find(function(x) { return x.slug === r.slug; });
+          var nombre = libre ? (r.perfume_name || 'Lo que pidió') : ((pf && pf.name) || r.perfume_name || r.slug);
+          var origen = esperaTieneOrigen ? ((r.origen || 'web') === 'local' ? 'local' : 'web') : '';
+          return '<div class="eq-fila"><div class="eq-perfume">' + escHtml(nombre)
+            + '<small>anotado el ' + escHtml(esperaQuienFecha(r.created_at)) + (libre ? ' · fuera del catálogo' : '') + (!libre && esperaTieneStock(r.slug) ? ' · ya tiene stock' : '') + '</small></div>'
+            + (origen ? '<span class="eq-origen eq-origen--' + origen + '">' + origen + '</span>' : '')
+            + (pf ? edrLapiz(pf.slug, pf.name) : '') + '</div>';
+        }).join('');
+        return '<div class="eq-persona"><div class="eq-quien"><b>' + escHtml(pe.nombre || 'Sin nombre') + '</b>'
+          + (pe.tel ? '<span class="eq-tel">📱 ' + telHtml(pe.tel) + '</span>' : '') + '</div>' + filas + '</div>';
+      }).join('') : '<p class="log-vacio">Nadie en lista de espera 😊</p>';
+      document.getElementById('modalEsperaQuien').classList.add('active');
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'Escape') return;
+      var m = document.getElementById('modalEsperaQuien');
+      if (m && m.classList.contains('active')) { closeModal('modalEsperaQuien'); e.preventDefault(); }
+    });
+
     var EDR = { slug: null, ocupado: false };
     function edrPuedeEditar() { return currentRole === 'jefe'; }
     function edrLapiz(slug, nombre) {   // el botón ✎ de las listas (vacío para la empleada)
