@@ -334,6 +334,30 @@
       .panel-inicio .panel-inicio-txt, .panel-title-extra { display: none; }
       .panel-title { --badge-ml: .3rem; }   /* a 360 «ST Admin» + EMPLEADO entraba con 0,2 px de sobra: un poco de aire */
     }
+    /* [ATAJOS-ARRIBA] 16-oct · 4 atajos en el encabezado (Precios · Depósito · Espera · Hoja): 44 de alto, ícono + nombre; el de la
+       pestaña abierta relleno de amarillo como «Inicio». A ≤ 700 el encabezado envuelve y los atajos ocupan una fila entera, los 4 iguales. */
+    .panel-header { flex-wrap: wrap; row-gap: .6rem; }
+    .panel-atajos { display: flex; align-items: center; gap: .3rem; margin: 0 auto 0 .25rem; order: 1; }
+    .panel-derecha { order: 2; }
+    .panel-atajo {
+      display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: var(--tap-min); min-width: var(--tap-min); padding: 0 .6rem;
+      font-family: inherit; font-size: .74rem; font-weight: 600; line-height: 1; color: inherit;
+      background: transparent; border: 1px solid var(--borde); border-radius: 4px; cursor: pointer; transition: background .15s;
+    }
+    .panel-atajo .pa-ico { font-size: .95rem; line-height: 1; }
+    .panel-atajo[aria-current="page"] { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    @media (hover: hover) { .panel-atajo:not([aria-current="page"]):hover { background: rgba(232,184,0,.08); } }
+    .panel-atajo:focus-visible { outline: 2px solid var(--amarillo-tinta); outline-offset: 2px; }
+    .panel-atajo[hidden] { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    /* de 701 a 1000 (la tablet de 834 con el riel): sólo el ícono, 44 × 44; el nombre queda en el title. Con nombre, a 834 la barra de arriba
+       no entraba (☰ + Inicio + título + EMPLEADO + 4 × 90 + 🌙 + Salir = 820 en 770) y «Salir» caía a un segundo renglón. */
+    @media (min-width: 701px) and (max-width: 1000px) { .panel-atajo { padding: 0; width: var(--tap-min); } .panel-atajo .pa-txt { display: none; } }
+    @media (max-width: 700px) {
+      .panel-atajos { order: 3; flex-basis: 100%; margin: 0; }
+      .panel-atajo { flex: 1 1 0; min-width: 0; padding: 0 .3rem; }
+      .panel-atajo .pa-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    }
     /* 133d · 2 × 2 en el orden del menú. La base de la 40 en grande: --superficie, --borde, texto heredado, radio 8. */
     .inicio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .inicio-btn {
@@ -769,6 +793,21 @@
     .vista-op + .vista-op { border-left: 1px solid var(--borde); }
     .vista-op[aria-pressed="true"] { background: var(--amarillo); color: #000; font-weight: 700; }
     .vista-op:focus-visible { outline: 2px solid var(--amarillo); outline-offset: -3px; }
+    /* [SELECTS-A-CUADRADOS] 16-oct (pedido 8 de Alejo, opción A: los 8 menús de todos los días). El <select> sigue en el DOM con
+       `display: none` (todo el código que lee su .value no cambia) y al lado se pintan cuadrados de 44, uno por opción; el elegido
+       relleno de amarillo como [FRANJA-STAT] / [CHECKBOX-NUEVO]. Un título chico («Orden») si el select trae data-cuadros="…". */
+    select.cuadros-origen { display: none !important; }
+    .cuadros { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-bottom: 0; }
+    .cuadros-tit { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gris-claro); padding-right: .25rem; }
+    .cuadro {
+      min-height: var(--tap-min); padding: .3rem .7rem; font: inherit; font-size: .76rem; line-height: 1.2; cursor: pointer;
+      background: var(--superficie); color: inherit; border: 1.5px solid var(--borde); border-radius: var(--r-sm);
+      -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent;
+    }
+    .cuadro[aria-pressed="true"] { background: var(--amarillo); color: #000; border-color: var(--amarillo); font-weight: 700; }
+    .cuadro:focus-visible { outline: 2px solid var(--amarillo); outline-offset: 2px; }
+    @media (hover: hover) { .cuadro:not([aria-pressed="true"]):hover { border-color: var(--amarillo-tinta); } }
+    .modal-input + .cuadros { margin-bottom: .45rem; }
     .td-price { color: var(--amarillo-tinta); font-weight: 600; }
     .td-stock { text-align: center; }
     /* ══ [PRECIOS-EN-UN-LUGAR] decisión 123 · Precios & Stock muestra también los precios de decants (sólo se miran) ══
@@ -1890,6 +1929,12 @@
       }
       .panel-title { font-size: 1.1rem; }
       .panel-logout { align-self: flex-end; margin-top: -.5rem; }
+      /* [ATAJOS-ARRIBA] 16-oct · con los atajos el encabezado vuelve a ser UNA fila (☰ · Inicio · título | 🌙 · Salir) y los 4 atajos
+         debajo, en una fila entera (antes se apilaba en dos renglones: el título y, abajo a la derecha, «Cerrar sesión»). */
+      .panel-header { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; row-gap: .6rem; }
+      .panel-logout { align-self: auto; margin-top: 0; }
+      .panel-atajos { order: 3; flex-basis: 100%; margin: 0; }
+      .panel-atajo { flex: 1 1 0; min-width: 0; }
 
       /* --- TABS: centradas y con mejor espaciado --- */
       .tabs {
@@ -2017,6 +2062,19 @@
       }
       .push-preset-title { font-size: .68rem; }
     }
+    /* [ATAJOS-ARRIBA] a ≤ 480 (el celu): sólo el ícono (Alejo: «en el celu sólo el ícono»); el título «ST Admin» se va y queda la chapa
+       del rol, así ☰ · Inicio · EMPLEADO · 🌙 · Salir entran en un renglón (a 375 hay 295 px). Después del bloque ≤ 600, así le gana. */
+    @media (max-width: 480px) {
+      .panel-atajo .pa-txt { display: none; }
+      .panel-atajo .pa-ico { font-size: 1.15rem; }
+      .panel-title { font-size: 0; }
+      /* la cuenta a 360: ☰ 44 + 6 + Inicio 44 + 4 + EMPLEADO 84 | 🌙 44 + 5 + Salir 52 = 290 en 296 (el encabezado pasa de 1,4 rem a 1 rem de costado) */
+      .panel-header { padding-left: 1rem; padding-right: 1rem; column-gap: .4rem; }
+      .panel-inicio { margin-right: .25rem; }
+      .panel-derecha { gap: .3rem !important; }
+      .panel-logout { padding: .4rem .5rem; }
+    }
+    @media (max-width: 360px) { .panel-title { --badge-ml: 0; } .panel-header { column-gap: .25rem; } }   /* a 360 faltaban 3 px */
     /* [PRECIOS-EN-UN-LUGAR] 123i · a ≤ 360 el nombre de Precios & Stock va hasta 3 renglones (entre 361 y 600, 2): a 360
        «BORN IN ROMA INTENSE» necesitaba 3 y se veía «BORN IN / ROMA…». Después del bloque ≤ 600, así le gana. */
     @media (max-width: 360px) {
@@ -2328,6 +2386,17 @@
     .doc-accion:hover, .doc-accion:focus-visible { border-color: var(--amarillo-tinta); }
     .doc-accion--foto { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
     .doc-marcado { outline: 2px solid var(--amarillo); outline-offset: 3px; border-radius: 6px; transition: outline-color .4s; }
+    /* [ELEGIDOS-EXCLUIR] 16-oct · la caja de Destacados: cada excluido en una fila de 44 con «Volver a incluir» a la derecha; el buscador pinta Tarjetero */
+    .eleg-caja { background: #111; border: 1px solid var(--borde); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+    body.light .eleg-caja { background: var(--superficie); }
+    .eleg-titulo { font-size: .8rem; font-weight: 600; color: var(--amarillo-tinta); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .3rem; }
+    .eleg-bajada { font-size: .7rem; color: var(--gris-claro); line-height: 1.5; margin: 0 0 .8rem; max-width: 560px; }
+    .eleg-lista { display: grid; gap: .35rem; }
+    .eleg-fila { display: flex; align-items: center; justify-content: space-between; gap: .6rem; min-height: var(--tap-min); padding: .3rem .3rem .3rem .7rem; border: 1px solid var(--borde); border-radius: 6px; font-size: .78rem; }
+    .eleg-fila .eleg-nombre { font-weight: 600; min-width: 0; }
+    .eleg-fila .eleg-marca { color: var(--gris); font-size: .68rem; margin-left: .4rem; }
+    .eleg-vacia { font-size: .74rem; color: var(--gris); margin: 0; }
+    .eleg-msg { font-size: .72rem; margin: .5rem 0 0; min-height: 1.1em; }
     @media (max-width: 480px) { .doc-issue { padding-left: 0; } }
     .doc-card--crit[aria-pressed="true"] { border-color: #e74c3c; box-shadow: inset 0 0 0 1px #e74c3c; }
     .doc-card--warn[aria-pressed="true"] { border-color: #f1c40f; box-shadow: inset 0 0 0 1px #f1c40f; }
@@ -2759,15 +2828,24 @@
         <button type="button" class="panel-inicio active" id="btnInicio" onclick="irAInicio()" aria-label="Inicio" aria-current="page" title="Inicio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5.5h4V20"/></svg><span class="panel-inicio-txt">Inicio</span></button>
         <p class="panel-title" style="margin:0;">ST Admin<span class="panel-title-extra"> Panel</span> <span id="roleBadge" style="display:none;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;margin-left:var(--badge-ml,.5rem);vertical-align:middle;"></span></p>
       </div>
-      <div style="display:flex;align-items:center;gap:.5rem;">
+      <!-- [ATAJOS-ARRIBA] 16-oct (pedido 4 de Alejo, opción A): los 4 de todos los días, los mismos botones de Inicio (irDesdeInicio: misma carga,
+           misma regla de roles). A ≤ 700 bajan a una fila propia debajo del encabezado; el de la pestaña abierta va relleno. -->
+      <div class="panel-derecha" style="display:flex;align-items:center;gap:.5rem;">
         <span id="syncIndicator" class="sync-indicator" style="display:none;" title="Estado de sincronización entre tablets"></span>
+        <!-- [ATAJOS-ARRIBA] sólo el ícono (el texto «Oscuro» / «Claro» queda para los lectores de pantalla) -->
         <button id="themeToggleBtn" onclick="toggleAdminTheme()" title="Alternar tema claro / oscuro"
-          style="background:transparent;border:1px solid var(--borde);color:var(--gris-claro);font-size:.7rem;padding:.35rem .6rem;border-radius:4px;cursor:pointer;letter-spacing:.05em;display:flex;align-items:center;gap:.3rem;">
+          style="background:transparent;border:1px solid var(--borde);color:var(--gris-claro);font-size:.9rem;min-width:var(--tap-min);min-height:var(--tap-min);padding:0 .5rem;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem;">
           <span id="themeToggleIcon">🌙</span>
-          <span id="themeToggleLabel">Oscuro</span>
+          <span id="themeToggleLabel" class="sr-only">Oscuro</span>
         </button>
-        <button class="panel-logout" onclick="colaAntesDeSalir() && doLogout()">Cerrar sesión</button>
+        <button class="panel-logout" onclick="colaAntesDeSalir() && doLogout()" title="Cerrar sesión">Salir</button>
       </div>
+      <nav class="panel-atajos" id="panelAtajos" aria-label="Atajos">
+        <button type="button" class="panel-atajo" data-atajo="precios" onclick="irDesdeInicio('precios')" title="Precios &amp; Stock"><span class="pa-ico" aria-hidden="true">&#128176;</span><span class="pa-txt">Precios</span></button>
+        <button type="button" class="panel-atajo" data-atajo="deposito" onclick="irDesdeInicio('deposito')" title="Depósito"><span class="pa-ico" aria-hidden="true">&#128230;</span><span class="pa-txt">Depósito</span></button>
+        <button type="button" class="panel-atajo" data-atajo="espera" onclick="irDesdeInicio('espera')" title="Espera"><span class="pa-ico" aria-hidden="true">&#128205;</span><span class="pa-txt">Espera</span></button>
+        <button type="button" class="panel-atajo" data-atajo="hoja" onclick="irDesdeInicio('hoja')" title="Reemplazo de hoja"><span class="pa-ico" aria-hidden="true">&#129534;</span><span class="pa-txt">Hoja</span></button>
+      </nav>
     </div>
 
     <!-- [ZAPATO] Sidebar lateral + main content -->
@@ -2902,12 +2980,13 @@
         <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <!-- [ESCANER] 163a · el código de barras es una forma más de buscar -->
         <button type="button" class="btn-escanear" id="btnEscanearPrecios" onclick="escanearAbrir('precios')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
-        <select class="admin-search" id="sortPrecios" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
+        <!-- [SELECTS-A-CUADRADOS] 16-oct · el menú queda en el DOM (escondido) y lo manejan los cuadrados que pinta cuadrosInit -->
+        <select class="admin-search" id="sortPrecios" data-cuadros="Orden" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="name-asc" selected>Nombre A-Z</option>
           <option value="name-desc">Nombre Z-A</option>
-          <option value="price-desc">Precio mayor a menor</option>
-          <option value="price-asc">Precio menor a mayor</option>
-          <option value="stock-max">Mayor stock primero</option>
+          <option value="price-desc">Precio ↓</option>
+          <option value="price-asc">Precio ↑</option>
+          <option value="stock-max">Más stock</option>
           <option value="stock-out">Sin stock primero</option>
         </select>
         <!-- [STOCK-FOTO] interruptor «Con foto» (la misma preferencia que el de Depósito) -->
@@ -2973,7 +3052,7 @@
         <input type="text" class="admin-search" id="searchDeposito" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('deposito')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <!-- [ESCANER] 163a -->
         <button type="button" class="btn-escanear" id="btnEscanearDeposito" onclick="escanearAbrir('deposito')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
-        <select class="admin-search" id="sortDeposito" onchange="renderDeposito()" style="margin-bottom:0;width:auto;min-width:150px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
+        <select class="admin-search" id="sortDeposito" data-cuadros="Orden" onchange="renderDeposito()" style="margin-bottom:0;width:auto;min-width:150px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="dep-desc" selected>Más en depósito</option>
           <option value="dep-asc">Menos en depósito</option>
           <option value="name-asc">Nombre A-Z</option>
@@ -3070,7 +3149,7 @@
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
               <label class="modal-label">Tipo de producto</label>
-              <select class="modal-input" id="editTipo" onchange="onEditTipoChange()" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+              <select class="modal-input" id="editTipo" data-cuadros onchange="onEditTipoChange()" style="margin-bottom:0;cursor:pointer;appearance:auto;">
                 <option value="">Perfume (por defecto)</option>
                 <option value="Desodorante">Desodorante</option>
                 <option value="Body Spray">Body Spray</option>
@@ -3104,7 +3183,7 @@
             </div>
             <div>
               <label class="modal-label">Categoría</label>
-              <select class="modal-input" id="editCat" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+              <select class="modal-input" id="editCat" data-cuadros style="margin-bottom:0;cursor:pointer;appearance:auto;">
                 <option value="Unisex">Unisex</option>
                 <option value="Hombre">Hombre</option>
                 <option value="Mujer">Mujer</option>
@@ -3137,6 +3216,15 @@
                 <span>No ofrecer este perfume en decants</span>
               </label>
               <p id="editDecantHint" style="font-size:.66rem;margin:.35rem 0 0;line-height:1.5;"></p>
+            </div>
+            <!-- [ELEGIDOS-EXCLUIR] 16-oct · el perfume no entra al sorteo diario de la Selección ST (pedido 2 de Alejo, opción B: también la lista de Destacados) -->
+            <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
+              <p style="font-size:.65rem;font-weight:700;color:var(--amarillo-tinta);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">⭐ Elegidos del día</p>
+              <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:inherit;cursor:pointer;margin:.2rem 0;">
+                <input type="checkbox" id="editElegidosExcluido"/>
+                <span>No sale en Elegidos del día</span>
+              </label>
+              <p style="font-size:.66rem;color:var(--gris-claro);margin:.35rem 0 0;line-height:1.5;">Sigue en el catálogo y se puede pedir: sólo no entra al sorteo de los 3 de cada día. La lista de los que están afuera vive en Destacados.</p>
             </div>
             <div style="grid-column:1/-1;background:rgba(232,184,0,.05);border:1px solid rgba(232,184,0,.15);border-radius:6px;padding:.7rem;">
               <p style="font-size:.65rem;font-weight:700;color:var(--amarillo-tinta);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">⏰ Descuento temporal</p>
@@ -3301,7 +3389,7 @@
           <div class="admin-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
             <div style="grid-column:1/-1;">
               <label class="modal-label">Tipo de producto</label>
-              <select class="modal-input" id="nuevoTipo" onchange="onNuevoTipoChange()" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+              <select class="modal-input" id="nuevoTipo" data-cuadros onchange="onNuevoTipoChange()" style="margin-bottom:0;cursor:pointer;appearance:auto;">
                 <option value="">Perfume (por defecto)</option>
                 <option value="Desodorante">Desodorante</option>
                 <option value="Body Spray">Body Spray</option>
@@ -3335,7 +3423,7 @@
             </div>
             <div>
               <label class="modal-label">Categoría *</label>
-              <select class="modal-input" id="nuevoCat" style="margin-bottom:0;cursor:pointer;appearance:auto;">
+              <select class="modal-input" id="nuevoCat" data-cuadros style="margin-bottom:0;cursor:pointer;appearance:auto;">
                 <option value="Unisex">Unisex</option>
                 <option value="Hombre">Hombre</option>
                 <option value="Mujer">Mujer</option>
@@ -3437,6 +3525,16 @@
 
     <!-- TAB: DESTACADOS -->
     <div class="tab-content" id="tab-destacados"><div id="destacadosAviso" style="background:#111;border:1px solid var(--tinta-aviso);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1rem;"><p style="font-size:.8rem;font-weight:600;color:var(--tinta-aviso);margin-bottom:.3rem;">ℹ️ La Selección ST ahora rota sola, todos los días</p><p style="font-size:.75rem;color:var(--gris-claro);line-height:1.5;max-width:640px;margin:0;">Cada día el sitio sortea entre los perfumes que tienen foto y se pueden pedir (con stock y sin pausar), y muestra 3. Lo que cargues acá <strong>ya no cambia lo que se ve</strong> (ni la lista ni el texto del badge): queda como respaldo y solo vuelve a mandar si se apaga la rotación (<code>SELECCION_ROTA</code> en <code>js/app.js</code>).</p></div>
+      <!-- [ELEGIDOS-EXCLUIR] 16-oct · opción B de Alejo: la lista de los que no entran al sorteo, con «Volver a incluir» y un buscador para sacar otro (Tarjetero) -->
+      <div class="eleg-caja" id="elegidosCaja">
+        <p class="eleg-titulo">⭐ Fuera de los Elegidos del día</p>
+        <p class="eleg-bajada">Siguen en el catálogo y se piden como siempre: sólo no entran al sorteo diario de los 3. Lo mismo se tilda desde Editar («No sale en Elegidos del día»).</p>
+        <div id="elegidosLista" class="eleg-lista"></div>
+        <label class="modal-label" for="elegidosBuscar" style="margin-top:.9rem;">Sacar otro perfume del sorteo</label>
+        <input type="search" class="admin-search" id="elegidosBuscar" placeholder="Escribí el nombre y tocá el perfume…" autocomplete="off" oninput="elegidosBuscarPintar()" style="margin-bottom:.4rem;"/>
+        <div id="elegidosResultados"></div>
+        <p id="elegidosMsg" class="eleg-msg" aria-live="polite"></p>
+      </div>
       <!-- [SELECCION-BADGE] Texto del badge amarillo de las cards de Selección ST.
            Tabla Supabase: seleccion_st_config (single-row, id=1). Default "TOP VENTAS".
            Útil para cambiarlo en campañas: HOT SALE / NUEVO / OFERTA / 50% OFF / BLACK FRIDAY. -->
@@ -3779,10 +3877,10 @@
         <input type="text" class="modal-input" id="comboName" placeholder="Ej: SET YARA MINI x4"/>
         <div style="display:flex;gap:.5rem;">
           <div style="flex:1"><label class="modal-label">Categor&iacute;a</label>
-            <select class="modal-input" id="comboCat" style="cursor:pointer;"><option value="Unisex">Unisex</option><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select>
+            <select class="modal-input" id="comboCat" data-cuadros style="cursor:pointer;"><option value="Unisex">Unisex</option><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select>
           </div>
           <div style="flex:1"><label class="modal-label">Tipo</label>
-            <select class="modal-input" id="comboTipo" style="cursor:pointer;"><option value="pack">Pack</option><option value="mini-collection">Mini Collection</option><option value="regalo">Regalo</option></select>
+            <select class="modal-input" id="comboTipo" data-cuadros style="cursor:pointer;"><option value="pack">Pack</option><option value="mini-collection">Mini Collection</option><option value="regalo">Regalo</option></select>
           </div>
         </div>
         <div style="display:flex;gap:.5rem;">
@@ -5419,6 +5517,9 @@
         }
       });
 
+      // [ATAJOS-ARRIBA] un atajo a una pestaña que la empleada no ve, no se muestra (hoy las 4 son de las dos cuentas)
+      document.querySelectorAll('.panel-atajo').forEach(function(a) { a.hidden = !canAccessTab(a.dataset.atajo); });
+
       // [PANEL-INICIO] 133a · el panel arranca en Inicio, también para la empleada (antes: la primera pestaña visible)
       document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
       document.getElementById('tab-inicio').classList.add('active');
@@ -5823,6 +5924,7 @@
 
     window.initCamposConX = initCamposConX;   // re-ejecutable si algo se crea después
     document.addEventListener('DOMContentLoaded', initCamposConX);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', cuadrosInit); else cuadrosInit();   // [SELECTS-A-CUADRADOS]
 
     function switchTab(tab, btn) {
       // Bloqueo por rol: si un empleado intenta forzar una pestaña jefe-only, abortar
@@ -5834,6 +5936,8 @@
       // [PANEL-INICIO] 133b · el botón «Inicio» del encabezado va relleno sólo en Inicio (y ninguna pestaña del menú queda marcada)
       var bi = document.getElementById('btnInicio');
       if (bi) { bi.classList.toggle('active', tab === 'inicio'); if (tab === 'inicio') bi.setAttribute('aria-current', 'page'); else bi.removeAttribute('aria-current'); }
+      if (tab === 'destacados') { try { elegidosPintar(); } catch(e) {} }   // [ELEGIDOS-EXCLUIR] la lista sale de la memoria: se pinta cada vez
+      document.querySelectorAll('.panel-atajo').forEach(function(a) { if (a.dataset.atajo === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });   // [ATAJOS-ARRIBA]
 
       // Lazy load: cargar datos solo la primera vez que se entra a la tab
       if (!tabLoaded[tab]) {
@@ -5972,6 +6076,8 @@
           // [DECANT-PRECIO-MANUAL] para que el form de Editar muestre lo guardado
           if (o.precio_decant !== undefined && o.precio_decant !== null) p._precioDecant = o.precio_decant;
           if (o.decant_excluido !== undefined && o.decant_excluido !== null) p._decantExcluido = !!o.decant_excluido;
+          // [ELEGIDOS-EXCLUIR] 16-oct · no entra al sorteo de «Elegidos del día» (Editar y Destacados lo tildan)
+          if (o.elegidos_excluido !== undefined && o.elegidos_excluido !== null) p._elegidosExcluido = !!o.elegidos_excluido;
         });
     }
 
@@ -8891,6 +8997,47 @@
     // y una línea chica abajo. Se usa en el buscador de la hoja, los decants de diseñador, «Llegó mercadería», el código nuevo del escáner y
     // «Anotar del mostrador». items: [{ onclick: 'código JS ya escapado para el atributo', nombre, sub, etiqueta: 'html (badge) ya armado', elegida }].
     // nombre y sub se escapan acá. Una lista nueva de «elegir uno» en el panel usa esto (NO ROMPER #33).
+    // ============================================================
+    // [SELECTS-A-CUADRADOS] 16-oct · cada <select data-cuadros> se esconde y al lado van cuadrados, uno por opción. Tocar uno pone
+    // el valor en el select y dispara su change/input (los onchange inline siguen andando). Para que un `sel.value = …` desde el
+    // código (loadEditPerfume, editCombo, limpiar el alta) también pinte el cuadrado, se engancha el setter de .value de esos 8
+    // selects (el de HTMLSelectElement.prototype más cuadrosSync). Un select nuevo de pocas opciones: data-cuadros y listo.
+    // ============================================================
+    function cuadrosSync(sel) {
+      var g = sel._cuadros; if (!g) return;
+      var v = sel.value;
+      g.querySelectorAll('.cuadro').forEach(function(b) { b.setAttribute('aria-pressed', b.dataset.valor === v ? 'true' : 'false'); });
+    }
+    function cuadrosInit() {
+      var desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+      document.querySelectorAll('select[data-cuadros]').forEach(function(sel) {
+        if (sel._cuadros) return;
+        var g = document.createElement('div');
+        g.className = 'cuadros'; g.setAttribute('role', 'group');
+        var tit = sel.getAttribute('data-cuadros');
+        var lbl = sel.closest('div') ? sel.closest('div').querySelector('label.modal-label') : null;
+        g.setAttribute('aria-label', tit || (lbl ? lbl.textContent.trim() : sel.id));
+        if (tit) { var t = document.createElement('span'); t.className = 'cuadros-tit'; t.textContent = tit; t.setAttribute('aria-hidden', 'true'); g.appendChild(t); }
+        Array.prototype.forEach.call(sel.options, function(op) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'cuadro'; b.dataset.valor = op.value; b.textContent = op.text.replace(/\.\.\.$/, '…');
+          b.addEventListener('click', function() {
+            if (sel.value === op.value) return;
+            sel.value = op.value;
+            sel.dispatchEvent(new Event('input', { bubbles: true }));
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          g.appendChild(b);
+        });
+        sel._cuadros = g;
+        sel.classList.add('cuadros-origen');
+        sel.parentNode.insertBefore(g, sel.nextSibling);
+        if (desc && desc.set) {
+          try { Object.defineProperty(sel, 'value', { configurable: true, get: function() { return desc.get.call(this); }, set: function(v) { desc.set.call(this, v); cuadrosSync(this); } }); } catch (e) {}
+        }
+        cuadrosSync(sel);
+      });
+    }
     function tarjeteroHTML(items) {
       // it.clase (opcional): clases extra de la tarjeta · it.antes (opcional, HTML ya escapado): lo que va antes del nombre,
       // p. ej. la foto chica de los decants de diseñador ([DECANTS-TARJETERO]).
@@ -9416,6 +9563,7 @@
       // [DECANT-PRECIO-MANUAL]
       document.getElementById('editPrecioDecant').value = (p._precioDecant != null ? p._precioDecant : '');
       document.getElementById('editDecantExcluido').checked = !!p._decantExcluido;
+      document.getElementById('editElegidosExcluido').checked = !!p._elegidosExcluido;   // [ELEGIDOS-EXCLUIR]
       decantHintAdmin('edit');
       document.getElementById('editDescuentoPct').value = p.descuento_pct || '';
       // Formatear fecha para el input datetime-local
@@ -9749,7 +9897,9 @@
                             var v = parseInt(document.getElementById('editPrecioDecant').value, 10);
                             return (isNaN(v) || v <= 0) ? null : v;
                           })(),
-        decant_excluido: !!document.getElementById('editDecantExcluido').checked
+        decant_excluido: !!document.getElementById('editDecantExcluido').checked,
+        // [ELEGIDOS-EXCLUIR] 16-oct · no entra al sorteo de «Elegidos del día»
+        elegidos_excluido: !!document.getElementById('editElegidosExcluido').checked
       };
 
       var msgEl = document.getElementById('editMsg');
@@ -9780,6 +9930,14 @@
         delete obj.acordes; acordesSinColumna = true;
         var retryAc = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
         error = retryAc.error;
+      }
+
+      // [ELEGIDOS-EXCLUIR] sin la columna (falta sql/elegidos_excluido.sql) se guarda el resto y se avisa
+      var elegidosSinColumna = false;
+      if (error && /elegidos_excluido/i.test(error.message || '')) {
+        delete obj.elegidos_excluido; elegidosSinColumna = true;
+        var retryEl = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
+        error = retryEl.error;
       }
 
       // [DECANT-PRECIO-MANUAL] Si todavía no se corrió el ALTER TABLE, reintentamos
@@ -9828,6 +9986,10 @@
           });
         }
       });
+      // [ELEGIDOS-EXCLUIR] el tilde deja su renglón («sale» / «no sale»); oldP lo tiene como _elegidosExcluido, no como columna
+      if (!elegidosSinColumna && !!oldP._elegidosExcluido !== !!obj.elegidos_excluido) {
+        logs.push({ slug: slug, nombre: obj.name, campo: 'Elegidos del día', valor_anterior: oldP._elegidosExcluido ? 'no sale' : 'sale', valor_nuevo: obj.elegidos_excluido ? 'no sale' : 'sale', editado_por: currentRole || 'admin' });
+      }
       if (logs.length > 0) {
         // Audit log nuevo (admin_actions): resumen compacto de los campos cambiados
         var changesCompact = {};
@@ -9856,6 +10018,8 @@
         }
         Object.assign(PERFUMES[idx], merged);
         if (acordesCambio && !acordesSinColumna) PERFUMES[idx].acordes = acordesCambio;   // [A-QUE-HUELE-AUTO] también el de perfumes_nuevos, que no pasa por obj
+        if (!elegidosSinColumna) PERFUMES[idx]._elegidosExcluido = !!obj.elegidos_excluido;   // [ELEGIDOS-EXCLUIR] la memoria usa la marca con guión, como el catálogo
+        try { elegidosPintar(); } catch(e) {}
       }
 
       // Re-renderizar TODAS las tablas del admin inmediatamente
@@ -9872,6 +10036,7 @@
       msgEl.textContent = '\u2713 ' + obj.name + ' actualizado';
       msgEl.style.color = 'var(--tinta-ok)';
       if (acordesSinColumna) { msgEl.textContent = '\u26a0 ' + obj.name + ' guardado SIN los acordes (falta correr el SQL de los acordes).'; msgEl.style.color = 'var(--tinta-aviso)'; }
+      if (elegidosSinColumna) { msgEl.textContent = '\u26a0 ' + obj.name + ' guardado SIN «Elegidos del día» (falta correr sql/elegidos_excluido.sql).'; msgEl.style.color = 'var(--tinta-aviso)'; }
       notifyTelegram('\u270f\ufe0f Perfume editado: ' + obj.name + '\n\ud83d\udccb Cambios guardados en Supabase');
       return { ok: true };
     }
@@ -12407,6 +12572,8 @@
       if (typeof ov.stock_deposito === 'number' && p._stockDeposito !== ov.stock_deposito) { p._stockDeposito = ov.stock_deposito; changed = true; }
       if (ov.price && p.price !== ov.price)                                 { p.price = ov.price; changed = true; }
       if (typeof ov.promo !== 'undefined' && p.promo !== ov.promo)          { p.promo = ov.promo; changed = true; }
+      // [ELEGIDOS-EXCLUIR] si otra tablet lo tildó, acá se ve en Editar y en la lista de Destacados
+      if (typeof ov.elegidos_excluido === 'boolean' && !!p._elegidosExcluido !== ov.elegidos_excluido) { p._elegidosExcluido = ov.elegidos_excluido; changed = true; try { elegidosPintar(); } catch(e) {} }
       return changed;
     }
 
@@ -12776,6 +12943,66 @@
     document.getElementById('editDescuentoPct').addEventListener('input', updateDescuentoPreview);
     document.getElementById('editDescuentoHasta').addEventListener('input', updateDescuentoPreview);
 
+    // ============================================================
+    // [ELEGIDOS-EXCLUIR] 16-oct · la lista «Fuera de los Elegidos del día» (Destacados). Escribe SÓLO esa columna con UPDATE
+    // (NO ROMPER #36: nunca INSERT de una fila suelta); si el perfume no tiene fila en perfume_overrides, manda a Editar con el
+    // tilde puesto para que lo guarde el formulario entero. Sin la lectura de los overrides no escribe (#20).
+    // ============================================================
+    function elegidosExcluidos() {
+      return PERFUMES.filter(function(p) { return p && p._elegidosExcluido && !p.esSet; })
+        .sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || '')); });
+    }
+    function elegidosPintar() {
+      var cont = document.getElementById('elegidosLista');
+      if (!cont) return;
+      var lista = elegidosExcluidos();
+      if (!lista.length) { cont.innerHTML = '<p class="eleg-vacia">Ninguno: hoy entran al sorteo todos los que tienen foto y se pueden pedir.</p>'; return; }
+      cont.innerHTML = lista.map(function(p) {
+        return '<div class="eleg-fila" data-slug="' + escHtml(p.slug) + '"><span class="eleg-nombre">' + escHtml(p.name || p.slug) + '<span class="eleg-marca">' + escHtml(p.marca_real || p.marca || '') + '</span></span>'
+          + '<button type="button" class="doc-accion" onclick="elegidosEscribir(' + escHtml(JSON.stringify(String(p.slug))) + ', false)">✕ Volver a incluir</button></div>';
+      }).join('');
+    }
+    function elegidosBuscarPintar() {
+      var cont = document.getElementById('elegidosResultados');
+      var q = codNorm(document.getElementById('elegidosBuscar').value).trim();
+      if (q.length < 2) { cont.innerHTML = ''; return; }
+      var lista = PERFUMES.filter(function(p) {
+        return p && !p.esSet && !p._elegidosExcluido && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(q) !== -1;
+      }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); });
+      if (!lista.length) { cont.innerHTML = '<p class="eleg-vacia">No hay ningún perfume con ese nombre (o ya está en la lista de arriba).</p>'; return; }
+      cont.innerHTML = tarjeteroHTML(lista.slice(0, 12).map(function(p) {   // [TARJETERO] NO ROMPER #33: un toque lo saca del sorteo
+        return { onclick: 'elegidosEscribir(' + escHtml(JSON.stringify(String(p.slug))) + ', true)', nombre: p.name || '', sub: p.marca_real || p.marca || '' };
+      })) + (lista.length > 12 ? '<p class="eleg-vacia">Hay ' + lista.length + ': seguí escribiendo para achicar la lista.</p>' : '');
+    }
+    async function elegidosEscribir(slug, excluir) {
+      var msg = document.getElementById('elegidosMsg');
+      if (faltaOverrides(msg)) return;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      msg.textContent = 'Guardando…'; msg.style.color = 'var(--tinta-aviso)';
+      var r = await sb.from('perfume_overrides').update({ elegidos_excluido: !!excluir }).eq('slug', slug).select('slug');
+      if (r.error) {
+        msg.textContent = /elegidos_excluido/i.test(r.error.message || '') ? 'Falta correr sql/elegidos_excluido.sql en Supabase: la columna todavía no existe.' : errorEnCriollo(r.error, 'perfume', null, true);
+        msg.style.color = 'var(--tinta-error)';
+        return;
+      }
+      if (!r.data || !r.data.length) {   // sin fila de ajustes: NO ROMPER #36, no se inserta una suelta; lo guarda Editar entero
+        msg.textContent = (p.name || slug) + ' todavía no tiene fila de ajustes: te abro Editar con el tilde puesto, tocá «Guardar cambios».';
+        msg.style.color = 'var(--tinta-aviso)';
+        doctorGoEdit(slug, 'elegidos');
+        setTimeout(function() { var c = document.getElementById('editElegidosExcluido'); if (c) c.checked = !!excluir; }, 50);
+        return;
+      }
+      p._elegidosExcluido = !!excluir;
+      var antes = excluir ? 'sale' : 'no sale', despues = excluir ? 'no sale' : 'sale';
+      logAdminAction('perfume_edit', slug, { 'Elegidos del día': { old: antes, new: despues } });
+      sb.from('edit_log').insert([{ slug: slug, nombre: p.name || slug, campo: 'Elegidos del día', valor_anterior: antes, valor_nuevo: despues, editado_por: currentRole || 'admin' }]).then(function() { tabLoaded['editar'] = false; });
+      document.getElementById('elegidosBuscar').value = '';
+      document.getElementById('elegidosResultados').innerHTML = '';
+      elegidosPintar();
+      msg.textContent = excluir ? '✓ ' + (p.name || slug) + ' ya no entra al sorteo: el sitio deja de mostrarlo en la próxima carga.' : '✓ ' + (p.name || slug) + ' vuelve a entrar al sorteo.';
+      msg.style.color = 'var(--tinta-ok)';
+    }
     function doctorGoEdit(slug, campo) {
       // Cambiar a la pestaña Editar
       var editBtn = document.querySelector('.tab-btn[onclick*="editar"]');
@@ -12783,7 +13010,7 @@
       // Cargar el perfume en el formulario
       loadEditPerfume(slug);
       // [DOCTOR-ARREGLA] con campo: Editar queda parado y marcado en ese campo (2 s de borde dorado); sin campo, arriba de todo
-      var ids = { foto: 'editFoto', price: 'editPrice', acordes: 'editAcordes', alias: 'editAlias', perfil: 'editPerfil', marca: 'editMarca', cat: 'editCat', ml: 'editMl' };
+      var ids = { foto: 'editFoto', price: 'editPrice', acordes: 'editAcordes', alias: 'editAlias', perfil: 'editPerfil', marca: 'editMarca', cat: 'editCat', ml: 'editMl', elegidos: 'editElegidosExcluido' };   // [ELEGIDOS-EXCLUIR] también manda al tilde
       var el = campo && ids[campo] ? document.getElementById(ids[campo]) : null;
       if (!el) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
       setTimeout(function() {
