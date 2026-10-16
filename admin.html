@@ -6658,7 +6658,13 @@
       }
     }
 
+    var DEP_GUARDANDO = false;   // [VALIDAR-STOCK] un solo guardado a la vez
     async function saveDeposito() {
+      if (DEP_GUARDANDO) return;
+      DEP_GUARDANDO = true;
+      try { return await saveDepositoAhora(); } finally { DEP_GUARDANDO = false; }
+    }
+    async function saveDepositoAhora() {
       if (!editingDepSlug) return;
       var p = PERFUMES.find(function(pf) { return pf.slug === editingDepSlug; });
       if (!p) return;
@@ -6670,9 +6676,14 @@
         return;
       }
       var btn = document.getElementById('modalDepBtn');
-      var qty = parseInt(document.getElementById('modalDepQty').value, 10);
-      if (isNaN(qty) || qty < 0) qty = 0;
+      var cvd = cantidadDeTexto(document.getElementById('modalDepQty').value);   // [VALIDAR-STOCK] vacío o negativo ya no vacía el depósito
+      if (!cvd.ok) { cantidadError(msgEl, document.getElementById('modalDepQty'), cvd.texto); return; }
+      var qty = cvd.n;
       var prev = depQty(p);
+      if (qty === prev) {   // nada cambió: ni se escribe ni deja renglones en el Log
+        msgEl.textContent = 'Sin cambios: el depósito ya tenía ' + qty + '.'; msgEl.style.color = 'var(--tinta-aviso)';
+        return;
+      }
 
       // [DEP-SUMAR] Ante CUALQUIER bajada del depósito movemos la DIFERENCIA
       // al stock local, salvo que tilden "No sumar". El depósito está debajo
@@ -6687,6 +6698,10 @@
       var newLocal, prevStatus, newStatus;
       if (sumar) {
         newLocal = prevLocal + movidas;
+        if (newLocal > 999) {   // [VALIDAR-STOCK] el local no pasa de 999: antes llegaba a 1002 y se guardaba
+          cantidadError(msgEl, document.getElementById('modalDepQty'), 'El local pasaría de 999 (hoy tiene ' + prevLocal + ' y se le sumarían ' + movidas + '). Tildá «No sumar al stock local» o revisá la cantidad.');
+          return;
+        }
         prevStatus = p._stockStatus || 'ok';
         // Recalcular estado desde la nueva cantidad (respeta 'pausado')
         newStatus = deriveStockInfo({ _stockQty: newLocal,
@@ -8228,8 +8243,9 @@
     function updateStockPreview() {
       var box = document.getElementById('modalStockPreviewBadge');
       if (!box) return;
-      var qty = parseInt(document.getElementById('modalStockQty').value, 10);
-      if (isNaN(qty) || qty < 0) qty = 0;
+      var cvp = cantidadDeTexto(document.getElementById('modalStockQty').value);   // [VALIDAR-STOCK] vacío o mal escrito: no se muestra «Sin stock»
+      if (!cvp.ok) { box.innerHTML = '<span class="badge-stock" style="background:transparent;color:var(--tinta-aviso);border:1px dashed var(--tinta-aviso);">Falta la cantidad</span>'; return; }
+      var qty = cvp.n;
       var paused = document.getElementById('modalStockPaused').checked;
 
       // Simular un objeto perfume para reutilizar deriveStockInfo
@@ -8420,7 +8436,28 @@
       }
     }
 
+    // [VALIDAR-STOCK] 16-oct (A3 y A4 del QA): una cantidad vacía, negativa o con letras ya no se guarda como 0 («Sin stock») sin avisar.
+    // Es la misma regla de «Llegó mercadería»: entero de 0 a 999. La usan el modal de stock y el de depósito.
+    function cantidadDeTexto(txt) {
+      var s = String(txt == null ? '' : txt).trim();
+      if (s === '') return { ok: false, texto: 'Poné la cantidad (0 si no queda ninguno).' };
+      if (!/^\d+$/.test(s)) return { ok: false, texto: 'La cantidad tiene que ser un número entero, de 0 en adelante (sin comas ni signos).' };
+      var n = parseInt(s, 10);
+      if (n > 999) return { ok: false, texto: 'La cantidad máxima es 999.' };
+      return { ok: true, n: n };
+    }
+    function cantidadError(msgEl, inp, texto) {   // el motivo en rojo, el foco en el campo, nada se guarda
+      msgEl.textContent = texto; msgEl.style.color = 'var(--tinta-error)';
+      try { inp.focus(); inp.select(); } catch (e) {}
+    }
+    // Un solo guardado a la vez: el doble toque no escribe dos veces (y el segundo ya ve «Sin cambios»).
+    var STOCK_GUARDANDO = false;
     async function saveStock() {
+      if (STOCK_GUARDANDO) return;
+      STOCK_GUARDANDO = true;
+      try { return await saveStockAhora(); } finally { STOCK_GUARDANDO = false; }
+    }
+    async function saveStockAhora() {
       var p = PERFUMES.find(function(pf) { return pf.slug === editingSlug; });
       if (!p) return;
       var msgEl = document.getElementById('modalStockMsg');
@@ -8431,9 +8468,15 @@
         return;
       }
 
-      var qty = parseInt(document.getElementById('modalStockQty').value, 10);
-      if (isNaN(qty) || qty < 0) qty = 0;
+      var cv = cantidadDeTexto(document.getElementById('modalStockQty').value);   // [VALIDAR-STOCK]
+      if (!cv.ok) { cantidadError(msgEl, document.getElementById('modalStockQty'), cv.texto); return; }
+      var qty = cv.n;
       var paused = document.getElementById('modalStockPaused').checked;
+      var qtyAntes = (typeof p._stockQty === 'number') ? p._stockQty : null;
+      if (qty === qtyAntes && paused === ((p._stockStatus || 'ok') === 'pausado')) {   // nada cambió: ni se escribe ni deja renglón en el Log
+        msgEl.textContent = 'Sin cambios: ya estaba en ' + qty + '.'; msgEl.style.color = 'var(--tinta-aviso)';
+        return;
+      }
 
       // Derivar status automáticamente desde qty (o 'pausado' si el toggle está activo)
       var fake = { _stockQty: qty, _stockStatus: paused ? 'pausado' : null };
@@ -10328,6 +10371,56 @@
     }
 
     var editConOverrides = false;   // [GUARDAR-SIN-LEER] el formulario se llenó con los overrides de la base
+    // [VALIDAR-EDICION] 16-oct (A1 y A2 del QA): Editar guardaba precio vacío / 0 / negativo / «abc», promo mayor que la lista, nombre vacío,
+    // ml negativos y descuentos de 100 %, siempre con «✓ actualizado». Ahora se revisa TODO antes de pedir «ST» y no se guarda nada si algo está mal.
+    // Las reglas son las del lápiz ✎ (precio de lista > 0, promo menor que la lista) más límites sensatos; lo que sí se guarda se normaliza a pesos
+    // enteros sin separadores («98.500» → 98500, «98,500.00» → 98500), el mismo formato del lápiz.
+    function precioDeTexto(txt) {   // NaN si no es un precio; acepta 98500, 98.500, 98,500, 98.500,00, 98,500.00, $ 98.500
+      var s = String(txt == null ? '' : txt).replace(/[\s$]/g, '');
+      if (!s || /[^0-9.,]/.test(s)) return NaN;
+      var puntos = (s.match(/\./g) || []).length, comas = (s.match(/,/g) || []).length, seps = puntos + comas;
+      if (!seps) return parseFloat(s);
+      var ult = Math.max(s.lastIndexOf('.'), s.lastIndexOf(',')), tras = s.slice(ult + 1), antes = s.slice(0, ult);
+      var decimal = (puntos > 0 && comas > 0) || (seps === 1 && tras.length !== 3);   // el último separador es decimal; si no, son miles
+      if (decimal) {
+        if (!/^\d+$/.test(antes) && !/^\d{1,3}([.,]\d{3})+$/.test(antes)) return NaN;
+        if (!/^\d{1,2}$/.test(tras)) return NaN;
+        return parseFloat(antes.replace(/[.,]/g, '') + '.' + tras);
+      }
+      if (!/^\d{1,3}([.,]\d{3})+$/.test(s)) return NaN;   // 98.500 / 1.250.000 / 98,500: grupos de 3
+      return parseFloat(s.replace(/[.,]/g, ''));
+    }
+    function validarEdicionPerfume() {
+      var val = function(id) { return String(document.getElementById(id).value || '').trim(); };
+      var mal = function(campo, texto) { return { ok: false, campo: campo, texto: texto }; };
+      var pesos = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
+      var name = val('editName');
+      if (!name) return mal('editName', 'Poné el nombre del perfume.');
+      if (name.length > 60) return mal('editName', 'El nombre es muy largo (máximo 60 letras).');
+      if (!val('editPrice')) return mal('editPrice', 'Poné el precio de lista.');
+      var precio = precioDeTexto(val('editPrice'));
+      if (isNaN(precio) || precio !== Math.floor(precio)) return mal('editPrice', 'El precio tiene que ser un número positivo en pesos, sin centavos (ej: 98500 o 98.500).');
+      if (precio < 1 || precio > 99999999) return mal('editPrice', 'El precio de lista tiene que estar entre $1 y $99.999.999.');
+      var promo = '';
+      if (val('editPromo')) {
+        var pr = precioDeTexto(val('editPromo'));
+        if (isNaN(pr) || pr !== Math.floor(pr)) return mal('editPromo', 'La promo tiene que ser un número en pesos, sin centavos (o dejala vacía).');
+        if (pr < 1) return mal('editPromo', 'Si no hay promo, dejala vacía (no pongas 0).');
+        if (pr >= precio) return mal('editPromo', 'La promo tiene que ser menor que el precio de lista (' + pesos(precio) + ') o dejala vacía.');
+        promo = String(pr);
+      }
+      var ml = '';
+      if (val('editMl')) {
+        if (!/^\d+$/.test(val('editMl')) || Number(val('editMl')) < 1 || Number(val('editMl')) > 500) return mal('editMl', 'Los ml tienen que ser un número entre 1 y 500 (o dejalo vacío).');
+        ml = String(Number(val('editMl')));
+      }
+      var desc = 0;
+      if (val('editDescuentoPct')) {
+        if (!/^\d+$/.test(val('editDescuentoPct')) || Number(val('editDescuentoPct')) > 90) return mal('editDescuentoPct', 'El descuento va de 0 a 90 %.');
+        desc = Number(val('editDescuentoPct'));
+      }
+      return { ok: true, name: name, price: String(precio), promo: promo, ml: ml, descuento_pct: desc };
+    }
     async function saveEditPerfumeAhora() {
       var slug = document.getElementById('editSlug').value;
       if (!slug) return;
@@ -10338,6 +10431,16 @@
         var llegaron = 'Llegaron los datos del perfume: revisá y guardá de nuevo.';
         avisoLectura(document.getElementById('editMsg'), llegaron);
         return { ok: false, error: llegaron };
+      }
+
+      // [VALIDAR-EDICION] primero se revisan los valores: no se pide «ST» para guardar algo que está mal
+      var validado = validarEdicionPerfume();
+      if (!validado.ok) {
+        var msgVal = document.getElementById('editMsg');
+        msgVal.textContent = validado.texto; msgVal.style.color = 'var(--tinta-error)';
+        var campoMal = document.getElementById(validado.campo);
+        if (campoMal) { try { campoMal.scrollIntoView({ block: 'center' }); campoMal.focus(); } catch (e) {} }
+        return { ok: false, error: validado.texto };
       }
 
       // Doble verificación anti-error: pedir "ST" antes de impactar cambios
@@ -10363,16 +10466,16 @@
 
       var obj = {
         slug: slug,
-        name: document.getElementById('editName').value.trim().toUpperCase(),
+        name: validado.name.toUpperCase(),   // [VALIDAR-EDICION]
         marca: document.getElementById('editMarca').value.trim(),
         marca_real: document.getElementById('editMarcaReal').value.trim(),
         cat: document.getElementById('editCat').value,
         perfil: document.getElementById('editPerfil').value.trim() || 'Versátil',
         tipo: tipoFinal,
-        price: document.getElementById('editPrice').value.trim(),
-        promo: document.getElementById('editPromo').value.trim(),
-        ml: document.getElementById('editMl').value.trim(),
-        descuento_pct: parseInt(document.getElementById('editDescuentoPct').value) || 0,
+        price: validado.price,   // [VALIDAR-EDICION] ya normalizados (pesos enteros)
+        promo: validado.promo,
+        ml: validado.ml,
+        descuento_pct: validado.descuento_pct,
         descuento_hasta: document.getElementById('editDescuentoHasta').value ? new Date(document.getElementById('editDescuentoHasta').value).toISOString() : null,
         foto: document.getElementById('editFoto').value.trim(),
         notas_salida: document.getElementById('editSalida').value.trim(),
