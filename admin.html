@@ -2664,6 +2664,20 @@
     .res-fila { display: flex; flex-wrap: wrap; align-items: center; column-gap: .6rem; min-height: var(--tap-min); padding: .3rem 0; border-top: 1px solid var(--borde); font-size: .76rem; }
     .res-card-titulo + .res-fila { border-top: none; }
     /* [STATS-BANDAS] A8 (16-oct) · «Esta semana» (dorada) y «Desde el primer día» (gris, con borde) se distinguen sin leer el detalle */
+    /* [VISTA-COMPACTA] B2 (16-oct) · una línea por perfume, agrupada por letra con el encabezado pegado al scrollear */
+    #tab-precios.vista-compacta > .admin-table, #tab-deposito.vista-compacta > .admin-table,
+    #tab-precios.vista-compacta > #tipPrecios, #tab-deposito.vista-compacta > #tipDeposito { display: none; }
+    .compacto { margin-bottom: 1rem; }
+    .cp-letra { position: sticky; top: 0; z-index: 5; margin: 0; padding: .35rem .7rem; font-size: .8rem; font-weight: 800; letter-spacing: .08em; color: var(--amarillo-tinta); background: var(--fondo, var(--superficie)); border-bottom: 1px solid var(--amarillo-tinta); }
+    .cp-fila { display: flex; align-items: center; justify-content: space-between; gap: .6rem; min-height: 46px; padding: .25rem .7rem; border-bottom: 1px solid var(--borde); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .cp-fila:hover, .cp-fila:focus-visible { background: rgba(232,184,0,.1); outline: none; }
+    .cp-nombre { flex: 1 1 auto; min-width: 0; font-weight: 800; font-size: .86rem; overflow-wrap: anywhere; }
+    .cp-nombre small { font-weight: 400; font-size: .68rem; color: var(--gris); margin-left: .4rem; }
+    .cp-oculto { font-weight: 600; font-size: .62rem; color: var(--gris-claro); border: 1px solid var(--borde); border-radius: 999px; padding: 0 .4rem; margin-left: .4rem; }
+    .cp-chips { flex: 0 0 auto; display: flex; gap: .35rem; }
+    .cp-chip { min-width: 52px; min-height: 36px; padding: 0 .5rem; display: inline-flex; align-items: center; justify-content: center; gap: .25rem; font: inherit; font-size: .8rem; font-weight: 800; border-radius: 8px; border: 1.5px solid var(--borde); background: transparent; color: inherit; cursor: pointer; }
+    .cp-chip--cero { border-color: var(--tinta-error); color: var(--tinta-error); }
+    .cp-vacio { padding: 1rem; text-align: center; color: var(--gris); font-size: .78rem; }
     /* [EDICION-RAPIDA] C11 (16-oct) · el lápiz ✎ de las listas (sólo el jefe) y la ventana de edición rápida */
     .edr-lapiz { float: right; min-width: 44px; min-height: 44px; margin: -.3rem -.3rem 0 .4rem; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: var(--amarillo-tinta); border: 1.5px solid var(--borde); border-radius: 10px; font-size: 1.05rem; line-height: 1; cursor: pointer; font-family: inherit; }
     .td-fila-foto .edr-lapiz { float: none; margin: 0 0 0 auto; flex: 0 0 auto; }
@@ -3061,11 +3075,18 @@
         <button type="button" class="log-chip" data-filtro="sets" onclick="preciosFiltrar('sets')">📦 Sets</button>
         <button type="button" class="log-chip precios-nuevo-set" id="btnNuevoSet" hidden onclick="irACombo(null)">+ Nuevo set</button>
       </div>
+      <!-- [VISTA-COMPACTA] B2 (16-oct) · «Lista» es la de siempre, sin cambios; «Compacta» es una línea por perfume, por letra (pensada para ~300 perfumes). La elección se recuerda. -->
+      <div class="vista-lista vista-compacta-sw" role="group" aria-label="Cómo se ve el stock: lista o compacta" style="margin-bottom:.6rem;">
+        <span class="vista-lista-tit" aria-hidden="true">Mostrar</span>
+        <button type="button" class="vista-op vista-op2" data-compacta="0" aria-pressed="true" onclick="setCompacta(false)">Lista</button>
+        <button type="button" class="vista-op vista-op2" data-compacta="1" aria-pressed="false" onclick="setCompacta(true)">Compacta</button>
+      </div>
       <p class="aviso-lectura-tabla" id="avisoStockPrecios" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th></tr></thead>
         <tbody id="tbodyPrecios"></tbody>
       </table>
+      <div class="compacto" id="compactoPrecios" hidden></div>
       <!-- [OCULTAR-PAUSADOS] Red de seguridad: avisa que hay pausados fuera de la vista -->
       <p id="avisoPausados" style="font-size:.65rem;color:var(--gris);margin:.5rem 0 0;"></p>
     </div>
@@ -3115,11 +3136,18 @@
       </div>
       <p class="escaneo-nota" id="escaneoNotaDeposito" role="status" hidden></p>
       <p id="tipDeposito" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> o la badge de <strong>Local</strong> para cambiarlos. Es el mismo control que en <strong>Precios &amp; Stock</strong>.</p>
+      <!-- [VISTA-COMPACTA] B2 (16-oct) · «Lista» es la de siempre, sin cambios; «Compacta» es una línea por perfume, por letra (pensada para ~300 perfumes). La elección se recuerda. -->
+      <div class="vista-lista vista-compacta-sw" role="group" aria-label="Cómo se ve el stock: lista o compacta" style="margin-bottom:.6rem;">
+        <span class="vista-lista-tit" aria-hidden="true">Mostrar</span>
+        <button type="button" class="vista-op vista-op2" data-compacta="0" aria-pressed="true" onclick="setCompacta(false)">Lista</button>
+        <button type="button" class="vista-op vista-op2" data-compacta="1" aria-pressed="false" onclick="setCompacta(true)">Compacta</button>
+      </div>
       <p class="aviso-lectura-tabla" id="avisoStockDep" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Local</th><th>Depósito</th></tr></thead>
         <tbody id="tbodyDeposito"></tbody>
       </table>
+      <div class="compacto" id="compactoDeposito" hidden></div>
       <p id="avisoDeposito" style="font-size:.65rem;color:var(--gris);margin:.5rem 0 0;"></p>
     </div>
 
@@ -6569,7 +6597,7 @@
 
     // [VISTA-LISTA-PANEL] los dos «Vista: Sólo nombres | Con foto» (Precios y Depósito) marcan la misma preferencia
     function stockFotoSync() {
-      document.querySelectorAll('.vista-op').forEach(function(b) {
+      document.querySelectorAll('.vista-op[data-foto]').forEach(function(b) {   // [VISTA-COMPACTA] los de «Lista | Compacta» van aparte
         b.setAttribute('aria-pressed', (b.dataset.foto === '1') === STOCK_FOTO ? 'true' : 'false');
       });
     }
@@ -13855,6 +13883,79 @@
       var m = document.getElementById('modalEsperaQuien');
       if (m && m.classList.contains('active')) { closeModal('modalEsperaQuien'); e.preventDefault(); }
     });
+
+    // ============================================================
+    // [VISTA-COMPACTA] B2 (16-oct-2026) · el conmutador «Lista | Compacta» de Precios & Stock y Depósito. «Lista» es la tabla de siempre (sigue
+    // dibujándose, sólo se esconde con CSS: el escáner, flashRow y los filtros siguen andando). «Compacta» pinta, desde PERFUMES, una línea por
+    // perfume agrupada por letra inicial, con L (local) y D (depósito) a la derecha, rojo si es 0. Usa el buscador de la misma pestaña y
+    // «Mostrar pausados». Tocar la fila abre la edición rápida (jefe) o, para la empleada, el modal de stock; tocar un chip, el modal de esa cifra.
+    // La preferencia se recuerda (localStorage 'st_admin_compacta', con try/catch) y es la misma para las dos pestañas.
+    // ============================================================
+    var COMPACTA = false, _compactaRestaurada = false, COMPACTA_KEY = 'st_admin_compacta';
+    function compactaRestaurar() {
+      if (_compactaRestaurada) return;
+      _compactaRestaurada = true;
+      try { COMPACTA = localStorage.getItem(COMPACTA_KEY) === '1'; } catch (e) {}
+      compactaSync();
+    }
+    function compactaSync() {
+      ['precios', 'deposito'].forEach(function(t) { var el = document.getElementById('tab-' + t); if (el) el.classList.toggle('vista-compacta', COMPACTA); });
+      document.querySelectorAll('.vista-op[data-compacta]').forEach(function(b) { b.setAttribute('aria-pressed', (b.dataset.compacta === '1') === COMPACTA ? 'true' : 'false'); });
+      ['Precios', 'Deposito'].forEach(function(t) { var c = document.getElementById('compacto' + t); if (c) c.hidden = !COMPACTA; });
+    }
+    function setCompacta(on) {
+      COMPACTA = !!on;
+      try { localStorage.setItem(COMPACTA_KEY, COMPACTA ? '1' : '0'); } catch (e) {}
+      compactaSync();
+      compactoPintar();
+    }
+    function compactoPintar() {
+      compactaRestaurar();
+      if (!COMPACTA) return;
+      var q = null;
+      ['precios', 'deposito'].forEach(function(tab) {
+        var cont = document.getElementById('compacto' + (tab === 'precios' ? 'Precios' : 'Deposito'));
+        var tabEl = document.getElementById('tab-' + tab);
+        if (!cont || !tabEl || !tabEl.classList.contains('active')) return;   // sólo la pestaña que se está mirando
+        var busca = codNorm((document.getElementById('search' + (tab === 'precios' ? 'Precios' : 'Deposito')) || { value: '' }).value).trim();
+        var soloDep = tab === 'deposito' && (DEP_MODO === 'unidades' || (document.getElementById('chkSoloConDeposito') || {}).checked);
+        var statP = (tab === 'precios' && PRECIOS_STAT && stockCargado) ? PRECIOS_STAT : null;
+        var lista = PERFUMES.filter(function(p) {
+          if (p.esSet) return false;
+          if (p._stockStatus === 'pausado' && !verPausadosActivo() && p.slug !== ESCANEO_SLUG) return false;
+          if (busca && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(busca) === -1) return false;
+          if (statP && p.slug !== ESCANEO_SLUG && !statPasa(p, statP)) return false;
+          if (soloDep && depQty(p) <= 0) return false;
+          if (tab === 'deposito' && DEP_MODO === 'reponer' && !depParaReponer(p)) return false;
+          return true;
+        }).sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'es'); });
+        if (!stockCargado) { cont.innerHTML = '<p class="cp-vacio">' + escHtml(SIN_LEER.stock || 'El stock no se leyó.') + '</p>'; return; }
+        var html = '', letra = '';
+        lista.forEach(function(p) {
+          var ini = codNorm(String(p.name || '?')).trim().charAt(0).toUpperCase();
+          if (!/[A-Z]/.test(ini)) ini = '#';
+          if (ini !== letra) { letra = ini; html += '<h4 class="cp-letra">' + escHtml(ini) + '</h4>'; }
+          var l = (typeof p._stockQty === 'number') ? p._stockQty : null, d = depQty(p), slug = JSON.stringify(String(p.slug));
+          var modalL = 'openStockModal(' + escHtml(slug) + ')', modalD = 'openDepositoModal(' + escHtml(slug) + ')';
+          var fila = edrPuedeEditar() ? 'abrirEdicionRapida(' + escHtml(slug) + ')' : (tab === 'precios' ? modalL : modalD);
+          html += '<div class="cp-fila" role="button" tabindex="0" data-slug="' + escHtml(String(p.slug)) + '" onclick="' + fila + '" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click()}">'
+            + '<span class="cp-nombre">' + escHtml(p.name || '') + (p.marca_real ? '<small>' + escHtml(p.marca_real) + '</small>' : '') + (p._stockStatus === 'pausado' ? '<span class="cp-oculto">oculto</span>' : '') + '</span>'
+            + '<span class="cp-chips">'
+            + '<button type="button" class="cp-chip' + (l === 0 || l === null ? ' cp-chip--cero' : '') + '" aria-label="Local: ' + (l === null ? 'sin dato' : l) + '. Tocá para cambiar" onclick="event.stopPropagation();' + modalL + '">L ' + (l === null ? '–' : l) + '</button>'
+            + '<button type="button" class="cp-chip' + (d === 0 ? ' cp-chip--cero' : '') + '" aria-label="Depósito: ' + d + '. Tocá para cambiar" onclick="event.stopPropagation();' + modalD + '">D ' + d + '</button>'
+            + '</span></div>';
+        });
+        cont.innerHTML = html || '<p class="cp-vacio">No hay perfumes con ese filtro.</p>';
+      });
+    }
+    // Se engancha a lo que ya existe sin tocarlo: cada vez que se dibuja la lista (stock, escáner, filtros, Realtime…) se vuelve a dibujar la compacta
+    (function() {
+      var rp = renderPrecios, rd = renderDeposito, ft = filterTable, st = switchTab;
+      renderPrecios = function() { var r = rp.apply(this, arguments); try { compactoPintar(); } catch (e) { console.warn('[compacta]', e); } return r; };
+      renderDeposito = function() { var r = rd.apply(this, arguments); try { compactoPintar(); } catch (e) { console.warn('[compacta]', e); } return r; };
+      switchTab = function() { var r = st.apply(this, arguments); try { compactoPintar(); } catch (e) { console.warn('[compacta]', e); } return r; };
+      filterTable = function() { var r = ft.apply(this, arguments); try { compactoPintar(); } catch (e) { console.warn('[compacta]', e); } return r; };
+    })();
 
     var EDR = { slug: null, ocupado: false };
     function edrPuedeEditar() { return currentRole === 'jefe'; }
