@@ -2529,6 +2529,13 @@
     .res-dia { flex: 1 1 auto; min-width: 0; text-align: center; }
     .res-titulo { font-size: .9rem; font-weight: 700; }
     .res-estado { font-size: .66rem; color: var(--gris); margin-top: .1rem; }
+    /* [RESUMEN-CALENDARIO] 15-oct · el título es un botón (borde punteado, 44 de alto: «que se note qué se toca») y encima
+       va el <input type="date"> transparente, que ocupa todo el cuadro: el toque cae en el campo y el aparato abre su
+       calendario. En Chrome y Android el que abre es el iconito del campo, así que se lo estira a todo el cuadro. */
+    .res-dia { position: relative; min-height: var(--tap-min); display: flex; flex-direction: column; justify-content: center; padding: .2rem .5rem; border: 1px dashed var(--borde); border-radius: var(--r-md); cursor: pointer; }
+    .res-fecha { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; -webkit-appearance: none; appearance: none; }
+    .res-fecha::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; cursor: pointer; }
+    .res-dia:has(.res-fecha:focus-visible) { outline: 2px solid var(--amarillo); outline-offset: 2px; }
     .res-grilla { display: grid; grid-template-columns: 1fr; gap: .6rem; margin-bottom: .8rem; align-items: start; }   /* ronda d: «· sin cambios» no se estira al alto de la vecina */
     @media (min-width: 481px) {
       .res-grilla { grid-template-columns: repeat(2, 1fr); }
@@ -4062,9 +4069,10 @@
     <div class="tab-content" id="tab-resumen">
       <div class="res-selector">
         <button type="button" class="res-nav" id="resAntes" onclick="resumenMover(-1)" aria-label="Día anterior">&#8249;</button>
-        <div class="res-dia">
+        <div class="res-dia" title="Tocá para elegir otro día">   <!-- [RESUMEN-CALENDARIO] el calendario del aparato, tapado por el título -->
           <div class="res-titulo" id="resTitulo">Hoy</div>
           <div class="res-estado" id="resEstado"></div>
+          <input type="date" class="res-fecha" id="resFecha" aria-label="Elegir el día del resumen" onchange="resumenIrA(this.value)" onclick="resumenAbrirCalendario(this)">
         </div>
         <button type="button" class="res-nav" id="resDespues" onclick="resumenMover(1)" aria-label="Día siguiente" disabled>&#8250;</button>
         <button type="button" class="res-nav" id="resRecargar" onclick="loadResumen()" aria-label="Recargar">&#8634;</button>
@@ -15097,10 +15105,21 @@
     function resumenMover(n) {
       var hoy = resumenHoyART();
       var base = (resumenData && resumenData.dia) || resumenDia || hoy;
-      var nuevo = resumenSumarDias(base, n);
-      if (nuevo > hoy || nuevo < resumenMinimo()) return;
-      resumenDia = (nuevo === hoy) ? null : nuevo;
+      resumenIrA(resumenSumarDias(base, n));
+    }
+    // [RESUMEN-CALENDARIO] (15-oct-2026, opción A de Alejo): tocar el título abre el calendario del aparato (un
+    // <input type="date"> transparente encima). Mismo tope que las flechas: de hoy a RESUMEN_DIAS_ATRAS para atrás.
+    function resumenIrA(dia) {
+      var hoy = resumenHoyART();
+      dia = String(dia || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dia) || dia > hoy || dia < resumenMinimo()) { resumenPintarSelector(resumenData); return; }   // fuera de rango: el campo vuelve al día mostrado
+      resumenDia = (dia === hoy) ? null : dia;
       loadResumen();
+    }
+    function resumenAbrirCalendario(el) {
+      // En el celu y la tablet el toque ya abre el calendario solo; en la compu, Chrome y Firefox sólo lo abren con
+      // showPicker() (si el navegador no lo tiene, queda el campo de fecha de siempre).
+      try { if (el && typeof el.showPicker === 'function') el.showPicker(); } catch (e) {}
     }
 
     function resumenPintarSelector(d) {
@@ -15111,7 +15130,9 @@
       if (tit) tit.textContent = d
         ? (esHoy ? 'Hoy · ' + String(d.fecha_texto || '').split(' ').slice(0, 2).join(' ') : String(d.fecha_texto || dia))
         : (esHoy ? 'Hoy' : dia);
-      if (est) est.textContent = d ? (esHoy ? 'en vivo · hasta las ' + String(d.ahora || '') : 'día cerrado') : '';
+      if (est) est.textContent = d ? (esHoy ? 'en vivo · hasta las ' + String(d.ahora || '') : 'día cerrado') + ' · 📅 otro día' : '';
+      var fecha = document.getElementById('resFecha');   // [RESUMEN-CALENDARIO] el calendario muestra el día que se ve y no deja salir del rango
+      if (fecha) { fecha.min = resumenMinimo(); fecha.max = resumenHoyART(); fecha.value = dia; }
       if (antes) antes.disabled = dia <= resumenMinimo();
       if (despues) despues.disabled = esHoy || dia >= resumenHoyART();
     }
