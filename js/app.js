@@ -2472,7 +2472,7 @@
         .map(function(x) { return x.s; });
     }
     function seleccionRotada() {   // SELECCION_CANTIDAD + SELECCION_COLA slugs: los primeros SELECCION_CANTIDAD son los que se ven
-      var pozo = PERFUMES.filter(function(p) { return sePuedePedir(p) && p.foto && !p.esSet && seleccionRotas.indexOf(p.slug) === -1; });
+      var pozo = PERFUMES.filter(function(p) { return sePuedePedir(p) && p.foto && !p.esSet && !p._elegidosExcluido && seleccionRotas.indexOf(p.slug) === -1; });   // [ELEGIDOS-EXCLUIR] el tildado en el panel no entra
       var ventana = seleccionVentana();
       var ayer = seleccionOrden(pozo, ventana - 1).slice(0, SELECCION_CANTIDAD);
       var hoy = seleccionOrden(pozo, ventana);
@@ -5495,6 +5495,8 @@
       // y el armador se comporta como antes.
       if (o.precio_decant !== undefined && o.precio_decant !== null) p._precioDecant = o.precio_decant;
       if (o.decant_excluido !== undefined && o.decant_excluido !== null) p._decantExcluido = !!o.decant_excluido;
+      // [ELEGIDOS-EXCLUIR] 16-oct · tildado desde el panel: no entra al sorteo de «Elegidos del día» (sigue en el catálogo y se puede pedir)
+      if (o.elegidos_excluido !== undefined && o.elegidos_excluido !== null) p._elegidosExcluido = !!o.elegidos_excluido;
     }
 
     // Cargar overrides desde Supabase y aplicar sobre perfumes.js
