@@ -634,6 +634,7 @@
       gap: .5rem;
       width: 100%;
     }
+    .sidebar .tab-btn[hidden] { display: none !important; }   /* [TANDA-1-RAPIDOS] 10 · una pestaña escondida (Notificaciones) no la muestra ni el display:flex ni applyRolePermissions */
     .sidebar .tab-btn:hover {
       background: rgba(255,255,255,.04);
       color: #fff;
@@ -2572,6 +2573,28 @@
     .res-wa-cli { flex: 0 0 auto; margin: 0 0 0 auto; min-height: var(--tap-min); display: inline-flex; align-items: center; padding: 0 .8rem; }
     .res-wa { display: flex; width: 100%; margin: 0; min-height: var(--tap-min); align-items: center; justify-content: center; font-size: .78rem; }
     .res-wa[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+    /* [TANDA-1-RAPIDOS] 5a · más aire en los renglones (padding .3 → .5, gap .6 → .9, tarjetas .6/.8 → .8/1) y los dos
+       botones de salida (Imprimir / PDF · Excel) debajo del de WhatsApp, a 44 de alto. */
+    .res-card { padding: .8rem 1rem; }
+    .res-fila { padding: .5rem 0; column-gap: .9rem; }
+    .res-card-titulo { margin-bottom: .35rem; }
+    .res-grilla { gap: .8rem; }
+    .res-salidas { display: flex; gap: .6rem; margin-top: .6rem; }
+    .res-salida { flex: 1 1 0; min-height: var(--tap-min); font-size: .76rem; }
+    .res-salida:disabled { opacity: .45; cursor: default; }
+    /* Imprimir: queda sólo el Resumen (el día y las tarjetas), en una columna, sin menú, cabecera ni botones. */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .panel-header, .sidebar, .sidebar-backdrop, .sidebar-hamburger, #colaAviso, #swUpdateBanner,
+      .res-nav, .res-wa, .res-wa-cli, .res-salidas, .res-fecha, .login-wrap, .tab-content:not(#tab-resumen) { display: none !important; }
+      .app-shell, .admin-main { display: block !important; margin: 0 !important; padding: 0 !important; max-width: none !important; overflow: visible !important; }
+      #tab-resumen { display: block !important; }
+      .res-dia { border: 0; }
+      .res-estado { display: none; }
+      .res-grilla { grid-template-columns: 1fr !important; gap: .6rem; }
+      .res-card { border: 1px solid #999; background: #fff; color: #000; break-inside: avoid; }
+      .res-card-titulo, .res-new, .res-transf, .res-baja, .res-sube, .res-sub, .res-old, .res-sin, .res-tipo, .res-subtotal { color: #000 !important; }   /* ▲ ▼ y el signo ya dicen si subió o bajó (126g) */
+    }
 
     /* ══ [PROMO-DECANTS] N4 · la promo de decants en la pestaña Decants (decisiones 106, 113 y 114) ══ */
     .promo-caja { background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; padding: 1.2rem; margin-top: 1.5rem; }
@@ -2756,12 +2779,14 @@
             <button class="tab-btn" data-tab="destacados" title="Destacados" onclick="switchTab('destacados',this);closeMobileSidebar()"><span class="sb-ico">&#11088;</span><span class="sb-label">Destacados</span></button>
             <button class="tab-btn" data-tab="badges" title="Beneficios" onclick="switchTab('badges',this);loadBadgesAdmin();closeMobileSidebar()"><span class="sb-ico">&#127991;&#65039;</span><span class="sb-label">Beneficios</span></button>
             <button class="tab-btn" data-tab="home" title="Banner" onclick="switchTab('home',this);loadHomeAdmin();closeMobileSidebar()"><span class="sb-ico">&#128227;</span><span class="sb-label">Banner</span></button>   <!-- 133g: «Home» se confundía con «Inicio» -->
-            <button class="tab-btn" data-tab="push" title="Notificaciones" onclick="switchTab('push',this);closeMobileSidebar()"><span class="sb-ico">&#128276;</span><span class="sb-label">Notificaciones</span></button>
+            <!-- [TANDA-1-RAPIDOS] 10 · Notificaciones escondida (Alejo, 16-oct). La pestaña #tab-push y su JS quedan; sacar el hidden la devuelve. Sin suscriptores y con las VAPID pendientes (CLAUDE.md § [VERCEL-ENV-VARS]) no servía. -->
+            <button class="tab-btn" data-tab="push" title="Notificaciones" hidden onclick="switchTab('push',this);closeMobileSidebar()"><span class="sb-ico">&#128276;</span><span class="sb-label">Notificaciones</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="puntos" title="Puntos" onclick="switchTab('puntos',this);loadPuntosAdmin();closeMobileSidebar()"><span class="sb-ico">&#127919;</span><span class="sb-label">Puntos</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="votacion" title="Votación" onclick="switchTab('votacion',this);closeMobileSidebar()"><span class="sb-ico">&#127942;</span><span class="sb-label">Votación</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="horario" title="Horario" onclick="switchTab('horario',this);closeMobileSidebar()"><span class="sb-ico">&#9200;</span><span class="sb-label">Horario</span></button>
             <button class="tab-btn" data-role="jefe" data-tab="backups" title="Backup" onclick="switchTab('backups',this);loadBackups();closeMobileSidebar()"><span class="sb-ico">&#128190;</span><span class="sb-label">Backup</span></button>
-            <button class="tab-btn" data-role="jefe" data-tab="doctor" title="Doctor" onclick="switchTab('doctor',this);runCatalogDoctor();closeMobileSidebar()"><span class="sb-ico">&#129658;</span><span class="sb-label">Doctor</span></button>
+            <!-- [TANDA-1-RAPIDOS] 12a · el Doctor lo ven las dos cuentas (Alejo, 16-oct); hasta entonces era data-role="jefe" -->
+            <button class="tab-btn" data-tab="doctor" title="Doctor" onclick="switchTab('doctor',this);runCatalogDoctor();closeMobileSidebar()"><span class="sb-ico">&#129658;</span><span class="sb-label">Doctor</span></button>
           </div>
         </div>
       </aside>
@@ -2853,7 +2878,7 @@
       <div class="precios-tira" id="preciosTira" hidden></div>
       <div class="precios-filtro" id="preciosFiltro">
         <button type="button" class="log-chip active" data-filtro="todo" onclick="preciosFiltrar('todo')">Todo</button>
-        <button type="button" class="log-chip" data-filtro="frascos" onclick="preciosFiltrar('frascos')">Frascos</button>
+        <button type="button" class="log-chip" data-filtro="frascos" onclick="preciosFiltrar('frascos')">Árabes</button>   <!-- [TANDA-1-RAPIDOS] 1a · decía «Frascos» (Alejo, 16-oct); el valor interno sigue siendo frascos -->
         <button type="button" class="log-chip" data-filtro="disenador" onclick="preciosFiltrar('disenador')">💎 Diseñador</button>
       </div>
       <p class="aviso-lectura-tabla" id="avisoStockPrecios" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
@@ -3649,8 +3674,8 @@
         </div>
       </div>
 
-      <!-- SUMAR PUNTO RÁPIDO -->
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+      <!-- SUMAR PUNTO RÁPIDO · [TANDA-1-RAPIDOS] 6 · escondido (Alejo, 16-oct: «que no exista por ahora»); sumarPunto() y #puntoQuery quedan, sacar el hidden lo devuelve -->
+      <div hidden style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1rem;margin-bottom:1rem;">
         <p style="font-size:.72rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">&#11088; Sumar punto por compra</p>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:1;min-width:200px;">
@@ -4079,6 +4104,12 @@
       </div>
       <div id="resCuerpo"><p class="log-vacio">Cargando…</p></div>
       <a class="action-btn btn-whatsapp res-wa" id="resWa" href="#" target="_blank" rel="noopener" aria-disabled="true">📤 Mandar por WhatsApp</a>
+      <!-- [TANDA-1-RAPIDOS] 5a · el mismo día en papel o en planilla (Alejo, 16-oct): «Imprimir / PDF» usa la impresión del
+           aparato (en el celu, «Guardar como PDF»); «Excel» baja un .csv con las mismas filas que las tarjetas. -->
+      <div class="res-salidas">
+        <button type="button" class="action-btn res-salida" id="resImprimir" onclick="resumenImprimir()" disabled>🖨️ Imprimir / PDF</button>
+        <button type="button" class="action-btn res-salida" id="resExcel" onclick="resumenDescargarCsv()" disabled>📊 Excel (.csv)</button>
+      </div>
     </div>
 
     <!-- TAB: AUDIT LOG (solo jefe) -->
@@ -6243,7 +6274,12 @@
       _stockFotoRestaurado = true;
       var v = null;
       try { v = localStorage.getItem(STOCK_FOTO_KEY); } catch (e) {}
-      STOCK_FOTO = (v !== '0');
+      // [TANDA-1-RAPIDOS] 7a (Alejo, 16-oct): en el celu (≤ 480: la tablet A9 en vertical mide ~600) la vista «Con foto»
+      // arranca APAGADA — las filas con foto acortan la tabla y el cuadrado de la foto estorba. Lo que la persona eligió
+      // (guardado) sigue mandando; en la tablet y la compu sigue prendida por defecto ([STOCK-FOTO]).
+      var celu = false;
+      try { celu = window.matchMedia('(max-width: 480px)').matches; } catch (e) {}
+      STOCK_FOTO = (v === null) ? !celu : (v !== '0');
       stockFotoSync();
     }
 
@@ -6387,7 +6423,7 @@
       el.hidden = false;
     }
 
-    // 123d · el filtro (Todo · Frascos · 💎 Diseñador). El buscador funciona sobre lo que muestra.
+    // 123d · el filtro (Todo · Árabes · 💎 Diseñador; el chip «Árabes» se llamó «Frascos» hasta el 16-oct). El buscador funciona sobre lo que muestra.
     // [STAT-FILTRO] las tarjetas de arriba filtran la lista. Misma cuenta que los números de renderPrecios (los pausados no cuentan):
     //   'activos' = no pausados · 'sin' = qty 0 (o estado «out» sin cantidad) · 'con' = tiene unidades (o «ok»/«low» sin cantidad cargada).
     var PRECIOS_STAT = null;                                      // null | 'con' | 'activos' | 'sin'
@@ -15251,6 +15287,55 @@
         wa.href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(String(d.texto || ''));   // sin número: abre el selector de contacto
         wa.removeAttribute('aria-disabled');
       }
+      resumenSalidasHabilitar(true);
+    }
+
+    // [TANDA-1-RAPIDOS] 5a · el Resumen en papel (PDF) o en planilla (.csv). Las dos salen de resumenData: lo mismo que
+    // las tarjetas y el WhatsApp (decisión 14: una sola fuente), más el precio de la memoria del panel ([RESUMEN-PRECIOS]).
+    function resumenSalidasHabilitar(si) {
+      ['resImprimir', 'resExcel'].forEach(function(id) { var b = document.getElementById(id); if (b) b.disabled = !si; });
+    }
+    function resumenImprimir() {
+      if (!resumenData) return;
+      window.print();   // el CSS de @media print deja sólo la pestaña Resumen; en el celu, «Guardar como PDF»
+    }
+    function resumenCsvCelda(v) {
+      var s = String(v == null ? '' : v);
+      return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }
+    function resumenDescargarCsv() {
+      var d = resumenData;
+      if (!d) return;
+      var dia = d.dia || resumenDia || resumenHoyART();
+      var filas = [['Sección', 'Perfume', 'Marca', 'Cambio', 'Precio lista', 'Precio transferencia', 'Subtotal transferencia', 'Detalle']];
+      var lista = function(x) { return Array.isArray(x) ? x : []; };
+      lista(d.stock).forEach(function(it) {
+        var n = Number(it.delta) || 0, pr = n < 0 ? resumenPrecioDe(it.slug) : null;
+        filas.push(['Stock del local', it.name || it.slug || '', resumenMarca(it.slug), n,
+          pr ? (pr.promo || pr.lista) : '', pr ? pr.transf : '', pr ? pr.transf * Math.abs(n) : '', pr && pr.promo ? 'promo' : '']);
+      });
+      lista(d.deposito).forEach(function(it) {
+        filas.push(['Depósito', it.name || it.slug || '', resumenMarca(it.slug), Number(it.delta) || 0, '', '', '', '']);
+      });
+      lista(d.precios).forEach(function(it) {
+        if (it.old == null && it.new == null) return;
+        filas.push(['Precios', it.name || it.slug || '', resumenMarca(it.slug), '', it.old == null ? '' : it.old, '', '',
+          (it.tipo === 'promo' ? 'promo: ' : 'lista: ') + (it.old == null ? '—' : it.old) + ' → ' + (it.new == null ? (it.tipo === 'promo' ? RESUMEN_SIN_PROMO : '—') : it.new)]);
+      });
+      lista(d.clientes).forEach(function(it) {
+        filas.push(['Clientes nuevos', it.nombre || '', '', '', '', '', '', String(it.telefono || '')]);
+      });
+      lista(d.puntos).forEach(function(it) {
+        filas.push(['Puntos', it.nombre || '', '', Number(it.total) || 0, '', '', '', 'pts']);
+      });
+      // Excel en castellano separa con «;» y quiere el BOM para leer las tildes; los números van sin puntos de miles.
+      var csv = '﻿' + filas.map(function(f) { return f.map(resumenCsvCelda).join(';'); }).join('\r\n');
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'resumen-' + dia + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(a.href); }, 2000);
     }
 
     async function loadResumen() {
@@ -15259,6 +15344,7 @@
       var mio = ++resumenPedido;
       var wa = document.getElementById('resWa');
       if (wa) { wa.setAttribute('aria-disabled', 'true'); wa.href = '#'; }
+      resumenSalidasHabilitar(false);
       cuerpo.innerHTML = '<p class="log-vacio">Cargando…</p>';
       resumenPintarSelector(null);
       try {
