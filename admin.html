@@ -791,6 +791,7 @@
     .fv-nombre { font-size: 1.35rem; font-weight: 800; color: #111; line-height: 1.2; }
     .fv-marca { font-size: .95rem; color: #555; }
     .fv-marca:empty, .fv-pie[hidden] { display: none; }
+    img.foto-toca { cursor: zoom-in; }
     .foto-visor .fv-cerrar { position: fixed; top: .75rem; right: .75rem; color: #fff; font-size: 1.6rem; }
     /* [VISTA-LISTA-PANEL] (13-oct, Alejo: la casilla «Con foto» confundía) «Vista: Sólo nombres | Con foto», dos botones
        pegados como el ▦ ☰ del catálogo: dice CÓMO se ve la lista, no prende ni apaga perfumes. La elegida, rellena de amarillo. */
@@ -6957,7 +6958,7 @@
     function stockFotoHTML(src, nombre) {
       var ini = String(nombre || '').trim().charAt(0).toUpperCase() || '?';
       return '<span class="td-foto"><span class="td-foto-ini" aria-hidden="true">' + escHtml(ini) + '</span>'
-        + (src ? '<img src="' + escHtml(String(src).replace(/ /g, '%20')) + '" alt="" data-nombre="' + escHtml(nombre || '') + '" width="52" height="64" loading="lazy" decoding="async" onerror="this.remove()">' : '')
+        + (src ? '<img class="foto-toca" src="' + escHtml(String(src).replace(/ /g, '%20')) + '" alt="" data-nombre="' + escHtml(nombre || '') + '" width="52" height="64" loading="lazy" decoding="async" onerror="this.remove()">' : '')
         + '</span>';
     }
 
@@ -7057,6 +7058,15 @@
       if (Date.now() - _fv.abierto < 700 && !(e.target.closest && e.target.closest('#fotoVisor'))) { e.preventDefault(); e.stopPropagation(); }
     }, true);
     window.addEventListener('popstate', function() { fotoVisorCerrar(true); });
+    // [FOTO-TOQUE] (Alejo, 16-oct: «sumalo ya») además, UN TOQUE en la miniatura la abre, para que no haga falta saber lo de mantener
+    // apretado. Sólo en las fotos con `foto-toca` (Precios & Stock, Depósito, Destacados, Doctor), donde tocar la foto no hacía nada;
+    // NO en las tarjetas de Decants ni en otras donde tocar ya abre algo. Una miniatura nueva que se quiera agrandar: `class="foto-toca"`.
+    document.addEventListener('click', function(e) {
+      var img = e.target.closest && e.target.closest('img.foto-toca');
+      if (!img || !fotoVisorDe(img)) return;
+      e.preventDefault();
+      fotoVisorAbrir(img);
+    });
 
     // La celda del nombre de las dos tablas: con foto, la miniatura a la izquierda y los textos (nombre, marca, avisos) a la derecha.
     function stockCeldaNombre(textos, src, nombre, slug) {
@@ -12266,7 +12276,7 @@
         var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
         if (!p) return;
         var fotoSrc = p.foto ? p.foto.replace(/ /g, '%20') : '';
-        var imgHTML = fotoSrc ? '<img class="dest-img" src="' + escHtml(fotoSrc) + '" alt="' + escHtml(p.name) + '">' : '<div class="dest-img" style="display:flex;align-items:center;justify-content:center;color:var(--amarillo-tinta);font-weight:700;">' + escHtml(p.name.charAt(0)) + '</div>';
+        var imgHTML = fotoSrc ? '<img class="dest-img foto-toca" src="' + escHtml(fotoSrc) + '" alt="' + escHtml(p.name) + '">' : '<div class="dest-img" style="display:flex;align-items:center;justify-content:center;color:var(--amarillo-tinta);font-weight:700;">' + escHtml(p.name.charAt(0)) + '</div>';
         html += '<div class="dest-item">'
           + '<span class="dest-num">' + (i + 1) + '</span>'
           + imgHTML
@@ -13948,7 +13958,7 @@
 
         // Imagen o placeholder
         var imgHTML = r.foto
-          ? '<img src="' + escHtml(r.foto.replace(/ /g, '%20')) + '" loading="lazy" alt="" style="width:36px;height:46px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
+          ? '<img class="foto-toca" src="' + escHtml(r.foto.replace(/ /g, '%20')) + '" data-nombre="' + escHtml(r.name || '') + '" loading="lazy" alt="" style="width:36px;height:46px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
           : '<div style="width:36px;height:46px;border-radius:4px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:rgba(232,184,0,.3);flex-shrink:0;">' + escHtml(r.name ? r.name.charAt(0) : '?') + '</div>';
 
         html += '<div style="background:' + statusBg + ';border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:.7rem .8rem;border-left:3px solid ' + statusColor + ';">';
