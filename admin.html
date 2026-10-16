@@ -5700,6 +5700,15 @@
       if (currentRole !== 'dev') await logAdminAction('logout', null, null);   // [LABORATORIO] la cuenta de sólo mirar no escribe nada, ni el Log
       currentRole = null;
       document.body.classList.remove('role-dev');
+      // [VENTA-COMO-DATO] [LABORATORIO] lo que sólo es del jefe o del laboratorio no queda en la página para la próxima persona que entre sin recargar
+      try {
+        COSTOS.cargado = false; COSTOS.marcas = {}; COSTOS.perfumes = {}; COSTOS.envase = 0; COSTOS.vista = [];
+        var cc = document.getElementById('costosCaja'); if (cc) cc.innerHTML = '';
+        var ew = document.getElementById('edrCostoWrap'); if (ew) ew.innerHTML = '';
+        var lt = document.getElementById('tab-lab'); if (lt) lt.remove();
+        var lb = document.querySelector('.sidebar .tab-btn[data-tab="lab"]'); if (lb) lb.remove();
+        LAB.datos = null; LAB.cargando = false;
+      } catch (e) { console.warn('[logout] limpieza', e); }
       stopInactivityWatcher();
       try { await sb.auth.signOut(); } catch(e) {}
       document.getElementById('adminPanel').classList.remove('active');
