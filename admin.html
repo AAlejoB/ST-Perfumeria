@@ -11266,10 +11266,7 @@
       var marcaReal = document.getElementById('nuevoMarcaReal').value.trim();
       var cat = document.getElementById('nuevoCat').value;
       var perfil = document.getElementById('nuevoPerfil').value.trim() || 'Versátil';
-      var price = parseInt(document.getElementById('nuevoPrice').value) || 0;
-      var promo = document.getElementById('nuevoPromo').value ? parseInt(document.getElementById('nuevoPromo').value) : null;
       var foto = document.getElementById('nuevoFoto').value.trim();
-      var ml = parseInt(document.getElementById('nuevoMl').value) || 100;
       var salida = document.getElementById('nuevoSalida').value.trim();
       var corazon = document.getElementById('nuevoCorazon').value.trim();
       var base = document.getElementById('nuevoBase').value.trim();
@@ -11281,16 +11278,46 @@
 
       var msgEl = document.getElementById('nuevoMsg');
 
-      if (!name || !price) {
-        msgEl.textContent = 'Nombre y precio son obligatorios';
-        msgEl.style.color = 'var(--tinta-error)';
-        return { ok: false, error: msgEl.textContent };
+      // [VALIDAR-NUEVO] 16-oct · B2 del QA: se guardaba un precio -5, «12,5» como 12, una promo mayor que el precio y un nombre repetido
+      // (decía «agregado correctamente» y no aparecía nunca). Las mismas reglas de Editar (validarEdicionPerfume, NO ROMPER #42).
+      var nuevoMal = function(campo, texto) {
+        msgEl.textContent = texto; msgEl.style.color = 'var(--tinta-error)';
+        var c = document.getElementById(campo); if (c) { try { c.scrollIntoView({ block: 'center' }); c.focus(); } catch (e) {} }
+        return { ok: false, error: texto };
+      };
+      var nuevoVal = function(id) { return String(document.getElementById(id).value || '').trim(); };
+      if (!name) return nuevoMal('nuevoName', 'Poné el nombre del perfume.');
+      if (name.length > 60) return nuevoMal('nuevoName', 'El nombre es muy largo (máximo 60 letras).');
+      if (!nuevoVal('nuevoPrice')) return nuevoMal('nuevoPrice', 'Poné el precio de lista.');
+      var price = precioDeTexto(nuevoVal('nuevoPrice'));
+      if (isNaN(price) || price !== Math.floor(price)) return nuevoMal('nuevoPrice', 'El precio tiene que ser un número positivo en pesos, sin centavos (ej: 98500 o 98.500).');
+      if (price < 1 || price > 99999999) return nuevoMal('nuevoPrice', 'El precio de lista tiene que estar entre $1 y $99.999.999.');
+      var promo = null;
+      if (nuevoVal('nuevoPromo')) {
+        promo = precioDeTexto(nuevoVal('nuevoPromo'));
+        if (isNaN(promo) || promo !== Math.floor(promo)) return nuevoMal('nuevoPromo', 'La promo tiene que ser un número en pesos, sin centavos (o dejala vacía).');
+        if (promo < 1) return nuevoMal('nuevoPromo', 'Si no hay promo, dejala vacía (no pongas 0).');
+        if (promo >= price) return nuevoMal('nuevoPromo', 'La promo tiene que ser menor que el precio de lista ($' + price.toLocaleString('es-AR') + ') o dejala vacía.');
+      }
+      var ml = 100;
+      if (nuevoVal('nuevoMl')) {
+        if (!/^\d+$/.test(nuevoVal('nuevoMl')) || Number(nuevoVal('nuevoMl')) < 1 || Number(nuevoVal('nuevoMl')) > 500) return nuevoMal('nuevoMl', 'Los ml tienen que ser un número entre 1 y 500 (o dejalo vacío: queda en 100).');
+        ml = Number(nuevoVal('nuevoMl'));
+      }
+      if (nuevoVal('nuevoPrecioDecant')) {
+        var pdN = precioDeTexto(nuevoVal('nuevoPrecioDecant'));
+        if (isNaN(pdN) || pdN !== Math.floor(pdN) || pdN < 1 || pdN > 99999999) return nuevoMal('nuevoPrecioDecant', 'El precio del decant tiene que ser un número positivo en pesos, sin centavos (o dejalo vacío).');
       }
 
       var aliasN = document.getElementById('nuevoAlias').value.trim();
 
       // [ESCANER] el slug NO cambia al renombrar un nuevo: de él cuelgan sus códigos de barras, su stock y su depósito (antes se recalculaba del nombre)
       var slug = (editId && document.getElementById('nuevoEditSlug').value) || generateSlug(name);
+      // [VALIDAR-NUEVO] un nombre (o un slug) que ya existe: el catálogo se queda con el que estaba y el nuevo no aparecería nunca
+      var nombreN = busqNorm(name);
+      var yaEsta = PERFUMES.find(function(pf) { return pf && pf.slug !== slug && busqNorm(pf.name) === nombreN; })
+        || (!editId && (PERFUMES.find(function(pf) { return pf && pf.slug === slug; }) || (_nuevosData || []).find(function(pf) { return pf && pf.slug === slug; })));
+      if (yaEsta) return nuevoMal('nuevoName', 'Ya hay un perfume que se llama «' + (yaEsta.name || name) + '»: buscalo en Editar (o cambiale el nombre a este).');
       // [ESCANER] 163f · el código de barras (opcional: lo trae el escáner o se escribe a mano); si está mal escrito, no se guarda nada
       var codigoTxt = document.getElementById('nuevoCodigo').value.trim(), codigoNuevo = '';
       if (codigoTxt) {
@@ -11299,7 +11326,7 @@
         codigoNuevo = ncod.codigo;
       }
       // [DECANT-PRECIO-MANUAL] Precio de decant y exclusión (libres).
-      var precioDecantN = parseInt(document.getElementById('nuevoPrecioDecant').value, 10);
+      var precioDecantN = precioDeTexto(nuevoVal('nuevoPrecioDecant'));   // [VALIDAR-NUEVO] ya validado arriba: «9.500» = 9500, no 9
       if (isNaN(precioDecantN) || precioDecantN <= 0) precioDecantN = null;
       var decantExclN = !!document.getElementById('nuevoDecantExcluido').checked;
 
