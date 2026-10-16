@@ -2654,6 +2654,13 @@
     .res-fila { display: flex; flex-wrap: wrap; align-items: center; column-gap: .6rem; min-height: var(--tap-min); padding: .3rem 0; border-top: 1px solid var(--borde); font-size: .76rem; }
     .res-card-titulo + .res-fila { border-top: none; }
     /* [STATS-BANDAS] A8 (16-oct) · «Esta semana» (dorada) y «Desde el primer día» (gris, con borde) se distinguen sin leer el detalle */
+    /* [EDICION-RAPIDA] C11 (16-oct) · el lápiz ✎ de las listas (sólo el jefe) y la ventana de edición rápida */
+    .edr-lapiz { float: right; min-width: 44px; min-height: 44px; margin: -.3rem -.3rem 0 .4rem; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: var(--amarillo-tinta); border: 1.5px solid var(--borde); border-radius: 10px; font-size: 1.05rem; line-height: 1; cursor: pointer; font-family: inherit; }
+    .td-fila-foto .edr-lapiz { float: none; margin: 0 0 0 auto; flex: 0 0 auto; }
+    .edr-lapiz:hover, .edr-lapiz:focus-visible { background: rgba(232,184,0,.14); border-color: var(--amarillo-tinta); }
+    .edr-transf { font-size: .78rem; margin: -.2rem 0 .9rem; }
+    .edr-transf b { color: var(--tinta-ok); }
+    .edr-abrir-editar { margin-top: .5rem; }
     .stats-banda { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; column-gap: .8rem; row-gap: .1rem; min-height: 44px; padding: .6rem 1rem; margin: 0 0 .8rem; border-radius: var(--r-lg); }
     .stats-banda b { font-size: .95rem; letter-spacing: .06em; text-transform: uppercase; }
     .stats-banda span { font-size: .78rem; }
@@ -4655,6 +4662,29 @@
     </div>
   </div>
 
+  <!-- MODAL: EDICIÓN RÁPIDA · [EDICION-RAPIDA] C11 (16-oct) · precio y notas de un perfume desde cualquier lista; sólo el jefe -->
+  <div class="modal-overlay" id="modalEdr" onclick="closeModal('modalEdr',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalEdr')">&times;</button>
+      <p class="modal-title" id="edrTitulo">Edición rápida</p>
+      <p class="promo-nota" id="edrSub" style="margin:-.3rem 0 .8rem;"></p>
+      <label class="modal-label" for="edrPrecio">Precio de lista ($, sin puntos)</label>
+      <input type="text" class="modal-input" id="edrPrecio" inputmode="numeric" autocomplete="off" placeholder="Ej: 89000" oninput="edrCalc()" style="width:100%;">
+      <label class="modal-label" for="edrPromo">Precio promo ($, vacío = sin promo)</label>
+      <input type="text" class="modal-input" id="edrPromo" inputmode="numeric" autocomplete="off" placeholder="Ej: 79000" oninput="edrCalc()" style="width:100%;">
+      <p class="edr-transf" id="edrTransf"></p>
+      <label class="modal-label" for="edrSalida">Notas de salida</label>
+      <input type="text" class="modal-input" id="edrSalida" maxlength="200" autocomplete="off" placeholder="Ej: Bergamota, Menta" style="width:100%;">
+      <label class="modal-label" for="edrCorazon">Notas de corazón</label>
+      <input type="text" class="modal-input" id="edrCorazon" maxlength="200" autocomplete="off" style="width:100%;">
+      <label class="modal-label" for="edrBase">Notas de fondo</label>
+      <input type="text" class="modal-input" id="edrBase" maxlength="200" autocomplete="off" style="width:100%;">
+      <button type="button" class="modal-btn modal-btn-price" id="edrGuardarBtn" onclick="edrGuardar()">💾 Guardar</button>
+      <p class="modal-success" id="edrMsg"></p>
+      <button type="button" class="action-btn edr-abrir-editar" id="edrAbrirEditar" hidden onclick="edrAbrirEditar()">Abrir Editar</button>
+    </div>
+  </div>
+
   <!-- MODAL: DECANT DE DISEÑADOR · [DECANTS-TARJETERO] (16-oct) · una ventana para agregar o editar; «Quitar» con confirmación -->
   <div class="modal-overlay" id="modalDecantCustom" onclick="closeModal('modalDecantCustom',event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -6291,7 +6321,7 @@
           ? ' <span style="color:#e67e22;font-size:.62rem;white-space:nowrap;">← traer al local</span>' : '';
         var sinLect = '<td class="td-stock"><span class="stock-sin-lectura" title="El stock no se leyó">—</span></td>';   // 128n
         html += '<tr data-search="' + searchStr + '" data-slug="' + escHtml(String(p.slug)) + '">' +   // [ESCANER] data-slug: la fila escaneada se marca
-            stockCeldaNombre(escapeHtml(p.name) + alerta, p.foto, p.name) +   // [STOCK-FOTO]
+            stockCeldaNombre(escapeHtml(p.name) + alerta, p.foto, p.name, p.slug) +   // [STOCK-FOTO]
             // [DEPOSITO-LOCAL-CLICK] La badge de Local abre el MISMO modal de Precios & Stock.
             (stockCargado
               ? '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock local" ' +
@@ -6527,10 +6557,11 @@
     }
 
     // La celda del nombre de las dos tablas: con foto, la miniatura a la izquierda y los textos (nombre, marca, avisos) a la derecha.
-    function stockCeldaNombre(textos, src, nombre) {
-      if (!STOCK_FOTO) return '<td class="td-name">' + textos + '</td>';
+    function stockCeldaNombre(textos, src, nombre, slug) {
+      var lapiz = edrLapiz(slug, nombre);   // [EDICION-RAPIDA] C11 · sólo el jefe, sólo en las filas con perfume
+      if (!STOCK_FOTO) return '<td class="td-name">' + lapiz + textos + '</td>';
       return '<td class="td-name td-name--foto"><div class="td-fila-foto">' + stockFotoHTML(src, nombre)
-        + '<div class="td-textos">' + textos + '</div></div></td>';
+        + '<div class="td-textos">' + textos + '</div>' + lapiz + '</div></td>';
     }
 
     // ============================================================
@@ -6810,7 +6841,7 @@
                 + (promoNum(dec.precio_unit) > 0 ? '<span class="td-decant-precio">' + escHtml(promoPesos(promoNum(dec.precio_unit))) + '</span>' : 'sin precio') + '</span>' : '')   // 123l
           +   exc.map(function(t) { return '<span class="td-sub td-excepcion">' + escHtml(t) + '</span>'; }).join('');
         return '<tr data-search="' + escHtml(searchStr) + '" data-slug="' + escHtml(String(p.slug)) + '"' + (grupo ? ' data-grupo="' + grupo + '"' : '') + '>'   // [ESCANER] data-slug: la fila escaneada se marca
-          + stockCeldaNombre(textos, p.foto, p.name)   // [STOCK-FOTO]
+          + stockCeldaNombre(textos, p.foto, p.name, p.slug)   // [STOCK-FOTO]
           // 128n [PANEL-STOCK-CALLA] sin la lectura del stock, «—» gris y sin toque; sin la de los overrides (de ahí salen los precios
           // que cambió el jefe), el precio y el efectivo también: no se muestra el de perfumes.js como si fuera el vigente.
           + (stockCargado
@@ -13731,6 +13762,108 @@
         renderDecantsCustomList();
       } catch (e) {
         if (list) list.innerHTML = '<p style="color:var(--tinta-error);font-size:.78rem;text-align:center;padding:1rem;">' + escHtml(errorEnCriollo(e, null, 'cargar los decants de diseñador', currentRole === 'jefe' ? '↺' : 'recargar')) + '</p>';   // 128j
+      }
+    }
+
+    // ============================================================
+    // [EDICION-RAPIDA] C11 (16-oct-2026) · precio y notas de un perfume desde cualquier lista, sin ir a Editar.
+    // Una función, un mini-modal (#modalEdr): abrirEdicionRapida(slug). La llaman el lápiz ✎ de Precios & Stock y Depósito, la vista Compacta,
+    // el top de Estadísticas, «Quién espera qué» y los decants. Sólo el JEFE (el lápiz no se dibuja para la empleada: es lo más simple y no
+    // cambia lo que ya tiene Editar). Escribe con UPDATE de UNA fila de perfume_overrides (NO ROMPER #36): si el perfume no tiene fila propia
+    // no inventa una (un insert con el resto en null pisaría nombre y precio en las otras tablets por Realtime) y manda a Editar.
+    // El precio de transferencia NO es un dato guardado: es la promo (o la lista) menos 10 %, se calcula; acá se muestra, no se edita.
+    // ============================================================
+    var EDR = { slug: null, ocupado: false };
+    function edrPuedeEditar() { return currentRole === 'jefe'; }
+    function edrLapiz(slug, nombre) {   // el botón ✎ de las listas (vacío para la empleada)
+      if (!edrPuedeEditar() || !slug) return '';
+      return '<button type="button" class="edr-lapiz" title="Editar precio y notas" aria-label="Editar precio y notas de ' + escHtml(nombre || slug)
+        + '" onclick="event.stopPropagation();abrirEdicionRapida(' + escHtml(JSON.stringify(String(slug))) + ')">&#9998;</button>';
+    }
+    function edrNum(v) { var n = parseInt(String(v == null ? '' : v).replace(/[^0-9]/g, ''), 10); return isNaN(n) ? 0 : n; }
+    function edrCalc() {
+      var el = document.getElementById('edrTransf'); if (!el) return;
+      var lista = edrNum(document.getElementById('edrPrecio').value), promo = edrNum(document.getElementById('edrPromo').value);
+      var base = promo > 0 ? promo : lista;
+      el.innerHTML = base > 0 ? 'Precio de transferencia: <b>' + escHtml(promoPesos(Math.round(base * 0.9))) + '</b> (10 % menos que ' + (promo > 0 ? 'la promo' : 'la lista') + '; se calcula solo)' : '';
+    }
+    function abrirEdicionRapida(slug) {
+      if (!edrPuedeEditar()) return;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      if (!p) return;
+      if (p.esSet) { irACombo(slug); return; }   // un set se edita en su editor (el de Sets), no acá
+      EDR.slug = slug;
+      document.getElementById('edrTitulo').textContent = p.name || slug;
+      document.getElementById('edrSub').textContent = p.marca_real || '';
+      var lista = parsePrice(p.price), promo = p.promo ? parsePrice(p.promo) : 0;
+      document.getElementById('edrPrecio').value = lista > 0 ? Math.round(lista) : '';
+      document.getElementById('edrPromo').value = promo > 0 ? Math.round(promo) : '';
+      document.getElementById('edrSalida').value = p.notas_salida || '';
+      document.getElementById('edrCorazon').value = p.notas_corazon || '';
+      document.getElementById('edrBase').value = p.notas_base || '';
+      var msg = document.getElementById('edrMsg'); msg.textContent = ''; msg.style.color = '';
+      document.getElementById('edrAbrirEditar').hidden = true;
+      edrCalc();
+      document.getElementById('modalEdr').classList.add('active');
+    }
+    function edrAbrirEditar() {
+      var slug = EDR.slug; closeModal('modalEdr');
+      if (slug) doctorGoEdit(slug, 'price');
+    }
+    async function edrGuardar() {
+      if (!edrPuedeEditar() || EDR.ocupado) return;
+      var slug = EDR.slug, p = PERFUMES.find(function(pf) { return pf.slug === slug; }), msg = document.getElementById('edrMsg');
+      if (!p) return;
+      var falta = faltaOverrides(msg); if (falta) return;   // [GUARDAR-SIN-LEER] #20
+      var lista = edrNum(document.getElementById('edrPrecio').value), promo = edrNum(document.getElementById('edrPromo').value);
+      var fallo = function(t) { msg.textContent = t; msg.style.color = 'var(--tinta-error)'; };
+      if (!(lista > 0)) { fallo('Poné el precio de lista (un número mayor a 0).'); return; }
+      if (promo > 0 && promo >= lista) { fallo('La promo tiene que ser menor que el precio de lista (o dejala vacía).'); return; }
+      var obj = {
+        price: String(lista), promo: promo > 0 ? String(promo) : '',
+        notas_salida: document.getElementById('edrSalida').value.trim(), notas_corazon: document.getElementById('edrCorazon').value.trim(), notas_base: document.getElementById('edrBase').value.trim()
+      };
+      EDR.ocupado = true; document.getElementById('edrGuardarBtn').disabled = true;
+      msg.textContent = 'Guardando...'; msg.style.color = 'var(--tinta-aviso)';
+      try {
+        var r = await sb.from('perfume_overrides').update(obj).eq('slug', slug).select('slug');
+        if (r.error) { fallo(errorEnCriollo(r.error, 'perfume', null, true)); return; }
+        if (!r.data || !r.data.length) {   // NO ROMPER #36: sin fila propia no se inventa una
+          fallo('Este perfume todavía no tiene una ficha propia en la base. Abrilo en Editar y guardalo ahí una vez.');
+          document.getElementById('edrAbrirEditar').hidden = false;
+          return;
+        }
+        lastLocalUpsert = { slug: slug, at: Date.now() };
+        // el Log: un renglón por campo que cambió (los mismos de Editar)
+        var campos = { price: 'Precio', promo: 'Promo', notas_salida: 'Notas salida', notas_corazon: 'Notas corazón', notas_base: 'Notas base' };
+        var logs = [], compacto = {};
+        Object.keys(campos).forEach(function(k) {
+          var antes = k === 'price' ? String(Math.round(parsePrice(p.price)) || '') : (k === 'promo' ? String(p.promo ? Math.round(parsePrice(p.promo)) : '') : String(p[k] || ''));
+          var ahora = String(obj[k] || '');
+          if (antes !== ahora && (antes || ahora)) {
+            logs.push({ slug: slug, nombre: p.name || slug, campo: campos[k], valor_anterior: antes || null, valor_nuevo: ahora || null, editado_por: currentRole || 'admin' });
+            compacto[campos[k]] = { old: antes || null, new: ahora || null };
+          }
+        });
+        if (logs.length) {
+          logAdminAction('perfume_edit', slug, compacto);
+          sb.from('edit_log').insert(logs).then(function() { tabLoaded['editar'] = false; });
+        }
+        // memoria, igual que Editar (precio y promo como número)
+        p.price = lista; p.promo = promo > 0 ? promo : null;
+        p.notas_salida = obj.notas_salida; p.notas_corazon = obj.notas_corazon; p.notas_base = obj.notas_base;
+        try { renderPrecios(); } catch (e) {}
+        try { if (typeof renderDeposito === 'function') renderDeposito(); } catch (e) {}
+        try { if (typeof compactoPintar === 'function') compactoPintar(); } catch (e) {}
+        try { if (document.getElementById('tab-stats').classList.contains('active')) loadSemana(); } catch (e) {}
+        try { if (typeof renderDecantsCustomList === 'function') renderDecantsCustomList(); } catch (e) {}
+        notifyTelegram('✏️ Perfume editado (rápido): ' + (p.name || slug) + '\n📋 Cambios guardados en Supabase');
+        msg.textContent = '✓ ' + (p.name || slug) + ' actualizado'; msg.style.color = 'var(--tinta-ok)';
+        setTimeout(function() { if (EDR.slug === slug) closeModal('modalEdr'); }, 900);
+      } catch (e) {
+        fallo(errorEnCriollo(e, 'perfume', null, true));
+      } finally {
+        EDR.ocupado = false; document.getElementById('edrGuardarBtn').disabled = false;
       }
     }
 
