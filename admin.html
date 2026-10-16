@@ -14417,11 +14417,23 @@
         + '" onclick="event.stopPropagation();abrirEdicionRapida(' + escHtml(JSON.stringify(String(slug))) + ')">&#9998;</button>';
     }
     function edrNum(v) { var n = parseInt(String(v == null ? '' : v).replace(/[^0-9]/g, ''), 10); return isNaN(n) ? 0 : n; }
+    // [VALIDAR-EDICION] 16-oct · el lápiz leía `98,500.00` como $9.850.000 (edrNum borra todo lo que no es dígito). Ahora usa precioDeTexto, igual que Editar:
+    // acepta 98500, 98.500, 98,500, 98.500,00, 98,500.00 y $ 98.500; rechaza lo ambiguo o con centavos en vez de adivinar, y muestra lo que ENTENDIÓ.
+    function edrPesos(txt) {   // { vacio: true } | { ok: true, n } | { mal: true }
+      var s = String(txt == null ? '' : txt).trim();
+      if (!s) return { vacio: true };
+      var n = precioDeTexto(s);
+      if (isNaN(n) || n !== Math.floor(n) || n < 1 || n > 99999999) return { mal: true };
+      return { ok: true, n: n };
+    }
     function edrCalc() {
       var el = document.getElementById('edrTransf'); if (!el) return;
-      var lista = edrNum(document.getElementById('edrPrecio').value), promo = edrNum(document.getElementById('edrPromo').value);
-      var base = promo > 0 ? promo : lista;
-      el.innerHTML = base > 0 ? 'Precio de transferencia: <b>' + escHtml(promoPesos(Math.round(base * 0.9))) + '</b> (10 % menos que ' + (promo > 0 ? 'la promo' : 'la lista') + '; se calcula solo)' : '';
+      var l = edrPesos(document.getElementById('edrPrecio').value), pr = edrPesos(document.getElementById('edrPromo').value);
+      if (l.mal || pr.mal) { el.innerHTML = '<span style="color:var(--tinta-error)">No entiendo ese número: poné pesos enteros, entre $1 y $99.999.999 (ej: 98500 o 98.500).</span>'; return; }
+      var base = pr.ok ? pr.n : (l.ok ? l.n : 0);
+      if (!(base > 0)) { el.innerHTML = ''; return; }
+      el.innerHTML = 'Entendí: ' + (l.ok ? 'lista <b>' + escHtml(promoPesos(l.n)) + '</b>' : 'sin lista') + (pr.ok ? ' · promo <b>' + escHtml(promoPesos(pr.n)) + '</b>' : '') +
+        '<br>Precio de transferencia: <b>' + escHtml(promoPesos(Math.round(base * 0.9))) + '</b> (10 % menos que ' + (pr.ok ? 'la promo' : 'la lista') + '; se calcula solo)';
     }
     function abrirEdicionRapida(slug) {
       if (!edrPuedeEditar()) return;
@@ -14453,9 +14465,12 @@
       var slug = EDR.slug, p = PERFUMES.find(function(pf) { return pf.slug === slug; }), msg = document.getElementById('edrMsg');
       if (!p) return;
       var falta = faltaOverrides(msg); if (falta) return;   // [GUARDAR-SIN-LEER] #20
-      var lista = edrNum(document.getElementById('edrPrecio').value), promo = edrNum(document.getElementById('edrPromo').value);
+      var pl = edrPesos(document.getElementById('edrPrecio').value), pp = edrPesos(document.getElementById('edrPromo').value);   // [VALIDAR-EDICION]
       var fallo = function(t) { msg.textContent = t; msg.style.color = 'var(--tinta-error)'; };
-      if (!(lista > 0)) { fallo('Poné el precio de lista (un número mayor a 0).'); return; }
+      if (pl.vacio) { fallo('Poné el precio de lista (un número mayor a 0).'); return; }
+      if (pl.mal) { fallo('El precio de lista tiene que ser un número en pesos, sin centavos, entre $1 y $99.999.999 (ej: 98500 o 98.500).'); return; }
+      if (pp.mal) { fallo('La promo tiene que ser un número en pesos, sin centavos, o dejala vacía (ej: 85000 o 85.000).'); return; }
+      var lista = pl.n, promo = pp.ok ? pp.n : 0;
       if (promo > 0 && promo >= lista) { fallo('La promo tiene que ser menor que el precio de lista (o dejala vacía).'); return; }
       var obj = {
         price: String(lista), promo: promo > 0 ? String(promo) : '',
@@ -14856,8 +14871,8 @@
     async function costosGuardarMarca(i) {
       var m = COSTOS.vista[i]; if (!m || !costosPuede() || COSTOS.ocupado) return;
       if (faltaLeer('costos', document.getElementById('costosMsg'))) return;
-      var v = String(document.getElementById('cmInp' + i).value).trim(), g = COSTOS.marcas[m.key], n = edrNum(v);
-      if (v !== '' && !(Number(v) >= 0)) { costosMsg('Poné un número (0 o más).', 'error'); return; }
+      var v = String(document.getElementById('cmInp' + i).value).trim(), g = COSTOS.marcas[m.key], n = Number(v);
+      if (v !== '' && !/^\d{1,9}$/.test(v)) { costosMsg('Poné un número entero en pesos, de 0 en adelante (sin comas ni puntos).', 'error'); return; }   // 12.5 se guardaba como 125
       COSTOS.ocupado = true;
       try {
         var r;
@@ -14874,12 +14889,12 @@
       if (faltaLeer('costos', document.getElementById('costosMsg'))) return;
       var v = String(document.getElementById('costoEnvase').value).trim();
       if (v === '' ) v = '0';
-      if (!(Number(v) >= 0)) { costosMsg('Poné un número (0 o más).', 'error'); return; }
+      if (!/^\d{1,9}$/.test(v)) { costosMsg('Poné un número entero en pesos, de 0 en adelante (sin comas ni puntos).', 'error'); return; }
       COSTOS.ocupado = true;
       try {
-        var r = await sb.from('costos_config').upsert({ id: 1, costo_envase: edrNum(v), updated_at: new Date().toISOString(), updated_by: 'jefe' }, { onConflict: 'id' });
+        var r = await sb.from('costos_config').upsert({ id: 1, costo_envase: Number(v), updated_at: new Date().toISOString(), updated_by: 'jefe' }, { onConflict: 'id' });
         if (r.error) { costosMsg(errorEnCriollo(r.error, null, 'guardar el costo', true), 'error'); return; }
-        COSTOS.envase = edrNum(v); costosMsg('✓ Envase: $ ' + COSTOS.envase.toLocaleString('es-AR'), 'ok');
+        COSTOS.envase = Number(v); costosMsg('✓ Envase: $ ' + COSTOS.envase.toLocaleString('es-AR'), 'ok');
       } catch (e) { costosMsg(errorEnCriollo(e, null, 'guardar el costo', true), 'error'); }
       finally { COSTOS.ocupado = false; }
     }
