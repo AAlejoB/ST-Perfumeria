@@ -1498,6 +1498,27 @@
     .hv-wa { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; color: var(--gris-claro); }
     .hv-wa:empty { display: none; }
     .hv-wa svg { color: #25D366; flex: 0 0 auto; }
+    /* [LABORATORIO] la cuenta de sólo mirar ve una pestaña: todo lo demás del panel se esconde */
+    body.role-dev .sidebar .tab-btn:not([data-tab="lab"]), body.role-dev .sidebar .sb-group, body.role-dev .sidebar .sb-group-header,
+    body.role-dev #btnInicio, body.role-dev #panelAtajos, body.role-dev #syncIndicator, body.role-dev #colaAviso { display: none !important; }
+    .lab-barra { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: 0 0 1rem; }
+    .lab-sec { margin: 0 0 1.6rem; }
+    .lab-sec > h3 { font-size: .8rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo-tinta); margin: 0 0 .2rem; }
+    .lab-nota { font-size: .68rem; color: var(--gris); line-height: 1.5; margin: 0 0 .7rem; }
+    .lab-nota--aviso { color: var(--tinta-aviso); }
+    .lab-tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .6rem; margin: 0 0 1rem; }
+    .lab-tarjeta { background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; padding: .7rem .8rem; }
+    .lab-tarjeta span { display: block; font-size: .6rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gris-claro); }
+    .lab-tarjeta b { display: block; font-size: 1.35rem; font-weight: 800; margin-top: .15rem; }
+    .lab-tarjeta small { display: block; font-size: .62rem; color: var(--gris); margin-top: .1rem; }
+    .lab-tabla { width: 100%; border-collapse: collapse; font-size: .76rem; }
+    .lab-tabla th { text-align: left; font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gris-claro); padding: .35rem .4rem; border-bottom: 1px solid var(--borde); }
+    .lab-tabla td { padding: .4rem; border-bottom: 1px solid var(--borde); vertical-align: middle; }
+    .lab-tabla th.num, .lab-tabla td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .lab-tabla-scroll { overflow-x: auto; }
+    .lab-barras { display: grid; grid-template-columns: auto 1fr auto; gap: .25rem .6rem; align-items: center; font-size: .74rem; }
+    .lab-barras i { display: block; height: 10px; border-radius: 5px; background: var(--amarillo); min-width: 2px; }
+    .lab-barras em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--gris-claro); }
     .hv-ml { width: 5.5rem; min-height: var(--tap-min); margin: 0; }
     /* [VENTA-COMO-DATO] costos de compra (sólo jefe): una fila por marca */
     .costos-fila { display: flex; align-items: center; gap: .6rem; padding: .35rem 0; border-top: 1px solid var(--borde); }
@@ -5043,6 +5064,8 @@
     // la cabeza de quien la escribe en el login.
     var JEFE_EMAIL = 'jefe@stperfumeria.local';
     var EMPLEADO_EMAIL = 'empleado@stperfumeria.local';
+    // [LABORATORIO] la tercera cuenta del login, de SOLO MIRAR (sql/rol_laboratorio.sql): ve una pestaña con métricas y nada más.
+    var DEV_EMAIL = 'lab@stperfumeria.local';
 
     var editingSlug = '';
     var currentRole = null; // 'jefe' | 'empleado'
@@ -5121,8 +5144,9 @@
       document.getElementById('adminPanel').classList.add('active');
       document.getElementById('loginError').textContent = '';
       // [ZAPATO] aplicar clase de rol al body para que CSS oculte tabs/grupos correctos
-      document.body.classList.remove('role-jefe', 'role-empleado');
+      document.body.classList.remove('role-jefe', 'role-empleado', 'role-dev');
       document.body.classList.add('role-' + role);
+      if (role === 'dev') { await entrarLaboratorio(); return; }   // [LABORATORIO] la cuenta de sólo mirar: sin cola, sin stock, sin realtime, sin backups
       // [ZAPATO] cargar preferencias del sidebar (collapsed + grupos) del localStorage
       loadSidebarPrefs();
       applyRolePermissions();
@@ -5531,6 +5555,13 @@
           'login empleado'
         );
         if (r2 && r2.data && r2.data.user) return 'empleado';
+        // [LABORATORIO] tercer intento, sólo si la contraseña no era de jefe ni de empleada: no cambia nada para ellas
+        var r3 = await _loginWithTimeout(
+          sb.auth.signInWithPassword({ email: DEV_EMAIL, password: pass }),
+          10000,
+          'login laboratorio'
+        );
+        if (r3 && r3.data && r3.data.user) return 'dev';
         return null;
       }
 
@@ -5565,10 +5596,10 @@
       if (role) {
         clearLockoutState(); // login exitoso resetea el contador
         await enterAdminPanel(role);
-        logAdminAction('login_success', null, null);
+        if (role !== 'dev') logAdminAction('login_success', null, null);
         notifyTelegram('\u26a0\ufe0f Alguien ingres\u00f3 al Panel Admin de ST Perfumer\u00eda\n\ud83d\udc64 Rol: ' + role + '\n\ud83d\udcc5 ' + new Date().toLocaleString('es-AR'));
         // Auto-backup silencioso si pasaron > 24h desde el último (tarda unos segundos, no bloquea)
-        setTimeout(function() { maybeAutoBackup(); }, 3000);
+        if (role !== 'dev') setTimeout(function() { maybeAutoBackup(); }, 3000);
       } else {
         // \u00bfFue un timeout de Supabase o una pass mal? Distinguir importa
         // mucho para no contar como "intento fallido" cuando Supabase est\u00e1
@@ -5604,8 +5635,9 @@
 
     async function doLogout() {
       // Loguear ANTES de signOut, mientras el JWT todavia es valido
-      await logAdminAction('logout', null, null);
+      if (currentRole !== 'dev') await logAdminAction('logout', null, null);   // [LABORATORIO] la cuenta de sólo mirar no escribe nada, ni el Log
       currentRole = null;
+      document.body.classList.remove('role-dev');
       stopInactivityWatcher();
       try { await sb.auth.signOut(); } catch(e) {}
       document.getElementById('adminPanel').classList.remove('active');
@@ -5664,7 +5696,7 @@
         if ((data && data.session && data.session.user) || emailSinRed) {
           var email = emailSinRed || data.session.user.email;
           var role = (email === JEFE_EMAIL) ? 'jefe'
-                   : (email === EMPLEADO_EMAIL ? 'empleado' : null);
+                   : (email === EMPLEADO_EMAIL ? 'empleado' : (email === DEV_EMAIL ? 'dev' : null));   // [LABORATORIO]
           if (role) {
             await enterAdminPanel(role);
           }
@@ -5684,6 +5716,12 @@
       var badge = document.getElementById('roleBadge');
       // [ZAPATO] Tabs ahora viven en .sidebar (antes estaban en .tabs)
       var tabs = document.querySelectorAll('.sidebar .tab-btn');
+
+      if (currentRole === 'dev') {   // [LABORATORIO] sólo su pestaña; lo demás lo esconde body.role-dev
+        badge.style.display = 'inline-block'; badge.textContent = 'Laboratorio';
+        badge.style.background = 'rgba(232,184,0,.15)'; badge.style.color = 'var(--amarillo-tinta)'; badge.style.border = '1px solid var(--amarillo)';
+        return;
+      }
 
       if (currentRole === 'jefe') {
         // Jefe ve todo, badge dorado
@@ -5728,6 +5766,7 @@
 
     // canAccessTab: verifica si el rol actual puede entrar a esa pestaña
     function canAccessTab(tab) {
+      if (currentRole === 'dev') return tab === 'lab';   // [LABORATORIO]
       if (currentRole === 'jefe') return true;
       if (tab === 'inicio') return true;   // [PANEL-INICIO] no tiene botón en el menú: es de las dos cuentas
       var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
@@ -6146,6 +6185,7 @@
           case 'votacion': if (typeof loadVotacion === 'function') loadVotacion(); break;
           case 'push': if (typeof loadPushStats === 'function') loadPushStats(); break;
           case 'auditlog': if (typeof loadAuditLog === 'function') loadAuditLog(); break;
+          case 'lab': labCargar(); break;   // [LABORATORIO]
         }
       }
     }
@@ -14290,6 +14330,137 @@
       } finally {
         EDR.ocupado = false; document.getElementById('edrGuardarBtn').disabled = false;
       }
+    }
+
+    // ============================================================
+    // [LABORATORIO] la tercera cuenta del login, de SOLO MIRAR (Alejo, 16-oct-2026; sql/rol_laboratorio.sql). Entra con su propia
+    // contraseña (tercer intento del login: jefe y empleada no ven ningún texto nuevo) y tiene UNA pestaña, «Laboratorio», con las
+    // métricas de lo que pasó de verdad. No escribe nada (ni el Log) y no arranca la cola, el stock, el realtime ni los backups.
+    // La pestaña y su botón se CREAN acá, sólo para esta cuenta: en el DOM de jefe y empleada no existen. Todo sale de la función
+    // `lab_metricas(dias)` de la base, que sólo responde a `es_dev()`. Los textos que vienen de visitantes (las búsquedas) se escapan.
+    // ============================================================
+    var LAB = { dias: 30, datos: null, cargando: false };
+    async function entrarLaboratorio() {
+      applyRolePermissions();
+      startInactivityWatcher();
+      labMontar();
+      switchTab('lab', document.querySelector('.tab-btn[data-tab="lab"]'));
+      document.body.classList.remove('sidebar-open');
+      // los nombres de los perfumes (sólo lectura); cuando llegan, se vuelve a pintar
+      try { await mergeNuevosIntoPerfumes(); } catch (e) { console.warn('[lab] nuevos', e); }
+      try { await loadOverridesIntoPerfumes(); } catch (e) { console.warn('[lab] overrides', e); }
+      if (LAB.datos) labPintar();
+    }
+    function labMontar() {
+      if (document.getElementById('tab-lab')) return;
+      var side = document.getElementById('adminSidebar');
+      var btn = document.createElement('button');
+      btn.className = 'tab-btn'; btn.setAttribute('data-tab', 'lab'); btn.title = 'Laboratorio';
+      btn.innerHTML = '<span class="sb-ico">&#129514;</span><span class="sb-label">Laboratorio</span>';
+      btn.onclick = function() { switchTab('lab', btn); closeMobileSidebar(); };
+      side.insertBefore(btn, side.firstChild);
+      var tab = document.createElement('div');
+      tab.className = 'tab-content'; tab.id = 'tab-lab';
+      tab.innerHTML = '<div style="text-align:center;margin-bottom:1rem;"><p style="font-size:1rem;font-weight:700;margin-bottom:.3rem;">Laboratorio</p>'
+        + '<p class="lab-nota" style="margin:0;">Sólo para mirar: lo que pasó de verdad en la tienda. Nada de acá cambia nada.</p></div>'
+        + '<div class="lab-barra"><span class="cuadros-tit">Mirar los últimos</span><div class="cuadros" id="labDiasCuadros"></div>'
+        + '<button type="button" class="action-btn" onclick="labCargar()" style="min-height:var(--tap-min);padding:0 1rem;" aria-label="Volver a leer">&#8634;</button></div>'
+        + '<div id="labCuerpo"><p class="lab-nota">Cargando…</p></div>';
+      document.getElementById('tab-stats').parentNode.appendChild(tab);
+      labDiasPintar();
+    }
+    function labDiasPintar() {
+      var c = document.getElementById('labDiasCuadros'); if (!c) return;
+      c.innerHTML = [7, 30, 90, 365].map(function(n) {
+        return '<button type="button" class="cuadro" aria-pressed="' + (LAB.dias === n ? 'true' : 'false') + '" onclick="labElegirDias(' + n + ')">' + (n === 365 ? '1 año' : n + ' días') + '</button>';
+      }).join('');
+    }
+    function labElegirDias(n) { LAB.dias = n; LAB.datos = null; labDiasPintar(); labCargar(); }
+    async function labCargar() {
+      if (currentRole !== 'dev' || LAB.cargando) return;
+      LAB.cargando = true;
+      var c = document.getElementById('labCuerpo');
+      if (c && !LAB.datos) c.innerHTML = '<p class="lab-nota">Cargando…</p>';
+      var r; try { r = await sb.rpc('lab_metricas', { p_dias: LAB.dias }); } catch (e) { r = { error: e }; }
+      LAB.cargando = false;
+      if (r.error) { if (c) c.innerHTML = '<p class="lab-nota" style="color:var(--tinta-error);">' + escHtml(errorEnCriollo(r.error, null, 'leer las métricas', '↺')) + '</p>'; return; }
+      LAB.datos = r.data; labPintar();
+    }
+    function labPesos(n) { return '$ ' + Math.round(Number(n) || 0).toLocaleString('es-AR'); }
+    function labPct(a, b) { return b > 0 ? (Math.round(a * 1000 / b) / 10).toLocaleString('es-AR') + ' %' : '—'; }
+    function labNombre(slug) { var p = PERFUMES.find(function(x) { return x.slug === slug; }); return p ? (p.name || slug) : slug; }
+    function labTarjeta(tit, valor, chico) { return '<div class="lab-tarjeta"><span>' + escHtml(tit) + '</span><b>' + valor + '</b><small>' + (chico ? escHtml(chico) : '&nbsp;') + '</small></div>'; }
+    function labTabla(cols, filas) {   // cols: [['Título', true = numérica]]; filas: arreglos de HTML ya escapado
+      if (!filas.length) return '<p class="lab-nota">Sin datos en este período.</p>';
+      return '<div class="lab-tabla-scroll"><table class="lab-tabla"><thead><tr>' + cols.map(function(c) { return '<th' + (c[1] ? ' class="num"' : '') + '>' + escHtml(c[0]) + '</th>'; }).join('')
+        + '</tr></thead><tbody>' + filas.map(function(f) { return '<tr>' + f.map(function(x, i) { return '<td' + (cols[i] && cols[i][1] ? ' class="num"' : '') + '>' + x + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+    }
+    function labBarras(items) {   // items: [{ nom (ya escapado), n, txt }]
+      var max = items.reduce(function(m, x) { return Math.max(m, x.n); }, 0) || 1;
+      return '<div class="lab-barras">' + items.map(function(x) { return '<span>' + x.nom + '</span><i style="width:' + Math.max(2, Math.round(x.n * 100 / max)) + '%"></i><em>' + x.txt + '</em>'; }).join('') + '</div>';
+    }
+    var LAB_NOMBRES = { local: 'Local', whatsapp: 'WhatsApp', web: 'Web', efectivo: 'Efectivo', mp: 'Mercado Pago', posnet: 'Posnet', mixto: 'Pago repartido', frasco: 'Frascos', decant: 'Decants', set: 'Sets' };
+    function labClave(k) { return escHtml(LAB_NOMBRES[k] || k); }
+    function labFecha(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : escHtml(iso || ''); }
+    function labPintar() {
+      var d = LAB.datos, c = document.getElementById('labCuerpo'); if (!d || !c) return;
+      var ev = d.eventos || {}, v = d.ventas || {}, vv = d.ventas_ventana || {}, g = d.ganancia || {}, h = '';
+      h += '<div class="lab-tarjetas">'
+        + labTarjeta('Visitas a perfumes', Number(ev.vistas || 0).toLocaleString('es-AR'), 'últimos ' + d.dias + ' días')
+        + labTarjeta('Clics a WhatsApp', Number(ev.wa || 0).toLocaleString('es-AR'), labPct(ev.wa, ev.vistas) + ' de las visitas')
+        + labTarjeta('Decants armados', Number(ev.decants || 0).toLocaleString('es-AR'), 'al armar el pack')
+        + labTarjeta('Ventas anotadas', Number(vv.unidades || 0).toLocaleString('es-AR') + ' u.', labPesos(vv.monto) + ' a precio de lista')
+        + '</div>';
+
+      // ── ventas ──
+      h += '<section class="lab-sec"><h3>Ventas anotadas</h3>';
+      if (!(v.filas > 0)) {
+        h += '<p class="lab-nota lab-nota--aviso">Todavía no hay ventas anotadas con el sistema nuevo (se empezaron a guardar el 16-oct). Cuando las chicas anoten, acá aparece cada semana, de dónde vino cada venta, cómo pagaron y qué perfumes salen más.</p>';
+      } else {
+        h += '<p class="lab-nota">Hay ventas desde el ' + labFecha(v.desde) + ' (' + v.dias_con_ventas + (v.dias_con_ventas === 1 ? ' día' : ' días') + ' con ventas). Los montos son a precio de lista (lo que figura en la hoja, sin el 10 % de efectivo y Mercado Pago).</p>';
+        h += '<p class="lab-nota" style="margin-bottom:.3rem;"><b>Por semana</b> (últimas 8)</p>'
+          + labBarras((d.por_semana || []).map(function(s) { return { nom: 'sem. ' + labFecha(s.semana), n: Number(s.monto) || 0, txt: s.unidades + ' u. · ' + labPesos(s.monto) }; }));
+        var grupo = function(tit, arr) { return '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>' + tit + '</b></p>' + labTabla([['', false], ['Unidades', true], ['Monto', true]], (arr || []).map(function(x) { return [labClave(x.clave), x.unidades, labPesos(x.monto)]; })); };
+        h += grupo('De dónde vino la venta', d.por_origen) + grupo('Cómo pagaron', d.por_medio) + grupo('Qué se llevaron', d.por_tipo);
+        h += '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>Los perfumes que más salen</b></p>'
+          + labTabla([['Perfume', false], ['Marca', false], ['Unidades', true], ['Monto', true]], (d.top_perfumes || []).map(function(x) { return [escHtml(labNombre(x.slug) || x.nombre), escHtml(x.marca || ''), x.unidades, labPesos(x.monto)]; }));
+        if (g.frascos_uds > 0) {
+          if (g.con_costo_uds > 0) h += '<p class="lab-nota" style="margin-top:.9rem;"><b>Ganancia estimada: ' + labPesos(g.monto_con_costo - g.costo_total) + '</b> sobre ' + g.con_costo_uds + ' de ' + g.frascos_uds + ' frascos que tienen costo cargado (precio de lista menos costo; los decants no entran).</p>';
+          else h += '<p class="lab-nota lab-nota--aviso" style="margin-top:.9rem;">Ganancia: todavía no se puede calcular. Falta cargar los costos (en el panel del jefe: Decants → Costos de compra).</p>';
+        }
+      }
+      h += '</section>';
+
+      // ── el camino de la gente ──
+      h += '<section class="lab-sec"><h3>Qué mira la gente y qué pasa después</h3>'
+        + '<p class="lab-nota">Los 25 perfumes con más movimiento de los últimos ' + d.dias + ' días. «Chance» = de cada visita, cuántas terminaron en un clic a WhatsApp. Con pocas visitas el número engaña: mirá primero la columna de visitas.</p>'
+        + labTabla([['Perfume', false], ['Visitas', true], ['Decants', true], ['WhatsApp', true], ['Chance', true], ['Vendidos', true]],
+            (d.embudo || []).map(function(x) { return [escHtml(labNombre(x.slug)), x.vistas, x.decants, x.wa, labPct(x.wa, x.vistas), x.vendidas]; }))
+        + '</section>';
+
+      // ── de dónde vienen y cuándo escriben ──
+      var fila = function(x) { return [escHtml(x.clave), x.vistas, x.wa, x.decants]; };
+      h += '<section class="lab-sec"><h3>De dónde vienen</h3>'
+        + labTabla([['Origen', false], ['Visitas', true], ['WhatsApp', true], ['Decants', true]], (d.referrer || []).map(fila))
+        + '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>Desde qué aparato</b></p>'
+        + labTabla([['Aparato', false], ['Visitas', true], ['WhatsApp', true], ['Decants', true]], (d.dispositivo || []).map(fila))
+        + '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>A qué hora hacen clic en WhatsApp</b></p>'
+        + ((d.wa_por_hora || []).length ? labBarras((d.wa_por_hora || []).map(function(x) { return { nom: String(x.hora).padStart(2, '0') + ' h', n: x.wa, txt: String(x.wa) }; })) : '<p class="lab-nota">Sin datos en este período.</p>')
+        + '</section>';
+
+      // ── búsquedas sin resultado ──
+      h += '<section class="lab-sec"><h3>Lo que buscan y no encuentran</h3>'
+        + '<p class="lab-nota">Búsquedas del catálogo que no devolvieron nada: son perfumes o marcas que la gente pide y hoy no están (o están con otro nombre: sirve para los alias y para el SEO).</p>'
+        + labTabla([['Búsqueda', false], ['Veces', true]], (d.busquedas || []).map(function(x) { return [escHtml(x.q), x.n]; }))
+        + '</section>';
+
+      // ── lo que falta ──
+      var dias = Number(v.dias_con_ventas) || 0;
+      h += '<section class="lab-sec"><h3>Lo que todavía no se puede medir</h3><p class="lab-nota">'
+        + '<b>Probabilidad de venta por perfume:</b> ' + (dias < 14 ? 'hoy hay ' + dias + (dias === 1 ? ' día' : ' días') + ' de ventas registradas; con menos de dos semanas cualquier número sería inventado. ' : '') + 'Cuando haya unas semanas de ventas se cruzan con las visitas y los clics de arriba.<br>'
+        + '<b>SEO real</b> (qué palabras de Google traen gente, en qué posición sale la tienda): hace falta conectar Google Search Console; hoy sólo se ve si la visita vino de Google.<br>'
+        + '<b>Publicar productos:</b> con las ventas y las visitas por perfume se puede ver qué tipo de ficha (foto, notas, precio) convierte más; falta juntar datos.</p></section>';
+      c.innerHTML = h;
     }
 
     // ============================================================
