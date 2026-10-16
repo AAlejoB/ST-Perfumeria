@@ -1298,6 +1298,9 @@
     .deshacer.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
     .deshacer-ico { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .95rem; font-weight: 800; background: #2ecc71; color: #000; }
     .deshacer--error .deshacer-ico { background: #ff8a80; }
+    /* [AVISO-SIN-STOCK-LOCAL] el aviso que recomienda algo (no es un «se hizo»): con el amarillo del globito de [PISTAS] alrededor */
+    .deshacer--aviso { box-shadow: 0 12px 32px rgba(0,0,0,.38), 0 0 0 2px #e8b800; }
+    .deshacer--aviso .deshacer-ico { background: #e8b800; }
     .deshacer-txt { flex: 1 1 auto; min-width: 0; font-size: .9rem; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
     .deshacer-txt small { display: block; font-size: .72rem; font-weight: 400; opacity: .72; }
     .deshacer-btn { flex: 0 0 auto; min-height: 48px; min-width: 48px; padding: 0 1rem; border: 0; border-radius: 10px; background: transparent; color: #ffd000; font: inherit; font-size: .86rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -7125,6 +7128,7 @@
         html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
     ];
     var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
+      { id: 'n16-sin-stock', fecha: '16-oct', texto: 'Cuando un perfume se termina en el local, abajo te avisa si hay en el depósito y lo pasás con un toque' },
       { id: 'n16-fotos', fecha: '16-oct', texto: 'Las fotos se agrandan: tocá la miniatura o mantené apretada cualquier foto', ir: 'precios' },
       { id: 'n16-buscar', fecha: '16-oct', texto: 'El buscador encuentra igual con o sin tildes y con las palabras en cualquier orden', ir: 'precios' },
       { id: 'n16-ventanas', fecha: '16-oct', texto: 'Si escribiste algo en una ventana, tocar afuera ya no la cierra: usá la ✕ o «Cancelar»' },
@@ -9036,6 +9040,7 @@
         if (Math.abs(dif) > 999) { msgEl.textContent = 'Sin internet no se puede cambiar más de 999 de una vez.'; msgEl.style.color = 'var(--tinta-error)'; return; }
         var enTablet = stockEncolar(p, { p_id: hojaUUID(), p_slug: editingSlug, p_lugar: 'local', p_delta: dif, p_pasan: false, p_origen: 'panel', p_pausado: cambiaPausa ? paused : null },
           'Stock del local: ' + (prevQty === null ? '—' : prevQty) + ' → ' + qty + (cambiaPausa ? (paused ? ' (oculto)' : ' (ya no oculto)') : ''));
+        if (prevQty > 0 && p._stockQty === 0) stockCeroAvisar(p);   // [AVISO-SIN-STOCK-LOCAL]
         if (result.yaSinRed) setTimeout(colaSubir, 0);
         msgEl.textContent = enTablet.texto; msgEl.style.color = 'var(--tinta-aviso)';
         setTimeout(function() { closeModal('modalStock'); }, 2500);
@@ -9061,6 +9066,7 @@
 
       msgEl.textContent = 'Stock actualizado: ' + info.badgeText;
       msgEl.style.color = 'var(--tinta-ok)';
+      if (prevQty > 0 && qty === 0) stockCeroAvisar(p);   // [AVISO-SIN-STOCK-LOCAL]
 
       // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
       // notifyTelegram('📦 Stock actualizado\n🌶 ' + p.name + '\n📊 ' + info.badgeText + (paused ? ' (pausado)' : ''));
@@ -9645,7 +9651,12 @@
         try { await autoNotifyWaitlist(p.slug); } catch (e) {}
       }
     }
-    async function stockMover(p, lugar, signo, n, pasan) {
+    async function stockMover(p, lugar, signo, n, pasan, callado) {   // callado: sin el aviso de «se terminó» (lo usa el Deshacer de ese aviso)
+      var r0 = await stockMoverAhora(p, lugar, signo, n, pasan);
+      if (r0.ok && !callado && lugar === 'local' && signo < 0 && p._stockQty === 0) stockCeroAvisar(p);   // [AVISO-SIN-STOCK-LOCAL]
+      return r0;
+    }
+    async function stockMoverAhora(p, lugar, signo, n, pasan) {
       function err(texto, tipo) { return { ok: false, texto: texto, tipo: tipo || 'error' }; }
       var prevLocal = (typeof p._stockQty === 'number') ? p._stockQty : null, prevSt = p._stockStatus || 'ok';
       var prevDep = depQty(p), pasa = lugar === 'deposito' && signo < 0 && !!pasan, txt;
@@ -9683,6 +9694,61 @@
       var l = res.local, d = res.deposito;
       txt = lugar === 'deposito' ? stockTexto('deposito', signo, n, d.prev, d.new, !!l, l ? (l.prev || 0) : 0, l ? l.new : 0) : stockTexto('local', signo, n, l.prev === null ? 0 : l.prev, l.new);
       return { ok: true, texto: txt, prevStatus: l ? l.status_prev : prevSt, newStatus: l ? l.status_new : prevSt, cambioLocal: !!l };
+    }
+    // ══ [AVISO-SIN-STOCK-LOCAL] 16-oct-2026 · pedido de Alejo («que te avise cuando se te queda en 0»): cuando ESTA tablet deja un
+    // perfume en 0 en el local (Vendí, el cuadro de stock o el Cierre del día), sale abajo la pastilla de [DESHACER] con borde amarillo:
+    //   · con depósito: «Se terminó X en el local · Hay N en el depósito» + PASAR 1 (stockMover del depósito con «pasan al local»), y después
+    //     «Pasaste 1 al local» + DESHACER (vuelve al depósito: −1 local callado y +1 depósito);
+    //   · sin depósito: «No hay en el depósito: hay que pedirlo», sin botón.
+    // Si alguien lo espera (lista de espera, sin lo libre) lo dice. No sale con «Llegó mercadería» abierto (es carga, no venta), ni por lo que
+    // movió otra tablet (Realtime), ni en el Laboratorio.
+    function stockCeroEsperan(slug) {
+      return (esperaData || []).filter(function(r) { return r && r.slug === slug && !r.notified_at && !esperaEsLibre(r); }).length;
+    }
+    function stockCeroQuien(n) { return n === 1 ? '1 persona lo espera' : n + ' personas lo esperan'; }
+    function stockCeroAvisar(p) {
+      if (!p || currentRole === 'dev') return;
+      var merc = document.getElementById('modalMercaderia');
+      if (merc && merc.classList.contains('active')) return;
+      var dep = depQty(p), esp = stockCeroEsperan(p.slug), nombre = p.name || p.slug;
+      if (dep > 0) {
+        deshacerToast({ aviso: true, ico: '!', ms: 15000, texto: 'Se terminó ' + nombre + ' en el local',
+          sub: 'Hay ' + dep + ' en el depósito' + (esp ? ' · ' + stockCeroQuien(esp) : ''),
+          boton: 'Pasar 1', ocupadoTxt: 'Pasando…', alDeshacer: function() { return stockCeroPasar(p); } });
+      } else {
+        deshacerToast({ aviso: true, ico: '!', ms: 10000, texto: 'Se terminó ' + nombre + ' en el local',
+          sub: 'No hay en el depósito: hay que pedirlo' + (esp ? ' · ' + stockCeroQuien(esp) : '') });
+      }
+    }
+    async function stockCeroPasar(p) {
+      var r = await stockMover(p, 'deposito', -1, 1, true);
+      if (!r.ok) return { ok: false, texto: r.texto };
+      var quedan = depQty(p), sub = (p.name || p.slug) + ' · ' + (quedan === 1 ? 'queda 1' : 'quedan ' + quedan) + ' en el depósito';
+      if (!r.tablet && r.cambioLocal && r.prevStatus === 'out' && (r.newStatus === 'ok' || r.newStatus === 'low')) {
+        var avisar = []; try { avisar = await autoNotifyWaitlist(p.slug); } catch (e) {}
+        if (avisar && avisar.length) sub += ' · avisá a ' + (avisar.length === 1 ? 'la persona que lo espera' : 'las ' + avisar.length + ' que lo esperan') + ' desde Precios & Stock';
+      }
+      return { ok: true, siguiente: { texto: r.tablet ? 'Pasaste 1 al local (sin internet: se sube solo)' : 'Pasaste 1 al local', sub: sub, ms: 8000,
+        alDeshacer: function() { return stockCeroVolver(p); } } };
+    }
+    async function stockCeroVolver(p) {
+      var a = await stockMover(p, 'local', -1, 1, false, true);
+      if (!a.ok) return { ok: false, texto: a.texto };
+      var b = await stockMover(p, 'deposito', 1, 1, false);
+      if (!b.ok) return { ok: false, texto: 'Se sacó 1 del local pero no volvió al depósito: ' + b.texto };
+      return { ok: true, texto: 'Listo: volvió al depósito' };
+    }
+    // Varios a la vez (el Cierre del día): uno solo, el aviso de siempre; más, la cuenta y «Ver» lleva a Depósito con «Sin local pero con depósito».
+    function stockCeroVarios(lista) {
+      if (!lista.length || currentRole === 'dev') return;
+      if (lista.length === 1) { stockCeroAvisar(lista[0]); return; }
+      var conDep = lista.filter(function(p) { return depQty(p) > 0; }).length;
+      deshacerToast({ aviso: true, ico: '!', ms: 14000, texto: 'Se terminaron ' + lista.length + ' perfumes en el local',
+        sub: conDep ? (conDep === lista.length ? (conDep === 2 ? 'Los dos tienen' : 'Los ' + conDep + ' tienen') : conDep + (conDep === 1 ? ' tiene' : ' tienen')) + ' en el depósito' : 'Ninguno tiene en el depósito: hay que pedirlos',
+        boton: conDep ? 'Ver' : null, alDeshacer: conDep ? function() {
+          irDesdeInicio('deposito'); DEP_MODO = 'reponer'; try { renderDeposito(); } catch (e) {}
+          return { cerrar: true };
+        } : null });
     }
     async function accMoverLocal(p, signo, n) {
       var r = await stockMover(p, 'local', signo, n, false);
@@ -10127,6 +10193,8 @@
     // anterior); se frena mientras se toca o se pasa el mouse por encima; Esc la cierra (no deshace). Reutilizable: deshacerToast({ texto, sub, ms, alDeshacer })
     // donde alDeshacer() devuelve (o promete) { ok, texto } con el mensaje que se muestra después. Hoy lo usa guardar un código de barras en un perfume.
     // ============================================================
+    // [AVISO-SIN-STOCK-LOCAL] la misma pastilla también recomienda: `boton` (otro nombre que «Deshacer»), `ocupadoTxt`, `ico`, `aviso: true`
+    // (borde amarillo) y, si lo que hace el botón devuelve `{ ok, siguiente: {…} }`, en vez del resultado se muestra ese otro aviso (con su Deshacer).
     var DESHACER = { el: null, timer: null, fin: 0, resto: 0, hacer: null, ocupado: false };
     function deshacerCerrar() {
       clearTimeout(DESHACER.timer); DESHACER.timer = null; DESHACER.hacer = null;
@@ -10143,8 +10211,9 @@
       var ms = o.ms || 8000, el = document.createElement('div');
       el.className = 'deshacer'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
       el.style.setProperty('--deshacer-ms', ms + 'ms');
-      el.innerHTML = '<span class="deshacer-ico" aria-hidden="true">✓</span><div class="deshacer-txt">' + escHtml(o.texto || '') + (o.sub ? '<small>' + escHtml(o.sub) + '</small>' : '') + '</div>'
-        + (o.alDeshacer ? '<button type="button" class="deshacer-btn">Deshacer</button>' : '') + '<span class="deshacer-barra"></span>';
+      el.innerHTML = '<span class="deshacer-ico" aria-hidden="true">' + escHtml(o.ico || '✓') + '</span><div class="deshacer-txt">' + escHtml(o.texto || '') + (o.sub ? '<small>' + escHtml(o.sub) + '</small>' : '') + '</div>'
+        + (o.alDeshacer ? '<button type="button" class="deshacer-btn">' + escHtml(o.boton || 'Deshacer') + '</button>' : '') + '<span class="deshacer-barra"></span>';
+      if (o.aviso) el.classList.add('deshacer--aviso');
       document.body.appendChild(el); DESHACER.el = el; DESHACER.hacer = o.alDeshacer || null; DESHACER.ocupado = false;
       var pausar = function() { if (DESHACER.ocupado) return; clearTimeout(DESHACER.timer); DESHACER.resto = Math.max(1500, DESHACER.fin - Date.now()); el.classList.add('pausa'); };
       var seguir = function() { if (DESHACER.ocupado) return; el.classList.remove('pausa'); deshacerArmar(DESHACER.resto); };
@@ -10154,8 +10223,10 @@
       if (btn) btn.addEventListener('click', async function() {
         var hacer = DESHACER.hacer; if (!hacer || DESHACER.ocupado) return;
         DESHACER.ocupado = true; clearTimeout(DESHACER.timer); el.classList.add('pausa');
-        btn.disabled = true; btn.textContent = 'Deshaciendo…';
-        var r; try { r = await hacer(); } catch (e) { r = { ok: false, texto: 'No se pudo deshacer.' }; }
+        btn.disabled = true; btn.textContent = o.ocupadoTxt || 'Deshaciendo…';
+        var r; try { r = await hacer(); } catch (e) { r = { ok: false, texto: o.boton ? 'No se pudo.' : 'No se pudo deshacer.' }; }
+        if (r && r.cerrar) { deshacerCerrar(); return; }
+        if (r && r.ok && r.siguiente) { deshacerToast(r.siguiente); return; }
         deshacerToast({ texto: (r && r.texto) || (r && r.ok ? 'Listo, deshecho' : 'No se pudo deshacer'), ms: r && r.ok ? 3500 : 6000, error: !(r && r.ok) });
       });
       requestAnimationFrame(function() { requestAnimationFrame(function() { el.classList.add('on'); }); });
@@ -17692,7 +17763,10 @@
         var motivo = String(HOJA.cierreMotivo || '').trim().replace(/\s+/g, ' ').slice(0, 200);
         if (motivo) logAdminAction('hoja_cierre_tarde', null, { dia: HOJA.dia, motivo: motivo });
         HOJA.cierreMotivo = ''; hojaCierrePostergado(HOJA.dia, false);
-        hojaStockAplicar((d.plan || []).filter(function(x) { return x.bajar > 0; }));
+        var bajados = (d.plan || []).filter(function(x) { return x.bajar > 0; });
+        hojaStockAplicar(bajados);
+        stockCeroVarios(bajados.filter(function(x) { return x.new === 0 && x.prev > 0; })   // [AVISO-SIN-STOCK-LOCAL]
+          .map(function(x) { return PERFUMES.find(function(pf) { return pf.slug === x.slug; }); }).filter(Boolean));
         HOJA.cierreVista = { modo: 'hecho', data: d };
         hojaMsg('');
         await hojaCargar();
