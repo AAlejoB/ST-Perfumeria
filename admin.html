@@ -15924,18 +15924,37 @@
       if (faltaDec) return { ok: false, error: faltaDec };
 
       var activo = document.getElementById('decActivo').checked;
-      var ml = parseInt(document.getElementById('decMl').value, 10);
-      var p1 = parseInt(document.getElementById('decPrecio1').value, 10);
-      var p3 = parseInt(document.getElementById('decPrecio3').value, 10);
-      var p5 = parseInt(document.getElementById('decPrecio5').value, 10);
-      var maxD = parseInt(document.getElementById('decMax').value, 10);
-      var frascoMax = parseInt(document.getElementById('decFrascoMax').value, 10);
-      if (isNaN(frascoMax) || frascoMax < 0) frascoMax = 0;   // 0 = regla desactivada
       var aviso = (document.getElementById('decAviso').value || '').trim();
 
-      if (!ml || ml < 1) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Tamaño en ml inválido.'; return { ok: false, error: msg.textContent }; }
-      if (!p1 || !p3 || !p5) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Todos los precios son obligatorios.'; return { ok: false, error: msg.textContent }; }
-      if (!maxD || maxD < 1) { msg.style.color = 'var(--tinta-error)'; msg.textContent = 'Máximo de decants inválido.'; return { ok: false, error: msg.textContent }; }
+      // [VALIDAR-DECANTS] 16-oct · B4 del QA: se guardaban precios negativos, la escalera al revés (comprar más salía más caro),
+      // 5000 ml y los decimales se cortaban en silencio («9500,75» → 9500). Ahora se revisa todo y no se guarda nada si algo está mal.
+      var decVal = function(id) { return String(document.getElementById(id).value || '').trim(); };
+      var decMal = function(campo, texto) {
+        msg.style.color = 'var(--tinta-error)'; msg.textContent = texto;
+        var c = document.getElementById(campo); if (c) { try { c.focus(); } catch (e) {} }
+        return { ok: false, error: texto };
+      };
+      var decEntero = function(id, min, max) {   // NaN si no es un entero entre min y max (los precios aceptan 9.500)
+        var n = precioDeTexto(decVal(id));
+        return (isNaN(n) || n !== Math.floor(n) || n < min || n > max) ? NaN : n;
+      };
+      var ml = /^\d+$/.test(decVal('decMl')) ? Number(decVal('decMl')) : NaN;
+      if (isNaN(ml) || ml < 1 || ml > 50) return decMal('decMl', 'El tamaño tiene que ser un número entero de 1 a 50 ml.');
+      if (!decVal('decPrecio1') || !decVal('decPrecio3') || !decVal('decPrecio5')) return decMal(!decVal('decPrecio1') ? 'decPrecio1' : (!decVal('decPrecio3') ? 'decPrecio3' : 'decPrecio5'), 'Todos los precios son obligatorios.');
+      var p1 = decEntero('decPrecio1', 1, 9999999), p3 = decEntero('decPrecio3', 1, 9999999), p5 = decEntero('decPrecio5', 1, 9999999);
+      var malPrecio = 'Cada precio tiene que ser un número positivo en pesos, sin centavos (ej: 9500 o 9.500).';
+      if (isNaN(p1)) return decMal('decPrecio1', malPrecio);
+      if (isNaN(p3)) return decMal('decPrecio3', malPrecio);
+      if (isNaN(p5)) return decMal('decPrecio5', malPrecio);
+      if (p3 > p1) return decMal('decPrecio3', 'El precio de 3-4 decants ($' + p3.toLocaleString('es-AR') + ' c/u) no puede ser mayor que el de 1-2 ($' + p1.toLocaleString('es-AR') + '): comprar más saldría más caro.');
+      if (p5 > p3) return decMal('decPrecio5', 'El precio de 5+ decants ($' + p5.toLocaleString('es-AR') + ' c/u) no puede ser mayor que el de 3-4 ($' + p3.toLocaleString('es-AR') + '): comprar más saldría más caro.');
+      var maxD = /^\d+$/.test(decVal('decMax')) ? Number(decVal('decMax')) : NaN;
+      if (isNaN(maxD) || maxD < 1 || maxD > 999) return decMal('decMax', 'El máximo de decants por pack tiene que ser un número entero de 1 a 999.');
+      var frascoMax = 0;   // vacío o 0 = regla desactivada
+      if (decVal('decFrascoMax')) {
+        frascoMax = decEntero('decFrascoMax', 0, 99999999);
+        if (isNaN(frascoMax)) return decMal('decFrascoMax', 'El tope tiene que ser un número en pesos, sin centavos (0 o vacío = sin tope).');
+      }
 
       if (!sb) {
         msg.style.color = 'var(--tinta-error)';
