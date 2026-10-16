@@ -2317,6 +2317,14 @@
     .doc-card--crit { background: rgba(231,76,60,.12); border: 1px solid rgba(231,76,60,.3); color: var(--tinta-error); }
     .doc-card--warn { background: rgba(241,196,15,.12); border: 1px solid rgba(241,196,15,.3); color: var(--tinta-aviso); }
     .doc-card--ok { background: rgba(46,204,113,.12); border: 1px solid rgba(46,204,113,.3); color: var(--tinta-ok); }
+    /* [DOCTOR-ARREGLA] 16-oct · cada aviso con su botón a la derecha («📸 Subir foto» dorado; «Completar →» con borde),
+       44 de alto; y el campo de Editar al que manda el Doctor queda marcado 2,5 s con borde dorado. */
+    .doc-issue { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding-left: 42px; margin-top: .25rem; min-height: var(--tap-min); }
+    .doc-accion { flex: 0 0 auto; min-height: 36px; display: inline-flex; align-items: center; padding: 0 .7rem; border-radius: 6px; font-family: inherit; font-size: .66rem; font-weight: 700; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); white-space: nowrap; }
+    .doc-accion:hover, .doc-accion:focus-visible { border-color: var(--amarillo-tinta); }
+    .doc-accion--foto { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    .doc-marcado { outline: 2px solid var(--amarillo); outline-offset: 3px; border-radius: 6px; transition: outline-color .4s; }
+    @media (max-width: 480px) { .doc-issue { padding-left: 0; } }
     .doc-card--crit[aria-pressed="true"] { border-color: #e74c3c; box-shadow: inset 0 0 0 1px #e74c3c; }
     .doc-card--warn[aria-pressed="true"] { border-color: #f1c40f; box-shadow: inset 0 0 0 1px #f1c40f; }
     .doc-card--ok[aria-pressed="true"] { border-color: #2ecc71; box-shadow: inset 0 0 0 1px #2ecc71; }
@@ -12531,47 +12539,47 @@
 
         // 📸 Sin foto
         if (!p.foto) {
-          issues.push({ type: 'critical', icon: '📸', msg: 'Sin foto — no se muestra imagen en la card' });
+          issues.push({ type: 'critical', icon: '📸', campo: 'foto', msg: 'Sin foto — no se muestra imagen en la card' });
         }
 
         // 💰 Sin precio
         if (!p.price || p.price <= 0) {
-          issues.push({ type: 'critical', icon: '💰', msg: 'Sin precio — el cliente no puede saber cuánto sale' });
+          issues.push({ type: 'critical', icon: '💰', campo: 'price', msg: 'Sin precio — el cliente no puede saber cuánto sale' });
         }
 
         // 👃 Sin acordes — [A-QUE-HUELE-AUTO] 147b · los tres «Sin notas…» dejaron de ser aviso: lo que arma «¿A qué huele?» son los acordes (las notas siguen donde están)
         if (!Array.isArray(p.acordes) || p.acordes.length === 0) {
-          issues.push({ type: 'warning', icon: '👃', msg: 'Sin acordes — no aparece al filtrar por «¿A qué huele?»' });
+          issues.push({ type: 'warning', icon: '👃', campo: 'acordes', msg: 'Sin acordes — no aparece al filtrar por «¿A qué huele?»' });
         }
 
         // 🏷️ Sin apodo/abreviación — perdés búsquedas por apodo informal
         if (!p.alias || p.alias.trim() === '') {
-          issues.push({ type: 'warning', icon: '🏷️', msg: 'Sin apodo/abreviación — el cliente no lo encuentra al buscar por nombre informal' });
+          issues.push({ type: 'warning', icon: '🏷️', campo: 'alias', msg: 'Sin apodo/abreviación — el cliente no lo encuentra al buscar por nombre informal' });
         }
 
         // 🌿 Sin características olfativas — el filtro por perfil no lo agarra
         if (!p.perfil || p.perfil.trim() === '') {
-          issues.push({ type: 'warning', icon: '🌿', msg: 'Sin características olfativas — no aparece al filtrar por perfil (ej: dulce, fresco, intenso)' });
+          issues.push({ type: 'warning', icon: '🌿', campo: 'perfil', msg: 'Sin características olfativas — no aparece al filtrar por perfil (ej: dulce, fresco, intenso)' });
         }
 
         // 🏭 Sin marca
         if (!p.marca && !p.marca_real) {
-          issues.push({ type: 'warning', icon: '🏭', msg: 'Sin marca — queda como genérico' });
+          issues.push({ type: 'warning', icon: '🏭', campo: 'marca', msg: 'Sin marca — queda como genérico' });
         }
 
         // 🏷️ Sin categoría
         if (!p.cat || p.cat.trim() === '') {
-          issues.push({ type: 'critical', icon: '🏷️', msg: 'Sin categoría — los filtros no lo encuentran' });
+          issues.push({ type: 'critical', icon: '🏷️', campo: 'cat', msg: 'Sin categoría — los filtros no lo encuentran' });
         }
 
         // 📏 Sin ml
         if (!p.ml) {
-          issues.push({ type: 'warning', icon: '📏', msg: 'Sin ml — el cliente no sabe el tamaño' });
+          issues.push({ type: 'warning', icon: '📏', campo: 'ml', msg: 'Sin ml — el cliente no sabe el tamaño' });
         }
 
         // 🔗 Sin slug
         if (!p.slug || p.slug.trim() === '') {
-          issues.push({ type: 'critical', icon: '🔗', msg: 'Sin slug — puede causar errores' });
+          issues.push({ type: 'critical', icon: '🔗', campo: null, msg: 'Sin slug — puede causar errores' });
         }
 
         // Determinar estado general del perfume
@@ -12663,12 +12671,20 @@
         }
         html += '</div>';
 
-        // Lista de issues
+        // Lista de issues · [DOCTOR-ARREGLA] (pedido 12b de Alejo, 16-oct, opción A): cada aviso es un botón. La foto se
+        // sube AHÍ MISMO (doctorSubirFoto); el resto abre Editar parado en el campo que falta (doctorGoEdit con campo).
         if (r.issues.length > 0) {
+          var slugJson = escHtml(JSON.stringify(String(r.slug)));
           r.issues.forEach(function(issue) {
             var issueColor = issue.type === 'critical' ? 'var(--tinta-error)' : 'var(--tinta-aviso)';   // [DOCTOR-LISTA-CLARO] NO ROMPER #22: con #e74c3c / #f1c40f en claro daba ~3,3 / ~1,5
-            html += '<p style="font-size:.65rem;color:' + issueColor + ';padding-left:42px;margin-top:.2rem;">'
-              + issue.icon + ' ' + issue.msg + '</p>';
+            var accion = '';
+            if (issue.campo === 'foto') {
+              accion = '<label class="doc-accion doc-accion--foto">📸 Subir foto<input type="file" accept="image/*" hidden onchange="doctorSubirFoto(' + slugJson + ', this)"></label>';
+            } else if (issue.campo) {
+              accion = '<button type="button" class="doc-accion" onclick="doctorGoEdit(' + slugJson + ', \'' + issue.campo + '\')">Completar →</button>';
+            }
+            html += '<div class="doc-issue"><p style="font-size:.65rem;color:' + issueColor + ';margin:0;">'
+              + issue.icon + ' ' + issue.msg + '</p>' + accion + '</div>';
           });
         }
 
@@ -12714,14 +12730,65 @@
     document.getElementById('editDescuentoPct').addEventListener('input', updateDescuentoPreview);
     document.getElementById('editDescuentoHasta').addEventListener('input', updateDescuentoPreview);
 
-    function doctorGoEdit(slug) {
+    function doctorGoEdit(slug, campo) {
       // Cambiar a la pestaña Editar
       var editBtn = document.querySelector('.tab-btn[onclick*="editar"]');
       if (editBtn) switchTab('editar', editBtn);
       // Cargar el perfume en el formulario
       loadEditPerfume(slug);
-      // Scroll arriba para ver el formulario
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // [DOCTOR-ARREGLA] con campo: Editar queda parado y marcado en ese campo (2 s de borde dorado); sin campo, arriba de todo
+      var ids = { foto: 'editFoto', price: 'editPrice', acordes: 'editAcordes', alias: 'editAlias', perfil: 'editPerfil', marca: 'editMarca', cat: 'editCat', ml: 'editMl' };
+      var el = campo && ids[campo] ? document.getElementById(ids[campo]) : null;
+      if (!el) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      setTimeout(function() {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('doc-marcado');
+        setTimeout(function() { el.classList.remove('doc-marcado'); }, 2500);
+        if (el.tagName === 'INPUT' || el.tagName === 'SELECT') { try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } }
+      }, 120);
+    }
+
+    // [DOCTOR-ARREGLA] 12b · la foto se sube desde el Doctor, sin pasar por Editar ni por el «ST»: el mismo subidor que
+    // Editar (compressToWebP → Storage perfume-fotos, nombre del perfume en mayúsculas) y UNA sola columna de
+    // perfume_overrides (foto), con UPDATE —no upsert—: un perfume sin fila propia no se inventa acá (un insert con el
+    // resto en null pisaría nombre y precio en las otras tablets por Realtime); en ese caso manda a Editar.
+    async function doctorSubirFoto(slug, input) {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var p = PERFUMES.find(function(x) { return x.slug === slug; });
+      var label = input.closest('label');
+      var pintar = function(texto, tinta) { if (label) { label.textContent = texto; label.style.color = tinta ? 'var(--tinta-' + tinta + ')' : ''; } };
+      if (!p) { pintar('No encontré el perfume', 'error'); input.value = ''; return; }
+      var falta = faltaOverrides(null);   // [GUARDAR-SIN-LEER] sin la lectura de los overrides no se escribe (NO ROMPER #20)
+      if (falta) { pintar('Primero tienen que cargar los datos: recargá', 'error'); input.value = ''; return; }
+      pintar('Subiendo…', 'aviso');
+      try {
+        var compressed = await compressToWebP(file, 800, 0.82);
+        var nombre = String(p.name || '').trim();
+        var fileName = nombre ? nombre.toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim().replace(/\s+/g, ' ') + '.webp' : 'perfume-' + Date.now() + '.webp';
+        var up = await sb.storage.from('perfume-fotos').upload(fileName, compressed, { contentType: 'image/webp', upsert: true, cacheControl: '604800' });
+        if (up.error) throw up.error;
+        var url = sb.storage.from('perfume-fotos').getPublicUrl(fileName).data.publicUrl + '?v=' + Date.now();
+        var r = await sb.from('perfume_overrides').update({ foto: url }).eq('slug', slug).select('slug');
+        if (r.error) throw r.error;
+        if (!r.data || !r.data.length) {
+          // Sin fila en perfume_overrides: la foto ya está en Storage; Editar la guarda con el resto de la ficha.
+          pintar('Ya se subió: guardala desde Editar', 'aviso');
+          input.value = '';
+          doctorGoEdit(slug, 'foto');
+          var ef = document.getElementById('editFoto'); if (ef && !ef.value) { ef.value = url; try { ef.dispatchEvent(new Event('input')); } catch (e2) {} }
+          return;
+        }
+        var antes = p.foto || '';
+        p.foto = url;
+        logAdminAction('perfume_edit', slug, { Foto: { old: antes || null, new: url } });
+        sb.from('edit_log').insert([{ slug: slug, nombre: p.name || slug, campo: 'Foto', valor_anterior: antes || null, valor_nuevo: url, editado_por: currentRole || 'admin' }]).then(function() { tabLoaded['editar'] = false; });
+        pintar('✓ Foto subida (' + Math.round(compressed.size / 1024) + ' KB)', 'ok');
+        setTimeout(function() { runCatalogDoctor(); }, 900);   // el aviso desaparece solo
+      } catch (e) {
+        pintar(errorEnCriollo(e, null, 'subir la foto'), 'error');   // 128h
+      }
+      input.value = '';
     }
 
     // ============================================================
