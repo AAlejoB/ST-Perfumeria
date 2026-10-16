@@ -1383,6 +1383,29 @@
     .tarjeta .cod-ya { display: block; font-size: .68rem; font-weight: 600; color: var(--tinta-aviso); }
     .cod-lista .tarjetero { padding: .5rem; }
     @media (max-width: 380px) { .tarjetero { grid-template-columns: minmax(0, 1fr); } }
+    /* [DECANTS-TARJETERO] 16-oct · las tarjetas de los decants de diseñador: foto chica a la izquierda (o un 💎), nombre
+       y «marca · $precio» alineados a la izquierda; «+ Agregar» punteada; pausado, atenuado. La ventana: la foto en 72 × 92. */
+    .dc-caja { background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-lg); padding: 1rem; margin-bottom: 1.2rem; }
+    .dc-cuenta { font-size: .72rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--gris); }
+    .tarjeta--dc { display: grid; grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; column-gap: .7rem; row-gap: .1rem; text-align: left; padding: .6rem 2rem .6rem .7rem; }
+    .tarjeta--dc .dc-mini { grid-row: 1 / 3; }
+    .tarjeta--dc .tarjeta-nombre { font-size: .92rem; align-self: end; }
+    .tarjeta--dc .tarjeta-sub { align-self: start; }
+    .dc-mini { width: 40px; height: 52px; border-radius: 6px; background: #fff; object-fit: contain; padding: 2px; box-sizing: border-box; }
+    .dc-mini-vacia { display: flex; align-items: center; justify-content: center; background: rgba(232,184,0,.08); border: 1px dashed rgba(232,184,0,.4); font-size: 1.1rem; }
+    .tarjeta--pausada { opacity: .55; }
+    .tarjeta--agregar { border-style: dashed; border-color: var(--amarillo-tinta); color: var(--amarillo-tinta); }
+    .tarjeta--agregar::after { content: none; }
+    .tarjeta--agregar .tarjeta-sub { color: var(--amarillo-tinta); opacity: .8; }
+    .dc-foto-fila { display: flex; align-items: center; gap: .9rem; margin-bottom: 1rem; }
+    .dc-foto { flex: 0 0 auto; width: 72px; height: 92px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .dc-foto img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+    .dc-foto-vacia { font-size: 1.6rem; }
+    .dc-foto-botones { display: flex; flex-direction: column; gap: .5rem; }
+    .dc-foto-btn { min-height: var(--tap-min); display: inline-flex; align-items: center; justify-content: center; padding: 0 .9rem; cursor: pointer; }
+    .dc-foto-nota { margin: 0 0 .8rem; }
+    .dc-activo-label { display: flex; align-items: center; gap: .5rem; font-size: .75rem; cursor: pointer; margin: .2rem 0 1rem; padding: .5rem; border-radius: 4px; border: 1px solid var(--borde); }
+    .dc-quitar { margin-top: .5rem; }
     /* Cobrar: el cuadrado que cobra al tocarlo se ve como botón (borde dorado y «Cobrar» abajo) */
     .hoja-monto.auto { border: 2px solid var(--amarillo-tinta); background: rgba(232,184,0,.08); transition: transform .08s, background .15s; }
     .hoja-monto.auto:hover, .hoja-monto.auto:focus-visible { background: rgba(232,184,0,.16); }
@@ -3952,6 +3975,17 @@
 
     <!-- TAB: DECANTS CONFIG -->
     <div class="tab-content" id="tab-decants">
+      <!-- ─── [DECANTS-TARJETERO] (pedido 9 de Alejo, 16-oct, opción A): los decants de diseñador ARRIBA de todo, como
+           Tarjetero (NO ROMPER #33): una tarjeta por decant (foto, nombre, marca · precio), «+ Agregar» como primera
+           tarjeta, y al tocar una se abre #modalDecantCustom con los campos, «Pausar» y «Quitar». Hasta el 16-oct la
+           sección iba cuarta, con seis campos y dos botones por fila. ─── -->
+      <div class="dc-caja" id="decantsCustomCaja">
+        <p class="promo-titulo" style="margin-bottom:.2rem;">💎 Decants de diseñador <span class="dc-cuenta" id="decantsCustomCuenta"></span></p>
+        <p class="promo-nota" style="margin:0 0 .8rem;">Perfumes de diseñador (Creed, Dior, JPG…) que <strong>no están en el stock</strong> pero se ofrecen en el armador, 💎 primero. Tocá uno para editarlo.</p>
+        <div id="decantsCustomList"><p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando…</p></div>
+        <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
+      </div>
+
       <!-- [GUARDAR-ABAJO] 128 · la caja de la escalera: el sticky necesita un contenedor (antes eran hijos sueltos de la pestaña) -->
       <div class="con-barra" id="decantsEscalera">
       <div style="text-align:center;margin-bottom:1.5rem;">
@@ -4083,32 +4117,8 @@
         <p class="modal-success" id="promoPerfMsg"></p>
       </div>
 
-      <!-- ─── Perfumes personalizados (NO están en stock) ─── -->
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.2rem;margin-top:1.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem;">
-          <div>
-            <p style="font-size:.8rem;font-weight:600;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;">💎 Decants de diseñador</p>
-            <p style="font-size:.7rem;color:var(--gris-claro);line-height:1.5;max-width:560px;">Para <strong>decants de diseñador</strong> (Jean Paul Gaultier, Creed, Dior, etc.) que <strong>NO están cargados al stock regular</strong> pero querés ofrecerlos en el armador. Aparecen 💎 <strong>primero</strong> en el grid del armador.</p>
-          </div>
-          <button class="modal-btn" onclick="addDecantCustom()" style="background:var(--amarillo);color:#000;font-weight:600;flex-shrink:0;">+ Agregar perfume</button>
-        </div>
-        <!-- Mini-header de columnas — anchos FIJOS en las últimas 2 columnas
-             (checkbox + acciones) para que matcheen exactamente con las rows.
-             Antes "auto auto" hacía que cada row tuviera anchos distintos. -->
-        <div class="dc-head" style="grid-template-columns:60px 1.3fr 1fr 110px 70px 80px 110px;gap:.5rem;padding:.4rem .6rem 0;font-size:.6rem;color:var(--gris);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">
-          <span style="text-align:center;" title="Foto del perfume (opcional)">Foto</span>
-          <span>Nombre</span>
-          <span>Marca</span>
-          <span style="text-align:right;" title="Precio fijo por unidad. Tipear sin puntos ni comas (ej: 29000 no 29.000). Si está vacío usa la escalera global (1-2/3-4/5+).">$ Precio <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#888;">(sin puntos)</span></span>
-          <span style="text-align:center;" title="Posición en el grid del armador (menor = más arriba)">Orden</span>
-          <span style="text-align:center;">Activo</span>
-          <span style="text-align:center;">Acciones</span>
-        </div>
-        <div id="decantsCustomList" style="display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem;">
-          <p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Cargando…</p>
-        </div>
-        <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
-      </div>
+      <!-- ─── Perfumes personalizados (NO están en stock): desde [DECANTS-TARJETERO] (16-oct) viven ARRIBA de la pestaña
+           (#decantsCustomCaja); acá estaba la lista con filas de seis campos (.dc-row / .dc-head). ─── -->
 
       <!-- [PRECIOS-EN-UN-LUGAR] 123e · las marcas de diseñador (el filtro «💎 Diseñador» de Precios & Stock). Sólo el jefe
            las edita (candado 114, y en la base dc_update_jefe); la empleada las ve grises. -->
@@ -4512,6 +4522,39 @@
 
       <button class="modal-btn modal-btn-price" id="modalStockBtn" onclick="saveStock()">✓ OK, actualizar stock</button>
       <p class="modal-success" id="modalStockMsg"></p>
+    </div>
+  </div>
+
+  <!-- MODAL: DECANT DE DISEÑADOR · [DECANTS-TARJETERO] (16-oct) · una ventana para agregar o editar; «Quitar» con confirmación -->
+  <div class="modal-overlay" id="modalDecantCustom" onclick="closeModal('modalDecantCustom',event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal('modalDecantCustom')">&times;</button>
+      <p class="modal-title" id="dcTitulo">Decant de diseñador</p>
+
+      <div class="dc-foto-fila" id="dcFotoFila">
+        <div class="dc-foto" id="dcFoto"><span class="dc-foto-vacia">💎</span></div>
+        <div class="dc-foto-botones">
+          <label class="action-btn dc-foto-btn">📷 Subir foto<input type="file" accept="image/*" id="dcFotoInput" onchange="dcSubirFoto(this)" hidden></label>
+          <button type="button" class="action-btn dc-foto-btn" id="dcFotoQuitar" onclick="dcQuitarFoto()">Quitar foto</button>
+        </div>
+      </div>
+      <p class="promo-nota dc-foto-nota" id="dcFotoNota" hidden>La foto se sube después de guardar.</p>
+
+      <label class="modal-label" for="dcNombre">Nombre</label>
+      <input type="text" class="modal-input" id="dcNombre" placeholder="Ej: Aventus" maxlength="60" style="width:100%;">   <!-- el ancho inline pasa al wrapper de la ✕ (initCamposConX) -->
+      <label class="modal-label" for="dcMarca">Marca</label>
+      <input type="text" class="modal-input" id="dcMarca" placeholder="Ej: Creed (opcional)" maxlength="40" style="width:100%;">
+      <label class="modal-label" for="dcPrecio">💰 Precio por decant ($, sin puntos)</label>
+      <input type="number" class="modal-input" id="dcPrecio" min="0" step="100" inputmode="numeric" placeholder="Ej: 29000">
+      <p class="promo-nota" style="margin:-.4rem 0 .8rem;">Vacío = usa la escalera de abajo (~precio de árabes: no conviene para diseñador).</p>
+      <label class="modal-label" for="dcOrden">Orden en el armador (menor = más arriba)</label>
+      <input type="number" class="modal-input" id="dcOrden" min="0" inputmode="numeric" value="0">
+
+      <label class="dc-activo-label"><input type="checkbox" id="dcActivo" checked> <span><strong>Se ofrece</strong> <span style="color:var(--gris);">— destildado queda pausado: no sale en el armador</span></span></label>
+
+      <button type="button" class="modal-btn modal-btn-price" id="dcGuardarBtn" onclick="dcGuardar()">💾 Guardar</button>
+      <button type="button" class="modal-btn modal-btn-danger dc-quitar" id="dcQuitarBtn" onclick="dcQuitar()">🗑️ Quitar este decant</button>
+      <p class="modal-success" id="dcMsg"></p>
     </div>
   </div>
 
@@ -8795,8 +8838,11 @@
     // «Anotar del mostrador». items: [{ onclick: 'código JS ya escapado para el atributo', nombre, sub, etiqueta: 'html (badge) ya armado', elegida }].
     // nombre y sub se escapan acá. Una lista nueva de «elegir uno» en el panel usa esto (NO ROMPER #33).
     function tarjeteroHTML(items) {
+      // it.clase (opcional): clases extra de la tarjeta · it.antes (opcional, HTML ya escapado): lo que va antes del nombre,
+      // p. ej. la foto chica de los decants de diseñador ([DECANTS-TARJETERO]).
       return '<div class="tarjetero">' + items.map(function(it) {
-        return '<button type="button" class="tarjeta' + (it.elegida ? ' tarjeta--elegida' : '') + '" onclick="' + it.onclick + '">'
+        return '<button type="button" class="tarjeta' + (it.elegida ? ' tarjeta--elegida' : '') + (it.clase ? ' ' + it.clase : '') + '" onclick="' + it.onclick + '">'
+          + (it.antes || '')
           + '<span class="tarjeta-nombre">' + escHtml(it.nombre || '') + '</span>'
           + (it.sub ? '<span class="tarjeta-sub">' + escHtml(it.sub) + '</span>' : '')
           + (it.etiqueta || '') + '</button>';
@@ -13272,119 +13318,125 @@
       }
     }
 
+    // [DECANTS-TARJETERO] (16-oct-2026, pedido 9 de Alejo, opción A): la lista es un Tarjetero (NO ROMPER #33) y los
+    // campos viven en #modalDecantCustom. Hasta entonces cada decant era una fila con seis campos (addDecantCustom /
+    // saveDecantCustom / deleteDecantCustom por fila); ahora: dcAbrir(id | null) → dcGuardar() → dcQuitar().
+    var DC = { id: null };   // el decant abierto en la ventana; null = uno nuevo
+    function dcDe(id) { return DECANTS_CUSTOM_CACHE.find(function(p) { return p.id === id; }) || null; }
     function renderDecantsCustomList() {
-      var list = document.getElementById('decantsCustomList');
+      var list = document.getElementById('decantsCustomList'), cuenta = document.getElementById('decantsCustomCuenta');
       if (!list) return;
-      if (!DECANTS_CUSTOM_CACHE.length) {
-        list.innerHTML = '<p style="text-align:center;color:var(--gris);padding:1rem;font-size:.78rem;">Sin perfumes personalizados. Tocá "+ Agregar perfume" para crear el primero.</p>';
-        return;
-      }
-      list.innerHTML = DECANTS_CUSTOM_CACHE.map(function(p) {
-        var precioVal = (p.precio_unit != null && p.precio_unit !== '') ? p.precio_unit : '';
-        // Foto: preview + botón cámara para subir + (si tiene foto) botón X
-        var hasFoto = !!(p.foto_url && p.foto_url.trim());
-        var fotoCell = ''
-          + '<div style="position:relative;display:flex;align-items:center;justify-content:center;width:54px;height:54px;border:1px dashed rgba(232,184,0,.35);border-radius:6px;background:rgba(232,184,0,.04);overflow:hidden;">'
-          +   (hasFoto
-                ? '<img src="' + (p.foto_url + '').replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;"/>'
-                : '<span style="color:rgba(232,184,0,.6);font-size:1.2rem;">⭐</span>')
-          +   '<label style="position:absolute;inset:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.0);transition:background .15s;" onmouseover="this.style.background=\'rgba(0,0,0,.4)\'" onmouseout="this.style.background=\'rgba(0,0,0,0)\'" title="Subir foto">'
-          +     '<input type="file" accept="image/*" style="display:none;" onchange="uploadDecantCustomFoto(' + p.id + ', this)"/>'
-          +     '<span style="font-size:.75rem;color:#fff;opacity:0;transition:opacity .15s;" onmouseover="this.style.opacity=\'1\'" onmouseout="this.style.opacity=\'0\'">📷</span>'
-          +   '</label>'
-          +   (hasFoto
-                ? '<button type="button" onclick="clearDecantCustomFoto(' + p.id + ')" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#7a1f1f;color:#fff;border:none;cursor:pointer;font-size:.7rem;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;z-index:2;" title="Quitar foto">×</button>'
-                : '')
-          + '</div>';
-
-        return ''
-          + '<div data-custom-id="' + p.id + '" class="dc-row" style="background:rgba(255,255,255,.04);border:1px solid var(--borde);border-radius:6px;padding:.6rem;">'
-          +   '<div class="dc-cell dc-cell-foto">' + fotoCell + '</div>'
-          +   '<div class="dc-cell dc-cell-nombre"><label class="dc-label">Nombre</label><input type="text" class="modal-input dc-nombre" value="' + (p.nombre || '').replace(/"/g, '&quot;') + '" placeholder="Nombre" style="margin-bottom:0;font-size:.78rem;"/></div>'
-          +   '<div class="dc-cell dc-cell-marca"><label class="dc-label">Marca</label><input type="text" class="modal-input dc-marca" value="' + (p.marca || '').replace(/"/g, '&quot;') + '" placeholder="Marca (opcional)" style="margin-bottom:0;font-size:.78rem;"/></div>'
-          +   '<div class="dc-cell dc-cell-precio"><label class="dc-label dc-label-strong">💰 Precio</label><input type="number" class="modal-input dc-precio" value="' + precioVal + '" min="0" step="100" placeholder="Ej: 29000" style="margin-bottom:0;font-size:.85rem;text-align:right;font-weight:700;" title="Precio fijo por unidad. SIN puntos ni comas (ej: 29000 no 29.000). Si lo dejás vacío, el cliente verá ~$9500 (precio de decants regulares) que NO conviene para perfumes de diseñador."/></div>'
-          +   '<div class="dc-cell dc-cell-orden"><label class="dc-label">Orden</label><input type="number" class="modal-input dc-orden" value="' + (p.orden || 0) + '" min="0" style="margin-bottom:0;font-size:.78rem;text-align:center;" title="ORDEN: posición en el grid del armador (menor número = aparece más arriba)"/></div>'
-          +   '<div class="dc-cell dc-cell-activo"><label style="display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--gris-claro);cursor:pointer;padding:.4rem 0;"><input type="checkbox" class="dc-activo" ' + (p.activo ? 'checked' : '') + ' style="width:16px;height:16px;accent-color:var(--amarillo);"/> Activo</label></div>'
-          +   '<div class="dc-cell dc-cell-actions">'
-          +     '<button class="modal-btn" onclick="saveDecantCustom(' + p.id + ')" style="background:var(--amarillo);color:#000;font-weight:600;font-size:.7rem;padding:.45rem .8rem;" title="Guardar cambios">💾 Guardar</button>'
-          +     '<button class="modal-btn" onclick="deleteDecantCustom(' + p.id + ')" style="background:#7a1f1f;color:#fff;font-size:.65rem;padding:.45rem .6rem;" title="Eliminar este perfume">🗑️</button>'
-          +   '</div>'
-          + '</div>';
-      }).join('');
+      var activos = DECANTS_CUSTOM_CACHE.filter(function(p) { return p.activo; }).length;
+      if (cuenta) cuenta.textContent = DECANTS_CUSTOM_CACHE.length ? '· ' + activos + (activos !== DECANTS_CUSTOM_CACHE.length ? ' de ' + DECANTS_CUSTOM_CACHE.length : '') : '';
+      var items = [{ clase: 'tarjeta--agregar', onclick: 'dcAbrir(null)', nombre: '+ Agregar', sub: 'un decant de diseñador' }];
+      DECANTS_CUSTOM_CACHE.forEach(function(p) {
+        var precio = promoNum(p.precio_unit) > 0 ? promoPesos(promoNum(p.precio_unit)) : 'sin precio';
+        var sub = (p.marca ? p.marca + ' · ' : '') + precio + (p.activo ? '' : ' · pausado');
+        var foto = (p.foto_url && String(p.foto_url).trim())
+          ? '<img class="dc-mini" src="' + escHtml(String(p.foto_url)) + '" alt="" loading="lazy" onerror="this.remove()">'
+          : '<span class="dc-mini dc-mini-vacia">💎</span>';
+        items.push({ clase: 'tarjeta--dc' + (p.activo ? '' : ' tarjeta--pausada'), onclick: 'dcAbrir(' + Number(p.id) + ')', nombre: p.nombre || '(sin nombre)', sub: sub, antes: foto });
+      });
+      list.innerHTML = tarjeteroHTML(items);
     }
-
-    async function addDecantCustom() {
-      var msg = document.getElementById('decantsCustomMsg');
-      msg.style.color = ''; msg.textContent = 'Creando…';
+    function dcAbrir(id) {
+      var p = id === null ? null : dcDe(id);
+      if (id !== null && !p) return;
+      DC.id = p ? p.id : null;
+      document.getElementById('dcTitulo').textContent = p ? (p.nombre || 'Decant de diseñador') : 'Nuevo decant de diseñador';
+      document.getElementById('dcNombre').value = p ? (p.nombre || '') : '';
+      document.getElementById('dcMarca').value = p ? (p.marca || '') : '';
+      document.getElementById('dcPrecio').value = p && promoNum(p.precio_unit) > 0 ? promoNum(p.precio_unit) : '';
+      var maxOrden = DECANTS_CUSTOM_CACHE.reduce(function(m, x) { return Math.max(m, x.orden || 0); }, 0);
+      document.getElementById('dcOrden').value = p ? (p.orden || 0) : maxOrden + 1;
+      document.getElementById('dcActivo').checked = p ? !!p.activo : true;
+      document.getElementById('dcQuitarBtn').hidden = !p;
+      document.getElementById('dcFotoFila').hidden = !p;      // la foto se sube con el id: recién después de guardar
+      document.getElementById('dcFotoNota').hidden = !!p;
+      dcPintarFoto(p);
+      var msg = document.getElementById('dcMsg'); msg.textContent = ''; msg.style.color = '';
+      document.getElementById('modalDecantCustom').classList.add('active');
+      setTimeout(function() { document.getElementById('dcNombre').focus(); }, 50);
+    }
+    function dcPintarFoto(p) {
+      var caja = document.getElementById('dcFoto'), quitar = document.getElementById('dcFotoQuitar');
+      var tiene = !!(p && p.foto_url && String(p.foto_url).trim());
+      caja.innerHTML = tiene ? '<img src="' + escHtml(String(p.foto_url)) + '" alt="">' : '<span class="dc-foto-vacia">💎</span>';
+      if (quitar) quitar.hidden = !tiene;
+    }
+    function dcAviso(texto, tinta) {
+      var m = document.getElementById('dcMsg');
+      if (!m) return;
+      m.style.color = tinta ? 'var(--tinta-' + tinta + ')' : '';
+      m.textContent = texto;
+    }
+    async function dcGuardar() {
+      var nombre = (document.getElementById('dcNombre').value || '').trim();
+      if (!nombre) { dcAviso('⚠ El nombre es obligatorio.', 'error'); document.getElementById('dcNombre').focus(); return; }
+      var precioRaw = (document.getElementById('dcPrecio').value || '').trim();
+      var precioVal = precioRaw === '' ? null : parseFloat(precioRaw);
+      if (precioVal !== null && (!isFinite(precioVal) || precioVal < 0)) precioVal = null;   // precio_unit vacío = la escalera
+      var payload = {
+        nombre: nombre,
+        marca: (document.getElementById('dcMarca').value || '').trim(),
+        orden: parseInt(document.getElementById('dcOrden').value, 10) || 0,
+        activo: !!document.getElementById('dcActivo').checked,
+        precio_unit: precioVal
+      };
+      var btn = document.getElementById('dcGuardarBtn');
+      btn.disabled = true; dcAviso('Guardando…');
       try {
-        var maxOrden = DECANTS_CUSTOM_CACHE.reduce(function(m, p) { return Math.max(m, p.orden || 0); }, 0);
-        var ins = await sb.from('decants_custom').insert({
-          nombre: 'Nuevo perfume',
-          marca: '',
-          activo: true,
-          orden: maxOrden + 1
-        }).select().single();
-        if (ins.error) throw ins.error;
-        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Agregado. Editá el nombre.';
+        var r;
+        if (DC.id === null) {
+          r = await sb.from('decants_custom').insert(payload).select().single();
+          if (r.error) throw r.error;
+          DC.id = r.data.id;
+        } else {
+          r = await sb.from('decants_custom').update(payload).eq('id', DC.id);
+          // Si la columna precio_unit no existe aún (no se corrió el ALTER TABLE), reintenta sin ella.
+          if (r.error && /precio_unit/i.test(r.error.message || '')) {
+            delete payload.precio_unit;
+            r = await sb.from('decants_custom').update(payload).eq('id', DC.id);
+            if (!r.error) { dcAviso('⚠ Guardado SIN precio (falta correr el ALTER TABLE para precio_unit).', 'aviso'); await loadDecantsCustom(); btn.disabled = false; return; }
+          }
+          if (r.error) throw r.error;
+        }
         await loadDecantsCustom();
-      } catch (e) {
-        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'agregar el decant');   // 128j
-      }
-    }
-
-    async function saveDecantCustom(id) {
-      var msg = document.getElementById('decantsCustomMsg');
-      var card = document.querySelector('[data-custom-id="' + id + '"]');
-      if (!card) return;
-      var nombre = (card.querySelector('.dc-nombre').value || '').trim();
-      if (!nombre) { msg.style.color = 'var(--tinta-error)'; msg.textContent = '⚠ Nombre obligatorio.'; return; }
-      msg.style.color = ''; msg.textContent = 'Guardando…';
-      try {
-        // precio_unit: vacío = null (usa escalera global del armador)
-        var precioRaw = (card.querySelector('.dc-precio').value || '').trim();
-        var precioVal = precioRaw === '' ? null : parseFloat(precioRaw);
-        if (precioVal !== null && (!isFinite(precioVal) || precioVal < 0)) precioVal = null;
-
-        var payload = {
-          nombre: nombre,
-          marca: (card.querySelector('.dc-marca').value || '').trim(),
-          orden: parseInt(card.querySelector('.dc-orden').value, 10) || 0,
-          activo: !!card.querySelector('.dc-activo').checked,
-          precio_unit: precioVal
-        };
-        var upd = await sb.from('decants_custom').update(payload).eq('id', id);
-        // Si la columna precio_unit no existe aún (no se corrió el ALTER
-        // TABLE), retry sin esa columna así no se pierde el resto del save.
-        if (upd.error && /precio_unit/i.test(upd.error.message || '')) {
-          delete payload.precio_unit;
-          upd = await sb.from('decants_custom').update(payload).eq('id', id);
-          if (!upd.error) {
-            msg.style.color = 'var(--tinta-aviso)';
-            msg.textContent = '⚠ Guardado SIN precio (falta correr el ALTER TABLE para precio_unit).';
-            await loadDecantsCustom();
-            return;
+        var p = dcDe(DC.id);
+        if (p) {   // queda abierta para subir la foto de un decant nuevo; con uno que ya estaba, se cierra
+          if (document.getElementById('dcFotoFila').hidden) {
+            document.getElementById('dcTitulo').textContent = p.nombre;
+            document.getElementById('dcFotoFila').hidden = false; document.getElementById('dcFotoNota').hidden = true;
+            document.getElementById('dcQuitarBtn').hidden = false;
+            dcPintarFoto(p);
+            dcAviso('✓ Agregado. Si querés, subile la foto.', 'ok');
+          } else {
+            closeModal('modalDecantCustom');
+            var msg = document.getElementById('decantsCustomMsg'); if (msg) { msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Guardado.'; }
           }
         }
-        if (upd.error) throw upd.error;
-        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Guardado.';
-        await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'guardar el decant', true);   // 128j · «💾 Guardar»
+        dcAviso(errorEnCriollo(e, null, 'guardar el decant', true), 'error');   // 128j · «💾 Guardar»
       }
+      btn.disabled = false;
     }
-
-    async function deleteDecantCustom(id) {
-      if (!confirm('¿Eliminar este perfume personalizado?')) return;
-      var msg = document.getElementById('decantsCustomMsg');
+    async function dcQuitar() {
+      if (DC.id === null) return;
+      var p = dcDe(DC.id);
+      if (!confirm('¿Quitar «' + ((p && p.nombre) || 'este decant') + '» de los decants de diseñador? Se borra para siempre.')) return;
+      dcAviso('Quitando…');
       try {
-        var del = await sb.from('decants_custom').delete().eq('id', id);
+        var del = await sb.from('decants_custom').delete().eq('id', DC.id);
         if (del.error) throw del.error;
-        msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Eliminado.';
+        closeModal('modalDecantCustom');
+        var msg = document.getElementById('decantsCustomMsg'); if (msg) { msg.style.color = 'var(--tinta-ok)'; msg.textContent = '✓ Quitado.'; }
         await loadDecantsCustom();
       } catch (e) {
-        msg.style.color = 'var(--tinta-error)'; msg.textContent = errorEnCriollo(e, null, 'eliminar el decant');   // 128j
+        dcAviso(errorEnCriollo(e, null, 'quitar el decant'), 'error');   // 128j
       }
     }
+    function dcSubirFoto(input) { if (DC.id !== null) uploadDecantCustomFoto(DC.id, input); }
+    function dcQuitarFoto() { if (DC.id !== null) clearDecantCustomFoto(DC.id); }
 
     // ─── Foto del custom decant: subir a Storage + guardar URL en DB ───
     async function uploadDecantCustomFoto(id, input) {
@@ -13392,6 +13444,7 @@
       if (!file) return;
       var msg = document.getElementById('decantsCustomMsg');
       msg.style.color = 'var(--tinta-aviso)'; msg.textContent = 'Comprimiendo y subiendo foto…';
+      if (DC.id === id) dcAviso(msg.textContent, 'aviso');   // [DECANTS-TARJETERO]
       try {
         // Comprimir a WebP (reusamos la función ya existente en este admin)
         var compressed = await compressToWebP(file, 700, 0.8);
@@ -13422,9 +13475,11 @@
         renderDecantsCustomList();
         msg.style.color = 'var(--tinta-ok)';
         msg.textContent = '✓ Foto subida (' + Math.round(compressed.size / 1024) + ' KB WebP).';
+        if (DC.id === id) { dcPintarFoto(dcDe(id)); dcAviso(msg.textContent, 'ok'); }   // [DECANTS-TARJETERO] la ventana también
       } catch (e) {
         msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'subir la foto');   // 128j
+        if (DC.id === id) dcAviso(msg.textContent, 'error');
       }
       input.value = '';
     }
@@ -13440,10 +13495,12 @@
         if (idx !== -1) DECANTS_CUSTOM_CACHE[idx].foto_url = null;
         renderDecantsCustomList();
         msg.style.color = 'var(--tinta-ok)';
-        msg.textContent = '✓ Foto quitada (vuelve al placeholder ⭐).';
+        msg.textContent = '✓ Foto quitada.';
+        if (DC.id === id) { dcPintarFoto(dcDe(id)); dcAviso(msg.textContent, 'ok'); }   // [DECANTS-TARJETERO]
       } catch (e) {
         msg.style.color = 'var(--tinta-error)';
         msg.textContent = errorEnCriollo(e, null, 'sacar la foto');   // 128j
+        if (DC.id === id) dcAviso(msg.textContent, 'error');
       }
     }
 
