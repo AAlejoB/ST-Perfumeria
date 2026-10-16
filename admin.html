@@ -2385,7 +2385,7 @@
     body.light .combo-name { color: #1a1a1a; }
     body.light .combo-items-list { color: #555; }
     body.light .combo-items-list li { color: #555; }
-    body.light .combo-pricing-original { color: #888; }
+    body.light .combo-pricing-original { color: var(--gris); }   /* [CONTRASTE-CLARO] #888 daba 3,54 → 5,33 */
 
     /* Clientes: .client-name y .client-detail-value estaban hardcodeados a
        color:#fff (por regla CSS, no inline), por eso quedaban blanco sobre
@@ -2393,7 +2393,7 @@
     body.light .client-name { color: #1a1a1a; }
     body.light .client-detail-value { color: #1a1a1a; }
     body.light .client-detail { color: #555; }
-    body.light .client-name-icon { background: rgba(232,184,0,.22); color: #a8820a; }
+    body.light .client-name-icon { background: rgba(232,184,0,.22); color: var(--amarillo-tinta); }   /* [CONTRASTE-CLARO] #a8820a daba 3,12 → 6,24
     /* [CLIENTES-CLARO-CONTRASTE] 132 · sólo en claro cambia la letra; los fondos quedan (sobre la tarjeta blanca):
        WhatsApp #1e7a3c (4,80) · Bloquear #9a5a00 (4,87) · Eliminar y ✗ NO COMPRÓ --stat-tinta-out (4,86) ·
        ✓ COMPRÓ --stat-tinta-inv (7,14). «📜 Historial» #333: lo que le ponía el parche por atributo de color:#ccc. */
@@ -2421,6 +2421,18 @@
     body.light [style*="background:rgba(255,255,255,.08)"] { background: rgba(0,0,0,.06) !important; }
     body.light [style*="color:#fff"]:not(.tab-btn):not(.modal-btn) { color: #1a1a1a !important; }
     body.light [style*="color: #fff"]:not(.tab-btn):not(.modal-btn) { color: #1a1a1a !important; }
+    /* [CONTRASTE-CLARO] 16-oct-2026 · B15 del QA: colores escritos a mano que en claro no se leían (medidos sobre su fondo real).
+       El oscuro no cambia; en claro, cada uno pasa a su versión oscura (contraste sobre blanco entre paréntesis). */
+    body.light [style*="color:#e74c3c"] { color: var(--tinta-error) !important; }       /* era 3,82 → 5,89 (Quitar foto, Eliminar, el precio viejo del Log…) */
+    body.light [style*="border:1.5px solid #e74c3c"] { border-color: var(--tinta-error) !important; }
+    body.light [style*="color:#2ecc71"] { color: var(--tinta-ok) !important; }          /* era 2,10 → 8,04 (el precio nuevo del Log) */
+    body.light [style*="color:#e67e22"] { color: #9a4a00 !important; }                  /* era 2,85 → 6,26 («← traer al local» de Depósito) */
+    body.light [style*="color:#3da5ff"] { color: #1a5a8f !important; }                  /* era 2,62 → 7,23 (total de Decants, Analytics) */
+    body.light [style*="color:#25d366"] { color: var(--tinta-ok) !important; }          /* era 1,98 → 8,04 (total de WhatsApp, Analytics) */
+    body.light [style*="background:#0d0d0d"] { background: #fff !important; }           /* cada cuadro de Beneficios: sus etiquetas quedaban gris sobre negro (2,0) */
+    body.light [style*="background:#1a1a1a"] { background: #ece6d4 !important; }        /* las horas sin actividad de Analytics (1,0: letra y fondo iguales) y los marcos de foto vacíos */
+    body.light #tab-doctor p[style*="color:var(--gris)"] { color: #595959 !important; } /* la marca sobre el fondo rosado del Doctor: 4,47 → 5,87 */
+    body.light .dest-btn-remove, body.light #editFotoClearBtn, body.light [style*="color: rgb(231, 76, 60)"] { color: var(--tinta-error) !important; }   /* la × de Destacados y «Quitar foto» (el panel le reescribe el estilo) */
     body.light [style*="color:#e4e4e4"] { color: #222 !important; }
     body.light [style*="color:#ddd"] { color: #222 !important; }
     body.light [style*="color:#ccc"] { color: #333 !important; }
@@ -3578,10 +3590,10 @@
                 Escribí textos que <strong style="color:#ccc;">justifiquen o expliquen</strong> el estado del stock.
                 Cuando un cliente toque la badge en el catálogo, se abre un modal con el mensaje + botón de WhatsApp.
                 Si el campo queda vacío, la badge NO es clickeable (comportamiento normal).
-                <br/><em style="color:#888;">La badge "Último" no tiene nota a propósito: si hay 1 solo frasco, evitamos que varios clientes se ilusionen con reservarlo.</em>
+                <br/><em style="color:var(--gris);">La badge "Último" no tiene nota a propósito: si hay 1 solo frasco, evitamos que varios clientes se ilusionen con reservarlo.</em>
               </p>
 
-              <label class="modal-label" style="margin-top:.4rem;color:#888;">⚫ Nota para "Sin stock"</label>
+              <label class="modal-label" style="margin-top:.4rem;color:var(--gris);">⚫ Nota para "Sin stock"</label>
               <textarea class="modal-input" id="editNotaSinStock" rows="2"
                 placeholder="Ej: Este perfume se agotó. Dejanos tu WhatsApp y te avisamos apenas vuelva."
                 style="margin-bottom:.7rem;resize:vertical;font-family:var(--font-body);"></textarea>
@@ -3604,7 +3616,7 @@
               onmouseover="this.style.background='rgba(231,76,60,.12)'" onmouseout="this.style.background='transparent'">
               🗑️ ELIMINAR PERFUME DEL CATÁLOGO
             </button>
-            <p style="font-size:.62rem;color:#888;margin-top:.35rem;text-align:center;">
+            <p style="font-size:.62rem;color:var(--gris);margin-top:.35rem;text-align:center;">
               El perfume se oculta del catálogo. Se puede recuperar desde Supabase.
             </p>
           </div>
@@ -10485,7 +10497,7 @@
           +        'style="margin-bottom:0;font-size:.7rem;padding-right:1.8rem;"/>'
           +   '<button type="button" class="sim-picker-clear" onclick="clearSimPicker(this)" '
           +           'aria-label="Vaciar slot" '
-          +           'style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;'
+          +           'style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gris);font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;'
           +           (selected ? '' : 'display:none;') + '">×</button>'
           + '</div>'
           + '<input type="hidden" class="sim-picker-slug" value="' + escHtml(selected) + '"/>'
@@ -10497,7 +10509,7 @@
 
     function _renderSimPickerOptions(dropdown, list) {
       if (!list.length) {
-        dropdown.innerHTML = '<div style="padding:.6rem;color:#888;font-size:.7rem;text-align:center;">Sin resultados</div>';
+        dropdown.innerHTML = '<div style="padding:.6rem;color:var(--gris);font-size:.7rem;text-align:center;">Sin resultados</div>';
         return;
       }
       dropdown.innerHTML = list.slice(0, 30).map(function(p) {
@@ -11710,7 +11722,7 @@
       var html = '';
       rows.forEach(function(b, i) {
         html += '<div class="badge-row" data-i="' + i + '" style="border:1px solid var(--borde);border-radius:6px;padding:.8rem;background:#0d0d0d;">'
-          + '<p style="font-size:.65rem;color:var(--amarillo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cuadro #' + (i+1) + '</p>'
+          + '<p style="font-size:.65rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cuadro #' + (i+1) + '</p>'   // [CONTRASTE-CLARO] tinta: igual en oscuro, legible en claro
           + '<div style="display:grid;grid-template-columns:1fr 2fr;gap:.5rem;margin-bottom:.5rem;">'
             + '<div><label class="modal-label">Ícono</label><input class="modal-input badge-icono" value="' + escHtml(b.icono || '') + '" maxlength="3" placeholder="$"/></div>'
             + '<div><label class="modal-label">Título</label><input class="modal-input badge-titulo" value="' + escHtml(b.titulo || '') + '" maxlength="24" placeholder="10% OFF"/></div>'
