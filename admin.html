@@ -1492,6 +1492,20 @@
     /* [CANTIDAD-SUMA] 1 · 2 · 3 · 4 · 5 · 10 que se suman */
     .hv-nums { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     .hv-cant-ayuda { text-align: center; margin: 0 0 .6rem; }
+    /* [VENTA-COMO-DATO] «Vino por» y tamaño del decant: los mismos cuadrados de [SELECTS-A-CUADRADOS], en un renglón con su título */
+    .hv-vino { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem; margin: .7rem 0; }
+    .hv-vino .cuadros { flex: 0 1 auto; }
+    .hv-wa { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; color: var(--gris-claro); }
+    .hv-wa:empty { display: none; }
+    .hv-wa svg { color: #25D366; flex: 0 0 auto; }
+    .hv-ml { width: 5.5rem; min-height: var(--tap-min); margin: 0; }
+    /* [VENTA-COMO-DATO] costos de compra (sólo jefe): una fila por marca */
+    .costos-fila { display: flex; align-items: center; gap: .6rem; padding: .35rem 0; border-top: 1px solid var(--borde); }
+    .costos-nom { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; margin: 0; }
+    .costos-nom b { font-size: .84rem; overflow: hidden; text-overflow: ellipsis; }
+    .costos-nom small { font-size: .62rem; color: var(--gris); }
+    .costos-inp { flex: 0 0 7rem; width: 7rem; min-height: var(--tap-min); margin: 0; }
+    .costos-btn { flex: 0 0 auto; }
     .hv-reset { font-size: 1.5rem; }
     @media (max-width: 420px) { .hv-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     /* «Sumar otro producto» y «Otro monto» en el cobro: botones de verdad, no links (Alejo, 13-oct) */
@@ -4207,6 +4221,9 @@
         <p class="modal-success" id="decantsCustomMsg" style="margin-top:.6rem;"></p>
       </div>
 
+      <!-- [VENTA-COMO-DATO] costos de compra: vacío hasta que costosPintar() lo arma, y sólo para el jefe (la empleada no tiene ni el HTML) -->
+      <div class="dc-caja" id="costosCaja"></div>
+
       <!-- [GUARDAR-ABAJO] 128 · la caja de la escalera: el sticky necesita un contenedor (antes eran hijos sueltos de la pestaña) -->
       <div class="con-barra" id="decantsEscalera">
       <div style="text-align:center;margin-bottom:1.5rem;">
@@ -4784,6 +4801,7 @@
       <input type="text" class="modal-input" id="edrCorazon" maxlength="200" autocomplete="off" style="width:100%;">
       <label class="modal-label" for="edrBase">Notas de fondo</label>
       <input type="text" class="modal-input" id="edrBase" maxlength="200" autocomplete="off" style="width:100%;">
+      <div id="edrCostoWrap"></div>
       <button type="button" class="modal-btn modal-btn-price" id="edrGuardarBtn" onclick="edrGuardar()">💾 Guardar</button>
       <p class="modal-success" id="edrMsg"></p>
       <button type="button" class="action-btn edr-abrir-editar" id="edrAbrirEditar" hidden onclick="edrAbrirEditar()">Abrir Editar</button>
@@ -14208,6 +14226,8 @@
       var msg = document.getElementById('edrMsg'); msg.textContent = ''; msg.style.color = '';
       document.getElementById('edrAbrirEditar').hidden = true;
       edrCalc();
+      edrCostoPintar();   // [VENTA-COMO-DATO] sólo jefe (este lápiz ya lo es)
+      if (!COSTOS.cargado) costosCargar().then(function() { if (EDR.slug === slug) edrCostoPintar(); });
       document.getElementById('modalEdr').classList.add('active');
     }
     function edrAbrirEditar() {
@@ -14230,6 +14250,7 @@
       EDR.ocupado = true; document.getElementById('edrGuardarBtn').disabled = true;
       msg.textContent = 'Guardando...'; msg.style.color = 'var(--tinta-aviso)';
       try {
+        if (!(await edrGuardarCosto(slug, fallo))) return;   // [VENTA-COMO-DATO] el costo va a su tabla (sólo jefe); si falla, no se sigue
         var r = await sb.from('perfume_overrides').update(obj).eq('slug', slug).select('slug');
         if (r.error) { fallo(errorEnCriollo(r.error, 'perfume', null, true)); return; }
         if (!r.data || !r.data.length) {   // NO ROMPER #36: sin fila propia no se inventa una
@@ -14269,6 +14290,115 @@
       } finally {
         EDR.ocupado = false; document.getElementById('edrGuardarBtn').disabled = false;
       }
+    }
+
+    // ============================================================
+    // [VENTA-COMO-DATO] COSTOS DE COMPRA (sólo jefe) · carta B del DISEÑADOR, 16-oct-2026. Sirven para calcular ganancia más adelante.
+    // Viven en tablas aparte (`marcas_costo`, `perfumes_costo`, `costos_config`, sql/venta_como_dato.sql) y NO en `perfume_overrides` /
+    // `decants_config`: esas tienen lectura pública y el catálogo las lee con select *. Las tres son sólo de is_jefe(). Todo se arma desde
+    // JS y sólo si currentRole === 'jefe': en la pantalla de la empleada no existe ni el HTML de un campo de costo.
+    // La marca es `marca_real` (el fabricante), comparada con marcaNorm (hay 'LATTAFA' y 'Lattafa'). NO ROMPER #20: sin la lectura no se guarda.
+    // ============================================================
+    var COSTOS = { cargado: false, marcas: {}, perfumes: {}, envase: 0, vista: [], ocupado: false };
+    function costosPuede() { return currentRole === 'jefe'; }
+    async function costosCargar() {
+      if (!costosPuede() || !sb) return;
+      var r1, r2, r3;
+      try { r1 = await sb.from('marcas_costo').select('marca, costo'); } catch (e) { r1 = { error: e }; }
+      try { r2 = await sb.from('perfumes_costo').select('slug, costo'); } catch (e) { r2 = { error: e }; }
+      try { r3 = await sb.from('costos_config').select('costo_envase').eq('id', 1).maybeSingle(); } catch (e) { r3 = { error: e }; }
+      var err = (r1 && r1.error) || (r2 && r2.error) || (r3 && r3.error);
+      if (err) { COSTOS.cargado = false; sinLeer('costos', err, 'leer los costos'); }
+      else {
+        COSTOS.marcas = {}; (r1.data || []).forEach(function(f) { COSTOS.marcas[marcaNorm(f.marca)] = { marca: f.marca, costo: Number(f.costo) || 0 }; });
+        COSTOS.perfumes = {}; (r2.data || []).forEach(function(f) { COSTOS.perfumes[f.slug] = Number(f.costo) || 0; });
+        COSTOS.envase = (r3.data && Number(r3.data.costo_envase)) || 0;
+        COSTOS.cargado = true; leido('costos', null);
+      }
+      costosPintar();
+    }
+    function costosMarcas() {   // todas las marcas_real del catálogo (con cuántos perfumes cubre cada una) + las que ya tienen costo
+      var mapa = {};
+      PERFUMES.forEach(function(p) {
+        if (p.esSet) return;
+        var n = String(p.marca_real || '').trim(); if (!n) return;
+        var k = marcaNorm(n); if (!mapa[k]) mapa[k] = { key: k, nombre: n, n: 0 };
+        mapa[k].n++;
+      });
+      Object.keys(COSTOS.marcas).forEach(function(k) { if (mapa[k]) mapa[k].nombre = COSTOS.marcas[k].marca; else mapa[k] = { key: k, nombre: COSTOS.marcas[k].marca, n: 0 }; });
+      return Object.keys(mapa).map(function(k) { return mapa[k]; }).sort(function(a, b) { return (b.n - a.n) || a.nombre.localeCompare(b.nombre); });
+    }
+    function costosMsg(t, tinta) { var el = document.getElementById('costosMsg'); if (el) { el.textContent = t; el.style.color = 'var(--tinta-' + (tinta || 'ok') + ')'; } }
+    function costosPintar() {
+      var c = document.getElementById('costosCaja'); if (!c) return;
+      if (!costosPuede()) { c.innerHTML = ''; return; }
+      var cab = '<p class="promo-titulo" style="margin-bottom:.2rem;">Costos de compra</p><p class="promo-nota" style="margin:0 0 .8rem;">Cuánto cuesta cada perfume. Se carga por marca (la del fabricante) y, si uno sale distinto, en su lápiz de Precios & Stock. Los ve sólo el jefe.</p>';
+      if (!COSTOS.cargado) { c.innerHTML = cab + '<p class="modal-success" id="costosMsg" style="color:var(--tinta-error);">' + escHtml(SIN_LEER['costos'] || 'Cargando…') + '</p>'; return; }
+      COSTOS.vista = costosMarcas();
+      c.innerHTML = cab
+        + '<div class="costos-fila"><label class="costos-nom" for="costoEnvase"><b>Envase de un decant</b><small>lo que cuesta el frasquito vacío</small></label>'
+        + '<input type="number" inputmode="numeric" min="0" class="modal-input costos-inp" id="costoEnvase" placeholder="0" value="' + (COSTOS.envase || '') + '"/>'
+        + '<button type="button" class="action-btn costos-btn" onclick="costosGuardarEnvase()">Guardar</button></div>'
+        + COSTOS.vista.map(function(m, i) {
+          var g = COSTOS.marcas[m.key];
+          return '<div class="costos-fila"><label class="costos-nom" for="cmInp' + i + '"><b>' + escHtml(m.nombre) + '</b><small>' + m.n + (m.n === 1 ? ' perfume' : ' perfumes') + '</small></label>'
+            + '<input type="number" inputmode="numeric" min="0" class="modal-input costos-inp" id="cmInp' + i + '" placeholder="sin cargar" value="' + (g ? g.costo : '') + '"/>'
+            + '<button type="button" class="action-btn costos-btn" onclick="costosGuardarMarca(' + i + ')">Guardar</button></div>';
+        }).join('')
+        + '<p class="modal-success" id="costosMsg" style="margin-top:.6rem;"></p>';
+    }
+    async function costosGuardarMarca(i) {
+      var m = COSTOS.vista[i]; if (!m || !costosPuede() || COSTOS.ocupado) return;
+      if (faltaLeer('costos', document.getElementById('costosMsg'))) return;
+      var v = String(document.getElementById('cmInp' + i).value).trim(), g = COSTOS.marcas[m.key], n = edrNum(v);
+      if (v !== '' && !(Number(v) >= 0)) { costosMsg('Poné un número (0 o más).', 'error'); return; }
+      COSTOS.ocupado = true;
+      try {
+        var r;
+        if (v === '') { if (!g) { costosMsg('Esa marca no tenía costo cargado.', 'aviso'); return; } r = await sb.from('marcas_costo').delete().eq('marca', g.marca); }
+        else r = await sb.from('marcas_costo').upsert({ marca: g ? g.marca : m.nombre, costo: n, updated_at: new Date().toISOString(), updated_by: 'jefe' }, { onConflict: 'marca' });
+        if (r.error) { costosMsg(errorEnCriollo(r.error, null, 'guardar el costo', true), 'error'); return; }
+        if (v === '') delete COSTOS.marcas[m.key]; else COSTOS.marcas[m.key] = { marca: g ? g.marca : m.nombre, costo: n };
+        costosMsg(v === '' ? '✓ Costo de ' + m.nombre + ' quitado.' : '✓ ' + m.nombre + ': $ ' + n.toLocaleString('es-AR'), 'ok');
+      } catch (e) { costosMsg(errorEnCriollo(e, null, 'guardar el costo', true), 'error'); }
+      finally { COSTOS.ocupado = false; }
+    }
+    async function costosGuardarEnvase() {
+      if (!costosPuede() || COSTOS.ocupado) return;
+      if (faltaLeer('costos', document.getElementById('costosMsg'))) return;
+      var v = String(document.getElementById('costoEnvase').value).trim();
+      if (v === '' ) v = '0';
+      if (!(Number(v) >= 0)) { costosMsg('Poné un número (0 o más).', 'error'); return; }
+      COSTOS.ocupado = true;
+      try {
+        var r = await sb.from('costos_config').upsert({ id: 1, costo_envase: edrNum(v), updated_at: new Date().toISOString(), updated_by: 'jefe' }, { onConflict: 'id' });
+        if (r.error) { costosMsg(errorEnCriollo(r.error, null, 'guardar el costo', true), 'error'); return; }
+        COSTOS.envase = edrNum(v); costosMsg('✓ Envase: $ ' + COSTOS.envase.toLocaleString('es-AR'), 'ok');
+      } catch (e) { costosMsg(errorEnCriollo(e, null, 'guardar el costo', true), 'error'); }
+      finally { COSTOS.ocupado = false; }
+    }
+    // El campo «Costo» (opcional) del lápiz: sólo se arma para el jefe. Vacío = hereda el de su marca.
+    function edrCostoPintar() {
+      var w = document.getElementById('edrCostoWrap'); if (!w) return;
+      if (!costosPuede() || !EDR.slug) { w.innerHTML = ''; return; }
+      var p = PERFUMES.find(function(pf) { return pf.slug === EDR.slug; }); if (!p) { w.innerHTML = ''; return; }
+      var g = COSTOS.marcas[marcaNorm(p.marca_real)], propio = COSTOS.perfumes[EDR.slug];
+      var ph = !COSTOS.cargado ? 'cargando…' : (g ? 'hereda $ ' + g.costo.toLocaleString('es-AR') + ' de ' + g.marca : 'sin costo cargado');
+      w.innerHTML = '<label class="modal-label" for="edrCosto">Costo (opcional)</label>'
+        + '<input type="text" class="modal-input" id="edrCosto" inputmode="numeric" autocomplete="off" placeholder="' + escHtml(ph) + '" value="' + (propio != null ? propio : '') + '"' + (COSTOS.cargado ? '' : ' disabled') + ' style="width:100%;">';
+    }
+    // true si se guardó (o no hacía falta); false si falló (el lápiz no sigue)
+    async function edrGuardarCosto(slug, fallo) {
+      var inp = document.getElementById('edrCosto'); if (!inp || !costosPuede() || !COSTOS.cargado) return true;
+      var v = inp.value.trim(), antes = COSTOS.perfumes[slug];
+      if (v === '' && antes == null) return true;
+      if (v !== '' && !/^[0-9]+$/.test(v)) { fallo('El costo tiene que ser un número entero (o dejalo vacío).'); return false; }
+      if (v !== '' && antes === Number(v)) return true;
+      var r = v === '' ? await sb.from('perfumes_costo').delete().eq('slug', slug)
+                       : await sb.from('perfumes_costo').upsert({ slug: slug, costo: Number(v), updated_at: new Date().toISOString(), updated_by: 'jefe' }, { onConflict: 'slug' });
+      if (r.error) { fallo(errorEnCriollo(r.error, null, 'guardar el costo', true)); return false; }
+      if (v === '') delete COSTOS.perfumes[slug]; else COSTOS.perfumes[slug] = Number(v);
+      return true;
     }
 
     // [DECANTS-TARJETERO] (16-oct-2026, pedido 9 de Alejo, opción A): la lista es un Tarjetero (NO ROMPER #33) y los
@@ -14480,6 +14610,7 @@
     async function loadDecantsAdmin() {
       // Cargar también la lista de custom al abrir el tab.
       var cargaCustom = loadDecantsCustom();   // [PROMO-DECANTS] la promo la espera (los duplicados de diseñador no entran)
+      if (costosPuede()) costosCargar(); else costosPintar();   // [VENTA-COMO-DATO] costos de compra (sólo jefe)
       var msg = document.getElementById('decMsg');
       if (msg) { msg.textContent = ''; msg.style.color = ''; }
       var def = {
@@ -15566,7 +15697,8 @@
     // ============================================================
     var HOJA = { dia: null, filas: null, ocupado: false, idPendiente: null, cierreVista: null, cobro: null, pendientes: null,
       paso: 'inicio', carro: [], sel: null, busca: '', notaTxt: '', quien: '', ultimo: '', montos: { efectivo: '', mp: '', posnet: '' }, debe: '', medio: null,
-      cfgDec: null, disenos: null };
+      cfgDec: null, disenos: null,
+      vino: 'local', waKey: null, waN: 0 };   // [VENTA-COMO-DATO] «Vino por» de la venta que se arma (default Local) y la pista «N consultas hoy»
     function hojaEl(id) { return document.getElementById(id); }
     function hojaMsg(texto, tipo) {
       var m = hojaEl('hojaMsg');
@@ -15626,15 +15758,62 @@
     }
     function hojaLineaTexto(l) {
       if (l.tipo === 'frasco') return l.nombre + (l.qty > 1 ? ' ×' + l.qty : '') + (l.llevar ? '' : ' (apartado)');
-      if (l.tipo === 'arabe') return l.qty + (l.qty === 1 ? ' decant árabe' : ' decants árabes');
-      if (l.tipo === 'disenador') return l.qty + (l.qty === 1 ? ' decant ' : ' decants ') + l.nombre;
+      var mlTxt = (l.tipo === 'arabe' || l.tipo === 'disenador') && l.ml && l.ml !== 5 ? ' (' + l.ml + ' ml)' : '';   // [VENTA-COMO-DATO] sólo si no es el de siempre (5 ml)
+      if (l.tipo === 'arabe') return l.qty + (l.qty === 1 ? ' decant árabe' : ' decants árabes') + mlTxt;
+      if (l.tipo === 'disenador') return l.qty + (l.qty === 1 ? ' decant ' : ' decants ') + l.nombre + mlTxt;
       return l.nombre;
     }
     function hojaLineaItem(l, carro) {   // lo que se guarda en items (jsonb): el cierre sólo mira los que tienen slug (los frascos)
-      if (l.tipo === 'frasco') return { slug: l.slug, nombre: l.nombre, qty: l.qty, llevar: !!l.llevar, ya_bajado: !!l.ya_bajado, descontado: false, precio: l.base > 0 ? l.base : null };
-      if (l.tipo === 'arabe') return { tipo: 'decant', origen: 'arabe', nombre: 'Decant árabe', qty: l.qty, precio_unit: hojaUnitArabe(hojaArabesTotal(carro)) };
-      if (l.tipo === 'disenador') return { tipo: 'decant', origen: 'disenador', id: l.id, nombre: l.nombre, qty: l.qty, precio_unit: l.precio };
-      return { tipo: 'libre', nombre: l.nombre, qty: 1, monto: Number(l.monto) || 0 };
+      // [VENTA-COMO-DATO] cada ítem lleva `vino_por` (local | whatsapp | web; ojo: NO `origen`, que en los decants ya es 'arabe' | 'disenador'),
+      // los frascos la marca del fabricante (`marca_real`, para el costo) y los decants su tamaño (`ml`). El trigger caja -> ventas lo copia.
+      var vino = HOJA.vino === 'whatsapp' || HOJA.vino === 'web' ? HOJA.vino : 'local';
+      if (l.tipo === 'frasco') {
+        var it = { slug: l.slug, nombre: l.nombre, qty: l.qty, llevar: !!l.llevar, ya_bajado: !!l.ya_bajado, descontado: false, precio: l.base > 0 ? l.base : null, vino_por: vino };
+        var mr = resumenMarca(l.slug); if (mr) it.marca = mr;
+        return it;
+      }
+      if (l.tipo === 'arabe') return { tipo: 'decant', origen: 'arabe', nombre: 'Decant árabe', qty: l.qty, precio_unit: hojaUnitArabe(hojaArabesTotal(carro)), ml: l.ml || 5, vino_por: vino };
+      if (l.tipo === 'disenador') return { tipo: 'decant', origen: 'disenador', id: l.id, nombre: l.nombre, qty: l.qty, precio_unit: l.precio, ml: l.ml || 5, vino_por: vino };
+      return { tipo: 'libre', nombre: l.nombre, qty: 1, monto: Number(l.monto) || 0, vino_por: vino };
+    }
+    // [VENTA-COMO-DATO] «Vino por» (un valor para toda la venta) y tamaño del decant (uno por ítem). Si no se toca nada, la venta se guarda igual que antes.
+    function hojaVinoPor(v) { HOJA.vino = v; hojaVentaPintar(); }
+    function hojaSelMl(v) {
+      var s = HOJA.sel; if (!s) return;
+      if (v === 'otro') { s.mlOtro = true; s.ml = null; } else { s.mlOtro = false; s.ml = v; }
+      hojaVentaPintar();
+    }
+    function hojaSelMlEscribe(txt) { var s = HOJA.sel; if (!s) return; var n = parseInt(String(txt).replace(/[^0-9]/g, ''), 10); s.ml = (n >= 1 && n <= 200) ? n : null; }   // sin repintar: se perdería el foco
+    function hojaMlHTML(s) {
+      var ops = [5, 10].map(function(n) {
+        return '<button type="button" class="cuadro" aria-pressed="' + (!s.mlOtro && s.ml === n ? 'true' : 'false') + '" onclick="hojaSelMl(' + n + ')">' + n + ' ml</button>';
+      }).join('') + '<button type="button" class="cuadro" aria-pressed="' + (s.mlOtro ? 'true' : 'false') + '" onclick="hojaSelMl(\'otro\')">otro</button>';
+      return '<div class="hv-vino"><span class="cuadros-tit">Tamaño</span><div class="cuadros">' + ops + '</div>'
+        + (s.mlOtro ? '<input type="number" id="hvMl" class="modal-input hv-ml" inputmode="numeric" min="1" max="200" placeholder="ml" value="' + (s.ml || '') + '" oninput="hojaSelMlEscribe(this.value)"/>' : '') + '</div>';
+    }
+    function hojaWaHintHTML() {
+      var k = hojaWaClave();
+      if (!k || HOJA.waKey !== k || !(HOJA.waN > 0)) return '';
+      return '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.4 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.1 1 2.1 1.3 2.4 1.5.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.8.9c.3.1.4.2.5.3.1.2.1.8-.1 1.4z"/></svg> ' + HOJA.waN + (HOJA.waN === 1 ? ' consulta hoy' : ' consultas hoy');
+    }
+    function hojaWaClave() {   // los perfumes (con slug) de la venta, ordenados: cambia sólo si cambia el carro
+      var s = []; HOJA.carro.forEach(function(l) { if (l.tipo === 'frasco' && l.slug && s.indexOf(l.slug) === -1) s.push(l.slug); });
+      return s.length ? s.sort().join('|') : '';
+    }
+    async function hojaWaCargar() {   // pista, no dato: un fallo (o estar sin red) simplemente no muestra nada
+      var k = hojaWaClave();
+      if (!k || HOJA.waKey === k || hojaSinRedAhora()) return;
+      HOJA.waKey = k; HOJA.waN = 0;
+      var r; try { r = await sb.rpc('wa_consultas_hoy', { p_slugs: k.split('|') }); } catch (e) { return; }
+      if (HOJA.waKey !== k || r.error) return;
+      HOJA.waN = Number(r.data) || 0;
+      var el = hojaEl('hvWaHint'); if (el) el.innerHTML = hojaWaHintHTML();
+    }
+    function hojaVinoHTML() {
+      var ops = [['local', 'Local'], ['whatsapp', 'WhatsApp'], ['web', 'Web']].map(function(o) {
+        return '<button type="button" class="cuadro" aria-pressed="' + (HOJA.vino === o[0] ? 'true' : 'false') + '" onclick="hojaVinoPor(\'' + o[0] + '\')">' + o[1] + '</button>';
+      }).join('');
+      return '<div class="hv-vino"><span class="cuadros-tit">Vino por</span><div class="cuadros">' + ops + '</div><span class="hv-wa" id="hvWaHint">' + hojaWaHintHTML() + '</span></div>';
     }
     function hojaValor(k) {
       if (k === 'debe') return HOJA.debe;
@@ -15742,6 +15921,7 @@
     function hojaPaso(p) { if (p !== HOJA.paso) hojaMsg(''); HOJA.paso = p; HOJA.medio = (HOJA.medio === 'cobro') ? 'cobro' : null; hojaVentaPintar(); }
     function hojaEmpezar() {
       HOJA.carro = []; HOJA.sel = null; HOJA.busca = ''; HOJA.quien = ''; HOJA.debe = ''; HOJA.montos = { efectivo: '', mp: '', posnet: '' };
+      HOJA.vino = 'local'; HOJA.waKey = null; HOJA.waN = 0;
       HOJA.ultimo = ''; hojaMsg(''); hojaPaso('que');
     }
     function hojaVolverInicio() {
@@ -15758,11 +15938,11 @@
     }
     function hojaElegirArabe() {
       if (!HOJA.cfgDec) { hojaMsg('No pude leer los precios de los decants árabes: anotalo en «Otra cosa» con el monto.', 'aviso'); return; }
-      HOJA.sel = { tipo: 'arabe', qty: 1 }; hojaPaso('cuantos');
+      HOJA.sel = { tipo: 'arabe', qty: 1, ml: 5 }; hojaPaso('cuantos');
     }
     function hojaElegirDisenador(id) {
       var d = (HOJA.disenos || []).filter(function(x) { return String(x.id) === String(id); })[0]; if (!d) return;
-      HOJA.sel = { tipo: 'disenador', id: d.id, nombre: String(d.nombre || ''), precio: Number(d.precio_unit) || 0, qty: 1, monto: '' };
+      HOJA.sel = { tipo: 'disenador', id: d.id, nombre: String(d.nombre || ''), precio: Number(d.precio_unit) || 0, qty: 1, monto: '', ml: 5 };
       hojaPaso('cuantos');
     }
     function hojaElegirLibre() { HOJA.sel = { tipo: 'libre', nombre: '', monto: '', qty: 1 }; hojaPaso('libre'); }
@@ -15826,10 +16006,12 @@
         if (tope !== null && s.qty > tope) { hojaMsg('Solo hay ' + hojaDisponible(s.slug) + ' en el local (según el panel).', 'error'); return; }
       }
       if (s.tipo === 'disenador' && !(s.precio > 0)) { hojaMsg('Ese decant no tiene precio cargado: anotalo en «Otra cosa» con el monto.', 'error'); return; }
+      if ((s.tipo === 'arabe' || s.tipo === 'disenador') && !(s.ml >= 1 && s.ml <= 200)) { hojaMsg('Poné de cuántos ml es el decant (de 1 a 200).', 'error'); return; }   // [VENTA-COMO-DATO]
       if (HOJA.carro.length >= 20) { hojaMsg('Hasta 20 productos por venta: cobrá esta y anotá otra.', 'aviso'); return; }
       var junto = HOJA.carro.filter(function(l) {
         return l.tipo === s.tipo && ((s.tipo === 'frasco' && l.slug === s.slug && l.llevar === s.llevar && l.ya_bajado === s.ya_bajado && l.base > 0 && s.base > 0)
-          || s.tipo === 'arabe' || (s.tipo === 'disenador' && String(l.id) === String(s.id)));
+          || s.tipo === 'arabe' || (s.tipo === 'disenador' && String(l.id) === String(s.id)))
+          && ((s.tipo !== 'arabe' && s.tipo !== 'disenador') || (l.ml || 5) === (s.ml || 5));   // [VENTA-COMO-DATO] decants de distinto tamaño no se juntan
       })[0];
       if (junto) junto.qty = Math.min(99, junto.qty + s.qty); else HOJA.carro.push(s);
       HOJA.sel = null; hojaMsg(''); hojaPaso('que');
@@ -15952,6 +16134,7 @@
           + '<p class="hoja-hint hv-cant-ayuda">Tocá los números y se suman: 10 y después 1 = 11.</p>'
           + hojaTopeTexto(s)
           + '<div class="hv-nums">' + nums + '</div>'
+          + ((s.tipo === 'arabe' || s.tipo === 'disenador') ? hojaMlHTML(s) : '')   // [VENTA-COMO-DATO] tamaño del decant (5 ml de entrada)
           + (s.tipo === 'frasco' ? '<div class="hoja-tildes"><label><input type="checkbox"' + (s.llevar ? ' checked' : '') + ' onchange="hojaSelTilde(\'llevar\', this.checked)"/> Se lo lleva hoy</label>'
               + '<label><input type="checkbox"' + (s.ya_bajado ? ' checked' : '') + ' onchange="hojaSelTilde(\'ya_bajado\', this.checked)"/> No descontar del stock (ya lo bajé con «Vendí»)</label></div>' : '')   // [HOJA-ETIQUETA-STOCK] A6: el tilde evita que el Cierre del día lo descuente de nuevo
           + (s.tipo === 'frasco' && !(s.base > 0) ? '<p class="hoja-hint">Este perfume no tiene precio cargado: poné cuánto se cobró en total.</p><div class="hoja-montos hv-montos-1">'
@@ -15972,6 +16155,7 @@
         if (!pp) { HOJA.paso = 'manual'; return hojaVentaPintar(); }
         var hayFrasco = HOJA.carro.some(function(l) { return l.tipo === 'frasco' && l.base > 0; });
         h = hojaCab('¿Cómo pagó? Tocá uno', 'hojaPaso(\'que\')') + hojaCarroHTML(false)
+          + hojaVinoHTML()   // [VENTA-COMO-DATO]
           + '<div class="hoja-montos hv-pago">'
           + hojaTileHTML('efectivo', 'hojaGuardarVenta({ auto: \'efectivo\' })', hojaPesos(pp.efectivo), hayFrasco ? 'perfumes con 10% off' : '', false, 'auto')
           + hojaTileHTML('mp', 'hojaGuardarVenta({ auto: \'mp\' })', hojaPesos(pp.efectivo), hayFrasco ? 'perfumes con 10% off' : '', false, 'auto')
@@ -15985,6 +16169,7 @@
         var pm = hojaCarroPrecio(HOJA.carro), d = hojaDebeValor(), cob = hojaNum('efectivo') + hojaNum('mp') + hojaNum('posnet');
         h = hojaCab('Otro monto', 'hojaPaso(\'pago\')') + hojaCarroHTML(false)
           + (pm ? '<p class="hoja-hint">Precio: Efec. / MP ' + hojaPesos(pm.efectivo) + ' · Posnet ' + hojaPesos(pm.lista) + '. Tocá un cuadrado y escribí cuánto pagó por ese medio.</p>' : '<p class="hoja-hint">Tocá un cuadrado y escribí cuánto pagó por ese medio.</p>')
+          + hojaVinoHTML()   // [VENTA-COMO-DATO]
           + hojaTilesManual()
           + '<div class="hoja-debe">' + hojaTileHTML('debe', 'hojaMedio(\'debe\')', d > 0 ? hojaPesos(d) : '—', (HOJA.debe === '' && d > 0) ? 'se calcula solo' : '', HOJA.medio === 'debe', d > 0 ? 'con-monto' : '')
           + '<input type="text" id="hvQuien" class="modal-input" maxlength="60" placeholder="¿Quién debe? (nombre)" autocomplete="off" value="' + escHtml(HOJA.quien) + '" oninput="HOJA.quien = this.value"/></div>'
@@ -16001,6 +16186,7 @@
       }
       else { HOJA.paso = 'inicio'; return hojaVentaPintar(); }
       c.innerHTML = h;
+      if (p === 'pago' || p === 'manual') hojaWaCargar();   // [VENTA-COMO-DATO] la pista «N consultas hoy»
       hojaTecladoPintar();
       if (p === 'perfume') { hojaBuscarInput(); if (!window.matchMedia('(pointer: coarse)').matches) { try { hojaEl('hvBuscar').focus(); } catch (e) {} } }
     }
@@ -16062,6 +16248,7 @@
       var cobrado = ef + mp + po;
       var texto = '✓ Anotado: ' + detalle + ' · ' + (auto ? HOJA_MEDIO_NOMBRE[auto] + ' ' + hojaPesos(cobrado) : 'cobrado ' + hojaPesos(cobrado)) + (debe > 0 ? ' · queda debiendo ' + hojaPesos(debe) + (quien ? ' (' + quien + ')' : '') : '');
       HOJA.carro = []; HOJA.sel = null; HOJA.quien = ''; HOJA.debe = ''; HOJA.montos = { efectivo: '', mp: '', posnet: '' };
+      HOJA.vino = 'local'; HOJA.waKey = null; HOJA.waN = 0;   // [VENTA-COMO-DATO]
       hojaPaso('inicio'); hojaMsg(guardo === 'tablet' ? HOJA_EN_TABLET + texto.replace(/^✓ Anotado: /, '') : texto, guardo === 'tablet' ? 'aviso' : 'ok');
       if (guardo === 'tablet') { hojaPintar(); return; }
       await hojaCargar(); hojaPendientesCargar(); hojaInicioPintar();
