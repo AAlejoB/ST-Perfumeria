@@ -1516,6 +1516,29 @@
     .lab-tabla td { padding: .4rem; border-bottom: 1px solid var(--borde); vertical-align: middle; }
     .lab-tabla th.num, .lab-tabla td.num { text-align: right; font-variant-numeric: tabular-nums; }
     .lab-tabla-scroll { overflow-x: auto; }
+    /* [TABLAS-TARJETAS] 16-oct (A7 del QA): en el celu una tabla de 5 columnas (615 px) quedaba cortada dentro de un cuadro que no se desliza y las
+       columnas Teléfono, Puntos y Acciones eran inalcanzables. Hasta 600 px cada fila pasa a ser una tarjeta con las mismas celdas (`.tabla-tarjetas`);
+       arriba de 600 px la tabla es la de siempre. Una tabla nueva con muchas columnas usa esta clase y le pone clase a cada celda. */
+    @media (max-width: 600px) {
+      .tabla-tarjetas, .tabla-tarjetas tbody { display: block; width: 100%; }
+      .tabla-tarjetas thead { display: none; }
+      .tabla-tarjetas tr { display: grid; align-items: center; gap: .2rem .7rem; padding: .7rem .9rem; border-bottom: 1px solid var(--borde); }
+      .tabla-tarjetas td { display: block; padding: 0; border: 0; min-width: 0; width: auto !important; overflow-wrap: anywhere; }
+      .tabla-tarjetas td[colspan] { grid-column: 1 / -1; }
+      .tt-ranking tr { grid-template-columns: 1.6rem minmax(0, 1fr) auto; grid-template-areas: "n nom pts" "n tel acc"; }
+      .tt-ranking .c-n { grid-area: n; align-self: start; padding-top: .1rem; }
+      .tt-ranking .c-nom { grid-area: nom; font-size: .9rem; }
+      .tt-ranking .c-pts { grid-area: pts; font-size: 1rem; }
+      .tt-ranking .c-tel { grid-area: tel; }
+      .tt-ranking .c-acc { grid-area: acc; justify-self: end; }
+      .tt-ranking .c-acc button { min-height: 44px; min-width: 88px; }
+      .tt-log tr { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "cli delta" "mot mot" "fecha act"; }
+      .tt-log .c-cli { grid-area: cli; font-weight: 600; }
+      .tt-log .c-delta { grid-area: delta; font-size: 1rem; }
+      .tt-log .c-mot { grid-area: mot; }
+      .tt-log .c-fecha { grid-area: fecha; }
+      .tt-log .c-act { grid-area: act; justify-self: end; }
+    }
     /* [LABORATORIO] gráficos (SVG a mano). Dos juegos de colores, el del tema oscuro y el del claro (body.light): la paleta categórica de la
        guía de dataviz (5 slots, validada en los dos temas), un dorado de marca para las series sueltas y grises para ejes y grilla. */
     body { --lab-surf: #1a1a19; --lab-ink: #f0efec; --lab-ink2: #c3c2b7; --lab-muted: #898781; --lab-grid: #2c2c2a; --lab-base: #383835; --lab-borde: rgba(255,255,255,.10);
@@ -3822,7 +3845,7 @@
           </div>
           <div style="flex:2;min-width:180px;">
             <label class="modal-label">Motivo</label>
-            <input type="text" class="modal-input" id="cierreMotivo" placeholder="Ej: Inventario, Vacaciones, Mudanza..." style="margin-bottom:0;"/>
+            <input type="text" class="modal-input" id="cierreMotivo" maxlength="80" placeholder="Ej: Inventario, Vacaciones, Mudanza..." style="margin-bottom:0;"/>
           </div>
           <button class="modal-btn modal-btn-price" onclick="addCierre()" style="width:auto;padding:.6rem 1.5rem;margin-top:0;">Agregar</button>
         </div>
@@ -3911,7 +3934,7 @@
           </div>
           <div style="margin-top:.6rem;">
             <label class="modal-label">Justificaci&oacute;n / nota (opcional, se muestra en la web si quer&eacute;s)</label>
-            <textarea class="modal-input" id="ajusteMotivo" rows="2" placeholder="Ej: Horario de verano &#9728;&#65039;, Horario reducido por refacciones, etc." style="margin-bottom:0;resize:vertical;min-height:50px;"></textarea>
+            <textarea class="modal-input" id="ajusteMotivo" rows="2" maxlength="140" placeholder="Ej: Horario de verano &#9728;&#65039;, Horario reducido por refacciones, etc." style="margin-bottom:0;resize:vertical;min-height:50px;"></textarea>
           </div>
           <div style="display:flex;gap:.5rem;align-items:center;margin-top:.8rem;">
             <button class="modal-btn modal-btn-price" id="btnSaveAjuste" onclick="saveAjuste()" style="width:auto;padding:.6rem 1.5rem;">Guardar horario</button>
@@ -4699,7 +4722,7 @@
           <p class="tinta-dorada" style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0;">🏆 Ranking de clientes</p>
           <input type="text" id="puntosFilterCliente" placeholder="Buscar nombre/teléfono…" oninput="renderPuntosRanking()" class="puntos-filtro" style="flex:1 1 200px;"/>
         </div>
-        <table class="admin-table" style="margin:0;">
+        <table class="admin-table tabla-tarjetas tt-ranking" style="margin:0;">
           <thead><tr>
             <th>#</th>
             <th>Cliente</th>
@@ -4719,7 +4742,7 @@
           <p class="tinta-dorada" style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:0;">📋 Historial de movimientos</p>
           <button class="action-btn" onclick="loadPuntosHistory()" style="padding:.3rem .7rem;font-size:.7rem;">↺</button>
         </div>
-        <table class="admin-table" style="margin:0;">
+        <table class="admin-table tabla-tarjetas tt-log" style="margin:0;">
           <thead><tr>
             <th style="width:130px;">Fecha</th>
             <th>Cliente</th>
@@ -11988,7 +12011,7 @@
         var isPast = c.fecha < hoy;
         html += '<tr style="' + (isPast ? 'opacity:.4;' : '') + '">'
           + '<td style="font-weight:600;">' + fechaStr + '</td>'
-          + '<td>' + escHtml(c.motivo || '') + '</td>'
+          + '<td style="overflow-wrap:anywhere;min-width:0;">' + escHtml(c.motivo || '') + '</td>'   // [VALIDAR-HORARIO] un motivo largo baja de renglón: ya no estira la tabla ni empuja «Eliminar» fuera de la pantalla
           + '<td><button class="action-btn btn-hide" onclick="removeCierre(' + c.id + ')">Eliminar</button></td>'
           + '</tr>';
       });
@@ -12003,7 +12026,9 @@
 
       if (!desde) { msgEl.textContent = 'Seleccioná al menos la fecha "Desde"'; msgEl.style.color = 'var(--tinta-error)'; return; }
       if (!motivo) motivo = 'Cerrado';
+      if (motivo.length > 80) { msgEl.textContent = 'El motivo es muy largo (máximo 80 letras).'; msgEl.style.color = 'var(--tinta-error)'; return; }   // [VALIDAR-HORARIO]
       if (!hasta) hasta = desde; // Un solo día
+      if (desde < resumenHoyART()) { msgEl.textContent = 'Esa fecha ya pasó: un cierre sirve para hoy o para días que vienen.'; msgEl.style.color = 'var(--tinta-error)'; return; }   // [VALIDAR-HORARIO] la fecha de Argentina (NO ROMPER #6)
 
       // Validar que hasta >= desde
       if (hasta < desde) { msgEl.textContent = '"Hasta" debe ser igual o posterior a "Desde"'; msgEl.style.color = 'var(--tinta-error)'; return; }
@@ -12023,6 +12048,9 @@
         msgEl.style.color = 'var(--tinta-error)'; return;
       }
 
+      // [VALIDAR-HORARIO] un día que ya estaba cerrado no se duplica (la fecha es única): se actualiza el motivo, y el aviso lo dice
+      var yaEstaban = 0;
+      try { var rYa = await sb.from('cierres_especiales').select('fecha').in('fecha', fechas); if (!rYa.error && rYa.data) yaEstaban = rYa.data.length; } catch (e) {}
       // Insertar todas las fechas
       var rows = fechas.map(function(f) { return { fecha: f, motivo: motivo }; });
       var { error } = await sb.from('cierres_especiales').upsert(rows, { onConflict: 'fecha' });
@@ -12038,6 +12066,7 @@
       var resumen = fechas.length === 1
         ? 'Cierre agregado: ' + desdeStr
         : fechas.length + ' días cerrados: ' + desdeStr + ' al ' + hastaStr;
+      if (yaEstaban) resumen += ' · ' + (yaEstaban === fechas.length ? (yaEstaban === 1 ? 'ya estaba cerrado: se actualizó el motivo' : 'ya estaban cerrados: se actualizó el motivo') : yaEstaban + ' de esos días ya estaban cerrados: se actualizó el motivo');
       msgEl.textContent = resumen;
       msgEl.style.color = 'var(--tinta-ok)';
       notifyTelegram('🚫 Cierre programado\n📅 ' + (fechas.length === 1 ? desdeStr : desdeStr + ' al ' + hastaStr) + ' (' + fechas.length + ' día' + (fechas.length > 1 ? 's' : '') + ')\n📝 ' + motivo);
@@ -12118,6 +12147,7 @@
       var motivo = document.getElementById('ajusteMotivo').value.trim();
       var mostrarNota = document.getElementById('ajusteMostrarNota').checked;
       var msgEl = document.getElementById('ajusteMsg');
+      if (motivo.length > 140) { msgEl.textContent = 'La nota es muy larga (máximo 140 letras: se muestra en la web).'; msgEl.style.color = 'var(--tinta-error)'; return; }   // [VALIDAR-HORARIO]
 
       if (horaAbre >= horaCierra) {
         msgEl.textContent = 'La hora de apertura debe ser anterior a la de cierre';
@@ -17900,11 +17930,11 @@
         var c = rows[i];
         var pts = puntosTxt(c.puntos);   // 141c
         html += '<tr>'
-          + '<td style="color:var(--gris);">'+ (i+1) +'</td>'
-          + '<td style="font-weight:600;">'+ escapeHtml(c.nombre||'—') +'</td>'
-          + '<td style="font-size:.72rem;color:var(--gris-claro);">'+ (c.telefono ? telHtml(c.telefono) : '—') +'</td>'
-          + '<td class="tinta-dorada" style="text-align:right;font-weight:700;">'+ pts +'</td>'
-          + '<td>'
+          + '<td class="c-n" style="color:var(--gris);">'+ (i+1) +'</td>'
+          + '<td class="c-nom" style="font-weight:600;">'+ escapeHtml(c.nombre||'—') +'</td>'
+          + '<td class="c-tel" style="font-size:.72rem;color:var(--gris-claro);">'+ (c.telefono ? telHtml(c.telefono) : '—') +'</td>'
+          + '<td class="c-pts tinta-dorada" style="text-align:right;font-weight:700;">'+ pts +'</td>'
+          + '<td class="c-acc">'
             + '<button class="action-btn btn-principal" onclick="openPuntosModal(\''+ c.id +'\')" style="padding:.3rem .7rem;font-size:.72rem;">Ajustar</button>'
           + '</td>'
         + '</tr>';
@@ -17998,11 +18028,11 @@
           var claseDelta = delta < 0 ? 'puntos-delta--menos' : 'puntos-delta--mas';   // 141j
           var cli = l.clientes || {};   // [PUNTOS-LOG] el nombre sale del cliente (join por cliente_id)
           html += '<tr>'
-            + '<td style="font-size:.7rem;color:var(--gris-claro);">'+ fechaPuntosHTML(l.created_at) +'</td>'
-            + '<td>'+ (l.cliente_id ? escHtml(cli.nombre || cli.telefono || '—') : '<span style="color:var(--gris);">(cliente eliminado)</span>') +'</td>'   // [XSS-PANEL-STAFF] · el historial no se borra con el cliente (on delete set null)
-            + '<td style="text-align:right;font-weight:700;"><span class="'+ claseDelta +'">'+ deltaPuntosTxt(delta) +'</span></td>'   // 141j · la tinta va en el span: `.admin-table td` la pisaba
-            + '<td style="font-size:.7rem;">'+ escHtml(motivoPuntosTxt(l.motivo, l.origen)) +'</td>'
-            + '<td style="font-size:.7rem;color:var(--gris);">'+ escHtml(actorPuntosTxt(l.actor)) +'</td>'
+            + '<td class="c-fecha" style="font-size:.7rem;color:var(--gris-claro);">'+ fechaPuntosHTML(l.created_at) +'</td>'
+            + '<td class="c-cli">'+ (l.cliente_id ? escHtml(cli.nombre || cli.telefono || '—') : '<span style="color:var(--gris);">(cliente eliminado)</span>') +'</td>'   // [XSS-PANEL-STAFF] · el historial no se borra con el cliente (on delete set null)
+            + '<td class="c-delta" style="text-align:right;font-weight:700;"><span class="'+ claseDelta +'">'+ deltaPuntosTxt(delta) +'</span></td>'   // 141j · la tinta va en el span: `.admin-table td` la pisaba
+            + '<td class="c-mot" style="font-size:.7rem;">'+ escHtml(motivoPuntosTxt(l.motivo, l.origen)) +'</td>'
+            + '<td class="c-act" style="font-size:.7rem;color:var(--gris);">'+ escHtml(actorPuntosTxt(l.actor)) +'</td>'
           + '</tr>';
         }
         tbody.innerHTML = html;
