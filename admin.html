@@ -5725,6 +5725,31 @@
       }
     }
 
+    // [LIMPIAR-SESION] 16-oct (A6 del QA): al cerrar sesión NO se recarga la página (se perdería la fluidez de cambiar de cuenta en la misma tablet), pero tampoco queda
+    // nada de la persona anterior. Se medió qué cambia entre «página recién abierta» y «usé todo y cerré sesión»: son los contenedores de listas y tarjetas que arma JS
+    // (SESION_IDS), que vuelven a como estaban al abrir; los datos en memoria se vacían; y `tabLoaded` se reinicia, así que cada pestaña se vuelve a LEER (y a dibujar según el
+    // rol de quien entra) la próxima vez que se abre. No se toca la cola de la tablet (lo guardado sin internet es de la tablet, no de la persona), ni el catálogo (se relee al entrar).
+    // Una pestaña nueva cuyo contenido arma JS con datos de la base: su contenedor va en SESION_IDS.
+    var SESION_IDS = ['doctorResults', 'doctorSummary', 'clientsList', 'clientCount', 'statsBarChart', 'statsZeroVisits', 'statsGrid', 'statsCatDistrib', 'statsPriceRange', 'statsCatalogGrid', 'statsDesdeFecha', 'semGrid', 'semTop', 'semEstado', 'semBandaRango', 'badgesList', 'hourHeatmap', 'referrerBreakdown', 'deviceBreakdown', 'tbodyTopViewed', 'tbodyTopDecants', 'tbodyTopWA', 'tbodySearchEmpty', 'analyticsMeta', 'totViews', 'totDecants', 'totWA', 'totSessions', 'totEmpty', 'combosList', 'comboCount', 'tbodyPuntosRanking', 'tbodyPuntosLog', 'hojaVenta', 'hojaLista', 'hojaTotales', 'hojaCierre', 'hojaMsg', 'resCuerpo', 'resEstado', 'resTitulo', 'logFeed', 'logChips', 'homeBannerList', 'pushHistory', 'decantsCustomList', 'decantsCustomCuenta', 'marcasLista', 'elegidosLista', 'editLogList', 'resetRequestsList', 'tbodyOpiniones', 'tbodyBackups', 'backupsMeta', 'tbodyCierres', 'votacionEstado', 'votacionMesActual', 'promoResumen', 'promoCadaUno', 'promoAvisoCosto', 'avisoDeposito', 'edrTransf', 'edrSub', 'edrTitulo'];
+    var SESION_PRISTINA = null;
+    function sesionCapturar() {   // al abrir la página, antes de que nadie entre
+      SESION_PRISTINA = {};
+      SESION_IDS.forEach(function(id) { var e = document.getElementById(id); if (e) SESION_PRISTINA[id] = e.innerHTML; });
+    }
+    document.addEventListener('DOMContentLoaded', sesionCapturar);
+    function sesionLimpiar() {
+      try {
+        tabLoaded = {};
+        allClientes = []; esperaData = []; logEventos = []; resumenData = null; resumenHoja = null; _puntosRankingData = [];
+        HOJA.filas = null; HOJA.carro = []; HOJA.sel = null; HOJA.paso = 'inicio'; HOJA.pendientes = null; HOJA.cierreVista = null; HOJA.cobro = null; HOJA.medio = null;
+        HOJA.montos = { efectivo: '', mp: '', posnet: '' }; HOJA.debe = ''; HOJA.quien = ''; HOJA.vino = 'local'; HOJA.waKey = null; HOJA.waN = 0; HOJA.notaTxt = ''; HOJA.busca = '';
+        if (SESION_PRISTINA) Object.keys(SESION_PRISTINA).forEach(function(id) { var e = document.getElementById(id); if (e) e.innerHTML = SESION_PRISTINA[id]; });
+        document.querySelectorAll('.modal-overlay.active').forEach(function(m) { m.classList.remove('active'); });
+        document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
+        var ini = document.getElementById('tab-inicio'); if (ini) ini.classList.add('active');
+        if (typeof deshacerCerrar === 'function' && DESHACER.el) deshacerCerrar();
+      } catch (e) { console.warn('[logout] limpieza de sesión', e); }
+    }
     async function doLogout() {
       // Loguear ANTES de signOut, mientras el JWT todavia es valido
       if (currentRole !== 'dev') await logAdminAction('logout', null, null);   // [LABORATORIO] la cuenta de sólo mirar no escribe nada, ni el Log
@@ -5739,6 +5764,7 @@
         var lb = document.querySelector('.sidebar .tab-btn[data-tab="lab"]'); if (lb) lb.remove();
         LAB.datos = null; LAB.cargando = false;
       } catch (e) { console.warn('[logout] limpieza', e); }
+      sesionLimpiar();   // [LIMPIAR-SESION]
       stopInactivityWatcher();
       try { await sb.auth.signOut(); } catch(e) {}
       document.getElementById('adminPanel').classList.remove('active');
