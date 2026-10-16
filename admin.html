@@ -2647,12 +2647,16 @@
     .res-grilla { display: grid; grid-template-columns: 1fr; gap: .6rem; margin-bottom: .8rem; align-items: start; }   /* ronda d: «· sin cambios» no se estira al alto de la vecina */
     @media (min-width: 481px) {
       .res-grilla { grid-template-columns: repeat(2, 1fr); }
-      .res-grilla .res-card-puntos, .res-grilla .res-nada { grid-column: 1 / -1; }
+      .res-grilla .res-card-puntos, .res-grilla .res-card-hoja, .res-grilla .res-nada { grid-column: 1 / -1; }
     }
     .res-card { background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--r-lg); padding: .6rem .8rem; min-width: 0; }
     .res-card-titulo { font-size: .72rem; font-weight: 700; color: var(--amarillo-tinta); margin-bottom: .2rem; }
     .res-fila { display: flex; flex-wrap: wrap; align-items: center; column-gap: .6rem; min-height: var(--tap-min); padding: .3rem 0; border-top: 1px solid var(--borde); font-size: .76rem; }
     .res-card-titulo + .res-fila { border-top: none; }
+    /* [RESUMEN-HOJA] 16-oct · la hoja de caja en el Resumen; la alerta del jefe (cobró menos que el precio de transferencia) va con fondo amarillo y ⚠ */
+    .res-hoja-tachado .res-nombre { text-decoration: line-through; opacity: .6; }
+    .res-hoja-alerta { background: rgba(232,184,0,.18); border-left: 3px solid var(--amarillo); padding-left: .5rem; margin-left: -.5rem; border-radius: 4px; }
+    .res-hoja-alerta .res-sub { color: var(--tinta-aviso); font-weight: 700; }
     .res-nombre { flex: 1 1 auto; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
     .res-sub { font-size: .66rem; font-weight: 400; color: var(--gris); }
     .res-dato { flex: 0 0 auto; margin-left: auto; font-weight: 700; white-space: nowrap; }
@@ -14902,6 +14906,7 @@
     var RESUMEN_DIAS_ATRAS = 60;           // lo que guarda el Log (admin_actions_cleanup)
     var resumenDia = null;                 // 'YYYY-MM-DD' del día mostrado; null = hoy, en vivo
     var resumenData = null;                // el jsonb de la última llamada: tarjetas + texto
+    var resumenHoja = null;                // [RESUMEN-HOJA] los renglones de la hoja de caja de ese día (array), o null si no se pudieron leer
     var resumenPedido = 0;                 // si se toca ‹ › rápido, gana la última respuesta
 
     // [RESUMEN-EN-EL-PANEL] ronda d · el teléfono como lo muestra el catálogo: +54 9 2970 00-0011. Portada de
@@ -15865,6 +15870,52 @@
         + '<span class="res-dato ' + (n < 0 ? 'res-baja' : 'res-sube') + '">' + (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n) + ' pts</span></div>';
     }
 
+    // [RESUMEN-HOJA] (A7, 16-oct-2026) los renglones de la hoja de caja (REEMPLAZO DE HOJA) en el Resumen, con hora y quién. Hasta ahora el Resumen
+    // sólo leía resumen_dia() (la bitácora del stock, clientes, precios y puntos): una venta anotada en la hoja no aparecía hasta el «Cierre del día»,
+    // y entonces sólo como una baja de stock sin hora ni monto. Se lee caja_movimientos del día (la leen las dos cuentas) sin pasar por la RPC.
+    async function resumenHojaCargar(dia) {
+      try {
+        var r = await sb.from('caja_movimientos').select('id,creado_en,tipo,detalle,efectivo,mp,posnet,debe,debe_quien,items,creado_por,anulado_en').eq('dia', dia).order('creado_en', { ascending: true });
+        if (r.error) { if (hojaTablaFalta(r.error)) return []; return null; }
+        return r.data || [];
+      } catch (e) { return null; }
+    }
+    function resumenHoraART(iso) {
+      try { return new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date(iso)); } catch (e) { return ''; }
+    }
+    // La alerta del jefe (C5): una venta que cobró menos que el precio de transferencia de los frascos que lleva. Cuenta lo cobrado + lo que quedó
+    // debiendo (una seña no es una venta barata). Un frasco sin precio cargado sólo alerta si se cobró 0. Devuelve { esperado } o null.
+    function resumenHojaAlerta(f) {
+      if (!f || f.tipo !== 'venta' || f.anulado_en) return null;
+      var esperado = 0, hayFrasco = false, sinPrecio = false;
+      (Array.isArray(f.items) ? f.items : []).forEach(function(it) {
+        if (!it || !it.slug) return;
+        hayFrasco = true;
+        var pr = Number(it.precio) || 0, q = Number(it.qty) || 1;
+        if (pr > 0) esperado += Math.round(pr * 0.9) * q; else sinPrecio = true;
+      });
+      if (!hayFrasco) return null;
+      var total = (Number(f.efectivo) || 0) + (Number(f.mp) || 0) + (Number(f.posnet) || 0) + (Number(f.debe) || 0);
+      if (esperado > 0 ? total < esperado : (sinPrecio && total === 0)) return { esperado: esperado };
+      return null;
+    }
+    function resumenFilaHoja(f) {
+      var cobrado = (Number(f.efectivo) || 0) + (Number(f.mp) || 0) + (Number(f.posnet) || 0);
+      var quien = f.creado_por === JEFE_EMAIL ? 'jefe' : 'empleada';
+      var medios = [];
+      if (Number(f.efectivo) > 0) medios.push('Efec. ' + promoPesos(f.efectivo));
+      if (Number(f.mp) > 0) medios.push('MP ' + promoPesos(f.mp));
+      if (Number(f.posnet) > 0) medios.push('Posnet ' + promoPesos(f.posnet));
+      var al = currentRole === 'jefe' ? resumenHojaAlerta(f) : null;   // la alerta es sólo del jefe: la empleada no ve nada distinto
+      var sub = '<div class="res-sub">' + escHtml(resumenHoraART(f.creado_en)) + ' · ' + quien
+        + (f.tipo === 'nota' ? ' · nota' : '') + (medios.length ? ' · ' + medios.join(' · ') : '')
+        + (Number(f.debe) > 0 ? ' · debe ' + escHtml(promoPesos(f.debe)) + (f.debe_quien ? ' (' + escHtml(f.debe_quien) + ')' : '') : '')
+        + (f.anulado_en ? ' · tachado' : '') + '</div>';
+      if (al) sub += '<div class="res-sub">⚠ Cobró ' + escHtml(promoPesos(cobrado)) + (al.esperado > 0 ? ' · transf. de referencia ' + escHtml(promoPesos(al.esperado)) : ' · el perfume no tiene precio cargado') + '</div>';
+      return '<div class="res-fila' + (f.anulado_en ? ' res-hoja-tachado' : '') + (al ? ' res-hoja-alerta' : '') + '"><div class="res-nombre">'
+        + (al ? '⚠ ' : '') + escHtml(f.detalle || '') + sub + '</div><span class="res-dato">' + (f.tipo === 'nota' && !cobrado ? '' : escHtml(promoPesos(cobrado))) + '</span></div>';
+    }
+
     function resumenPintar(d) {
       resumenPintarSelector(d);
       var cuerpo = document.getElementById('resCuerpo');
@@ -15872,6 +15923,8 @@
       var lista = function(x) { return Array.isArray(x) ? x : []; };
       // El orden es el de la decisión 126c: stock → depósito → precios → clientes → puntos.
       var secciones = [
+        resumenHoja === null ? { clave: 'hoja', titulo: '🧾 Hoja de caja', filas: [], error: true }
+          : { clave: 'hoja', titulo: '🧾 Hoja de caja', filas: resumenHoja.map(resumenFilaHoja) },   // [RESUMEN-HOJA]
         { clave: 'stock',    titulo: '📦 Stock del local', filas: lista(d.stock).map(function(it) { return resumenFilaDelta(it, true); }), pie: resumenPieStock(lista(d.stock)) },   // [RESUMEN-PRECIOS]
         { clave: 'deposito', titulo: '🏬 Depósito',        filas: lista(d.deposito).map(function(it) { return resumenFilaDelta(it, false); }) },
         { clave: 'precios',  titulo: '💰 Precios',         filas: lista(d.precios).map(resumenFilaPrecio).filter(Boolean) },
@@ -15881,7 +15934,7 @@
       var hay = secciones.some(function(x) { return x.filas.length > 0; });
       cuerpo.innerHTML = '<div class="res-grilla">' + (hay
         ? secciones.map(function(x) {
-            if (!x.filas.length) return '<section class="res-card res-card-' + x.clave + '"><div class="res-vacio">' + x.titulo + ' · sin cambios</div></section>';
+            if (!x.filas.length) return '<section class="res-card res-card-' + x.clave + '"><div class="res-vacio">' + x.titulo + (x.error ? ' · no se pudo leer (tocá ↺ para reintentar)' : ' · sin cambios') + '</div></section>';
             return '<section class="res-card res-card-' + x.clave + '"><div class="res-card-titulo">' + x.titulo + ' · ' + x.filas.length + '</div>' + x.filas.join('') + (x.pie || '') + '</section>';
           }).join('')
         : '<div class="res-card res-nada">Sin movimientos ' + (d.es_hoy ? 'hoy' : 'ese día') + ' 😴</div>') + '</div>';
@@ -15912,6 +15965,10 @@
       var dia = d.dia || resumenDia || resumenHoyART();
       var filas = [['Sección', 'Perfume', 'Marca', 'Cambio', 'Precio lista', 'Precio transferencia', 'Subtotal transferencia', 'Detalle']];
       var lista = function(x) { return Array.isArray(x) ? x : []; };
+      (resumenHoja || []).forEach(function(f) {   // [RESUMEN-HOJA]
+        var cob = (Number(f.efectivo) || 0) + (Number(f.mp) || 0) + (Number(f.posnet) || 0);
+        filas.push(['Hoja de caja', f.detalle || '', '', '', '', '', '', resumenHoraART(f.creado_en) + ' · ' + (f.creado_por === JEFE_EMAIL ? 'jefe' : 'empleada') + ' · cobró ' + cob + (Number(f.debe) > 0 ? ' · debe ' + f.debe : '') + (f.anulado_en ? ' · tachado' : '')]);
+      });
       lista(d.stock).forEach(function(it) {
         var n = Number(it.delta) || 0, pr = n < 0 ? resumenPrecioDe(it.slug) : null;
         filas.push(['Stock del local', it.name || it.slug || '', resumenMarca(it.slug), n,
@@ -15955,6 +16012,8 @@
         if (mio !== resumenPedido) return;
         if (!res || res.error || !res.data) throw (res && res.error) || new Error('sin datos');
         resumenData = res.data;
+        resumenHoja = await resumenHojaCargar(res.data.dia || resumenDia || resumenHoyART());   // [RESUMEN-HOJA]
+        if (mio !== resumenPedido) return;
         resumenPintar(res.data);
       } catch (e) {
         if (mio !== resumenPedido) return;
