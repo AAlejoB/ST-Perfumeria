@@ -1950,14 +1950,21 @@
     }
     .client-detail-icon { font-size: .8rem; }
     .client-detail-value { font-weight: 600; color: #fff; }
+    /* [CLIENTES-TOQUE] 16-oct (A5 del QA): los 6 botones medían 24 px de alto y estaban a 6 px entre sí (Bloquear pegado a Eliminar, +1 punto a Historial).
+       Ahora miden 44 px, con 8 px de aire, y Bloquear y Eliminar van juntos en un grupo aparte, separado por una raya y a la derecha (en el celu, en su propio renglón). */
     .client-actions {
-      display: flex; gap: .4rem; margin-top: .7rem; padding-top: .6rem;
+      display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .7rem; padding-top: .6rem;
       border-top: 1px solid var(--borde);
     }
     .client-btn {
-      font-family: inherit; font-size: .62rem; font-weight: 700; letter-spacing: .06em;
-      text-transform: uppercase; padding: .35rem .7rem; border-radius: 4px;
+      font-family: inherit; font-size: .68rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: .35rem .9rem; border-radius: 6px; min-height: var(--tap-min, 44px);
+      display: inline-flex; align-items: center; justify-content: center;
       border: none; cursor: pointer; transition: all .2s;
+    }
+    .ca-peligro { display: flex; align-items: center; gap: .9rem; margin-left: auto; padding-left: 1rem; border-left: 1px solid var(--borde); }
+    @media (max-width: 600px) {
+      .ca-peligro { flex: 1 0 100%; justify-content: flex-end; margin-left: 0; padding-left: 0; padding-top: .4rem; border-left: 0; border-top: 1px dashed var(--borde); }
     }
     /* [CLIENTES-CLARO-CONTRASTE] 132 · en los dos temas: blanco sobre #2170b0, 5,24 (sobre #3498db daba 3,15) */
     .client-btn-edit { background: #2170b0; color: #fff; }
@@ -7707,8 +7714,10 @@
             + '<button class="client-btn client-btn-punto" onclick="sumarPuntoDirecto(\'' + c.id + '\')">⭐ +1 punto</button>'
             + '<button class="client-btn client-btn-historial" onclick="openClientPuntoLog(\'' + c.id + '\')">📜 Historial</button>'
             + '<button class="client-btn client-btn-edit" onclick="openClientEditModal(\'' + c.id + '\')">✏️ Editar</button>'
-            + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
-            + '<button class="client-btn client-btn-delete" onclick="openClientDeleteModal(\'' + c.id + '\')">🗑️ Eliminar</button>'
+            + '<span class="ca-peligro">'
+              + '<button class="' + blockBtnClass + '" onclick="toggleBlockClient(\'' + c.id + '\',' + !isBlocked + ')">🚫 ' + blockBtnText + '</button>'
+              + '<button class="client-btn client-btn-delete" onclick="openClientDeleteModal(\'' + c.id + '\')">🗑️ Eliminar</button>'
+            + '</span>'
           + '</div>'
         + '</div>';
       });
@@ -7938,15 +7947,33 @@
       setTimeout(function() { msgEl.textContent = ''; }, 4000);
     }
 
+    // [CLIENTES-TOQUE] 16-oct (A5 del QA): antes un toque sumaba sin avisar y dos toques seguidos sumaban dos puntos. Ahora: un solo guardado a la vez por cliente
+    // (los toques durante el guardado y 0,7 s después no hacen nada), avisa con «Deshacer» (NO ROMPER #39: lo que se puede deshacer se deshace así, no con un «¿seguro?»)
+    // y el Deshacer resta el punto y deja «compró» como estaba.
+    var PUNTO_EN_CURSO = {};
     async function sumarPuntoDirecto(id) {
       var c = allClientes.find(function(cl) { return cl.id == id; });
-      if (!c) return;
-      var nuevosPuntos;   // [PUNTOS-LOG] el saldo nuevo lo devuelve ajustar_puntos
-      try { nuevosPuntos = await ajustarPuntosRPC(id, 1, '+1 desde panel'); }
-      catch (ePto) { alert(textoErrorPuntos(ePto)); console.error('sumarPuntoDirecto failed:', ePto); return; }
-      // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
-      // notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
-      loadClientes();
+      if (!c || PUNTO_EN_CURSO[id]) return;
+      PUNTO_EN_CURSO[id] = true;
+      var comproAntes = !!c.compro;
+      try {
+        var nuevosPuntos;   // [PUNTOS-LOG] el saldo nuevo lo devuelve ajustar_puntos
+        try { nuevosPuntos = await ajustarPuntosRPC(id, 1, '+1 desde panel'); }
+        catch (ePto) { alert(textoErrorPuntos(ePto)); console.error('sumarPuntoDirecto failed:', ePto); return; }
+        // [TG-RESUMEN-DIARIO] silenciado · ahora va en el resumen diario de las 22hs (pg_cron daily_summary)
+        // notifyTelegram('⭐ +1 punto\n👤 ' + c.nombre + ' → ' + nuevosPuntos + ' pts');
+        deshacerToast({
+          texto: '⭐ +1 punto para ' + c.nombre, sub: 'Ahora tiene ' + puntosTxt(nuevosPuntos) + (nuevosPuntos === 1 ? ' punto' : ' puntos'),
+          alDeshacer: async function() {
+            try { await ajustarPuntosRPC(id, -1, 'deshacer el +1 desde panel'); }
+            catch (eUn) { return { ok: false, texto: textoErrorPuntos(eUn) }; }
+            if (!comproAntes) { try { await sb.from('clientes').update({ compro: false }).eq('id', id); } catch (e) {} }
+            loadClientes();
+            return { ok: true, texto: 'Listo: le sacamos el punto a ' + c.nombre };
+          }
+        });
+        loadClientes();
+      } finally { setTimeout(function() { PUNTO_EN_CURSO[id] = false; }, 700); }
     }
 
     // ============================================================
@@ -8115,17 +8142,33 @@
       btn.textContent = 'Guardar cambios'; btn.disabled = false;
     }
 
-    async function toggleBlockClient(id, block) {
+    // [CLIENTES-TOQUE] A5: bloquear (que le impide entrar a su cuenta en la web) ya no es un toque mudo: avisa con «Deshacer». Desbloquear no lo necesita (es la vuelta).
+    var BLOQUEO_EN_CURSO = {};
+    async function toggleBlockClient(id, block, sinAviso) {
       var c = allClientes.find(function(cl) { return cl.id == id; });
-      if (!c) return;
-      var { data, error } = await sb.from('clientes').update({ bloqueado: block }).eq('id', id).select();
-      if (error || !data || data.length === 0) {
-        alert(errorEnCriollo(error, null, block ? 'bloquear al cliente' : 'desbloquear al cliente'));   // 128j
-        console.error('toggleBlockClient failed:', error);
-        return;
-      }
-      notifyTelegram((block ? '🚫 Cliente bloqueado' : '✅ Cliente desbloqueado') + ': ' + c.nombre);
-      loadClientes();
+      if (!c || BLOQUEO_EN_CURSO[id]) return { ok: false };
+      BLOQUEO_EN_CURSO[id] = true;
+      try {
+        var { data, error } = await sb.from('clientes').update({ bloqueado: block }).eq('id', id).select();
+        if (error || !data || data.length === 0) {
+          alert(errorEnCriollo(error, null, block ? 'bloquear al cliente' : 'desbloquear al cliente'));   // 128j
+          console.error('toggleBlockClient failed:', error);
+          return { ok: false };
+        }
+        notifyTelegram((block ? '🚫 Cliente bloqueado' : '✅ Cliente desbloqueado') + ': ' + c.nombre);
+        if (block && !sinAviso) {
+          deshacerToast({
+            texto: '🚫 ' + c.nombre + ' quedó bloqueado', sub: 'No puede entrar a su cuenta en la web',
+            alDeshacer: async function() {
+              BLOQUEO_EN_CURSO[id] = false;
+              var r = await toggleBlockClient(id, false, true);
+              return r && r.ok ? { ok: true, texto: 'Listo: ' + c.nombre + ' quedó desbloqueado' } : { ok: false, texto: 'No se pudo desbloquear: probá con el botón «Desbloquear».' };
+            }
+          });
+        }
+        loadClientes();
+        return { ok: true };
+      } finally { setTimeout(function() { BLOQUEO_EN_CURSO[id] = false; }, 700); }
     }
 
     function openClientDeleteModal(id) {
