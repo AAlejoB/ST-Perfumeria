@@ -3518,7 +3518,7 @@
               </div>
               <div style="display:flex;gap:.4rem;">
                 <input type="text" class="modal-input" id="editEtiqueta" placeholder="O escribí un texto libre..." style="margin-bottom:0;flex:1;" maxlength="25"/>
-                <input type="color" id="editEtiquetaColor" value="#E8B800" style="width:36px;height:36px;border:1px solid var(--borde);border-radius:4px;background:none;cursor:pointer;padding:2px;"/>
+                <input type="color" id="editEtiquetaColor" aria-label="Color de la etiqueta" value="#E8B800" style="width:36px;height:36px;border:1px solid var(--borde);border-radius:4px;background:none;cursor:pointer;padding:2px;"/>
               </div>
               <div id="editEtiquetaPreview" style="margin-top:.5rem;min-height:1.5rem;"></div>
             </div>
@@ -4548,7 +4548,7 @@
 
       <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
         <button class="action-btn" onclick="loadAnalytics()" style="padding:.5rem 1rem;">↺ Refrescar</button>
-        <select id="analyticsRange" onchange="loadAnalytics()" style="padding:.5rem;background:#111;color:#fff;border:1px solid var(--borde);border-radius:6px;font-size:.75rem;">
+        <select id="analyticsRange" aria-label="Período de Analytics" onchange="loadAnalytics()" style="padding:.5rem;background:#111;color:#fff;border:1px solid var(--borde);border-radius:6px;font-size:.75rem;">
           <option value="7" selected>Últimos 7 días</option>
           <option value="14">Últimos 14 días</option>
           <option value="30">Últimos 30 días</option>
@@ -4707,23 +4707,23 @@
         <p class="tinta-dorada" style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.8rem;">⚙️ Configuración global</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;">
           <div>
-            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por perfume</label>
+            <label for="cfgPuntosPerfume" style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por perfume</label>
             <input type="number" step="0.01" id="cfgPuntosPerfume" class="modal-input" style="margin:0;"/>
           </div>
           <div>
-            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por decant</label>
+            <label for="cfgPuntosDecant" style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por decant</label>
             <input type="number" step="0.01" id="cfgPuntosDecant" class="modal-input" style="margin:0;"/>
           </div>
           <div>
-            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por set/combo</label>
+            <label for="cfgPuntosCombo" style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Pts por set/combo</label>
             <input type="number" step="0.01" id="cfgPuntosCombo" class="modal-input" style="margin:0;"/>
           </div>
           <div>
-            <label style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Cada cuántos puntos hay premio</label>   <!-- [ETIQUETA-UMBRAL] antes «Threshold (múltiplo)»: el campo es cada cuántos puntos el cliente tiene un premio (threshold_proximo_premio); texto de 141o del DISEÑADOR -->
+            <label for="cfgThreshold" style="font-size:.65rem;color:var(--gris);display:block;margin-bottom:.2rem;">Cada cuántos puntos hay premio</label>   <!-- [ETIQUETA-UMBRAL] antes «Threshold (múltiplo)»: el campo es cada cuántos puntos el cliente tiene un premio (threshold_proximo_premio); texto de 141o del DISEÑADOR -->
             <input type="number" step="1" id="cfgThreshold" class="modal-input" style="margin:0;"/>
           </div>
         </div>
-        <label style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje cuando le falta 1 punto para el premio</label>
+        <label for="cfgMensajePromo" style="font-size:.65rem;color:var(--gris);display:block;margin:.7rem 0 .2rem;">Mensaje cuando le falta 1 punto para el premio</label>
         <input type="text" id="cfgMensajePromo" class="modal-input" style="margin:0;"/>
         <button class="action-btn btn-principal" onclick="savePuntosConfig()" style="margin-top:.8rem;padding:.5rem 1rem;">💾 Guardar config</button>
         <span id="cfgPuntosMsg" style="font-size:.7rem;color:var(--tinta-ok);margin-left:.6rem;"></span>
@@ -8443,6 +8443,32 @@
       x.click();
     }, true);
 
+    // [ETIQUETAS-ATADAS] 16-oct-2026 · B14 del QA: ~100 etiquetas visibles («Nombre», «Vence el»…) no estaban atadas a su campo (les faltaba
+    // `for`) y el lector de pantalla leía «campo de texto» sin nombre. Cada label.modal-label sin `for` y sin campo adentro se ata al primer
+    // campo que viene después (aunque esté dentro de un envoltorio, como el de la × de limpiar). Corre al abrir la página y, con un respiro,
+    // cada vez que el panel pinta algo nuevo (las filas de Beneficios, los formularios que arma JS). Una etiqueta nueva: con `for` y listo.
+    var ETQ_N = 0;
+    function etiquetasAtar() {
+      document.querySelectorAll('label.modal-label:not([for]):not([data-etq])').forEach(function(l) {
+        if (l.querySelector('input, select, textarea')) { l.setAttribute('data-etq', '1'); return; }   // la etiqueta envuelve su campo: ya está
+        var ctl = null, sig = l.nextElementSibling;
+        while (sig && !ctl) {
+          if (sig.matches('label, .modal-label')) break;   // otra etiqueta: ésta no tiene campo propio
+          ctl = sig.matches('input:not([type=hidden]), select, textarea') ? sig : sig.querySelector('input:not([type=hidden]), select, textarea');
+          sig = sig.nextElementSibling;
+        }
+        if (!ctl || ctl.getAttribute('aria-label') || ctl.getAttribute('aria-labelledby')) { l.setAttribute('data-etq', '1'); return; }
+        if (!ctl.id) ctl.id = 'campo-auto-' + (++ETQ_N);
+        if (document.querySelector('label[for="' + ctl.id + '"]')) { l.setAttribute('data-etq', '1'); return; }
+        l.setAttribute('for', ctl.id);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      etiquetasAtar();
+      var t = 0, panel = document.getElementById('adminPanel') || document.body;
+      new MutationObserver(function() { clearTimeout(t); t = setTimeout(etiquetasAtar, 400); }).observe(panel, { childList: true, subtree: true });
+    });
+
     // Doble verificación: el empleado tipea "ST" (siglas) para confirmar.
     // Es una barrera anti-click-accidental, no un control de autenticación
     // (el auth real viene del login de Supabase). Se usa en operaciones
@@ -11623,7 +11649,7 @@
     // Evita que el jefe tenga que recordar #explorar / #catalogo / etc.
     // El select copia su valor al input hermano con la clase indicada.
     function sectionPickerHTML(targetClass) {
-      return '<select class="modal-input link-section-picker" '
+      return '<select class="modal-input link-section-picker" aria-label="Elegir una sección de la web para el link" '   // [ETIQUETAS-ATADAS] B14
         + 'onchange="if(this.value){var i=this.parentNode.querySelector(\'.' + targetClass + '\'); if(i){i.value=this.value;}} this.selectedIndex=0;" '
         + 'style="margin-bottom:.4rem;font-size:.72rem;cursor:pointer;">'
         + '<option value="">📍 Elegir sección de la web…</option>'
