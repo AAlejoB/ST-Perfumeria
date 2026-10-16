@@ -7172,7 +7172,7 @@
         return '<div class="sem-fila"><span class="sem-pos">' + (i + 1) + '</span><div class="sem-nombre">' + escHtml(nombres[s])
           + statLineaPerfume(s)   // [STATS-PRECIOS] A9
           + '<div class="sem-barra"><div style="width:' + Math.round(porSlug[s] / max * 100) + '%"></div></div></div>'
-          + '<span class="sem-n">' + porSlug[s] + '</span></div>';
+          + '<span class="sem-n">' + porSlug[s] + '</span>' + edrLapiz(s, nombres[s]) + '</div>';   // [EDICION-RAPIDA] C11
       }).join('');
     }
 
@@ -7242,6 +7242,7 @@
                 + '<div style="height:100%;background:var(--amarillo);border-radius:4px;width:' + pct + '%;transition:width .5s;"></div>'
               + '</div>'
             + '</div>'
+            + edrLapiz(slug, name)   // [EDICION-RAPIDA] C11
           + '</div>';
         });
         barChart.innerHTML = barHTML;
