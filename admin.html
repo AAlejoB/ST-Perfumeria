@@ -386,9 +386,49 @@
       .inicio-nombre { font-size: 17px; }
     }
     @media (min-width: 701px) {
-      .inicio-grid, .inicio-todas { max-width: 640px; }
+      .inicio-grid, .inicio-todas, .novedades { max-width: 640px; }
       .inicio-btn { height: 150px; }
     }
+    /* ══ [PISTAS] 16-oct (Alejo: «que el panel les hable a los chicos sin que yo les tenga que escribir») ══
+       (C) «Lo nuevo del panel» en Inicio: una línea por novedad, con el punto amarillo hasta que esta tablet la ve. */
+    .novedades { margin-top: 16px; padding: .7rem 1rem .4rem; background: var(--superficie); border: 1px solid var(--borde); border-radius: 8px; }
+    .nov-cab { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 44px; }
+    .nov-tit { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gris-claro); }
+    .nov-tit span { margin-left: .4rem; letter-spacing: 0; text-transform: none; font-size: .8rem; color: var(--amarillo-tinta); white-space: nowrap; }
+    .nov-listo { flex: 0 0 auto; white-space: nowrap; min-height: 44px; padding: 0 .8rem; font: inherit; font-size: .74rem; font-weight: 700; color: var(--amarillo-tinta);
+      background: transparent; border: 1.5px solid var(--amarillo-tinta); border-radius: 6px; cursor: pointer; }
+    .nov-item { display: flex; align-items: center; gap: .65rem; width: 100%; min-height: 52px; padding: .45rem .1rem; font: inherit; color: inherit;
+      text-align: left; background: transparent; border: 0; border-top: 1px solid var(--borde); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .nov-item:active { background: var(--inicio-toque); }
+    @media (hover: hover) { .nov-item:hover { background: var(--inicio-toque); } }
+    .nov-item:focus-visible, .nov-listo:focus-visible { outline: 2px solid var(--amarillo-tinta); outline-offset: 2px; }
+    .nov-punto { flex: 0 0 10px; height: 10px; border-radius: 50%; background: var(--amarillo); }
+    .nov-item.vista .nov-punto { visibility: hidden; }
+    .nov-cuerpo { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }   /* la fecha chica arriba: en el celu no le come ancho al texto */
+    .nov-fecha { font-size: .7rem; color: var(--gris); }
+    .nov-txt { font-size: .9rem; line-height: 1.3; }
+    .nov-item:not(.vista) .nov-txt { font-weight: 700; }
+    .nov-ir { flex: 0 0 auto; font-size: 1.3rem; line-height: 1; color: var(--amarillo-tinta); }
+    /* (B) el globito con flechita al lado de lo nuevo (como los «tips» de Google Maps o de Gmail): amarillo con letra negra en los
+       dos temas (la letra la decide el fondo), debajo del encabezado (9999) y de la barra de Guardar (50). Se va con «Entendido» o al usarlo. */
+    .pista { position: absolute; z-index: 40; width: max-content; max-width: min(330px, calc(100vw - 24px)); box-sizing: border-box;
+      display: flex; align-items: center; gap: .6rem; padding: .55rem .55rem .55rem .85rem; background: #e8b800; color: #000;
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.35); font-size: .88rem; line-height: 1.3; animation: pistaEntra .25s ease-out; }
+    .pista::before { content: ''; position: absolute; left: var(--pista-flecha, 24px); width: 14px; height: 14px; background: #e8b800; transform: translateX(-50%) rotate(45deg); }
+    .pista.abajo::before { top: -6px; }
+    .pista.arriba::before { bottom: -6px; }
+    .pista-txt { position: relative; flex: 1 1 auto; min-width: 0; }
+    .pista-txt b { font-weight: 800; }
+    .pista-ok { position: relative; flex: 0 0 auto; min-height: 44px; padding: 0 .8rem; font: inherit; font-size: .76rem; font-weight: 800; letter-spacing: .04em;
+      color: #000; background: transparent; border: 1.5px solid #000; border-radius: 8px; cursor: pointer; }
+    .pista-ok:active { background: rgba(0,0,0,.12); }
+    .pista-ok:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+    /* lo que señala el globito late con un borde amarillo, para que el ojo vaya ahí */
+    .pista-ancla { outline: 3px solid #e8b800; outline-offset: 2px; animation: pistaLate 1.6s ease-in-out infinite; }
+    .td-foto img.pista-ancla { outline-offset: -3px; }   /* el cuadro de la foto recorta (overflow: hidden): el borde va por dentro */
+    @keyframes pistaEntra { from { opacity: 0; transform: translateY(6px); } }
+    @keyframes pistaLate { 50% { outline-color: rgba(232,184,0,.25); } }
+    @media (prefers-reduced-motion: reduce) { .pista, .pista-ancla { animation: none; } }
 
     /* SYNC INDICATOR — estado del watchdog de Realtime (ver bloque JS al final) */
     .sync-indicator {
@@ -3205,6 +3245,8 @@
         <button type="button" class="inicio-btn" onclick="irDesdeInicio('auditlog')"><span class="inicio-ico" aria-hidden="true">&#128203;</span><span class="inicio-nombre">Log</span><span class="inicio-sub"></span></button>
       </div>
       <button type="button" class="inicio-todas" onclick="abrirMenuDesdeInicio()">&#9776; Ver todas las pestañas</button>
+      <!-- [PISTAS] (C) «Lo nuevo del panel»: lo pinta novedadesPintar() desde NOVEDADES -->
+      <section class="novedades" id="novedades" aria-labelledby="novTit" hidden></section>
     </div>
 
     <!-- TAB: PRECIOS & STOCK (unificada) -->
@@ -5311,6 +5353,7 @@
       loadSidebarPrefs();
       applyRolePermissions();
       switchTab('inicio', null);   // [PANEL-INICIO] 133a · el panel arranca en Inicio cada vez que se abre (entrar o recargar)
+      novedadesPintar();           // [PISTAS] «Lo nuevo del panel» en Inicio, según el rol
       hojaInicioPintar();          // [REEMPLAZO-DE-HOJA] «hay días sin cerrar» en el botón del Inicio
       colaArrancar();              // [PANEL-SIN-CONEXION] el cartel y la subida de lo que quedó guardado en esta tablet (antes de las cargas: sin red tardan)
       startInactivityWatcher();
@@ -5824,6 +5867,7 @@
         document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
         var ini = document.getElementById('tab-inicio'); if (ini) ini.classList.add('active');
         if (typeof deshacerCerrar === 'function' && DESHACER.el) deshacerCerrar();
+        pistaQuitar(); var nv = document.getElementById('novedades'); if (nv) { nv.hidden = true; nv.innerHTML = ''; }   // [PISTAS]
       } catch (e) { console.warn('[logout] limpieza de sesión', e); }
     }
     async function doLogout() {
@@ -7017,6 +7061,7 @@
       document.getElementById('fotoVisorMarca').textContent = info.marca;
       ov.querySelector('.fv-pie').hidden = !info.nombre && !info.marca;
       _fv.abierto = Date.now();
+      pistaUsada('foto-toca');   // [PISTAS] ya lo usó: el globito de «tocá la foto» no vuelve en esta tablet
       if (!ov.classList.contains('active')) {
         ov.classList.add('active');
         try { history.pushState({ fotoVisor: 1 }, ''); } catch (e) {}   // «atrás» del Android cierra la foto, no el panel
@@ -7066,6 +7111,140 @@
       if (!img || !fotoVisorDe(img)) return;
       e.preventDefault();
       fotoVisorAbrir(img);
+    });
+
+    // ══ [PISTAS] 16-oct-2026 · pedido de Alejo: «que el panel les hable a los chicos», sin que él les tenga que mandar mensajes. Dos piezas:
+    //   (B) PISTAS: un globito amarillo con flechita al lado de algo nuevo («tocá la foto…»), con lo señalado latiendo. Sale de a uno, se va con
+    //       «Entendido» o cuando lo usan (`pistaUsada(id)` desde la función de esa cosa) y no vuelve en esa tablet.
+    //   (C) NOVEDADES: la tarjeta «Lo nuevo del panel» de Inicio, una línea por novedad con el punto amarillo hasta que esta tablet la ve;
+    //       tocar una línea la marca vista y, si tiene `ir`, lleva a esa pestaña (por irDesdeInicio: misma regla de roles).
+    // Lo visto se guarda en esta tablet (`st_vistas`, con try/catch: sin acceso, dura lo que la pestaña). Una función nueva para las chicas:
+    // una línea arriba de todo en NOVEDADES (se muestran las 5 más nuevas) y, si se aprende tocando, una pista en PISTAS.
+    var PISTAS = [
+      { id: 'foto-toca', sel: '#tab-precios.active img.foto-toca, #tab-deposito.active img.foto-toca, #tab-destacados.active img.foto-toca, #tab-doctor.active img.foto-toca',
+        html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
+    ];
+    var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
+      { id: 'n16-fotos', fecha: '16-oct', texto: 'Las fotos se agrandan: tocá la miniatura o mantené apretada cualquier foto', ir: 'precios' },
+      { id: 'n16-buscar', fecha: '16-oct', texto: 'El buscador encuentra igual con o sin tildes y con las palabras en cualquier orden', ir: 'precios' },
+      { id: 'n16-ventanas', fecha: '16-oct', texto: 'Si escribiste algo en una ventana, tocar afuera ya no la cierra: usá la ✕ o «Cancelar»' },
+      { id: 'n16-tachar', fecha: '16-oct', texto: '¿Tachaste un renglón de la hoja sin querer? Tocá «Deshacer» en el aviso de abajo', ir: 'hoja' },
+      { id: 'n16-tope', fecha: '16-oct', texto: 'La hoja no deja anotar más frascos de los que hay en el local', ir: 'hoja' }
+    ];
+    var VISTAS_MEM = null;
+    function vistasLeer() {
+      if (VISTAS_MEM) return VISTAS_MEM;
+      try { VISTAS_MEM = JSON.parse(localStorage.getItem('st_vistas') || '{}') || {}; } catch (e) { VISTAS_MEM = {}; }
+      return VISTAS_MEM;
+    }
+    function vistoMarcar(ids) {
+      var v = vistasLeer();
+      [].concat(ids).forEach(function(id) { v[id] = 1; });
+      try { localStorage.setItem('st_vistas', JSON.stringify(v)); } catch (e) {}
+    }
+
+    // (C) la tarjeta de Inicio
+    function novedadesDelRol() {
+      return NOVEDADES.filter(function(n) { return !n.rol || n.rol === currentRole; }).slice(0, 5);
+    }
+    function novedadesPintar() {
+      var box = document.getElementById('novedades');
+      if (!box) return;
+      var lista = currentRole && currentRole !== 'dev' ? novedadesDelRol() : [];
+      if (!lista.length) { box.hidden = true; box.innerHTML = ''; return; }
+      var v = vistasLeer();
+      var sinVer = lista.filter(function(n) { return !v[n.id]; }).length;
+      box.innerHTML = '<div class="nov-cab"><h2 class="nov-tit" id="novTit">Lo nuevo del panel'
+        + (sinVer ? '<span>' + sinVer + ' sin ver</span>' : '') + '</h2>'
+        + (sinVer ? '<button type="button" class="nov-listo" onclick="novedadesTodasVistas()">Ya las vi</button>' : '') + '</div>'
+        + lista.map(function(n) {
+            return '<button type="button" class="nov-item' + (v[n.id] ? ' vista' : '') + '" onclick="novedadTocar(' + escHtml(JSON.stringify(n.id)) + ')">'
+              + '<span class="nov-punto" aria-hidden="true"></span><span class="nov-cuerpo"><span class="nov-fecha">' + escHtml(n.fecha) + '</span>'
+              + '<span class="nov-txt">' + escHtml(n.texto) + '</span></span>'
+              + (n.ir ? '<span class="nov-ir" aria-hidden="true">›</span>' : '') + '</button>';
+          }).join('');
+      box.hidden = false;
+    }
+    function novedadTocar(id) {
+      var n = NOVEDADES.filter(function(x) { return x.id === id; })[0];
+      if (!n) return;
+      vistoMarcar(id);
+      novedadesPintar();
+      if (n.ir) irDesdeInicio(n.ir);
+    }
+    function novedadesTodasVistas() {
+      vistoMarcar(novedadesDelRol().map(function(n) { return n.id; }));
+      novedadesPintar();
+    }
+
+    // (B) el globito
+    var PISTA = { el: null, ancla: null, id: null, t: 0, raf: 0 };
+    function pistaQuitar() {
+      if (PISTA.ancla) PISTA.ancla.classList.remove('pista-ancla');
+      if (PISTA.el) PISTA.el.remove();
+      PISTA.el = PISTA.ancla = PISTA.id = null;
+    }
+    function pistaUsada(id) {
+      if (vistasLeer()['p-' + id]) return;
+      vistoMarcar('p-' + id);
+      if (PISTA.id === id) pistaQuitar();
+    }
+    function pistaVisible(el) {
+      if (!el || !el.isConnected || !el.getClientRects().length) return false;
+      var r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    }
+    function pistasRevisar() {
+      var panel = document.getElementById('adminPanel');
+      if (!currentRole || currentRole === 'dev' || !panel || !panel.classList.contains('active')
+          || document.querySelector('.modal-overlay.active')) { pistaQuitar(); return; }
+      var v = vistasLeer();
+      for (var i = 0; i < PISTAS.length; i++) {
+        var p = PISTAS[i];
+        if (v['p-' + p.id]) continue;
+        if (PISTA.id === p.id && pistaVisible(PISTA.ancla)) { pistaUbicar(); return; }   // la misma, en el mismo lugar: no la vuelve a armar
+        var cand = document.querySelectorAll(p.sel), ancla = null;
+        for (var j = 0; j < cand.length && !ancla; j++) if (pistaVisible(cand[j])) ancla = cand[j];
+        if (!ancla) continue;
+        pistaQuitar();
+        var g = document.createElement('div');
+        g.className = 'pista abajo';
+        g.setAttribute('role', 'status');
+        g.innerHTML = '<span class="pista-txt">' + p.html + '</span><button type="button" class="pista-ok">Entendido</button>';
+        g.querySelector('.pista-ok').addEventListener('click', function() { pistaUsada(PISTA.id); });
+        document.body.appendChild(g);
+        ancla.classList.add('pista-ancla');
+        PISTA.el = g; PISTA.ancla = ancla; PISTA.id = p.id;
+        pistaUbicar();
+        return;
+      }
+      pistaQuitar();
+    }
+    // Debajo de lo señalado, con la flecha apuntando a su centro; si abajo no entra, arriba. Nunca fuera de la pantalla de costado.
+    function pistaUbicar() {
+      var g = PISTA.el, a = PISTA.ancla;
+      if (!g || !a) return;
+      if (!pistaVisible(a)) { pistasRevisar(); return; }
+      var r = a.getBoundingClientRect(), w = g.offsetWidth, h = g.offsetHeight;
+      var sx = window.scrollX || 0, sy = window.scrollY || 0, vw = document.documentElement.clientWidth;
+      var centro = r.left + r.width / 2;
+      var izq = Math.max(12, Math.min(centro - 26, vw - w - 12));
+      var arriba = r.bottom + 12 + h > window.innerHeight && r.top - 12 - h > 70;
+      g.classList.toggle('arriba', arriba);
+      g.classList.toggle('abajo', !arriba);
+      g.style.left = (izq + sx) + 'px';
+      g.style.top = (arriba ? r.top - 12 - h + sy : r.bottom + 12 + sy) + 'px';
+      g.style.setProperty('--pista-flecha', Math.max(18, Math.min(centro - izq, w - 18)) + 'px');
+    }
+    function pistasPronto() { clearTimeout(PISTA.t); PISTA.t = setTimeout(pistasRevisar, 200); }
+    function pistasSeguir() { if (!PISTA.el || PISTA.raf) return; PISTA.raf = requestAnimationFrame(function() { PISTA.raf = 0; pistaUbicar(); }); }
+    document.addEventListener('DOMContentLoaded', function() {
+      var panel = document.getElementById('adminPanel');
+      if (!panel) return;
+      // la lista se vuelve a pintar, se filtra (style), cambia la pestaña o se abre una ventana (class): un respiro y se revisa
+      new MutationObserver(pistasPronto).observe(panel, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+      window.addEventListener('resize', pistasSeguir, { passive: true });
+      window.addEventListener('scroll', pistasSeguir, { passive: true, capture: true });   // capture: también la tabla que se desliza de costado
     });
 
     // La celda del nombre de las dos tablas: con foto, la miniatura a la izquierda y los textos (nombre, marca, avisos) a la derecha.
