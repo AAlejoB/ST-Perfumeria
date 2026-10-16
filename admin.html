@@ -15163,6 +15163,7 @@
       'mercaderia_recibida':  { icon: '📦', label: 'Llegó mercadería' },
       // [REEMPLAZO-DE-HOJA] la hoja de caja (familia Catálogo: lo ve el jefe; la empleada, sólo stock y depósito)
       'hoja_alta':            { icon: '🧾', label: 'Hoja · renglón' },
+      'hoja_destachar':       { icon: '↩️', label: 'Hoja · tachado deshecho' },   // [DESHACER-TACHAR]
       'hoja_tachar':          { icon: '🧾', label: 'Hoja · tachado' },
       'hoja_cierre':          { icon: '🧾', label: 'Hoja · cierre del día' },
       'hoja_cierre_tarde':    { icon: '🧾', label: 'Hoja · por qué se cerró tarde' },   // [PANEL-SIN-CONEXION]
@@ -15420,7 +15421,7 @@
       var c = e.changes;
       if (!c || typeof c !== 'object') return '';
       // [REEMPLAZO-DE-HOJA] «Mejor renglón: detalle · montos» / «Cierre: Eclaire −1, Azzaro (no bajó)…»
-      if (e.action === 'hoja_alta' || e.action === 'hoja_tachar') {
+      if (e.action === 'hoja_alta' || e.action === 'hoja_tachar' || e.action === 'hoja_destachar') {
         var mm = [['Efec.', c.efectivo], ['MP', c.mp], ['Posnet', c.posnet]].filter(function(x) { return Number(x[1]) > 0; }).map(function(x) { return x[0] + ' ' + hojaPesos(x[1]); }).join(' · ');
         return escHtml(String(c.detalle || '') + (mm ? ' · ' + mm : ''));
       }
@@ -15438,7 +15439,7 @@
       function par(campo, v) { return '<span class="log-old">' + escHtml(auditValueLabel(campo, v.old)) + '</span> → <span class="log-new">' + escHtml(auditValueLabel(campo, v.new)) + '</span>'; }
       var campo = e.action === 'deposito_update' ? 'stock_deposito' : (e.action === 'stock_update' ? 'stock_qty' : null);
       var v = campo && c[campo];
-      if (esPar(v)) return par(campo, v) + (c.origen === 'hoja_cierre' ? ' · cierre de la hoja' : (c.origen === 'hoja_tachar' ? ' · se tachó un renglón' : ''));
+      if (esPar(v)) return par(campo, v) + (c.origen === 'hoja_cierre' ? ' · cierre de la hoja' : (c.origen === 'hoja_tachar' ? ' · se tachó un renglón' : (c.origen === 'hoja_destachar' ? ' · se deshizo el tachado' : '')));
       // [LOG-PRECIO-PESOS] price_update: la acción ya dice "💰 Precio", así que no se repite la
       // etiqueta. La promo aparece sólo si cambió (sin esto salía "Promo: vacío → vacío").
       if (e.action === 'price_update' && esPar(c.price)) {
@@ -15710,6 +15711,7 @@
       if (HOJA.dia !== hoy) { HOJA.dia = hoy; HOJA.cierreVista = null; }
       hojaEl('hojaDia').max = hoy; hojaEl('hojaDia').value = HOJA.dia;
       hojaVentaPintar(); hojaCargar(); hojaPendientesCargar(); hojaDecantsCargar();
+      hojaProbarDestachar();   // [DESHACER-TACHAR]
     }
     function hojaCambioDia(v) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v > resumenHoyART()) { hojaEl('hojaDia').value = HOJA.dia; return; }
@@ -16138,10 +16140,42 @@
       return '<div class="hoja-cola"><p class="hoja-cola-tit">📴 En esta tablet, sin subir todavía: ' + (cola.length === 1 ? '1 renglón' : cola.length + ' renglones') + ' · ' + hojaPesos(suma)
         + '. Suman en los totales cuando suban.</p>' + filas + '</div>';
     }
+    // [DESHACER-TACHAR] (16-oct-2026) · tachar ya no pregunta «¿seguro?»: tacha y muestra el aviso «Deshacer» (el de Gmail / Drive) 8 segundos. Deshacer lo hace
+    // caja_destachar (sql/caja_destachar.sql): vuelve a bajar el stock que el tachado había devuelto y a restar un cobro de su deuda; sólo quien tachó y dentro de
+    // los 10 minutos. Si esa función todavía no está en la base (HOJA.puedeDestachar !== true), tachar sigue preguntando como antes.
+    async function hojaProbarDestachar() {
+      if (HOJA.puedeDestachar === true) return;
+      var r; try { r = await sb.rpc('caja_destachar', { p_id: '00000000-0000-0000-0000-000000000000' }); } catch (e) { return; }   // un id que no existe: no toca nada
+      if (r.error) { if (String(r.error.code) === 'PGRST202' || /could not find the function|caja_destachar/i.test(String(r.error.message || ''))) HOJA.puedeDestachar = false; return; }
+      HOJA.puedeDestachar = true;
+    }
+    async function hojaDestachar(id) {
+      if (HOJA.ocupado) return { ok: false, texto: 'Esperá un momento y probá de nuevo.' };
+      HOJA.ocupado = true;
+      try {
+        var r; try { r = await colaConTope(function() { return sb.rpc('caja_destachar', { p_id: id }); }); } catch (e) { r = { error: e }; }
+        if (r.error) {
+          if (colaEsDeRed(r.error)) return { ok: false, texto: 'Sin internet: no se pudo deshacer. Probá de nuevo cuando vuelva.' };
+          if (String(r.error.code) === 'PGRST202') return { ok: false, texto: 'Falta correr sql/caja_destachar.sql en Supabase.' };
+          return { ok: false, texto: hojaErrorTexto(r.error, 'deshacer el tachado') };
+        }
+        var d = r.data || {};
+        if (!d.ok) {
+          var motivos = { vencido: 'Pasaron más de 10 minutos: ya no se puede deshacer.', otra_persona: 'Lo tachó otra cuenta: no se puede deshacer desde acá.', deuda_cambio: 'La deuda cambió desde que lo tachaste: no se puede deshacer.', no_tachado: 'Ese renglón ya estaba sin tachar.', no_existe: 'No encontré ese renglón.' };
+          await hojaCargar(); hojaPendientesCargar(); hojaInicioPintar();
+          return { ok: d.motivo === 'no_tachado', texto: motivos[d.motivo] || 'No se pudo deshacer.' };
+        }
+        var baj = d.rebajados || [], sin = d.sin_rebajar || [];
+        hojaStockAplicar(baj);
+        await hojaCargar(); hojaPendientesCargar(); hojaInicioPintar();
+        return { ok: true, texto: 'Listo: el renglón volvió a la hoja' + (baj.length ? ' · stock: ' + baj.map(function(x) { return x.nombre + ' ' + x.prev + ' → ' + x.new; }).join(', ') : '') + (sin.length ? ' · ⚠ revisá el stock de ' + sin.map(function(x) { return x.nombre; }).join(', ') : '') };
+      } finally { HOJA.ocupado = false; }
+    }
     async function hojaTachar(id) {
       var f = (HOJA.filas || []).filter(function(x) { return x.id === id; })[0];
       if (!f || f.anulado_en || HOJA.ocupado) return;
-      if (!confirm('¿Tachar este renglón?\n\n' + f.detalle + '\n\nQueda en la hoja, tachado, y no suma en los totales.')) return;
+      var conDeshacer = HOJA.puedeDestachar === true;
+      if (!conDeshacer && !confirm('¿Tachar este renglón?\n\n' + f.detalle + '\n\nQueda en la hoja, tachado, y no suma en los totales.')) return;
       HOJA.ocupado = true;
       try {
         // Sólo por la función de la base (caja_tachar): si el renglón ya había bajado stock en un cierre, lo DEVUELVE (+n, relativo) y deja su Log.
@@ -16161,6 +16195,7 @@
         }
         await hojaCargar();
         hojaPendientesCargar(); hojaInicioPintar();
+        if (d.ok && conDeshacer) deshacerToast({ texto: 'Renglón tachado', sub: f.detalle, alDeshacer: function() { return hojaDestachar(id); } });   // [DESHACER-TACHAR]
       } finally { HOJA.ocupado = false; }
     }
     // Lo que la base cambió (cierre o tachado) se copia a la memoria del panel: así Precios & Stock y Depósito lo muestran sin recargar.
