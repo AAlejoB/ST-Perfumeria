@@ -2565,6 +2565,22 @@
     .doc-accion { flex: 0 0 auto; min-height: 36px; display: inline-flex; align-items: center; padding: 0 .7rem; border-radius: 6px; font-family: inherit; font-size: .66rem; font-weight: 700; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); white-space: nowrap; }
     .doc-accion:hover, .doc-accion:focus-visible { border-color: var(--amarillo-tinta); }
     .doc-accion--foto { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+    /* [DOCTOR-VER-MAS] B13 · el botón de abajo de la lista del Doctor */
+    .doc-ver-mas { display: block; width: 100%; min-height: 48px; margin-top: .4rem; border: 1px dashed var(--amarillo-tinta); border-radius: 8px; background: transparent; color: var(--amarillo-tinta); font-family: inherit; font-size: .75rem; font-weight: 700; letter-spacing: .04em; cursor: pointer; }
+    .doc-ver-mas span { font-weight: 400; color: var(--gris); }
+    /* [TOQUE-44] 16-oct-2026 · B12 del QA: lo que quedaba por debajo de 44 px en el celu y la tablet (medido a 375 px). Sólo al tacto
+       (pointer: coarse): con mouse, en la compu, queda como estaba. Un botón nuevo que se toca: 44 de alto, o sumalo acá. */
+    @media (pointer: coarse) {
+      .doc-accion, .doc-corregir { min-height: 44px; }
+      .doc-corregir { display: inline-flex; align-items: center; }
+      .client-filter-btn, #tab-clientes .action-btn, #tab-nuevos .action-btn, #tab-puntos .action-btn, #tab-votacion .action-btn,
+      #tab-editar .action-btn, #tab-editar [onclick="migrarTipos()"], #editFotoClearBtn, #puntosFilterCliente { min-height: 44px; }
+      #tab-editar .action-btn, #editFotoClearBtn, #tab-editar [onclick="migrarTipos()"], #tab-editar button[onclick="clearDescuento()"] { display: inline-flex; align-items: center; justify-content: center; }
+      #tab-editar button[onclick="clearDescuento()"] { min-height: 44px; }
+      #tab-puntos .action-btn { min-width: 44px; justify-content: center; }
+      #editEtiquetaColor { width: 44px !important; height: 44px !important; }
+      .cod-chip button { min-width: 44px; min-height: 44px; }   /* la × de cada código de barras en Editar (era 36 × 36) */
+    }
     .doc-marcado { outline: 2px solid var(--amarillo); outline-offset: 3px; border-radius: 6px; transition: outline-color .4s; }
     /* [ELEGIDOS-EXCLUIR] 16-oct · la caja de Destacados: cada excluido en una fila de 44 con «Volver a incluir» a la derecha; el buscador pinta Tarjetero */
     .eleg-caja { background: #111; border: 1px solid var(--borde); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
@@ -13791,6 +13807,12 @@
         + card('ok', 'doc-card--ok', ok, 'Sanos');
     }
 
+    // [DOCTOR-VER-MAS] 16-oct-2026 · B13 del QA: el Doctor pintaba TODOS los perfumes de una (~28.000 caracteres y 382 controles en la
+    // tablet). Ahora muestra los primeros DOCTOR_PASO y un botón «Ver N más», como «Ver más fragancias» del catálogo (NO ROMPER #12);
+    // cambiar de filtro vuelve a los primeros. Arreglar uno (la foto, Completar) vuelve a pintar sin achicar lo que ya se veía.
+    var DOCTOR_PASO = 30, doctorVisibles = DOCTOR_PASO;
+    function doctorVerMas() { doctorVisibles += DOCTOR_PASO; renderDoctorResults(); }
+
     function renderDoctorResults() {
       var container = document.getElementById('doctorResults');
       var filtered = doctorFilter === 'all'
@@ -13805,6 +13827,8 @@
       }
 
       var html = '';
+      var totalDoc = filtered.length;
+      filtered = filtered.slice(0, doctorVisibles);   // [DOCTOR-VER-MAS]
       filtered.forEach(function(r) {
         var statusColor = r.status === 'critical' ? '#e74c3c' : (r.status === 'warning' ? '#f1c40f' : '#2ecc71');
         var statusIcon = r.status === 'critical' ? '🔴' : (r.status === 'warning' ? '🟡' : '🟢');
@@ -13812,7 +13836,7 @@
 
         // Imagen o placeholder
         var imgHTML = r.foto
-          ? '<img src="' + escHtml(r.foto.replace(/ /g, '%20')) + '" style="width:36px;height:46px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
+          ? '<img src="' + escHtml(r.foto.replace(/ /g, '%20')) + '" loading="lazy" alt="" style="width:36px;height:46px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
           : '<div style="width:36px;height:46px;border-radius:4px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:rgba(232,184,0,.3);flex-shrink:0;">' + escHtml(r.name ? r.name.charAt(0) : '?') + '</div>';
 
         html += '<div style="background:' + statusBg + ';border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:.7rem .8rem;border-left:3px solid ' + statusColor + ';">';
@@ -13826,7 +13850,7 @@
         if (r.status === 'ok') {
           html += '<span style="font-size:.6rem;color:var(--tinta-ok);font-weight:600;">✓ Completo</span>';
         } else {
-          html += '<button onclick="doctorGoEdit(' + escHtml(JSON.stringify(String(r.slug))) + ')" style="flex-shrink:0;background:var(--amarillo);color:#000;border:none;border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer;letter-spacing:.05em;">✏️ CORREGIR</button>';
+          html += '<button type="button" class="doc-corregir" onclick="doctorGoEdit(' + escHtml(JSON.stringify(String(r.slug))) + ')" style="flex-shrink:0;background:var(--amarillo);color:#000;border:none;border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer;letter-spacing:.05em;">✏️ CORREGIR</button>';   // [TOQUE-44] .doc-corregir mide 44 al tacto
         }
         html += '</div>';
 
@@ -13849,6 +13873,10 @@
 
         html += '</div>';
       });
+      if (totalDoc > filtered.length) {   // [DOCTOR-VER-MAS]
+        var quedan = totalDoc - filtered.length;
+        html += '<button type="button" class="doc-ver-mas" onclick="doctorVerMas()">Ver ' + Math.min(DOCTOR_PASO, quedan) + ' más <span>(' + filtered.length + ' de ' + totalDoc + ')</span></button>';
+      }
 
       container.innerHTML = html;
     }
@@ -14570,6 +14598,7 @@
 
     function filterDoctor(filter) {
       doctorFilter = filter;
+      doctorVisibles = DOCTOR_PASO;   // [DOCTOR-VER-MAS] otro filtro: arranca de nuevo por los primeros
       // Actualizar botones activos
       ['all', 'critical', 'warning', 'ok'].forEach(function(f) {
         var btn = document.getElementById('docFilter' + (f === 'all' ? 'All' : (f === 'critical' ? 'Crit' : (f === 'warning' ? 'Warn' : 'Ok'))));
