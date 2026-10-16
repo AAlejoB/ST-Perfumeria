@@ -2653,6 +2653,12 @@
     .res-card-titulo { font-size: .72rem; font-weight: 700; color: var(--amarillo-tinta); margin-bottom: .2rem; }
     .res-fila { display: flex; flex-wrap: wrap; align-items: center; column-gap: .6rem; min-height: var(--tap-min); padding: .3rem 0; border-top: 1px solid var(--borde); font-size: .76rem; }
     .res-card-titulo + .res-fila { border-top: none; }
+    /* [STATS-BANDAS] A8 (16-oct) · «Esta semana» (dorada) y «Desde el primer día» (gris, con borde) se distinguen sin leer el detalle */
+    .stats-banda { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; column-gap: .8rem; row-gap: .1rem; min-height: 44px; padding: .6rem 1rem; margin: 0 0 .8rem; border-radius: var(--r-lg); }
+    .stats-banda b { font-size: .95rem; letter-spacing: .06em; text-transform: uppercase; }
+    .stats-banda span { font-size: .78rem; }
+    .stats-banda--semana { background: var(--amarillo); color: #000; }
+    .stats-banda--total { background: var(--superficie); border: 2px dashed var(--gris); color: inherit; margin-top: 1.8rem; }
     /* [RESUMEN-HOJA] 16-oct · la hoja de caja en el Resumen; la alerta del jefe (cobró menos que el precio de transferencia) va con fondo amarillo y ⚠ */
     .res-hoja-tachado .res-nombre { text-decoration: line-through; opacity: .6; }
     .res-hoja-alerta { background: rgba(232,184,0,.18); border-left: 3px solid var(--amarillo); padding-left: .5rem; margin-left: -.5rem; border-radius: 4px; }
@@ -3736,6 +3742,7 @@
       <!-- [SEMANA-STATS] (pedido 13 de Alejo, 16-oct, opción A): Estadísticas cuenta LA SEMANA del negocio — lo que salió y
            cuánto suma, lo que entró, clientes nuevos y la lista de espera, cada número con su «Ir a →» — y abajo, chico,
            lo de la web. Sale de resumen_dia() de cada día (la misma fuente que el Resumen) y de lista_espera. -->
+      <div class="stats-banda stats-banda--semana"><b id="semBandaTitulo">Esta semana</b><span id="semBandaRango"></span></div>   <!-- [STATS-BANDAS] A8 -->
       <div class="res-selector sem-selector">
         <button type="button" class="res-nav" id="semAntes" onclick="semanaMover(-1)" aria-label="Semana anterior">&#8249;</button>
         <div class="res-dia sem-dia">
@@ -3748,6 +3755,8 @@
       <div class="stats-grid sem-grid" id="semGrid"><p class="log-vacio">Cargando…</p></div>
       <div class="sem-top" id="semTop"></div>
 
+      <!-- [STATS-BANDAS] A8 · de acá para abajo es lo acumulado, no de la semana -->
+      <div class="stats-banda stats-banda--total"><b>Desde el primer día</b><span id="statsDesdeFecha">&nbsp;</span></div>
       <!-- Lo de la web, chico -->
       <h3 class="sem-h3">🌐 La web</h3>
       <div class="stats-grid" id="statsGrid"></div>
@@ -6953,6 +6962,47 @@
       if (est) est.textContent = semanaTexto(info.lunes) + ' → ' + (fin === info.hoy ? 'hoy' : semanaTexto(fin));
       if (antes) antes.disabled = semanaOffset <= -SEMANA_MAX_ATRAS;
       if (despues) despues.disabled = semanaOffset >= 0;
+      var bt = document.getElementById('semBandaTitulo'), br = document.getElementById('semBandaRango');   // [STATS-BANDAS] A8
+      if (bt) bt.textContent = tit ? tit.textContent : 'Esta semana';
+      if (br) br.textContent = semanaRangoTexto(info.lunes);
+    }
+    // «13 al 19 de octubre» (lunes a domingo, aunque falten los días que todavía no pasaron); si cambia el mes: «29 de septiembre al 5 de octubre»
+    function semanaRangoTexto(lunes) {
+      var dom = resumenSumarDias(lunes, 6);
+      var f = function(d, conMes) {
+        var q = String(d).split('-').map(Number), o = { day: 'numeric', timeZone: 'UTC' };
+        if (conMes) o.month = 'long';
+        return new Intl.DateTimeFormat('es-AR', o).format(new Date(Date.UTC(q[0], q[1] - 1, q[2])));
+      };
+      return lunes.slice(0, 7) === dom.slice(0, 7) ? f(lunes, false) + ' al ' + f(dom, true) : f(lunes, true) + ' al ' + f(dom, true);
+    }
+    // [STATS-BANDAS] A8 · desde cuándo se cuentan las visitas del acumulado (el primer click guardado)
+    var statsDesdeTexto = null;
+    async function statsDesdeCargar() {
+      var el = document.getElementById('statsDesdeFecha'); if (!el) return;
+      if (statsDesdeTexto === null) {
+        try {
+          var r = await sb.from('perfume_clicks').select('created_at').order('created_at', { ascending: true }).limit(1);
+          if (!r.error && r.data && r.data[0]) statsDesdeTexto = 'desde el ' + new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' }).format(new Date(r.data[0].created_at));
+        } catch (e) { /* queda sin fecha */ }
+      }
+      el.textContent = statsDesdeTexto || 'visitas, opiniones y clientes de siempre';
+    }
+    // [STATS-PRECIOS] A9 · la línea «marca · transf. · lista» de CUALQUIER perfume de Estadísticas. Antes el precio colgaba de que hubiera marca (los que
+    // vienen de la base sin marca_real, como Elysia Apple Rouge o Cool Girl, no mostraban ni marca ni precio). Ahora siempre sale algo: «sin marca» /
+    // «sin precio». La empleada no ve el precio de transferencia (A10).
+    function statLineaPerfume(slug) {
+      var esJefe = currentRole === 'jefe', partes = [escHtml(resumenMarca(slug) || 'sin marca')];
+      if (!overridesCargado) partes.push('precios no disponibles');
+      else {
+        var pr = resumenPrecioDe(slug);
+        if (!pr) partes.push('sin precio');
+        else {
+          if (esJefe) partes.push('transf. <span class="res-monto res-transf">' + escHtml(promoPesos(pr.transf)) + '</span>');
+          partes.push('lista <span class="res-monto">' + escHtml(promoPesos(pr.lista || pr.promo)) + '</span>' + (pr.promo ? ' · promo <span class="res-monto">' + escHtml(promoPesos(pr.promo)) + '</span>' : ''));
+        }
+      }
+      return '<div class="res-sub">' + partes.join(' · ') + '</div>';
     }
     async function loadSemana() {
       var grid = document.getElementById('semGrid'), top = document.getElementById('semTop');
@@ -6975,12 +7025,14 @@
         return;
       }
       // Lista de espera: pendientes y «para avisar ya» (la misma regla que la pestaña Espera: con stock, no libre).
-      var esperando = null, paraAvisar = null;
+      var esperando = null, paraAvisar = null, esperaLocal = null;
       try {
-        var le = await sb.from('lista_espera').select('slug,libre').is('notified_at', null);
+        var le = await sb.from('lista_espera').select('slug,libre,origen').is('notified_at', null);
+        if (le.error) le = await sb.from('lista_espera').select('slug,libre').is('notified_at', null);   // sin la columna origen (sql de [ESPERA-MAS] sin correr)
         if (mio !== semanaPedido) return;
         if (!le.error && le.data) {
           esperando = le.data.length;
+          if (le.data.length && Object.prototype.hasOwnProperty.call(le.data[0], 'origen')) esperaLocal = le.data.filter(function(r) { return r.origen === 'local'; }).length;
           paraAvisar = stockCargado ? le.data.filter(function(r) { return r.libre !== true && esperaTieneStock(r.slug); }).length : null;
         }
       } catch (e2) { console.warn('[semana] espera:', e2); }
@@ -7001,9 +7053,16 @@
         clientes += lista(d.clientes).length;
       });
       var sinDatos = info.dias.length && dias.length < info.dias.length;
-      var vSalieron = '' + salieron + (overridesCargado && salieron
-        ? '<span class="sem-sub">' + escHtml(promoPesos(transf)) + ' transf.' + (sinPrecio ? ' · ' + sinPrecio + ' sin precio' : '') + '</span>' : '');
-      var vEspera = esperando === null ? '—' : ('' + esperando + (paraAvisar ? '<span class="sem-sub sem-avisar">' + paraAvisar + ' para avisar ya</span>' : ''));
+      // [STATS-PRECIOS] A10 · la empleada no ve el precio de transferencia, pero sí el aviso «N sin precio»
+      var subSal = '';
+      if (overridesCargado && salieron) {
+        var esJefeS = currentRole === 'jefe';
+        subSal = (esJefeS ? escHtml(promoPesos(transf)) + ' transf.' : '') + (sinPrecio ? (esJefeS ? ' · ' : '') + sinPrecio + ' sin precio' : '');
+      }
+      var vSalieron = '' + salieron + (subSal ? '<span class="sem-sub">' + subSal + '</span>' : '');
+      var vEspera = esperando === null ? '—' : ('' + esperando
+        + (esperaLocal !== null ? '<span class="sem-sub">Local ' + esperaLocal + ' · Web ' + (esperando - esperaLocal) + '</span>' : '')   // [STATS-PRECIOS] A10
+        + (paraAvisar ? '<span class="sem-sub sem-avisar">' + paraAvisar + ' para avisar ya</span>' : ''));
       grid.innerHTML = ''
         + statCard('resumen', 'Resumen', '📦 Salieron', vSalieron)
         + statCard('precios', 'Precios &amp; Stock', '📥 Entraron', '' + entraron)
@@ -7015,9 +7074,8 @@
       if (!slugs.length) { top.innerHTML = '<p class="sem-nota">' + (semanaOffset === 0 ? 'Todavía no salió nada esta semana.' : 'No salió nada esa semana.') + '</p>'; return; }
       var max = porSlug[slugs[0]];
       top.innerHTML = '<h3 class="sem-h3">🏆 Los ' + slugs.length + ' que más salieron</h3>' + slugs.map(function(s, i) {
-        var pr = resumenPrecioDe(s), marca = resumenMarca(s);
         return '<div class="sem-fila"><span class="sem-pos">' + (i + 1) + '</span><div class="sem-nombre">' + escHtml(nombres[s])
-          + (marca ? '<div class="res-sub">' + escHtml(marca) + (pr ? ' · transf. ' + escHtml(promoPesos(pr.transf)) : '') + '</div>' : '')
+          + statLineaPerfume(s)   // [STATS-PRECIOS] A9
           + '<div class="sem-barra"><div style="width:' + Math.round(porSlug[s] / max * 100) + '%"></div></div></div>'
           + '<span class="sem-n">' + porSlug[s] + '</span></div>';
       }).join('');
@@ -7054,6 +7112,7 @@
 
       // === LA SEMANA === [SEMANA-STATS] arriba de todo; corre aparte para que lo de la web no espere a las 7 llamadas
       loadSemana();
+      statsDesdeCargar();   // [STATS-BANDAS] A8
 
       // === CARDS DE LA WEB === (desde [SEMANA-STATS] sin «🧴 Perfumes» ni «📊 Promedio/perfume»: datos del catálogo)
       statsGrid.innerHTML = ''
@@ -7083,6 +7142,7 @@
                 + '<span style="font-size:.62rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(name) + '</span>'   // [XSS-ESTADISTICAS] el nombre, o el slug de perfume_clicks (lo inserta anon)
                 + '<span style="font-size:.6rem;color:var(--amarillo-tinta);font-weight:700;flex-shrink:0;margin-left:.3rem;">' + counts[slug] + '</span>'
               + '</div>'
+              + statLineaPerfume(slug)   // [STATS-PRECIOS] A9
               + '<div style="background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden;">'
                 + '<div style="height:100%;background:var(--amarillo);border-radius:4px;width:' + pct + '%;transition:width .5s;"></div>'
               + '</div>'
@@ -15809,6 +15869,7 @@
       var dato = n < 0 ? '<span class="res-dato res-baja">▼ −' + Math.abs(n) + subtotal + '</span>'
                        : '<span class="res-dato res-sube">▲ +' + n + '</span>';
       var sub = marca ? '<div class="res-sub">' + escHtml(marca) + '</div>' : '';
+      if (!pr && conPrecio && n < 0 && overridesCargado) sub += '<div class="res-sub res-precio-unit">sin precio</div>';   // [STATS-PRECIOS] A9
       if (pr) {
         sub += '<div class="res-sub res-precio-unit">'
           + (pr.promo ? 'promo <span class="res-monto">' + escHtml(promoPesos(pr.promo)) + '</span>' : 'lista <span class="res-monto">' + escHtml(promoPesos(pr.lista)) + '</span>')
