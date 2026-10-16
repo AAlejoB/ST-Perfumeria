@@ -1227,6 +1227,8 @@
     .cod-sub { text-align: center; font-size: .8rem; line-height: 1.5; color: var(--gris-claro); margin: 0 0 1rem; }
     .cod-btn-borde { background: transparent; color: var(--amarillo-tinta); border: 1px solid var(--amarillo-tinta); }
     .cod-btn-texto { background: transparent; color: var(--gris-claro); text-decoration: underline; }
+    /* [CODIGO-CANCELAR] 16-oct (Alejo: «nunca pensamos en la posibilidad de cancelarlo»): un botón de verdad, no un link gris */
+    .cod-btn-cancelar { background: transparent; color: var(--tinta-error); border: 1.5px solid var(--tinta-error); min-height: 48px; font-weight: 700; }
     .cod-lista { max-height: 46vh; overflow-y: auto; margin: .4rem 0 .6rem; border: 1px solid var(--borde); border-radius: 6px; }
     .cod-fila {
       display: flex; align-items: center; gap: .7rem; width: 100%; min-height: 52px; padding: .4rem .7rem; text-align: left;
@@ -4834,10 +4836,10 @@
       <p class="modal-title">Código nuevo</p>
       <p class="cod-numero" id="codNuevoNumero"></p>
       <div id="codPaso1">
-        <p class="cod-sub">Todavía no sabemos de qué perfume es. La próxima vez que lo escaneen, sale solo.</p>
+        <p class="cod-sub">Todavía no sabemos de qué perfume es. La próxima vez que lo escaneen, sale solo. Si el número está mal o no querés registrarlo, cancelá: no se guarda nada.</p>
         <button type="button" class="modal-btn modal-btn-price" onclick="codYaEsta()">Es uno que ya está</button>
         <button type="button" class="modal-btn cod-btn-borde" onclick="codEsNuevo()">Es nuevo: cargarlo</button>
-        <button type="button" class="modal-btn cod-btn-texto" onclick="closeModal('modalCodigoNuevo')">Cancelar</button>
+        <button type="button" class="modal-btn cod-btn-cancelar" onclick="closeModal('modalCodigoNuevo')">Cancelar · me equivoqué de código</button>   <!-- [CODIGO-CANCELAR] 16-oct -->
       </div>
       <div id="codPaso2" hidden>
         <input type="text" class="modal-input" id="codBuscar" placeholder="Buscar por nombre, fabricante o apodo..." oninput="codPintarLista()" autocomplete="off" style="margin-bottom:0;" data-sin-x="1"/>
@@ -4845,7 +4847,8 @@
         <p class="cod-sub" style="margin:.6rem 0 0">Tocá el perfume y el código queda guardado.</p>
         <button type="button" class="modal-btn modal-btn-price" id="codGuardar" onclick="codGuardar()" disabled hidden>Guardar código</button>
         <p class="cod-msg" id="codMsg" role="alert"></p>
-        <button type="button" class="modal-btn cod-btn-texto" onclick="codVolverPaso1()">Atrás</button>
+        <button type="button" class="modal-btn cod-btn-borde" onclick="codVolverPaso1()">← Atrás</button>
+        <button type="button" class="modal-btn cod-btn-cancelar" onclick="closeModal('modalCodigoNuevo')">Cancelar · no guardar el código</button>   <!-- [CODIGO-CANCELAR] -->
       </div>
     </div>
   </div>
@@ -8655,13 +8658,25 @@
     }
     // El lector de la cámara para iPhone (js/vendor/, 1,1 MB) se baja una vez con red: el SW lo guarda y después anda sin internet. Los equipos con
     // BarcodeDetector propio (Chrome en Android) no necesitan nada.
+    // Se guarda desde la PÁGINA con la Cache API (caché «st-escaner»), no por el service worker: así no importa qué versión del SW esté controlando la
+    // tablet (el viernes 16-oct el iPhone de Alejo no escaneaba sin red porque el SW nuevo todavía no mandaba). Si ya está guardado, no baja nada.
+    document.addEventListener('keydown', function(e) {   // [CODIGO-CANCELAR] Esc también cancela
+      if (e.key !== 'Escape') return;
+      var m = document.getElementById('modalCodigoNuevo');
+      if (m && m.classList.contains('active')) { closeModal('modalCodigoNuevo'); e.preventDefault(); }
+    });
     var _escPrecalentado = false;
     function escPrecalentar() {
-      if (_escPrecalentado || navigator.onLine === false || typeof window.BarcodeDetector === 'function') return;
+      if (_escPrecalentado || navigator.onLine === false || typeof window.BarcodeDetector === 'function' || !window.caches) return;
       _escPrecalentado = true;
-      setTimeout(function() {
-        try { fetch(ESC_JS).catch(function() { _escPrecalentado = false; }); fetch(ESC_WASM).catch(function() { _escPrecalentado = false; }); } catch (e) { _escPrecalentado = false; }
-      }, 8000);   // con el panel ya abierto: no compite con lo que se está leyendo
+      setTimeout(function() {   // con el panel ya abierto: no compite con lo que se está leyendo
+        caches.open('st-escaner').then(function(c) {
+          return c.match(ESC_WASM).then(function(hit) {
+            if (hit) return null;
+            return c.add(ESC_JS).then(function() { return c.add(ESC_WASM); });
+          });
+        }).catch(function(e) { _escPrecalentado = false; console.warn('[escaner] no se pudo guardar el lector', e); });
+      }, 3000);
     }
 
     // ── 163c / 163d · qué hace un código leído ──
@@ -9009,7 +9024,7 @@
             return '<div class="merc-fila merc-pend"><span class="merc-nombre">⚠ ' + escHtml(x.codigo) + '<small>Sin registrar · todavía no se sumó</small></span>'
               + '<input type="number" class="modal-input merc-qty" inputmode="numeric" min="1" max="999" value="' + x.qty + '" aria-label="Cantidad del código ' + escHtml(x.codigo) + '" onchange="mercPendCant(' + x.id + ', this.value)"/>'
               + '<button type="button" class="merc-asignar" onclick="mercAsignarIniciar(' + x.id + ')">Asignar perfume</button>'
-              + '<button type="button" class="merc-x" onclick="mercPendQuitar(' + x.id + ')" aria-label="Quitar el código ' + escHtml(x.codigo) + '" title="Quitar">&times;</button></div>';
+              + '<button type="button" class="merc-asignar" style="border-color:var(--tinta-error);color:var(--tinta-error)" onclick="mercPendQuitar(' + x.id + ')" aria-label="Quitar el código ' + escHtml(x.codigo) + '" title="Me equivoqué: sacarlo de la lista">Quitar</button></div>';
           }).join('')
         : '';
       var tot = 0, slugs = {};

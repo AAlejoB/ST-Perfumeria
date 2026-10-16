@@ -48,10 +48,13 @@
 //     invierte a pill dark con texto dorado.
 //   - JS toggleDarkMode: actualiza emoji + label simultáneo. Init sets
 //     navThemeLabel a "LIGHT" si dark / "DARK" si light.
-var CACHE_VERSION = 'v1.1.252';
+var CACHE_VERSION = 'v1.1.253';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
+// [SIN-CONEXION-CODIGOS] el lector de códigos de barras del iPhone (js/vendor/, archivos con la versión en el nombre) vive en un caché propio que NO se
+// borra al cambiar de versión: la página lo llena sola con red (admin.html, escPrecalentar) y acá se sirve primero del caché (anda sin internet).
+var CACHE_ESCANER = 'st-escaner';
 
 // Assets críticos precacheados en install
 var PRECACHE_URLS = [
@@ -92,7 +95,7 @@ self.addEventListener('install', function(event) {
 // ACTIVATE — limpiar caches viejos
 // ============================================================
 self.addEventListener('activate', function(event) {
-  var validCaches = [CACHE_STATIC, CACHE_PAGES, CACHE_IMAGES];
+  var validCaches = [CACHE_STATIC, CACHE_PAGES, CACHE_IMAGES, CACHE_ESCANER];
   event.waitUntil(
     caches.keys().then(function(keys) {
       return Promise.all(keys.map(function(key) {
@@ -128,6 +131,23 @@ self.addEventListener('fetch', function(event) {
       url.hostname.indexOf('whatsapp.com') !== -1 ||
       url.hostname.indexOf('api.telegram.org') !== -1) {
     return; // dejamos que el navegador maneje normalmente
+  }
+
+  // [SIN-CONEXION-CODIGOS] js/vendor/: cache-first (los nombres llevan la versión: un archivo nuevo es otro nombre). Con red y sin copia, se baja y se guarda.
+  if (url.origin === self.location.origin && url.pathname.indexOf('/js/vendor/') === 0) {
+    event.respondWith(
+      caches.match(req).then(function(hit) {
+        if (hit) return hit;
+        return fetch(req).then(function(resp) {
+          if (resp && resp.status === 200 && resp.type === 'basic') {
+            var copy = resp.clone();
+            caches.open(CACHE_ESCANER).then(function(cache) { cache.put(req, copy); });
+          }
+          return resp;
+        });
+      })
+    );
+    return;
   }
 
   // Navegación (HTML): network-first con fallback a cache y offline.html
