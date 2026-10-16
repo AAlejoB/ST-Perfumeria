@@ -116,16 +116,64 @@
         if (ANALYTICS_QUEUE.length >= 20) flushAnalytics();
       } catch(_){}
     }
+    // [HOLMES] (16-oct-2026, SMELLROCK HOLMES caso 01) dos eventos NUEVOS, con nombres nuevos para no cambiar lo que cuentan los
+    // viejos (el Laboratorio lee view_product y wa_click): `llegada` (una por carga de página) y `ficha_abierta` (cada vez que se abre
+    // el detalle de un perfume, venga de donde venga: `openBottomSheet`). La base los acepta desde sql/holmes.sql (CHECK de tipos).
+    // Viajan SIEMPRE en un pedido aparte de los viejos (`analyticsPartir`): si la base rebota los nuevos, el lote de wa_click entra igual.
+    var ANALYTICS_VIEJOS = ['view_product', 'decant_add', 'wa_click', 'search_empty'];
+    function analyticsPartir(batch) {
+      var viejos = [], nuevos = [];
+      batch.forEach(function(ev) { (ANALYTICS_VIEJOS.indexOf(ev.event_type) !== -1 ? viejos : nuevos).push(ev); });
+      return [viejos, nuevos].filter(function(l) { return l.length; });
+    }
+    // Un pedido que sobrevive a cerrar la pestaña (keepalive): lo usan la llegada y el cierre de la página.
+    function analyticsKeepalive(lote) {
+      try {
+        fetch(SUPABASE_URL + '/rest/v1/analytics_events', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(lote),
+          keepalive: true
+        }).catch(function(){});
+      } catch(_){}
+    }
     function flushAnalytics() {
       if (ANALYTICS_QUEUE.length === 0) return;
       var batch = ANALYTICS_QUEUE.splice(0, ANALYTICS_QUEUE.length);
-      sb.from('analytics_events').insert(batch).then(function(res){
-        if (res && res.error) {
-          // Si falla, los descartamos (ya fueron sacados del queue)
-          console.warn('[analytics] flush error', res.error.message);
-        }
+      analyticsPartir(batch).forEach(function(lote) {
+        sb.from('analytics_events').insert(lote).then(function(res){
+          if (res && res.error) {
+            // Si falla, los descartamos (ya fueron sacados del queue)
+            console.warn('[analytics] flush error', res.error.message);
+          }
+        });
       });
     }
+    // [HOLMES] La llegada sale sola y al toque, no en el lote de 10 s: quien entra, mira 5 segundos y cierra es justo la visita que
+    // hay que contar, y en el celu el último lote se pierde seguido (beforeunload casi no corre). Una por carga; los robots no cuentan.
+    (function holmesLlegada() {
+      try {
+        var ua = navigator.userAgent || '';
+        // «bot/» y no «bot» a secas: los celus Cubot dicen «CUBOT» en el navegador
+        if (navigator.webdriver || /bot\/|bot;|crawler|spider|slurp|facebookexternalhit|lighthouse|headless|pagespeed/i.test(ua)) return;
+        var mandar = function() {
+          var q = new URLSearchParams(location.search);
+          var meta = { device: ANALYTICS_DEVICE, referrer: ANALYTICS_REFERRER, hour: new Date().getHours(), pagina: location.pathname.slice(0, 60) };
+          if (q.get('p') || q.get('perfume')) meta.link_perfume = true;
+          if (q.get('utm_source')) meta.utm = String(q.get('utm_source')).slice(0, 40);
+          try { if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) meta.app = true; } catch(_){}
+          analyticsKeepalive([{ session_id: ANALYTICS_SESSION_ID, event_type: 'llegada', slug: null, query: null, meta: meta }]);
+        };
+        // Una página que el navegador prepara de antemano (prerender) todavía no es una visita: cuenta cuando se muestra.
+        if (document.prerendering) document.addEventListener('prerenderingchange', mandar, { once: true });
+        else mandar();
+      } catch(_){}
+    })();
     // Flush cada 10s
     setInterval(flushAnalytics, 10000);
     // Flush antes de cerrar pestaña (sendBeacon para no perder eventos)
@@ -133,22 +181,10 @@
       try {
         if (ANALYTICS_QUEUE.length === 0) return;
         var batch = ANALYTICS_QUEUE.splice(0, ANALYTICS_QUEUE.length);
-        var body = JSON.stringify(batch);
-        var url = SUPABASE_URL + '/rest/v1/analytics_events';
         if (navigator.sendBeacon) {
-          var blob = new Blob([body], { type: 'application/json' });
-          // sendBeacon no permite headers custom; Supabase necesita apikey en header → fallback a fetch keepalive
-          fetch(url, {
-            method: 'POST',
-            headers: {
-              'apikey': SUPABASE_KEY,
-              'Authorization': 'Bearer ' + SUPABASE_KEY,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=minimal'
-            },
-            body: body,
-            keepalive: true
-          }).catch(function(){});
+          // sendBeacon no permite headers custom; Supabase necesita apikey en header → fetch keepalive
+          // [HOLMES] viejos y nuevos en pedidos separados (`analyticsPartir`)
+          analyticsPartir(batch).forEach(analyticsKeepalive);
         }
       } catch(_){}
     });
@@ -6735,6 +6771,7 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       currentBsSlug = slug;
+      trackEvent('ficha_abierta', { slug: slug });   // [HOLMES] todo detalle abierto, venga de donde venga (view_product sigue igual)
       pushRecentView(slug);   // 🕐 trackear "visto recientemente"
 
       // SEO/UX: actualizar URL del navegador con ?perfume=slug.

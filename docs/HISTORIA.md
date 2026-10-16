@@ -5609,6 +5609,44 @@ Dos chats seguidos sobre la rama `panel-tanda-16-oct`, sin cierre entre medio, a
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 16-oct-2026 (tarde) · **`[HOLMES]`** — la pestaña «🔎 Holmes» de la cuenta de laboratorio, y dos eventos nuevos para medir bien
+
+Sesión que arrancó desde otra (la de SMELLROCK HOLMES), en la rama `claude/mystifying-diffie-cdd7cb`. Alejo quiere probar con datos reales de ST la regla «mostrar un dato» que eligió en el foro 01 de Holmes (C «1 de cada N», B la chance bayesiana con la vara en 95 %, A el intervalo de Wilson), **en una pestaña aparte del Laboratorio**, para no mezclar el agente con las estadísticas de ST.
+
+#### Qué se hizo
+
+- **Medir bien primero.** El caso 01 de Holmes encontró que `view_product` sólo cuenta los saltos a una tarjeta (`scrollToPerfume`: ranking, similares, vistos hace poco, link directo) y no abrir una tarjeta común, y que no hay ningún evento de llegada. Dos eventos nuevos, con nombres nuevos para no cambiar lo que lee el Laboratorio:
+  - `llegada`: una por carga de `index.html`. Sale **sola y al toque** con `fetch keepalive` (medido en la copia: a los ~0,1 s de abrir la página, antes de la primera lectura del catálogo), no en el lote de 10 s. En el celu el último lote se pierde seguido y quien entra y se va en 5 segundos es justo la visita que hay que contar. Lleva lo de siempre (aparato, de dónde viene, hora) más `pagina`, `link_perfume`, `utm` y `app`. Los robots (`webdriver`, «bot», Lighthouse…) no cuentan; una página preparada de antemano (prerender) cuenta cuando se muestra.
+  - `ficha_abierta`: con `slug`, en `openBottomSheet` (todo detalle abierto, venga de donde venga). `scrollToPerfume` no abre la ficha (lleva a la tarjeta), así que ahí sigue sólo `view_product`; con la ventana de juegos abierta sí abre la ficha y cuenta por `openBottomSheet`.
+- **Hallazgo antes de tocar nada:** `analytics_events` tiene un CHECK con los 4 tipos de siempre. Mandar `llegada` sin cambiarlo hacía rebotar **el lote entero**, `wa_click` incluidos. Arreglo doble: el SQL suma los dos tipos al CHECK, y el front manda viejos y nuevos en **pedidos separados** (`analyticsPartir`), así un rechazo de los nuevos nunca se lleva a los viejos. Verificado en el catálogo local con la base real sin el SQL: los dos pedidos nuevos dieron 400 por el CHECK (no se escribió nada) y los viejos no viajaron con ellos.
+- **`sql/holmes.sql`** (con su bloque DESHACER): el CHECK nuevo y `holmes_metricas(p_dias)`, el mismo patrón que `lab_metricas` (security definer, sólo `es_dev()`). Visita = `session_id` + día de Argentina. Devuelve el total (llegaron, abrieron alguna ficha, escribieron, y los que escribieron sin llegada anotada), los 40 perfumes con más fichas abiertas (miraron, de esos escribieron, y los que escribieron desde la tarjeta sin abrir la ficha) y el primer día con una llegada. La cuenta se probó contra la base real con datos inventados en un `with` (sin escribir nada): 4 llegadas, 3 con ficha, 2 escribieron; por perfume, «escribieron» nunca pasa a «miraron».
+- **La pestaña** (`admin.html`, bloque `[HOLMES]` después del Laboratorio): se crea por JS sólo para la cuenta 'dev' (`holmesMontar`), debajo del Laboratorio, y baja la librería (`js/holmes-numeros.js`, copia tal cual de `herramientas/numeros.js` de Holmes @ `7cfc473`, con sus 8 tests pasando) sólo al abrirse. Arriba «Datos desde…» y el selector de días; (a) llegaron → escribieron por WhatsApp, con los muñequitos, el aviso de «pocas» y en «Ver detalle» el rango y las visitas para un A/B; (b) los 15 perfumes con más fichas, cada uno se abre con su detalle; (c) comparar dos, con la chance, la barra con la marca en 95 % y la frase de la librería. Usa los colores del Laboratorio (`--lab-*`, claro y oscuro).
+- Probado en la copia en memoria del QA con una `holmes_metricas` de mentira que hace la misma cuenta: 375 px y compu, claro y oscuro, nada se sale del ancho, toques de 44 px; un caso que ya alcanza («más de 99 %… Alcanza para decidir») y uno con números que no cierran (no se muestra nada); al salir no queda ni la pestaña ni la librería, y jefe y empleada no tienen rastro de ella.
+- `.gitignore`: `!js/holmes-numeros.js` (ignora `*.js` salvo una lista: sin esa línea la librería no se subía).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **El Laboratorio quedó igual** (NO ROMPER #41): no se tocaron `labMontar`, `labPintar` ni `lab_metricas`. Cambiaron cuatro enganches compartidos: el selector CSS de `body.role-dev` (deja ver el botón de Holmes), `canAccessTab` (`'lab' || 'holmes'`), una línea en `entrarLaboratorio` y la limpieza de `doLogout`.
+- **Propuse yo:** el selector de dos perfumes es un menú común (la lista llega a 40); «Ver detalle» del total calcula el A/B para una mejora de la mitad (de 10 % a 15 %, por ejemplo); con más de 100 personas no se dibujan los muñequitos (lo dice en texto). Si Alejo prefiere otra cosa, es chico.
+- **Para el repo de Holmes (no se tocó acá):** con 0 escritos, la librería dice «Nadie todavía, de N que miraron» también para el total, donde lo correcto sería «que llegaron»; y `demo.html` dibuja hasta 40 muñequitos, así que «1 de cada 87» no cumpliría la regla 4 ahí (en ST se dibujan hasta 100).
+- **Bug ortogonal, sin tocar:** si el navegador no deja usar `localStorage`, `ANALYTICS_SESSION_ID` vale `anon-…`, que no es un uuid: la base rebota todos los eventos de esa visita (pasaba antes de esto también).
+- **`[QA-COPIA-SIN-ARCHIVOS]`:** `scripts/qa-copia/` sólo tiene el README; `qa-server.js` y `fake-supabase.js` nunca se subieron (`.gitignore`). Se usó la copia de una carpeta temporal de otra sesión.
+- **CLAUDE.md** decía que v1.1.282 estaba «sin subir»: está en producción desde `cdee80f`. Corregido.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[HOLMES]` | Eventos `llegada` y `ficha_abierta`, `holmes_metricas` y la pestaña «🔎 Holmes» de la cuenta de laboratorio (NO ROMPER #55) |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[HOLMES-HUMO]` 🟡 | Aplicar `sql/holmes.sql` (con el OK de Alejo), una o dos visitas reales desde el celu y mirar la pestaña con la cuenta de laboratorio |
+| `[QA-COPIA-SIN-ARCHIVOS]` 🟢 | Subir los dos `.js` de la copia del QA (decide Alejo) |
+| `[LAB-FUNDAMENTOS]` 🟡 | En parte cubierto por Holmes; falta lo de ventas (Pareto / ABC, rotación, RFM) |
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.

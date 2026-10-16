@@ -14,6 +14,8 @@ compress-images.js
 !scripts/*.js
 # [ESCANER] el lector de código de barras de terceros (js/vendor/, MIT) se sube al repo y se sirve: sin esta línea *.js lo ignora y el escáner del iPhone no anda en producción
 !js/vendor/*.js
+# [HOLMES] la librería de SMELLROCK HOLMES (copia tal cual de su repo) que usa la pestaña «Holmes» del panel: sin esta línea no se sube y la pestaña falla en producción
+!js/holmes-numeros.js
 notas.json
 notas_pendientes.xlsx
 ~$*

@@ -1564,7 +1564,7 @@
     .hv-wa:empty { display: none; }
     .hv-wa svg { color: #25D366; flex: 0 0 auto; }
     /* [LABORATORIO] la cuenta de sólo mirar ve una pestaña: todo lo demás del panel se esconde */
-    body.role-dev .sidebar .tab-btn:not([data-tab="lab"]), body.role-dev .sidebar .sb-group, body.role-dev .sidebar .sb-group-header,
+    body.role-dev .sidebar .tab-btn:not([data-tab="lab"]):not([data-tab="holmes"]), body.role-dev .sidebar .sb-group, body.role-dev .sidebar .sb-group-header,
     body.role-dev #btnInicio, body.role-dev #panelAtajos, body.role-dev #syncIndicator, body.role-dev #colaAviso { display: none !important; }
     .lab-barra { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: 0 0 1rem; }
     .lab-sec { margin: 0 0 1.6rem; }
@@ -1668,6 +1668,45 @@
     .lab-ap-costo { background: var(--lab-otros); border-radius: 4px 0 0 4px; } .lab-ap-gan { background: var(--lab-oro); border-radius: 0 4px 4px 0; }
     .lab-det { margin-top: .8rem; font-size: .72rem; }
     .lab-det summary { cursor: pointer; color: var(--lab-ink2); min-height: 32px; display: flex; align-items: center; }
+    /* [HOLMES] la pestaña de SMELLROCK HOLMES (sólo la cuenta 'dev'): usa los colores del Laboratorio (--lab-*, claro y oscuro) */
+    .holmes-desde { font-size: .78rem; color: var(--lab-ink2); margin: 0 0 1rem; }
+    .holmes-desde b { color: var(--lab-ink); }
+    .holmes-grande { font-size: 1.9rem; font-weight: 800; line-height: 1.1; margin: 0 0 .2rem; color: var(--lab-ink); }
+    .holmes-medio { font-size: 1rem; font-weight: 700; margin: 0 0 .3rem; color: var(--lab-ink); }
+    .holmes-gente { display: flex; flex-wrap: wrap; gap: 3px; margin: .2rem 0 .6rem; }
+    .holmes-gente i { width: 10px; height: 14px; border-radius: 5px 5px 2px 2px; background: var(--lab-otros); opacity: .55; }
+    .holmes-gente i.on { background: var(--lab-oro); opacity: 1; }
+    .holmes-aviso { font-size: .74rem; color: var(--tinta-aviso); margin: .2rem 0 .5rem; }
+    .holmes-embudo { font-size: .74rem; color: var(--lab-ink2); margin: .6rem 0 0; }
+    .holmes-embudo b { color: var(--lab-ink); }
+    .holmes-lista { margin: .5rem 0 0; padding-left: 1.1rem; font-size: .74rem; line-height: 1.6; color: var(--lab-ink2); }
+    #tab-holmes .lab-det summary, .holmes-fila summary { min-height: var(--tap-min); display: flex; align-items: center; cursor: pointer; }
+    .holmes-filas { display: grid; grid-template-columns: minmax(0, 1fr); gap: .4rem; }
+    .holmes-fila { min-width: 0; background: var(--lab-surf); border: 1px solid var(--lab-borde); border-radius: 10px; padding: 0 .9rem; }
+    .holmes-fila summary { gap: .8rem; justify-content: space-between; list-style: none; }
+    .holmes-fila summary::-webkit-details-marker { display: none; }
+    .holmes-fila summary::after { content: "›"; color: var(--lab-muted); font-size: 1.1rem; transition: transform .15s; }
+    .holmes-fila[open] summary::after { transform: rotate(90deg); }
+    .holmes-nom { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .84rem; font-weight: 600; color: var(--lab-ink); }
+    .holmes-dato { flex: 0 0 auto; font-size: .8rem; color: var(--lab-ink2); white-space: nowrap; }
+    .holmes-pocas { font-style: normal; font-size: .62rem; font-weight: 700; color: var(--tinta-aviso); border: 1px solid currentColor; border-radius: 999px; padding: 0 .4rem; margin-left: .3rem; }
+    .holmes-fila-det { padding: 0 0 .8rem; }
+    .holmes-elegir { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem .7rem; align-items: center; margin: 0 0 1rem; }
+    .holmes-elegir .modal-label { margin: 0; }
+    .holmes-elegir select { min-height: var(--tap-min); width: 100%; min-width: 0; padding: 0 .6rem; border-radius: 8px; font: inherit; font-size: .84rem;
+                            background: var(--lab-surf); color: var(--lab-ink); border: 1px solid var(--lab-base); }
+    .holmes-dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: .4rem 1rem; }
+    .holmes-chance { font-size: 2.2rem; font-weight: 800; line-height: 1; margin: .6rem 0 .3rem; color: var(--lab-ink); }
+    .holmes-vara { position: relative; height: 12px; border-radius: 6px; background: var(--lab-grid); margin: .4rem 0 .2rem; }
+    .holmes-vara i { display: block; height: 12px; border-radius: 6px; background: var(--lab-oro); }
+    .holmes-vara span { position: absolute; top: -5px; left: 95%; width: 2px; height: 22px; background: var(--lab-ink); }
+    @media (max-width: 480px) {
+      .holmes-elegir { grid-template-columns: 1fr; } .holmes-grande { font-size: 1.6rem; }
+      .holmes-fila summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .1rem .6rem; padding: .5rem 0; }
+      .holmes-fila summary::after { grid-column: 2; grid-row: 1 / span 2; }
+      .holmes-nom, .holmes-dato { grid-column: 1; }
+      .holmes-dato { white-space: normal; }
+    }
     .lab-tip { position: fixed; z-index: 100000; pointer-events: none; max-width: 260px; padding: .4rem .6rem; border-radius: 8px; font-size: .72rem; line-height: 1.35; background: #1d1d20; color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
     .hv-ml { width: 5.5rem; min-height: var(--tap-min); margin: 0; }
     /* [VENTA-COMO-DATO] costos de compra (sólo jefe): una fila por marca */
@@ -5851,7 +5890,7 @@
     // (SESION_IDS), que vuelven a como estaban al abrir; los datos en memoria se vacían; y `tabLoaded` se reinicia, así que cada pestaña se vuelve a LEER (y a dibujar según el
     // rol de quien entra) la próxima vez que se abre. No se toca la cola de la tablet (lo guardado sin internet es de la tablet, no de la persona), ni el catálogo (se relee al entrar).
     // Una pestaña nueva cuyo contenido arma JS con datos de la base: su contenedor va en SESION_IDS.
-    var SESION_IDS = ['doctorResults', 'doctorSummary', 'clientsList', 'clientCount', 'statsBarChart', 'statsZeroVisits', 'statsGrid', 'statsCatDistrib', 'statsPriceRange', 'statsCatalogGrid', 'statsDesdeFecha', 'semGrid', 'semTop', 'semEstado', 'semBandaRango', 'badgesList', 'hourHeatmap', 'referrerBreakdown', 'deviceBreakdown', 'tbodyTopViewed', 'tbodyTopDecants', 'tbodyTopWA', 'tbodySearchEmpty', 'analyticsMeta', 'totViews', 'totDecants', 'totWA', 'totSessions', 'totEmpty', 'combosList', 'comboCount', 'tbodyPuntosRanking', 'tbodyPuntosLog', 'hojaVenta', 'hojaLista', 'hojaTotales', 'hojaCierre', 'hojaMsg', 'resCuerpo', 'resEstado', 'resTitulo', 'logFeed', 'logChips', 'homeBannerList', 'pushHistory', 'decantsCustomList', 'decantsCustomCuenta', 'marcasLista', 'elegidosLista', 'editLogList', 'resetRequestsList', 'tbodyOpiniones', 'tbodyBackups', 'backupsMeta', 'tbodyCierres', 'votacionEstado', 'votacionMesActual', 'promoResumen', 'promoCadaUno', 'promoAvisoCosto', 'avisoDeposito', 'edrTransf', 'edrSub', 'edrTitulo'];
+    var SESION_IDS = ['doctorResults', 'doctorSummary', 'clientsList', 'clientCount', 'statsBarChart', 'statsZeroVisits', 'statsGrid', 'statsCatDistrib', 'statsPriceRange', 'statsCatalogGrid', 'statsDesdeFecha', 'semGrid', 'semTop', 'semEstado', 'semBandaRango', 'badgesList', 'hourHeatmap', 'referrerBreakdown', 'deviceBreakdown', 'tbodyTopViewed', 'tbodyTopDecants', 'tbodyTopWA', 'tbodySearchEmpty', 'analyticsMeta', 'totViews', 'totDecants', 'totWA', 'totSessions', 'totEmpty', 'combosList', 'comboCount', 'tbodyPuntosRanking', 'tbodyPuntosLog', 'hojaVenta', 'hojaLista', 'hojaTotales', 'hojaCierre', 'hojaMsg', 'resCuerpo', 'resEstado', 'resTitulo', 'logFeed', 'logChips', 'homeBannerList', 'pushHistory', 'decantsCustomList', 'decantsCustomCuenta', 'marcasLista', 'elegidosLista', 'editLogList', 'resetRequestsList', 'tbodyOpiniones', 'tbodyBackups', 'backupsMeta', 'tbodyCierres', 'votacionEstado', 'votacionMesActual', 'promoResumen', 'promoCadaUno', 'promoAvisoCosto', 'avisoDeposito', 'edrTransf', 'edrSub', 'edrTitulo', 'holmesCuerpo'];
     var SESION_PRISTINA = null;
     function sesionCapturar() {   // al abrir la página, antes de que nadie entre
       SESION_PRISTINA = {};
@@ -5886,6 +5925,10 @@
         var lt = document.getElementById('tab-lab'); if (lt) lt.remove();
         var lb = document.querySelector('.sidebar .tab-btn[data-tab="lab"]'); if (lb) lb.remove();
         LAB.datos = null; LAB.cargando = false;
+        var ht = document.getElementById('tab-holmes'); if (ht) ht.remove();   // [HOLMES]
+        var hb = document.querySelector('.sidebar .tab-btn[data-tab="holmes"]'); if (hb) hb.remove();
+        HOLMES.datos = null; HOLMES.cargando = false; HOLMES.a = null; HOLMES.b = null;
+        document.querySelectorAll('script[src*="holmes-numeros"]').forEach(function(s) { s.remove(); }); HOLMES_LIB = null; try { delete window.HolmesNumeros; } catch (e) {}
       } catch (e) { console.warn('[logout] limpieza', e); }
       sesionLimpiar();   // [LIMPIAR-SESION]
       stopInactivityWatcher();
@@ -6016,7 +6059,7 @@
 
     // canAccessTab: verifica si el rol actual puede entrar a esa pestaña
     function canAccessTab(tab) {
-      if (currentRole === 'dev') return tab === 'lab';   // [LABORATORIO]
+      if (currentRole === 'dev') return tab === 'lab' || tab === 'holmes';   // [LABORATORIO] [HOLMES]
       if (currentRole === 'jefe') return true;
       if (tab === 'inicio') return true;   // [PANEL-INICIO] no tiene botón en el menú: es de las dos cuentas
       var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
@@ -15257,6 +15300,7 @@
       applyRolePermissions();
       startInactivityWatcher();
       labMontar();
+      holmesMontar();   // [HOLMES] su pestaña aparte, debajo del Laboratorio
       switchTab('lab', document.querySelector('.tab-btn[data-tab="lab"]'));
       document.body.classList.remove('sidebar-open');
       // los nombres de los perfumes (sólo lectura); cuando llegan, se vuelve a pintar
@@ -15535,6 +15579,179 @@
         + '<b>SEO real</b> (qué palabras de Google traen gente, en qué posición sale la tienda): hace falta conectar Google Search Console; hoy sólo se ve si la visita vino de Google.<br>'
         + '<b>Publicar productos:</b> con las ventas y las visitas por perfume se puede ver qué tipo de ficha (foto, notas, precio) convierte más; falta juntar datos.</p></section>';
       c.innerHTML = h;
+    }
+
+    // ============================================================
+    // [HOLMES] la pestaña «🔎 Holmes» de la cuenta de laboratorio (16-oct-2026, pedido de Alejo). Es de SMELLROCK HOLMES
+    // (github.com/AAlejoB/SMELLROCK_HOLMES), el agente que estudia por qué la gente mira y no compra: va APARTE del Laboratorio
+    // (NO ROMPER #41) para no mezclar el agente con las estadísticas de ST. Igual que el Laboratorio: se CREA acá sólo para la cuenta
+    // 'dev' (en el DOM de jefe y empleada no existe), no escribe nada y todo sale de UNA función, `holmes_metricas(dias)`
+    // (sql/holmes.sql), que sólo responde a `es_dev()`.
+    // Cómo se muestra un número: la regla «mostrar un dato» de Holmes, con su librería tal cual (js/holmes-numeros.js, se baja sólo
+    // al abrir esta pestaña): arriba «1 de cada N» con N muñequitos (C), para decidir la chance de que uno convierta más, con la
+    // vara en 95 % (B), y en «Ver detalle» el rango y cuántas visitas harían falta para un A/B (A).
+    // ============================================================
+    var HOLMES = { dias: 30, datos: null, cargando: false, a: null, b: null };
+    function holmesMontar() {
+      if (document.getElementById('tab-holmes')) return;
+      var labBtn = document.querySelector('.sidebar .tab-btn[data-tab="lab"]');
+      var side = document.getElementById('adminSidebar');
+      var btn = document.createElement('button');
+      btn.className = 'tab-btn'; btn.setAttribute('data-tab', 'holmes'); btn.title = 'Holmes';
+      btn.innerHTML = '<span class="sb-ico">&#128270;</span><span class="sb-label">Holmes</span>';
+      btn.onclick = function() { switchTab('holmes', btn); closeMobileSidebar(); if (!HOLMES.datos) holmesCargar(); };
+      side.insertBefore(btn, labBtn ? labBtn.nextSibling : side.firstChild);
+      var tab = document.createElement('div');
+      tab.className = 'tab-content'; tab.id = 'tab-holmes';
+      tab.innerHTML = '<div style="text-align:center;margin-bottom:1rem;"><p style="font-size:1rem;font-weight:700;margin-bottom:.3rem;">&#128270; Holmes</p>'
+        + '<p class="lab-nota" style="margin:0;">Por qué la gente mira y no compra. Sólo para mirar: nada de acá cambia nada.</p></div>'
+        + '<div class="lab-barra"><span class="cuadros-tit">Mirar los últimos</span><div class="cuadros" id="holmesDiasCuadros"></div>'
+        + '<button type="button" class="action-btn" onclick="holmesCargar()" style="min-height:var(--tap-min);padding:0 1rem;" aria-label="Volver a leer">&#8634;</button></div>'
+        + '<div id="holmesCuerpo"><p class="lab-nota">Cargando…</p></div>';
+      document.getElementById('tab-stats').parentNode.appendChild(tab);
+      holmesDiasPintar();
+    }
+    function holmesDiasPintar() {
+      var c = document.getElementById('holmesDiasCuadros'); if (!c) return;
+      c.innerHTML = [7, 30, 90, 365].map(function(n) {
+        return '<button type="button" class="cuadro" aria-pressed="' + (HOLMES.dias === n ? 'true' : 'false') + '" onclick="holmesElegirDias(' + n + ')">' + (n === 365 ? '1 año' : n + ' días') + '</button>';
+      }).join('');
+    }
+    function holmesElegirDias(n) { HOLMES.dias = n; HOLMES.datos = null; holmesDiasPintar(); holmesCargar(); }
+    // La librería se baja sólo acá (jefe y empleada nunca la piden)
+    var HOLMES_LIB = null;
+    function holmesLib() {
+      if (window.HolmesNumeros) return Promise.resolve(window.HolmesNumeros);
+      if (!HOLMES_LIB) HOLMES_LIB = new Promise(function(ok, mal) {
+        var s = document.createElement('script'); s.src = 'js/holmes-numeros.js';
+        s.onload = function() { window.HolmesNumeros ? ok(window.HolmesNumeros) : mal(new Error('sin librería')); };
+        s.onerror = function() { HOLMES_LIB = null; mal(new Error('no se pudo bajar la librería')); };
+        document.head.appendChild(s);
+      });
+      return HOLMES_LIB;
+    }
+    async function holmesCargar() {
+      if (currentRole !== 'dev' || HOLMES.cargando) return;
+      HOLMES.cargando = true;
+      var c = document.getElementById('holmesCuerpo');
+      if (c && !HOLMES.datos) c.innerHTML = '<p class="lab-nota">Cargando…</p>';
+      var r;
+      try { var res = await Promise.all([sb.rpc('holmes_metricas', { p_dias: HOLMES.dias }), holmesLib()]); r = res[0]; }
+      catch (e) { r = { error: e }; }
+      HOLMES.cargando = false;
+      if (currentRole !== 'dev') return;
+      if (r.error) { if (c) c.innerHTML = '<p class="lab-nota" style="color:var(--tinta-error);">' + escHtml(errorEnCriollo(r.error, null, 'leer los datos de Holmes', '↺')) + '</p>'; return; }
+      HOLMES.datos = r.data; holmesPintar();
+    }
+    function holmesNombre(slug) { var p = PERFUMES.find(function(x) { return x.slug === slug; }); return p ? (p.name || slug) : slug; }
+    function holmesFecha(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso || ''); }
+    // C · lo que dice el texto lo dice el dibujo: «1 de cada 20» son 20 muñequitos con 1 pintado. Con más de 100 no se dibujan.
+    function holmesMunecos(H, k, n) {
+      var c = H.deCadaTantos(k, n);
+      if (!c.deCada) return '';
+      if (c.deCada > 100) return '<p class="lab-nota">(' + c.deCada + ' personas no entran en el dibujo)</p>';
+      var h = '';
+      for (var i = 0; i < c.deCada; i++) h += '<i' + (i < c.uno ? ' class="on"' : '') + '></i>';
+      return '<div class="holmes-gente" role="img" aria-label="' + escHtml(c.texto) + '">' + h + '</div>';
+    }
+    function holmesAviso(t) { return t ? '<p class="holmes-aviso">' + escHtml(t) + '</p>' : ''; }
+    // A · cuántas visitas por versión harían falta para ver una mejora de la mitad (de 4 % a 6 %, por ejemplo)
+    function holmesAB(H, k, n) {
+      if (!n || !k || k >= n) return '';
+      var p = k / n, p2 = p * 1.5;
+      if (p2 >= 1) return '';
+      var f = function(x) { return (Math.round(x * 1000) / 10).toLocaleString('es-AR') + ' %'; };
+      return '<li>Para probar dos versiones (A/B) y ver si una sube esto de ' + f(p) + ' a ' + f(p2) + ': ~' + H.cuantasHacenFalta(p, p2).toLocaleString('es-AR') + ' visitas por versión.</li>';
+    }
+    function holmesPintar() {
+      var d = HOLMES.datos, c = document.getElementById('holmesCuerpo'), H = window.HolmesNumeros;
+      if (!d || !c || !H) return;
+      try { c.innerHTML = holmesHTML(d, H); }
+      catch (e) {   // la librería tira un error si «escribieron» pasa a «miraron»: no se muestra un número que no cierra
+        console.warn('[holmes]', e);
+        c.innerHTML = '<p class="lab-nota" style="color:var(--tinta-error);">Los números no cierran (' + escHtml(e.message || String(e)) + '). No se muestran hasta revisarlos.</p>';
+        return;
+      }
+      holmesCompararPintar();
+    }
+    function holmesHTML(d, H) {
+      var t = d.total || {}, h = '';
+      var llegaron = Number(t.llegaron) || 0, escribieron = Number(t.escribieron) || 0, conFicha = Number(t.con_ficha) || 0;
+      // ── datos desde ──
+      if (!d.desde) {
+        h += '<section class="lab-sec lab-salta"><p style="margin:0;font-size:.8rem;">Todavía no hay ninguna llegada registrada. El contador nuevo empieza con la primera visita a la tienda después de subir esta versión.</p></section>';
+      } else {
+        var dias = Math.round((new Date(d.hoy + 'T12:00:00Z') - new Date(d.desde + 'T12:00:00Z')) / 86400000) + 1;
+        h += '<p class="holmes-desde">Datos desde el <b>' + holmesFecha(d.desde) + '</b>'
+          + (dias < d.dias ? ' (' + dias + (dias === 1 ? ' día' : ' días') + ', aunque elegiste ' + (d.dias === 365 ? '1 año' : d.dias + ' días') + ')' : ' · los últimos ' + d.dias + ' días') + '</p>';
+      }
+      // ── (a) llegaron → escribieron ──
+      var u = H.mostrarUno(escribieron, llegaron);
+      h += '<section class="lab-sec"><h3>Llegaron y escribieron por WhatsApp</h3>'
+        + '<p class="lab-nota">Una visita es un aparato en un día. Es el «mira y no compra»: de las visitas que llegaron a la tienda, cuántas escribieron por WhatsApp por algún perfume.</p>'
+        + '<article class="lab-card">'
+        + '<p class="holmes-grande">' + escHtml(u.principal) + '</p>'
+        + (llegaron ? '<p class="lab-nota" style="margin:0 0 .3rem;">' + (escribieron ? (H.deCadaTantos(escribieron, llegaron).uno > 1 ? 'escribieron' : 'escribió') + ' por WhatsApp' : '') + '</p>' + holmesMunecos(H, escribieron, llegaron) : '')
+        + holmesAviso(u.aviso)
+        + '<p class="holmes-embudo"><b>' + llegaron.toLocaleString('es-AR') + '</b> llegaron · <b>' + conFicha.toLocaleString('es-AR') + '</b> abrieron alguna ficha · <b>' + escribieron.toLocaleString('es-AR') + '</b> escribieron</p>'
+        + (llegaron ? '<details class="lab-det"><summary>Ver detalle</summary><ul class="holmes-lista"><li>' + escHtml(u.detalle) + '</li>' + holmesAB(H, escribieron, llegaron)
+          + (Number(t.wa_sin_llegada) ? '<li>Además, ' + Number(t.wa_sin_llegada) + ' ' + (Number(t.wa_sin_llegada) === 1 ? 'visita escribió' : 'visitas escribieron') + ' sin que su llegada quedara anotada (de antes del contador, o se perdió). No entran en la cuenta.</li>' : '')
+          + '</ul></details>' : '')
+        + '</article></section>';
+      // ── (b) por perfume ──
+      var pp = (d.por_perfume || []).filter(function(x) { return Number(x.miraron) > 0; });
+      h += '<section class="lab-sec"><h3>Por perfume</h3>'
+        + '<p class="lab-nota">Los más mirados: de las visitas que abrieron la ficha de un perfume, cuántas escribieron por WhatsApp por ese perfume. Tocá uno para ver el detalle.</p>';
+      if (!pp.length) h += '<p class="lab-nota">Todavía nadie abrió una ficha en este período.</p>';
+      else {
+        h += '<div class="holmes-filas">' + pp.slice(0, 15).map(function(x) {
+          var m = Number(x.miraron), w = Number(x.escribieron), s = Number(x.wa_sin_ficha) || 0, o = H.mostrarUno(w, m);
+          return '<details class="holmes-fila"><summary><span class="holmes-nom">' + escHtml(holmesNombre(x.slug)) + '</span>'
+            + '<span class="holmes-dato">' + escHtml(o.principal) + (o.aviso ? ' <em class="holmes-pocas">pocas</em>' : '') + '</span></summary>'
+            + '<div class="holmes-fila-det">' + holmesMunecos(H, w, m) + holmesAviso(o.aviso)
+            + '<ul class="holmes-lista"><li>' + escHtml(o.detalle) + '</li>'
+            + (s ? '<li>Además, ' + s + ' ' + (s === 1 ? 'visita escribió' : 'visitas escribieron') + ' por este perfume desde la tarjeta, sin abrir la ficha.</li>' : '')
+            + '</ul></div></details>';
+        }).join('') + '</div>';
+      }
+      h += '</section>';
+      // ── (c) comparar dos ──
+      h += '<section class="lab-sec"><h3>Comparar dos</h3>'
+        + '<p class="lab-nota">Para decidir (cambiar la portada, pedir stock): la chance de que uno convierta más que el otro. Se decide recién con 95 %, y esa vara no se baja.</p>';
+      if (pp.length < 2) h += '<p class="lab-nota">Hacen falta al menos dos perfumes con fichas abiertas.</p>';
+      else {
+        if (!HOLMES.a || !pp.some(function(x) { return x.slug === HOLMES.a; })) HOLMES.a = pp[0].slug;
+        if (!HOLMES.b || !pp.some(function(x) { return x.slug === HOLMES.b; }) || HOLMES.b === HOLMES.a) HOLMES.b = (pp[0].slug === HOLMES.a ? pp[1] : pp[0]).slug;
+        var ops = function(sel) { return pp.map(function(x) { return '<option value="' + escHtml(x.slug) + '"' + (x.slug === sel ? ' selected' : '') + '>' + escHtml(holmesNombre(x.slug)) + ' (' + Number(x.miraron) + ')</option>'; }).join(''); };
+        h += '<article class="lab-card"><div class="holmes-elegir">'
+          + '<label class="modal-label" for="holmesA">Perfume A</label><select id="holmesA" onchange="HOLMES.a=this.value;holmesCompararPintar()">' + ops(HOLMES.a) + '</select>'
+          + '<label class="modal-label" for="holmesB">Perfume B</label><select id="holmesB" onchange="HOLMES.b=this.value;holmesCompararPintar()">' + ops(HOLMES.b) + '</select>'
+          + '</div><div id="holmesComparar"></div></article>';
+      }
+      h += '</section>';
+      return h;
+    }
+    function holmesCompararPintar() {
+      var c = document.getElementById('holmesComparar'), H = window.HolmesNumeros, d = HOLMES.datos;
+      if (!c || !H || !d) return;
+      var pp = d.por_perfume || [], a = pp.filter(function(x) { return x.slug === HOLMES.a; })[0], b = pp.filter(function(x) { return x.slug === HOLMES.b; })[0];
+      if (!a || !b) { c.innerHTML = ''; return; }
+      if (a.slug === b.slug) { c.innerHTML = '<p class="lab-nota" style="color:var(--tinta-aviso);">Elegí dos perfumes distintos.</p>'; return; }
+      var na = holmesNombre(a.slug), nb = holmesNombre(b.slug);
+      var da = { exitos: Number(a.escribieron), total: Number(a.miraron) }, db = { exitos: Number(b.escribieron), total: Number(b.miraron) };
+      var r;
+      try { r = H.compararDos(da, db, [na, nb]); }
+      catch (e) { c.innerHTML = '<p class="lab-nota" style="color:var(--tinta-error);">Los números no cierran (' + escHtml(e.message || String(e)) + ').</p>'; return; }
+      var ancho = Math.round(r.chance * 1000) / 10;
+      c.innerHTML = '<div class="holmes-dos">'
+        + '<div><p class="holmes-medio">' + escHtml(r.principal[0]) + '</p>' + holmesMunecos(H, da.exitos, da.total) + '</div>'
+        + '<div><p class="holmes-medio">' + escHtml(r.principal[1]) + '</p>' + holmesMunecos(H, db.exitos, db.total) + '</div></div>'
+        + holmesAviso(r.aviso)
+        + '<p class="holmes-chance">' + escHtml(r.chanceTexto) + '</p>'
+        + '<div class="holmes-vara" role="img" aria-label="' + escHtml(r.chanceTexto + ' de chances; la vara para decidir está en 95 %') + '"><i style="width:' + ancho + '%"></i><span title="95 %: alcanza para decidir"></span></div>'
+        + '<p style="margin:.4rem 0 0;font-size:.82rem;' + (r.decidido ? 'color:var(--tinta-ok);font-weight:700;' : '') + '">' + escHtml(r.decision) + '</p>'
+        + '<details class="lab-det"><summary>Ver detalle</summary><ul class="holmes-lista">' + r.detalle.map(function(x) { return '<li>' + escHtml(x) + '</li>'; }).join('')
+        + '<li>' + escHtml(na) + ': ' + da.exitos + ' de ' + da.total + ' · ' + escHtml(nb) + ': ' + db.exitos + ' de ' + db.total + '</li></ul></details>';
     }
 
     // ============================================================
