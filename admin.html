@@ -12719,6 +12719,23 @@
         msgEl.textContent = 'Completá nombre y precio';
         return;
       }
+      // [VALIDAR-SET] 16-oct · B3 del QA: se guardaban sets con precio 0, negativo, 99.999.999.999 o con la promo mayor que el precio.
+      // Las mismas reglas de Editar y Perfume nuevo (NO ROMPER #42).
+      var setMal = function(campo, texto) {
+        msgEl.style.color = 'var(--tinta-error)'; msgEl.textContent = texto;
+        var c = document.getElementById(campo); if (c) { try { c.focus(); } catch (e) {} }
+      };
+      if (name.length > 60) return setMal('comboName', 'El nombre es muy largo (máximo 60 letras).');
+      var precioSet = precioDeTexto(String(price).trim());
+      if (isNaN(precioSet) || precioSet !== Math.floor(precioSet)) return setMal('comboPrice', 'El precio tiene que ser un número positivo en pesos, sin centavos (ej: 98500 o 98.500).');
+      if (precioSet < 1 || precioSet > 99999999) return setMal('comboPrice', 'El precio del set tiene que estar entre $1 y $99.999.999.');
+      var promoSet = null;
+      if (String(promo).trim()) {
+        promoSet = precioDeTexto(String(promo).trim());
+        if (isNaN(promoSet) || promoSet !== Math.floor(promoSet)) return setMal('comboPromo', 'La promo tiene que ser un número en pesos, sin centavos (o dejala vacía).');
+        if (promoSet < 1) return setMal('comboPromo', 'Si no hay promo, dejala vacía (no pongas 0).');
+        if (promoSet >= precioSet) return setMal('comboPromo', 'La promo tiene que ser menor que el precio del set ($' + precioSet.toLocaleString('es-AR') + ') o dejala vacía.');
+      }
 
       // Collect items
       var rows = document.querySelectorAll('#comboItems .combo-item-row');
@@ -12735,9 +12752,9 @@
         }
       });
 
-      if (items.length === 0) {
+      if (items.length < 2) {   // [VALIDAR-SET] un set de una sola cosa no es un set (se vende como el perfume)
         msgEl.style.color = 'var(--tinta-error)';
-        msgEl.textContent = 'Agregá al menos un perfume al combo';
+        msgEl.textContent = items.length ? 'Un set lleva al menos 2 cosas: sumá otro perfume (o una con nombre).' : 'Agregá al menos 2 perfumes al set.';
         return;
       }
 
@@ -12750,8 +12767,8 @@
         msgEl.textContent = 'Ya existe un combo con ese nombre.';
         return;
       }
-      var priceFormatted = parseFloat(price).toLocaleString('en-US', { minimumFractionDigits: 2 });
-      var promoFormatted = promo ? parseFloat(promo).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '';
+      var priceFormatted = precioSet.toLocaleString('en-US', { minimumFractionDigits: 2 });   // [VALIDAR-SET] «98.500» = 98500 (parseFloat daba 98,5)
+      var promoFormatted = promoSet ? promoSet.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '';
 
       var fotoUrl = (document.getElementById('comboFoto').value || '').trim();
 
