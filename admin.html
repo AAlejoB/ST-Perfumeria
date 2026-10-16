@@ -419,6 +419,7 @@
     }
     @media (max-width: 480px) {
       .sync-indicator .sync-text { display: none; }  /* en mobile dejamos solo el puntito */
+      .sync-indicator.sync--cola .sync-text { display: inline; font-size: .7rem; }   /* [SIN-CONEXION-HOJA] …salvo cuando hay algo para subir o falta la red */
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -2683,6 +2684,14 @@
     .td-fila-foto .edr-lapiz { float: none; margin: 0 0 0 auto; flex: 0 0 auto; }
     .edr-lapiz:hover, .edr-lapiz:focus-visible { background: rgba(232,184,0,.14); border-color: var(--amarillo-tinta); }
     .edr-transf { font-size: .78rem; margin: -.2rem 0 .9rem; }
+    /* [SIN-CONEXION-HOJA] el cartel grande de «Anotar venta» sin internet: fondo amarillo y letra negra fijos (la letra la decide el fondo), texto de 18 px o más */
+    .sinred-box { background: #ffd000; color: #000; border: 3px solid #000; max-width: 520px; text-align: left; }
+    .sinred-titulo { font-size: 1.7rem; font-weight: 800; line-height: 1.15; margin: 0 0 .8rem; color: #000; }
+    .sinred-texto { font-size: 1.15rem; line-height: 1.4; margin: 0 0 .8rem; color: #000; }
+    .sinred-boton { display: block; width: 100%; min-height: 60px; margin-top: 1rem; font: inherit; font-size: 1.2rem; font-weight: 800; cursor: pointer; border: 0; border-radius: 12px; background: #000; color: #ffd000; }
+    /* el indicador de arriba con los estados de la cola: se ve el texto también en el celu */
+    .sync-indicator.sync--cola { cursor: pointer; }
+    .sync-indicator .sync-edad { display: block; font-size: .58rem; font-weight: 400; opacity: .75; }
     /* [ESPERA-QUIEN] B12 · «Quién espera qué»: una tarjeta por persona, con sus perfumes debajo */
     .espera-stat--quien { border-color: var(--amarillo-tinta); }
     .espera-stat--quien .espera-stat-titulo { color: var(--amarillo-tinta); }
@@ -2708,6 +2717,7 @@
     .res-hoja-tachado .res-nombre { text-decoration: line-through; opacity: .6; }
     .res-hoja-alerta { background: rgba(232,184,0,.18); border-left: 3px solid var(--amarillo); padding-left: .5rem; margin-left: -.5rem; border-radius: 4px; }
     .res-hoja-alerta .res-sub { color: var(--tinta-aviso); font-weight: 700; }
+    .res-sinred { font-size: .62rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border: 1px solid var(--gris); border-radius: 999px; padding: 0 .4rem; }
     .res-nombre { flex: 1 1 auto; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
     .res-sub { font-size: .66rem; font-weight: 400; color: var(--gris); }
     .res-dato { flex: 0 0 auto; margin-left: auto; font-weight: 700; white-space: nowrap; }
@@ -4715,6 +4725,16 @@
     </div>
   </div>
 
+  <!-- MODAL: SIN INTERNET EN «ANOTAR VENTA» · [SIN-CONEXION-HOJA] (carta B, 16-oct) · cartel grande, una vez por tramo sin red; un solo botón, no bloquea -->
+  <div class="modal-overlay" id="modalSinRedVenta" role="alertdialog" aria-labelledby="sinRedTitulo">
+    <div class="modal-box sinred-box" onclick="event.stopPropagation()">
+      <p class="sinred-titulo" id="sinRedTitulo">Estás sin internet.</p>
+      <p class="sinred-texto">Esta venta se descuenta del stock que ve esta tablet.</p>
+      <p class="sinred-texto">Si otra tablet también está vendiendo, cada una sube su pila de pedidos cuando vuelva la conexión y el stock se ajusta solo.</p>
+      <button type="button" class="sinred-boton" onclick="hojaCartelSinRedOk()">Entendido, anotar venta</button>
+    </div>
+  </div>
+
   <!-- MODAL: QUIÉN ESPERA QUÉ · [ESPERA-QUIEN] B12 (16-oct) · la lista de espera por persona; cierra con la ✕, tocando afuera o con Esc -->
   <div class="modal-overlay" id="modalEsperaQuien" onclick="closeModal('modalEsperaQuien',event)">
     <div class="modal-box" onclick="event.stopPropagation()" style="max-width:560px;">
@@ -5162,6 +5182,7 @@
     var COPIA_PREFIJO = 'st_copia_';
     var PANEL_COPIA = { usada: false, desde: null, recargando: false };
     function copiaGuardar(clave, filas) {
+      if (clave === 'overrides') PANEL_COPIA.ultima = Date.now();   // [SIN-CONEXION-HOJA] «Catálogo: hace N min»
       try { localStorage.setItem(COPIA_PREFIJO + clave, JSON.stringify({ en: new Date().toISOString(), filas: filas })); } catch (e) { console.warn('[copia] no se pudo guardar', clave, e); }
     }
     function copiaLeer(clave) {
@@ -5223,9 +5244,14 @@
         COLA.memoria = null;
       } catch (e) { COLA.memoria = lista.slice(); }   // sin acceso al almacenamiento: queda en la memoria de la pestaña (el cartel lo dice)
     }
+    // [SIN-CONEXION-HOJA] un identificador fijo por tablet (localStorage): cada movimiento que espera en la cola lo lleva
+    function tabletId() {
+      try { var t = localStorage.getItem('st_tablet_id'); if (!t) { t = hojaUUID().slice(0, 8); localStorage.setItem('st_tablet_id', t); } return t; } catch (e) { return 'tablet'; }
+    }
     function colaAgregar(item) {
       var lista = colaLeer();
       item.k = item.k || hojaUUID();
+      item.tablet = item.tablet || tabletId();
       item.cuando = item.cuando || new Date().toISOString();
       lista.push(item);
       colaGuardar(lista);
@@ -5256,16 +5282,25 @@
       finally { if (t) clearTimeout(t); }
     }
     function colaSinRed() { if (!COLA.sinRedDesde) COLA.sinRedDesde = Date.now(); }
-    function colaConRed() { COLA.sinRedDesde = null; }
+    function colaConRed() { COLA.sinRedDesde = null; COLA.cartelVenta = false; }   // [SIN-CONEXION-HOJA] volvió la red: el próximo corte vuelve a mostrar el cartel grande de «Anotar venta» una vez
 
     async function colaSubirUno(it) {
       if (it.tipo === 'caja') {
         // Con la hora en que se anotó (sql/caja_creado_en.sql). Si la base no la acepta (SQL sin correr, más de 7 días, reloj
         // corrido: 42501), se reintenta sin ella y queda la hora de subida; la de la tablet sigue en el Log (anotado_en).
-        var r = await colaConTope(function() { return sb.from('caja_movimientos').insert(Object.assign({}, it.fila, { creado_en: it.cuando })); });
-        if (r.error && String(r.error.code) === '42501') r = await colaConTope(function() { return sb.from('caja_movimientos').insert(it.fila); });
+        // [SIN-CONEXION-HOJA] y con la marca «sin red» (sql/caja_sin_conexion.sql): si esa columna no existe todavía, se sube sin ella.
+        var obj = Object.assign({}, it.fila, { creado_en: it.cuando, sin_conexion: true });
+        var r = await colaConTope(function() { return sb.from('caja_movimientos').insert(obj); });
+        for (var intento = 0; intento < 3 && r.error; intento++) {
+          var txt = String(r.error.message || '') + ' ' + String(r.error.details || '');
+          if (/sin_conexion/i.test(txt) && obj.sin_conexion !== undefined) delete obj.sin_conexion;
+          else if (String(r.error.code) === '42501' && obj.creado_en !== undefined) delete obj.creado_en;
+          else break;
+          r = await colaConTope(function() { return sb.from('caja_movimientos').insert(obj); });
+        }
         return r;
       }
+      if (it.tipo === 'codigo') return colaConTope(function() { return sb.from('perfume_codigos').insert(it.fila); });   // [SIN-CONEXION-CODIGOS] un código nuevo anotado sin internet
       if (it.tipo === 'espera') return colaConTope(function() { return sb.from('lista_espera').insert(it.fila); });
       if (it.tipo === 'stock') return stockRpc(it.args);   // [PANEL-SIN-CONEXION] paso 2: el mismo p_id → la base no lo aplica dos veces
       if (it.tipo === 'log') return colaConTope(function() { return sb.from('admin_actions').insert(it.fila); });
@@ -5283,7 +5318,9 @@
         if (navigator.onLine === false || (ses && ses.error && colaEsDeRed(ses.error))) colaSinRed(); else COLA.sesion = true;
         colaPintar(); colaProgramar(); return;
       }
-      COLA.subiendo = true; COLA.sesion = false; colaPintar();
+      COLA.subiendo = true; COLA.sesion = false;
+      COLA.prog = { hechos: 0, total: lista.filter(function(x) { return !x.trabado && x.tipo !== 'log'; }).length };   // [SIN-CONEXION-HOJA]
+      colaPintar();
       var subidos = { caja: 0, espera: 0 }, refrescoSesion = false;
       try {
         for (var i = 0; i < lista.length; i++) {
@@ -5299,11 +5336,13 @@
             colaConRed();
             if (!r.error) {
               subidos[it.tipo] = (subidos[it.tipo] || 0) + 1;
-              if (it.tipo === 'caja') logAdminAction('hoja_alta', null, Object.assign(hojaLogDatos(it.fila), { sin_conexion: true, anotado_en: it.cuando }));
+              if (it.tipo === 'caja') logAdminAction('hoja_alta', null, Object.assign(hojaLogDatos(it.fila), { sin_conexion: true, anotado_en: it.cuando, tablet: it.tablet }));
               if (it.tipo === 'stock') await stockSubido(it, r.data);
+              if (it.tipo === 'codigo') logAdminAction('codigo_asociado', it.fila.slug, { codigo: it.fila.codigo, sin_conexion: true, tablet: it.tablet });   // [SIN-CONEXION-CODIGOS]
             }
             var hoy = colaLeer().filter(function(x) { return x.k !== it.k; });
             colaGuardar(hoy);
+            if (COLA.prog && it.tipo !== 'log') { COLA.prog.hechos++; colaPintar(); }   // [SIN-CONEXION-HOJA] «Subiendo 2 de 3…»
             continue;
           }
           if (colaEsDeRed(r.error)) { colaSinRed(); break; }
@@ -5314,12 +5353,13 @@
           var conMotivo = colaLeer().map(function(x) { if (x.k === it.k) x.trabado = errorEnCriollo(r.error, null, 'subir lo guardado'); return x; });
           colaGuardar(conMotivo);
         }
-      } finally { COLA.subiendo = false; }
+      } finally { COLA.subiendo = false; COLA.prog = null; }
       colaPintar();
       colaProgramar();
       if (subidos.caja) { try { if (HOJA.dia) await hojaCargar(); hojaInicioPintar(); } catch (e) {} }
       if (subidos.espera) { try { loadListaEspera(); } catch (e) {} }
       if (PANEL_COPIA.usada && !COLA.sinRedDesde && !colaLeer().some(function(x) { return !x.trabado; })) copiaRecargar();
+      if (!COLA.sinRedDesde && !colaLeer().some(function(x) { return !x.trabado; })) codCopiaRefrescar();   // [SIN-CONEXION-CODIGOS] terminó de subir: la copia de códigos se pone al día
     }
     // Sin nada guardado, igual se mira si volvió internet (para sacar el cartel): un pedido chiquito.
     async function colaProbarRed() {
@@ -5336,13 +5376,15 @@
         COLA.escuchando = true;
         window.addEventListener('online', function() { colaSubir(); });
         window.addEventListener('offline', function() { colaSinRed(); colaPintar(); colaProgramar(); copiaStockAlDia(); });
-        document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') colaSubir(); else copiaStockAlDia(); });
+        document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') { colaSubir(); codCopiaRefrescar(); } else copiaStockAlDia(); });
         window.addEventListener('pagehide', copiaStockAlDia);
         setInterval(colaPintar, 60000);   // el cartel grande sale aunque nadie toque nada
       }
       if (navigator.onLine === false) colaSinRed();
       colaPintar();
       colaSubir();
+      codCopiaRefrescar(true);   // [SIN-CONEXION-CODIGOS]
+      escPrecalentar();          // [SIN-CONEXION-CODIGOS] el lector de la cámara para iPhone, en el caché antes de que haga falta
     }
     function colaAntesDeSalir() {   // lo guardado no se pierde al salir (queda en la tablet y sube al volver a entrar), pero se avisa
       var n = colaVisibles().length; if (!n) return true;
@@ -5367,7 +5409,7 @@
       var el = document.getElementById('colaAviso'); if (!el) return;
       var lista = colaVisibles(), trabados = lista.filter(function(x) { return x.trabado; }), n = lista.length - trabados.length;
       var min = COLA.sinRedDesde ? Math.floor((Date.now() - COLA.sinRedDesde) / 60000) : 0;
-      if (!currentRole || (!lista.length && !COLA.sinRedDesde && !COLA.avisos.length && !PANEL_COPIA.usada)) { el.hidden = true; el.innerHTML = ''; return; }
+      if (!currentRole || (!lista.length && !COLA.sinRedDesde && !COLA.avisos.length && !PANEL_COPIA.usada)) { el.hidden = true; el.innerHTML = ''; try { renderSyncIndicator(); } catch (e) {} return; }
       var grande = !!COLA.sinRedDesde && min >= SIN_RED_CARTEL_MIN;
       var cosas = function(k) { return k === 1 ? '1 cosa' : k + ' cosas'; };
       var titulo, sub = '';
@@ -5388,7 +5430,7 @@
       if (trabados.length) h += '<div class="cola-cab cola-cab--error"><span class="cola-ico" aria-hidden="true">⚠️</span><div class="cola-txt"><b>' + (trabados.length === 1 ? '1 cosa no se pudo subir' : trabados.length + ' cosas no se pudieron subir') + '</b><small>No es por internet: mirá el motivo abajo y avisale a Alejo.</small></div>'
         + (COLA.abierta ? '' : '<button type="button" class="cola-btn" onclick="COLA.abierta = true; colaPintar()">Ver</button>') + '<button type="button" class="cola-btn" onclick="colaReintentar()">Reintentar</button></div>';
       if (COLA.abierta && lista.length) h += '<ul class="cola-lista">' + lista.map(function(x) {
-        return '<li><span><b>' + escHtml(x.tipo === 'caja' ? 'Hoja' : (x.tipo === 'stock' ? 'Stock' : 'Lista de espera')) + ' · ' + escHtml(x.desc || '') + '</b><small>' + escHtml(colaCuando(x.cuando)) + (x.trabado ? ' · ' + escHtml(x.trabado) : ' · esperando para subir') + '</small></span>'
+        return '<li><span><b>' + escHtml(x.tipo === 'caja' ? 'Hoja' : (x.tipo === 'stock' ? 'Stock' : (x.tipo === 'codigo' ? 'Código de barras' : 'Lista de espera'))) + ' · ' + escHtml(x.desc || '') + '</b><small>' + escHtml(colaCuando(x.cuando)) + (x.trabado ? ' · ' + escHtml(x.trabado) : ' · esperando para subir') + '</small></span>'
           + (x.trabado ? '<button type="button" class="cola-btn" onclick="colaQuitar(' + escHtml(JSON.stringify(String(x.k))) + ')">Sacar</button>' : '') + '</li>';
       }).join('') + '</ul>';
       if (COLA.avisos.length) h += '<div class="cola-cab cola-cab--error"><span class="cola-ico" aria-hidden="true">📦</span><div class="cola-txt"><b>Stock que subió con un ajuste</b><small>'
@@ -5397,6 +5439,7 @@
       el.className = 'cola-aviso' + (grande ? ' cola-aviso--grande' : '') + (trabados.length ? ' cola-aviso--error' : '');
       el.innerHTML = h;
       el.hidden = false;
+      try { renderSyncIndicator(); } catch (e) {}   // [SIN-CONEXION-HOJA] el indicador de arriba cuenta lo mismo que el cartel
     }
 
     async function doLogin() {
@@ -8568,11 +8611,64 @@
       if (tab === 'merc') mercCodigo(n.codigo); else if (tab === 'hoja') hojaCodigo(n.codigo); else escProcesar(n.codigo, tab);
     }
 
+    // ============================================================
+    // [SIN-CONEXION-CODIGOS] (carta B del 16-oct-2026) · escanear SIN internet. Antes cada lectura le preguntaba a Supabase a qué perfume
+    // corresponde el código: sin red, nada. Ahora hay una COPIA de perfume_codigos en la tablet (localStorage 'st_copia_codigos', la misma
+    // idea que la copia de los perfumes): se baja entera al abrir el panel con red, al volver a la pestaña y al terminar de subir la cola.
+    // Toda lectura mira primero la copia; sólo si el código no está (y hay red) se le pregunta a la base. Un código nuevo que se asocia a
+    // un perfume sin red queda en la cola (tipo 'codigo': el PK de la tabla evita duplicados, 23505 = ya estaba) y ya vale en esta tablet.
+    // ============================================================
+    var COD_MAPA = null, COD_REFRESCO = { corriendo: false, en: 0 };
+    function codMapaCargar() {
+      COD_MAPA = Object.create(null);
+      var c = copiaLeer('codigos');
+      if (c) c.filas.forEach(function(f) { if (f && f.codigo) COD_MAPA[f.codigo] = f.slug; });
+      return COD_MAPA;
+    }
+    function codMapaGuardar() { copiaGuardar('codigos', Object.keys(COD_MAPA).map(function(k) { return { codigo: k, slug: COD_MAPA[k] }; })); }
+    function codMapaPoner(codigo, slug) { if (!COD_MAPA) codMapaCargar(); COD_MAPA[codigo] = slug; codMapaGuardar(); }
+    function codMapaQuitar(codigo) { if (!COD_MAPA) codMapaCargar(); if (COD_MAPA[codigo]) { delete COD_MAPA[codigo]; codMapaGuardar(); } }
+    async function codCopiaRefrescar(forzar) {
+      if (COD_REFRESCO.corriendo || !currentRole || navigator.onLine === false || COLA.sinRedDesde) return;
+      if (!forzar && Date.now() - COD_REFRESCO.en < 5 * 60 * 1000) return;
+      COD_REFRESCO.corriendo = true;
+      try {
+        var r = await colaConTope(function() { return sb.from('perfume_codigos').select('codigo, slug').range(0, 4999); });
+        if (!r.error && Array.isArray(r.data)) {
+          var m = Object.create(null);
+          r.data.forEach(function(f) { m[f.codigo] = f.slug; });
+          colaLeer().forEach(function(x) { if (x.tipo === 'codigo' && x.fila) m[x.fila.codigo] = x.fila.slug; });   // lo que todavía no subió sigue valiendo
+          COD_MAPA = m; codMapaGuardar(); COD_REFRESCO.en = Date.now();
+        }
+      } catch (e) { console.warn('[codigos] copia', e); }
+      finally { COD_REFRESCO.corriendo = false; }
+    }
+    // Devuelve { data: [{ codigo, slug }] | [], error } con la forma de siempre, para que los tres lugares que leían la tabla no cambien.
+    async function codConsultar(codigo) {
+      if (!COD_MAPA) codMapaCargar();
+      if (COD_MAPA[codigo]) return { data: [{ codigo: codigo, slug: COD_MAPA[codigo] }], error: null };
+      if (navigator.onLine === false || COLA.sinRedDesde) return { data: [], error: null, sinRed: true };   // sin red y no está en la copia: se trata como código nuevo
+      var r = await colaConTope(function() { return sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); });
+      if (r.error && colaEsDeRed(r.error)) { colaSinRed(); return { data: [], error: null, sinRed: true }; }
+      if (!r.error && r.data && r.data[0]) codMapaPoner(codigo, r.data[0].slug);
+      return r;
+    }
+    // El lector de la cámara para iPhone (js/vendor/, 1,1 MB) se baja una vez con red: el SW lo guarda y después anda sin internet. Los equipos con
+    // BarcodeDetector propio (Chrome en Android) no necesitan nada.
+    var _escPrecalentado = false;
+    function escPrecalentar() {
+      if (_escPrecalentado || navigator.onLine === false || typeof window.BarcodeDetector === 'function') return;
+      _escPrecalentado = true;
+      setTimeout(function() {
+        try { fetch(ESC_JS).catch(function() { _escPrecalentado = false; }); fetch(ESC_WASM).catch(function() { _escPrecalentado = false; }); } catch (e) { _escPrecalentado = false; }
+      }, 8000);   // con el panel ya abierto: no compite con lo que se está leyendo
+    }
+
     // ── 163c / 163d · qué hace un código leído ──
     async function escProcesar(codigo, tab) {
       escNota(tab, 'Buscando ' + codigo + '…', 'aviso');
       var r;
-      try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
+      try { r = await codConsultar(codigo); } catch (e) { r = { error: e }; }
       if (r.error) { escNota(tab, codErrorTexto(r.error, 'buscar el código'), 'error'); return; }
       var fila = r.data && r.data[0];
       var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
@@ -8590,6 +8686,7 @@
       if (!confirm('El código ' + codigo + ' era de «' + slug + '», un perfume que ya no está en el panel.\n\n¿Soltarlo para poder registrarlo de nuevo?'))
         return { ok: false, cancelado: true, texto: 'Código ' + codigo + ' sin tocar (era de «' + slug + '», que ya no está en el panel).' };
       var r; try { r = await sb.from('perfume_codigos').delete().eq('codigo', codigo).eq('slug', slug).select('codigo'); } catch (e) { r = { error: e }; }
+      if (!r.error && r.data && r.data.length) codMapaQuitar(codigo);   // [SIN-CONEXION-CODIGOS]
       if (r.error || !r.data || !r.data.length) return { ok: false, texto: r.error ? codErrorTexto(r.error, 'soltar el código') : 'No se pudo soltar el código ' + codigo + ': ya no estaba o no tenés permiso.' };
       logAdminAction('codigo_quitado', slug, { codigo: codigo, huerfano: true });
       return { ok: true };
@@ -8945,7 +9042,7 @@
     }
     function mercEscanear() { escanearAbrir('merc'); }
     async function mercCodigo(codigo) {
-      var r; try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
+      var r; try { r = await codConsultar(codigo); } catch (e) { r = { error: e }; }
       if (r.error) { mercMsg(codErrorTexto(r.error, 'buscar el código'), 'error'); return; }
       var fila = r.data && r.data[0];
       var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
@@ -9125,8 +9222,14 @@
     // Asocia un código a un perfume (lo hacen el jefe y la empleada; va al Log). Devuelve { ok } o { ok: false, texto }.
     async function codAsociar(codigo, slug) {
       var r;
-      try { r = await sb.from('perfume_codigos').insert({ codigo: codigo, slug: slug }); } catch (e) { r = { error: e }; }
-      if (!r.error) { logAdminAction('codigo_asociado', slug, { codigo: codigo }); return { ok: true }; }
+      try { r = (navigator.onLine === false || COLA.sinRedDesde) ? { error: { message: 'sin red (ya se sabía)' } } : await colaConTope(function() { return sb.from('perfume_codigos').insert({ codigo: codigo, slug: slug }); }); } catch (e) { r = { error: e }; }
+      if (!r.error) { codMapaPoner(codigo, slug); logAdminAction('codigo_asociado', slug, { codigo: codigo }); return { ok: true }; }
+      if (colaEsDeRed(r.error)) {   // [SIN-CONEXION-CODIGOS] sin internet: queda en la tablet, ya vale acá y sube solo
+        var pn = PERFUMES.find(function(pf) { return pf.slug === slug; });
+        colaAgregar({ tipo: 'codigo', fila: { codigo: codigo, slug: slug }, desc: codigo + ' → ' + (pn ? pn.name : slug) });
+        codMapaPoner(codigo, slug);
+        return { ok: true, pendiente: true };
+      }
       if (String(r.error.code) === '23505') {   // ya existía: ¿de quién es?
         var q; try { q = await sb.from('perfume_codigos').select('slug').eq('codigo', codigo); } catch (e) { q = {}; }
         var dueno = (q && q.data && q.data[0]) ? q.data[0].slug : '';
@@ -9286,6 +9389,7 @@
       if (!slug || !confirm('¿Quitar el código ' + codigo + ' de este perfume? La próxima vez que lo escaneen va a preguntar de nuevo qué es.')) return;
       var msg = document.getElementById('editCodigosMsg');
       var r; try { r = await sb.from('perfume_codigos').delete().eq('codigo', codigo).eq('slug', slug).select('codigo'); } catch (e) { r = { error: e }; }
+      if (!r.error && r.data && r.data.length) codMapaQuitar(codigo);   // [SIN-CONEXION-CODIGOS]
       if (r.error || !r.data || !r.data.length) {
         msg.textContent = r.error ? codErrorTexto(r.error, 'quitar el código') : 'No se pudo quitar: ya no estaba.';
         msg.style.color = 'var(--tinta-error)';
@@ -12718,6 +12822,16 @@
       renderSyncIndicator();
     }
 
+    function colaEstadoPill() {
+      if (typeof colaVisibles !== 'function' || !currentRole) return null;
+      var lista = colaVisibles(), trabados = lista.filter(function(x) { return x.trabado; }).length, n = lista.length - trabados;
+      var cosas = function(k) { return k === 1 ? '1 pendiente' : k + ' pendientes'; };
+      if (COLA.subiendo && COLA.prog) return { dot: '#3498db', text: 'Subiendo ' + Math.min(COLA.prog.hechos + 1, COLA.prog.total) + ' de ' + COLA.prog.total + '…', title: 'Subiendo lo que quedó guardado en esta tablet' };
+      if (trabados) return { dot: '#e74c3c', text: trabados === 1 ? '1 no se pudo subir' : trabados + ' no se pudieron subir', title: 'Tocá para ver cuál y reintentar' };
+      if (COLA.sinRedDesde || navigator.onLine === false) return { dot: '#e8b800', text: 'Sin red' + (n ? ' · ' + cosas(n) : ''), title: 'Sin internet: lo que anotes queda en esta tablet y se sube solo' };
+      if (n) return { dot: '#e8b800', text: cosas(n) + ' de subir', title: 'Se sube solo en un momento' };
+      return null;
+    }
     function renderSyncIndicator() {
       const el = document.getElementById('syncIndicator');
       if (!el) return;
@@ -12728,10 +12842,23 @@
         DEGRADED:     { dot: '#e67e22',  text: 'Modo respaldo',    title: 'Sin tiempo real. Actualizando cada 10s.' },
         RECONNECTING: { dot: '#e8b800',  text: 'Reconectando…',    title: 'Intentando recuperar tiempo real' }
       }[rtState] || {};
-      el.innerHTML = '<span class="sync-dot" style="background:' + cfg.dot + '"></span>'
-                   + '<span class="sync-text">' + (cfg.text || '') + '</span>';
-      el.title = cfg.title || '';
-      el.style.display = (rtState === 'INIT') ? 'none' : 'inline-flex';
+      // [SIN-CONEXION-HOJA] carta B · lo que esperó en la tablet manda sobre el estado del canal en vivo: Subiendo (azul) · No se pudo subir (rojo) ·
+      // Sin red / pendientes (amarillo) · Al día (verde). Nunca un error técnico: el detalle está en el cartel de arriba (Ver) y en la consola.
+      var cola = colaEstadoPill();
+      var dot = cfg.dot, text = cfg.text || '', title = cfg.title || '';
+      if (cola) { dot = cola.dot; text = cola.text; title = cola.title; }
+      else if (rtState === 'LIVE') { text = 'Al día'; title = 'Todo subido y sincronización en tiempo real activa'; }
+      var edad = '';
+      if (PANEL_COPIA.ultima) {
+        var min = Math.floor((Date.now() - PANEL_COPIA.ultima) / 60000);
+        edad = 'Catálogo: ' + (min < 1 ? 'recién' : 'hace ' + (min >= 120 ? Math.floor(min / 60) + ' h' : min + ' min'));
+      }
+      el.innerHTML = '<span class="sync-dot" style="background:' + dot + '"></span>'
+                   + '<span class="sync-text">' + escHtml(text) + (edad ? '<span class="sync-edad">' + escHtml(edad) + '</span>' : '') + '</span>';
+      el.title = title + (edad ? ' · ' + edad : '');
+      el.classList.toggle('sync--cola', !!cola);
+      el.onclick = cola ? function() { COLA.abierta = true; colaPintar(); window.scrollTo(0, 0); } : null;
+      el.style.display = (rtState === 'INIT' && !cola) ? 'none' : 'inline-flex';
     }
 
     function applyOverrideRowToMemory(ov) {
@@ -15554,11 +15681,19 @@
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       return (p && typeof p._stockQty === 'number') ? Math.max(0, p._stockQty) : null;
     }
+    // [SIN-CONEXION-HOJA] «Efecto local inmediato»: el stock del local no baja hasta el Cierre del día, así que lo que ya se anotó en la hoja (las
+    // ventas del día que se ven y las que esperan en la tablet sin subir) cuenta contra el mismo tope: se ve el stock que la empleada conoce.
+    function hojaYaAnotado(slug) {
+      var n = 0, cuenta = function(items) { (Array.isArray(items) ? items : []).forEach(function(it) { if (it && it.slug === slug && hojaItemPendiente(it)) n += Number(it.qty) || 0; }); };
+      (HOJA.filas || []).forEach(function(f) { if (!f.anulado_en) cuenta(f.items); });
+      colaLeer().forEach(function(x) { if (x.tipo === 'caja' && x.fila) cuenta(x.fila.items); });
+      return n;
+    }
     function hojaTope(sel) {   // cuántos más se pueden sumar de este frasco, o null si no hay tope
       if (!sel || sel.tipo !== 'frasco' || !sel.llevar || sel.ya_bajado) return null;
       var disp = hojaDisponible(sel.slug); if (disp === null) return null;
       var yaEnVenta = HOJA.carro.reduce(function(n, l) { return n + ((l.tipo === 'frasco' && l.slug === sel.slug && l.llevar && !l.ya_bajado) ? l.qty : 0); }, 0);
-      return Math.max(0, Math.min(99, disp) - yaEnVenta);
+      return Math.max(0, Math.min(99, disp) - yaEnVenta - hojaYaAnotado(sel.slug));
     }
     function hojaSelAjustar(n) {   // la cantidad pedida, dentro de 1..99 y del tope; avisa si recortó
       var t = hojaTope(HOJA.sel), q = Math.max(1, Math.min(99, n));
@@ -15573,9 +15708,9 @@
       var disp = hojaDisponible(sel.slug);
       if (disp === null) return '<p class="hoja-hint">El panel no tiene la cantidad de este perfume: se anota lo que pongas.</p>';
       if (!sel.llevar || sel.ya_bajado) return '<p class="hoja-hint">En el local hay ' + disp + ' (esta venta no los descuenta).</p>';
-      var t = hojaTope(sel);
-      if (t <= 0) return '<p class="hoja-hint hv-sin-stock" style="color:var(--tinta-error);font-weight:700">' + (disp > 0 ? 'Ya está en la venta todo lo que hay en el local (' + disp + ').' : 'No hay stock en el local (el panel dice 0): no se puede anotar la venta.') + ' Si ya lo bajaste con «Vendí», tildá «No descontar del stock».</p>';
-      return '<p class="hoja-hint">En el local hay <b>' + disp + '</b>' + (disp > t ? ' · podés sumar hasta ' + t : '') + '.</p>';
+      var t = hojaTope(sel), antes = hojaYaAnotado(sel.slug);
+      if (t <= 0) return '<p class="hoja-hint hv-sin-stock" style="color:var(--tinta-error);font-weight:700">' + (disp > 0 ? 'Ya está en la venta o en la hoja todo lo que hay en el local (' + disp + ').' : 'No hay stock en el local (el panel dice 0): no se puede anotar la venta.') + ' Si ya lo bajaste con «Vendí», tildá «No descontar del stock».</p>';
+      return '<p class="hoja-hint">En el local hay <b>' + disp + '</b>' + (antes ? ' (ya anotaste ' + antes + ' en la hoja, todavía sin descontar)' : '') + (disp > t ? ' · podés sumar hasta ' + t : '') + '.</p>';
     }
     function hojaMontoTocado() { return ['efectivo', 'mp', 'posnet'].some(function(k) { return HOJA.montos[k] !== '' && HOJA.montos[k] != null; }); }   // [HOJA-MONTO-CERO] un 0 tocado vale; vacío no
     function hojaSelCant(n) { if (!HOJA.sel) return; HOJA.sel.qty = hojaSelAjustar(n); HOJA.sel.tocado = true; hojaVentaPintar(); }
@@ -15631,7 +15766,7 @@
       var primero = hojaEl('hvResultados') && hojaEl('hvResultados').querySelector('.tarjeta'); if (primero) primero.click();
     }
     async function hojaCodigo(codigo) {   // lo llama el escáner (cámara o número escrito) y el Enter del buscador
-      var r; try { r = await sb.from('perfume_codigos').select('codigo, slug').eq('codigo', codigo); } catch (e) { r = { error: e }; }
+      var r; try { r = await codConsultar(codigo); } catch (e) { r = { error: e }; }
       if (r.error) { hojaMsg(codErrorTexto(r.error, 'buscar el código'), 'error'); return; }
       var fila = r.data && r.data[0];
       var p = fila ? PERFUMES.find(function(pf) { return pf.slug === fila.slug; }) : null;
@@ -15799,8 +15934,21 @@
       } finally { HOJA.ocupado = false; }
     }
     var HOJA_EN_TABLET = '📴 Sin internet: quedó guardado en esta tablet y se sube solo cuando vuelva · ';
+    // [SIN-CONEXION-HOJA] ¿esta tablet está sin internet ahora? (lo avisa el navegador o lo vio un pedido que falló)
+    function hojaSinRedAhora() { return navigator.onLine === false || !!COLA.sinRedDesde; }
+    function hojaCartelSinRedOk() {
+      COLA.cartelVenta = true;
+      document.getElementById('modalSinRedVenta').classList.remove('active');
+      var o = HOJA.optsEnEspera || {}; HOJA.optsEnEspera = null;
+      hojaGuardarVenta(o);
+    }
     async function hojaGuardarVenta(opts) {
       if (HOJA.ocupado) return;
+      if (hojaSinRedAhora() && !COLA.cartelVenta) {   // la primera venta de cada tramo sin red: el cartel grande (no bloquea: un botón)
+        HOJA.optsEnEspera = opts || {};
+        document.getElementById('modalSinRedVenta').classList.add('active');
+        return;
+      }
       var carro = HOJA.carro; if (!carro.length) { hojaMsg('Sumá al menos un producto.', 'error'); return; }
       var auto = opts && opts.auto, pr = hojaCarroPrecio(carro), ef, mp, po, debe = 0;
       if (auto) {
@@ -16274,7 +16422,9 @@
     // y entonces sólo como una baja de stock sin hora ni monto. Se lee caja_movimientos del día (la leen las dos cuentas) sin pasar por la RPC.
     async function resumenHojaCargar(dia) {
       try {
-        var r = await sb.from('caja_movimientos').select('id,creado_en,tipo,detalle,efectivo,mp,posnet,debe,debe_quien,items,creado_por,anulado_en').eq('dia', dia).order('creado_en', { ascending: true });
+        var cols = 'id,creado_en,tipo,detalle,efectivo,mp,posnet,debe,debe_quien,items,creado_por,anulado_en';
+        var r = await sb.from('caja_movimientos').select(cols + ',sin_conexion').eq('dia', dia).order('creado_en', { ascending: true });
+        if (r.error && /sin_conexion/i.test(String(r.error.message || ''))) r = await sb.from('caja_movimientos').select(cols).eq('dia', dia).order('creado_en', { ascending: true });   // sql/caja_sin_conexion.sql sin correr
         if (r.error) { if (hojaTablaFalta(r.error)) return []; return null; }
         return r.data || [];
       } catch (e) { return null; }
@@ -16298,6 +16448,13 @@
       if (esperado > 0 ? total < esperado : (sinPrecio && total === 0)) return { esperado: esperado };
       return null;
     }
+    // [SIN-CONEXION-HOJA] El stock que no alcanzó (el Cierre del día baja «hasta donde alcanza»: la venta existió, el panel tenía menos). Sólo se ve en
+    // el jefe, resaltado como la alerta de precio. Sale de lo que el cierre dejó en cada frasco (items[].cierre).
+    function resumenHojaFaltante(f) {
+      if (!f || f.anulado_en) return [];
+      return (Array.isArray(f.items) ? f.items : []).filter(function(it) { return it && it.slug && it.cierre && (it.cierre.estado === 'parcial' || it.cierre.estado === 'sin_stock'); })
+        .map(function(it) { return { nombre: it.nombre || it.slug, qty: Number(it.qty) || 0, bajo: Number(it.cierre.bajo) || 0 }; });
+    }
     function resumenFilaHoja(f) {
       var cobrado = (Number(f.efectivo) || 0) + (Number(f.mp) || 0) + (Number(f.posnet) || 0);
       var quien = f.creado_por === JEFE_EMAIL ? 'jefe' : 'empleada';
@@ -16306,13 +16463,15 @@
       if (Number(f.mp) > 0) medios.push('MP ' + promoPesos(f.mp));
       if (Number(f.posnet) > 0) medios.push('Posnet ' + promoPesos(f.posnet));
       var al = currentRole === 'jefe' ? resumenHojaAlerta(f) : null;   // la alerta es sólo del jefe: la empleada no ve nada distinto
+      var falt = currentRole === 'jefe' ? resumenHojaFaltante(f) : [];
       var sub = '<div class="res-sub">' + escHtml(resumenHoraART(f.creado_en)) + ' · ' + quien
         + (f.tipo === 'nota' ? ' · nota' : '') + (medios.length ? ' · ' + medios.join(' · ') : '')
         + (Number(f.debe) > 0 ? ' · debe ' + escHtml(promoPesos(f.debe)) + (f.debe_quien ? ' (' + escHtml(f.debe_quien) + ')' : '') : '')
-        + (f.anulado_en ? ' · tachado' : '') + '</div>';
+        + (f.sin_conexion ? ' · <span class="res-sinred">sin red</span>' : '') + (f.anulado_en ? ' · tachado' : '') + '</div>';
+      falt.forEach(function(x) { sub += '<div class="res-sub">⚠ Stock que no alcanzó: ' + escHtml(x.nombre) + ' · se vendieron ' + x.qty + ', el panel tenía menos y bajó ' + x.bajo + '</div>'; });
       if (al) sub += '<div class="res-sub">⚠ Cobró ' + escHtml(promoPesos(cobrado)) + (al.esperado > 0 ? ' · transf. de referencia ' + escHtml(promoPesos(al.esperado)) : ' · el perfume no tiene precio cargado') + '</div>';
-      return '<div class="res-fila' + (f.anulado_en ? ' res-hoja-tachado' : '') + (al ? ' res-hoja-alerta' : '') + '"><div class="res-nombre">'
-        + (al ? '⚠ ' : '') + escHtml(f.detalle || '') + sub + '</div><span class="res-dato">' + (f.tipo === 'nota' && !cobrado ? '' : escHtml(promoPesos(cobrado))) + '</span></div>';
+      return '<div class="res-fila' + (f.anulado_en ? ' res-hoja-tachado' : '') + ((al || falt.length) ? ' res-hoja-alerta' : '') + '"><div class="res-nombre">'
+        + ((al || falt.length) ? '⚠ ' : '') + escHtml(f.detalle || '') + sub + '</div><span class="res-dato">' + (f.tipo === 'nota' && !cobrado ? '' : escHtml(promoPesos(cobrado))) + '</span></div>';
     }
 
     function resumenPintar(d) {

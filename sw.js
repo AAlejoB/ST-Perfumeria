@@ -48,7 +48,7 @@
 //     invierte a pill dark con texto dorado.
 //   - JS toggleDarkMode: actualiza emoji + label simultáneo. Init sets
 //     navThemeLabel a "LIGHT" si dark / "DARK" si light.
-var CACHE_VERSION = 'v1.1.251';
+var CACHE_VERSION = 'v1.1.252';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
@@ -173,7 +173,7 @@ self.addEventListener('fetch', function(event) {
   // si red falla, caemos al cache. Cuesta unos ms más en cargas con buena
   // conexión pero garantiza versión fresca SIEMPRE.
   if (req.destination === 'style' || req.destination === 'script' || req.destination === 'font' ||
-      /\.(css|js|woff2?|ttf)$/i.test(url.pathname)) {
+      /\.(css|js|woff2?|ttf|wasm)$/i.test(url.pathname)) {   // [SIN-CONEXION-CODIGOS] .wasm: el lector de códigos de barras del iPhone se guarda y anda sin internet
     event.respondWith(
       fetch(req).then(function(resp) {
         // [PANEL-SIN-CONEXION] además de lo propio, la librería de Supabase del CDN (admin.html la pide con crossorigin: llega 'cors',
