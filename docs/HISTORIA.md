@@ -3893,6 +3893,11 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 16-oct-2026 (~08:45, cierre del QA del panel):** el informe y los 8 graves (`5107632` a `d1ed114`, v1.1.259 a v1.1.264) y los 15 importantes (`f375252` a `6770ebf`, v1.1.265 a v1.1.277), todo en producción; lo que quedó de B10 pasó a `[LOGIN-B10-RESTO]` y el humo con el dedo a `[HUMO-QA-16-OCT]`. Detalle en § «Sesión 16-oct-2026 (mañana, después de las cartas)».
+
+- ✅ ~~**`[QA-COMPLETO-PANEL]`**~~ (16-oct, pedido de Alejo · 🟡) — **primera pasada hecha el 16-oct** sobre una copia en memoria (`scripts/qa-copia/`, sin tocar la tienda real; huella de 13 tablas idéntica antes y después): informe en [`docs/QA-ADMIN-2026-10-16.md`](docs/QA-ADMIN-2026-10-16.md) (8 hallazgos graves, 15 importantes, costo de un toque sin querer y velocidad). **Falta lo que Alejo dijo: «después pensar las soluciones»** (nada de eso está arreglado, salvo la fuga de costos / Laboratorio entre sesiones). Para repetirlo al final de la tanda general: `node scripts/qa-copia/qa-server.js . 8777`.
+- ✅ ~~**`[QA-HALLAZGOS-16-OCT]`**~~ (16-oct, del QA · 🟠 los A, 🟡 los B) — **A1 a A4 ARREGLADOS el 16-oct (v1.1.260, NO ROMPER #42) y A5, A6, A7 y A8 también (v1.1.262 a v1.1.264, NO ROMPER #43, #44 y #45)** — **los 8 graves (A1 a A8) están cerrados**; **B1 (buscadores), B2 (Perfume nuevo), B3 (Sets), B4 (config. de Decants), B5 (config. de Puntos), B6 (Votación), B8 (ventanas), la contraseña vacía de B10 y B11 (carga en paralelo) también** (v1.1.265 a v1.1.273, NO ROMPER #46 a #48; B2 a B6 siguen la #42); **B9 (doble toque en OK) ya lo habían cerrado las guardias de A3/A4** (medido el 16-oct); **B7 (link del push), B12 (toques de 44), B13 (Doctor de a 30), B14 (etiquetas) y B15 (contraste en claro) también** (v1.1.274 a v1.1.277, NO ROMPER #49 a #51); **del QA queda sólo el resto de B10, que son decisiones de Alejo** (contador de fallos del login en el navegador, 3 pedidos por intento, espacio adelante en la contraseña) del informe (ver `docs/QA-ADMIN-2026-10-16.md`).
+
 **Movidos el 14-oct-2026 (~15:10, cierre de `wa-emojis`):** hechos en `7e7b003` + `dd305e9` (`[WA-EMOJIS-ROTOS]`, v1.1.229 y v1.1.230) y `2a56690` (`[COMPARAR-PRECIOS]`, v1.1.231), los tres en producción; humo de Alejo en su celu OK. Detalle en § «Sesión 14-oct-2026 (tarde, `wa-emojis`)».
 
 - ✅ ~~**`[WA-EMOJIS-ROTOS]`**~~ (7-oct · 🟢, idea en `docs/IDEAS.md`) — los emojis de los WhatsApp de stperfumeria.com llegan como «�» desde la compu (la redirección del link de WhatsApp). Sin hacer.
@@ -5476,10 +5481,6 @@ Antes del primer PR, Alejo había hecho solo (sesión propia de Claude Code, sin
 
 **Estado del repo al cierre (16-oct, ~02:50):** `main` = `origin/main` = `a03d112` (SW **v1.1.240** en producción) · rama `tanda-2` = `a03d112` + `07c10c6` (código, SW v1.1.241) + este cierre, **PR #10 abierto, lo mergea Alejo** después de correr `sql/elegidos_excluido.sql` · árbol limpio · las ramas `resumen-precios`, `resumen-calendario`, `tanda-1-rapidos`, `semana-stats`, `decants-tarjetero`, `sets-en-precios` y `doctor-arregla` ya están mergeadas (se pueden borrar en GitHub).
 
-## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
-
-Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
-
 ### Sesión 16-oct-2026 (mañana) · **las cartas A y B del panel** — `[COMBOS-A-SETS]`, `[HOJA-PISO-TECHO]`, `[HOJA-MONTO-CERO]`, `[RESUMEN-HOJA]`, `[STATS-BANDAS]`, `[STATS-PRECIOS]`, `[EDICION-RAPIDA]`, `[ESPERA-QUIEN]`, `[DECANTS-PRECIO-NOTAS]`, `[VISTA-COMPACTA]`, `[PAUSADO-A-OCULTO]`, `[SIN-CONEXION-CODIGOS]`, `[SIN-CONEXION-HOJA]`
 
 Alejo trajo dos cartas escritas por el chat del DISEÑADOR (`DISEÑADOR_para_ClaudeCode_2026-10-16_A.md`: 12 puntos + PD; `_B.md`: modo sin conexión) y pidió leer el código de verdad antes de dar nada por hecho («para mí no leíste bien nada»). Una rama (`panel-tanda-16-oct`) y un commit por punto, probados en Chromium con datos simulados (la base real sólo en lectura). Lo que se encontró al leer:
@@ -5495,6 +5496,126 @@ Alejo trajo dos cartas escritas por el chat del DISEÑADOR (`DISEÑADOR_para_Cla
 **Después del primer cierre (misma mañana, con la prueba de Alejo en el iPhone):** (1) la cámara del iPhone no escaneaba sin red: el lector (1,1 MB) lo guardaba el SW nuevo, que todavía no controlaba la tablet → ahora lo guarda la página con la Cache API (v1.1.253); (2) al escribir un código el modal «Código nuevo» tenía un «Cancelar» subrayado en gris que no parecía botón → botones rojos «Cancelar · me equivoqué de código» y «Quitar» en Llegó mercadería, Esc cancela (v1.1.253); (3) Alejo pidió «Deshacer lindo, inspirate en sitios usados» → `deshacerToast` (Gmail/Drive) al guardar un código (v1.1.254) y al tachar un renglón con `caja_destachar` (v1.1.255; probada en la base real dentro de una transacción abortada: cierre 5→3, tachar →5, destachar →3, vencido, otra persona, cobro de deuda 300→500→300, deuda cambiada). Alejo corrió el SQL el 16-oct. NO ROMPER #39.
 
 **Quedó afuera a propósito:** cargar un perfume nuevo completo sin internet (`[PERFUME-NUEVO-SIN-RED]`), las notas a mano de los decants de diseñador (`[NOTAS-DECANT-A-MANO]`: no hay columna) y el precio de transferencia editable (`[PRECIO-TRANSFERENCIA-EDITABLE]`: no es un dato guardado). **Bug ortogonal visto:** ninguno nuevo.
+
+### Sesión 16-oct-2026 (mañana, después de las cartas) · **el QA completo del panel y sus arreglos** — `[VENTA-COMO-DATO]`, `[LABORATORIO]`, `[QA-COMPLETO-PANEL]` y los 8 graves y 15 importantes del informe
+
+Dos chats seguidos sobre la rama `panel-tanda-16-oct`, sin cierre entre medio, así que este cierre cubre 24 commits, de `0477941` a `6770ebf`. El primero hizo la carta B del DISEÑADOR (la venta como dato), el Laboratorio y el QA «a fondo» que pidió Alejo, y arregló los 8 hallazgos graves. El segundo arrancó con `/arranque` («sigamos con la tanda de cambios») y cerró los 15 importantes en el orden que eligió Alejo (B1 → B8 → B10 → B2-B6 → B11, y después B9, B7, B12-B15), con Opus 5.5 en alto. Todo está en producción (SW **v1.1.277**), subido por Alejo de a un commit.
+
+#### Qué se hizo
+
+**Primer chat (SW v1.1.256 → v1.1.264):**
+- `0477941` `[VENTA-COMO-DATO]` (v1.1.256, NO ROMPER #40): cada venta de la hoja deja filas en `ventas` (trigger `caja_a_ventas`, «Vino por», ml del decant). Los costos de compra viven en tablas privadas del jefe. El SQL es `sql/venta_como_dato.sql`, aplicado por Claude Code con el MCP de Supabase.
+- `5017ece` `[LABORATORIO]` (v1.1.257, NO ROMPER #41): la tercera cuenta del login, de sólo mirar, con la RPC `lab_metricas` (`sql/rol_laboratorio.sql`, aplicada). `855d2d6` (v1.1.258): sus gráficos en SVG, cada uno con «Qué es / Para qué sirve» y «Ver como tabla».
+- `5107632` (v1.1.259): el informe `docs/QA-ADMIN-2026-10-16.md` y el equipo de QA sobre una copia en memoria (`scripts/qa-copia/`). La página nunca habla con Supabase, y la huella de 13 tablas reales salió idéntica antes y después. En el mismo commit, cerrar sesión pasó a limpiar los costos y el Laboratorio.
+- A1 a A8:
+  - `5ce20b6` `[VALIDAR-STOCK]` `[VALIDAR-EDICION]` (v1.1.260, #42).
+  - `0ecad29` el lápiz ✎ con `precioDeTexto` (v1.1.261).
+  - `2f41e82` `[TABLAS-TARJETAS]` `[VALIDAR-HORARIO]` (v1.1.262, #43).
+  - `6f34377` `[CLIENTES-TOQUE]` (v1.1.263, #44).
+  - `d1ed114` `[LIMPIAR-SESION]` (v1.1.264, #45).
+
+**Segundo chat (SW v1.1.265 → v1.1.277), cada uno probado en la copia antes de commitear:**
+- `f375252` `[BUSCAR-TOLERANTE]` (B1, v1.1.265, #46): los 13 buscadores de perfumes y el de Puntos buscan cada palabra, en cualquier orden, sin tildes ni espacios de más (`busqPalabras` + `busqPasa`).
+- `b15889e` `[VENTANAS-CIERRE]` (B8, v1.1.266, #47):
+  - Escape cierra la ventana de arriba.
+  - Tocar afuera, o Escape, con cambios sin guardar no cierra: la ventana se sacude y avisa.
+  - La × mide 44 × 44 y tiene `aria-label`.
+  - Con mouse, el campo de stock queda enfocado, y pide teclado numérico.
+- `ad8c00e` `[LOGIN-VACIO]` (parte de B10, v1.1.267).
+- Validaciones (B2 a B6):
+  - `2bc557a` `[VALIDAR-NUEVO]` (B2, v1.1.268).
+  - `8f0cc79` `[VALIDAR-SET]` (B3, v1.1.269).
+  - `78dc961` `[VALIDAR-DECANTS]` (B4, v1.1.270).
+  - `410e84d` `[VALIDAR-PUNTOS]` (B5, v1.1.271).
+  - `d8bddc9` `[VALIDAR-VOTACION]` (B6, v1.1.272).
+- `3ab68d0` `[CARGA-EN-PARALELO]` (B11, v1.1.273, #48): las 4 lecturas del catálogo salen juntas al entrar. Con 400 ms por pedido bajó de 1,62 s a 0,41 s, con el mismo resultado en los 156 perfumes.
+- `1df5ff9` (docs): B9 ya estaba resuelto por las guardias de A3/A4. Medido: 4 clics reales sobre «OK» dejan 1 renglón en el Log.
+- `7f63ec8` `[PUSH-LINK-PROPIO]` (B7, v1.1.274, #49): el link del push tiene que ser de la tienda. Se revisa en el panel, en `api/send-notification.js` (que responde 400) y en `sw.js`. `scripts/probar_link_push.js` prueba las tres copias con 24 casos.
+- `d9f6a42` `[ETIQUETAS-ATADAS]` (B14, v1.1.275, #50): ~110 etiquetas quedaron atadas a su campo. Medido: 0 controles sin nombre de 1035 (jefe).
+- `62313b4` `[CONTRASTE-CLARO]` (B15, v1.1.276): los textos que no se leían en claro quedan a 5,3:1 o más. El oscuro no cambia.
+- `6770ebf` `[TOQUE-44]` `[DOCTOR-VER-MAS]` (B12 y B13, v1.1.277, #51): 44 px al tacto (`pointer: coarse`) y el Doctor de a 30.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:**
+  - el orden de los B: B1 → B8 → B10 → B2-B6 → B11, y después B9, B7, B12-B15;
+  - cambiar a Opus 5.5 en alto para la tanda de código;
+  - subir de a un commit, con los comandos **uno debajo del otro** y sólo cuando él los pide;
+  - cerrar la tanda después del humo.
+- **Propuse yo y Alejo no lo discutió (quedó así):**
+  - tocar afuera con cambios **no cierra**: la ventana se sacude y avisa, en vez de preguntar «¿seguro?»;
+  - con mouse el campo de stock queda enfocado, y **en la tablet no**, porque el teclado taparía + / − y el OK;
+  - un set lleva **al menos 2 cosas**;
+  - 44 px **sólo al tacto**: en la compu nada cambia;
+  - el Doctor de a 30.
+
+  Si Alejo prefiere otra cosa en alguna, es un cambio chico.
+- **Lo que se midió en la base real antes de cada regla (sólo lectura):**
+  - los 5 sets tienen 2 o 4 cosas y la promo bien;
+  - la config de decants (5 ml, 9.500 / 9.000 / 8.500, 100, 170.000) pasa;
+  - **los puntos llevan decimales**: un decant suma 0,10, por eso «1,5» queda 1,5 y no se exige entero;
+  - la única votación guardada no tiene nombres raros;
+  - los ítems de los sets son objetos.
+- **Lo que no era lo que decía el informe:**
+  - B6 hablaba de «slugs que no existen», pero los candidatos de Votación son nombres (botones en la web);
+  - B9 ya estaba resuelto;
+  - Clientes y Combos ya estaban casi en 0 toques chicos (los arregló A5).
+- **Errores míos, corregidos antes de commitear:**
+  - probé B4 una vez con la página vieja cargada: la copia hay que recargarla después de editar `admin.html`;
+  - el primer `etiquetasAtar` marcaba las revisadas con `for=""`, que desataría las etiquetas que envuelven su campo; pasó a `data-etq`;
+  - el primer `module.exports.linkPropio` quedaba pisado por el `module.exports = async …`. Se sacó: la prueba corta el texto de la función.
+- **Defecto de la copia, no del panel:** `scripts/qa-copia` guarda los ítems de los sets como texto y la base real como objetos, así que «Editar set» sale vacío en la copia.
+- **Quedó a propósito como estaba (B10, decide Alejo):**
+  - el contador de 5 fallos del login vive en el navegador;
+  - cada intento fallido hace 3 pedidos (así se sabe el rol sin pedir usuario);
+  - una contraseña pegada con un espacio adelante falla: sacarlo solo podría romper una contraseña que lo tenga.
+- **Contraste, a propósito sin tocar:** la inicial detrás de cada foto (Precios, Depósito, Doctor), las tarjetas de decants pausadas (atenuadas) y la flecha apagada del Resumen. `npm run contraste` sigue en las mismas 32 fallas de antes (tintas medidas sobre blanco).
+- **Orden de HISTORIA corregido en este cierre:** la sesión «16-oct (mañana)» había quedado adentro de § «🗄️ Archivo de “Última actualización”». Se movió, tal cual, antes del archivo.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[QA-COMPLETO-PANEL]` | El QA del panel sobre una copia en memoria, con su informe y cómo repetirlo |
+| `[QA-HALLAZGOS-16-OCT]` | Los 8 graves y 15 importantes del informe, arreglados (menos el resto de B10, que pasa a `[LOGIN-B10-RESTO]`) |
+| `[BUSCAR-TOLERANTE]` · `[VENTANAS-CIERRE]` · `[LOGIN-VACIO]` | Buscadores, ventanas y la contraseña vacía (B1, B8, B10) |
+| `[VALIDAR-NUEVO]` · `[VALIDAR-SET]` · `[VALIDAR-DECANTS]` · `[VALIDAR-PUNTOS]` · `[VALIDAR-VOTACION]` | Perfume nuevo, Sets, Decants, Puntos y Votación no guardan datos malos (B2 a B6) |
+| `[CARGA-EN-PARALELO]` · `[PUSH-LINK-PROPIO]` · `[ETIQUETAS-ATADAS]` · `[CONTRASTE-CLARO]` · `[TOQUE-44]` · `[DOCTOR-VER-MAS]` | B11, B7, B14, B15, B12 y B13 |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[HUMO-QA-16-OCT]` 🟡 | Probar con el dedo en la tablet los buscadores, las ventanas (tocar afuera con cambios) y las validaciones de Perfume nuevo y Sets. **Ya probado por Alejo (16-oct):** «Ver 30 más» del Doctor, Analytics en claro y las etiquetas de Editar |
+| `[LOGIN-B10-RESTO]` 🟢 | Decide Alejo: contador de fallos en la base, 3 pedidos por intento, espacio adelante |
+| `[VENTA-COMO-DATO-HUMO]` 🟡 | Una venta real con «Vino por» y un decant; crear el usuario del Laboratorio en Supabase |
+| `[LAB-FUNDAMENTOS]` 🟡 | Cuando haya semanas de ventas |
+
+#### 💬 Mensajes meta
+
+- «Acordate que los quiero uno debajo del otro cuando te los pida y con el play»: los comandos de push van cada uno en su bloque `bash`, uno debajo del otro, con una línea arriba, y **recién cuando Alejo los pide**. Anotado en `memory/preferencias_alejo.md` (#140).
+- Alejo prueba lo que le propongo como humo («probé las 3 y se ve todo ok!!!»): conviene darle 2 o 3 pruebas concretas y cortas, no una lista larga.
+
+**Estado del repo al cierre (16-oct, ~08:45):**
+- `origin/main` = `6770ebf`, con el SW **v1.1.277** en producción y el `admin.html` servido idéntico al del repo.
+- La rama `panel-tanda-16-oct` = `6770ebf` + este cierre.
+- Árbol limpio y la copia del QA apagada.
+
+**Próxima revisión cuando:**
+- 🟡 `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct
+- 🟢 `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
+## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
+
+Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 16-oct-2026 (~05:30, cierre de las cartas A y B) — pasó de `CLAUDE.md` al archivo el 16-oct (~08:45, cierre del QA del panel)
+
+**Última actualización:** **Octubre 16, 2026, ~05:30 (cierre de las cartas A y B del panel, rama `panel-tanda-16-oct`)** — 11 commits sobre `6bf3dd8` (SW **v1.1.242 → v1.1.252**). **Carta A (checklist del 16-oct):** Combos sale del menú (se crea y edita desde Sets) · la hoja no anota más de lo que hay ni con 0, y acepta $0 con alerta del jefe · el Resumen muestra la hoja de caja con hora y quién · Estadísticas con bandas «Esta semana» / «Desde el primer día», marca y precios en todos los rankings (la empleada sin transferencia) y espera Local/Web · vista Compacta · «Quién espera qué» · lápiz de edición rápida (jefe) · decants con precio grande y notas · «pausado» se llama «Oculto» en el panel. **Carta B (modo sin conexión):** escanear sin internet (copia de los códigos), cartel grande en la primera venta sin red, indicador con 4 estados, marca «sin red» y alerta de stock que no alcanzó en el Resumen. SQL aplicados por Alejo el 16-oct: `sql/caja_monto_cero.sql` y `sql/caja_sin_conexion.sql`. Reglas nuevas: NO ROMPER #37, #38 y #39. Después del primer cierre: el lector del iPhone se guarda desde la página, «Cancelar» visible al registrar un código y el aviso «Deshacer» (códigos y tachar renglones; SQL `caja_destachar.sql` aplicado el 16-oct, SW v1.1.255). **Pendientes nuevos:** `[HUMO-CARTAS-16-OCT]` · `[PERFUME-NUEVO-SIN-RED]` · `[NOTAS-DECANT-A-MANO]` · `[PRECIO-TRANSFERENCIA-EDITABLE]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 16-oct-2026 (mañana)».
 
 ### Última actualización del 16-oct-2026 (~02:50, cierre de la tanda 2 del panel) — pasó de `CLAUDE.md` al archivo el 16-oct (~05:30, cierre de las cartas A y B)
 
