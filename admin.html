@@ -1437,6 +1437,16 @@
     .tarjeta--dc .dc-mini { grid-row: 1 / 3; }
     .tarjeta--dc .tarjeta-nombre { font-size: .92rem; align-self: end; }
     .tarjeta--dc .tarjeta-sub { align-self: start; }
+    /* [DECANTS-PRECIO-NOTAS] B3 (16-oct) · el precio, grande, pegado al nombre (si no entra, baja a la línea de abajo; el nombre nunca se achica ni se corta);
+       debajo la marca y una línea de hasta 3 notas olfativas (o «sin notas», en gris) */
+    .tarjeta--dc { grid-template-columns: 40px minmax(0, 1fr); }
+    .tarjeta--dc .dc-cuerpo { grid-row: 1 / 3; grid-column: 2; display: flex; flex-direction: column; gap: .12rem; min-width: 0; }
+    .tarjeta--dc .dc-linea { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: .6rem; row-gap: 0; }
+    .tarjeta--dc .dc-linea .tarjeta-nombre { font-size: .92rem; flex: 0 1 auto; }
+    .tarjeta--dc .dc-precio { font-size: 1.45rem; font-weight: 800; line-height: 1.15; color: var(--amarillo-tinta); white-space: nowrap; }
+    .tarjeta--dc .dc-precio--sin { font-size: .8rem; font-weight: 700; color: var(--tinta-aviso); }
+    .tarjeta--dc .dc-notas { font-size: .72rem; color: var(--gris-claro); overflow-wrap: anywhere; }
+    .tarjeta--dc .dc-notas--sin { color: var(--gris); font-style: italic; }
     .dc-mini { width: 40px; height: 52px; border-radius: 6px; background: #fff; object-fit: contain; padding: 2px; box-sizing: border-box; }
     .dc-mini-vacia { display: flex; align-items: center; justify-content: center; background: rgba(232,184,0,.08); border: 1px dashed rgba(232,184,0,.4); font-size: 1.1rem; }
     .tarjeta--pausada { opacity: .55; }
@@ -9177,8 +9187,10 @@
       return '<div class="tarjetero">' + items.map(function(it) {
         return '<button type="button" class="tarjeta' + (it.elegida ? ' tarjeta--elegida' : '') + (it.clase ? ' ' + it.clase : '') + '" onclick="' + it.onclick + '">'
           + (it.antes || '')
-          + '<span class="tarjeta-nombre">' + escHtml(it.nombre || '') + '</span>'
-          + (it.sub ? '<span class="tarjeta-sub">' + escHtml(it.sub) + '</span>' : '')
+          + (it.cuerpo   // [DECANTS-PRECIO-NOTAS] B3 · HTML ya escapado que reemplaza al nombre + la línea chica (el precio va al lado del nombre)
+            ? it.cuerpo
+            : '<span class="tarjeta-nombre">' + escHtml(it.nombre || '') + '</span>'
+              + (it.sub ? '<span class="tarjeta-sub">' + escHtml(it.sub) + '</span>' : ''))
           + (it.etiqueta || '') + '</button>';
       }).join('') + '</div>';
     }
@@ -13943,6 +13955,22 @@
     // saveDecantCustom / deleteDecantCustom por fila); ahora: dcAbrir(id | null) → dcGuardar() → dcQuitar().
     var DC = { id: null };   // el decant abierto en la ventana; null = uno nuevo
     function dcDe(id) { return DECANTS_CUSTOM_CACHE.find(function(p) { return p.id === id; }) || null; }
+    // [DECANTS-PRECIO-NOTAS] B3 · hasta 3 notas olfativas de un decant. decants_custom NO tiene columna de notas, así que se toman del perfume del
+    // catálogo que se llama igual (si lo hay): una por grupo, salida → corazón → fondo, y si faltan para llegar a 3 se completa en ese mismo orden.
+    // Sin coincidencia o sin notas: texto vacío (la tarjeta dice «sin notas»). Nada se inventa.
+    function decantNotasDe(nombre) {
+      var n = promoNorm(nombre);
+      if (!n) return '';
+      var pf = PERFUMES.find(function(x) { return !x.esSet && promoNorm(x.name) === n; });
+      if (!pf) return '';
+      var grupos = [pf.notas_salida, pf.notas_corazon, pf.notas_base].map(function(t) {
+        return String(t || '').split(',').map(function(x) { return x.trim(); }).filter(Boolean);
+      });
+      var out = [];
+      grupos.forEach(function(g) { if (g.length && out.length < 3) out.push(g[0]); });
+      grupos.forEach(function(g) { g.slice(1).forEach(function(x) { if (out.length < 3 && out.indexOf(x) === -1) out.push(x); }); });
+      return out.slice(0, 3).join(' · ');
+    }
     function renderDecantsCustomList() {
       var list = document.getElementById('decantsCustomList'), cuenta = document.getElementById('decantsCustomCuenta');
       if (!list) return;
@@ -13950,12 +13978,16 @@
       if (cuenta) cuenta.textContent = DECANTS_CUSTOM_CACHE.length ? '· ' + activos + (activos !== DECANTS_CUSTOM_CACHE.length ? ' de ' + DECANTS_CUSTOM_CACHE.length : '') : '';
       var items = [{ clase: 'tarjeta--agregar', onclick: 'dcAbrir(null)', nombre: '+ Agregar', sub: 'un decant de diseñador' }];
       DECANTS_CUSTOM_CACHE.forEach(function(p) {
-        var precio = promoNum(p.precio_unit) > 0 ? promoPesos(promoNum(p.precio_unit)) : 'sin precio';
-        var sub = (p.marca ? p.marca + ' · ' : '') + precio + (p.activo ? '' : ' · pausado');
+        var tienePrecio = promoNum(p.precio_unit) > 0;
+        var notas = decantNotasDe(p.nombre);
         var foto = (p.foto_url && String(p.foto_url).trim())
           ? '<img class="dc-mini" src="' + escHtml(String(p.foto_url)) + '" alt="" loading="lazy" onerror="this.remove()">'
           : '<span class="dc-mini dc-mini-vacia">💎</span>';
-        items.push({ clase: 'tarjeta--dc' + (p.activo ? '' : ' tarjeta--pausada'), onclick: 'dcAbrir(' + Number(p.id) + ')', nombre: p.nombre || '(sin nombre)', sub: sub, antes: foto });
+        var cuerpo = '<span class="dc-cuerpo"><span class="dc-linea"><span class="tarjeta-nombre">' + escHtml(p.nombre || '(sin nombre)') + '</span>'
+          + (tienePrecio ? '<span class="dc-precio">' + escHtml(promoPesos(promoNum(p.precio_unit))) + '</span>' : '<span class="dc-precio dc-precio--sin">sin precio</span>') + '</span>'
+          + ((p.marca || !p.activo) ? '<span class="tarjeta-sub">' + escHtml((p.marca || '') + (p.marca && !p.activo ? ' · ' : '') + (p.activo ? '' : 'pausado')) + '</span>' : '')
+          + (notas ? '<span class="dc-notas">' + escHtml(notas) + '</span>' : '<span class="dc-notas dc-notas--sin">sin notas</span>') + '</span>';
+        items.push({ clase: 'tarjeta--dc' + (p.activo ? '' : ' tarjeta--pausada'), onclick: 'dcAbrir(' + Number(p.id) + ')', nombre: p.nombre || '(sin nombre)', cuerpo: cuerpo, antes: foto });
       });
       list.innerHTML = tarjeteroHTML(items);
     }
