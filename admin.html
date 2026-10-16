@@ -5236,6 +5236,24 @@
 
     // Mostrar el panel y cargar los datos iniciales. Reusable para login
     // manual y para auto-restore cuando ya hay sesi\u00f3n de Supabase activa.
+    // [CARGA-EN-PARALELO] 16-oct-2026 · B11 del QA: al entrar, las 4 lecturas del catálogo (nuevos, stock, overrides, combos) iban una
+    // detrás de otra: con 400 ms por pedido el catálogo aparecía a los ~2 s. Ahora salen JUNTAS y cada carga (mergeNuevosIntoPerfumes,
+    // loadStockFromDB, loadOverridesIntoPerfumes, loadCombosFromDB) toma la suya con precargaTomar; si no hay (una recarga, el resync),
+    // pide como siempre. Lo que se APLICA sigue en el mismo orden (los nuevos antes del stock; los combos al final). Cada consulta es la
+    // misma de su carga: si cambiás una, cambiá la otra (SINCRO).
+    var PRECARGA = {};
+    function precargaCatalogo() {
+      if (!sb) return;
+      var pedir = function(q) { var p = Promise.resolve(q); p.catch(function() {}); return p; };   // el builder sale recién con then(); el catch evita el aviso si nadie la usa
+      PRECARGA = {
+        nuevos: pedir(sb.from('perfumes_nuevos').select('*')),
+        stock: pedir(sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito')),
+        overrides: pedir(sb.from('perfume_overrides').select('*')),
+        combos: pedir(sb.from('combos').select('*'))
+      };
+    }
+    function precargaTomar(clave) { var p = PRECARGA[clave]; delete PRECARGA[clave]; return p || null; }
+
     async function enterAdminPanel(role) {
       currentRole = role;
       document.getElementById('loginWrap').style.display = 'none';
@@ -5258,6 +5276,8 @@
         if (typeof p.promo === 'string' && p.promo !== '') p.promo = parsePrice(p.promo);
         else if (!p.promo) p.promo = null;
       });
+      // [CARGA-EN-PARALELO] B11 del QA: las 4 lecturas salen juntas; cada carga de abajo toma la suya y las APLICA en el mismo orden de siempre
+      precargaCatalogo();
       // Mergear perfumes de Supabase (perfumes_nuevos) en PERFUMES
       // ANTES de renderizar, para que EDITAR / PRECIOS / STOCK los vean
       await mergeNuevosIntoPerfumes();
@@ -5751,6 +5771,7 @@
     function sesionLimpiar() {
       try {
         tabLoaded = {};
+        PRECARGA = {};   // [CARGA-EN-PARALELO] lo pedido con la sesión anterior no se usa
         allClientes = []; esperaData = []; logEventos = []; resumenData = null; resumenHoja = null; _puntosRankingData = [];
         HOJA.filas = null; HOJA.carro = []; HOJA.sel = null; HOJA.paso = 'inicio'; HOJA.pendientes = null; HOJA.cierreVista = null; HOJA.cobro = null; HOJA.medio = null;
         HOJA.montos = { efectivo: '', mp: '', posnet: '' }; HOJA.debe = ''; HOJA.quien = ''; HOJA.vino = 'local'; HOJA.waKey = null; HOJA.waN = 0; HOJA.notaTxt = ''; HOJA.busca = '';
@@ -6369,7 +6390,7 @@
     var overridesCargado = false;
     async function loadStockFromDB() {
       try {
-        var { data, error } = await sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito');
+        var { data, error } = await (precargaTomar('stock') || sb.from('perfume_overrides').select('slug, stock_status, stock_qty, stock_deposito'));   // [CARGA-EN-PARALELO]
         if (error) { sinLeer('stock', error, 'cargar el stock'); return; }   // [GUARDAR-SIN-LEER]
         stockCargado = true;
         leido('stock');
@@ -6392,7 +6413,7 @@
     // a perfumes que ya tenían foto override guardada.
     async function loadOverridesIntoPerfumes() {
       try {
-        var { data, error } = await sb.from('perfume_overrides').select('*');
+        var { data, error } = await (precargaTomar('overrides') || sb.from('perfume_overrides').select('*'));   // [CARGA-EN-PARALELO]
         // [GUARDAR-SIN-LEER] sin los overrides, Editar mostraba lo de perfumes.js y «Guardar» lo escribía encima de lo guardado
         if (error) {
           sinLeer('overrides', error, 'cargar los datos de los perfumes'); overridesCargado = false;
@@ -9917,7 +9938,7 @@
     // Sin esto, EDITAR/PRECIOS/STOCK no ven los perfumes agregados desde el admin.
     async function mergeNuevosIntoPerfumes() {
       try {
-        var { data, error } = await sb.from('perfumes_nuevos').select('*');
+        var { data, error } = await (precargaTomar('nuevos') || sb.from('perfumes_nuevos').select('*'));   // [CARGA-EN-PARALELO]
         // [GUARDAR-SIN-LEER] sólo se anota, para Editar combo; que la tabla no lo diga es [PANEL-STOCK-CALLA]
         if (error) {
           sinLeer('nuevos', error, 'cargar los perfumes nuevos');
@@ -12884,7 +12905,7 @@
 
     async function loadCombosFromDB() {
       try {
-        var { data, error } = await sb.from('combos').select('*');
+        var { data, error } = await (precargaTomar('combos') || sb.from('combos').select('*'));   // [CARGA-EN-PARALELO]
         if (error && colaEsDeRed(error) && copiaLeer('combos')) { var cp = copiaLeer('combos'); copiaUsada(cp); data = cp.filas; error = null; }   // [PANEL-SIN-CONEXION]
         else if (!error) copiaGuardar('combos', data || []);
         if (error) throw error;   // [CARGA-FALLIDA-CERO] antes se ignoraba y quedaban los combos de perfumes.js
