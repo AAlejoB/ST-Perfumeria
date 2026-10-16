@@ -777,6 +777,21 @@
     }
     .td-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; background: #fff; }
     .td-foto-ini { font-size: 1.1rem; font-weight: 700; color: rgba(0,0,0,.22); }
+    /* ══ [FOTO-VISOR] mantener apretada una foto la abre grande (todo el panel, sólo al tacto). Sin el menú del sistema
+       (Android: «Descargar imagen»; iPhone: su vista previa), sin seleccionar ni arrastrar la foto. ══ */
+    img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+    .modal-overlay.foto-visor { z-index: 10050; background: rgba(0,0,0,.92); flex-direction: column; padding: 1rem; cursor: zoom-out; }
+    .fv-caja {
+      margin: 0; background: #fff; border-radius: 18px; padding: 1rem;
+      width: min(92vw, 560px); display: flex; flex-direction: column; align-items: center; gap: .8rem;
+      box-shadow: 0 12px 48px rgba(0,0,0,.5);
+    }
+    .fv-caja img { display: block; width: 100%; height: min(70vh, 620px); object-fit: contain; }
+    .fv-pie { display: flex; flex-direction: column; align-items: center; gap: .15rem; text-align: center; padding: 0 .5rem .3rem; }
+    .fv-nombre { font-size: 1.35rem; font-weight: 800; color: #111; line-height: 1.2; }
+    .fv-marca { font-size: .95rem; color: #555; }
+    .fv-marca:empty, .fv-pie[hidden] { display: none; }
+    .foto-visor .fv-cerrar { position: fixed; top: .75rem; right: .75rem; color: #fff; font-size: 1.6rem; }
     /* [VISTA-LISTA-PANEL] (13-oct, Alejo: la casilla «Con foto» confundía) «Vista: Sólo nombres | Con foto», dos botones
        pegados como el ▦ ☰ del catálogo: dice CÓMO se ve la lista, no prende ni apaga perfumes. La elegida, rellena de amarillo. */
     .vista-lista {
@@ -6942,9 +6957,106 @@
     function stockFotoHTML(src, nombre) {
       var ini = String(nombre || '').trim().charAt(0).toUpperCase() || '?';
       return '<span class="td-foto"><span class="td-foto-ini" aria-hidden="true">' + escHtml(ini) + '</span>'
-        + (src ? '<img src="' + escHtml(String(src).replace(/ /g, '%20')) + '" alt="" width="52" height="64" loading="lazy" decoding="async" onerror="this.remove()">' : '')
+        + (src ? '<img src="' + escHtml(String(src).replace(/ /g, '%20')) + '" alt="" data-nombre="' + escHtml(nombre || '') + '" width="52" height="64" loading="lazy" decoding="async" onerror="this.remove()">' : '')
         + '</span>';
     }
+
+    // ============================================================
+    // [FOTO-VISOR] 16-oct-2026 · pedido de Alejo: en la Galaxy Tab A9 mantener apretada una foto del panel no abría nada (Chrome de
+    // Android muestra un menú «Descargar imagen», no una vista previa como el iPhone), y las chicas quieren mostrarle el frasco al
+    // cliente. Ahora, en TODO el panel, mantener apretada cualquier foto (~0,45 s) la abre grande en un cuadro blanco con el nombre
+    // abajo. Se cierra tocando en cualquier lado, con la ×, con Escape o con «atrás» del Android. Sólo al tacto: con mouse no cambia
+    // nada. Va encima de cualquier ventana (Editar, «Qué querés hacer»…) y no toca la de abajo (no usa closeModal: borraría editingSlug).
+    // Una foto chiquita (< 28 px) o sin cargar no abre. No baja nada nuevo: muestra el mismo archivo de la miniatura.
+    // ============================================================
+    var FOTO_VISOR_MS = 450;
+    var _fv = { t: 0, x: 0, y: 0, img: null, abierto: 0, toque: 0 };
+
+    function fotoVisorDe(el) {
+      if (!el || el.tagName !== 'IMG' || el.closest('#fotoVisor')) return null;
+      if (!el.currentSrc && !el.src) return null;
+      if (!el.complete || !el.naturalWidth) return null;
+      var r = el.getBoundingClientRect();
+      if (r.width < 28 || r.height < 28) return null;
+      return el;
+    }
+
+    function fotoVisorNombre(img) {
+      var n = img.dataset.nombre || img.alt || '', marca = '';
+      var fila = img.closest('[data-slug]');
+      var slug = fila ? fila.getAttribute('data-slug') : '';
+      var p = (slug && typeof PERFUMES !== 'undefined') ? PERFUMES.find(function(x) { return x.slug === slug; }) : null;
+      if (p) { n = n || p.name || ''; marca = p.marca_real || p.marca || ''; }
+      return { nombre: n, marca: marca };
+    }
+
+    function fotoVisorAbrir(img) {
+      var ov = document.getElementById('fotoVisor');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'fotoVisor';
+        ov.className = 'modal-overlay foto-visor';
+        ov.setAttribute('role', 'dialog');
+        ov.setAttribute('aria-modal', 'true');
+        ov.setAttribute('aria-label', 'Foto del perfume');
+        ov.innerHTML = '<button type="button" class="modal-close fv-cerrar" aria-label="Cerrar">✕</button>'
+          + '<figure class="fv-caja"><img id="fotoVisorImg" alt=""><figcaption class="fv-pie">'
+          + '<span class="fv-nombre" id="fotoVisorNombre"></span><span class="fv-marca" id="fotoVisorMarca"></span></figcaption></figure>';
+        ov.addEventListener('click', function(e) {
+          if (Date.now() - _fv.abierto < 700) return;   // el mismo dedo que la abrió, al soltar
+          fotoVisorCerrar();
+        });
+        document.body.appendChild(ov);
+      }
+      var info = fotoVisorNombre(img);
+      var big = document.getElementById('fotoVisorImg');
+      big.src = img.currentSrc || img.src;
+      big.alt = info.nombre;
+      document.getElementById('fotoVisorNombre').textContent = info.nombre;
+      document.getElementById('fotoVisorMarca').textContent = info.marca;
+      ov.querySelector('.fv-pie').hidden = !info.nombre && !info.marca;
+      _fv.abierto = Date.now();
+      if (!ov.classList.contains('active')) {
+        ov.classList.add('active');
+        try { history.pushState({ fotoVisor: 1 }, ''); } catch (e) {}   // «atrás» del Android cierra la foto, no el panel
+      }
+    }
+
+    function fotoVisorCerrar(desdeAtras) {
+      var ov = document.getElementById('fotoVisor');
+      if (!ov || !ov.classList.contains('active')) return;
+      ov.classList.remove('active');
+      if (!desdeAtras && history.state && history.state.fotoVisor) { try { history.back(); } catch (e) {} }
+    }
+
+    function fotoVisorSoltar() { clearTimeout(_fv.t); _fv.t = 0; _fv.img = null; }
+
+    document.addEventListener('pointerdown', function(e) {
+      fotoVisorSoltar();
+      if (e.pointerType === 'mouse') return;
+      var img = fotoVisorDe(e.target);
+      if (!img) return;
+      _fv.toque = Date.now();
+      _fv.img = img; _fv.x = e.clientX; _fv.y = e.clientY;
+      _fv.t = setTimeout(function() { var i = _fv.img; fotoVisorSoltar(); if (i) fotoVisorAbrir(i); }, FOTO_VISOR_MS);
+    }, { passive: true });
+    document.addEventListener('pointermove', function(e) {
+      if (_fv.img && Math.abs(e.clientX - _fv.x) + Math.abs(e.clientY - _fv.y) > 12) fotoVisorSoltar();   // está deslizando la lista
+    }, { passive: true });
+    ['pointerup', 'pointercancel'].forEach(function(t) { document.addEventListener(t, fotoVisorSoltar, { passive: true }); });
+    window.addEventListener('scroll', fotoVisorSoltar, { passive: true, capture: true });
+    // El menú del Android («Descargar imagen…») al mantener apretada: en su lugar, la foto grande.
+    document.addEventListener('contextmenu', function(e) {
+      var img = fotoVisorDe(e.target);
+      if (!img || Date.now() - _fv.toque > 2000) return;   // con mouse (clic derecho) sigue el menú de siempre
+      e.preventDefault();
+      if (Date.now() - _fv.abierto > 700) { fotoVisorSoltar(); fotoVisorAbrir(img); }
+    }, true);
+    // El clic que llega al soltar el dedo no tiene que tocar lo de abajo (un botón, la fila).
+    document.addEventListener('click', function(e) {
+      if (Date.now() - _fv.abierto < 700 && !(e.target.closest && e.target.closest('#fotoVisor'))) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    window.addEventListener('popstate', function() { fotoVisorCerrar(true); });
 
     // La celda del nombre de las dos tablas: con foto, la miniatura a la izquierda y los textos (nombre, marca, avisos) a la derecha.
     function stockCeldaNombre(textos, src, nombre, slug) {
