@@ -1227,6 +1227,25 @@
     .cod-sub { text-align: center; font-size: .8rem; line-height: 1.5; color: var(--gris-claro); margin: 0 0 1rem; }
     .cod-btn-borde { background: transparent; color: var(--amarillo-tinta); border: 1px solid var(--amarillo-tinta); }
     .cod-btn-texto { background: transparent; color: var(--gris-claro); text-decoration: underline; }
+    /* [DESHACER] 16-oct (Alejo: «inspirate en lugares donde funciona») · el aviso con «Deshacer» de Gmail y Google Drive: una pastilla oscura abajo, el
+       botón grande a la derecha y una barrita que se va vaciando. Colores fijos en los dos temas (la letra la decide el fondo). */
+    .deshacer { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 10050; width: min(540px, calc(100vw - 24px)); min-height: 60px; box-sizing: border-box;
+      display: flex; align-items: center; gap: .75rem; padding: .4rem .5rem .4rem .9rem; border-radius: 14px; overflow: hidden; background: #1d1d20; color: #fff;
+      box-shadow: 0 12px 32px rgba(0,0,0,.38), 0 0 0 1px rgba(255,255,255,.1); transform: translate(-50%, 28px); opacity: 0; pointer-events: none;
+      transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s ease; }
+    .deshacer.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+    .deshacer-ico { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .95rem; font-weight: 800; background: #2ecc71; color: #000; }
+    .deshacer--error .deshacer-ico { background: #ff8a80; }
+    .deshacer-txt { flex: 1 1 auto; min-width: 0; font-size: .9rem; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+    .deshacer-txt small { display: block; font-size: .72rem; font-weight: 400; opacity: .72; }
+    .deshacer-btn { flex: 0 0 auto; min-height: 48px; min-width: 48px; padding: 0 1rem; border: 0; border-radius: 10px; background: transparent; color: #ffd000; font: inherit; font-size: .86rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .deshacer-btn:hover, .deshacer-btn:focus-visible { background: rgba(255,208,0,.16); outline: none; }
+    .deshacer-btn:active { background: rgba(255,208,0,.28); }
+    .deshacer-btn[disabled] { opacity: .55; cursor: default; }
+    .deshacer-barra { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #ffd000; transform-origin: left center; animation: deshacerBarra var(--deshacer-ms, 8000ms) linear forwards; }
+    .deshacer.pausa .deshacer-barra { animation-play-state: paused; }
+    @keyframes deshacerBarra { to { transform: scaleX(0); } }
+    @media (prefers-reduced-motion: reduce) { .deshacer { transition: opacity .15s ease; transform: translate(-50%, 0); } .deshacer-barra { animation-duration: 0.001ms; } }
     /* [CODIGO-CANCELAR] 16-oct (Alejo: «nunca pensamos en la posibilidad de cancelarlo»): un botón de verdad, no un link gris */
     .cod-btn-cancelar { background: transparent; color: var(--tinta-error); border: 1.5px solid var(--tinta-error); min-height: 48px; font-weight: 700; }
     .cod-lista { max-height: 46vh; overflow-y: auto; margin: .4rem 0 .6rem; border: 1px solid var(--borde); border-radius: 6px; }
@@ -9373,9 +9392,67 @@
       COD.guardando = true;
       var r; try { r = await codAsociar(COD.codigo, p.slug); } finally { COD.guardando = false; }
       if (!r.ok) { COD.slug = ''; codPintarLista(); g.disabled = false; msg.style.color = 'var(--tinta-error)'; msg.textContent = r.texto; return; }
+      var codGuardado = COD.codigo, slugGuardado = p.slug;
       closeModal('modalCodigoNuevo');
       escMostrar(p, COD.tab, '✓ Código guardado en ' + p.name);
+      deshacerToast({ texto: 'Código guardado en ' + p.name, sub: codGuardado + (r.pendiente ? ' · se sube cuando vuelva internet' : ''), alDeshacer: function() { return codDeshacer(codGuardado, slugGuardado); } });   // [DESHACER]
     }
+    // ============================================================
+    // [DESHACER] (16-oct-2026) · el aviso «Hecho · DESHACER» que usan Gmail («Mensaje enviado») y Google Drive («Movido a la papelera»): lo hecho ya está
+    // hecho, y durante 8 segundos hay un botón grande para volver atrás, sin preguntar «¿seguro?» antes. Una sola pastilla a la vez (la nueva reemplaza a la
+    // anterior); se frena mientras se toca o se pasa el mouse por encima; Esc la cierra (no deshace). Reutilizable: deshacerToast({ texto, sub, ms, alDeshacer })
+    // donde alDeshacer() devuelve (o promete) { ok, texto } con el mensaje que se muestra después. Hoy lo usa guardar un código de barras en un perfume.
+    // ============================================================
+    var DESHACER = { el: null, timer: null, fin: 0, resto: 0, hacer: null, ocupado: false };
+    function deshacerCerrar() {
+      clearTimeout(DESHACER.timer); DESHACER.timer = null; DESHACER.hacer = null;
+      var el = DESHACER.el; if (!el) return;
+      el.classList.remove('on');
+      setTimeout(function() { if (DESHACER.el === el && !el.classList.contains('on')) { el.remove(); DESHACER.el = null; } }, 350);
+    }
+    function deshacerArmar(ms) {
+      clearTimeout(DESHACER.timer); DESHACER.resto = ms; DESHACER.fin = Date.now() + ms;
+      DESHACER.timer = setTimeout(deshacerCerrar, ms);
+    }
+    function deshacerToast(o) {
+      var prev = DESHACER.el; if (prev) { prev.remove(); DESHACER.el = null; }
+      var ms = o.ms || 8000, el = document.createElement('div');
+      el.className = 'deshacer'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+      el.style.setProperty('--deshacer-ms', ms + 'ms');
+      el.innerHTML = '<span class="deshacer-ico" aria-hidden="true">✓</span><div class="deshacer-txt">' + escHtml(o.texto || '') + (o.sub ? '<small>' + escHtml(o.sub) + '</small>' : '') + '</div>'
+        + (o.alDeshacer ? '<button type="button" class="deshacer-btn">Deshacer</button>' : '') + '<span class="deshacer-barra"></span>';
+      document.body.appendChild(el); DESHACER.el = el; DESHACER.hacer = o.alDeshacer || null; DESHACER.ocupado = false;
+      var pausar = function() { if (DESHACER.ocupado) return; clearTimeout(DESHACER.timer); DESHACER.resto = Math.max(1500, DESHACER.fin - Date.now()); el.classList.add('pausa'); };
+      var seguir = function() { if (DESHACER.ocupado) return; el.classList.remove('pausa'); deshacerArmar(DESHACER.resto); };
+      el.addEventListener('pointerenter', pausar); el.addEventListener('pointerdown', pausar);
+      el.addEventListener('pointerleave', seguir); el.addEventListener('pointerup', seguir); el.addEventListener('pointercancel', seguir);
+      var btn = el.querySelector('.deshacer-btn');
+      if (btn) btn.addEventListener('click', async function() {
+        var hacer = DESHACER.hacer; if (!hacer || DESHACER.ocupado) return;
+        DESHACER.ocupado = true; clearTimeout(DESHACER.timer); el.classList.add('pausa');
+        btn.disabled = true; btn.textContent = 'Deshaciendo…';
+        var r; try { r = await hacer(); } catch (e) { r = { ok: false, texto: 'No se pudo deshacer.' }; }
+        deshacerToast({ texto: (r && r.texto) || (r && r.ok ? 'Listo, deshecho' : 'No se pudo deshacer'), ms: r && r.ok ? 3500 : 6000, error: !(r && r.ok) });
+      });
+      requestAnimationFrame(function() { requestAnimationFrame(function() { el.classList.add('on'); }); });
+      if (o.error) { el.classList.add('deshacer--error'); el.querySelector('.deshacer-ico').textContent = '!'; }
+      deshacerArmar(ms);
+    }
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && DESHACER.el && !DESHACER.ocupado) deshacerCerrar(); });
+    // Deshacer «guardar un código en un perfume»: si todavía espera en la cola (se guardó sin internet) se saca de ahí; si ya subió, se borra de la base.
+    async function codDeshacer(codigo, slug) {
+      var lista = colaLeer(), it = lista.filter(function(x) { return x.tipo === 'codigo' && x.fila && x.fila.codigo === codigo && x.fila.slug === slug; })[0];
+      if (it) { colaGuardar(lista.filter(function(x) { return x.k !== it.k; })); colaPintar(); colaProgramar(); codMapaQuitar(codigo); return { ok: true, texto: 'Listo: el código quedó sin registrar' }; }
+      var r = await colaConTope(function() { return sb.from('perfume_codigos').delete().eq('codigo', codigo).eq('slug', slug).select('codigo'); });
+      if (r.error) {
+        if (colaEsDeRed(r.error)) return { ok: false, texto: 'Sin internet: no se pudo deshacer. Quitalo desde Editar cuando vuelva.' };
+        return { ok: false, texto: codErrorTexto(r.error, 'deshacer el código') };
+      }
+      codMapaQuitar(codigo);
+      if (r.data && r.data.length) logAdminAction('codigo_quitado', slug, { codigo: codigo, deshecho: true });
+      return { ok: true, texto: 'Listo: el código quedó sin registrar' };
+    }
+
     // 163f · «Es nuevo»: el alta de Perfume con el código puesto
     function codEsNuevo() {
       closeModal('modalCodigoNuevo');
