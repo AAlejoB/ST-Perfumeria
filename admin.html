@@ -3025,7 +3025,7 @@
           <div class="stat-desglose">
             <div class="stat-desglose-fila"><span class="stat-desglose-nombre">🏪 Local</span><span class="stat-desglose-monto" id="statValorLocal">—</span></div>
             <div class="stat-desglose-fila"><span class="stat-desglose-nombre">📦 Depósito</span><span class="stat-desglose-monto" id="statValorDep">—</span></div>
-            <div class="stat-desglose-fila stat-desglose-pausados"><span class="stat-desglose-nombre">⏸️ Incluye pausados</span><span class="stat-desglose-monto" id="statValorPausados">—</span></div>
+            <div class="stat-desglose-fila stat-desglose-pausados"><span class="stat-desglose-nombre">⏸️ Incluye ocultos</span><span class="stat-desglose-monto" id="statValorPausados">—</span></div>
           </div>
         </div>
       </div>
@@ -3056,9 +3056,9 @@
         </div>
         <!-- [OCULTAR-PAUSADOS] Casilla en la misma fila que "Ordenar por".
              Sin data-role: la ven jefe y empleadas por igual. -->
-        <label id="lblVerPausados" title="Los perfumes pausados no se muestran en el catálogo público" style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
+        <label id="lblVerPausados" title="Los perfumes ocultos no se muestran en el catálogo público (en el local se pueden vender si tienen stock)" style="display:flex;align-items:center;gap:.45rem;white-space:nowrap;cursor:pointer;font-size:.8rem;color:#ddd;background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:4px;padding:.65rem .9rem;">
           <input type="checkbox" id="chkVerPausados" onchange="toggleVerPausados()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
-          Mostrar pausados
+          Mostrar ocultos
         </label>
       </div>
       <p class="escaneo-nota" id="escaneoNotaPrecios" role="status" hidden></p>
@@ -4707,7 +4707,7 @@
 
       <label style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:#e4e4e4;cursor:pointer;margin-bottom:1rem;padding:.5rem;background:rgba(149,165,166,.08);border-radius:4px;border:1px solid rgba(149,165,166,.2);">
         <input type="checkbox" id="modalStockPaused" onchange="updateStockPreview()" style="width:18px;height:18px;cursor:pointer;"/>
-        <span><strong>Pausado</strong> <span style="color:var(--gris);">— archivado: NO aparece en la web (ni en el catálogo, ni en el buscador, ni en la Selección ST). Se sigue viendo acá en el panel.</span></span>
+        <span><strong>Oculto</strong> <span style="color:var(--gris);">— NO aparece en la web (ni en el catálogo, ni en el buscador, ni en la Selección ST). Se sigue viendo acá en el panel y, si tiene stock, se puede vender en el local.</span></span>
       </label>
 
       <button class="modal-btn modal-btn-price" id="modalStockBtn" onclick="saveStock()">✓ OK, actualizar stock</button>
@@ -6219,7 +6219,7 @@
       if (!p) return { badgeClass: 'badge-ok', badgeText: 'En stock', status: 'ok', qty: null };
 
       if (p._stockStatus === 'pausado') {
-        return { badgeClass: 'badge-paused', badgeText: 'Pausado', status: 'pausado', qty: p._stockQty };
+        return { badgeClass: 'badge-paused', badgeText: 'Oculto', status: 'pausado', qty: p._stockQty };   // [PAUSADO-A-OCULTO] sólo la etiqueta; el valor guardado sigue siendo «pausado»
       }
 
       var q = (typeof p._stockQty === 'number') ? p._stockQty : null;
@@ -6866,7 +6866,7 @@
       var avisoEl = document.getElementById('avisoPausados');
       if (avisoEl) {
         avisoEl.textContent = (ocultosPausados && !statActivo)
-          ? (ocultosPausados + (ocultosPausados === 1 ? ' pausado oculto' : ' pausados ocultos'))
+          ? (ocultosPausados + (ocultosPausados === 1 ? ' oculto fuera de la vista' : ' ocultos fuera de la vista'))
           : '';
       }
 
@@ -8260,7 +8260,7 @@
         if (!dif && !cambiaPausa) { msgEl.textContent = 'Sin cambios: no hay nada para guardar.'; msgEl.style.color = 'var(--tinta-aviso)'; return; }
         if (Math.abs(dif) > 999) { msgEl.textContent = 'Sin internet no se puede cambiar más de 999 de una vez.'; msgEl.style.color = 'var(--tinta-error)'; return; }
         var enTablet = stockEncolar(p, { p_id: hojaUUID(), p_slug: editingSlug, p_lugar: 'local', p_delta: dif, p_pasan: false, p_origen: 'panel', p_pausado: cambiaPausa ? paused : null },
-          'Stock del local: ' + (prevQty === null ? '—' : prevQty) + ' → ' + qty + (cambiaPausa ? (paused ? ' (pausado)' : ' (despausado)') : ''));
+          'Stock del local: ' + (prevQty === null ? '—' : prevQty) + ' → ' + qty + (cambiaPausa ? (paused ? ' (oculto)' : ' (ya no oculto)') : ''));
         if (result.yaSinRed) setTimeout(colaSubir, 0);
         msgEl.textContent = enTablet.texto; msgEl.style.color = 'var(--tinta-aviso)';
         setTimeout(function() { closeModal('modalStock'); }, 2500);
@@ -8771,7 +8771,7 @@
       }
       var signo = delta > 0 ? '+' + delta : String(delta);
       colaAgregar({ tipo: 'stock', args: args, slug: p.slug,
-        desc: p.name + ' · ' + (lugar === 'deposito' ? 'depósito ' : 'local ') + (delta ? signo : '') + (args.p_pausado === true ? ' (pausado)' : (args.p_pausado === false ? ' (despausado)' : '')) + (args.p_pasan ? ' (pasan al local)' : '') });
+        desc: p.name + ' · ' + (lugar === 'deposito' ? 'depósito ' : 'local ') + (delta ? signo : '') + (args.p_pausado === true ? ' (oculto)' : (args.p_pausado === false ? ' (ya no oculto)' : '')) + (args.p_pasan ? ' (pasan al local)' : '') });
       stockPintar(p);
       copiaStockAlDia();
       // prevStatus = newStatus: el aviso a la lista de espera sale cuando sube (stockSubido), no ahora (sin red no se puede leer la lista)
@@ -14969,9 +14969,9 @@
     };
 
     /* Los valores también: en la base el estado es 'out'/'low'/'pausado',
-       pero en el panel la chica ve "Sin stock"/"Último"/"Pausado". */
+       pero en el panel la chica ve "Sin stock"/"Último"/"Oculto" (el valor guardado sigue siendo pausado). */
     var AUDIT_VALUE_LABELS = {
-      stock_status: { ok: 'En stock', low: 'Último', out: 'Sin stock', pausado: 'Pausado' }
+      stock_status: { ok: 'En stock', low: 'Último', out: 'Sin stock', pausado: 'Oculto' }
     };
 
     function auditPerfumeName(slug) {
@@ -15605,7 +15605,7 @@
       HOJA.sel = null; hojaMsg(''); hojaPaso('que');
     }
     // El buscador de perfumes: un número de 8 a 14 cifras es un código (Enter); lo demás, un nombre (nombre, fabricante, apodo). Sin sets.
-    // NO filtra por stock ni por pausado: se anota lo que se vendió (el cierre ve después si hay en el panel).
+    // NO filtra la lista por stock ni por oculto: se ve todo; el tope por stock se aplica al elegir la cantidad ([HOJA-PISO-TECHO]).
     function hojaBuscarInput() {
       var inp = hojaEl('hvBuscar'), cont = hojaEl('hvResultados'); if (!inp || !cont) return;
       HOJA.busca = inp.value;
@@ -15684,7 +15684,7 @@
         h = hojaCab('Perfume', 'hojaPaso(\'que\')')
           + '<div class="hoja-buscar-fila"><input type="text" id="hvBuscar" class="modal-input" placeholder="&#128269; Nombre o código&#8230;" autocomplete="off" value="' + escHtml(HOJA.busca) + '" oninput="hojaBuscarInput()" onkeydown="hojaBuscarTecla(event)"/>'
           + '<button type="button" class="btn-escanear" onclick="escanearAbrir(\'hoja\')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button></div>'
-          + '<p class="hoja-hint">Se anota aunque figure sin stock o pausado: el cierre del día descuenta sólo lo que el panel tiene.</p>'
+          + '<p class="hoja-hint">Un perfume oculto se puede vender si tiene stock. Con 0 en el local no se puede anotar (si ya lo bajaste con «Vendí», tildalo al elegir la cantidad).</p>'
           + '<div class="hv-resultados" id="hvResultados"></div>';
       }
       else if (p === 'decant') {
