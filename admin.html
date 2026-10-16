@@ -8649,14 +8649,29 @@
     }
 
     // ============================================================
+    // [BUSCAR-TOLERANTE] 16-oct-2026 · B1 del QA: los buscadores del panel pasan por acá. Sin mayúsculas ni tildes, los espacios de
+    // más no cuentan y cada palabra se busca por separado, en cualquier orden: «  alhambra   maison», «ambér» y «maison alhambra»
+    // encuentran lo mismo que «alhambra maison». Antes, un espacio al principio o un doble espacio daban 0 resultados.
+    // Clientes ya lo hacía así (filterClientes). Un buscador nuevo usa busqPalabras + busqPasa.
+    // ============================================================
+    function busqNorm(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim(); }
+    function busqPalabras(q) { var n = busqNorm(q); return n ? n.split(' ') : []; }
+    function busqPasa(texto, palabras) {
+      if (!palabras || !palabras.length) return true;
+      var t = busqNorm(texto);
+      for (var i = 0; i < palabras.length; i++) if (t.indexOf(palabras[i]) === -1) return false;
+      return true;
+    }
+    function busqPerfume(p) { return [p.name, p.marca, p.marca_real, p.alias].join(' '); }   // nombre + marca propia + fabricante + apodos
+
+    // ============================================================
     // FILTER TABLE
     // ============================================================
     function filterTable(tab) {
-      var input = document.getElementById('search' + tab.charAt(0).toUpperCase() + tab.slice(1)).value.toLowerCase();
+      var palabras = busqPalabras(document.getElementById('search' + tab.charAt(0).toUpperCase() + tab.slice(1)).value);
       var rows = document.querySelectorAll('#tbody' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' tr');
       rows.forEach(function(row) {
-        var search = row.dataset.search || '';
-        row.style.display = search.indexOf(input) !== -1 ? '' : 'none';
+        row.style.display = busqPasa(row.dataset.search || '', palabras) ? '' : 'none';
       });
       if (tab === 'precios') preciosAjustarGrupos();   // [PRECIOS-EN-UN-LUGAR] 123e · un título no queda solo
     }
@@ -9321,9 +9336,9 @@
       if (!q) { cont.hidden = true; cont.innerHTML = ''; ayuda.textContent = 'Escaneá con la cámara o la pistola, o escribí el código o el nombre.'; return; }
       if (/^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.hidden = true; cont.innerHTML = ''; ayuda.textContent = 'Tocá Enter para buscar el código.'; return; }
       ayuda.textContent = 'Tocá el perfume.';
-      var n = codNorm(q);
+      var palabras = busqPalabras(q);   // [BUSCAR-TOLERANTE]
       var lista = PERFUMES.filter(function(p) {
-        return !p.esSet && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(n) !== -1;
+        return !p.esSet && busqPasa(busqPerfume(p), palabras);
       }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 8);
       cont.innerHTML = lista.length ? tarjeteroHTML(lista.map(function(p) {   // [TARJETERO]
         var info = stockCargado ? deriveStockInfo(p) : null;
@@ -9625,9 +9640,9 @@
       }).join('') + '</div>';
     }
     function codPintarLista() {
-      var q = codNorm(document.getElementById('codBuscar').value).trim();
+      var palabras = busqPalabras(document.getElementById('codBuscar').value);   // [BUSCAR-TOLERANTE]
       var lista = PERFUMES.filter(function(p) {   // como el panel: nombre, fabricante, apodo; sin sets ni combos (los decants no están en PERFUMES)
-        return !p.esSet && (!q || codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(q) !== -1);
+        return !p.esSet && busqPasa(busqPerfume(p), palabras);
       }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); });
       var total = lista.length;
       var html = tarjeteroHTML(lista.slice(0, 40).map(function(p) {   // [TARJETERO] un toque en la tarjeta guarda el código (Alejo, 13-oct)
@@ -9921,18 +9936,13 @@
         return;
       }
       var searchEl = document.getElementById('searchNuevos');
-      var q = (searchEl && searchEl.value || '').trim().toLowerCase();
+      var palabras = busqPalabras(searchEl && searchEl.value);   // [BUSCAR-TOLERANTE]
 
       // Si el usuario está tipeando una búsqueda, reseteamos el contador
       // para que arranque desde los primeros NUEVOS_STEP resultados.
       var filtered = _nuevosData.filter(function(p) {
-        if (!q) return true;
         // Busqueda unificada: nombre + marca propia + fabricante + apodos.
-        var hay = (p.name || '').toLowerCase()
-          + ' ' + (p.marca || '').toLowerCase()
-          + ' ' + (p.marca_real || '').toLowerCase()
-          + ' ' + (p.alias || '').toLowerCase();
-        return hay.indexOf(q) !== -1;
+        return busqPasa(busqPerfume(p), palabras);
       });
 
       if (filtered.length === 0) {
@@ -9985,18 +9995,15 @@
     // EDITAR PERFUME EXISTENTE (overrides)
     // ============================================================
     function searchEditPerfume() {
-      var input = document.getElementById('editSearch').value.trim().toLowerCase();
+      var input = busqNorm(document.getElementById('editSearch').value);   // [BUSCAR-TOLERANTE]
       var results = document.getElementById('editSearchResults');
       if (input.length < 2) { results.style.display = 'none'; return; }
 
+      var palabras = input.split(' ');
       var matches = PERFUMES.filter(function(p) {
         if (p.esSet) return false;
         // Busqueda unificada: nombre + marca propia + fabricante + apodos.
-        var hay = (p.name || '').toLowerCase()
-          + ' ' + (p.marca || '').toLowerCase()
-          + ' ' + (p.marca_real || '').toLowerCase()
-          + ' ' + (p.alias || '').toLowerCase();
-        return hay.indexOf(input) !== -1;
+        return busqPasa(busqPerfume(p), palabras);
       }).slice(0, 10);
 
       if (matches.length === 0) {
@@ -10392,10 +10399,9 @@
       var wrap = input.closest('.sim-picker');
       var dropdown = wrap.querySelector('.sim-picker-dropdown');
       var pool = window.__similaresPool || [];
-      var q = (input.value || '').trim().toLowerCase();
-      var list = q ? pool.filter(function(p) {
-        var lbl = (p.name + ' ' + (p.marca_real || '')).toLowerCase();
-        return lbl.indexOf(q) !== -1;
+      var palabras = busqPalabras(input.value);   // [BUSCAR-TOLERANTE]
+      var list = palabras.length ? pool.filter(function(p) {
+        return busqPasa(p.name + ' ' + (p.marca_real || ''), palabras);
       }) : pool;
       _renderSimPickerOptions(dropdown, list);
       dropdown.hidden = false;
@@ -12034,12 +12040,13 @@
     }
 
     function filterDestacados() {
-      var input = document.getElementById('destacadoSearch').value.trim().toLowerCase();
+      var input = busqNorm(document.getElementById('destacadoSearch').value);   // [BUSCAR-TOLERANTE]
       var results = document.getElementById('destacadoResults');
       if (input.length < 2) { results.style.display = 'none'; return; }
 
+      var palabras = input.split(' ');
       var matches = PERFUMES.filter(function(p) {
-        return !p.esSet && p.name.toLowerCase().indexOf(input) !== -1;
+        return !p.esSet && busqPasa(p.name, palabras);
       }).slice(0, 8);
 
       if (matches.length === 0) {
@@ -12448,10 +12455,11 @@
 
       function renderDropdown(query) {
         var q = (query || '').toLowerCase().trim();
+        var palabras = busqPalabras(query);   // [BUSCAR-TOLERANTE]
         var html = '<div class="perfume-picker-option" data-value="__custom"><span class="pick-custom">+ Nombre personalizado</span></div>';
         var count = 0;
         perfList.forEach(function(p) {
-          if (q && p.name.toLowerCase().indexOf(q) === -1 && (p.marca || '').toLowerCase().indexOf(q) === -1) return;
+          if (!busqPasa(p.name + ' ' + (p.marca || ''), palabras)) return;
           if (count >= 30) return;
           count++;
           html += '<div class="perfume-picker-option" data-value="' + escHtml(p.slug) + '">'
@@ -13688,10 +13696,11 @@
     }
     function elegidosBuscarPintar() {
       var cont = document.getElementById('elegidosResultados');
-      var q = codNorm(document.getElementById('elegidosBuscar').value).trim();
+      var q = busqNorm(document.getElementById('elegidosBuscar').value);   // [BUSCAR-TOLERANTE]
       if (q.length < 2) { cont.innerHTML = ''; return; }
+      var palabras = q.split(' ');
       var lista = PERFUMES.filter(function(p) {
-        return p && !p.esSet && !p._elegidosExcluido && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(q) !== -1;
+        return p && !p.esSet && !p._elegidosExcluido && busqPasa(busqPerfume(p), palabras);
       }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); });
       if (!lista.length) { cont.innerHTML = '<p class="eleg-vacia">No hay ningún perfume con ese nombre (o ya está en la lista de arriba).</p>'; return; }
       cont.innerHTML = tarjeteroHTML(lista.slice(0, 12).map(function(p) {   // [TARJETERO] NO ROMPER #33: un toque lo saca del sorteo
@@ -14180,9 +14189,10 @@
       var opc = document.getElementById('esperaOpcionLibre');
       if (!q) { cont.innerHTML = ''; opc.innerHTML = ''; return; }
       var ya = esperaElegidos.map(function(e) { return e.slug; });
+      var palabras = busqPalabras(crudo);   // [BUSCAR-TOLERANTE] cada palabra, en cualquier orden
       var todos = PERFUMES.filter(function(p) {
         return p && !p.esSet && !p._oculto && p._stockStatus !== 'pausado' && ya.indexOf(p.slug) === -1
-          && logNormalizar([p.name, p.marca_real || p.marca, p.alias].join(' ')).indexOf(q) !== -1;
+          && busqPasa([p.name, p.marca_real || p.marca, p.alias].join(' '), palabras);
       });
       var hits = todos.slice(0, 8);
       // [ESPERA-LIBRE] 142 · la opción «+ Anotar «…»» sale desde 3 caracteres, haya o no perfumes que coincidan; se esconde sólo si lo
@@ -15538,7 +15548,13 @@
       var q = promoNorm(inp.value);
       if (q.length < 2) { cont.innerHTML = ''; return; }
       var o = promoOfertaForm(), customs = promoCustoms();
-      var hits = PERFUMES.filter(function(p) { return p && !p.esSet && !p._oculto && promoNorm([p.name, p.marca, p.marca_real, p.alias].join(' ')).indexOf(q) !== -1; }).slice(0, 8);
+      // [BUSCAR-TOLERANTE] cada palabra por separado (en cualquier orden), con la misma limpieza de promoNorm
+      var palabras = String(inp.value || '').split(/\s+/).map(promoNorm).filter(Boolean);
+      var hits = PERFUMES.filter(function(p) {
+        if (!p || p.esSet || p._oculto) return false;
+        var hay = promoNorm([p.name, p.marca, p.marca_real, p.alias].join(' '));
+        return palabras.every(function(w) { return hay.indexOf(w) !== -1; });
+      }).slice(0, 8);
       if (!hits.length) { cont.innerHTML = '<p class="promo-vacio">Sin resultados.</p>'; return; }
       cont.innerHTML = hits.map(function(p) {
         var modo = PROMO_ADMIN_MODOS[p.slug], nota, boton = '';
@@ -16643,9 +16659,9 @@
       HOJA.busca = inp.value;
       var q = inp.value.trim();
       if (!q || /^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.innerHTML = q ? '<p class="hoja-hint">Tocá Enter para buscar el código.</p>' : ''; return; }
-      var n = codNorm(q);
+      var palabras = busqPalabras(q);   // [BUSCAR-TOLERANTE]
       var lista = PERFUMES.filter(function(p) {
-        return !p.esSet && codNorm((p.name || '') + ' ' + (p.marca || '') + ' ' + (p.marca_real || '') + ' ' + (p.alias || '')).indexOf(n) !== -1;
+        return !p.esSet && busqPasa(busqPerfume(p), palabras);
       }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 12);
       cont.innerHTML = lista.length ? tarjeteroHTML(lista.map(function(p) {   // [TARJETERO]
         var info = stockCargado ? deriveStockInfo(p) : null;
@@ -17987,8 +18003,9 @@
       var f = (document.getElementById('puntosFilterCliente')||{}).value || '';
       f = f.trim().toLowerCase();
       var rows = _puntosRankingData;
+      var palabras = busqPalabras(f);   // [BUSCAR-TOLERANTE] el nombre sin tildes ni espacios de más, cada palabra en cualquier orden
       if (f) rows = rows.filter(function(c){
-        return ((c.nombre||'').toLowerCase().indexOf(f) !== -1) || ((c.telefono||'').toLowerCase().indexOf(f) !== -1) || (formatPhoneDisplay(c.telefono).toLowerCase().indexOf(f) !== -1);   // el número como se guardó y como se ve
+        return busqPasa(c.nombre, palabras) || ((c.telefono||'').toLowerCase().indexOf(f) !== -1) || (formatPhoneDisplay(c.telefono).toLowerCase().indexOf(f) !== -1);   // el número como se guardó y como se ve
       });
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gris);">Sin clientes</td></tr>';
