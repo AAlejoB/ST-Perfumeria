@@ -48,7 +48,7 @@
 //     invierte a pill dark con texto dorado.
 //   - JS toggleDarkMode: actualiza emoji + label simultáneo. Init sets
 //     navThemeLabel a "LIGHT" si dark / "DARK" si light.
-var CACHE_VERSION = 'v1.1.273';
+var CACHE_VERSION = 'v1.1.274';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
@@ -250,12 +250,27 @@ self.addEventListener('push', function(event) {
   );
 });
 
+// [PUSH-LINK-PROPIO] 16-oct-2026 · SINCRO con linkPropio de api/send-notification.js y pushLinkPropio de admin.html: sólo un camino «/…»
+// (no «//…») o un https de stperfumeria.com / st-perfumeria.vercel.app (que pasa a camino). null si es de otro lado.
+function linkPropio(u) {
+  var s = String(u == null ? '' : u).trim();
+  if (!s) return '/';
+  if (/[\u0000- \u007f\\]/.test(s)) return null;
+  if (s.charAt(0) === '/' && s.charAt(1) !== '/') return s.length <= 300 ? s : null;
+  var m = s.match(/^https:\/\/((?:www\.)?stperfumeria\.com|st-perfumeria\.vercel\.app)(?=[\/?#]|$)(.*)$/i);
+  if (!m) return null;
+  var resto = m[2] || '/';
+  if (resto.charAt(0) !== '/') resto = '/' + resto;
+  return (resto.charAt(1) === '/' || resto.length > 300) ? null : resto;
+}
+
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
   var url = event.notification.data && event.notification.data.url
     ? event.notification.data.url
     : '/';
+  url = linkPropio(url) || '/';   // [PUSH-LINK-PROPIO] B7 · un link ajeno (o «javascript:…») abre el inicio de la tienda
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {

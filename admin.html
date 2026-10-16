@@ -13099,16 +13099,37 @@
 
     // sendPushNotification: envía la notificación a TODOS los suscriptores
     // Flujo: validar → confirmar → POST al backend → guardar historial → limpiar
+    // [PUSH-LINK-PROPIO] 16-oct-2026 · B7 del QA: el link del push no se revisaba (pasaban «javascript:…» y sitios ajenos). Sólo la tienda:
+    // un camino que empieza con «/» (no «//», que es otro sitio) o un link completo https de stperfumeria.com / st-perfumeria.vercel.app,
+    // que se guarda como camino. Devuelve el camino o null. SINCRO con linkPropio de api/send-notification.js (el que manda: el panel se puede saltear) y de sw.js.
+    function pushLinkPropio(u) {
+      var s = String(u == null ? '' : u).trim();
+      if (!s) return '/';
+      if (/[\u0000- \u007f\\]/.test(s)) return null;
+      if (s.charAt(0) === '/' && s.charAt(1) !== '/') return s.length <= 300 ? s : null;
+      var m = s.match(/^https:\/\/((?:www\.)?stperfumeria\.com|st-perfumeria\.vercel\.app)(?=[\/?#]|$)(.*)$/i);
+      if (!m) return null;
+      var resto = m[2] || '/';
+      if (resto.charAt(0) !== '/') resto = '/' + resto;
+      return (resto.charAt(1) === '/' || resto.length > 300) ? null : resto;
+    }
+
     async function sendPushNotification() {
       var title = document.getElementById('pushTitle').value.trim();
       var body = document.getElementById('pushBody').value.trim();
-      var url = document.getElementById('pushUrl').value.trim() || '/';
       var msg = document.getElementById('pushMsg');     // elemento para mostrar resultado
       var btn = document.getElementById('pushSendBtn'); // botón de enviar
 
       if (!title || !body) {
         msg.textContent = '⚠️ Completá título y mensaje';
         msg.style.color = 'var(--tinta-error)';
+        return;
+      }
+      var url = pushLinkPropio(document.getElementById('pushUrl').value);   // [PUSH-LINK-PROPIO]
+      if (!url) {
+        msg.textContent = 'El link tiene que ser de la tienda: empezá con / (ej: /#decants) o pegá un link de stperfumeria.com.';
+        msg.style.color = 'var(--tinta-error)';
+        try { document.getElementById('pushUrl').focus(); } catch (e) {}
         return;
       }
 

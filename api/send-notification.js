@@ -18,6 +18,21 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KE
 // Notificaciones no es sólo del jefe. Si algún día se suma o saca una cuenta de staff, ACTUALIZAR ACÁ TAMBIÉN.
 const STAFF_EMAILS = ['jefe@stperfumeria.local', 'empleado@stperfumeria.local'];
 
+// [PUSH-LINK-PROPIO] 16-oct-2026 · B7 del QA: el link de la notificación tiene que ser de la tienda (un camino «/…», no «//…», o un https
+// de stperfumeria.com / st-perfumeria.vercel.app, que se pasa a camino). Devuelve el camino o null. SINCRO con pushLinkPropio de
+// admin.html y linkPropio de sw.js. Acá es donde importa: el panel se puede saltear llamando a esta función directo.
+function linkPropio(u) {
+  const s = String(u == null ? '' : u).trim();
+  if (!s) return '/';
+  if (/[\u0000- \u007f\\]/.test(s)) return null;
+  if (s.charAt(0) === '/' && s.charAt(1) !== '/') return s.length <= 300 ? s : null;
+  const m = s.match(/^https:\/\/((?:www\.)?stperfumeria\.com|st-perfumeria\.vercel\.app)(?=[\/?#]|$)(.*)$/i);
+  if (!m) return null;
+  let resto = m[2] || '/';
+  if (resto.charAt(0) !== '/') resto = '/' + resto;
+  return (resto.charAt(1) === '/' || resto.length > 300) ? null : resto;
+}
+
 webpush.setVapidDetails(
   'mailto:st.perfumeria.cr@gmail.com',
   VAPID_PUBLIC,
@@ -67,6 +82,10 @@ module.exports = async (req, res) => {
     if (!title || !body) {
       return res.status(400).json({ error: 'Faltan title y body' });
     }
+    const link = linkPropio(url);   // [PUSH-LINK-PROPIO]
+    if (!link) {
+      return res.status(400).json({ error: 'El link tiene que ser de la tienda (empieza con / o es de stperfumeria.com)' });
+    }
 
     // Rate limit: máximo 5 envíos masivos por día
     const MAX_SENDS_PER_DAY = 5;
@@ -110,7 +129,7 @@ module.exports = async (req, res) => {
     const payload = JSON.stringify({
       title: title,
       body: body,
-      url: url || '/',
+      url: link,
       icon: '/img/logo-st.webp'
     });
 
