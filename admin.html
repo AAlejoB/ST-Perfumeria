@@ -14957,6 +14957,7 @@
     function hojaTablaFalta(err) { return !!err && (err.code === '42P01' || err.code === 'PGRST205'); }
     function hojaErrorTexto(err, que) {
       if (hojaTablaFalta(err)) return 'Todavía no está la tabla de la hoja (falta correr sql/caja_movimientos.sql en Supabase).';
+      if (err && err.code === '23514') return 'La base todavía no acepta ventas de $0 (falta correr sql/caja_monto_cero.sql en Supabase).';   // [HOJA-MONTO-CERO]
       return errorEnCriollo(err, null, que);
     }
     function hojaUUID() {
@@ -15062,7 +15063,7 @@
       else if (k === 'clear') v = '';
       else if (m === 'debe' && v === '' && k === '0') v = '0';   // un 0 escrito a propósito: no debe nada, aunque la cuenta sugiera otra cosa
       else if (v === '0') v = (k === '0' || k === '00') ? '0' : k;
-      else if (v === '' && (k === '0' || k === '00')) v = '';
+      else if (v === '' && (k === '0' || k === '00')) v = (m === 'cobro') ? '' : '0';   // [HOJA-MONTO-CERO] un 0 escrito a propósito es un monto (muestra, regalo, cortesía); sólo «cobro» no admite 0
       else v = (v + k).slice(0, 8);
       if (m === 'cobro' && HOJA.cobro && Number(v) > HOJA.cobro.debe) v = String(HOJA.cobro.debe);
       hojaPonerValor(m, v);
@@ -15141,19 +15142,57 @@
       hojaPaso('cuantos');
     }
     function hojaElegirLibre() { HOJA.sel = { tipo: 'libre', nombre: '', monto: '', qty: 1 }; hojaPaso('libre'); }
-    function hojaSelCant(n) { if (!HOJA.sel) return; HOJA.sel.qty = Math.max(1, Math.min(99, n)); HOJA.sel.tocado = true; hojaVentaPintar(); }
+    // [HOJA-PISO-TECHO] 16-oct (Alejo: anotó 36 caprices sin conexión y la hoja los tomó). Un frasco que SE LLEVA hoy y que no se bajó con «Vendí» no
+    // se anota por más de lo que el panel dice que hay en el local, ni con 0. Pausado («oculto») con stock se vende. Sin dato de stock (o sin la
+    // lectura, NO ROMPER #20) no hay tope: no se sabe. Lo que ya está en la venta cuenta contra el mismo tope. «Ya lo bajé con Vendí» o «apartado»
+    // no tocan el stock acá, así que no tienen tope.
+    function hojaDisponible(slug) {
+      if (!stockCargado) return null;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      return (p && typeof p._stockQty === 'number') ? Math.max(0, p._stockQty) : null;
+    }
+    function hojaTope(sel) {   // cuántos más se pueden sumar de este frasco, o null si no hay tope
+      if (!sel || sel.tipo !== 'frasco' || !sel.llevar || sel.ya_bajado) return null;
+      var disp = hojaDisponible(sel.slug); if (disp === null) return null;
+      var yaEnVenta = HOJA.carro.reduce(function(n, l) { return n + ((l.tipo === 'frasco' && l.slug === sel.slug && l.llevar && !l.ya_bajado) ? l.qty : 0); }, 0);
+      return Math.max(0, Math.min(99, disp) - yaEnVenta);
+    }
+    function hojaSelAjustar(n) {   // la cantidad pedida, dentro de 1..99 y del tope; avisa si recortó
+      var t = hojaTope(HOJA.sel), q = Math.max(1, Math.min(99, n));
+      if (t !== null && q > t) {
+        q = Math.max(1, t);
+        hojaMsg('Solo hay ' + hojaDisponible(HOJA.sel.slug) + ' en el local (según el panel), no se puede anotar más.', 'aviso');
+      }
+      return q;
+    }
+    function hojaTopeTexto(sel) {   // la línea de la pantalla «¿Cuántos?» con lo que hay en el local
+      if (!sel || sel.tipo !== 'frasco') return '';
+      var disp = hojaDisponible(sel.slug);
+      if (disp === null) return '<p class="hoja-hint">El panel no tiene la cantidad de este perfume: se anota lo que pongas.</p>';
+      if (!sel.llevar || sel.ya_bajado) return '<p class="hoja-hint">En el local hay ' + disp + ' (esta venta no los descuenta).</p>';
+      var t = hojaTope(sel);
+      if (t <= 0) return '<p class="hoja-hint hv-sin-stock" style="color:var(--tinta-error);font-weight:700">' + (disp > 0 ? 'Ya está en la venta todo lo que hay en el local (' + disp + ').' : 'No hay stock en el local (el panel dice 0): no se puede anotar la venta.') + ' Si ya lo bajaste con «Vendí», tildá «No descontar del stock».</p>';
+      return '<p class="hoja-hint">En el local hay <b>' + disp + '</b>' + (disp > t ? ' · podés sumar hasta ' + t : '') + '.</p>';
+    }
+    function hojaMontoTocado() { return ['efectivo', 'mp', 'posnet'].some(function(k) { return HOJA.montos[k] !== '' && HOJA.montos[k] != null; }); }   // [HOJA-MONTO-CERO] un 0 tocado vale; vacío no
+    function hojaSelCant(n) { if (!HOJA.sel) return; HOJA.sel.qty = hojaSelAjustar(n); HOJA.sel.tocado = true; hojaVentaPintar(); }
     // [CANTIDAD-SUMA] los botones de cantidad SUMAN (Alejo, 13-oct): el primer toque reemplaza el 1 de arranque y los siguientes se suman (10 y después 1 = 11).
-    function hojaSelSumar(n) { var s = HOJA.sel; if (!s) return; s.qty = Math.max(1, Math.min(99, s.tocado ? s.qty + n : n)); s.tocado = true; hojaVentaPintar(); }
+    function hojaSelSumar(n) { var s = HOJA.sel; if (!s) return; s.qty = hojaSelAjustar(s.tocado ? s.qty + n : n); s.tocado = true; hojaVentaPintar(); }
     function hojaSelReset() { var s = HOJA.sel; if (!s) return; s.qty = 1; s.tocado = false; hojaVentaPintar(); }
-    function hojaSelTilde(clave, valor) { if (HOJA.sel) HOJA.sel[clave] = !!valor; }
+    function hojaSelTilde(clave, valor) { if (!HOJA.sel) return; HOJA.sel[clave] = !!valor; if (HOJA.sel.qty > 1 && hojaTope(HOJA.sel) !== null) HOJA.sel.qty = hojaSelAjustar(HOJA.sel.qty); hojaVentaPintar(); }   // [HOJA-PISO-TECHO] cambiar un tilde puede cambiar el tope
     function hojaSelListo() {
       var s = HOJA.sel; if (!s) return;
       if (s.tipo === 'libre') {
         s.nombre = String(s.nombre || '').trim().replace(/\s+/g, ' ').slice(0, 80);
         if (!s.nombre) { hojaMsg('Escribí qué se lleva.', 'error'); return; }
-        if (!(Number(s.monto) > 0)) { hojaMsg('Poné cuánto cuesta (tocá el cuadrado «Monto»).', 'error'); return; }
+        if (String(s.monto) === '') { hojaMsg('Poné cuánto cuesta (tocá el cuadrado «Monto»; puede ser 0).', 'error'); return; }   // [HOJA-MONTO-CERO]
       }
-      if (s.tipo === 'frasco' && !(s.base > 0) && !(Number(s.monto) > 0)) { hojaMsg('Ese perfume no tiene precio cargado: poné cuánto se cobró (tocá «Monto»).', 'error'); return; }
+      if (s.tipo === 'frasco' && !(s.base > 0) && String(s.monto) === '') { hojaMsg('Ese perfume no tiene precio cargado: poné cuánto se cobró (tocá «Monto»; puede ser 0).', 'error'); return; }   // [HOJA-MONTO-CERO]
+      if (s.tipo === 'frasco') {   // [HOJA-PISO-TECHO]
+        var tope = hojaTope(s);
+        if (tope !== null && tope <= 0) { hojaMsg('No hay stock de este perfume en el local (el panel dice ' + hojaDisponible(s.slug) + '), así que no se puede anotar la venta.', 'error'); return; }
+        if (tope !== null && s.qty > tope) { hojaMsg('Solo hay ' + hojaDisponible(s.slug) + ' en el local (según el panel).', 'error'); return; }
+      }
       if (s.tipo === 'disenador' && !(s.precio > 0)) { hojaMsg('Ese decant no tiene precio cargado: anotalo en «Otra cosa» con el monto.', 'error'); return; }
       if (HOJA.carro.length >= 20) { hojaMsg('Hasta 20 productos por venta: cobrá esta y anotá otra.', 'aviso'); return; }
       var junto = HOJA.carro.filter(function(l) {
@@ -15279,13 +15318,14 @@
         h = hojaCab(titulo, volver) + '<p class="hv-pregunta">¿Cuántos?</p>'
           + '<div class="hv-cant"><button type="button" class="hv-num" onclick="hojaSelCant(' + (s.qty - 1) + ')" aria-label="Uno menos">&minus;</button><span class="hv-cant-n">' + s.qty + '</span><button type="button" class="hv-num hv-reset" onclick="hojaSelReset()" aria-label="Volver a 1">&#8634;</button></div>'
           + '<p class="hoja-hint hv-cant-ayuda">Tocá los números y se suman: 10 y después 1 = 11.</p>'
+          + hojaTopeTexto(s)
           + '<div class="hv-nums">' + nums + '</div>'
           + (s.tipo === 'frasco' ? '<div class="hoja-tildes"><label><input type="checkbox"' + (s.llevar ? ' checked' : '') + ' onchange="hojaSelTilde(\'llevar\', this.checked)"/> Se lo lleva hoy</label>'
-              + '<label><input type="checkbox"' + (s.ya_bajado ? ' checked' : '') + ' onchange="hojaSelTilde(\'ya_bajado\', this.checked)"/> Ya lo bajé con «Vendí»</label></div>' : '')
+              + '<label><input type="checkbox"' + (s.ya_bajado ? ' checked' : '') + ' onchange="hojaSelTilde(\'ya_bajado\', this.checked)"/> No descontar del stock (ya lo bajé con «Vendí»)</label></div>' : '')   // [HOJA-ETIQUETA-STOCK] A6: el tilde evita que el Cierre del día lo descuente de nuevo
           + (s.tipo === 'frasco' && !(s.base > 0) ? '<p class="hoja-hint">Este perfume no tiene precio cargado: poné cuánto se cobró en total.</p><div class="hoja-montos hv-montos-1">'
               + hojaTileHTML('precio', 'hojaMedio(\'precio\')', Number(s.monto) > 0 ? hojaPesos(Number(s.monto)) : '—', 'el total', HOJA.medio === 'precio', Number(s.monto) > 0 ? 'con-monto' : '') + '</div><div id="hvTeclado"></div>' : '')
           + (resumen ? '<div class="hv-resumen">' + resumen + '</div>' : '')
-          + '<button type="button" class="hv-listo" onclick="hojaSelListo()">Listo, sumar a la venta</button>';
+          + '<button type="button" class="hv-listo" onclick="hojaSelListo()"' + ((s.tipo === 'frasco' && hojaTope(s) === 0) ? ' disabled' : '') + '>Listo, sumar a la venta</button>';
       }
       else if (p === 'libre' && s) {
         h = hojaCab('Otra cosa', 'hojaPaso(\'que\')')
@@ -15365,7 +15405,7 @@
         ef = auto === 'efectivo' ? pr.efectivo : 0; mp = auto === 'mp' ? pr.efectivo : 0; po = auto === 'posnet' ? pr.lista : 0;
       } else {
         ef = hojaNum('efectivo'); mp = hojaNum('mp'); po = hojaNum('posnet'); debe = hojaDebeValor();
-        if (ef + mp + po <= 0) { hojaMsg('Poné cuánto pagó: tocá Efec., MP o Posnet.', 'error'); return; }
+        if (ef + mp + po <= 0 && !hojaMontoTocado()) { hojaMsg('Poné cuánto pagó: tocá Efec., MP o Posnet (si fue $0, tocá un cuadrado y escribí 0).', 'error'); return; }   // [HOJA-MONTO-CERO]
       }
       var detalle = carro.map(hojaLineaTexto).join(' + ');
       if (detalle.length > 300) { hojaMsg('La venta tiene demasiadas cosas para un renglón: partila en dos.', 'error'); return; }
