@@ -1516,9 +1516,71 @@
     .lab-tabla td { padding: .4rem; border-bottom: 1px solid var(--borde); vertical-align: middle; }
     .lab-tabla th.num, .lab-tabla td.num { text-align: right; font-variant-numeric: tabular-nums; }
     .lab-tabla-scroll { overflow-x: auto; }
-    .lab-barras { display: grid; grid-template-columns: auto 1fr auto; gap: .25rem .6rem; align-items: center; font-size: .74rem; }
-    .lab-barras i { display: block; height: 10px; border-radius: 5px; background: var(--amarillo); min-width: 2px; }
-    .lab-barras em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--gris-claro); }
+    /* [LABORATORIO] gráficos (SVG a mano). Dos juegos de colores, el del tema oscuro y el del claro (body.light): la paleta categórica de la
+       guía de dataviz (5 slots, validada en los dos temas), un dorado de marca para las series sueltas y grises para ejes y grilla. */
+    body { --lab-surf: #1a1a19; --lab-ink: #f0efec; --lab-ink2: #c3c2b7; --lab-muted: #898781; --lab-grid: #2c2c2a; --lab-base: #383835; --lab-borde: rgba(255,255,255,.10);
+           --lab-oro: #E8B800; --lab-c1: #3987e5; --lab-c2: #d95926; --lab-c3: #199e70; --lab-c4: #c98500; --lab-c5: #d55181; --lab-otros: #6b6a65; }
+    body.light { --lab-surf: #fcfcfb; --lab-ink: #0b0b0b; --lab-ink2: #52514e; --lab-muted: #6e6c66; --lab-grid: #e1e0d9; --lab-base: #c3c2b7; --lab-borde: rgba(11,11,11,.10);
+                 --lab-oro: #b58a00; --lab-c1: #2a78d6; --lab-c2: #eb6834; --lab-c3: #1baf7a; --lab-c4: #eda100; --lab-c5: #e87ba4; --lab-otros: #a8a69f; }
+    .lab-salta { background: var(--lab-surf); border: 1px solid var(--lab-borde); border-left: 3px solid var(--lab-oro); border-radius: 10px; padding: .8rem 1rem; }
+    .lab-salta ul { margin: .4rem 0 0; padding-left: 1.1rem; font-size: .8rem; line-height: 1.6; color: var(--lab-ink2); }
+    .lab-salta b { color: var(--lab-ink); }
+    .lab-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: .8rem; }
+    .lab-card { background: var(--lab-surf); border: 1px solid var(--lab-borde); border-radius: 12px; padding: .9rem 1rem 1rem; min-width: 0; }
+    .lab-card--ancha { grid-column: 1 / -1; }
+    .lab-card h4 { margin: 0 0 .25rem; font-size: .9rem; font-weight: 700; color: var(--lab-ink); }
+    .lab-que { margin: 0 0 .8rem; font-size: .68rem; line-height: 1.55; color: var(--lab-ink2); }
+    .lab-que b { color: var(--lab-ink); font-weight: 700; }
+    .lab-svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .lab-svg--dona { width: 150px; height: 150px; flex: 0 0 auto; }
+    .lab-svg:not(.lab-svg--dona) { max-width: 520px; margin: 0 auto; }   /* en una tarjeta ancha el gráfico no se estira: las letras quedarían enormes */
+    .lab-grid { stroke: var(--lab-grid); stroke-width: 1; }
+    .lab-base { stroke: var(--lab-base); stroke-width: 1; }
+    .lab-eje { fill: var(--lab-muted); font-size: 10px; }
+    .lab-val { fill: var(--lab-ink); font-size: 10px; font-weight: 700; }
+    .lab-centro { fill: var(--lab-ink); font-size: 24px; font-weight: 700; }
+    .lab-marca { fill: var(--lab-oro); }
+    .lab-hit { fill: transparent; cursor: default; }
+    .lab-hit:hover { fill: var(--lab-oro); fill-opacity: .08; }
+    .lab-area { fill: var(--lab-oro); fill-opacity: .12; stroke: none; }
+    .lab-linea { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .lab-linea--a { stroke: var(--lab-oro); }
+    .lab-linea--b { stroke: var(--lab-c3); }
+    .lab-col .lab-guia { stroke: var(--lab-muted); stroke-width: 1; opacity: 0; }
+    .lab-col .lab-punto { opacity: 0; stroke: var(--lab-surf); stroke-width: 2; }
+    .lab-col .lab-punto--a { fill: var(--lab-oro); }
+    .lab-col .lab-punto--b { fill: var(--lab-c3); }
+    .lab-col:hover .lab-guia, .lab-col:hover .lab-punto { opacity: 1; }
+    .lab-fin { stroke: var(--lab-surf); stroke-width: 2; pointer-events: none; }
+    .lab-fin--a { fill: var(--lab-oro); }
+    .lab-fin--b { fill: var(--lab-c3); }
+    .lab-rebanada { fill: none; stroke-width: 26; }
+    .lab-rebanada:hover { stroke-opacity: .8; }
+    .lab-c1 { stroke: var(--lab-c1); } .lab-c2 { stroke: var(--lab-c2); } .lab-c3 { stroke: var(--lab-c3); } .lab-c4 { stroke: var(--lab-c4); } .lab-c5 { stroke: var(--lab-c5); } .lab-rebanada--otros { stroke: var(--lab-otros); }
+    .lab-dona { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .lab-leyenda { list-style: none; margin: 0; padding: 0; flex: 1 1 150px; min-width: 0; font-size: .74rem; }
+    .lab-leyenda li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; gap: .5rem; align-items: center; padding: .22rem 0; color: var(--lab-ink2); }
+    .lab-leyenda li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lab-leyenda b { color: var(--lab-ink); font-variant-numeric: tabular-nums; }
+    .lab-leyenda em { font-style: normal; color: var(--lab-muted); min-width: 3.4em; text-align: right; font-variant-numeric: tabular-nums; }
+    .lab-leyenda--fila { display: flex; gap: 1rem; flex: none; margin: 0 0 .4rem; }
+    .lab-leyenda--fila li { display: inline-flex; gap: .4rem; }
+    .lab-sw { display: block; width: 12px; height: 12px; border-radius: 3px; }
+    .lab-sw--a { background: var(--lab-oro); } .lab-sw--b { background: var(--lab-c3); } .lab-sw--otros { background: var(--lab-otros); }
+    .lab-sw--c1 { background: var(--lab-c1); } .lab-sw--c2 { background: var(--lab-c2); } .lab-sw--c3 { background: var(--lab-c3); } .lab-sw--c4 { background: var(--lab-c4); } .lab-sw--c5 { background: var(--lab-c5); }
+    .lab-sw--costo { background: var(--lab-otros); } .lab-sw--gan { background: var(--lab-oro); }
+    .lab-barras { display: grid; grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr) auto; gap: .45rem .6rem; align-items: center; font-size: .74rem; }
+    .lab-barras-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--lab-ink2); }
+    .lab-pista { display: block; height: 14px; }
+    .lab-pista i { display: block; height: 14px; border-radius: 0 4px 4px 0; background: var(--lab-oro); min-width: 2px; }
+    .lab-pista i:hover { filter: brightness(1.12); }
+    .lab-barras em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--lab-ink); font-weight: 600; }
+    .lab-apilada { display: flex; gap: 2px; height: 22px; margin: .2rem 0 .8rem; }
+    .lab-apilada i { display: block; min-width: 2px; }
+    .lab-ap-costo { background: var(--lab-otros); border-radius: 4px 0 0 4px; } .lab-ap-gan { background: var(--lab-oro); border-radius: 0 4px 4px 0; }
+    .lab-det { margin-top: .8rem; font-size: .72rem; }
+    .lab-det summary { cursor: pointer; color: var(--lab-ink2); min-height: 32px; display: flex; align-items: center; }
+    .lab-tip { position: fixed; z-index: 100000; pointer-events: none; max-width: 260px; padding: .4rem .6rem; border-radius: 8px; font-size: .72rem; line-height: 1.35; background: #1d1d20; color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
     .hv-ml { width: 5.5rem; min-height: var(--tap-min); margin: 0; }
     /* [VENTA-COMO-DATO] costos de compra (sólo jefe): una fila por marca */
     .costos-fila { display: flex; align-items: center; gap: .6rem; padding: .35rem 0; border-top: 1px solid var(--borde); }
@@ -14368,6 +14430,7 @@
         + '<div id="labCuerpo"><p class="lab-nota">Cargando…</p></div>';
       document.getElementById('tab-stats').parentNode.appendChild(tab);
       labDiasPintar();
+      labTipInit();
     }
     function labDiasPintar() {
       var c = document.getElementById('labDiasCuadros'); if (!c) return;
@@ -14389,22 +14452,149 @@
     function labPesos(n) { return '$ ' + Math.round(Number(n) || 0).toLocaleString('es-AR'); }
     function labPct(a, b) { return b > 0 ? (Math.round(a * 1000 / b) / 10).toLocaleString('es-AR') + ' %' : '—'; }
     function labNombre(slug) { var p = PERFUMES.find(function(x) { return x.slug === slug; }); return p ? (p.name || slug) : slug; }
+    function labCompacto(n) { n = Number(n) || 0; if (n >= 1e6) return (Math.round(n / 1e5) / 10).toLocaleString('es-AR') + ' M'; if (n >= 1000) return (Math.round(n / 100) / 10).toLocaleString('es-AR') + ' K'; return String(Math.round(n)); }
     function labTarjeta(tit, valor, chico) { return '<div class="lab-tarjeta"><span>' + escHtml(tit) + '</span><b>' + valor + '</b><small>' + (chico ? escHtml(chico) : '&nbsp;') + '</small></div>'; }
     function labTabla(cols, filas) {   // cols: [['Título', true = numérica]]; filas: arreglos de HTML ya escapado
       if (!filas.length) return '<p class="lab-nota">Sin datos en este período.</p>';
       return '<div class="lab-tabla-scroll"><table class="lab-tabla"><thead><tr>' + cols.map(function(c) { return '<th' + (c[1] ? ' class="num"' : '') + '>' + escHtml(c[0]) + '</th>'; }).join('')
         + '</tr></thead><tbody>' + filas.map(function(f) { return '<tr>' + f.map(function(x, i) { return '<td' + (cols[i] && cols[i][1] ? ' class="num"' : '') + '>' + x + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
     }
-    function labBarras(items) {   // items: [{ nom (ya escapado), n, txt }]
-      var max = items.reduce(function(m, x) { return Math.max(m, x.n); }, 0) || 1;
-      return '<div class="lab-barras">' + items.map(function(x) { return '<span>' + x.nom + '</span><i style="width:' + Math.max(2, Math.round(x.n * 100 / max)) + '%"></i><em>' + x.txt + '</em>'; }).join('') + '</div>';
+    var LAB_NOMBRES = { local: 'Local', whatsapp: 'WhatsApp', web: 'Web', efectivo: 'Efectivo', mp: 'Mercado Pago', posnet: 'Posnet', mixto: 'Pago repartido', frasco: 'Frascos', decant: 'Decants', set: 'Sets', mobile: 'Celular', desktop: 'Compu', tablet: 'Tablet', direct: 'Directo', instagram: 'Instagram', google: 'Google', internal: 'Dentro del sitio' };
+    function labClave(k) { return LAB_NOMBRES[k] || k; }
+    function labFecha(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : String(iso || ''); }
+
+    // ── los gráficos: SVG a mano, sin librerías (validados con la guía de dataviz: paleta categórica de 5 en claro y oscuro, marcas finas,
+    // 2 px de aire entre rebanadas, tooltip al pasar/tocar, y todo con su «Ver como tabla»). Los colores viven en CSS (--lab-*): cambian con el tema. ──
+    var LAB_W = 360;
+    var LAB_FIJOS = { local: 1, whatsapp: 3, web: 2, efectivo: 3, mp: 1, posnet: 2, mixto: 4, 'sin dato': 5, frasco: 1, decant: 2, set: 3, 'otra cosa': 4, mobile: 1, desktop: 2, tablet: 3 };
+    function labTicks(max) {
+      if (!(max > 0)) return [0, 1];
+      var paso = Math.pow(10, Math.floor(Math.log(max / 3) / Math.LN10)), m = max / 3 / paso;
+      paso = (m <= 1 ? 1 : (m <= 2 ? 2 : (m <= 5 ? 5 : 10))) * paso;
+      var t = []; for (var v = 0; t.length < 8; v += paso) { t.push(v); if (v >= max) break; }
+      return t;
     }
-    var LAB_NOMBRES = { local: 'Local', whatsapp: 'WhatsApp', web: 'Web', efectivo: 'Efectivo', mp: 'Mercado Pago', posnet: 'Posnet', mixto: 'Pago repartido', frasco: 'Frascos', decant: 'Decants', set: 'Sets' };
-    function labClave(k) { return escHtml(LAB_NOMBRES[k] || k); }
-    function labFecha(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : escHtml(iso || ''); }
+    function labSvg(h, inner, aria) { return '<svg class="lab-svg" viewBox="0 0 ' + LAB_W + ' ' + h + '" role="img" aria-label="' + escHtml(aria) + '">' + inner + '</svg>'; }
+    function labEjes(tk, top, mi, md, ms, ih, W) {   // la grilla finita y los números del costado
+      var s = '';
+      tk.forEach(function(t) { var y = ms + ih - ih * t / top; s += '<line x1="' + mi + '" x2="' + (W - md) + '" y1="' + y + '" y2="' + y + '" class="lab-grid"/><text x="' + (mi - 6) + '" y="' + (y + 3) + '" class="lab-eje" text-anchor="end">' + labCompacto(t) + '</text>'; });
+      return s;
+    }
+    // Columnas (una serie): items [{ x: 'etiqueta', n, tip }]
+    function labColumnas(items, o) {
+      o = o || {};
+      var W = LAB_W, H = o.h || 170, mi = 34, md = 8, ms = 14, mb = 22, iw = W - mi - md, ih = H - ms - mb;
+      var max = items.reduce(function(m, x) { return Math.max(m, x.n); }, 0), tk = labTicks(max), top = tk[tk.length - 1] || 1;
+      var band = iw / items.length, bw = Math.min(24, band * 0.7), cada = o.cada || Math.ceil(items.length / 8), s = labEjes(tk, top, mi, md, ms, ih, W), iMax = -1;
+      items.forEach(function(it, i) { if (it.n > 0 && (iMax < 0 || it.n > items[iMax].n)) iMax = i; });
+      items.forEach(function(it, i) {
+        var cx = mi + band * i + band / 2, h = ih * it.n / top, bx = cx - bw / 2, by = ms + ih - h, bt = ms + ih;
+        if (it.n > 0) s += h >= 6
+          ? '<path d="M' + bx + ' ' + bt + 'V' + (by + 4) + 'Q' + bx + ' ' + by + ' ' + (bx + 4) + ' ' + by + 'H' + (bx + bw - 4) + 'Q' + (bx + bw) + ' ' + by + ' ' + (bx + bw) + ' ' + (by + 4) + 'V' + bt + 'Z" class="lab-marca"/>'
+          : '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + h + '" class="lab-marca"/>';
+        if (i === iMax) s += '<text x="' + cx + '" y="' + (by - 4) + '" class="lab-val" text-anchor="middle">' + labCompacto(it.n) + '</text>';
+        if (i % cada === 0) s += '<text x="' + cx + '" y="' + (H - 6) + '" class="lab-eje" text-anchor="middle">' + escHtml(it.x) + '</text>';
+      });
+      s += '<line x1="' + mi + '" x2="' + (W - md) + '" y1="' + (ms + ih) + '" y2="' + (ms + ih) + '" class="lab-base"/>';
+      items.forEach(function(it, i) { s += '<rect x="' + (mi + band * i) + '" y="' + ms + '" width="' + band + '" height="' + ih + '" class="lab-hit" data-tip="' + escHtml(it.tip) + '"/>'; });
+      return labSvg(H, s, o.aria || 'Gráfico de columnas');
+    }
+    // Área + línea sobre un mismo eje: días [{ dia: 'AAAA-MM-DD', a, b }]; `a` es el área (la protagonista) y `b` una línea
+    function labArea(dias, nomA, nomB, aria) {
+      var W = LAB_W, H = 190, mi = 34, md = 10, ms = 12, mb = 22, iw = W - mi - md, ih = H - ms - mb, n = dias.length;
+      var max = dias.reduce(function(m, x) { return Math.max(m, x.a, x.b); }, 0), tk = labTicks(max), top = tk[tk.length - 1] || 1;
+      var X = function(i) { return n === 1 ? mi + iw / 2 : mi + iw * i / (n - 1); }, Y = function(v) { return ms + ih - ih * v / top; };
+      var pa = dias.map(function(x, i) { return X(i) + ',' + Y(x.a); }), pb = dias.map(function(x, i) { return X(i) + ',' + Y(x.b); });
+      var s = labEjes(tk, top, mi, md, ms, ih, W);
+      s += '<polygon points="' + X(0) + ',' + Y(0) + ' ' + pa.join(' ') + ' ' + X(n - 1) + ',' + Y(0) + '" class="lab-area"/>';
+      s += '<polyline points="' + pa.join(' ') + '" class="lab-linea lab-linea--a"/><polyline points="' + pb.join(' ') + '" class="lab-linea lab-linea--b"/>';
+      s += '<line x1="' + mi + '" x2="' + (W - md) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" class="lab-base"/>';
+      var cada = Math.ceil(n / 6);
+      dias.forEach(function(x, i) {
+        if (i % cada === 0 || i === n - 1) s += '<text x="' + X(i) + '" y="' + (H - 6) + '" class="lab-eje" text-anchor="' + (i === 0 ? 'start' : (i === n - 1 ? 'end' : 'middle')) + '">' + labFecha(x.dia) + '</text>';
+      });
+      var w = Math.max(2, iw / Math.max(1, n - 1));
+      dias.forEach(function(x, i) {
+        s += '<g class="lab-col"><line x1="' + X(i) + '" x2="' + X(i) + '" y1="' + ms + '" y2="' + (ms + ih) + '" class="lab-guia"/>'
+          + '<circle cx="' + X(i) + '" cy="' + Y(x.a) + '" r="4" class="lab-punto lab-punto--a"/><circle cx="' + X(i) + '" cy="' + Y(x.b) + '" r="4" class="lab-punto lab-punto--b"/>'
+          + '<rect x="' + (X(i) - w / 2) + '" y="' + ms + '" width="' + w + '" height="' + ih + '" class="lab-hit" data-tip="' + escHtml(labFecha(x.dia) + ' · ' + x.a + ' ' + nomA.toLowerCase() + ' · ' + x.b + ' ' + nomB.toLowerCase()) + '"/></g>';
+      });
+      // el último valor, marcado (el punto con su aro del color de la superficie)
+      s += '<circle cx="' + X(n - 1) + '" cy="' + Y(dias[n - 1].a) + '" r="4" class="lab-fin lab-fin--a"/><circle cx="' + X(n - 1) + '" cy="' + Y(dias[n - 1].b) + '" r="4" class="lab-fin lab-fin--b"/>';
+      var leyenda = '<ul class="lab-leyenda lab-leyenda--fila"><li><i class="lab-sw lab-sw--a"></i><span>' + escHtml(nomA) + '</span></li><li><i class="lab-sw lab-sw--b"></i><span>' + escHtml(nomB) + '</span></li></ul>';
+      return leyenda + labSvg(H, s, aria);
+    }
+    // Torta (dona) con leyenda de valores: items [{ nom, n, clave? }]; hasta 5 rebanadas + «Otros»
+    function labDona(items, unidad, aria) {
+      items = items.filter(function(x) { return x.n > 0; }).sort(function(a, b) { return b.n - a.n; });
+      var total = items.reduce(function(t, x) { return t + x.n; }, 0);
+      if (!total) return '<p class="lab-nota">Sin datos en este período.</p>';
+      if (items.length > 5) { var otros = items.slice(4).reduce(function(t, x) { return t + x.n; }, 0); items = items.slice(0, 4).concat([{ nom: 'Otros', n: otros, otros: true }]); }
+      var usados = {}, sig = 1;
+      items.forEach(function(x) {   // el color sigue a la categoría (los fijos), no a su tamaño; el resto, en orden
+        var f = LAB_FIJOS[x.clave || x.nom.toLowerCase()];
+        if (f && !usados[f]) { x.slot = f; usados[f] = 1; }
+      });
+      items.forEach(function(x) { if (x.slot || x.otros) return; while (usados[sig]) sig++; x.slot = sig; usados[sig] = 1; });
+      var r = 62, C = 2 * Math.PI * r, cum = 0, s = '', st = '';
+      items.forEach(function(x) {
+        var len = C * x.n / total, gap = items.length > 1 ? 2 : 0, pct = Math.round(x.n * 1000 / total) / 10;
+        s += '<circle cx="90" cy="90" r="' + r + '" class="lab-rebanada ' + (x.otros ? 'lab-rebanada--otros' : 'lab-c' + x.slot) + '" stroke-dasharray="' + Math.max(0.5, len - gap) + ' ' + C + '" stroke-dashoffset="' + (-cum) + '" data-tip="' + escHtml(x.nom + ': ' + x.n.toLocaleString('es-AR') + ' ' + unidad + ' (' + pct.toLocaleString('es-AR') + ' %)') + '"/>';
+        cum += len;
+      });
+      st += '<text x="90" y="88" text-anchor="middle" class="lab-centro">' + labCompacto(total) + '</text><text x="90" y="104" text-anchor="middle" class="lab-eje">' + escHtml(unidad) + '</text>';
+      return '<div class="lab-dona"><svg class="lab-svg lab-svg--dona" viewBox="0 0 180 180" role="img" aria-label="' + escHtml(aria) + '"><g transform="rotate(-90 90 90)">' + s + '</g>' + st + '</svg>'
+        + '<ul class="lab-leyenda">' + items.map(function(x) { return '<li><i class="lab-sw ' + (x.otros ? 'lab-sw--otros' : 'lab-sw--c' + x.slot) + '"></i><span>' + escHtml(x.nom) + '</span><b>' + x.n.toLocaleString('es-AR') + '</b><em>' + labPct(x.n, total) + '</em></li>'; }).join('') + '</ul></div>';
+    }
+    // Barras horizontales (la lista con barras): items [{ nom, n, txt, tip }]
+    function labBarras(items) {
+      var max = items.reduce(function(m, x) { return Math.max(m, x.n); }, 0) || 1;
+      return '<div class="lab-barras">' + items.map(function(x) {
+        return '<span class="lab-barras-nom" title="' + escHtml(x.nom) + '">' + escHtml(x.nom) + '</span><span class="lab-pista"><i style="width:' + Math.max(1.5, Math.round(x.n * 1000 / max) / 10) + '%" data-tip="' + escHtml(x.tip || x.txt || '') + '"></i></span><em>' + escHtml(x.txt) + '</em>';
+      }).join('') + '</div>';
+    }
+    function labDetalle(html) { return '<details class="lab-det"><summary>Ver como tabla</summary>' + html + '</details>'; }
+    function labCaja(titulo, que, cuerpo, ancho) {   // una tarjeta de gráfico con su explicación
+      return '<article class="lab-card' + (ancho ? ' lab-card--ancha' : '') + '"><h4>' + escHtml(titulo) + '</h4><p class="lab-que">' + que + '</p>' + cuerpo + '</article>';
+    }
+    // El tooltip: un solo cuadrito para todos los gráficos (pasar el mouse o tocar)
+    function labTipInit() {
+      if (document.getElementById('labTip')) return;
+      var t = document.createElement('div'); t.id = 'labTip'; t.className = 'lab-tip'; t.hidden = true; document.body.appendChild(t);
+      var ver = function(e) {
+        if (currentRole !== 'dev') return;
+        var el = e.target && e.target.closest ? e.target.closest('[data-tip]') : null;
+        if (!el) { t.hidden = true; return; }
+        var p = e.touches && e.touches[0] ? e.touches[0] : e;
+        t.textContent = el.getAttribute('data-tip'); t.hidden = false;
+        t.style.left = Math.max(8, Math.min(window.innerWidth - t.offsetWidth - 8, p.clientX + 12)) + 'px';
+        t.style.top = Math.max(8, p.clientY - t.offsetHeight - 14) + 'px';
+      };
+      document.addEventListener('mousemove', ver); document.addEventListener('click', ver); document.addEventListener('touchstart', ver, { passive: true });
+      window.addEventListener('scroll', function() { t.hidden = true; }, { passive: true });
+    }
+    // Las frases de «lo que salta a la vista»: sólo se dicen si hay datos de sobra para decirlas
+    function labFrases(d) {
+      var f = [], ev = d.eventos || {};
+      var dias = (d.por_dia || []).slice().sort(function(a, b) { return b.vistas - a.vistas; });
+      if (dias[0] && dias[0].vistas > 0) f.push('El día con más visitas fue el <b>' + labFecha(dias[0].dia) + '</b> (' + dias[0].vistas + ' visitas y ' + dias[0].wa + ' clics a WhatsApp).');
+      var ref = (d.referrer || []).slice().sort(function(a, b) { return b.wa - a.wa; })[0];
+      if (ref && ev.wa >= 10) f.push('De cada 100 clics a WhatsApp, <b>' + Math.round(ref.wa * 100 / ev.wa) + '</b> vienen de «' + escHtml(labClave(ref.clave)) + '» (' + ref.wa + ' de ' + ev.wa + ').');
+      var hora = (d.wa_por_hora || []).slice().sort(function(a, b) { return b.wa - a.wa; })[0];
+      if (hora && ev.wa >= 10) f.push('La hora con más clics a WhatsApp es las <b>' + String(hora.hora).padStart(2, '0') + ' h</b> (' + hora.wa + ' de ' + ev.wa + '; es la hora del aparato de quien visita).');
+      var cel = (d.dispositivo || []).filter(function(x) { return x.clave === 'mobile'; })[0], totV = (d.dispositivo || []).reduce(function(t, x) { return t + x.vistas; }, 0);
+      if (cel && totV >= 30) f.push('<b>' + Math.round(cel.vistas * 100 / totV) + ' de cada 100</b> visitas son desde un celular.');
+      var mir = (d.embudo || []).slice().sort(function(a, b) { return b.vistas - a.vistas; })[0];
+      if (mir && mir.vistas >= 5) f.push('El perfume más mirado es <b>' + escHtml(labNombre(mir.slug)) + '</b> (' + mir.vistas + ' visitas, ' + mir.wa + ' clics a WhatsApp).');
+      var bus = (d.busquedas || [])[0];
+      if (bus && bus.n >= 3) f.push('Lo que más buscan sin encontrar: «<b>' + escHtml(bus.q) + '</b>» (' + bus.n + ' veces).');
+      return f;
+    }
     function labPintar() {
       var d = LAB.datos, c = document.getElementById('labCuerpo'); if (!d || !c) return;
       var ev = d.eventos || {}, v = d.ventas || {}, vv = d.ventas_ventana || {}, g = d.ganancia || {}, h = '';
+      var frases = labFrases(d);
+      if (frases.length) h += '<section class="lab-sec lab-salta"><h3>Lo que salta a la vista</h3><ul>' + frases.map(function(x) { return '<li>' + x + '</li>'; }).join('') + '</ul></section>';
       h += '<div class="lab-tarjetas">'
         + labTarjeta('Visitas a perfumes', Number(ev.vistas || 0).toLocaleString('es-AR'), 'últimos ' + d.dias + ' días')
         + labTarjeta('Clics a WhatsApp', Number(ev.wa || 0).toLocaleString('es-AR'), labPct(ev.wa, ev.vistas) + ' de las visitas')
@@ -14412,52 +14602,85 @@
         + labTarjeta('Ventas anotadas', Number(vv.unidades || 0).toLocaleString('es-AR') + ' u.', labPesos(vv.monto) + ' a precio de lista')
         + '</div>';
 
+      // ── la tienda, día por día ──
+      var mapa = {}; (d.por_dia || []).forEach(function(x) { mapa[x.dia] = x; });
+      var serie = [], ini = new Date(d.hoy + 'T12:00:00Z');
+      for (var k = d.dias - 1; k >= 0; k--) {
+        var dt = new Date(ini.getTime() - k * 86400000), iso = dt.toISOString().slice(0, 10), x = mapa[iso] || {};
+        serie.push({ dia: iso, a: x.vistas || 0, b: x.wa || 0 });
+      }
+      h += '<section class="lab-sec"><h3>La tienda, día por día</h3><div class="lab-grid2">'
+        + labCaja('Visitas y clics a WhatsApp por día',
+            '<b>Qué es:</b> cuántas veces por día alguien abrió la ficha de un perfume (el área dorada) y cuántas tocó el botón de WhatsApp (la línea verde). <b>Cómo se lee:</b> si la línea verde sube junto con el área, la gente que mira también consulta. <b>Para qué sirve:</b> ver qué días anda bien la tienda y si una publicación en Instagram movió algo.',
+            labArea(serie, 'Visitas', 'Clics a WhatsApp', 'Visitas y clics a WhatsApp por día') + labDetalle(labTabla([['Día', false], ['Visitas', true], ['WhatsApp', true]], serie.slice().reverse().filter(function(x) { return x.a || x.b; }).map(function(x) { return [labFecha(x.dia), x.a, x.b]; }))), true)
+        + '</div></section>';
+
       // ── ventas ──
       h += '<section class="lab-sec"><h3>Ventas anotadas</h3>';
       if (!(v.filas > 0)) {
-        h += '<p class="lab-nota lab-nota--aviso">Todavía no hay ventas anotadas con el sistema nuevo (se empezaron a guardar el 16-oct). Cuando las chicas anoten, acá aparece cada semana, de dónde vino cada venta, cómo pagaron y qué perfumes salen más.</p>';
+        h += '<p class="lab-nota lab-nota--aviso">Todavía no hay ventas anotadas con el sistema nuevo (se empezaron a guardar el 16-oct). Cuando las chicas anoten, acá aparecen las ventas por semana, de dónde vino cada una, cómo pagaron, qué se llevaron y los perfumes que más salen, todo en gráficos.</p>';
       } else {
-        h += '<p class="lab-nota">Hay ventas desde el ' + labFecha(v.desde) + ' (' + v.dias_con_ventas + (v.dias_con_ventas === 1 ? ' día' : ' días') + ' con ventas). Los montos son a precio de lista (lo que figura en la hoja, sin el 10 % de efectivo y Mercado Pago).</p>';
-        h += '<p class="lab-nota" style="margin-bottom:.3rem;"><b>Por semana</b> (últimas 8)</p>'
-          + labBarras((d.por_semana || []).map(function(s) { return { nom: 'sem. ' + labFecha(s.semana), n: Number(s.monto) || 0, txt: s.unidades + ' u. · ' + labPesos(s.monto) }; }));
-        var grupo = function(tit, arr) { return '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>' + tit + '</b></p>' + labTabla([['', false], ['Unidades', true], ['Monto', true]], (arr || []).map(function(x) { return [labClave(x.clave), x.unidades, labPesos(x.monto)]; })); };
-        h += grupo('De dónde vino la venta', d.por_origen) + grupo('Cómo pagaron', d.por_medio) + grupo('Qué se llevaron', d.por_tipo);
-        h += '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>Los perfumes que más salen</b></p>'
-          + labTabla([['Perfume', false], ['Marca', false], ['Unidades', true], ['Monto', true]], (d.top_perfumes || []).map(function(x) { return [escHtml(labNombre(x.slug) || x.nombre), escHtml(x.marca || ''), x.unidades, labPesos(x.monto)]; }));
+        h += '<p class="lab-nota">Hay ventas desde el ' + escHtml(labFecha(v.desde)) + ' (' + v.dias_con_ventas + (v.dias_con_ventas === 1 ? ' día' : ' días') + ' con ventas). Los montos son a precio de lista (lo que figura en la hoja, sin el 10 % de efectivo y Mercado Pago).</p><div class="lab-grid2">';
+        h += labCaja('Ventas por semana',
+            '<b>Qué es:</b> cuánta plata (a precio de lista) se anotó en cada semana, de lunes a domingo. <b>Para qué sirve:</b> ver si la tienda crece o se estanca.',
+            labColumnas((d.por_semana || []).map(function(s) { return { x: labFecha(s.semana), n: Number(s.monto) || 0, tip: 'Semana del ' + labFecha(s.semana) + ' · ' + s.unidades + ' u. · ' + labPesos(s.monto) }; }), { aria: 'Ventas por semana', cada: 1 }), true);
+        var dona = function(tit, que, arr, aria) { return labCaja(tit, que, labDona((arr || []).map(function(x) { return { nom: labClave(x.clave), clave: x.clave, n: Number(x.unidades) || 0 }; }), 'unidades', aria) + labDetalle(labTabla([['', false], ['Unidades', true], ['Monto', true]], (arr || []).map(function(x) { return [escHtml(labClave(x.clave)), x.unidades, labPesos(x.monto)]; })))); };
+        h += dona('De dónde vino la venta', '<b>Qué es:</b> si el cliente llegó al local, por WhatsApp o por la web (lo marcan las chicas al anotar). <b>Para qué sirve:</b> saber qué canal vende de verdad.', d.por_origen, 'De dónde vino la venta');
+        h += dona('Cómo pagaron', '<b>Qué es:</b> el medio de pago de cada venta. <b>Para qué sirve:</b> ver cuánto se cobra con tarjeta (Posnet) y cuánto con descuento (efectivo y Mercado Pago).', d.por_medio, 'Cómo pagaron');
+        h += dona('Qué se llevaron', '<b>Qué es:</b> frascos, decants u otras cosas. <b>Para qué sirve:</b> saber si el negocio es más de frascos o de decants.', d.por_tipo, 'Qué se llevaron');
+        var top = d.top_perfumes || [];
+        h += labCaja('Los perfumes que más salen', '<b>Qué es:</b> los 10 frascos con más unidades vendidas. <b>Para qué sirve:</b> decidir qué reponer primero y qué mostrar arriba en el catálogo.',
+            (top.length ? labBarras(top.map(function(x) { var nom = labNombre(x.slug) || x.nombre; return { nom: nom, n: Number(x.unidades) || 0, txt: x.unidades + ' u.', tip: nom + ' · ' + x.unidades + ' u. · ' + labPesos(x.monto) }; })) : '<p class="lab-nota">Todavía no hay frascos vendidos.</p>')
+            + labDetalle(labTabla([['Perfume', false], ['Marca', false], ['Unidades', true], ['Monto', true]], top.map(function(x) { return [escHtml(labNombre(x.slug) || x.nombre), escHtml(x.marca || ''), x.unidades, labPesos(x.monto)]; }))));
         if (g.frascos_uds > 0) {
-          if (g.con_costo_uds > 0) h += '<p class="lab-nota" style="margin-top:.9rem;"><b>Ganancia estimada: ' + labPesos(g.monto_con_costo - g.costo_total) + '</b> sobre ' + g.con_costo_uds + ' de ' + g.frascos_uds + ' frascos que tienen costo cargado (precio de lista menos costo; los decants no entran).</p>';
-          else h += '<p class="lab-nota lab-nota--aviso" style="margin-top:.9rem;">Ganancia: todavía no se puede calcular. Falta cargar los costos (en el panel del jefe: Decants → Costos de compra).</p>';
+          var gan = g.monto_con_costo - g.costo_total;
+          h += labCaja('Cuánto queda de cada venta',
+              '<b>Qué es:</b> del dinero de los frascos que tienen costo cargado, cuánto se fue en costo y cuánto quedó de ganancia (precio de lista menos costo; los decants no entran). Hay costo en ' + g.con_costo_uds + ' de ' + g.frascos_uds + ' frascos vendidos.',
+              g.con_costo_uds > 0
+                ? '<div class="lab-apilada"><i class="lab-ap-costo" style="flex:' + Math.max(0, g.costo_total) + '" data-tip="Costo: ' + escHtml(labPesos(g.costo_total)) + '"></i><i class="lab-ap-gan" style="flex:' + Math.max(0, gan) + '" data-tip="Ganancia: ' + escHtml(labPesos(gan)) + '"></i></div>'
+                  + '<ul class="lab-leyenda"><li><i class="lab-sw lab-sw--costo"></i><span>Costo</span><b>' + labPesos(g.costo_total) + '</b><em>' + labPct(g.costo_total, g.monto_con_costo) + '</em></li><li><i class="lab-sw lab-sw--gan"></i><span>Ganancia</span><b>' + labPesos(gan) + '</b><em>' + labPct(gan, g.monto_con_costo) + '</em></li></ul>'
+                : '<p class="lab-nota lab-nota--aviso">Todavía no se puede calcular: falta cargar los costos (en el panel del jefe: Decants → Costos de compra).</p>');
         }
+        h += '</div>';
       }
       h += '</section>';
 
-      // ── el camino de la gente ──
-      h += '<section class="lab-sec"><h3>Qué mira la gente y qué pasa después</h3>'
-        + '<p class="lab-nota">Los 25 perfumes con más movimiento de los últimos ' + d.dias + ' días. «Chance» = de cada visita, cuántas terminaron en un clic a WhatsApp. Con pocas visitas el número engaña: mirá primero la columna de visitas.</p>'
-        + labTabla([['Perfume', false], ['Visitas', true], ['Decants', true], ['WhatsApp', true], ['Chance', true], ['Vendidos', true]],
-            (d.embudo || []).map(function(x) { return [escHtml(labNombre(x.slug)), x.vistas, x.decants, x.wa, labPct(x.wa, x.vistas), x.vendidas]; }))
+      // ── qué mira y qué consulta la gente ──
+      var emb = d.embudo || [];
+      var porVistas = emb.slice().sort(function(a, b) { return b.vistas - a.vistas; }).slice(0, 10), porWa = emb.filter(function(x) { return x.wa > 0; }).sort(function(a, b) { return b.wa - a.wa; }).slice(0, 10);
+      h += '<section class="lab-sec"><h3>Qué mira y qué consulta la gente</h3><div class="lab-grid2">'
+        + labCaja('Los perfumes más mirados', '<b>Qué es:</b> los 10 perfumes cuya ficha más se abrió en los últimos ' + d.dias + ' días. <b>Para qué sirve:</b> son los que más interés despiertan: tienen que tener buena foto, notas y precio.',
+            (porVistas.length ? labBarras(porVistas.map(function(x) { var nom = labNombre(x.slug); return { nom: nom, n: x.vistas, txt: String(x.vistas), tip: nom + ' · ' + x.vistas + ' visitas · ' + x.wa + ' clics a WhatsApp' }; })) : '<p class="lab-nota">Sin datos en este período.</p>'))
+        + labCaja('Los que más consultan por WhatsApp', '<b>Qué es:</b> los 10 perfumes con más clics al botón de WhatsApp. <b>Para qué sirve:</b> son los que la gente quiere comprar; si además no hay stock, son plata que se escapa.',
+            (porWa.length ? labBarras(porWa.map(function(x) { var nom = labNombre(x.slug); return { nom: nom, n: x.wa, txt: String(x.wa), tip: nom + ' · ' + x.wa + ' clics a WhatsApp de ' + x.vistas + ' visitas (' + labPct(x.wa, x.vistas) + ')' }; })) : '<p class="lab-nota">Sin clics a WhatsApp en este período.</p>'))
+        + '</div>'
+        + '<details class="lab-det"><summary>Ver los 25 perfumes con más movimiento como tabla</summary><p class="lab-nota">«Chance» = de cada visita, cuántas terminaron en un clic a WhatsApp. Con pocas visitas el número engaña: mirá primero la columna de visitas.</p>'
+        + labTabla([['Perfume', false], ['Visitas', true], ['Decants', true], ['WhatsApp', true], ['Chance', true], ['Vendidos', true]], emb.map(function(x) { return [escHtml(labNombre(x.slug)), x.vistas, x.decants, x.wa, labPct(x.wa, x.vistas), x.vendidas]; })) + '</details>'
         + '</section>';
 
       // ── de dónde vienen y cuándo escriben ──
-      var fila = function(x) { return [escHtml(x.clave), x.vistas, x.wa, x.decants]; };
-      h += '<section class="lab-sec"><h3>De dónde vienen</h3>'
-        + labTabla([['Origen', false], ['Visitas', true], ['WhatsApp', true], ['Decants', true]], (d.referrer || []).map(fila))
-        + '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>Desde qué aparato</b></p>'
-        + labTabla([['Aparato', false], ['Visitas', true], ['WhatsApp', true], ['Decants', true]], (d.dispositivo || []).map(fila))
-        + '<p class="lab-nota" style="margin:.9rem 0 .3rem;"><b>A qué hora hacen clic en WhatsApp</b></p>'
-        + ((d.wa_por_hora || []).length ? labBarras((d.wa_por_hora || []).map(function(x) { return { nom: String(x.hora).padStart(2, '0') + ' h', n: x.wa, txt: String(x.wa) }; })) : '<p class="lab-nota">Sin datos en este período.</p>')
-        + '</section>';
+      var fila = function(x) { return [escHtml(labClave(x.clave)), x.vistas, x.wa, x.decants]; };
+      var horas = []; for (var hh = 0; hh < 24; hh++) { var xh = (d.wa_por_hora || []).filter(function(q) { return q.hora === hh; })[0]; horas.push({ x: String(hh), n: xh ? xh.wa : 0, tip: String(hh).padStart(2, '0') + ' h · ' + (xh ? xh.wa : 0) + ' clics a WhatsApp' }); }
+      h += '<section class="lab-sec"><h3>De dónde vienen y cuándo escriben</h3><div class="lab-grid2">'
+        + labCaja('De dónde vienen las visitas', '<b>Qué es:</b> el sitio o la app desde donde llegó la persona (Instagram, Google, directo = escribió la dirección o tenía el link guardado). <b>Para qué sirve:</b> saber dónde vale la pena publicar.',
+            labDona((d.referrer || []).map(function(x) { return { nom: labClave(x.clave), clave: x.clave, n: x.vistas }; }), 'visitas', 'De dónde vienen las visitas') + labDetalle(labTabla([['Origen', false], ['Visitas', true], ['WhatsApp', true], ['Decants', true]], (d.referrer || []).map(fila))))
+        + labCaja('Desde qué aparato', '<b>Qué es:</b> celular, compu o tablet. <b>Para qué sirve:</b> si casi todo es celular, el catálogo se tiene que pensar primero para el celular.',
+            labDona((d.dispositivo || []).map(function(x) { return { nom: labClave(x.clave), clave: x.clave, n: x.vistas }; }), 'visitas', 'Desde qué aparato') + labDetalle(labTabla([['Aparato', false], ['Visitas', true], ['WhatsApp', true], ['Decants', true]], (d.dispositivo || []).map(fila))))
+        + labCaja('A qué hora hacen clic en WhatsApp', '<b>Qué es:</b> cuántos clics al botón de WhatsApp hubo en cada hora del día (hora del aparato de quien visita). <b>Para qué sirve:</b> elegir cuándo publicar y cuándo tener a alguien respondiendo.',
+            labColumnas(horas, { aria: 'Clics a WhatsApp por hora', cada: 3 }), true)
+        + '</div></section>';
 
       // ── búsquedas sin resultado ──
-      h += '<section class="lab-sec"><h3>Lo que buscan y no encuentran</h3>'
-        + '<p class="lab-nota">Búsquedas del catálogo que no devolvieron nada: son perfumes o marcas que la gente pide y hoy no están (o están con otro nombre: sirve para los alias y para el SEO).</p>'
-        + labTabla([['Búsqueda', false], ['Veces', true]], (d.busquedas || []).map(function(x) { return [escHtml(x.q), x.n]; }))
-        + '</section>';
+      var bus = d.busquedas || [];
+      h += '<section class="lab-sec"><h3>Lo que buscan y no encuentran</h3><div class="lab-grid2">'
+        + labCaja('Búsquedas sin resultado', '<b>Qué es:</b> lo que la gente escribió en el buscador del catálogo y no devolvió nada. <b>Para qué sirve:</b> son perfumes o marcas que piden y hoy no están (para traer) o están con otro nombre (para cargar como alias); también son las palabras que usa la gente, útiles para el SEO.',
+            (bus.length ? labBarras(bus.slice(0, 10).map(function(x) { return { nom: x.q, n: x.n, txt: String(x.n), tip: '«' + x.q + '» · ' + x.n + ' veces' }; })) + labDetalle(labTabla([['Búsqueda', false], ['Veces', true]], bus.map(function(x) { return [escHtml(x.q), x.n]; }))) : '<p class="lab-nota">Sin búsquedas vacías en este período.</p>'), true)
+        + '</div></section>';
 
       // ── lo que falta ──
-      var dias = Number(v.dias_con_ventas) || 0;
+      var dd = Number(v.dias_con_ventas) || 0;
       h += '<section class="lab-sec"><h3>Lo que todavía no se puede medir</h3><p class="lab-nota">'
-        + '<b>Probabilidad de venta por perfume:</b> ' + (dias < 14 ? 'hoy hay ' + dias + (dias === 1 ? ' día' : ' días') + ' de ventas registradas; con menos de dos semanas cualquier número sería inventado. ' : '') + 'Cuando haya unas semanas de ventas se cruzan con las visitas y los clics de arriba.<br>'
+        + '<b>Probabilidad de venta por perfume:</b> ' + (dd < 14 ? 'hoy hay ' + dd + (dd === 1 ? ' día' : ' días') + ' de ventas registradas; con menos de dos semanas cualquier número sería inventado. ' : '') + 'Cuando haya unas semanas de ventas se cruzan con las visitas y los clics de arriba.<br>'
         + '<b>SEO real</b> (qué palabras de Google traen gente, en qué posición sale la tienda): hace falta conectar Google Search Console; hoy sólo se ve si la visita vino de Google.<br>'
         + '<b>Publicar productos:</b> con las ventas y las visitas por perfume se puede ver qué tipo de ficha (foto, notas, precio) convierte más; falta juntar datos.</p></section>';
       c.innerHTML = h;
