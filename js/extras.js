@@ -517,6 +517,7 @@
       + cuenta.resumen + '\n\n'
       + '¿Confirmás stock? 🙏';
     var url = 'https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg);
+    if (typeof window.waIntento === 'function') window.waIntento('decants_pack', validPack);   // [WA-INTENTO] uno por perfume del pack
     window.open(url, '_blank');
   }
 

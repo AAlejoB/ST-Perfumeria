@@ -5633,6 +5633,14 @@ Sesión que arrancó desde otra (la de SMELLROCK HOLMES), en la rama `claude/mys
 - **`[QA-COPIA-SIN-ARCHIVOS]`:** `scripts/qa-copia/` sólo tiene el README; `qa-server.js` y `fake-supabase.js` nunca se subieron (`.gitignore`). Se usó la copia de una carpeta temporal de otra sesión.
 - **CLAUDE.md** decía que v1.1.282 estaba «sin subir»: está en producción desde `cdee80f`. Corregido.
 
+#### Después del humo: `[WA-INTENTO]` (caso 03 de Holmes)
+
+- El chat de Holmes encontró (y lo verifiqué en el código) que `wa_click` sólo lo suma `goToWA()`: la ficha y la tarjeta en la compu. El «Consultar →» de la tarjeta en el celu es un link directo sin evento (y es probablemente el camino más usado); tampoco sumaban el pedido, el flotante, los sets, los decants (suelto, pack y banner), la consulta de stock, el Desafío y los links del pie. El «escribieron» de Holmes contaba de menos.
+- **Alejo eligió «evento nuevo»** (no tocar `wa_click`, que lee el Laboratorio): `waIntento(origen, slug|slugs)` en los 12 caminos, con keepalive y aparte de los viejos; el pedido y el pack mandan uno por perfume. La `llegada` lleva `holmes: 2` y `sql/holmes_wa_intento.sql` hace que `holmes_metricas` cuente `wa_intento` sólo en esas visitas (las de antes no medían todos los botones) y devuelva `origenes`. La pestaña suma «Desde qué botón escriben». SW v1.1.284.
+- El botón de decant del Desafío mandaba a `5492974564545`, no al número de ST: Alejo pasó el de ST (`+54 9 2975 41 6017`) y quedó ese.
+- Probado en la copia del QA (que corta los pedidos del catálogo a la base real): los 12 caminos dejan su evento con el origen bien, `wa_click` sigue saliendo igual de `goToWA`, y la pestaña muestra el bloque nuevo en 375 px sin salirse del ancho. La cuenta del SQL, con datos inventados en un `with` (sin escribir).
+- `scripts/qa-copia/` quedó en el repo (`[QA-COPIA-SIN-ARCHIVOS]`, Alejo dijo que sí), con la `holmes_metricas` de mentira al día.
+
 #### Keywords cerrados
 
 | Keyword | Qué hace |
@@ -5644,6 +5652,7 @@ Sesión que arrancó desde otra (la de SMELLROCK HOLMES), en la rama `claude/mys
 | Keyword | Qué falta |
 |---|---|
 | ~~`[HOLMES-HUMO]`~~ ✅ | **Cerrado el 16-oct a la noche:** Alejo entró con la cuenta de laboratorio y la pestaña «se ve todo perfecto». Antes: ~~Aplicar `sql/holmes.sql`~~ y ~~la visita desde el celu~~ (hechos el 16-oct; subido en `7e45f7e`, SW v1.1.283; el iPhone de Alejo dejó `llegada` + `ficha_abierta` de khamrah-waha a las 20:22). Falta mirar la pestaña con la cuenta de laboratorio |
+| `[WA-INTENTO]` 🟡 | Aplicar `sql/holmes_wa_intento.sql` (OK de Alejo), subir v1.1.284 y un toque real a «Consultar →» de una tarjeta en el celu |
 | ~~`[QA-COPIA-SIN-ARCHIVOS]`~~ ✅ | Alejo dijo que sí: los dos `.js` (la versión que también sirve el catálogo, del worktree `st-perfumeria-v1-1-157-363b7c`) más `holmes_metricas` de mentira, con su `!` en `.gitignore` |
 | `[LAB-FUNDAMENTOS]` 🟡 | En parte cubierto por Holmes; falta lo de ventas (Pareto / ABC, rotación, RFM) |
 

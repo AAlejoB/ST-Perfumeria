@@ -15643,6 +15643,8 @@
       if (r.error) { if (c) c.innerHTML = '<p class="lab-nota" style="color:var(--tinta-error);">' + escHtml(errorEnCriollo(r.error, null, 'leer los datos de Holmes', '↺')) + '</p>'; return; }
       HOLMES.datos = r.data; holmesPintar();
     }
+    var HOLMES_ORIGENES = { tarjeta_celu: 'Tarjeta (celu)', tarjeta_compu: 'Tarjeta (compu)', ficha: 'Ficha del perfume', carrito: 'Pedido', flotante: 'Botón verde flotante',
+      set: 'Sets', stock: 'Consulta de stock', decant: 'Decant suelto', decants_pack: 'Pack de decants', decants_banner: 'Banner de decants', desafio: 'Desafío', catalogo_wa: 'Catálogo de WhatsApp', mapa: 'Mapa', pie: 'Pie de página', otro: 'Otro' };
     function holmesNombre(slug) { var p = PERFUMES.find(function(x) { return x.slug === slug; }); return p ? (p.name || slug) : slug; }
     function holmesFecha(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso || ''); }
     // C · lo que dice el texto lo dice el dibujo: «1 de cada 20» son 20 muñequitos con 1 pintado. Con más de 100 no se dibujan.
@@ -15688,16 +15690,25 @@
       // ── (a) llegaron → escribieron ──
       var u = H.mostrarUno(escribieron, llegaron);
       h += '<section class="lab-sec"><h3>Llegaron y escribieron por WhatsApp</h3>'
-        + '<p class="lab-nota">Una visita es un aparato en un día. Es el «mira y no compra»: de las visitas que llegaron a la tienda, cuántas escribieron por WhatsApp por algún perfume.</p>'
+        + '<p class="lab-nota">Una visita es un aparato en un día. Es el «mira y no compra»: de las visitas que llegaron a la tienda, cuántas tocaron algún botón de WhatsApp (cualquiera: la tarjeta, la ficha, el pedido, el flotante…).</p>'
         + '<article class="lab-card">'
         + '<p class="holmes-grande">' + escHtml(u.principal) + '</p>'
         + (llegaron ? '<p class="lab-nota" style="margin:0 0 .3rem;">' + (escribieron ? (H.deCadaTantos(escribieron, llegaron).uno > 1 ? 'escribieron' : 'escribió') + ' por WhatsApp' : '') + '</p>' + holmesMunecos(H, escribieron, llegaron) : '')
         + holmesAviso(u.aviso)
         + '<p class="holmes-embudo"><b>' + llegaron.toLocaleString('es-AR') + '</b> llegaron · <b>' + conFicha.toLocaleString('es-AR') + '</b> abrieron alguna ficha · <b>' + escribieron.toLocaleString('es-AR') + '</b> escribieron</p>'
         + (llegaron ? '<details class="lab-det"><summary>Ver detalle</summary><ul class="holmes-lista"><li>' + escHtml(u.detalle) + '</li>' + holmesAB(H, escribieron, llegaron)
-          + (Number(t.wa_sin_llegada) ? '<li>Además, ' + Number(t.wa_sin_llegada) + ' ' + (Number(t.wa_sin_llegada) === 1 ? 'visita escribió' : 'visitas escribieron') + ' sin que su llegada quedara anotada (de antes del contador, o se perdió). No entran en la cuenta.</li>' : '')
+          + (Number(t.wa_sin_llegada) ? '<li>Además, ' + Number(t.wa_sin_llegada) + ' ' + (Number(t.wa_sin_llegada) === 1 ? 'visita escribió' : 'visitas escribieron') + ' sin que su llegada quedara anotada (de antes del contador nuevo, o se perdió). No entran en la cuenta.</li>' : '')
           + '</ul></details>' : '')
         + '</article></section>';
+      // ── desde qué botón escriben ([WA-INTENTO]) ──
+      var og = d.origenes || [];
+      if (og.length) {
+        var totOg = og.reduce(function(t, x) { return t + Number(x.visitas || 0); }, 0);
+        h += '<section class="lab-sec"><h3>Desde qué botón escriben</h3>'
+          + '<p class="lab-nota">De las visitas que escribieron, desde dónde tocaron WhatsApp. Una visita que tocó dos botones cuenta en los dos.</p>'
+          + labBarras(og.map(function(x) { var n = Number(x.visitas || 0); return { nom: HOLMES_ORIGENES[x.origen] || x.origen, n: n, txt: String(n), tip: (HOLMES_ORIGENES[x.origen] || x.origen) + ' · ' + n + (n === 1 ? ' visita' : ' visitas') + ' de ' + totOg }; }))
+          + '</section>';
+      }
       // ── (b) por perfume ──
       var pp = (d.por_perfume || []).filter(function(x) { return Number(x.miraron) > 0; });
       h += '<section class="lab-sec"><h3>Por perfume</h3>'
@@ -15710,7 +15721,7 @@
             + '<span class="holmes-dato">' + escHtml(o.principal) + (o.aviso ? ' <em class="holmes-pocas">pocas</em>' : '') + '</span></summary>'
             + '<div class="holmes-fila-det">' + holmesMunecos(H, w, m) + holmesAviso(o.aviso)
             + '<ul class="holmes-lista"><li>' + escHtml(o.detalle) + '</li>'
-            + (s ? '<li>Además, ' + s + ' ' + (s === 1 ? 'visita escribió' : 'visitas escribieron') + ' por este perfume desde la tarjeta, sin abrir la ficha.</li>' : '')
+            + (s ? '<li>Además, ' + s + ' ' + (s === 1 ? 'visita escribió' : 'visitas escribieron') + ' por este perfume sin abrir su ficha (desde la tarjeta, el pedido u otro botón).</li>' : '')
             + '</ul></div></details>';
         }).join('') + '</div>';
       }

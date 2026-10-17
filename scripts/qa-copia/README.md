@@ -27,7 +27,7 @@ Desde la consola del navegador existe `window.__QA`:
 
 Columnas y tipos, límites (`pg_constraint`), índices únicos, permisos por cuenta de las tablas principales y las funciones
 `stock_mover`, `caja_cerrar_dia`, `caja_tachar`, `caja_destachar`, `caja_cobrar`, `ajustar_puntos`, `resumen_dia`,
-`wa_consultas_hoy`, `lab_metricas` (esta última, un molde) y `holmes_metricas` (la misma cuenta de `sql/holmes.sql`, con llegadas y fichas de mentira). **Si cambia una de esas reglas en la base, hay que cambiarla acá**: es
+`wa_consultas_hoy`, `lab_metricas` (esta última, un molde) y `holmes_metricas` (la misma cuenta de `sql/holmes_wa_intento.sql`, con llegadas, fichas e intentos de WhatsApp de mentira). **Si cambia una de esas reglas en la base, hay que cambiarla acá**: es
 una copia, no la base. Sirve para encontrar problemas de PANTALLA; lo que parezca de la base se confirma aparte (con
 transacciones que se deshacen).
 

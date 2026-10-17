@@ -142,6 +142,20 @@
         }).catch(function(){});
       } catch(_){}
     }
+    // [WA-INTENTO] (16-oct-2026, caso 03 de Holmes, decisión de Alejo) `wa_click` sólo lo suma goToWA (la ficha y la tarjeta en la compu):
+    // el «Consultar →» de la tarjeta en el celu, el pedido, el flotante, los sets, los decants y los links del pie abrían WhatsApp sin
+    // dejar rastro. `wa_intento` va en TODOS los caminos con `meta.origen`, uno por perfume (el pedido manda uno por cada uno). Sale al
+    // toque con keepalive (la persona se está yendo a otra app) y aparte de los viejos. `wa_click` sigue igual: lo lee el Laboratorio.
+    function waIntento(origen, slugs) {
+      try {
+        var lista = (Array.isArray(slugs) ? slugs : [slugs]).filter(function(s) { return typeof s === 'string' && s && s.indexOf('custom-') !== 0; });
+        var meta = { device: ANALYTICS_DEVICE, referrer: ANALYTICS_REFERRER, hour: new Date().getHours(), origen: String(origen || 'otro').slice(0, 20) };
+        analyticsKeepalive((lista.length ? lista : [null]).slice(0, 20).map(function(s) {
+          return { session_id: ANALYTICS_SESSION_ID, event_type: 'wa_intento', slug: s, query: null, meta: meta };
+        }));
+      } catch(_){}
+    }
+    window.waIntento = waIntento;
     function flushAnalytics() {
       if (ANALYTICS_QUEUE.length === 0) return;
       var batch = ANALYTICS_QUEUE.splice(0, ANALYTICS_QUEUE.length);
@@ -163,7 +177,7 @@
         if (navigator.webdriver || /bot\/|bot;|crawler|spider|slurp|facebookexternalhit|lighthouse|headless|pagespeed/i.test(ua)) return;
         var mandar = function() {
           var q = new URLSearchParams(location.search);
-          var meta = { device: ANALYTICS_DEVICE, referrer: ANALYTICS_REFERRER, hour: new Date().getHours(), pagina: location.pathname.slice(0, 60) };
+          var meta = { device: ANALYTICS_DEVICE, referrer: ANALYTICS_REFERRER, hour: new Date().getHours(), pagina: location.pathname.slice(0, 60), holmes: 2 };   // [WA-INTENTO] holmes 2 = esta visita ya mide todos los botones de WhatsApp (sql/holmes_wa_intento.sql cuenta sólo éstas)
           if (q.get('p') || q.get('perfume')) meta.link_perfume = true;
           if (q.get('utm_source')) meta.utm = String(q.get('utm_source')).slice(0, 40);
           try { if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) meta.app = true; } catch(_){}
@@ -2223,7 +2237,7 @@
       if (STOCK_OCULTO && (isOutOfStock || isPaused)) {
         // [STOCK-OCULTO] en el lugar de «Avisame cuando vuelva», el WhatsApp de siempre con el mensaje de «Consultar →» (termina en «¿Tienen disponibilidad?»).
         // Lleva .waitlist-btn por el lugar y el aspecto (también en la vista ☰, donde es texto y la fila abre la ficha) y porque la card no abre la ficha al tocarlo.
-        waitlistHTML = '<a class="waitlist-btn consulta-wa" href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">'
+        waitlistHTML = '<a class="waitlist-btn consulta-wa" href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" rel="noopener" onclick="event.stopPropagation();waIntento(\'stock\',' + jsAttr(p.slug) + ')">'
           + '<span class="waitlist-label">' + TXT_CONSULTA_DISPONIBILIDAD + '</span>'
         + '</a>';
       } else if (isOutOfStock || isPaused) {
@@ -2272,7 +2286,7 @@
           + perfumeDelMesHTML
           + urgencyHTML
           + vistasCardHTML(p.slug)
-          + '<a href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" class="card-cta-mobile">Consultar &#8594;</a>'
+          + '<a href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([p], '')) + '" target="_blank" class="card-cta-mobile" onclick="waIntento(\'tarjeta_celu\',' + jsAttr(p.slug) + ')">Consultar &#8594;</a>'
           + waitlistHTML
         + '</div>'
         + '<div class="card-reveal">'
@@ -2752,7 +2766,7 @@
               + (origHTML ? '<span class="set-price-original">' + origHTML + '</span>' : '')
             + '</div>'
             + ahorroHTML
-            + (setPaused ? '' : '<a href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([s], '')) + '" target="_blank" class="set-cta">' + (setConsulta ? TXT_CONSULTA_DISPONIBILIDAD : 'Consultar &#8594;') + '</a>')
+            + (setPaused ? '' : '<a href="https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(buildWaMessage([s], '')) + '" target="_blank" class="set-cta" onclick="waIntento(\'set\',' + jsAttr(s.slug) + ')">' + (setConsulta ? TXT_CONSULTA_DISPONIBILIDAD : 'Consultar &#8594;') + '</a>')
           + '</div>'
         + '</div>';
       });
@@ -3188,6 +3202,7 @@
       if (c.estado === 'out')           msg = 'Hola! Avísenme cuando vuelva a haber stock del ' + c.name + ', por favor.';
       else if (c.estado === 'pausado')  msg = 'Hola! Quiero reservar el ' + c.name + ' con seña para cuando llegue. ¿Cómo hacemos?';
       else                               msg = 'Hola! Consulto por el ' + c.name + '.';
+      waIntento('stock', c.slug);   // [WA-INTENTO]
       window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
     }
 
@@ -3198,6 +3213,7 @@
       var nombre = (currentUser && currentUser.nombre) ? String(currentUser.nombre).trim().split(' ')[0] : '';
       var saludo = nombre ? ('Hola, soy ' + nombre + '!') : 'Hola!';
       var msg = saludo + ' Quisiera saber más información acerca de los decants de diseñador 🤩';
+      waIntento('decants_banner');   // [WA-INTENTO]
       window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
     }
     window.openDecantsBannerWA = openDecantsBannerWA;
@@ -6657,6 +6673,7 @@
       }).filter(Boolean);
 
       var msg = buildWaMessage(items, note);
+      waIntento('carrito', items.map(function(pf) { return pf.slug; }));   // [WA-INTENTO] uno por perfume del pedido
       closeCartPanel();
 
       // IMPORTANTE: abrir WhatsApp PRIMERO, sincrónicamente.
@@ -6702,11 +6719,12 @@
       }, 3000);
     }
 
-    function goToWA(slug, e) {
+    function goToWA(slug, e, origen) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
       var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
       if (!p) return;
       trackEvent('wa_click', { slug: slug, meta: { isSet: !!p.esSet } });
+      waIntento(origen || 'tarjeta_compu', slug);   // [WA-INTENTO] la ficha pasa 'ficha'; el .reveal-cta de la tarjeta en la compu, nada
       var msg = buildWaMessage([p], '');
       // Abrir WhatsApp sincrónicamente para que no lo bloquee el anti-popup
       window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
@@ -6853,7 +6871,7 @@
       btnConsultar.onclick = function(e) {
         e.preventDefault();
         closeBottomSheet();
-        goToWA(slug, e);
+        goToWA(slug, e, 'ficha');
       };
 
       // Botón similares
@@ -7596,8 +7614,9 @@
         // [JUEGOS-VENTANA] decisión 72 · el detalle se abre ENCIMA de la ventana: al cerrarlo, la carta sigue ahí.
         openBottomSheet(p.slug);
       };
-      var tel = '5492974564545';
+      var tel = '5492975416017';   // [WA-INTENTO] el número de ST (Alejo, 16-oct): hasta v1.1.283 este botón mandaba a 5492974564545, distinto del resto de la web
       var msg = encodeURIComponent('Hola ST! Me interesa un decant de 5ml de *' + p.name + '* (' + brand + '). \u00bfTienen disponible?');
+      document.getElementById('btnDecant').onclick = function() { waIntento('desafio', p.slug); };   // [WA-INTENTO]
       document.getElementById('btnDecant').href = 'https://api.whatsapp.com/send?phone=' + tel + '&text=' + msg;   // [WA-EMOJIS-ROTOS] wa.me cambia los emojis por «�» al redirigir
 
       // Ocultar picker, mostrar carta
@@ -8150,6 +8169,7 @@
       var saludo = nombre ? ('Hola, soy ' + nombre + '!') : 'Hola!';
       var msg = saludo + ' Quería consultar el precio del decant de '
               + (p ? p.name : 'un perfume') + ' 🙂';
+      waIntento('decant', slug);   // [WA-INTENTO]
       window.open('https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg), '_blank');
     }
     window.consultarDecantWA = consultarDecantWA;

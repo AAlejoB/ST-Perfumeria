@@ -90,9 +90,9 @@
     }
     // [HOLMES] llegadas y fichas de mentira de los últimos 12 días (visita = sesión + día)
     for (var v = 0; v < 320; v++) {
-      var sid = 'h' + ri(1, 200), base = ahora - ri(0, 11) * 86400000 - ri(0, 40000000), mete = function (tp, sl) { T.analytics_events.push({ id: uuid(), created_at: iso(base + ri(0, 600000)), session_id: sid, event_type: tp, slug: sl, query: null, meta: { hour: 12, device: 'mobile', referrer: 'instagram' } }); };
+      var sid = 'h' + ri(1, 200), base = ahora - ri(0, 11) * 86400000 - ri(0, 40000000), mete = function (tp, sl) { T.analytics_events.push({ id: uuid(), created_at: iso(base + ri(0, 600000)), session_id: sid, event_type: tp, slug: sl, query: null, meta: tp === 'llegada' ? { hour: 12, device: 'mobile', referrer: 'instagram', holmes: 2 } : (tp === 'wa_intento' ? { hour: 12, origen: ['tarjeta_celu', 'tarjeta_celu', 'ficha', 'carrito', 'flotante'][ri(0, 4)] } : { hour: 12 }) }); };
       mete('llegada', null);
-      if (rnd() < 0.55) { var nf = ri(1, 3); for (var f = 0; f < nf; f++) { var pp = P.length ? P[Math.min(P.length - 1, Math.floor(Math.pow(rnd(), 2) * 18))] : { slug: 'x' }; mete('ficha_abierta', pp.slug); if (rnd() < (f === 0 ? 0.09 : 0.04)) mete('wa_click', pp.slug); } }
+      if (rnd() < 0.55) { var nf = ri(1, 3); for (var f = 0; f < nf; f++) { var pp = P.length ? P[Math.min(P.length - 1, Math.floor(Math.pow(rnd(), 2) * 18))] : { slug: 'x' }; mete('ficha_abierta', pp.slug); if (rnd() < (f === 0 ? 0.09 : 0.04)) mete('wa_intento', pp.slug); } }
     }
     T.marcas_costo = []; T.perfumes_costo = []; T.costos_config = [{ id: 1, costo_envase: 0 }];
     T.usuarios_dev = [{ email: LAB, nombre: 'Laboratorio' }];
@@ -306,24 +306,26 @@
   var RPC = {
     send_telegram: function () { return { data: null, error: null }; },
     wa_consultas_hoy: function (a) { var n = noAut(); if (n) return n; return { data: QA.db.analytics_events.filter(function (x) { return x.event_type === 'wa_click' && (a.p_slugs || []).indexOf(x.slug) !== -1 && diaART(x.created_at) === hoyART(); }).length, error: null }; },
-    holmes_metricas: function (a) {   // [HOLMES] la misma cuenta que sql/holmes.sql
+    holmes_metricas: function (a) {   // [HOLMES] [WA-INTENTO] la misma cuenta que sql/holmes_wa_intento.sql
       if (email() !== LAB) return { data: null, error: err('42501', 'sin permiso') };
       var dias = Math.max(1, Math.min(a.p_dias || 30, 365)), desde = Date.now() - dias * 86400000;
-      var ev = QA.db.analytics_events.filter(function (x) { return new Date(x.created_at).getTime() >= desde && x.session_id && ['llegada', 'ficha_abierta', 'wa_click'].indexOf(x.event_type) !== -1; });
+      var ev = QA.db.analytics_events.filter(function (x) { return new Date(x.created_at).getTime() >= desde && x.session_id && ['llegada', 'ficha_abierta', 'wa_intento'].indexOf(x.event_type) !== -1; });
       var vis = {}, pp = {};
       ev.forEach(function (x) {
         var k = x.session_id + '|' + diaART(x.created_at), o = vis[k] || (vis[k] = {});
-        o[x.event_type] = true;
-        if (x.slug && x.event_type !== 'llegada') { var kk = x.slug + '|' + k, q = pp[kk] || (pp[kk] = { slug: x.slug }); q[x.event_type] = true; }
+        if (x.event_type !== 'llegada' || (x.meta && String(x.meta.holmes) === '2')) o[x.event_type] = true;
+        if (x.slug && x.event_type !== 'llegada') { var kk = x.slug + '|' + k, q = pp[kk] || (pp[kk] = { slug: x.slug, k: k }); q[x.event_type] = true; }
+        if (x.event_type === 'wa_intento') { (o.og || (o.og = {}))[(x.meta && x.meta.origen) || 'otro'] = true; }
       });
       var V = Object.keys(vis).map(function (k) { return vis[k]; });
-      var por = {}; Object.keys(pp).forEach(function (k) { var q = pp[k], r = por[q.slug] || (por[q.slug] = { slug: q.slug, miraron: 0, escribieron: 0, wa_sin_ficha: 0 }); if (q.ficha_abierta) r.miraron++; if (q.ficha_abierta && q.wa_click) r.escribieron++; if (q.wa_click && !q.ficha_abierta) r.wa_sin_ficha++; });
+      var ogs = {}; V.forEach(function (o) { if (o.llegada && o.og) Object.keys(o.og).forEach(function (g) { ogs[g] = (ogs[g] || 0) + 1; }); });
+      var por = {}; Object.keys(pp).forEach(function (k) { var q = pp[k]; if (!vis[q.k].llegada) return; var r = por[q.slug] || (por[q.slug] = { slug: q.slug, miraron: 0, escribieron: 0, wa_sin_ficha: 0 }); if (q.ficha_abierta) r.miraron++; if (q.ficha_abierta && q.wa_intento) r.escribieron++; if (q.wa_intento && !q.ficha_abierta) r.wa_sin_ficha++; });
       var lista = Object.keys(por).map(function (k) { return por[k]; }).filter(function (r) { return r.miraron > 0; }).sort(function (x, y) { return y.miraron - x.miraron || y.escribieron - x.escribieron || (x.slug < y.slug ? -1 : 1); }).slice(0, 40);
-      var lleg = QA.db.analytics_events.filter(function (x) { return x.event_type === 'llegada'; }).map(function (x) { return diaART(x.created_at); }).sort();
+      var lleg = QA.db.analytics_events.filter(function (x) { return x.event_type === 'llegada' && x.meta && String(x.meta.holmes) === '2'; }).map(function (x) { return diaART(x.created_at); }).sort();
       return { data: { dias: dias, hoy: hoyART(), desde: lleg[0] || null,
         total: { llegaron: V.filter(function (o) { return o.llegada; }).length, con_ficha: V.filter(function (o) { return o.llegada && o.ficha_abierta; }).length,
-                 escribieron: V.filter(function (o) { return o.llegada && o.wa_click; }).length, wa_sin_llegada: V.filter(function (o) { return o.wa_click && !o.llegada; }).length },
-        por_perfume: lista }, error: null };
+                 escribieron: V.filter(function (o) { return o.llegada && o.wa_intento; }).length, wa_sin_llegada: V.filter(function (o) { return o.wa_intento && !o.llegada; }).length },
+        por_perfume: lista, origenes: Object.keys(ogs).map(function (g) { return { origen: g, visitas: ogs[g] }; }).sort(function (x, y) { return y.visitas - x.visitas; }) }, error: null };
     },
     lab_metricas: function (a) { if (email() !== LAB) return { data: null, error: err('42501', 'sin permiso') }; return { data: QA.labFixture(a.p_dias), error: null }; },
     perfume_clicks_resumen: function () { var m = {}; QA.db.perfume_clicks.forEach(function (c) { m[c.slug] = (m[c.slug] || 0) + 1; }); return { data: Object.keys(m).map(function (s) { return { slug: s, clicks: m[s] }; }), error: null }; },
