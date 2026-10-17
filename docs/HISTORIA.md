@@ -3893,6 +3893,15 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 17-oct-2026 (~01:30, cierre de fotos, globitos, Holmes y la cinta «Nuevo»):** todo en producción (v1.1.283 a v1.1.287).
+
+- ✅ ~~**`[DISYUNTOR-EVENTOS]`**~~ (17-oct · 🟡, Alejo: «¿qué pasa si me tocan Consultar 20 veces o me atacan?») — SQL aplicado y verificado (el ataque de prueba quedó en 60, lo normal sigue entrando, Holmes devuelve `descartadas`); **falta subir** v1.1.285 (sólo cambia el texto de la pestaña y el comentario del borrado; la protección ya está andando en la base). **Cerrado el 17-oct:** v1.1.285 subida (`0aa044e`) y en producción; después, v1.1.286 y v1.1.287 encima.
+- ✅ ~~**`[WA-INTENTO]`**~~ (16-oct, **en producción**, SW v1.1.284, `f30b8e0`; verificado: el iPhone de Alejo dejó `llegada` con `holmes: 2` y un `wa_intento` de veneno-bianco desde la ficha a las 23:52, y a las 23:49 entró el primer `wa_intento` real de un cliente. **Ojo:** en el celu, con la vista ☰ (la de arranque) el «Consultar →» de la tarjeta está escondido por CSS; sólo sale en ▦, así que en ☰ el camino es la ficha) — texto de antes: (16-oct · 🟡, caso 03 de Holmes, Alejo eligió «evento nuevo») — hecho en la rama y probado en la copia del QA (los 12 caminos dejan su `wa_intento` con el origen bien; `wa_click` igual). **Falta:** ~~aplicar `sql/holmes_wa_intento.sql`~~ ✅ (aplicada el 16-oct por Claude Code con el OK de Alejo, verificada: CHECK con `wa_intento`, `anon` sin permiso), subir v1.1.284, y un toque real a «Consultar →» de una tarjeta en el celu. Holmes arranca de cero con las visitas nuevas («Datos desde» se corre al día de la subida).
+- ✅ ~~**`[HOLMES-HUMO]`**~~ (16-oct, **cerrado**: Alejo miró la pestaña con la cuenta de laboratorio y «se ve todo perfecto») — texto de antes: (16-oct · 🟡, **lo propuse yo**) — la pestaña «🔎 Holmes» (NO ROMPER #56; era #55 hasta el 17-oct, repetido con `[PISTAS-CATALOGO]`) se probó en la copia en memoria (375 px y compu, claro y oscuro; jefe y empleada sin rastro de ella) y los eventos nuevos en el catálogo local. **Falta:** ~~(1) aplicar `sql/holmes.sql`~~ ✅ aplicada el 16-oct con el OK de Alejo (laboratorio lee, jefe «sin permiso», anon sin permiso); ~~(2) una visita real desde el celu~~ ✅ 16-oct 20:22, iPhone de Alejo: `llegada` y `ficha_abierta` (khamrah-waha) en la base, y `holmes_metricas` ya las cuenta (la primera `llegada` real fue un cliente desde Instagram, 20:21); (3) entrar con la cuenta de laboratorio y mirar la pestaña con datos reales. Los números recién dicen algo con semanas de llegadas: hasta entonces la pestaña va a decir «Todavía son pocas personas».
+- ✅ ~~**`[QA-COPIA-SIN-ARCHIVOS]`**~~ (16-oct, Alejo: «sí, subí los archivos»: `qa-server.js` y `fake-supabase.js` en el repo con `!scripts/qa-copia/*.js`, la versión más nueva —la que también sirve el catálogo— más `holmes_metricas` de mentira) — texto de antes: (16-oct · 🟢, salió de `[HOLMES]`) — `scripts/qa-copia/README.md` dice cómo correr `qa-server.js` y `fake-supabase.js`, pero esos archivos **no están en el repo**: el `.gitignore` ignora `*.js` y sólo deja pasar `scripts/*.js` (no `scripts/qa-copia/*.js`). Para `[HOLMES]` se usó la copia que quedó en una carpeta temporal de otra sesión. Arreglo: sumar `!scripts/qa-copia/*.js` y subir los dos archivos (decide Alejo).
+- ✅ ~~**`[TANDA-2-PR]`**~~ (el PR #10 se mergeó el 16-oct y está en producción desde v1.1.241; Alejo corrió el SQL) — texto de antes: (16-oct · 🟡, **lo que falta para que la tanda 2 llegue a producción**) — el PR #10 (`tanda-2`, `07c10c6`, SW v1.1.241) con `[ELEGIDOS-EXCLUIR]`, `[SELECTS-A-CUADRADOS]` y `[ATAJOS-ARRIBA]`: (1) **Alejo corre `sql/elegidos_excluido.sql`** en el SQL Editor de Supabase (una columna, `perfume_overrides.elegidos_excluido`, default `false`; sin ella el panel guarda igual y avisa); (2) prueba el preview de Vercel (`st-perfumeria-git-tanda-2-…`): la lista de Destacados, el tilde en Editar, los cuadrados de orden y categoría, los 4 atajos en el celu y la tablet; (3) mergea. Detalle en `docs/HISTORIA.md` § «Sesión 15/16-oct-2026».
+- ✅ ~~**`[NUEVO-EN-111]`**~~ (17-oct, `[NUEVO-10]`, SW v1.1.286, decisión de Alejo por el caso 02 de Holmes: «Nuevo» = los 10 más recientes que se pueden pedir por `perfumes_nuevos.created_at`, buscando sólo entre los 20 últimos cargados; `markNewPerfumes`, `NUEVO_CUPO` / `NUEVO_FILA` en `js/app.js`) — texto de antes: (24-sep, del PREPARADOR · 🟢) — «Nuevo» sale en los 111 de `perfumes_nuevos` (`loadPerfumesNuevos` les pone `_isNew` a todos, `app.js` ~L4629), no en los últimos 10 que dice el comentario de `markNewPerfumes`. Queda para después.
+
 **Movidos el 16-oct-2026 (~08:45, cierre del QA del panel):** el informe y los 8 graves (`5107632` a `d1ed114`, v1.1.259 a v1.1.264) y los 15 importantes (`f375252` a `6770ebf`, v1.1.265 a v1.1.277), todo en producción; lo que quedó de B10 pasó a `[LOGIN-B10-RESTO]` y el humo con el dedo a `[HUMO-QA-16-OCT]`. Detalle en § «Sesión 16-oct-2026 (mañana, después de las cartas)».
 
 - ✅ ~~**`[QA-COMPLETO-PANEL]`**~~ (16-oct, pedido de Alejo · 🟡) — **primera pasada hecha el 16-oct** sobre una copia en memoria (`scripts/qa-copia/`, sin tocar la tienda real; huella de 13 tablas idéntica antes y después): informe en [`docs/QA-ADMIN-2026-10-16.md`](docs/QA-ADMIN-2026-10-16.md) (8 hallazgos graves, 15 importantes, costo de un toque sin querer y velocidad). **Falta lo que Alejo dijo: «después pensar las soluciones»** (nada de eso está arreglado, salvo la fuga de costos / Laboratorio entre sesiones). Para repetirlo al final de la tanda general: `node scripts/qa-copia/qa-server.js . 8777`.
@@ -5647,7 +5656,7 @@ Sesión que arrancó desde otra (la de SMELLROCK HOLMES), en la rama `claude/mys
 
 | Keyword | Qué hace |
 |---|---|
-| `[HOLMES]` | Eventos `llegada` y `ficha_abierta`, `holmes_metricas` y la pestaña «🔎 Holmes» de la cuenta de laboratorio (NO ROMPER #55) |
+| `[HOLMES]` | Eventos `llegada` y `ficha_abierta`, `holmes_metricas` y la pestaña «🔎 Holmes» de la cuenta de laboratorio (NO ROMPER #56; era #55 hasta el 17-oct) |
 
 #### Keywords abiertos para próxima sesión
 
@@ -5659,9 +5668,75 @@ Sesión que arrancó desde otra (la de SMELLROCK HOLMES), en la rama `claude/mys
 | ~~`[QA-COPIA-SIN-ARCHIVOS]`~~ ✅ | Alejo dijo que sí: los dos `.js` (la versión que también sirve el catálogo, del worktree `st-perfumeria-v1-1-157-363b7c`) más `holmes_metricas` de mentira, con su `!` en `.gitignore` |
 | `[LAB-FUNDAMENTOS]` 🟡 | En parte cubierto por Holmes; falta lo de ventas (Pareto / ABC, rotación, RFM) |
 
+### Sesión 16/17-oct-2026 (tarde a madrugada) · **fotos que se agrandan, globitos, el aviso de stock en 0 y la cinta «Nuevo»** — `[FOTO-VISOR]`, `[FOTO-TOQUE]`, `[PISTAS]`, `[AVISO-SIN-STOCK-LOCAL]`, `[PISTAS-CATALOGO]`, `[NUEVO-10]`, `[NUEVOS-CACHE-ENTERO]`
+
+22 commits sobre el cierre `dfb7cd4`, en la rama `claude/mystifying-diffie-cdd7cb` (SW **v1.1.277 → v1.1.287**), todos en producción: Alejo los subió de a uno. Hubo varios chats sobre la misma rama: el de Holmes (`[HOLMES]`, `[WA-INTENTO]`, `[DISYUNTOR-EVENTOS]`) ya está escrito en la sección de arriba, «Sesión 16-oct-2026 (tarde)»; acá va el resto y el cierre de todo.
+
+#### Qué se hizo
+
+- **`[FOTO-VISOR]`** (`2456866`, v1.1.278, pedido de Alejo): en la Galaxy Tab A9 mantener apretada una foto abría «Descargar imagen». Ahora, en todo el panel, mantener apretada cualquier foto (~0,45 s, sólo al tacto) la abre grande en un cuadro blanco con el nombre y la marca, encima de cualquier ventana; se cierra con un toque, la ×, Escape o «atrás». NO ROMPER #52.
+- **`[FOTO-TOQUE]`** (`66d0d0c`, v1.1.279, pedido de Alejo: «que no haga falta saber lo de mantener apretado»): un toque en la miniatura también la abre, en Precios & Stock, Depósito, Destacados y Doctor (`class="foto-toca"`); no en las tarjetas de Decants, donde tocar ya abre el decant. Alejo lo probó en la tablet (`361c53b`).
+- **`[PISTAS]`** (`4879168`, v1.1.280, pedido de Alejo: «que se entienda con el simple hecho de verlo»; eligió B + C): el globito amarillo con flechita al lado de algo nuevo (lo señalado late; se va con «Entendido» o al usarlo) y la tarjeta «Lo nuevo del panel» al final de Inicio. Lo visto queda en cada tablet (`st_vistas`). NO ROMPER #53.
+- **`[AVISO-SIN-STOCK-LOCAL]`** (`c1b1330`, v1.1.281, pedido de Alejo): cuando un perfume se termina en el local, la pastilla de «Deshacer» con borde amarillo avisa y recomienda: con depósito, «PASAR 1» (y después «DESHACER»); sin depósito, «hay que pedirlo»; con lista de espera, cuántos lo esperan. Sale sólo en la tablet que lo dejó en 0. NO ROMPER #54.
+- **`[PISTAS-CATALOGO]`** (`cdee80f`, v1.1.282, pedido de Alejo: los globitos también en la tienda): decants, ♡ y comparar; uno por visita y cada uno una vez por dispositivo, sin `MutationObserver` ni cambios de layout. NO ROMPER #55.
+- **Holmes** (`2cb091d` a `ac2bf15`, v1.1.283 a v1.1.285): ver la sección de arriba. Quedó en producción todo, con los tres SQL aplicados (`holmes.sql`, `holmes_wa_intento.sql`, `holmes_disyuntor.sql`), la copia del QA en el repo (`680bc56`), la retención de 400 días (`d2576a1`) y el brief para la plataforma con su nombre nuevo (`ac2bf15`).
+- **`[NUEVO-10]`** (`dd6243e`, v1.1.286; pedido de Alejo por la pregunta 10 de Holmes, reenviado por el chat de Holmes): la cinta «Nuevo» salía en **96 de 200 tarjetas** porque `loadPerfumesNuevos` le ponía `_isNew: true` a los 125 de `perfumes_nuevos` (medido en la base: los 125 tienen `created_at`; los 4 más nuevos todavía no tienen fila en `perfume_overrides`). Ahora `markNewPerfumes` borra todas las marcas y elige por fecha (NO ROMPER #57). Probado en la copia del QA: 10 cintas y 10 en «Nuevos»; agotando uno y pausando otro entran los siguientes; con 15 de la fila agotados quedan 5 cintas (las de los puestos 16 a 20); con un caché viejo (con `_isNew: true` y sin fecha) da igual.
+- **`[NUEVOS-CACHE-ENTERO]`** (`2b0b7e5`, v1.1.287; Alejo: «arreglá también lo del caché»): el caché de `perfumes_nuevos` guardaba sólo las filas que no estaban ya en `PERFUMES`; con el caché aplicado eso era casi nada y pisaba el bueno, así que el arranque desde el caché andaba una carga sí y otra no. Ahora guarda todo, reemplaza lo que vino del caché por la fila fresca y saca lo que la base ya no tiene. Probado en la copia del QA con tres cargas: el caché queda en 4 las tres veces, 156 perfumes siempre, un fantasma metido a mano en el caché desaparece, un precio falso vuelve al de la base y no hay slugs repetidos. Verificado en producción por `curl` (`sw.js` v1.1.287 y `js/app.js` con la marca).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** «Nuevo» = los 10 cargados más recientemente, con cupo fijo y no por días (pregunta 10 de Holmes). La fila de reserva fue idea suya («cargar los últimos 18 o 20 y mostrar 10… ¿estoy loco?»: es el mismo patrón que `SELECCION_COLA` de la Selección diaria) y eligió **20**, la opción que le recomendé. También pidió arreglar el caché y dio el OK de los pushes.
+- **Propuse yo:** que un agotado o pausado no ocupe lugar en el cupo (con la fila de reserva, Alejo lo aceptó); 20 y no 18 (con los datos de hoy, el 20.º es del 18-sep); **no rotar** 10 de 20 al azar (un perfume diría «Nuevo» hoy y mañana no, y ensucia lo que Holmes quiere medir); dejar la cinta manual «Nuevo» fuera del cupo (hoy 0 filas); y en el caché, además del bug literal, reemplazar la fila cacheada por la fresca y sacar los borrados.
+- **Aceptado sin tocar:** en el respaldo de la carga (el `catch` que pinta con el seed) `markNewPerfumes` no corre: sin cinta. Antes, en ese caso, los del caché salían todos con «Nuevo».
+- **NO ROMPER:** había dos #55 (`[PISTAS-CATALOGO]` y `[HOLMES]`): Holmes pasó a #56 (y sus dos referencias, en la tabla de `analytics_events` y en la sección de Holmes de este archivo). Entra #57 (`[NUEVO-10]` y `[NUEVOS-CACHE-ENTERO]`).
+- **El push de `dd6243e` ya estaba hecho** cuando llegó el OK reenviado («dale, que lo suba»): Alejo lo había subido solo. Antes de darle un comando de push, mirar `origin/main`.
+- **CI:** este repo no tiene GitHub Actions: cada subida cuesta 0 corridas y una publicación de Vercel.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[FOTO-VISOR]` · `[FOTO-TOQUE]` | Mantener apretada una foto, o tocar una miniatura, la abre grande (NO ROMPER #52) |
+| `[PISTAS]` | Globito y «Lo nuevo del panel» (#53) |
+| `[AVISO-SIN-STOCK-LOCAL]` | Aviso con «PASAR 1» cuando el local queda en 0 (#54) |
+| `[PISTAS-CATALOGO]` | Globitos en la tienda (#55) |
+| `[HOLMES]` · `[WA-INTENTO]` · `[DISYUNTOR-EVENTOS]` · `[HOLMES-HUMO]` · `[QA-COPIA-SIN-ARCHIVOS]` | Ver la sección de Holmes, arriba (#56) |
+| `[NUEVO-10]` (cierra `[NUEVO-EN-111]`) | La cinta «Nuevo» sólo en los 10 más recientes (#57) |
+| `[NUEVOS-CACHE-ENTERO]` | El caché de `perfumes_nuevos` guarda todo (#57) |
+| `[TANDA-2-PR]` | Ya estaba cerrado (PR #10 en producción); sale de Pendientes |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[HUMO-PISTAS-17-OCT]` 🟡 | Probar con el dedo los globitos (tablet y celu), el aviso de stock en 0 y las 10 cintas «Nuevo» en el celu |
+| `[ANALYTICS-SESION-SIN-UUID]` 🟢 | Sin `localStorage`, la sesión de analytics no es un uuid y la base rebota los eventos de esa visita |
+| `[LAB-FUNDAMENTOS]` 🟡 | Cuando haya semanas de ventas |
+
+#### 💬 Mensajes meta
+
+- Un OK puede llegar reenviado por otro chat (el de Holmes) citando las palabras de Alejo («dale, que lo suba»), y a veces él ya lo hizo: mirar `origin/main` antes de darle el comando. Anotado en `memory/preferencias_alejo.md` (#141).
+- «¿Estoy loco?» ante una idea suya: le sirvió que le mostrara que el repo ya hace lo mismo en otro lado (la Selección diaria) y una recomendación concreta para elegir. Anotado (#142).
+
+**Estado del repo al cierre (17-oct, ~01:30):**
+- `origin/main` = `2b0b7e5` + este cierre, con el SW **v1.1.287** en producción (verificado por `curl`: `sw.js` y `js/app.js`).
+- La rama `claude/mystifying-diffie-cdd7cb` = `main`. Árbol limpio y la copia del QA apagada.
+
+**Próxima revisión cuando:**
+- 🟡 `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[ANALYTICS-SESION-SIN-UUID]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 16-oct-2026 (~08:45, cierre del QA del panel) — pasó de `CLAUDE.md` al archivo el 17-oct (~01:30, cierre de fotos, globitos, Holmes y la cinta «Nuevo»)
+
+**Última actualización:** **Octubre 16, 2026, ~08:45 (cierre del QA del panel, rama `panel-tanda-16-oct` = `main`)** — 24 commits sobre `67e1762` (SW **v1.1.256 → v1.1.277**, todo en producción, subido por Alejo de a uno). **Primer chat:** `[VENTA-COMO-DATO]` (cada venta de la hoja deja filas en `ventas`; costos privados del jefe; NO ROMPER #40) · `[LABORATORIO]` (tercera cuenta de sólo mirar, con gráficos; #41) · el QA completo sobre una copia en memoria (`docs/QA-ADMIN-2026-10-16.md`, `scripts/qa-copia/`) · A1 a A8 arreglados (#42 a #45). **Segundo chat (Opus, en el orden de Alejo):** los 15 importantes del informe: buscadores tolerantes (#46), ventanas que no tiran lo escrito (#47), validaciones de Perfume nuevo, Sets, Decants, Puntos y Votación, carga del catálogo en paralelo (#48), link del push sólo de la tienda (#49), etiquetas para el lector de pantalla (#50), contraste en claro, 44 px al tacto y el Doctor de a 30 (#51); B9 ya estaba resuelto. Alejo probó en la tablet el Doctor, Analytics en claro y Editar: OK. **Pendientes nuevos:** `[HUMO-QA-16-OCT]` 🟡 · `[LOGIN-B10-RESTO]` 🟢 (decide Alejo); cerrados `[QA-COMPLETO-PANEL]` y `[QA-HALLAZGOS-16-OCT]`. El resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 16-oct-2026 (mañana, después de las cartas)».
 
 ### Última actualización del 16-oct-2026 (~05:30, cierre de las cartas A y B) — pasó de `CLAUDE.md` al archivo el 16-oct (~08:45, cierre del QA del panel)
 
