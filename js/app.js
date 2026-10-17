@@ -3555,12 +3555,28 @@
     }
 
     // ============================================================
-    // MARCAR PERFUMES NUEVOS (últimos 10 del array)
+    // MARCAR PERFUMES NUEVOS · [NUEVO-10] (17-oct-2026, decisión de Alejo, caso 02 de Holmes)
+    // «Nuevo» (la cinta y el filtro «Nuevos») = los NUEVO_CUPO más recientes que se pueden pedir, buscando sólo
+    // entre los NUEVO_FILA últimos cargados: si uno se agota, entra el siguiente de la fila, y nunca más atrás
+    // (con muchos agotados se ven menos cintas, no se le dice «Nuevo» a algo de hace meses). El orden sale de
+    // perfumes_nuevos.created_at (_creado); los de perfumes.js no tienen fecha y van después, el último del array
+    // primero. Hasta v1.1.285 loadPerfumesNuevos le ponía _isNew a TODOS los de perfumes_nuevos (96 de 200 cards).
     // ============================================================
+    var NUEVO_CUPO = 10, NUEVO_FILA = 20;
     function markNewPerfumes() {
-      var nonSet = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto && !p._pausado; });
-      var last10 = nonSet.slice(-10);
-      last10.forEach(function(p) { p._isNew = true; });
+      var fila = [];
+      PERFUMES.forEach(function(p, i) {
+        p._isNew = false;   // también borra el _isNew: true de un caché viejo de perfumes_nuevos
+        if (!p.esSet && !p._oculto) fila.push({ p: p, i: i });
+      });
+      fila.sort(function(a, b) {
+        var ca = a.p._creado || 0, cb = b.p._creado || 0;
+        return (cb - ca) || (b.i - a.i);
+      });
+      fila.slice(0, NUEVO_FILA)
+        .filter(function(x) { return sePuedePedir(x.p); })
+        .slice(0, NUEVO_CUPO)
+        .forEach(function(x) { x.p._isNew = true; });
     }
 
     // ============================================================
@@ -5454,6 +5470,7 @@
       if (cached && Array.isArray(cached)) {
         cached.forEach(function(p) {
           if (PERFUMES.find(function(pf) { return pf.slug === p.slug; })) return;
+          p._fromNuevos = true;   // [NUEVO-10] un caché de antes de v1.1.286 no lo traía
           PERFUMES.push(p);
         });
         console.log('[loadPerfumesNuevos] aplicado desde cache:', cached.length, 'items');
@@ -5467,8 +5484,9 @@
         var newPerfumesToCache = [];
         if (data && data.length > 0) {
           data.forEach(function(p) {
-            // No duplicar si ya existe
-            if (PERFUMES.find(function(pf) { return pf.slug === p.slug; })) return;
+            // No duplicar si ya existe (si vino del caché, se le pone la fecha igual: [NUEVO-10])
+            var yaEsta = PERFUMES.find(function(pf) { return pf.slug === p.slug; });
+            if (yaEsta) { if (p.created_at && yaEsta._fromNuevos) yaEsta._creado = Date.parse(p.created_at) || 0; return; }
             // Convertir price integer a formato string "85,000.00"
             function intToPrice(n) {
               if (!n) return '';
@@ -5481,7 +5499,7 @@
               promo: p.promo ? intToPrice(p.promo) : '',
               foto: p.foto || '', ml: p.ml || 100,
               notas_salida: p.notas_salida || '', notas_corazon: p.notas_corazon || '',
-              notas_base: p.notas_base || '', _isNew: true,
+              notas_base: p.notas_base || '', _fromNuevos: true, _creado: (p.created_at ? Date.parse(p.created_at) || 0 : 0),   // [NUEVO-10] el «Nuevo» lo decide markNewPerfumes por fecha
               acordes: Array.isArray(p.acordes) ? p.acordes : undefined,   // [A-QUE-HUELE-AUTO] 147 · perfumes_nuevos.acordes (null = todavía sin cargar)
               // [DECANT-PRECIO-MANUAL] Precio de decant que cargó el empleado
               // al dar de alta el perfume, y la casilla de exclusión.
