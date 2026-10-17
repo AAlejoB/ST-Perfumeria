@@ -5653,7 +5653,7 @@ Sesión que arrancó desde otra (la de SMELLROCK HOLMES), en la rama `claude/mys
 | Keyword | Qué falta |
 |---|---|
 | ~~`[HOLMES-HUMO]`~~ ✅ | **Cerrado el 16-oct a la noche:** Alejo entró con la cuenta de laboratorio y la pestaña «se ve todo perfecto». Antes: ~~Aplicar `sql/holmes.sql`~~ y ~~la visita desde el celu~~ (hechos el 16-oct; subido en `7e45f7e`, SW v1.1.283; el iPhone de Alejo dejó `llegada` + `ficha_abierta` de khamrah-waha a las 20:22). Falta mirar la pestaña con la cuenta de laboratorio |
-| `[WA-INTENTO]` 🟡 | Aplicar `sql/holmes_wa_intento.sql` (OK de Alejo), subir v1.1.284 y un toque real a «Consultar →» de una tarjeta en el celu |
+| `[WA-INTENTO]` 🟡 | ~~Aplicar `sql/holmes_wa_intento.sql`~~ (aplicada el 16-oct con el OK de Alejo), subir v1.1.284 y un toque real a «Consultar →» de una tarjeta en el celu |
 | ~~`[QA-COPIA-SIN-ARCHIVOS]`~~ ✅ | Alejo dijo que sí: los dos `.js` (la versión que también sirve el catálogo, del worktree `st-perfumeria-v1-1-157-363b7c`) más `holmes_metricas` de mentira, con su `!` en `.gitignore` |
 | `[LAB-FUNDAMENTOS]` 🟡 | En parte cubierto por Holmes; falta lo de ventas (Pareto / ABC, rotación, RFM) |
 
