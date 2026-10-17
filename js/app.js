@@ -5480,13 +5480,20 @@
         if (res.e) throw res.e;
         var { data, error } = res.r;
         if (error) { console.warn('[loadPerfumesNuevos] supabase error:', error.message); return; }
-        // Cachear los rows transformados (igual estructura que se pushea)
+        // [NUEVOS-CACHE-ENTERO] Se cachean TODAS las filas que mandó la base (antes, sólo las que no estaban ya en
+        // PERFUMES: con el caché aplicado eso era casi nada y pisaba el caché bueno, así que andaba una carga sí y otra no).
+        // Lo que vino del caché se reemplaza por la fila fresca (precio, foto o nombre cambiados en el panel) y lo que
+        // la base ya no tiene (un perfume borrado) se saca. Un slug que choca con perfumes.js sigue sin entrar.
         var newPerfumesToCache = [];
-        if (data && data.length > 0) {
+        if (Array.isArray(data)) {
+          var enLaBase = {};
+          data.forEach(function(p) { enLaBase[p.slug] = true; });
+          for (var k = PERFUMES.length - 1; k >= 0; k--) {
+            if (PERFUMES[k]._fromNuevos && !enLaBase[PERFUMES[k].slug]) PERFUMES.splice(k, 1);
+          }
           data.forEach(function(p) {
-            // No duplicar si ya existe (si vino del caché, se le pone la fecha igual: [NUEVO-10])
-            var yaEsta = PERFUMES.find(function(pf) { return pf.slug === p.slug; });
-            if (yaEsta) { if (p.created_at && yaEsta._fromNuevos) yaEsta._creado = Date.parse(p.created_at) || 0; return; }
+            var idx = PERFUMES.findIndex(function(pf) { return pf.slug === p.slug; });
+            if (idx !== -1 && !PERFUMES[idx]._fromNuevos) return;   // es de perfumes.js: no se duplica
             // Convertir price integer a formato string "85,000.00"
             function intToPrice(n) {
               if (!n) return '';
@@ -5506,7 +5513,7 @@
               _precioDecant: (p.precio_decant != null ? p.precio_decant : null),
               _decantExcluido: !!p.decant_excluido
             };
-            PERFUMES.push(pNorm);
+            if (idx !== -1) PERFUMES[idx] = pNorm; else PERFUMES.push(pNorm);
             newPerfumesToCache.push(pNorm);
           });
           writeCache('perfumes_nuevos', newPerfumesToCache);
