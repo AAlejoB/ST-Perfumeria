@@ -1,4 +1,4 @@
-// fuente: github.com/AAlejoB/SMELLROCK_HOLMES herramientas/numeros.js ＠ 7cfc473, no editar acá
+// fuente: github.com/AAlejoB/SMELLROCK_HOLMES herramientas/numeros.js ＠ 22ac2a2, no editar acá
 /*
  * SMELLROCK HOLMES · numeros.js
  * Cómo mostrar un dato con pocas visitas (foro 01, elegido por Alejo el 16-10-2026):
@@ -48,14 +48,17 @@
   // ── C. De cada tantos (frecuencias naturales, Gigerenzer) ────────────────
   function deCadaTantos(exitos, total) {
     validar(exitos, total);
-    if (total === 0) return { uno: null, deCada: null, texto: 'Todavía nadie lo miró' };
-    if (exitos === 0) return { uno: 0, deCada: total, texto: 'Nadie todavía, de ' + total + ' que miraron' };
+    if (total === 0) return { uno: null, deCada: null, texto: 'Todavía no hay datos' };
+    if (exitos === 0) return { uno: 0, deCada: total, texto: 'Nadie todavía (de ' + total + ')' };
     var p = exitos / total;
-    if (p <= 0.5) {
+    // «1 de cada k» sólo hasta 1 de cada 4: más arriba redondea grueso (40 % daba «1 de cada 3», que es 33 %).
+    if (p <= 0.25) {
       var k = Math.round(1 / p);
       return { uno: 1, deCada: k, texto: '1 de cada ' + k };
     }
     var x = Math.round(p * 10);
+    // 96 de 100 no es «10 de cada 10»: eso queda para cuando fueron todos.
+    if (x === 10 && exitos < total) return { uno: 9, deCada: 10, texto: 'Más de 9 de cada 10' };
     return { uno: x, deCada: 10, texto: x + ' de cada 10' };
   }
 
