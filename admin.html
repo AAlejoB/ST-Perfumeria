@@ -15697,6 +15697,7 @@
         + holmesAviso(u.aviso)
         + '<p class="holmes-embudo"><b>' + llegaron.toLocaleString('es-AR') + '</b> llegaron · <b>' + conFicha.toLocaleString('es-AR') + '</b> abrieron alguna ficha · <b>' + escribieron.toLocaleString('es-AR') + '</b> escribieron</p>'
         + (llegaron ? '<details class="lab-det"><summary>Ver detalle</summary><ul class="holmes-lista"><li>' + escHtml(u.detalle) + '</li>' + holmesAB(H, escribieron, llegaron)
+          + (Number(t.descartadas) ? '<li>' + Number(t.descartadas) + ' ' + (Number(t.descartadas) === 1 ? 'visita quedó afuera' : 'visitas quedaron afuera') + ' por raras: no parecen de una persona (cientos de eventos en un día, fichas de más de 80 perfumes o WhatsApp de más de 8 perfumes fuera del pedido). No entran en ninguna cuenta.</li>' : '')
           + (Number(t.wa_sin_llegada) ? '<li>Además, ' + Number(t.wa_sin_llegada) + ' ' + (Number(t.wa_sin_llegada) === 1 ? 'visita escribió' : 'visitas escribieron') + ' sin que su llegada quedara anotada (de antes del contador nuevo, o se perdió). No entran en la cuenta.</li>' : '')
           + '</ul></details>' : '')
         + '</article></section>';
@@ -18498,7 +18499,7 @@
       }
       enBlanco();
 
-      // Cleanup 60 días (una vez por sesión)
+      // Cleanup 400 días (una vez por sesión; hasta el 17-oct eran 60: [DISYUNTOR-EVENTOS], sql/holmes_disyuntor.sql)
       if (!analyticsCleanupRan) {
         analyticsCleanupRan = true;
         sb.rpc('analytics_events_cleanup').catch(function(e){ console.warn('[analytics] cleanup fallo:', e); });

@@ -324,7 +324,7 @@
       var lleg = QA.db.analytics_events.filter(function (x) { return x.event_type === 'llegada' && x.meta && String(x.meta.holmes) === '2'; }).map(function (x) { return diaART(x.created_at); }).sort();
       return { data: { dias: dias, hoy: hoyART(), desde: lleg[0] || null,
         total: { llegaron: V.filter(function (o) { return o.llegada; }).length, con_ficha: V.filter(function (o) { return o.llegada && o.ficha_abierta; }).length,
-                 escribieron: V.filter(function (o) { return o.llegada && o.wa_intento; }).length, wa_sin_llegada: V.filter(function (o) { return o.wa_intento && !o.llegada; }).length },
+                 escribieron: V.filter(function (o) { return o.llegada && o.wa_intento; }).length, wa_sin_llegada: V.filter(function (o) { return o.wa_intento && !o.llegada; }).length, descartadas: 0 },   // la copia no simula visitas raras
         por_perfume: lista, origenes: Object.keys(ogs).map(function (g) { return { origen: g, visitas: ogs[g] }; }).sort(function (x, y) { return y.visitas - x.visitas; }) }, error: null };
     },
     lab_metricas: function (a) { if (email() !== LAB) return { data: null, error: err('42501', 'sin permiso') }; return { data: QA.labFixture(a.p_dias), error: null }; },
