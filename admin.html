@@ -2464,7 +2464,7 @@
       .precios-filtro::-webkit-scrollbar { display: none; }
       .precios-filtro > * { flex: 0 0 auto; }
     }
-    .ajustes-btn, .ajustes-cab, .ajustes-listo, .ajustes-fondo, .arriba-btn { display: none; }
+    .ajustes-btn, .ajustes-cab, .ajustes-listo, .ajustes-fondo, .arriba-btn, .precios-tira--hoja { display: none; }
     @media (max-width: 1000px) {
       .ajustes-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: 0 0 auto; min-height: var(--tap-min); min-width: var(--tap-min); padding: 0 .75rem;
         font: inherit; font-size: .78rem; font-weight: 700; color: inherit; background: transparent; border: 1px solid var(--borde); border-radius: 4px; cursor: pointer; }
@@ -2489,7 +2489,9 @@
       .busca-fila .admin-search { min-width: 0 !important; }
       .tab-content .cp-letra { top: 60px; }   /* la letra de «Compacta» se pega debajo de la fila del buscador (44 + 2 × 8) */
       /* lo que se lee una vez pasa a un globito de [PISTAS] (una vez por tablet); lo demás, más corto */
-      #tipPrecios, #tipDeposito, .dep-intro, .precios-tira-nota { display: none !important; }
+      #tipPrecios, #tipDeposito, .dep-intro, #preciosTira { display: none !important; }
+      .ajustes.abierta .precios-tira--hoja:not([hidden]) { display: block; align-self: stretch; margin: 0; }
+      .ajustes.abierta .precios-tira--hoja .tira-larga { display: block; white-space: normal; }
       .bajo-btn-dep small { display: none; }
       .arriba-btn.visible { display: flex; align-items: center; justify-content: center; position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 35;
         width: 48px; height: 48px; font: inherit; font-size: 1.3rem; font-weight: 800; color: #000; background: var(--amarillo); border: 0; border-radius: 50%;
@@ -3532,6 +3534,8 @@
           <button type="button" class="vista-op vista-op2" data-compacta="0" aria-pressed="true" onclick="setCompacta(false)">Lista</button>
           <button type="button" class="vista-op vista-op2" data-compacta="1" aria-pressed="false" onclick="setCompacta(true)">Compacta</button>
         </div>
+        <!-- [PANEL-ARRIBA-LIVIANO] a ≤ 1000 la escalera de decants se lee acá (la pinta pintarTiraPrecios, igual que #preciosTira) -->
+        <div class="precios-tira precios-tira--hoja" id="preciosTiraHoja" hidden></div>
         <button type="button" class="ajustes-listo" onclick="ajustesCerrar()">Listo</button>
         </div>
       </div>
@@ -7431,7 +7435,7 @@
       // [PANEL-ARRIBA-LIVIANO] 18-oct · a ≤ 1000 el orden, la vista y «ocultos» se mudaron a «Ajustes», y los tips de siempre pasaron a globito
       // (`si`: la pista sale sólo si devuelve true; acá, sólo donde el tip de texto ya no se ve)
       { id: 'ajustes', sel: '#tab-precios.active .ajustes-btn, #tab-deposito.active .ajustes-btn',
-        html: '<b>Nuevo:</b> el orden, la vista, «Mostrar ocultos» y Lista / Compacta están acá adentro.' },
+        html: '<b>Nuevo:</b> el orden, la vista, «Mostrar ocultos», Lista / Compacta y los precios de los decants están acá adentro.' },
       { id: 'tip-precios', sel: '#tab-precios.active .stat-franja', si: panelAngosto,
         html: 'Tocá un número para ver sólo esos perfumes, y la badge de <b>Estado</b> para cambiar el stock. Los precios se cambian en <b>Editar</b>.' },
       { id: 'tip-deposito', sel: '#tab-deposito.active .stat-franja', si: panelAngosto,
@@ -7449,7 +7453,7 @@
         html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
     ];
     var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
-      { id: 'n18-liviano', fecha: '18-oct', texto: 'Precios y Depósito más livianos: el orden, la vista y «Mostrar ocultos» están en «Ajustes», y el buscador te sigue al bajar', ir: 'precios' },
+      { id: 'n18-liviano', fecha: '18-oct', texto: 'Precios y Depósito más livianos: el orden, la vista, «Mostrar ocultos» y los precios de los decants están en «Ajustes», y el buscador te sigue al bajar', ir: 'precios' },
       { id: 'n18-menu', fecha: '18-oct', texto: 'En el celu y la tablet parada, el tema claro / oscuro y «Salir» están en el menú ☰' },
       { id: 'n18-bajo', fecha: '18-oct', texto: '«Bajo al depósito»: la lista de lo que falta arriba. Tildás lo que agarrás y lo subís todo al local con un toque', ir: 'deposito' },
       { id: 'n18-quien', fecha: '18-oct', texto: 'Al cobrar, tocá tu nombre: queda quién vendió cada venta y en la hoja ves «Lo de cada una»', ir: 'hoja' },
@@ -7689,7 +7693,8 @@
     function pintarTiraPrecios() {
       var el = document.getElementById('preciosTira');
       if (!el) return;
-      if (!PRECIOS_DATOS.cfg || !PRECIOS_CFG) { el.hidden = true; el.innerHTML = ''; return; }
+      var hoja = document.getElementById('preciosTiraHoja');   // [PANEL-ARRIBA-LIVIANO] la misma tira, adentro de «Ajustes» (a ≤ 1000)
+      if (!PRECIOS_DATOS.cfg || !PRECIOS_CFG) { el.hidden = true; el.innerHTML = ''; if (hoja) { hoja.hidden = true; hoja.innerHTML = ''; } return; }
       var c = PRECIOS_CFG, ml = c.ml || 5;
       var l1 = '💧 Decants árabes (' + ml + ' ml) · 1–2: ' + promoPesos(promoNum(c.precio_1)) + ' · 3–4: ' + promoPesos(promoNum(c.precio_3)) + ' · 5 o más: ' + promoPesos(promoNum(c.precio_5));
       var P = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
@@ -7699,6 +7704,8 @@
       el.innerHTML = '<div class="tira-larga">' + escHtml(l1) + '</div><div class="tira-corta">' + escHtml(l1c) + '</div>' + (l2 ? '<div>' + escHtml(l2) + '</div>' : '')
         + '<div class="precios-tira-nota">Abajo se marcan sólo las excepciones.</div>';
       el.hidden = false;
+      if (hoja) { hoja.innerHTML = '<div class="tira-larga">' + escHtml(l1) + '</div>' + (l2 ? '<div>' + escHtml(l2) + '</div>' : '')
+        + '<div class="precios-tira-nota">En la lista se marcan sólo las excepciones.</div>'; hoja.hidden = false; }
     }
 
     // 123d · el filtro (Todo · Árabes · 💎 Diseñador; el chip «Árabes» se llamó «Frascos» hasta el 16-oct). El buscador funciona sobre lo que muestra.
