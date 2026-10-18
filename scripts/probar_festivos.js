@@ -6,7 +6,7 @@ var a = js.indexOf('// FESTIVOS:INICIO'), b = js.indexOf('// FESTIVOS:FIN');
 if (a < 0 || b < 0) { console.error('No encuentro las marcas FESTIVOS en js/app.js'); process.exit(2); }
 var ctx = {};
 vm.createContext(ctx);
-vm.runInContext(js.slice(a, b) + '\nthis.festivoDe = festivoDe;', ctx);
+vm.runInContext(js.slice(a, b) + '\nthis.festivoDe = festivoDe; this.regaloCerca = regaloCerca;', ctx);
 
 var fallas = 0, total = 0;
 function es(iso, esperado) {
@@ -43,5 +43,26 @@ es('2026-12-31', 'Feliz Año Nuevo');
 es('2027-01-01', 'Feliz Año Nuevo');
 es('2026-07-21', null);
 es('2026-12-26', null);
+// [NUBES-CATALOGO] (24) la cuenta regresiva: el próximo día de regalo de 1 a 7 días después (el mismo día no cuenta)
+function cuenta(iso, esperado) {
+  total++;
+  var p = iso.split('-'), c = ctx.regaloCerca(new Date(+p[0], +p[1] - 1, +p[2], 12));
+  var r = c ? c.f.regalo + ' en ' + c.dias : null;
+  if (r !== esperado) { fallas++; console.log('FALLA  cuenta ' + iso + ' → ' + r + ' (esperaba ' + esperado + ')'); }
+  else console.log('ok     cuenta ' + iso + ' → ' + r);
+}
+cuenta('2026-10-18', null);                         // el día mismo: sale el saludo, no la cuenta
+cuenta('2026-10-11', 'el Día de la Madre en 7');
+cuenta('2026-10-17', 'el Día de la Madre en 1');
+cuenta('2026-10-10', null);                         // 8 días antes: todavía no
+cuenta('2026-12-17', 'Navidad en 7');
+cuenta('2026-12-23', 'Navidad en 1');
+cuenta('2026-12-24', null);                         // el 25 no lleva regalo (es el mismo saludo)
+cuenta('2026-12-28', null);                         // Año Nuevo no es de regalo
+cuenta('2027-06-14', 'el Día del Padre en 6');      // 3.er domingo de junio de 2027 = 20
+cuenta('2027-02-10', 'San Valentín en 4');
+cuenta('2026-07-15', 'el Día del Amigo en 5');
+cuenta('2026-08-10', null);                         // Infancias no lleva cuenta
+cuenta('2026-03-05', null);                         // el Día de la Mujer, tampoco
 console.log('\n' + (total - fallas) + ' de ' + total + ' bien' + (fallas ? ' · ' + fallas + ' FALLAS' : ''));
 process.exit(fallas ? 1 : 0);

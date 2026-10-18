@@ -16523,7 +16523,10 @@
       filtrar: { nom: 'Desliza sin tocar · filtrar', boton: true }, busqueda: { nom: 'Buscó algo que no hay · WhatsApp', boton: true },
       // [PRUEBA-SOCIAL] tanda 4 · prueba social con datos reales (no flotan: van en la ficha, la card o la lista; sin botón propio)
       miraron: { nom: '«N personas lo miraron hoy»' }, salio: { nom: '«Salió uno del local hace…»' }, volvio: { nom: 'La etiqueta «Volvió»' },
-      quedan: { nom: '«Quedan N» / «Quedan N en el local»' }, resenas: { nom: 'Reseñas (estante y ficha)' } };
+      quedan: { nom: '«Quedan N» / «Quedan N en el local»' }, resenas: { nom: 'Reseñas (estante y ficha)' },
+      // [NUBES-CATALOGO] tanda 5 · regalo y venta
+      link: { nom: 'Vino por un link · los parecidos', boton: true }, regalo_cuenta: { nom: 'Cuenta regresiva de un día de regalo', boton: true },
+      temporada: { nom: 'Según el mes · filtrar por ocasión', boton: true }, decant_parecido: { nom: 'Sumó al pedido · el decant de uno parecido', boton: true } };
     function holmesNubesHTML(d, H) {
       var nb = (d.nubes || []).filter(function(x) { return Number(x.vieron) + Number(x.control) > 0; });
       var h = '<section class="lab-sec"><h3>Las nubes del catálogo</h3>'

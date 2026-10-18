@@ -6268,6 +6268,7 @@
     // ============================================================
     // HORARIO DEL LOCAL — automático con feriados + cierres admin
     // ============================================================
+    var festivoRegaloCerca = function() { return null; };   // [NUBES-CATALOGO] (24) la llena la IIFE de abajo (FESTIVOS); la usa el director
     (function() {
       var HORARIOS = {
         1: { open: 10, close: 20 },  // Lunes
@@ -6523,15 +6524,17 @@
       // [DIAS-FESTIVOS] (Alejo, 18-oct-2026, opción A): los días que no son feriado pero se saludan. Las fechas salen de una regla
       // (día fijo o el N.º domingo del mes), sin pedirle nada a nadie: la API de feriados no los trae. Un día nuevo es una fila más.
       // FESTIVOS:INICIO (la prueba es scripts/probar_festivos.js: corta este tramo y lo prueba tal cual)
+      // `regalo` ([NUBES-CATALOGO] (24)): los días en que se regala perfume llevan la cuenta regresiva de la semana antes («Faltan 5 días
+      // para el Día del Padre»); `cat` es el género que abre «Ver ideas» (sin `cat`, el botón lleva a los sets, si hay).
       var FESTIVOS = [
         { mes: 1, dia: 1, texto: 'Feliz Año Nuevo' },
-        { mes: 2, dia: 14, texto: 'Feliz San Valentín' },
+        { mes: 2, dia: 14, texto: 'Feliz San Valentín', regalo: 'San Valentín' },
         { mes: 3, dia: 8, texto: 'Día Internacional de la Mujer', sub: '' },
-        { mes: 6, domingo: 3, texto: 'Feliz Día del Padre' },
-        { mes: 7, dia: 20, texto: 'Feliz Día del Amigo' },
+        { mes: 6, domingo: 3, texto: 'Feliz Día del Padre', regalo: 'el Día del Padre', cat: 'Hombre' },
+        { mes: 7, dia: 20, texto: 'Feliz Día del Amigo', regalo: 'el Día del Amigo' },
         { mes: 8, domingo: 3, texto: 'Feliz Día de las Infancias' },
-        { mes: 10, domingo: 3, texto: 'Feliz Día de la Madre' },
-        { mes: 12, dia: 24, texto: 'Feliz Navidad' },
+        { mes: 10, domingo: 3, texto: 'Feliz Día de la Madre', regalo: 'el Día de la Madre', cat: 'Mujer' },
+        { mes: 12, dia: 24, texto: 'Feliz Navidad', regalo: 'Navidad' },
         { mes: 12, dia: 25, texto: 'Feliz Navidad' },
         { mes: 12, dia: 31, texto: 'Feliz Año Nuevo' }
       ];
@@ -6546,7 +6549,17 @@
         }
         return null;
       }
+      // El próximo día de regalo de 1 a 7 días después de `d` (la fecha de Argentina): { f, dias } o null. El mismo día no cuenta: ese día
+      // sale el saludo del festivo.
+      function regaloCerca(d) {
+        for (var k = 1; k <= 7; k++) {
+          var f = festivoDe(new Date(d.getFullYear(), d.getMonth(), d.getDate() + k, 12));
+          if (f && f.regalo) return { f: f, dias: k };
+        }
+        return null;
+      }
       // FESTIVOS:FIN
+      festivoRegaloCerca = regaloCerca;
 
       // La píldora del hero alterna el saludo y el horario cada 4 s: los dos juntos no entran en un renglón a 360 (medido: la franja
       // crecía 14 px y corría lo pegado). Los dos textos van en la misma celda (.ss-textos), así la píldora mide siempre lo del más
@@ -6804,6 +6817,7 @@
         var _fichaAbierta = document.getElementById('bsOverlay');
         if (!(_fichaAbierta && _fichaAbierta.classList.contains('active'))) showCartToast(slug);
         playCartSound();      // \ud83d\udd0a feedback sonoro premium
+        try { if (!sinPedido.esSet) nubeAgrego(slug); } catch (e) {}   // [NUBES-CATALOGO] (17) el decant de uno parecido
       }
       updateCartUI();
     }
@@ -9309,8 +9323,9 @@
     // ============================================================
     // [NUBES-CATALOGO] tanda 1 · 18-oct-2026 · pedido de Alejo: que el catálogo le hable al que llega. Un «director» elige UNA nube por visita
     // (sessionStorage `st_nube_ses`) y la muestra abajo, arriba de la barra del celu (NO ROMPER #15), a 1,5 s de que se pintó el catálogo.
-    // Prioridad: el saludo del festivo (si sale, es el mensaje de la visita) → (7) el pedido guardado → (6) un favorito que volvió → (5) los
-    // nuevos desde la última visita → (1) la bienvenida (sólo la primera vez en el aparato) → (3) el saludo con el local cerrado.
+    // Prioridad: el saludo del festivo (si sale, es el mensaje de la visita) → (4) llegó por el link de un perfume → (7) el pedido guardado →
+    // (24) la semana antes de un día de regalo → (6) un favorito que volvió → (5) los nuevos desde la última visita → (1) la bienvenida
+    // (sólo la primera vez en el aparato) → (26) según el mes → (3) el saludo con el local cerrado.
     // Reglas: nunca un número inventado (todo sale de PERFUMES, sePuedePedir, st_favs y el horario); no sale con una ventana abierta ni con un
     // globito a la vista; se va sola (6 s, 9 s con botón) o tocándola; los globitos de [PISTAS-CATALOGO] esperan 6 s después de que se fue.
     // Lo que recuerda el aparato va en `st_nubes` (sin acceso al navegador no sale ninguna). Una nube nueva: un `if` más en `elegir`, en su orden.
@@ -9320,6 +9335,7 @@
     var ESTADO_LOCAL = null;   // lo escribe el horario (calcularEstadoHorario)
     var nubesCatalogoListo = function() {};
     var miraFicha = function() {}, busquedaWa = function() {};   // [NUBES-CATALOGO] tanda 3: las llenan el director (abajo)
+    var nubeAgrego = function() {};   // [NUBES-CATALOGO] (17) la llama addToCart al sumar un frasco; la llena el director
     (function() {
       var CLAVE = 'st_nubes', SES = 'st_nube_ses', TZ = 'America/Argentina/Buenos_Aires';
       var NUBE_CONTROL = 5;   // [NUBES-HOLMES] 1 de cada 5 visitas con nube es del grupo de control (no la ve)
@@ -9330,6 +9346,8 @@
       var DE_ANTES = ['st_favs', 'st_vista', 'st_recent_views', 'st_pistas_cat', 'st_cliente', 'st_dark_mode', 'st_waitlist', 'st_espera_tel'];
       var OCUPADO = '[id$="Overlay"].active, [id$="Overlay"].open, .nav-drawer.open, .decant-builder-overlay.active, .pista-cat, .festivo-toast';
       var corrio = false;
+      // (4) el perfume del link con el que entró (?perfume= o ?p=), leído al cargar: al abrir y cerrar la ficha, la URL cambia
+      var LINK_SLUG = (function() { try { var q = new URLSearchParams(location.search); return String(q.get('perfume') || q.get('p') || '').slice(0, 120); } catch (e) { return ''; } })();
       function leer() { try { return JSON.parse(localStorage.getItem(CLAVE) || '{}') || {}; } catch (e) { return null; } }
       function guardar(n) { try { localStorage.setItem(CLAVE, JSON.stringify(n)); } catch (e) {} }
       function hoy() { return new Date().toLocaleDateString('en-CA', { timeZone: TZ }); }
@@ -9362,8 +9380,48 @@
         openCartPanel();
       }
 
+      // [NUBES-CATALOGO] tanda 5 · regalo y venta (18-oct-2026). Los perfumes que se ven en la lista (sin sets, ocultos ni pausados): las
+      // cuentas de (24) y (26) son las mismas que da el filtro que abre su botón.
+      function enLista(p) { return p && !p.esSet && !p._oculto && !p._pausado; }
+      function hoyART() { return new Date(new Date().toLocaleString('en-US', { timeZone: TZ })); }
+      // (4) los que se le parecen, como los junta «Ver similares» (los del equipo y los de notas): si no hay ninguno, la (4) no sale
+      function tieneParecidos(p) {
+        var manual = Array.isArray(p.similares_manuales) && p.similares_manuales.some(function(s) { return enLista(perfume(s)); });
+        return manual || findSimilares(p.slug).length > 0;
+      }
+      // (24) los sets que se ven en la página (la sección se esconde sola si no hay ninguno)
+      function setsVisibles() {
+        var sec = document.getElementById('setsSection'), g = document.getElementById('setsGrid');
+        if (!sec || !g || sec.style.display === 'none' || !sec.getClientRects().length) return 0;
+        return g.children.length;
+      }
+      // (26) según el mes (de Argentina): la ocasión que abre el botón y el texto. Marzo no tiene: el otoño todavía no pide nada.
+      var TEMPORADA = {
+        12: { modo: 'dia', titulo: 'Para el calor', sub: 'Los frescos y los versátiles son livianos: hay N para elegir.' },
+        1: { modo: 'dia', titulo: 'Para el calor', sub: 'Los frescos y los versátiles son livianos: hay N para elegir.' },
+        2: { modo: 'dia', titulo: 'Para el calor', sub: 'Los frescos y los versátiles son livianos: hay N para elegir.' },
+        4: { modo: 'noche', titulo: 'Para el frío', sub: 'Los intensos y los dulces abrigan: hay N para elegir.' },
+        5: { modo: 'noche', titulo: 'Para el frío', sub: 'Los intensos y los dulces abrigan: hay N para elegir.' },
+        6: { modo: 'noche', titulo: 'Para el frío', sub: 'Los intensos y los dulces abrigan: hay N para elegir.' },
+        7: { modo: 'noche', titulo: 'Para el frío', sub: 'Los intensos y los dulces abrigan: hay N para elegir.' },
+        8: { modo: 'noche', titulo: 'Para el frío', sub: 'Los intensos y los dulces abrigan: hay N para elegir.' },
+        9: { modo: 'noche', titulo: 'Para el viento de Comodoro', sub: 'Los intensos y los dulces se sienten más: hay N para elegir.' },
+        10: { modo: 'noche', titulo: 'Para el viento de Comodoro', sub: 'Los intensos y los dulces se sienten más: hay N para elegir.' },
+        11: { modo: 'noche', titulo: 'Para el viento de Comodoro', sub: 'Los intensos y los dulces se sienten más: hay N para elegir.' }
+      };
+      // La misma regla que el filtro de ocasión de applyFilters: día = Fresco + Versátil, noche = Intenso + Dulce
+      function deOcasion(p, modo) {
+        var perfil = String(p.perfil || '').toLowerCase();
+        return modo === 'dia' ? (perfil === 'fresco' || perfil === 'versátil') : (perfil === 'intenso' || perfil === 'dulce');
+      }
+
       // La nube que toca, o null. `n` es lo que recuerda el aparato y `antes` la hora de la última visita.
       function elegir(n, antes, conDatos) {
+        // (4) llegó por el link de un perfume (Instagram, uno que le pasaron): ya vio la ficha; al cerrarla, los que se le parecen
+        var pl = LINK_SLUG && perfume(LINK_SLUG);
+        if (pl && !pl.esSet && n.link !== LINK_SLUG && tieneParecidos(pl)) return { id: 'link', titulo: 'Viniste por ' + nombreFrase(pl.name),
+          sub: conDatos && !STOCK_OCULTO && !sePuedePedir(pl) ? 'Ahora no hay, pero estos se le parecen.' : 'Estos se le parecen: mirá los que tienen notas en común.',
+          boton: 'Ver parecidos', accion: function() { showSimilares(pl.slug); }, marcar: function() { n.link = LINK_SLUG; } };
         // (7) un pedido armado que no se mandó (una vez por pedido)
         if (PEDIDO_GUARDADO && n.pedido !== PEDIDO_GUARDADO.t && !cart.length) {
           var g = PEDIDO_GUARDADO;
@@ -9371,6 +9429,23 @@
           if (k) return { id: 'pedido', titulo: 'Tu pedido te espera',
             sub: 'Tenés ' + k + (k === 1 ? ' perfume guardado' : ' perfumes guardados') + '. ¿Lo terminamos?',
             boton: 'Ver pedido', accion: recuperarPedido, marcar: function() { n.pedido = g.t; } };
+        }
+        // (24) la semana antes de un día de regalo (FESTIVOS, NO ROMPER #61): una vez por fecha en el aparato
+        var rc = conDatos ? festivoRegaloCerca(hoyART()) : null;
+        if (rc && n.regalo !== rc.f.regalo + '-' + hoyART().getFullYear()) {
+          var fr = rc.f, cuenta = rc.dias === 1 ? 'Mañana es ' + fr.regalo : 'Faltan ' + rc.dias + ' días para ' + fr.regalo;
+          var marcarRegalo = function() { n.regalo = fr.regalo + '-' + hoyART().getFullYear(); };
+          if (fr.cat) {
+            var nc = PERFUMES.filter(function(p) { return enLista(p) && matchesCat(p.cat, fr.cat); }).length;   // el mismo número que da el filtro
+            if (nc) return { id: 'regalo_cuenta', titulo: cuenta, sub: 'Hay ' + nc + ' perfumes de ' + fr.cat.toLowerCase() + ' para elegir el regalo.',
+              boton: 'Ver ideas', accion: function() { filterByCat(fr.cat); }, marcar: marcarRegalo };
+          } else {
+            var ns = setsVisibles();
+            return { id: 'regalo_cuenta', titulo: cuenta,
+              sub: ns ? (ns === 1 ? 'Hay 1 set armado para regalar.' : 'Hay ' + ns + ' sets armados para regalar.') : 'Elegí el regalo con tiempo: tu pedido lo armás ahora.',
+              boton: ns ? 'Ver sets' : null, marcar: marcarRegalo,
+              accion: function() { var s = document.getElementById('setsSection'); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
+          }
         }
         if (conDatos && !STOCK_OCULTO) {
           // (6) un favorito que en la última visita no se podía pedir y ahora sí
@@ -9395,6 +9470,14 @@
           sub: 'Los probás en El Coliseo, en Comodoro · local 8.', marcar: function() { n.bienvenida = 1; },
           // [NUBES-CATALOGO] (2) el botón abre «¿Primera vez acá?»: sólo donde existen las hojas (< 768 y >= 1024; en la tablet no)
           boton: vidEsCelu() ? 'Contame' : null, accion: abrirPrimeraVez };
+        // (26) según el mes: una vez por mes en el aparato, con el número que muestra el filtro de ocasión
+        var hm = hoyART(), mesClave = hm.getFullYear() + '-' + (hm.getMonth() + 1), tm = TEMPORADA[hm.getMonth() + 1];
+        if (conDatos && tm && n.temporada !== mesClave && currentOccasion !== tm.modo) {
+          var nt = PERFUMES.filter(function(p) { return enLista(p) && deOcasion(p, tm.modo); }).length;
+          if (nt >= 3) return { id: 'temporada', titulo: tm.titulo, sub: tm.sub.replace('N', nt), boton: 'Verlos',
+            marcar: function() { n.temporada = mesClave; },
+            accion: function() { if (currentOccasion !== tm.modo) setOccasion(tm.modo); scrollToCatalog(); } };
+        }
         // (3) el local está cerrado (una vez por día): la misma cuenta del horario (NO ROMPER #14)
         var e = ESTADO_LOCAL;
         if (e && e.tipo !== 'abierto' && n.cerrado !== hoy()) {
@@ -9448,7 +9531,8 @@
         if (!n.desde) { n.desde = Date.now(); n.nuevo = primeraVez() ? 1 : 0; guardar(n); }
         if (MENSAJE_VISITA.quien) { try { sessionStorage.setItem(SES, '1'); } catch (e) {} return; }   // ya habló el festivo
         if (document.querySelector(OCUPADO)) {   // una ventana abierta o un globito: espera (hasta ~20 s) y si no, queda para la próxima
-          if (vuelta < 10) setTimeout(function() { intentar(conDatos, vuelta + 1); }, 2000);
+          // (4) quien llega por un link entra con la ficha abierta: se espera a que la cierre (hasta ~3 min)
+          if (vuelta < (LINK_SLUG ? 90 : 10)) setTimeout(function() { intentar(conDatos, vuelta + 1); }, 2000);
           return;
         }
         n = leer() || n;   // pudo cambiar mientras esperaba (otra pestaña)
@@ -9586,6 +9670,42 @@
         if (e.target && e.target.closest && e.target.closest('#loadMoreBtn')) return;
         MIRA.baja = 0;
       }, true);
+
+      // (17) sumó un frasco al pedido → el decant de uno que se le parece, para probarlo (tanda 5, 18-oct-2026). Es de «mientras mira»:
+      // las mismas reglas (una por visita, 1 minuto después de la de llegada, una vez por aparato). El parecido sale de findSimilares (las
+      // notas, como «Ver similares») y tiene que estar en el armador ([DECANT-TOPE]: ni excluido ni «a consultar»), no estar ya en el
+      // pedido ni en el pack. Los decants no miran el stock del frasco (NO ROMPER #28). Se fija cuando no hay nada abierto (hasta ~2 min).
+      function decantParecido(slug) {
+        if (typeof decantsPack === 'undefined' || typeof DECANTS_CONFIG === 'undefined' || decantsPack.length >= DECANTS_CONFIG.max_decants) return null;
+        var lista = findSimilares(slug);
+        for (var i = 0; i < lista.length; i++) {
+          var q = lista[i].perfume;
+          if (cart.indexOf(q.slug) !== -1 || decantsPack.indexOf(q.slug) !== -1) continue;
+          if (decantEnListaArmador(q) && !decantAConsultar(q)) return q;
+        }
+        return null;
+      }
+      var AGREGO = { slug: '', t: 0, vueltas: 0 };
+      function miraYaHablo() { try { return sessionStorage.getItem(MIRA_SES) === '1'; } catch (e) { return true; } }
+      function agregoMirar() {
+        if (miraYaHablo() || yaSalio('decant_parecido') || cart.indexOf(AGREGO.slug) === -1) return;
+        if (!miraPuede()) { if (++AGREGO.vueltas < 75) AGREGO.t = setTimeout(agregoMirar, 1600); return; }
+        var x = perfume(AGREGO.slug), q = x && decantParecido(x.slug);
+        if (!q) return;
+        miraMostrar({ id: 'decant_parecido', titulo: 'Sumá el decant de ' + nombreFrase(q.name),
+          sub: 'Se parece a ' + nombreFrase(x.name) + '. Es una muestra para probarlo antes del frasco.',
+          boton: 'Sumar decant', accion: function() {
+            addDecant(q.slug);
+            if (decantsPack.indexOf(q.slug) !== -1) avisoPedido('Sumaste el decant de ' + nombreFrase(q.name));
+          } });
+      }
+      nubeAgrego = function(slug) {
+        if (miraYaHablo()) return;
+        AGREGO.slug = slug;
+        AGREGO.vueltas = 0;
+        clearTimeout(AGREGO.t);
+        AGREGO.t = setTimeout(agregoMirar, 2500);   // después del aviso «Agregado al pedido» (1,5 s)
+      };
 
       // (16) buscó algo que no hay: en el aviso «No encontramos…», «¿Lo buscamos por vos?» con WhatsApp y el mensaje ya escrito (decisión
       // de Alejo: WhatsApp y no la lista de espera, que sólo anota el panel, NO ROMPER #25). Sale cada vez que aparece el aviso (no gasta
