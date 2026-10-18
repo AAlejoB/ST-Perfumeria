@@ -5730,9 +5730,68 @@ Sesión que arrancó desde otra (la de SMELLROCK HOLMES), en la rama `claude/mys
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (madrugada) · **la hoja contra el papel, después del Día de la Madre** — `[TECLADO-NO-TAPA]`, `[BUSCAR-ARRIBA]`, `[DEPOSITO-EN-PRECIOS]`, `[MEDIR-DISPOSITIVO]`, `[VENTA-RAPIDA]`, `[LOS-QUE-MAS-SALEN]`, `[QUIEN-VENDIO]`, `[CAMBIO]`, `[OTRA-IGUAL]`, `[CUADRAR-CAJA]`, `[BUSCAR-EN-LA-HOJA]`, `[SENAS-AVISAN]`, `[BAJO-AL-DEPOSITO]`, `[PALABRAS-CLARAS]`
+
+Alejo volvió del local después de un Día de la Madre muy movido y contó lo que vio: el panel se siente tosco en la tablet (Galaxy Tab A9, siempre parada, dos tablets sueltas), el teclado de Android tapa media pantalla, la hoja pierde contra el papel (es más rápido, nunca falla, el cliente ve que lo atienden y a las chicas les sirve para anotar lo suyo para las comisiones), «¿tenés el Hawas verde?» obligaba a buscar en Precios y después en Depósito, y Santi (uno de los dueños) repone el depósito de memoria. Primero se charlaron todos los escenarios (pedido de Alejo: «quiero ver todos los escenarios posibles») y después se hizo todo de una («Sumá TODAS; vamos a tope de gama»).
+
+#### Qué se hizo
+
+- `90750c6` · `[TECLADO-NO-TAPA]` (`interactive-widget=resizes-content` en el viewport del panel; las ventanas se deslizan: antes una más alta que lo libre quedaba cortada arriba y sin forma de llegar), `[BUSCAR-ARRIBA]` (al tacto, buscar en Precios / Depósito esconde orden, vista, ocultos, tip y la tira de decants y sube el buscador: a 600 × 560 el primer resultado pasó de **756 px, debajo del teclado, a 147**), `[DEPOSITO-EN-PRECIOS]` (la badge dice «+N en depósito») y `[MEDIR-DISPOSITIVO]` (cada aparato anota una vez en el Log su pantalla, el modelo y el alto del teclado por orientación).
+- `7a8db66` · `[VENTA-RAPIDA]` (tocar un perfume con precio y stock lo suma con 1 y va directo a «¿Cómo pagó?»; − y + en la línea, con el tope del local: la venta común pasa a 4 toques) y `[LOS-QUE-MAS-SALEN]` (con el buscador vacío, los 8 frascos más anotados en 14 días, en Tarjetero).
+- `9cd4e4a` (SW **v1.1.288**, en producción 05:21) · `[QUIEN-VENDIO]` (nombres en cuadrados al cobrar, «+» y «Editar nombres», «¿Quién vendió?» en los renglones sin nombre, «Lo de cada una»), `[CAMBIO]` (el que vuelve queda de probador, se cobra la diferencia; «Le devolvés la plata» como nota), `[OTRA-IGUAL]`, `[CUADRAR-CAJA]`, `[BUSCAR-EN-LA-HOJA]` (el día y el último mes), `[SENAS-AVISAN]` (las señas dicen «hace N días», en rojo desde 3), avisos al cobrar (lista de espera, «queda en 0»), globitos y «Lo nuevo del panel». **`sql/caja_vendedor.sql` aplicada por Claude Code con el MCP de Supabase** (tabla `vendedores` con Sofía, Angelina, Pinky y Barria; `caja_movimientos.vendedor`; `caja_vendedor()`; `_caja_a_ventas` nuevo). Probada antes con una venta simulada dentro de un bloque que se deshace solo: la venta con nombre llegó a `ventas` con «Pinky», el frasco que vuelve no se copió como venta y la nueva quedó con `notas = 'cambio'`, y completar el nombre después actualizó `ventas`. `vendedores` entró en las dos listas de backups (#23) y en la copia del QA (`fake-supabase.js`).
+- `c5b631a` (SW **v1.1.289**) · `[BAJO-AL-DEPOSITO]` (la lista para subir del depósito: «Se terminó arriba», «Se vendió hoy», «Quedan pocos arriba» y «¿Otro perfume?»; tildar con − y +; un botón lo sube todo con `stockMover` y sale DESHACER) y `[PALABRAS-CLARAS]` («Buscar en el último mes», «Editar nombres», «la diferencia, con tarjeta», «Al abrir había / Ahora hay», «Está justo / Falta / Sobra», «Guardar el conteo»).
+- `889a067` (v1.1.289, en producción 05:40) · el botón y la pantalla se llaman **«Chequeo de plata caja registradora»** (nombre de Alejo) y el globito de «Los que más salen» apunta sólo a su título (caía sobre «Lo de cada una»).
+- Fuera del repo: `D:\workspace\plataforma-saas\CAJA-EN-EL-MOSTRADOR_para_CCodeProyectoSaas_2026-10-18.md` (sin commitear) con lo aprendido, para que el punto de venta nuevo nazca con esto resuelto (incluye el PIN por vendedora).
+- Verificado en producción las dos veces: `sw.js` servido, `admin.html` con el mismo md5 que el commit, `/sql/caja_vendedor.sql` da 404 y la base con los 4 nombres y sin lectura para `anon`.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arreglarlo hoy en el panel de ST y no patearlo a plataforma-saas («los problemas aparecen HOY… si mañana en PlataformaSaas ocurre algo similar es lo mismo: buscar solución en ese momento»); el nombre del vendedor al final del recorrido; una sola persona por venta; las dos cuentas suman y esconden nombres; en una venta de WhatsApp cuenta la que entregó en el mostrador; todos ven todo; la política de cambios («se abrió = no hay devolución, salvo roto, fallado o vacío»; el que vuelve queda de probador; puede ser de otro día; si lo nuevo vale más se cobra la diferencia); que yo aplicara el SQL (opción A); «Sumá TODAS» las ideas de lo que el papel no puede; «Bajo al depósito»; el nombre «Chequeo de plata caja registradora».
+- **Propuse yo y Alejo lo aceptó:** no recordar el último nombre (con dos tablets sueltas se anotaría a la equivocada sin que nadie lo note); que el nombre no sea obligatorio y quede «¿Quién vendió?» para completar con el grupo de turnos; el frasco que vuelve en `items` **sin `slug`** (el Cierre del día baja todo ítem con slug); devolver la plata como nota (la base no admite montos negativos); medir el aparato solo en vez de preguntarle a la gente (la idea de saber los dispositivos es de Alejo); «arriba / abajo» en «Bajo al depósito».
+- **Encontrado:** Precios & Stock no mostraba el depósito (confirmado en el código); `.modal-box` no tenía tope de alto ni el fondo se deslizaba.
+- **Workarounds de la prueba:** la ventana de Chrome (Claude in Chrome) no se achica en una pantalla de 1366 × 768: se pasó al navegador integrado, que emula tamaños; con el pane en segundo plano no llegan los eventos de foco (se probó disparándolos) y el desplazamiento suave no termina (se usa el directo, que además conviene con el teclado). Ningún simulador muestra el teclado de Android: se simula achicando el alto, que es justo lo que hace `resizes-content`.
+- **Mío, corregido antes de subir:** el heredoc de Bash rompía los acentos de los scripts de Python (se pasó a archivos UTF-8); `fake-supabase.js` es CRLF; el globito de «Los que más salen» apuntaba a cualquier `.hv-top-tit`.
+- `npm run contraste` sigue en las mismas 32 fallas que `main` (tintas medidas sobre blanco, ya conocido): nada nuevo.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[TECLADO-NO-TAPA]` · `[BUSCAR-ARRIBA]` · `[DEPOSITO-EN-PRECIOS]` · `[MEDIR-DISPOSITIVO]` | NO ROMPER #58 |
+| `[VENTA-RAPIDA]` · `[LOS-QUE-MAS-SALEN]` · `[QUIEN-VENDIO]` · `[CAMBIO]` · `[OTRA-IGUAL]` · `[CUADRAR-CAJA]` · `[BUSCAR-EN-LA-HOJA]` · `[SENAS-AVISAN]` | NO ROMPER #59 |
+| `[BAJO-AL-DEPOSITO]` | NO ROMPER #60 |
+| `[PALABRAS-CLARAS]` | Las palabras de la hoja sin jerga; «Chequeo de plata caja registradora» |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[HUMO-CAJA-MOSTRADOR]` 🟡 | Con el dedo en la Galaxy: el teclado de verdad y el renglón «📱 Dispositivo medido» del Log; una venta con «Vendió», un cambio, el chequeo de plata al cierre, «Bajo al depósito» con Santi, y si a las chicas les sirve para las comisiones |
+
+#### 💬 Mensajes meta
+
+- Antes de construir, Alejo quiere charlar a fondo y responde los escenarios uno por uno; después da el «a tope» y espera que se haga todo junto. Anotado en `memory/preferencias_alejo.md` (#143).
+- Las palabras del panel tienen que ser literales: «cuadrar la caja» le resultó rara y eligió él el nombre («Chequeo de plata caja registradora»). Anotado (#144).
+
+**Estado del repo al cierre (18-oct, ~05:45):**
+- `origin/main` = `889a067` + este cierre, con el SW **v1.1.289** en producción (verificado por `curl`: `sw.js` y el md5 de `admin.html`).
+- La rama `bajo-deposito` = `main`; `caja-mostrador` y `pistas` ya están adentro. Árbol limpio y la copia del QA apagada.
+
+**Próxima revisión cuando:**
+- 🟡 `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[ANALYTICS-SESION-SIN-UUID]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 17-oct-2026 (~01:30, cierre de fotos, globitos, Holmes y la cinta «Nuevo») — pasó de `CLAUDE.md` al archivo el 18-oct (~05:45, cierre de la hoja contra el papel)
+
+**Última actualización:** **Octubre 17, 2026, ~01:30 (cierre de fotos, globitos, Holmes y la cinta «Nuevo», rama `claude/mystifying-diffie-cdd7cb` = `main`)** — 22 commits sobre el cierre `dfb7cd4` (SW **v1.1.278 → v1.1.287**, todo en producción, subido por Alejo). **Panel:** `[FOTO-VISOR]` y `[FOTO-TOQUE]` (NO ROMPER #52), `[PISTAS]` (#53), `[AVISO-SIN-STOCK-LOCAL]` (#54). **Catálogo:** `[PISTAS-CATALOGO]` (#55), `[NUEVO-10]` y `[NUEVOS-CACHE-ENTERO]` (#57). **Holmes:** `[HOLMES]`, `[WA-INTENTO]` y `[DISYUNTOR-EVENTOS]` (#56, que era un segundo #55; tres SQL aplicados con el OK de Alejo) y la copia del QA en el repo. **Pendientes nuevos:** `[HUMO-PISTAS-17-OCT]` 🟡 · `[ANALYTICS-SESION-SIN-UUID]` 🟢; cerrados también `[HOLMES-HUMO]`, `[QA-COPIA-SIN-ARCHIVOS]`, `[TANDA-2-PR]` y `[NUEVO-EN-111]`. **Próximos:** 🟡 los humos con el dedo (`[HUMO-PISTAS-17-OCT]`, `[HUMO-QA-16-OCT]`, `[VENTA-COMO-DATO-HUMO]`, `[HUMO-CARTAS-16-OCT]`, `[HUMO-16-OCT]`) · 🟡 `[STOCK-OCULTO]`, el domingo 25-oct · 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas · 🟢 `[ANALYTICS-SESION-SIN-UUID]` · `[LOGIN-B10-RESTO]`. El resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 16/17-oct-2026».
 
 ### Última actualización del 16-oct-2026 (~08:45, cierre del QA del panel) — pasó de `CLAUDE.md` al archivo el 17-oct (~01:30, cierre de fotos, globitos, Holmes y la cinta «Nuevo»)
 
