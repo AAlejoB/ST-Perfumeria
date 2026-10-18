@@ -1435,7 +1435,11 @@
         <span class="cart-total-amount" id="cartTotal">$0</span>
       </div>
       <p class="cart-cash" id="cartCash"></p>
-      <textarea class="cart-note" id="cartNote" placeholder="¿Algún comentario? Ej: Retiro el jueves, es para regalo, quiero pagar con tarjeta..." rows="2" maxlength="200"></textarea>
+      <!-- [NUBES-CATALOGO] (25) «¿Es para regalar?»: va en el mensaje de WhatsApp. Sin prometer envoltorio (Alejo, 18-oct: «CREO que le ponen moñito»). -->
+      <button type="button" class="cart-regalo" id="cartRegalo" aria-pressed="false" onclick="pedidoRegaloTocar()" hidden>
+        <span class="cart-regalo-tilde" aria-hidden="true"></span><span class="cart-regalo-txt"><b>Es para regalo</b><small>Va en el mensaje, así el local ya lo sabe.</small></span>
+      </button>
+      <textarea class="cart-note" id="cartNote" placeholder="¿Algún comentario? Ej: Retiro el jueves, quiero pagar con tarjeta..." rows="2" maxlength="200"></textarea>
       <button class="cart-wa-btn" onclick="sendCartToWA()">Enviar pedido por WhatsApp</button>
       <p class="cart-quien">Te responde una persona del local, en el horario del local.</p><!-- [NUBES-CATALOGO] (29) sin número de minutos: decisión de Alejo, 18-oct -->
       <div class="cart-mp-info">
@@ -1816,6 +1820,16 @@
       <div class="vh-cab"><h2 class="vh-tit" id="vhPrimeraTitulo">&iquest;Primera vez ac&aacute;?</h2><button type="button" class="vh-x" onclick="cerrarPrimeraVez()" aria-label="Cerrar">&times;</button></div>
       <div class="vh-cuerpo pv-cuerpo" id="vhPrimeraLista"></div>
       <div class="pv-pie"><button type="button" class="pv-listo" onclick="cerrarPrimeraVez()">Ver el cat&aacute;logo</button></div>
+    </div>
+  </div>
+  <!-- [NUBES-CATALOGO] (17) «Elegí tus decants»: la abre «Elegir» de la nube del decant (sólo < 768 y >= 1024, donde existen las hojas). Los de su
+       pedido y los parecidos, para tildar uno, varios o ninguno; sin los que ya tiene en el pack ni los que mandó la última vez. La arma app.js. -->
+  <div class="vh-overlay" id="vhDecantOverlay" onclick="if(event.target===this)cerrarDecantElegir()">
+    <div class="vh-hoja vh-hoja--decant" role="dialog" aria-modal="true" aria-labelledby="vhDecantTitulo">
+      <div class="vh-manija" aria-hidden="true"></div>
+      <div class="vh-cab"><h2 class="vh-tit" id="vhDecantTitulo">Eleg&iacute; tus decants</h2><button type="button" class="vh-x" onclick="cerrarDecantElegir()" aria-label="Cerrar">&times;</button></div>
+      <div class="vh-cuerpo" id="vhDecantLista"></div>
+      <div class="dp-pie"><button type="button" class="dp-no" onclick="cerrarDecantElegir()">Ninguno</button><button type="button" class="dp-si" id="vhDecantSumar" onclick="decantElegirSumar()" disabled>Sumar</button></div>
     </div>
   </div>
 

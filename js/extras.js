@@ -540,6 +540,8 @@
       + '¿Confirmás stock? 🙏';
     var url = 'https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent(msg);
     if (typeof window.waIntento === 'function') window.waIntento('decants_pack', validPack);   // [WA-INTENTO] uno por perfume del pack
+    // [NUBES-CATALOGO] (17) el pack que mandó: la próxima vez no se le ofrecen esos decants (ya los probó). Sólo en este aparato.
+    try { localStorage.setItem('st_decants_enviado', JSON.stringify({ slugs: validPack.slice(0, 30), t: Date.now() })); } catch (e) {}
     window.open(url, '_blank');
   }
 

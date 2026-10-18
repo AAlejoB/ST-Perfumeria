@@ -10647,6 +10647,40 @@
     body:not(.dark-mode) .nube-sub { color: #3d3830; }
     @media (max-width: 767px) { .nube { bottom: calc(60px + env(safe-area-inset-bottom) + 12px); width: calc(100vw - 24px); } }
     @media (prefers-reduced-motion: reduce) { .nube { transition: none; transform: translate(-50%, 0); } }
+    /* [NUBES-CATALOGO] (17) la nube con dos botones: uno debajo del otro, el segundo con borde (el primero sigue siendo el principal) */
+    .nube-btns { flex: none; display: flex; flex-direction: column; gap: 6px; }
+    .nube-btn--2 { background: transparent; color: #E8B800; border: 1px solid rgba(232,184,0,.7); }
+    body:not(.dark-mode) .nube-btn--2 { color: #6b5500; border-color: #b89400; }
+    /* (17) «Elegí tus decants»: filas que se tildan (56 de alto), el pie con «Ninguno» y «Sumar N decants». Con los tokens del tema. */
+    .dp-fila { width: 100%; min-height: 56px; display: flex; align-items: center; gap: 12px; padding: 8px 4px; margin: 0; border: 0; border-bottom: 1px solid var(--borde);
+      background: none; color: var(--blanco); font-family: var(--font-body); text-align: left; cursor: pointer; }
+    .dp-tilde { flex: none; width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--borde); box-sizing: border-box; position: relative; }
+    .dp-fila[aria-pressed="true"] .dp-tilde { background: var(--amarillo); border-color: var(--amarillo); }
+    .dp-fila[aria-pressed="true"] .dp-tilde::after { content: ''; position: absolute; left: 7px; top: 2px; width: 6px; height: 12px; border: solid #111; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+    .dp-txt { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .dp-txt b { font-size: .92rem; font-weight: 800; line-height: 1.25; }
+    .dp-txt small { font-size: .78rem; line-height: 1.35; color: var(--gris-claro); }
+    .dp-nota { margin: 12px 0 0; font-size: .78rem; line-height: 1.4; color: var(--gris-claro); }
+    .dp-nota[hidden] { display: none; }
+    .dp-tope { color: var(--amarillo-tinta); font-weight: 700; }
+    .dp-pie { flex: 0 0 auto; display: flex; gap: 10px; margin-top: 14px; }
+    .dp-no, .dp-si { height: 48px; border-radius: 8px; font: 800 .8rem/1 var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+    .dp-no { flex: 1; border: 1px solid var(--borde); background: none; color: var(--blanco); }
+    .dp-si { flex: 2; border: 0; background: var(--amarillo); color: #111; }
+    .dp-si:disabled { opacity: .45; cursor: default; }
+    body:not(.dark-mode) .dp-fila, body:not(.dark-mode) .dp-no { color: #1a1a1d; }
+    /* (25) «Es para regalo» en «Tu pedido»: una fila que se tilda (52 de alto), el mismo cuadradito que «Elegí tus decants» */
+    .cart-regalo { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 12px; margin-top: .8rem; padding: 8px 12px; box-sizing: border-box;
+      border: 1px solid var(--borde-sutil); border-radius: 8px; background: rgba(255,255,255,.04); color: var(--blanco); font-family: var(--font-body); text-align: left; cursor: pointer; }
+    .cart-regalo[hidden] { display: none; }
+    .cart-regalo[aria-pressed="true"] { border-color: var(--amarillo); background: rgba(232,184,0,.08); }
+    .cart-regalo-tilde { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--borde); box-sizing: border-box; position: relative; }
+    .cart-regalo[aria-pressed="true"] .cart-regalo-tilde { background: var(--amarillo); border-color: var(--amarillo); }
+    .cart-regalo[aria-pressed="true"] .cart-regalo-tilde::after { content: ''; position: absolute; left: 6px; top: 2px; width: 6px; height: 11px; border: solid #111; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+    .cart-regalo-txt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .cart-regalo-txt b { font-size: .82rem; font-weight: 800; }
+    .cart-regalo-txt small { font-size: .7rem; line-height: 1.35; color: var(--gris-claro); }
+    body:not(.dark-mode) .cart-regalo { color: #1a1a1d; }
 
     /* [NUBES-CATALOGO] tanda 2 · enseñar sin clase (18-oct-2026). Todo con los tokens del tema (claro y oscuro), letra recta y sin emojis. */
     /* (29) debajo del botón de WhatsApp del pedido */

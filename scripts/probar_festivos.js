@@ -43,6 +43,8 @@ es('2026-12-31', 'Feliz Año Nuevo');
 es('2027-01-01', 'Feliz Año Nuevo');
 es('2026-07-21', null);
 es('2026-12-26', null);
+es('2026-10-31', 'Feliz Halloween');   // pedido de Alejo, 18-oct
+es('2026-10-30', null);
 // [NUBES-CATALOGO] (24) la cuenta regresiva: el próximo día de regalo de 1 a 7 días después (el mismo día no cuenta)
 function cuenta(iso, esperado) {
   total++;
@@ -64,5 +66,8 @@ cuenta('2027-02-10', 'San Valentín en 4');
 cuenta('2026-07-15', 'el Día del Amigo en 5');
 cuenta('2026-08-10', null);                         // Infancias no lleva cuenta
 cuenta('2026-03-05', null);                         // el Día de la Mujer, tampoco
+cuenta('2026-10-24', 'Halloween en 7');
+cuenta('2026-10-30', 'Halloween en 1');
+cuenta('2026-10-31', null);                         // el día mismo: el saludo
 console.log('\n' + (total - fallas) + ' de ' + total + ' bien' + (fallas ? ' · ' + fallas + ' FALLAS' : ''));
 process.exit(fallas ? 1 : 0);

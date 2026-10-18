@@ -5230,6 +5230,50 @@
       vidAbrirHoja('vhPrimeraOverlay');
     }
     function cerrarPrimeraVez() { vidCerrarHoja(); }
+    // [NUBES-CATALOGO] (17) «Elegí tus decants» (tanda 5, decisión de Alejo «A + B»): la abre el botón «Elegir» de la nube del decant con
+    // `grupos` = [{ tit, items: [{ p, nota }] }] (los de su pedido y los parecidos, ya sin los del pack ni los que mandó la última vez) y
+    // `quitados` = cuántos se sacaron por haberlos mandado. Se tilda uno, varios o ninguno, hasta lo que le queda al pack. Suma con addDecant.
+    var DP = { elegidos: [], tope: 0 };
+    function abrirDecantElegir(grupos, quitados) {
+      var cont = document.getElementById('vhDecantLista');
+      if (!cont) return;
+      DP.elegidos = [];
+      DP.tope = Math.max(0, DECANTS_CONFIG.max_decants - decantsPack.length);
+      cont.innerHTML = grupos.filter(function(g) { return g.items.length; }).map(function(g) {
+        return '<div class="vh-grupo"><p class="vh-tg">' + escapeHTML(g.tit) + '</p>' + g.items.map(function(x) {
+          var marca = x.p.marca_real || '';
+          return '<button type="button" class="dp-fila" aria-pressed="false" data-slug="' + escapeHTML(x.p.slug) + '" onclick="decantElegirTocar(this)">'
+            + '<span class="dp-tilde" aria-hidden="true"></span><span class="dp-txt"><b>' + escapeHTML(x.p.name) + '</b>'
+            + '<small>' + escapeHTML([marca, x.nota].filter(Boolean).join(' · ')) + '</small></span></button>';
+        }).join('') + '</div>';
+      }).join('')
+        + (quitados ? '<p class="dp-nota">No te mostramos ' + (quitados === 1 ? 'uno que ya pediste' : quitados + ' que ya pediste') + ' en decant la última vez.</p>' : '')
+        + '<p class="dp-nota dp-tope" id="vhDecantTope" hidden></p>';
+      decantElegirPintar();
+      vidAbrirHoja('vhDecantOverlay');
+    }
+    function decantElegirPintar() {
+      var n = DP.elegidos.length, b = document.getElementById('vhDecantSumar');
+      if (b) { b.disabled = !n; b.textContent = n ? 'Sumar ' + (n === 1 ? '1 decant' : n + ' decants') : 'Sumar'; }
+    }
+    function decantElegirTocar(btn) {
+      var slug = btn.getAttribute('data-slug'), i = DP.elegidos.indexOf(slug), aviso = document.getElementById('vhDecantTope');
+      if (i !== -1) DP.elegidos.splice(i, 1);
+      else if (DP.elegidos.length >= DP.tope) {
+        if (aviso) { aviso.hidden = false; aviso.textContent = DP.tope ? 'Tu pack llega hasta ' + DECANTS_CONFIG.max_decants + ' decants: te queda lugar para ' + DP.tope + '.' : 'Tu pack ya está completo.'; }
+        return;
+      } else DP.elegidos.push(slug);
+      if (aviso) aviso.hidden = true;
+      btn.setAttribute('aria-pressed', i === -1 ? 'true' : 'false');
+      decantElegirPintar();
+    }
+    function decantElegirSumar() {
+      var antes = decantsPack.length;
+      DP.elegidos.forEach(function(slug) { addDecant(slug); });
+      var n = decantsPack.length - antes;
+      vidCerrarHoja(function() { if (n) avisoPedido(n === 1 ? 'Sumaste 1 decant a tu pack' : 'Sumaste ' + n + ' decants a tu pack'); });
+    }
+    function cerrarDecantElegir() { vidCerrarHoja(); }
     // (8) el glosario: en la ficha, «A qué huele» con el perfil y los acordes como palabras que se tocan; cada una dice qué es.
     var GLOSARIO = {
       dulce: 'Golosa: caramelo, azúcar, praliné. Se nota de lejos.',
@@ -6525,7 +6569,8 @@
       // (día fijo o el N.º domingo del mes), sin pedirle nada a nadie: la API de feriados no los trae. Un día nuevo es una fila más.
       // FESTIVOS:INICIO (la prueba es scripts/probar_festivos.js: corta este tramo y lo prueba tal cual)
       // `regalo` ([NUBES-CATALOGO] (24)): los días en que se regala perfume llevan la cuenta regresiva de la semana antes («Faltan 5 días
-      // para el Día del Padre»); `cat` es el género que abre «Ver ideas» (sin `cat`, el botón lleva a los sets, si hay).
+      // para el Día del Padre»); `cat` es el género que abre «Ver ideas» (sin `cat`, el botón lleva a los sets, si hay); `ocasion` en vez de
+      // regalo prende el filtro de ocasión (Halloween, pedido de Alejo del 18-oct: los de noche).
       var FESTIVOS = [
         { mes: 1, dia: 1, texto: 'Feliz Año Nuevo' },
         { mes: 2, dia: 14, texto: 'Feliz San Valentín', regalo: 'San Valentín' },
@@ -6534,6 +6579,7 @@
         { mes: 7, dia: 20, texto: 'Feliz Día del Amigo', regalo: 'el Día del Amigo' },
         { mes: 8, domingo: 3, texto: 'Feliz Día de las Infancias' },
         { mes: 10, domingo: 3, texto: 'Feliz Día de la Madre', regalo: 'el Día de la Madre', cat: 'Mujer' },
+        { mes: 10, dia: 31, texto: 'Feliz Halloween', regalo: 'Halloween', ocasion: 'noche' },
         { mes: 12, dia: 24, texto: 'Feliz Navidad', regalo: 'Navidad' },
         { mes: 12, dia: 25, texto: 'Feliz Navidad' },
         { mes: 12, dia: 31, texto: 'Feliz Año Nuevo' }
@@ -7008,6 +7054,36 @@
         cashEl.textContent = cashLabel + ': $' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + ' (total $' + Math.round(listaTotal).toLocaleString('es-AR').replace(/,/g, '.') + ' con ' + pctOff + '% off)';
       }
       document.getElementById('cartPanelOverlay').classList.add('active');
+      try { pedidoRegaloPintar(); } catch (e) {}   // [NUBES-CATALOGO] (25)
+    }
+
+    // [NUBES-CATALOGO] (25) «¿Es para regalar?» (tanda 5, 18-oct-2026). Un botón que se tilda en «Tu pedido», con algo adentro; tildado, el
+    // WhatsApp suma «Es para regalo». No promete envoltorio ni regalo del local (Alejo: «CREO que le ponen moñito»). Se recuerda en la
+    // pestaña (`st_regalo`, sessionStorage) y se borra al mandar. Se mide como las nubes: `nube_vista` 'regalo' la primera vez que se ve en
+    // la visita y `nube_tocada` al tildarlo; 1 de cada 5 visitas no lo ve (`st_regalo_grupo`: 'v' lo ve, 'c' no; sin sessionStorage se ve
+    // y no se mide).
+    var PEDIDO_REGALO = { grupo: undefined };
+    function pedidoRegaloOn() { try { return sessionStorage.getItem('st_regalo') === '1'; } catch (e) { return false; } }
+    function pedidoRegaloPintar() {
+      var b = document.getElementById('cartRegalo');
+      if (!b) return;
+      if (PEDIDO_REGALO.grupo === undefined) {
+        try {
+          PEDIDO_REGALO.grupo = sessionStorage.getItem('st_regalo_grupo');
+          if (PEDIDO_REGALO.grupo !== 'v' && PEDIDO_REGALO.grupo !== 'c') { PEDIDO_REGALO.grupo = Math.random() < 1 / 5 ? 'c' : 'v'; sessionStorage.setItem('st_regalo_grupo', PEDIDO_REGALO.grupo); }
+        } catch (e) { PEDIDO_REGALO.grupo = null; }
+      }
+      b.hidden = !cart.length || PEDIDO_REGALO.grupo === 'c';
+      b.setAttribute('aria-pressed', pedidoRegaloOn() ? 'true' : 'false');
+      if (!cart.length || !PEDIDO_REGALO.grupo) return;
+      try { if (sessionStorage.getItem('st_regalo_visto') === '1') return; sessionStorage.setItem('st_regalo_visto', '1'); } catch (e) { return; }
+      nubeEvento('nube_vista', 'regalo', PEDIDO_REGALO.grupo === 'c');
+    }
+    function pedidoRegaloTocar() {
+      var on = !pedidoRegaloOn();
+      try { if (on) sessionStorage.setItem('st_regalo', '1'); else sessionStorage.removeItem('st_regalo'); } catch (e) {}
+      document.getElementById('cartRegalo').setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (on) nubeEvento('nube_tocada', 'regalo');
     }
 
     function closeCartPanel() {
@@ -7031,7 +7107,7 @@
     // [GATO][HOTSALE] Mensaje WA unificado: usado por carrito, "Consultar" individual y set.
     // Cuotas SIEMPRE sobre precio TARJETA (p.price). Cash desde getCashPrice (promo si hay, sino 10%).
     // % off calculado dinámicamente para reflejar el descuento real (10% default, 15% en Hot Sale, etc).
-    function buildWaMessage(items, note) {
+    function buildWaMessage(items, note, regalo) {
       if (!items || !items.length) return '';
       var lines = [];
       lines.push('Hola! 👋 Me interesan estos perfumes:');
@@ -7066,6 +7142,10 @@
         lines.push(cashEmoji + ' ' + cashLabel + ': *$' + cashTotal.toLocaleString('es-AR').replace(/,/g, '.') + '* (' + pctOff + '% off)');
       }
 
+      if (regalo) {   // [NUBES-CATALOGO] (25) sólo desde el pedido
+        lines.push('');
+        lines.push('🎁 *Es para regalo*');
+      }
       if (note) {
         lines.push('');
         lines.push('📝 _' + note + '_');
@@ -7086,7 +7166,8 @@
         return PERFUMES.find(function(pf) { return pf.slug === slug; });
       }).filter(Boolean);
 
-      var msg = buildWaMessage(items, note);
+      var regaloBtn = document.getElementById('cartRegalo');
+      var msg = buildWaMessage(items, note, pedidoRegaloOn() && regaloBtn && !regaloBtn.hidden);   // [NUBES-CATALOGO] (25)
       waIntento('carrito', items.map(function(pf) { return pf.slug; }));   // [WA-INTENTO] uno por perfume del pedido
       closeCartPanel();
 
@@ -7100,6 +7181,7 @@
       showSplash(firstP, function() {
         cart = [];
         document.getElementById('cartNote').value = '';
+        try { sessionStorage.removeItem('st_regalo'); } catch (e) {}   // [NUBES-CATALOGO] (25) el próximo pedido arranca sin tildar
         updateCartUI();
         resetCartButtons();
       });
@@ -9435,7 +9517,11 @@
         if (rc && n.regalo !== rc.f.regalo + '-' + hoyART().getFullYear()) {
           var fr = rc.f, cuenta = rc.dias === 1 ? 'Mañana es ' + fr.regalo : 'Faltan ' + rc.dias + ' días para ' + fr.regalo;
           var marcarRegalo = function() { n.regalo = fr.regalo + '-' + hoyART().getFullYear(); };
-          if (fr.cat) {
+          if (fr.ocasion) {   // Halloween: los de noche, con el mismo número que da el filtro
+            var no = PERFUMES.filter(function(p) { return enLista(p) && deOcasion(p, fr.ocasion); }).length;
+            if (no >= 3) return { id: 'regalo_cuenta', titulo: cuenta, sub: 'Para esa noche, los intensos y los dulces: hay ' + no + ' para elegir.',
+              boton: 'Verlos', accion: function() { if (currentOccasion !== fr.ocasion) setOccasion(fr.ocasion); scrollToCatalog(); }, marcar: marcarRegalo };
+          } else if (fr.cat) {
             var nc = PERFUMES.filter(function(p) { return enLista(p) && matchesCat(p.cat, fr.cat); }).length;   // el mismo número que da el filtro
             if (nc) return { id: 'regalo_cuenta', titulo: cuenta, sub: 'Hay ' + nc + ' perfumes de ' + fr.cat.toLowerCase() + ' para elegir el regalo.',
               boton: 'Ver ideas', accion: function() { filterByCat(fr.cat); }, marcar: marcarRegalo };
@@ -9497,10 +9583,14 @@
         t.className = 'nube' + (nube.boton ? ' nube--boton' : '');
         t.setAttribute('role', 'status');
         t.setAttribute('data-nube', nube.id);
-        t.innerHTML = '<div class="nube-txt"><p class="nube-titulo"></p><p class="nube-sub"></p></div>' + (nube.boton ? '<button type="button" class="nube-btn"></button>' : '');
+        // (17) una nube puede llevar un segundo botón (`boton2` / `accion2`): van uno debajo del otro
+        var btns = nube.boton ? '<button type="button" class="nube-btn"></button>' : '';
+        if (nube.boton && nube.boton2) btns = '<div class="nube-btns">' + btns + '<button type="button" class="nube-btn nube-btn--2" data-b="2"></button></div>';
+        t.innerHTML = '<div class="nube-txt"><p class="nube-titulo"></p><p class="nube-sub"></p></div>' + btns;
         t.querySelector('.nube-titulo').textContent = nube.titulo;
         t.querySelector('.nube-sub').textContent = nube.sub;
         if (nube.boton) t.querySelector('.nube-btn').textContent = nube.boton;
+        if (nube.boton && nube.boton2) t.querySelector('.nube-btn--2').textContent = nube.boton2;
         document.body.appendChild(t);
         var cerrado = false, fin;
         var cerrar = function() {
@@ -9515,7 +9605,7 @@
         t.addEventListener('click', function(ev) {
           var b = ev.target.closest && ev.target.closest('.nube-btn');
           cerrar();
-          if (b) { nubeEvento('nube_tocada', nube.id); nube.accion(); }
+          if (b) { nubeEvento('nube_tocada', nube.id); if (b.getAttribute('data-b') === '2') nube.accion2(); else nube.accion(); }
         });
         window.addEventListener('popstate', cerrar);
         setTimeout(function() { t.classList.add('active'); }, 30);   // después de pintarla: así corre el fundido de entrada
@@ -9675,29 +9765,50 @@
       // las mismas reglas (una por visita, 1 minuto después de la de llegada, una vez por aparato). El parecido sale de findSimilares (las
       // notas, como «Ver similares») y tiene que estar en el armador ([DECANT-TOPE]: ni excluido ni «a consultar»), no estar ya en el
       // pedido ni en el pack. Los decants no miran el stock del frasco (NO ROMPER #28). Se fija cuando no hay nada abierto (hasta ~2 min).
-      function decantParecido(slug) {
-        if (typeof decantsPack === 'undefined' || typeof DECANTS_CONFIG === 'undefined' || decantsPack.length >= DECANTS_CONFIG.max_decants) return null;
-        var lista = findSimilares(slug);
-        for (var i = 0; i < lista.length; i++) {
-          var q = lista[i].perfume;
-          if (cart.indexOf(q.slug) !== -1 || decantsPack.indexOf(q.slug) !== -1) continue;
-          if (decantEnListaArmador(q) && !decantAConsultar(q)) return q;
-        }
-        return null;
+      // Decisión de Alejo «A + B»: no se ofrecen los que ya tiene en el pack (A) ni los que mandó por WhatsApp la última vez (B,
+      // `st_decants_enviado`, lo escribe sendDecantPackToWA de extras.js; vale 120 días). «Elegir» abre la hoja con los de su pedido y los
+      // parecidos para tildar uno, varios o ninguno (sólo donde existen las hojas: < 768 y >= 1024; en la tablet queda «Sumar decant»).
+      function decantsEnviados() {
+        try {
+          var e = JSON.parse(localStorage.getItem('st_decants_enviado') || 'null');
+          return e && Array.isArray(e.slugs) && Date.now() - e.t < 120 * 864e5 ? e.slugs : [];
+        } catch (err) { return []; }
+      }
+      function decantPosible(q) { return q && decantEnListaArmador(q) && !decantAConsultar(q) && decantsPack.indexOf(q.slug) === -1; }
+      function decantParecidos(slug, enviados) {
+        return findSimilares(slug).map(function(s) { return s.perfume; }).filter(function(q) {
+          return cart.indexOf(q.slug) === -1 && decantPosible(q) && enviados.indexOf(q.slug) === -1;
+        });
+      }
+      function decantPackLleno() { return typeof decantsPack === 'undefined' || typeof DECANTS_CONFIG === 'undefined' || decantsPack.length >= DECANTS_CONFIG.max_decants; }
+      function decantElegir(x) {
+        var env = decantsEnviados(), quitados = 0, vistos = {};
+        var uno = function(q, nota) {
+          if (vistos[q.slug] || !decantPosible(q)) return null;
+          vistos[q.slug] = 1;
+          if (env.indexOf(q.slug) !== -1) { quitados++; return null; }
+          return { p: q, nota: nota };
+        };
+        var delPedido = cart.map(perfume).filter(function(q) { return q && !q.esSet; }).map(function(q) { return uno(q, 'Está en tu pedido'); }).filter(Boolean);
+        var parecidos = findSimilares(x.slug).map(function(s) { return s.perfume; }).filter(function(q) { return cart.indexOf(q.slug) === -1; })
+          .map(function(q) { return uno(q, 'Se parece a ' + nombreFrase(x.name)); }).filter(Boolean).slice(0, 4);
+        abrirDecantElegir([{ tit: 'Los de tu pedido', items: delPedido }, { tit: 'Parecidos', items: parecidos }], quitados);
       }
       var AGREGO = { slug: '', t: 0, vueltas: 0 };
       function miraYaHablo() { try { return sessionStorage.getItem(MIRA_SES) === '1'; } catch (e) { return true; } }
       function agregoMirar() {
         if (miraYaHablo() || yaSalio('decant_parecido') || cart.indexOf(AGREGO.slug) === -1) return;
         if (!miraPuede()) { if (++AGREGO.vueltas < 75) AGREGO.t = setTimeout(agregoMirar, 1600); return; }
-        var x = perfume(AGREGO.slug), q = x && decantParecido(x.slug);
+        if (decantPackLleno()) return;
+        var x = perfume(AGREGO.slug), q = x && decantParecidos(x.slug, decantsEnviados())[0];
         if (!q) return;
         miraMostrar({ id: 'decant_parecido', titulo: 'Sumá el decant de ' + nombreFrase(q.name),
           sub: 'Se parece a ' + nombreFrase(x.name) + '. Es una muestra para probarlo antes del frasco.',
           boton: 'Sumar decant', accion: function() {
             addDecant(q.slug);
             if (decantsPack.indexOf(q.slug) !== -1) avisoPedido('Sumaste el decant de ' + nombreFrase(q.name));
-          } });
+          },
+          boton2: vidEsCelu() ? 'Elegir' : null, accion2: function() { decantElegir(x); } });
       }
       nubeAgrego = function(slug) {
         if (miraYaHablo()) return;
