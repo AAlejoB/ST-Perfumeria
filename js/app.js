@@ -5653,6 +5653,7 @@
       console.log('[catalog] STEP 4: markNewPerfumes OK, llamando renderCatalog...');
       renderCatalog();
       console.log('[catalog] STEP 5: renderCatalog OK, grid tiene', document.querySelectorAll('#catalogGrid .product-card').length, 'cards');
+      try { nubesCatalogoListo(true); } catch (e) { console.warn('[nubes]', e); }   // [NUBES-CATALOGO] con stock y nuevos de verdad
       // (renderCatalog ya termina con sortCards('price-desc'): no se repite acá)
       checkDeepLink();
       // Stats de views: diferido, solo afecta el contador "+N personas vieron…"
@@ -5670,6 +5671,7 @@
       try {
         renderCatalog();   // ya ordena por precio de mayor a menor
         console.warn('[catalog] FALLBACK: renderizado con seed solo');
+        try { nubesCatalogoListo(false); } catch (e) {}   // [NUBES-CATALOGO] sin datos: sólo las nubes que no hablan de stock ni de nuevos
       } catch(e) {
         console.error('[catalog] FALLBACK también falló:', e);
       }
@@ -6236,6 +6238,7 @@
           }
         }
         var estado = calcularEstadoHorario(results[0], results[1]);
+        ESTADO_LOCAL = estado;   // [NUBES-CATALOGO] (3) el saludo con el local cerrado usa la misma cuenta (NO ROMPER #14)
         updateStatus(estado);
         pintarWaStatus(estado);
         var festivo = festivoDe(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' })));
@@ -6293,7 +6296,10 @@
       // navegador no sale (como los globitos del catálogo). Se va solo a los 5 s o tocándolo. Va arriba de la barra del celu (NO ROMPER #15).
       function festivoToast(f) {
         var clave = new Date().getFullYear() + '-' + f.mes + '-' + f.texto;
-        try { if (localStorage.getItem('st_festivo_visto') === clave) return; localStorage.setItem('st_festivo_visto', clave); } catch (e) { return; }
+        try { if (localStorage.getItem('st_festivo_visto') === clave) return; } catch (e) { return; }
+        if (!turnoTomar('festivo')) return;   // [NUBES-CATALOGO] ya salió una nube en esta visita: el saludo queda para la próxima
+        try { localStorage.setItem('st_festivo_visto', clave); } catch (e) {}
+        MENSAJE_VISITA.hasta = Date.now() + 1200 + 5000 + 6000;
         setTimeout(function() {
           var t = document.createElement('div');
           t.className = 'festivo-toast';
@@ -6307,6 +6313,7 @@
           var cerrar = function() {
             if (cerrado) return;
             cerrado = true;
+            MENSAJE_VISITA.hasta = Date.now() + 6000;   // los globitos esperan 6 s
             t.classList.remove('active');
             setTimeout(function() { t.remove(); }, 700);
           };
@@ -6323,6 +6330,14 @@
     // ============================================================
     var cart = JSON.parse(sessionStorage.getItem('st_cart') || '[]');
     var CART_LIMIT = 15;
+    // [NUBES-CATALOGO] (7) el pedido vive en sessionStorage (se va al cerrar la pestaña): una COPIA queda en el aparato 7 días
+    // (st_pedido_guardado) para que la nube «Tu pedido te espera» lo ofrezca en la próxima visita. Se lee acá, antes de que nada la pise;
+    // la escribe updateCartUI y la borra sólo un pedido que se vació en esta pestaña (enviado por WhatsApp o vaciado a mano).
+    var PEDIDO_GUARDADO = null, pedidoTocado = cart.length > 0;
+    try {
+      var _pg = JSON.parse(localStorage.getItem('st_pedido_guardado') || 'null');
+      if (_pg && _pg.slugs && _pg.slugs.length && !cart.length && Date.now() - _pg.t < 7 * 864e5) PEDIDO_GUARDADO = _pg;
+    } catch (e) {}
 
     // [SIN-STOCK-NO-ENTRA] La ÚNICA regla de qué entra al pedido (NO ROMPER #28). Un perfume sin stock, pausado («Próximamente») o dado de baja
     // no se pide: ni desde la card, ni desde la ficha, ni desde Comparar, ni desde los favoritos, ni desde un pedido guardado. «Último» (low) sí.
@@ -6402,6 +6417,11 @@
       var barraNum = document.getElementById('barraNumCarrito');
       if (barraNum) { barraNum.textContent = cart.length; barraNum.hidden = cart.length === 0; }
       sessionStorage.setItem('st_cart', JSON.stringify(cart));
+      if (cart.length) pedidoTocado = true;   // [NUBES-CATALOGO] la copia de 7 días
+      try {
+        if (cart.length) localStorage.setItem('st_pedido_guardado', JSON.stringify({ slugs: cart, t: Date.now() }));
+        else if (pedidoTocado) localStorage.removeItem('st_pedido_guardado');
+      } catch (e) {}
     }
 
     function resetCartButtons() {
@@ -8960,6 +8980,7 @@
       }
       function mirar() {
         if (P.el || P.listo) return;
+        if (Date.now() < MENSAJE_VISITA.hasta) { clearTimeout(P.t); P.t = setTimeout(mirar, MENSAJE_VISITA.hasta - Date.now() + 100); return; }   // [NUBES-CATALOGO] nunca junto a una nube
         var v = vistas();
         if (!v || yaHuboEnLaVisita() || PISTAS_CAT.every(function(p) { return v[p.id]; })) { P.listo = true; return; }   // nada más en esta visita: el scroll y los toques dejan de mirar
         for (var i = 0; i < PISTAS_CAT.length; i++) {
@@ -9006,4 +9027,161 @@
       }, { passive: true, capture: true });   // capture: también la tira de atajos, que se desliza de costado
       window.addEventListener('resize', function() { if (P.el) ubicar(); }, { passive: true });
       deferTask(function() { setTimeout(mirar, 6000); });
+    })();
+    // ============================================================
+    // [NUBES-CATALOGO] tanda 1 · 18-oct-2026 · pedido de Alejo: que el catálogo le hable al que llega. Un «director» elige UNA nube por visita
+    // (sessionStorage `st_nube_ses`) y la muestra abajo, arriba de la barra del celu (NO ROMPER #15), a 1,5 s de que se pintó el catálogo.
+    // Prioridad: el saludo del festivo (si sale, es el mensaje de la visita) → (7) el pedido guardado → (6) un favorito que volvió → (5) los
+    // nuevos desde la última visita → (1) la bienvenida (sólo la primera vez en el aparato) → (3) el saludo con el local cerrado.
+    // Reglas: nunca un número inventado (todo sale de PERFUMES, sePuedePedir, st_favs y el horario); no sale con una ventana abierta ni con un
+    // globito a la vista; se va sola (6 s, 9 s con botón) o tocándola; los globitos de [PISTAS-CATALOGO] esperan 6 s después de que se fue.
+    // Lo que recuerda el aparato va en `st_nubes` (sin acceso al navegador no sale ninguna). Una nube nueva: un `if` más en `elegir`, en su orden.
+    // ============================================================
+    var MENSAJE_VISITA = { quien: null, hasta: 0 };   // quién habló en esta visita y hasta cuándo esperan los globitos
+    function turnoTomar(quien) { if (MENSAJE_VISITA.quien) return false; MENSAJE_VISITA.quien = quien; return true; }
+    var ESTADO_LOCAL = null;   // lo escribe el horario (calcularEstadoHorario)
+    var nubesCatalogoListo = function() {};
+    (function() {
+      var CLAVE = 'st_nubes', SES = 'st_nube_ses', TZ = 'America/Argentina/Buenos_Aires';
+      var DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+      // Alguna de estas en el aparato = ya vino antes de que existieran las nubes: no es la primera vez.
+      var DE_ANTES = ['st_favs', 'st_vista', 'st_recent_views', 'st_pistas_cat', 'st_cliente', 'st_dark_mode', 'st_festivo_visto', 'st_waitlist', 'st_espera_tel'];
+      var OCUPADO = '[id$="Overlay"].active, [id$="Overlay"].open, .nav-drawer.open, .decant-builder-overlay.active, .pista-cat, .festivo-toast';
+      var corrio = false;
+      function leer() { try { return JSON.parse(localStorage.getItem(CLAVE) || '{}') || {}; } catch (e) { return null; } }
+      function guardar(n) { try { localStorage.setItem(CLAVE, JSON.stringify(n)); } catch (e) {} }
+      function hoy() { return new Date().toLocaleDateString('en-CA', { timeZone: TZ }); }
+      function hora() { return Number(new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', hourCycle: 'h23' }).format(new Date())); }
+      function perfume(slug) { return PERFUMES.find(function(p) { return p.slug === slug; }); }
+      // Los nombres vienen en mayúsculas («YOUR TOUCH AMBER»): en una frase gritan. «Your Touch Amber»; una palabra con números («9PM») queda igual.
+      function nombreFrase(nombre) {
+        nombre = String(nombre || '');
+        if (nombre !== nombre.toUpperCase()) return nombre;
+        return nombre.split(' ').map(function(w) { return /\d/.test(w) ? w : w.charAt(0) + w.slice(1).toLowerCase(); }).join(' ');
+      }
+      function primeraVez() {
+        try { return DE_ANTES.every(function(k) { return localStorage.getItem(k) === null; }); } catch (e) { return false; }
+      }
+      function favs() { try { var f = JSON.parse(localStorage.getItem('st_favs') || '[]'); return Array.isArray(f) ? f : []; } catch (e) { return []; } }
+      function verNuevos() {
+        var b = document.querySelector('.filter-btn[onclick*="filterByNew"]');
+        if (b && !filterNewActive) filterByNew(b);
+        else scrollToCatalog();
+      }
+      function recuperarPedido() {
+        var g = PEDIDO_GUARDADO;
+        PEDIDO_GUARDADO = null;
+        if (!g || cart.length) { openCartPanel(); return; }
+        // [SIN-STOCK-NO-ENTRA] lo que se sabe que no se puede pedir no vuelve; un set que todavía no cargó se queda y lo limpia limpiarPedido
+        cart = g.slugs.filter(function(slug, i, a) { var p = perfume(slug); return a.indexOf(slug) === i && (!p || sePuedePedir(p)); }).slice(0, CART_LIMIT);
+        updateCartUI();
+        resetCartButtons();
+        limpiarPedido();
+        openCartPanel();
+      }
+
+      // La nube que toca, o null. `n` es lo que recuerda el aparato y `antes` la hora de la última visita.
+      function elegir(n, antes, conDatos) {
+        // (7) un pedido armado que no se mandó (una vez por pedido)
+        if (PEDIDO_GUARDADO && n.pedido !== PEDIDO_GUARDADO.t && !cart.length) {
+          var g = PEDIDO_GUARDADO;
+          var k = g.slugs.filter(function(slug) { var p = perfume(slug); return p && sePuedePedir(p); }).length;
+          if (k) return { id: 'pedido', titulo: 'Tu pedido te espera',
+            sub: 'Tenés ' + k + (k === 1 ? ' perfume guardado' : ' perfumes guardados') + '. ¿Lo terminamos?',
+            boton: 'Ver pedido', accion: recuperarPedido, marcar: function() { n.pedido = g.t; } };
+        }
+        if (conDatos && !STOCK_OCULTO) {
+          // (6) un favorito que en la última visita no se podía pedir y ahora sí
+          var mios = favs(), volvio = null;
+          (n.favsSin || []).some(function(slug) {
+            var p = perfume(slug);
+            if (mios.indexOf(slug) !== -1 && p && sePuedePedir(p)) { volvio = p; return true; }
+            return false;
+          });
+          if (volvio) return { id: 'favorito', titulo: 'Volvió ' + nombreFrase(volvio.name), sub: 'Lo tenías en favoritos y ya hay.',
+            boton: 'Verlo', accion: function() { openBottomSheet(volvio.slug); } };
+        }
+        if (conDatos && antes) {
+          // (5) los de la cinta «Nuevo» ([NUEVO-10]) que se cargaron después de la última visita
+          var nuevos = PERFUMES.filter(function(p) { return p._isNew && p._creado > antes && sePuedePedir(p); }).length;
+          if (nuevos) return { id: 'nuevos', titulo: 'Hola de nuevo',
+            sub: (nuevos === 1 ? 'Entró 1 perfume nuevo' : 'Entraron ' + nuevos + ' perfumes nuevos') + ' desde tu última visita.',
+            boton: 'Ver nuevos', accion: verNuevos };
+        }
+        // (1) la primera vez en este aparato
+        if (n.nuevo && !n.bienvenida) return { id: 'bienvenida', titulo: 'Perfumes árabes originales',
+          sub: 'Los probás en El Coliseo, en Comodoro · local 8.', marcar: function() { n.bienvenida = 1; } };
+        // (3) el local está cerrado (una vez por día): la misma cuenta del horario (NO ROMPER #14)
+        var e = ESTADO_LOCAL;
+        if (e && e.tipo !== 'abierto' && n.cerrado !== hoy()) {
+          var h = hora(), saludo = h >= 6 && h < 13 ? 'Buen día' : h >= 13 && h < 20 ? 'Buenas tardes' : 'Buenas noches';
+          var cuando = e.abreEn === 0 ? 'hoy' : e.abreEn === 1 ? 'mañana' : e.abreEn ? 'el ' + DIAS[e.abreDia] : '';
+          return { id: 'cerrado', titulo: saludo,
+            sub: cuando ? 'El local abre ' + cuando + ' a las ' + e.abreHora + ' hs, pero tu pedido lo armás ahora.' : 'Hoy el local está cerrado, pero tu pedido lo armás ahora.',
+            marcar: function() { n.cerrado = hoy(); } };
+        }
+        return null;
+      }
+
+      function mostrar(nube) {
+        var dur = nube.boton ? 9000 : 6000;
+        MENSAJE_VISITA.hasta = Date.now() + dur + 6000;
+        var t = document.createElement('div');
+        t.className = 'nube' + (nube.boton ? ' nube--boton' : '');
+        t.setAttribute('role', 'status');
+        t.setAttribute('data-nube', nube.id);
+        t.innerHTML = '<div class="nube-txt"><p class="nube-titulo"></p><p class="nube-sub"></p></div>' + (nube.boton ? '<button type="button" class="nube-btn"></button>' : '');
+        t.querySelector('.nube-titulo').textContent = nube.titulo;
+        t.querySelector('.nube-sub').textContent = nube.sub;
+        if (nube.boton) t.querySelector('.nube-btn').textContent = nube.boton;
+        document.body.appendChild(t);
+        var cerrado = false, fin;
+        var cerrar = function() {
+          if (cerrado) return;
+          cerrado = true;
+          clearTimeout(fin);
+          window.removeEventListener('popstate', cerrar);
+          MENSAJE_VISITA.hasta = Date.now() + 6000;   // los globitos esperan 6 s
+          t.classList.remove('active');
+          setTimeout(function() { t.remove(); }, 700);
+        };
+        t.addEventListener('click', function(ev) {
+          var b = ev.target.closest && ev.target.closest('.nube-btn');
+          cerrar();
+          if (b) nube.accion();
+        });
+        window.addEventListener('popstate', cerrar);
+        setTimeout(function() { t.classList.add('active'); }, 30);   // después de pintarla: así corre el fundido de entrada
+        fin = setTimeout(cerrar, dur);
+      }
+
+      function intentar(conDatos, vuelta) {
+        try { if (sessionStorage.getItem(SES) === '1') return; } catch (e) { return; }   // una por visita; sin acceso, ninguna
+        var n = leer();
+        if (!n) return;
+        // La primera vez se decide UNA vez, en la primera visita con nubes: después aparecen claves propias (el saludo del festivo,
+        // las fichas vistas) y ya no se podría saber.
+        if (!n.desde) { n.desde = Date.now(); n.nuevo = primeraVez() ? 1 : 0; guardar(n); }
+        if (MENSAJE_VISITA.quien) { try { sessionStorage.setItem(SES, '1'); } catch (e) {} return; }   // ya habló el festivo
+        if (document.querySelector(OCUPADO)) {   // una ventana abierta o un globito: espera (hasta ~20 s) y si no, queda para la próxima
+          if (vuelta < 10) setTimeout(function() { intentar(conDatos, vuelta + 1); }, 2000);
+          return;
+        }
+        n = leer() || n;   // pudo cambiar mientras esperaba (otra pestaña)
+        var nube = elegir(n, n.ultima || 0, conDatos);
+        n.ultima = Date.now();
+        if (conDatos) n.favsSin = favs().filter(function(slug) { var p = perfume(slug); return p && !sePuedePedir(p); });   // para la (6) de la próxima
+        if (nube && turnoTomar('nube')) {
+          if (nube.marcar) nube.marcar();
+          mostrar(nube);
+        }
+        guardar(n);
+        try { sessionStorage.setItem(SES, '1'); } catch (e) {}
+      }
+
+      nubesCatalogoListo = function(conDatos) {
+        if (corrio) return;
+        corrio = true;
+        setTimeout(function() { intentar(conDatos, 0); }, 1500);
+      };
     })();
