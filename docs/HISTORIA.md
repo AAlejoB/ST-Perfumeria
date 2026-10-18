@@ -3893,6 +3893,11 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 18-oct-2026 (~12:40, cierre de la medición de las nubes y la tanda 2):** todo en producción (v1.1.294 y v1.1.295).
+
+- ✅ ~~**`[NUBES-HOLMES]`**~~ (18-oct, **hecho**: `e232d26`, SW v1.1.294, `sql/holmes_nubes.sql` aplicada con el OK de Alejo, NO ROMPER #63 h) — texto de `CLAUDE.md` al cerrarse:
+  **`[NUBES-HOLMES]`** (18-oct · 🟡, **hecho en la rama `nubes-holmes`, SW v1.1.294; el SQL ya está aplicado; falta subir el front**) — cada nube se mide con su grupo de control de 1 de cada 5 (NO ROMPER #63 h). Va con `[BIENVENIDA-FESTIVO]` (#63 i). Con ~180 visitas por día, una respuesta firme de «esta nube vende más» tarda semanas: hasta entonces Holmes dice «pocas personas».
+
 **Movidos el 18-oct-2026 (~11:10, cierre del panel liviano):** en producción la v1.1.291; la v1.1.292 se sube con el cierre.
 
 - ✅ ~~**`[PANEL-ARRIBA-LIVIANO]`**~~ (18-oct, **hecho**: `6ead159` y `b1d60c5`, SW v1.1.291 y v1.1.292, NO ROMPER #62; la lista de Precios arranca a 279 en la tablet parada y en el celu) — texto de antes: (18-oct · 🟡, **la próxima tanda**: lo decidió Alejo, opción 1 «completa»; el orden «antes que las nubes» lo propuse yo y Alejo puede darlo vuelta) — en Precios & Stock la lista arranca a **728 px de 900** en la tablet parada y a **844 de 844 en el celu** (ninguna fila a la vista; Depósito 869 / 958), debajo de un encabezado de **181 px** y 7 bloques de controles; la lista mide ~9.600 px (152 × 63). **Qué se hace:** (A) encabezado de un renglón (☰ · Inicio · 4 atajos · un punto de estado; 🌙 y Salir al menú), (B) orden, vista y ocultos a una hoja «Ajustes» y el tip de ayuda pasa a globito de una vez (`[PISTAS]`), (C) el buscador queda pegado al bajar + «↑ arriba», (D) en el celu, «Compacta» de entrada. Meta medida: la lista a ~250 px. Se sube después de las 21 y con su línea en «Lo nuevo del panel». Choca con `[BUSCAR-ARRIBA]` (NO ROMPER #58), las tarjetas que filtran (#29) y los cuadrados (`[SELECTS-A-CUADRADOS]`). Además, la nota para CCodeProyectoSaas con estas medidas. Medidas y detalle en `docs/IDEAS.md` § `[PANEL-ARRIBA-LIVIANO]` (se cruza con `[PANEL-CELU-TOSCO]`).
@@ -5966,9 +5971,70 @@ Arrancó con `/tanda` y el «daleeee si» de Alejo a la tanda 1 de las 29 nubes 
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (mediodía, tercera) · **`[NUBES-HOLMES]` y `[NUBES-CATALOGO]` tanda 2**: medir cada nube y enseñar sin clase
+
+Dos tandas seguidas en el mismo chat, en el orden que eligió Alejo («arrancá por NUBES-HOLMES y después tanda 2»): primero que cada nube del catálogo se pueda medir en Holmes (la regla (d) de las nubes), después las 5 nubes que enseñan. En el medio apareció un error de la tanda 1 que dejaba sin bienvenida a todos los nuevos en un día festivo.
+
+#### Qué se hizo
+
+- **`e232d26` · `[NUBES-HOLMES]` (SW v1.1.294, NO ROMPER #63 h):** `nubeEvento` (`js/app.js`) manda `nube_vista` (con `meta.nube`) al salir una nube y `nube_tocada` al tocar su botón, al toque y aparte de los viejos. **Grupo de control:** a 1 de cada 5 visitas que les tocaba una nube del director no se la mostramos (se marca igual) y va `nube_vista` con `meta.control = true`; el saludo del festivo se mide sin control. **Holmes** suma «Las nubes del catálogo»: por nube, la vieron, tocaron el botón y «Con la nube» contra «Sin la nube» con la vara de 95 % (`holmesNubesHTML`, `HOLMES_NUBES`). La copia del QA (`scripts/qa-copia/fake-supabase.js`) genera nubes de mentira con su control.
+- **`sql/holmes_nubes.sql`, aplicada el 18-oct (~12:00) por Claude Code con el MCP de Supabase, con el OK de Alejo:** los dos eventos al CHECK de `analytics_events` y `nubes` en `holmes_metricas`. Antes de escribirla se midió que el CHECK y la función de la base eran los de `sql/holmes_disyuntor.sql` (la función, sin los comentarios de adentro); antes de aplicarla se corrió la consulta sobre los datos reales en sólo lectura, con 3 filas de prueba en memoria: los totales de siempre dieron igual (214 visitas, 12 escribieron). Después: huella `5593068c5b2682d304467034308dc62b` = archivo, y `anon` sin permiso.
+- **`[BIENVENIDA-FESTIVO]`, en el mismo commit (NO ROMPER #63 i):** `st_festivo_visto` salió de `DE_ANTES`. El saludo del festivo la escribía en la misma primera visita, antes de que el director decidiera si era la primera vez: un día festivo (el 18-oct, Día de la Madre, entre ~11:40 y ~12:10) dejaba a todo el que llegaba por primera vez marcado como «ya vino», y nunca iba a ver la bienvenida. Probado con un aparato limpio: queda `nuevo: 1` y la bienvenida sale en la visita siguiente.
+- **`9ec80a0` · `[NUBES-CATALOGO]` tanda 2 (SW v1.1.295, NO ROMPER #63 j):** (2) el botón **Contame** de la bienvenida (sólo < 768 y >= 1024, donde existen las hojas) abre «¿Primera vez acá?» con 3 tarjetas que se deslizan (perfume árabe, decant, cómo se compra; en la compu una debajo de la otra); (8) «A qué huele» en la ficha, con el perfil y los acordes que se tocan y dicen qué son (12 acordes + 4 perfiles); (11) el decant explicado arriba del armador la primera vez en el aparato, sin precios escritos; (12) «¿Son originales?» en «Cómo comprar» y plegado en la ficha; (29) «Te responde una persona del local, en el horario del local.» debajo del botón del pedido.
+- **Probado en la copia del QA:** los eventos (salida, botón, control), la pestaña Holmes a 834, y la tanda 2 a 375, 360 × 640, 834 y 1280, en claro y oscuro. Contraste de lo nuevo: 4,9 o más (el peor, «Deslizá para ver las 3» en oscuro); las palabras del glosario miden 44; ninguna pantalla se desborda; **Agregar** sigue a la vista al abrir la ficha a 360 × 640 (baja de 512 a 593). Producción verificada por `curl` después de cada push (v1.1.294 y v1.1.295).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** el grupo de control de **1 de cada 5** (le di tres opciones: 1 de 5, sin control, 1 de 2). Aplicar el SQL. Arreglar `[BIENVENIDA-FESTIVO]` en la misma subida. En «Cómo se compra», mencionar los envíos y sumar «escribinos y avisanos cuándo venís al local» («De última pone que "contactanos y nos avisás cuando venís a probar perfumes"»). La (29) **sin número de minutos** («por las dudas»).
+- **Propuse yo:** arrancar por `[NUBES-HOLMES]` (no esperaba la foto); que la (2) sea un botón de la bienvenida y no otra nube (una por visita); que la (11) sea una línea del armador y no otro globito (ya hay uno de decants); que la (12) vaya en «Cómo comprar» y plegada en la ficha; las 11 definiciones del glosario que Alejo no vio (`[GLOSARIO-TEXTOS]`).
+- **La foto de la (12):** la idea decía «con una foto real» y yo le pedí «una foto del local o de las cajas» sin decir para qué nube. Alejo: «No se a que imagen te referís». Salió sin foto (`[ORIGINALES-FOTO]`).
+- **Cómo se cuenta una visita de control:** el id de visita (`st_analytics_sid`) es del aparato, no de la pestaña, y un aparato puede tener dos visitas del director el mismo día (dos pestañas). Por eso una visita es de control para una nube sólo si ese día no vio NINGUNA.
+- **Lo que no se pudo probar sin un dedo:** deslizar las 3 tarjetas (la tira tiene su `touch-action` propio adentro de una hoja con `touch-action: none`).
+- **Workaround de prueba:** en la copia del QA el catálogo corta los `fetch` a Supabase; para ver los eventos se envolvió `window.fetch` desde la página justo después de `navigate`, y se forzó el sorteo con `Math.random`.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[NUBES-HOLMES]` | Cada nube se mide, con 1 de cada 5 visitas sin nube como control; Holmes las compara (NO ROMPER #63 h) |
+| `[BIENVENIDA-FESTIVO]` | Un día festivo ya no deja sin bienvenida a los que llegan por primera vez (NO ROMPER #63 i) |
+| `[NUBES-CATALOGO]` tanda 2 | El catálogo enseña: «Contame», «A qué huele», el decant explicado, «¿Son originales?», «Te responde una persona del local» (NO ROMPER #63 j). Las tandas 3 a 6 siguen abiertas |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[NUBES-CATALOGO]` 🟡 | Tanda 3 (mientras mira: 13, 14, 15, 16, 18) |
+| `[HUMO-NUBES-1]` 🟡 | Verlas en un celu de verdad: la tanda 1 y ahora también «Contame», las tarjetas con el dedo, «A qué huele», la línea del armador y que Holmes empiece a sumar |
+| `[NUBES-RESULTADO]` 🟡 | Mirar la comparación de Holmes hacia mediados de noviembre y sacar o reescribir la nube que no ayuda |
+| `[GLOSARIO-TEXTOS]` 🟢 | Alejo revisa las 11 definiciones que no vio |
+| `[ORIGINALES-FOTO]` 🟢 | Una foto para «¿Son originales?», si Alejo quiere |
+
+#### 💬 Mensajes meta
+
+- Un pedido de un archivo («una foto del local o de las cajas») sin decir **para qué** pantalla y **qué tiene que mostrar** no se entiende: Alejo no sabía a qué imagen me refería. Anotado en `memory/preferencias_alejo.md` (#148).
+- Alejo sube él mismo apenas le doy el comando y avisa en el medio del turno («ah y ya pushee»): conviene verificar producción al toque.
+
+**Estado del repo al cierre (18-oct, ~12:40):**
+- `origin/main` = `9ec80a0` (v1.1.295 en producción, verificado por `curl`); la rama `nubes-2` = `9ec80a0` + este cierre, para el push a `main` (fast-forward). Las ramas `nubes-holmes` y `nubes-1` ya están en `main` (se pueden borrar).
+- Árbol limpio y la copia del QA prendida en el puerto 8777 (no toca nada real).
+
+**Próxima revisión cuando:**
+- 🟡 `[NUBES-CATALOGO]` tanda 3 (la próxima tanda)
+- 🟡 `[HUMO-NUBES-1]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct · `[NUBES-RESULTADO]`, mediados de noviembre
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~11:50, cierre de las nubes 1) — pasó de `CLAUDE.md` al archivo el 18-oct (~12:40, cierre de la medición de las nubes y la tanda 2)
+
+**Última actualización:** **Octubre 18, 2026, ~11:50 (cierre de las nubes 1, rama `nubes-1`)** — 1 commit sobre el cierre `9e7ea14`: `05dfccd` (SW **v1.1.292 → v1.1.293**, en producción desde ~11:40, subido por Alejo y verificado por `curl`). **Hecho:** `[NUBES-CATALOGO]` tanda 1: un director que elige una nube por visita (comparte el turno con el saludo del festivo; los globitos esperan) y 5 nubes con datos reales: «Tu pedido te espera» (el pedido queda guardado 7 días en el aparato), «Volvió X, que tenías en favoritos», «Hola de nuevo · entraron N nuevos», la bienvenida de la primera vez («Los probás en El Coliseo, en Comodoro · local 8») y el saludo con el local cerrado. Letra recta y en negrita, sin la Playfair (NO ROMPER #63). **Próxima tanda:** `[NUBES-CATALOGO]` tanda 2 (enseñar). **Pendientes, en orden:** 🟡 `[NUBES-CATALOGO]` · `[NUBES-HOLMES]` · `[HUMO-NUBES-1]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-QA-16-OCT]` · `[HUMO-PISTAS-17-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[STOCK-OCULTO]` (25-oct) · `[LAB-FUNDAMENTOS]` · 🟢 `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (mediodía, segunda)».
 
 ### Última actualización del 18-oct-2026 (~11:10, cierre del panel liviano) — pasó de `CLAUDE.md` al archivo el 18-oct (~11:50, cierre de las nubes 1)
 
