@@ -159,6 +159,15 @@
       } catch(_){}
     }
     window.waIntento = waIntento;
+    // [NUBES-HOLMES] (18-oct-2026) cada nube del catálogo se mide: `nube_vista` (salió, o le tocaba y es del grupo de control:
+    // meta.control) y `nube_tocada` (tocó su botón). Uno por visita y por nube, al toque y aparte de los viejos (sql/holmes_nubes.sql).
+    function nubeEvento(tipo, id, control) {
+      try {
+        var meta = { device: ANALYTICS_DEVICE, referrer: ANALYTICS_REFERRER, hour: new Date().getHours(), nube: String(id || '').slice(0, 20) };
+        if (control) meta.control = true;
+        analyticsKeepalive([{ session_id: ANALYTICS_SESSION_ID, event_type: tipo, slug: null, query: null, meta: meta }]);
+      } catch(_){}
+    }
     function flushAnalytics() {
       if (ANALYTICS_QUEUE.length === 0) return;
       var batch = ANALYTICS_QUEUE.splice(0, ANALYTICS_QUEUE.length);
@@ -6309,6 +6318,7 @@
           t.querySelector('.ft-titulo').textContent = f.texto;
           if (sub) t.querySelector('.ft-sub').textContent = sub;
           document.body.appendChild(t);
+          nubeEvento('nube_vista', 'festivo');   // [NUBES-HOLMES] sin grupo de control: sale un día y no lo elige el director
           var cerrado = false;
           var cerrar = function() {
             if (cerrado) return;
@@ -9043,9 +9053,12 @@
     var nubesCatalogoListo = function() {};
     (function() {
       var CLAVE = 'st_nubes', SES = 'st_nube_ses', TZ = 'America/Argentina/Buenos_Aires';
+      var NUBE_CONTROL = 5;   // [NUBES-HOLMES] 1 de cada 5 visitas con nube es del grupo de control (no la ve)
       var DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
       // Alguna de estas en el aparato = ya vino antes de que existieran las nubes: no es la primera vez.
-      var DE_ANTES = ['st_favs', 'st_vista', 'st_recent_views', 'st_pistas_cat', 'st_cliente', 'st_dark_mode', 'st_festivo_visto', 'st_waitlist', 'st_espera_tel'];
+      // Sin `st_festivo_visto` ([BIENVENIDA-FESTIVO], 18-oct): el saludo del festivo la escribe en la MISMA primera visita, antes de que esto
+      // decida, y un día festivo dejaba a todo el que llegaba por primera vez sin la bienvenida.
+      var DE_ANTES = ['st_favs', 'st_vista', 'st_recent_views', 'st_pistas_cat', 'st_cliente', 'st_dark_mode', 'st_waitlist', 'st_espera_tel'];
       var OCUPADO = '[id$="Overlay"].active, [id$="Overlay"].open, .nav-drawer.open, .decant-builder-overlay.active, .pista-cat, .festivo-toast';
       var corrio = false;
       function leer() { try { return JSON.parse(localStorage.getItem(CLAVE) || '{}') || {}; } catch (e) { return null; } }
@@ -9148,7 +9161,7 @@
         t.addEventListener('click', function(ev) {
           var b = ev.target.closest && ev.target.closest('.nube-btn');
           cerrar();
-          if (b) nube.accion();
+          if (b) { nubeEvento('nube_tocada', nube.id); nube.accion(); }
         });
         window.addEventListener('popstate', cerrar);
         setTimeout(function() { t.classList.add('active'); }, 30);   // después de pintarla: así corre el fundido de entrada
@@ -9173,7 +9186,11 @@
         if (conDatos) n.favsSin = favs().filter(function(slug) { var p = perfume(slug); return p && !sePuedePedir(p); });   // para la (6) de la próxima
         if (nube && turnoTomar('nube')) {
           if (nube.marcar) nube.marcar();
-          mostrar(nube);
+          // [NUBES-HOLMES] el grupo de control (decisión de Alejo, 18-oct): a 1 de cada NUBE_CONTROL visitas no se le muestra la nube
+          // que le tocaba, y queda anotado. Se marca igual (no le vuelve a tocar otro día): así la visita es «sin esa nube», y nada más.
+          var control = Math.random() < 1 / NUBE_CONTROL;
+          nubeEvento('nube_vista', nube.id, control);
+          if (!control) mostrar(nube);
         }
         guardar(n);
         try { sessionStorage.setItem(SES, '1'); } catch (e) {}

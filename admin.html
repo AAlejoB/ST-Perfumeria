@@ -16258,6 +16258,7 @@
           + labBarras(og.map(function(x) { var n = Number(x.visitas || 0); return { nom: HOLMES_ORIGENES[x.origen] || x.origen, n: n, txt: String(n), tip: (HOLMES_ORIGENES[x.origen] || x.origen) + ' · ' + n + (n === 1 ? ' visita' : ' visitas') + ' de ' + totOg }; }))
           + '</section>';
       }
+      h += holmesNubesHTML(d, H);
       // ── (b) por perfume ──
       var pp = (d.por_perfume || []).filter(function(x) { return Number(x.miraron) > 0; });
       h += '<section class="lab-sec"><h3>Por perfume</h3>'
@@ -16289,6 +16290,44 @@
           + '</div><div id="holmesComparar"></div></article>';
       }
       h += '</section>';
+      return h;
+    }
+    // [NUBES-HOLMES] (18-oct-2026) las nubes del catálogo ([NUBES-CATALOGO], js/app.js): por nube, cuántas visitas la vieron, cuántas
+    // tocaron su botón y si escriben más que las del grupo de control (1 de cada 5 a las que les tocaba y no la vieron). Sale de
+    // `holmes_metricas().nubes` (sql/holmes_nubes.sql). La vara para decidir es la de siempre: 95 %.
+    var HOLMES_NUBES = { pedido: { nom: 'Tu pedido te espera', boton: true }, favorito: { nom: 'Volvió un favorito', boton: true },
+      nuevos: { nom: 'Hola de nuevo · perfumes nuevos', boton: true }, bienvenida: { nom: 'Bienvenida (primera vez)' },
+      cerrado: { nom: 'Local cerrado' }, festivo: { nom: 'Saludo del día festivo', sinControl: true } };
+    function holmesNubesHTML(d, H) {
+      var nb = (d.nubes || []).filter(function(x) { return Number(x.vieron) + Number(x.control) > 0; });
+      var h = '<section class="lab-sec"><h3>Las nubes del catálogo</h3>'
+        + '<p class="lab-nota">Los mensajitos que salen abajo al entrar (uno por visita). A 1 de cada 5 visitas que les tocaba uno no se lo mostramos: comparando las dos se sabe si la nube hace que escriban más, y no sólo si la miran.</p>';
+      if (!nb.length) return h + '<p class="lab-nota">Todavía no salió ninguna nube en este período.</p></section>';
+      h += '<div class="holmes-filas">' + nb.map(function(x) {
+        var info = HOLMES_NUBES[x.nube] || { nom: x.nube };
+        var vi = Number(x.vieron) || 0, tc = Number(x.tocaron) || 0, es = Number(x.escribieron) || 0, co = Number(x.control) || 0, ce = Number(x.control_escribieron) || 0;
+        var det = '<ul class="holmes-lista">';
+        if (info.boton && vi) { var t = H.mostrarUno(tc, vi); det += '<li>Tocaron el botón: ' + escHtml(t.principal) + ' (' + tc + ' de ' + vi + ')</li>'; }
+        det += '<li>De las que la vieron, escribieron por WhatsApp: ' + es + ' de ' + vi + '.</li></ul>';
+        var cmp;
+        if (info.sinControl) cmp = '<p class="lab-nota" style="margin:.3rem 0 0;">Este no tiene grupo sin nube (sale un solo día): sólo se cuenta cuántos lo vieron.</p>';
+        else if (!co || !vi) cmp = '<p class="lab-nota" style="margin:.3rem 0 0;">Todavía no hay visitas ' + (!co ? 'del grupo sin nube' : 'que la hayan visto') + ': sin las dos no se puede decir si vende más.</p>';
+        else {
+          var r = H.compararDos({ exitos: ce, total: co }, { exitos: es, total: vi }, ['Sin la nube', 'Con la nube']);
+          var ancho = Math.round(r.chance * 1000) / 10;
+          cmp = '<div class="holmes-dos">'
+            + '<div><p class="holmes-medio">' + escHtml(r.principal[1]) + '</p>' + holmesMunecos(H, es, vi) + '</div>'
+            + '<div><p class="holmes-medio">' + escHtml(r.principal[0]) + '</p>' + holmesMunecos(H, ce, co) + '</div></div>'
+            + holmesAviso(r.aviso)
+            + '<div class="holmes-vara" role="img" aria-label="' + escHtml(r.chanceTexto + ' de chances; la vara para decidir está en 95 %') + '"><i style="width:' + ancho + '%"></i><span title="95 %: alcanza para decidir"></span></div>'
+            + '<p style="margin:.4rem 0 0;font-size:.82rem;' + (r.decidido ? 'color:var(--tinta-ok);font-weight:700;' : '') + '">' + escHtml(r.decision) + '</p>'
+            + '<details class="lab-det"><summary>Ver detalle</summary><ul class="holmes-lista">' + r.detalle.map(function(z) { return '<li>' + escHtml(z) + '</li>'; }).join('')
+            + '<li>Con la nube: ' + es + ' de ' + vi + ' · Sin la nube: ' + ce + ' de ' + co + '</li></ul></details>';
+        }
+        return '<details class="holmes-fila"><summary><span class="holmes-nom">' + escHtml(info.nom) + '</span>'
+          + '<span class="holmes-dato">la vieron ' + vi.toLocaleString('es-AR') + (co ? ' · sin nube ' + co.toLocaleString('es-AR') : '') + '</span></summary>'
+          + '<div class="holmes-fila-det">' + det + cmp + '</div></details>';
+      }).join('') + '</div></section>';
       return h;
     }
     function holmesCompararPintar() {
