@@ -3771,6 +3771,20 @@
               <input type="text" class="modal-input" id="editPerfil" list="perfilesList" placeholder="Versátil, Intenso, Dulce, Fresco, Floral... o inventá uno" autocomplete="off" style="margin-bottom:0;"/>
               <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Elegí uno de la lista o escribí uno nuevo (ej: Aromático, Oud dulce, Ahumado, Oriental). La lista se va llenando con los que van usando.</p>
             </div>
+            <!-- [CONCENTRACION] 18-oct-2026 · sale en la ficha del catálogo («A qué huele») y suma a la duración estimada. Sin dato: el catálogo la toma del nombre si la dice. -->
+            <div style="grid-column:1/-1;">
+              <label class="modal-label">Concentración</label>
+              <select class="modal-input" id="editConcentracion" data-cuadros style="margin-bottom:0;cursor:pointer;appearance:auto;">
+                <option value="">Sin dato</option>
+                <option value="EDP">EDP</option>
+                <option value="EDT">EDT</option>
+                <option value="Parfum">Parfum</option>
+                <option value="Extrait">Extrait</option>
+                <option value="Elixir">Elixir</option>
+                <option value="Cologne">Colonia</option>
+              </select>
+              <p style="font-size:.55rem;color:var(--gris);margin-top:3px;">Lo que dice la caja (EDP, EDT…). Si el nombre ya lo dice, no hace falta: el catálogo lo lee solo.</p>
+            </div>
             <div>
               <label class="modal-label">Precio tarjeta</label>
               <input type="text" class="modal-input" id="editPrice" placeholder="98,500.00" style="margin-bottom:0;"/>
@@ -6905,6 +6919,7 @@
           if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
           if (o.notas_base) p.notas_base = o.notas_base;
           if (Array.isArray(o.acordes)) p.acordes = o.acordes;   // [A-QUE-HUELE-AUTO] 147 · SINCRO con js/app.js (applyOverrideToPerfume): un array pisa, aunque esté vacío; null = sin cambio
+          if (typeof o.concentracion !== 'undefined') p.concentracion = o.concentracion || '';   // [CONCENTRACION] la columna es sólo de overrides: null = sin dato
           if (o.stock_status) p._stockStatus = o.stock_status;
           if (o.stock_qty !== null && o.stock_qty !== undefined) p._stockQty = o.stock_qty;
           // [DEPOSITO] unidades en depósito, separadas del stock del local
@@ -7513,6 +7528,7 @@
         html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
     ];
     var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
+      { id: 'n18-concentracion', fecha: '18-oct', texto: 'En Editar está «Concentración» (EDP, EDT, Parfum…): lo que dice la caja. Sale en la ficha de la web', ir: 'editar' },
       { id: 'n18-resenas', fecha: '18-oct', texto: 'Pestaña «Reseñas»: copiá un comentario lindo de un cliente (de un reel, de Google, de WhatsApp) y sale en la web', ir: 'resenas' },
       { id: 'n18-liviano', fecha: '18-oct', texto: 'Precios y Depósito más livianos: el orden, la vista, «Mostrar ocultos» y los precios de los decants están en «Ajustes», y el buscador te sigue al bajar', ir: 'precios' },
       { id: 'n18-menu', fecha: '18-oct', texto: 'En el celu y la tablet parada, el tema claro / oscuro y «Salir» están en el menú ☰' },
@@ -11455,6 +11471,7 @@
       document.getElementById('editMarcaReal').value = p.marca_real || '';
       document.getElementById('editCat').value = p.cat ? p.cat.split(',')[0].trim() : 'Unisex';
       document.getElementById('editPerfil').value = p.perfil || 'Versátil';
+      document.getElementById('editConcentracion').value = p.concentracion || '';   // [CONCENTRACION]
       document.getElementById('editPrice').value = p.price || '';
       document.getElementById('editPromo').value = p.promo || '';
       document.getElementById('editMl').value = p.ml || '';
@@ -11826,6 +11843,7 @@
         marca_real: document.getElementById('editMarcaReal').value.trim(),
         cat: document.getElementById('editCat').value,
         perfil: document.getElementById('editPerfil').value.trim() || 'Versátil',
+        concentracion: document.getElementById('editConcentracion').value || null,   // [CONCENTRACION] null = sin dato
         tipo: tipoFinal,
         price: validado.price,   // [VALIDAR-EDICION] ya normalizados (pesos enteros)
         promo: validado.promo,
@@ -11889,6 +11907,13 @@
         error = retryAc.error;
       }
 
+      // [CONCENTRACION] sin la columna (falta sql/concentracion.sql) se guarda el resto, callado: es un dato de ayuda
+      if (error && /concentracion/i.test(error.message || '')) {
+        delete obj.concentracion;
+        var retryCo = await sb.from('perfume_overrides').upsert(obj, { onConflict: 'slug' });
+        error = retryCo.error;
+      }
+
       // [ELEGIDOS-EXCLUIR] sin la columna (falta sql/elegidos_excluido.sql) se guarda el resto y se avisa
       var elegidosSinColumna = false;
       if (error && /elegidos_excluido/i.test(error.message || '')) {
@@ -11919,7 +11944,7 @@
       var oldP = PERFUMES.find(function(p) { return p.slug === slug; }) || {};
       var fieldsToLog = {
         name: 'Nombre', price: 'Precio', promo: 'Promo', cat: 'Categor\u00eda',
-        perfil: 'Perfil', tipo: 'Tipo', marca: 'Marca', marca_real: 'Fabricante', ml: 'ML',
+        perfil: 'Perfil', concentracion: 'Concentración', tipo: 'Tipo', marca: 'Marca', marca_real: 'Fabricante', ml: 'ML',
         foto: 'Foto', notas_salida: 'Notas salida', notas_corazon: 'Notas coraz\u00f3n',
         notas_base: 'Notas base', descuento_pct: 'Descuento %', etiqueta: 'Etiqueta',
         fotos_extra: 'Fotos extra', alias: 'Apodos',

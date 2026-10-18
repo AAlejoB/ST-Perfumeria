@@ -5295,11 +5295,74 @@
       'dulce': 'Golosos y llamativos: van bien de noche.',
       'fresco': 'Livianos, para el día y el calor.'
     };
+    // [CONCENTRACION] y [DURACION-ESTIMADA] · 18-oct-2026 · pedido de Alejo: una ayuda de memoria en la ficha, nunca horas ni una promesa
+    // («la gente igual lo va a buscar en otra pestaña»). La concentración sale de Editar (perfume_overrides.concentracion, sql/concentracion.sql)
+    // o del nombre si la dice («… EDT»). La duración estimada sólo se dice cuando da «suele durar más»: con pocas notas cargadas un perfume
+    // saldría «liviano» sin serlo, así que lo de abajo no se muestra. La regla la corta y la corre scripts/duracion_estimada.js tal cual
+    // (escribe docs/DURACION_ESTIMADA.md para revisarla): si cambiás un peso, corré el script.
+    // DURACION:INICIO
+    // Las notas de fondo pesan según cuánto tardan en evaporarse (la pirámide de Jean Carles, la escala de Poucher). Los pesos son un criterio.
+    var DURACION_PESOS = [
+      [3, ['benjuí', 'benjui', 'ládano', 'ladano', 'mirra', 'oud', 'aoud', 'cuero']],
+      [2, ['incienso', 'olíbano', 'olibano', 'ámbar gris', 'ambar gris', 'ambroxan', 'ambrofix', 'amberwood', 'madera de ámbar', 'sándalo', 'sandalo',
+           'vetiver', 'pachulí', 'pachuli', 'haba tonka', 'tonka', 'tabaco', 'musgo de roble', 'akigalawood', 'ámbar', 'ambar']],
+      [1, ['almizcle', 'vainilla', 'cedro', 'cachemira', 'praliné', 'praline', 'musgo', 'madera', 'amaderad', 'caramelo', 'café', 'cafe', 'chocolate']]
+    ];
+    // La concentración, sólo si el nombre la dice. «Elixir» no es una norma, pero las marcas lo usan para la versión más concentrada.
+    function concentracionDeNombre(nombre) {
+      var n = ' ' + String(nombre || '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ') + ' ';
+      if (/ EXTRAIT /.test(n)) return 'Extrait';
+      if (/ EAU DE PARFUM | EDP /.test(n)) return 'EDP';
+      if (/ EAU DE TOILETTE | EDT /.test(n)) return 'EDT';
+      if (/ EAU DE COLOGNE | COLOGNE | EDC /.test(n)) return 'Cologne';
+      if (/ ELIXIR /.test(n)) return 'Elixir';
+      if (/ PARFUM /.test(n)) return 'Parfum';
+      return '';
+    }
+    var DURACION_CONC = { Extrait: 2, Parfum: 2, Elixir: 2, EDP: 0, EDT: -2, Cologne: -3 };
+    function pesoFondo(notasBase) {
+      var total = 0;
+      String(notasBase || '').toLowerCase().split(/[,.;]/).forEach(function(nota) {
+        nota = nota.trim();
+        if (!nota) return;
+        for (var i = 0; i < DURACION_PESOS.length; i++) {
+          if (DURACION_PESOS[i][1].some(function(k) { return nota.indexOf(k) !== -1; })) { total += DURACION_PESOS[i][0]; return; }
+        }
+      });
+      return Math.min(total, 9);   // tope: cinco notas pesadas no duran cinco veces más
+    }
+    function ajustePerfil(perfil) {
+      var p = String(perfil || '').toLowerCase();
+      if (p.indexOf('intenso') !== -1) return 2;
+      if (p.indexOf('fresco') !== -1 || p.indexOf('cítrico') !== -1 || p.indexOf('citrico') !== -1) return -2;
+      return 0;
+    }
+    // { puntos, grupo }: 'mas' = suele durar más · 'normal' · 'liviano' = más liviano · '' = sin notas de fondo (no se dice nada)
+    function duracionEstimada(p) {
+      if (!String(p.notas_base || '').trim()) return { puntos: null, grupo: '' };
+      var conc = p.concentracion || concentracionDeNombre(p.name);
+      var pts = pesoFondo(p.notas_base) + ajustePerfil(p.perfil) + (DURACION_CONC[conc] || 0);
+      return { puntos: pts, grupo: pts >= 9 ? 'mas' : pts <= 3 ? 'liviano' : 'normal' };
+    }
+    // DURACION:FIN
+    // Lo que dice cada una al tocarla: la tabla general (no es una norma legal: cada marca pone la suya)
+    var GLOSARIO_CONC = {
+      Extrait: 'Extracto: entre 20 y 40 % de aceites. Es lo más concentrado y lo que más dura.',
+      Parfum: 'Parfum: entre 20 y 40 % de aceites. Es lo más concentrado y lo que más dura.',
+      Elixir: 'Elixir: la versión más concentrada que saca la marca. Suele durar más que el original.',
+      EDP: 'Eau de parfum: entre 15 y 20 % de aceites. Dura bastante.',
+      EDT: 'Eau de toilette: entre 5 y 15 % de aceites. Más liviano, dura menos que un EDP.',
+      Cologne: 'Colonia: entre 2 y 5 % de aceites. Fresca y corta.'
+    };
     function glosarioHTML(p) {
       var perfil = String(p.perfil || '').trim(), palabras = [];
       var clave = stripAccents(perfil.toLowerCase());
       if (perfil && GLOSARIO_PERFIL[clave]) palabras.push({ n: perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase(), d: GLOSARIO_PERFIL[clave], perfil: true });
       acordesValidos(p.acordes).forEach(function(s) { if (GLOSARIO[s]) palabras.push({ n: acordeNombre(s), d: GLOSARIO[s] }); });
+      // [CONCENTRACION] y [DURACION-ESTIMADA] al final, con el mismo «tocá una palabra»
+      var conc = p.concentracion || concentracionDeNombre(p.name);
+      if (GLOSARIO_CONC[conc]) palabras.push({ n: conc, d: GLOSARIO_CONC[conc] });
+      if (!p.esSet && duracionEstimada(p).grupo === 'mas') palabras.push({ n: 'Suele durar más', d: 'Por sus notas de fondo (resinas, ámbar, maderas) y su perfil. Es una estimación, no una medición: en cada piel dura distinto.' });
       if (!palabras.length) return '';
       return '<div class="bs-huele"><p class="bs-huele-tit">A qué huele <span>· tocá una palabra</span></p><div class="bs-huele-chips">'
         + palabras.map(function(w) {
@@ -5861,6 +5924,7 @@
       if (o.notas_corazon) p.notas_corazon = o.notas_corazon;
       if (o.notas_base) p.notas_base = o.notas_base;
       if (Array.isArray(o.acordes)) p.acordes = o.acordes;   // [A-QUE-HUELE-AUTO] 147 · SINCRO con admin.html. Un array pisa, aunque esté vacío ([] = «sin acordes» a propósito); null = sin cambio
+      if (o.concentracion) p.concentracion = o.concentracion;   // [CONCENTRACION] SINCRO con admin.html (overridesAplicar)
       if (o.stock_status) p._stockStatus = o.stock_status;
       // [PAUSADO-OCULTO] Un perfume pausado NO se muestra en el catálogo público.
       // Bandera propia y NO reuso _oculto a propósito: _oculto significa "perfume
