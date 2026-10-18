@@ -1493,6 +1493,9 @@
     .hv-carro { border: 1px solid var(--borde); border-radius: 10px; padding: .3rem .7rem; margin-bottom: .8rem; }
     .hv-carro-fila { display: flex; align-items: center; gap: .6rem; padding: .45rem 0; border-bottom: 1px solid var(--borde); font-size: .88rem; }
     .hv-carro-fila:last-child { border-bottom: none; }
+    .hv-mas-menos { display: inline-flex; gap: .35rem; flex: 0 0 auto !important; }   /* [VENTA-RAPIDA] − y + en «¿Cómo pagó?» */
+    .hv-mas-menos .hv-quitar { width: 44px; height: 44px; font-weight: 700; }
+    .hv-top-tit { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--amarillo-tinta); margin: .6rem 0 .4rem; }   /* [LOS-QUE-MAS-SALEN] */
     .hv-carro-fila span { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
     .hv-quitar { width: 40px; height: 40px; flex-shrink: 0; font-family: inherit; font-size: 1.2rem; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--borde); border-radius: 8px; }
     .hv-listo { display: block; width: 100%; min-height: 64px; margin-top: .9rem; font-family: inherit; font-size: 1.05rem; font-weight: 800; cursor: pointer; background: var(--amarillo); color: #000; border: none; border-radius: 14px; }
@@ -17539,7 +17542,23 @@
       if (!p || p.esSet) return;
       var base = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
       HOJA.sel = { tipo: 'frasco', slug: slug, nombre: String(p.name || slug), qty: 1, base: base > 0 ? base : 0, monto: '', llevar: true, ya_bajado: false };
-      HOJA.busca = ''; hojaMsg(''); hojaPaso('cuantos');
+      HOJA.busca = ''; hojaMsg('');
+      // [VENTA-RAPIDA] 18-oct (Alejo, Día de la Madre: «el papel es más rápido»): con precio y stock, el perfume entra con 1 y se va directo a
+      // «¿Cómo pagó?» (la cantidad se cambia ahí, con − y +). Sin precio o sin stock sigue la pantalla «¿Cuántos?», que explica qué pasa.
+      var t = hojaTope(HOJA.sel);
+      if (HOJA.sel.base > 0 && (t === null || t > 0)) { hojaSelListo(); if (HOJA.carro.length) hojaPaso('pago'); return; }
+      hojaPaso('cuantos');
+    }
+    // [VENTA-RAPIDA] − y + en la línea de un frasco, desde «¿Cómo pagó?»: respeta el tope del local ([HOJA-PISO-TECHO]); el − en 1 lo saca.
+    function hojaCarroCant(i, delta) {
+      var l = HOJA.carro[i]; if (!l) return;
+      if (delta > 0) {
+        var t = hojaTope(l);
+        if (t !== null && t <= 0) { hojaMsg('Solo hay ' + hojaDisponible(l.slug) + ' en el local (según el panel).', 'aviso'); return; }
+        l.qty = Math.min(99, l.qty + 1);
+      } else if (l.qty > 1) l.qty -= 1;
+      else HOJA.carro.splice(i, 1);
+      hojaMsg(''); hojaPaso(HOJA.carro.length ? HOJA.paso : 'que');
     }
     function hojaElegirArabe() {
       if (!HOJA.cfgDec) { hojaMsg('No pude leer los precios de los decants árabes: anotalo en «Otra cosa» con el monto.', 'aviso'); return; }
@@ -17627,7 +17646,8 @@
       var inp = hojaEl('hvBuscar'), cont = hojaEl('hvResultados'); if (!inp || !cont) return;
       HOJA.busca = inp.value;
       var q = inp.value.trim();
-      if (!q || /^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.innerHTML = q ? '<p class="hoja-hint">Tocá Enter para buscar el código.</p>' : ''; return; }
+      if (!q) { cont.innerHTML = hojaTopHTML(); hojaTopCargar(); return; }   // [LOS-QUE-MAS-SALEN]
+      if (/^\d{8,14}$/.test(q.replace(/\s/g, ''))) { cont.innerHTML = '<p class="hoja-hint">Tocá Enter para buscar el código.</p>'; return; }
       var palabras = busqPalabras(q);   // [BUSCAR-TOLERANTE]
       var lista = PERFUMES.filter(function(p) {
         return !p.esSet && busqPasa(busqPerfume(p), palabras);
@@ -17638,6 +17658,34 @@
         return { onclick: 'hojaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')', nombre: p.name || '', sub: (p.marca_real || p.marca || '') + (base > 0 ? ' · ' + hojaPesos(base) : ' · sin precio'),
                  etiqueta: info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '' };
       })) : '<p class="hoja-hint" style="padding:.6rem 0">No hay perfumes con ese nombre. Si no está en el catálogo, volvé y anotalo en «Otra cosa».</p>';
+    }
+    // [LOS-QUE-MAS-SALEN] 18-oct · con el buscador vacío, los 8 frascos más anotados en la hoja de los últimos 14 días (sin tachados), en
+    // Tarjetero: los de todos los días se eligen sin abrir el teclado. Se lee una vez cada 10 minutos; sin datos (o sin red) no sale nada.
+    var HOJA_TOP = { lista: null, en: 0, cargando: false };
+    async function hojaTopCargar() {
+      if (HOJA_TOP.cargando || (HOJA_TOP.lista && Date.now() - HOJA_TOP.en < 600000)) return;
+      HOJA_TOP.cargando = true;
+      try {
+        var desde = new Date(Date.now() - 14 * 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });   // NO ROMPER #6
+        var r = await colaConTope(function() { return sb.from('caja_movimientos').select('items, anulado_en').eq('tipo', 'venta').gte('dia', desde).limit(2000); });
+        if (r && !r.error && Array.isArray(r.data)) {
+          var n = {};
+          r.data.forEach(function(f) { if (f.anulado_en) return; (Array.isArray(f.items) ? f.items : []).forEach(function(it) { if (it && it.slug) n[it.slug] = (n[it.slug] || 0) + (Number(it.qty) || 1); }); });
+          HOJA_TOP.lista = Object.keys(n).sort(function(a, b) { return n[b] - n[a]; }).filter(function(sl) { var p = PERFUMES.find(function(pf) { return pf.slug === sl; }); return p && !p.esSet; }).slice(0, 8);
+          HOJA_TOP.en = Date.now();
+          var inp = hojaEl('hvBuscar'); if (HOJA.paso === 'perfume' && inp && !inp.value.trim()) hojaEl('hvResultados').innerHTML = hojaTopHTML();
+        }
+      } catch (e) {}
+      HOJA_TOP.cargando = false;
+    }
+    function hojaTopHTML() {
+      if (!HOJA_TOP.lista || !HOJA_TOP.lista.length) return '';
+      var items = HOJA_TOP.lista.map(function(sl) { return PERFUMES.find(function(pf) { return pf.slug === sl; }); }).filter(Boolean).map(function(p) {
+        var info = stockCargado ? deriveStockInfo(p) : null, base = p.promo ? parsePrice(p.promo) : parsePrice(p.price);
+        return { onclick: 'hojaElegir(' + escHtml(JSON.stringify(String(p.slug))) + ')', nombre: p.name || '', sub: (p.marca_real || p.marca || '') + (base > 0 ? ' · ' + hojaPesos(base) : ' · sin precio'),
+                 etiqueta: info ? '<span class="badge-stock ' + info.badgeClass + '">' + escHtml(info.badgeText) + '</span>' : '' };
+      });
+      return '<p class="hv-top-tit">Los que más salen</p>' + tarjeteroHTML(items);
     }
     function hojaBuscarTecla(e) {
       if (e.key !== 'Enter') return;
@@ -17659,12 +17707,14 @@
     function hojaCab(titulo, volver) {
       return '<div class="hv-cab">' + (volver ? '<button type="button" class="hv-atras" onclick="' + volver + '" aria-label="Volver">&#8592;</button>' : '') + '<p class="hv-titulo">' + titulo + '</p></div>';
     }
-    function hojaCarroHTML(conQuitar) {
+    function hojaCarroHTML(conQuitar, conCantidad) {
       if (!HOJA.carro.length) return '';
       return '<div class="hv-carro">' + HOJA.carro.map(function(l, i) {
-        var p = hojaLineaPrecio(l, HOJA.carro);
-        return '<div class="hv-carro-fila"><span>' + escHtml(hojaLineaTexto(l)) + '</span><b>' + (p ? hojaPesos(p.lista) : '—') + '</b>'
-          + (conQuitar ? '<button type="button" class="hv-quitar" onclick="hojaCarroQuitar(' + i + ')" aria-label="Sacar ' + escHtml(hojaLineaTexto(l)) + '">&times;</button>' : '') + '</div>';
+        var p = hojaLineaPrecio(l, HOJA.carro), txt = escHtml(hojaLineaTexto(l));
+        return '<div class="hv-carro-fila"><span>' + txt + '</span><b>' + (p ? hojaPesos(p.lista) : '—') + '</b>'
+          + (conCantidad && l.tipo === 'frasco' ? '<span class="hv-mas-menos"><button type="button" class="hv-quitar" onclick="hojaCarroCant(' + i + ', -1)" aria-label="' + (l.qty > 1 ? 'Uno menos de ' : 'Sacar ') + txt + '">' + (l.qty > 1 ? '&minus;' : '&times;') + '</button>'
+              + '<button type="button" class="hv-quitar" onclick="hojaCarroCant(' + i + ', 1)" aria-label="Uno más de ' + txt + '">+</button></span>' : '')   // [VENTA-RAPIDA]
+          + (conQuitar ? '<button type="button" class="hv-quitar" onclick="hojaCarroQuitar(' + i + ')" aria-label="Sacar ' + txt + '">&times;</button>' : '') + '</div>';
       }).join('') + '</div>';
     }
     function hojaTileHTML(m, onclick, valor, chico, pulsado, clase) {
@@ -17759,7 +17809,7 @@
         var pp = hojaCarroPrecio(HOJA.carro);
         if (!pp) { HOJA.paso = 'manual'; return hojaVentaPintar(); }
         var hayFrasco = HOJA.carro.some(function(l) { return l.tipo === 'frasco' && l.base > 0; });
-        h = hojaCab('¿Cómo pagó? Tocá uno', 'hojaPaso(\'que\')') + hojaCarroHTML(false)
+        h = hojaCab('¿Cómo pagó? Tocá uno', 'hojaPaso(\'que\')') + hojaCarroHTML(false, true)
           + hojaVinoHTML()   // [VENTA-COMO-DATO]
           + '<div class="hoja-montos hv-pago">'
           + hojaTileHTML('efectivo', 'hojaGuardarVenta({ auto: \'efectivo\' })', hojaPesos(pp.efectivo), hayFrasco ? 'perfumes con 10% off' : '', false, 'auto')
