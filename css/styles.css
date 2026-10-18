@@ -10597,3 +10597,33 @@
     @keyframes pistaCatEntra { from { opacity: 0; transform: translateY(6px); } }
     @keyframes pistaCatLate { 50% { outline-color: rgba(232,184,0,.25); } }
     @media (prefers-reduced-motion: reduce) { .pista-cat, .pista-cat-ancla { animation: none; } }
+
+    /* [DIAS-FESTIVOS] (18-oct-2026) · la píldora del hero alterna el saludo y el horario: los dos textos en la misma celda, así mide
+       lo del más largo y no se mueve nada. En el saludo, dorado (la misma tinta que el feriado) en los dos temas. */
+    .ss-textos { display: inline-grid; justify-items: center; }
+    .ss-textos > span { grid-area: 1 / 1; transition: opacity .35s ease; }
+    .ss-saludo { opacity: 0; }
+    .store-status.festivo .ss-saludo { opacity: 1; }
+    .store-status.festivo #storeStatusText { opacity: 0; }
+    .store-status.con-festivo { transition: color .35s ease, background-color .35s ease; }
+    .store-status.con-festivo .dot { transition: background-color .35s ease, box-shadow .35s ease; }
+    .store-status.festivo, body:not(.dark-mode) .store-status.festivo { color: var(--amarillo-tinta); }
+    .store-status.festivo:not(.holiday) { background-color: rgba(232,184,0,.12); }
+    .store-status.festivo .dot, body:not(.dark-mode) .store-status.festivo .dot { background: var(--amarillo-tinta); box-shadow: none; }
+
+    /* El mensajito que aparece y se esfuma (una vez por día festivo y por dispositivo). Opaco en los dos temas; en el celu, arriba de la barra. */
+    .festivo-toast { position: fixed; left: 50%; bottom: 24px; z-index: 9989; transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
+      width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 14px 22px; border-radius: 16px; text-align: center; cursor: pointer;
+      background: #141416; border: 1px solid #E8B800; box-shadow: 0 10px 30px rgba(0,0,0,.45);
+      transition: opacity .6s ease, transform .6s ease; }
+    .festivo-toast.active { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    .festivo-toast .ft-titulo { margin: 0; font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.2rem; line-height: 1.25; color: #E8B800; text-wrap: balance; }
+    .festivo-toast .ft-sub { margin: 4px 0 0; font-size: .78rem; line-height: 1.4; color: #f0ede8; text-wrap: balance; }
+    body:not(.dark-mode) .festivo-toast { background: #f5efde; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+    body:not(.dark-mode) .festivo-toast .ft-titulo { color: #6b5500; }
+    body:not(.dark-mode) .festivo-toast .ft-sub { color: #1a1a1d; }
+    @media (max-width: 767px) { .festivo-toast { bottom: calc(60px + env(safe-area-inset-bottom) + 14px); } }
+    @media (prefers-reduced-motion: reduce) {
+      .ss-textos > span, .store-status.con-festivo, .store-status.con-festivo .dot, .festivo-toast { transition: none; }
+      .festivo-toast { transform: translate(-50%, 0); }
+    }

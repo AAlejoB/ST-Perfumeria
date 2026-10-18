@@ -6235,7 +6235,83 @@
         var estado = calcularEstadoHorario(results[0], results[1]);
         updateStatus(estado);
         pintarWaStatus(estado);
+        var festivo = festivoDe(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' })));
+        if (festivo) { pintarFestivo(festivo); festivoToast(festivo); }
       });
+
+      // [DIAS-FESTIVOS] (Alejo, 18-oct-2026, opción A): los días que no son feriado pero se saludan. Las fechas salen de una regla
+      // (día fijo o el N.º domingo del mes), sin pedirle nada a nadie: la API de feriados no los trae. Un día nuevo es una fila más.
+      // FESTIVOS:INICIO (la prueba es scripts/probar_festivos.js: corta este tramo y lo prueba tal cual)
+      var FESTIVOS = [
+        { mes: 1, dia: 1, texto: 'Feliz Año Nuevo' },
+        { mes: 2, dia: 14, texto: 'Feliz San Valentín' },
+        { mes: 3, dia: 8, texto: 'Día Internacional de la Mujer', sub: '' },
+        { mes: 6, domingo: 3, texto: 'Feliz Día del Padre' },
+        { mes: 7, dia: 20, texto: 'Feliz Día del Amigo' },
+        { mes: 8, domingo: 3, texto: 'Feliz Día de las Infancias' },
+        { mes: 10, domingo: 3, texto: 'Feliz Día de la Madre' },
+        { mes: 12, dia: 24, texto: 'Feliz Navidad' },
+        { mes: 12, dia: 25, texto: 'Feliz Navidad' },
+        { mes: 12, dia: 31, texto: 'Feliz Año Nuevo' }
+      ];
+      var FESTIVO_SUB = 'De parte de todo el equipo de ST Perfumería';
+      function festivoDe(d) {
+        var mes = d.getMonth() + 1, dia = d.getDate();
+        for (var i = 0; i < FESTIVOS.length; i++) {
+          var f = FESTIVOS[i];
+          if (f.mes !== mes) continue;
+          if (f.dia === dia) return f;
+          if (f.domingo && d.getDay() === 0 && Math.ceil(dia / 7) === f.domingo) return f;
+        }
+        return null;
+      }
+      // FESTIVOS:FIN
+
+      // La píldora del hero alterna el saludo y el horario cada 4 s: los dos juntos no entran en un renglón a 360 (medido: la franja
+      // crecía 14 px y corría lo pegado). Los dos textos van en la misma celda (.ss-textos), así la píldora mide siempre lo del más
+      // largo y no se mueve nada al cambiar (sin CLS). updateStatus sigue escribiendo #storeStatusText como siempre.
+      function pintarFestivo(f) {
+        var el = document.getElementById('storeStatus');
+        var textEl = document.getElementById('storeStatusText');
+        if (!el || !textEl || el.querySelector('.ss-saludo')) return;
+        var caja = document.createElement('span');
+        caja.className = 'ss-textos';
+        textEl.parentNode.insertBefore(caja, textEl);
+        caja.appendChild(textEl);
+        var saludo = document.createElement('span');
+        saludo.className = 'ss-saludo';
+        saludo.textContent = f.texto;
+        caja.appendChild(saludo);
+        el.classList.add('con-festivo', 'festivo');
+        setInterval(function() { el.classList.toggle('festivo'); }, 4000);
+      }
+
+      // El mensajito que aparece y se esfuma: una vez por día festivo en cada dispositivo (st_festivo_visto); sin acceso al
+      // navegador no sale (como los globitos del catálogo). Se va solo a los 5 s o tocándolo. Va arriba de la barra del celu (NO ROMPER #15).
+      function festivoToast(f) {
+        var clave = new Date().getFullYear() + '-' + f.mes + '-' + f.texto;
+        try { if (localStorage.getItem('st_festivo_visto') === clave) return; localStorage.setItem('st_festivo_visto', clave); } catch (e) { return; }
+        setTimeout(function() {
+          var t = document.createElement('div');
+          t.className = 'festivo-toast';
+          t.setAttribute('role', 'status');
+          var sub = f.sub !== undefined ? f.sub : FESTIVO_SUB;
+          t.innerHTML = '<p class="ft-titulo"></p>' + (sub ? '<p class="ft-sub"></p>' : '');
+          t.querySelector('.ft-titulo').textContent = f.texto;
+          if (sub) t.querySelector('.ft-sub').textContent = sub;
+          document.body.appendChild(t);
+          var cerrado = false;
+          var cerrar = function() {
+            if (cerrado) return;
+            cerrado = true;
+            t.classList.remove('active');
+            setTimeout(function() { t.remove(); }, 700);
+          };
+          t.onclick = cerrar;
+          setTimeout(function() { t.classList.add('active'); }, 30);   // después de pintarlo: así el fundido de entrada corre
+          setTimeout(cerrar, 5000);
+        }, 1200);
+      }
     })();
 
     // ============================================================
