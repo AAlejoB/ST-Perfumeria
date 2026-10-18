@@ -2414,6 +2414,94 @@
       .panel-logout { padding: .4rem .5rem; }
     }
     @media (max-width: 360px) { .panel-title { --badge-ml: 0; } .panel-header { column-gap: .25rem; } }   /* a 360 faltaban 3 px */
+    /* ══ [PANEL-ARRIBA-LIVIANO] 18-oct (Alejo: «mucho espacio arriba… tosca», opción 1). Medido en la copia: la lista de Precios & Stock
+       arrancaba a 728 de 900 en la tablet parada y a 844 de 844 en el celu. Va después de los bloques ≤ 600 / ≤ 480, así les gana. ══
+       (A) a ≤ 700 el encabezado es UN renglón: ☰ · Inicio · los 4 atajos · el punto de estado. El título con la chapa, el tema y «Salir»
+       pasan arriba del menú (.sb-cuenta). De 701 en adelante ya era un renglón y no cambia. */
+    .sb-cuenta { display: none; }
+    /* el estado es sólo el punto (44 de toque) hasta 1000: tocarlo muestra el texto 3 s. Con algo para subir, el cartel de arriba (#colaAviso) ya lo
+       dice. A 834 el texto «Al día · Catálogo: recién» mandaba «Salir» del jefe a un segundo renglón (131 px de encabezado). */
+    @media (max-width: 1000px) {
+      .sync-indicator { position: relative; min-width: var(--tap-min); min-height: var(--tap-min); justify-content: center; padding: 0; background: transparent; border: 0; cursor: pointer; }
+      .sync-indicator .sync-dot { width: 12px; height: 12px; }
+      .sync-indicator .sync-text, .sync-indicator.sync--cola .sync-text { display: none; }
+      .sync-indicator.sync-ver .sync-text { display: block; position: absolute; top: calc(100% + 4px); right: 0; z-index: 60; padding: .5rem .7rem; font-size: .7rem; white-space: nowrap;
+        background: var(--superficie); border: 1px solid var(--borde); border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+    }
+    @media (max-width: 700px) {
+      .panel-title, #themeToggleBtn, .panel-logout { display: none !important; }
+      .panel-header { flex-wrap: nowrap; padding: .5rem .8rem; margin-bottom: .5rem; column-gap: .35rem; row-gap: 0; }
+      .panel-header > div:first-child { gap: .35rem !important; flex: 0 0 auto; }
+      .panel-inicio { margin-right: 0; padding: 0; width: var(--tap-min); }
+      .panel-inicio .panel-inicio-txt { display: none; }
+      .panel-atajos { order: 1; flex: 1 1 auto; min-width: 0; margin: 0; }
+      .panel-atajo { flex: 1 1 0; min-width: 0; padding: 0 .25rem; }
+      .panel-derecha { order: 2; flex: 0 0 auto; }
+      .sb-cuenta { display: flex; flex-direction: column; gap: .4rem; padding: 0 .3rem .8rem; margin-bottom: .5rem; border-bottom: 1px solid var(--borde); }
+      .sidebar { padding-top: 1rem; }
+      .sb-cuenta-rol { font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gris-claro); padding: 0 .35rem .2rem; }
+      .sb-cuenta-rol:empty { display: none; }
+      .sb-cuenta-btn { display: flex; align-items: center; gap: .5rem; min-height: var(--tap-min); padding: 0 .7rem; font: inherit; font-size: .82rem; font-weight: 600;
+        color: inherit; text-align: left; background: transparent; border: 1px solid var(--borde); border-radius: 6px; cursor: pointer; }
+      .sb-cuenta-salir { color: var(--gris-claro); }
+    }
+    /* (B) a ≤ 1000 (la tablet parada y acostada, el celu) orden, vista, «ocultos» y Lista / Compacta van a la hoja «Ajustes», como «Filtros» del
+       catálogo. La hoja es el mismo .ajustes: arriba de 1000 es display: contents y sus controles quedan en la fila del buscador como siempre
+       (ningún nodo se muda ni se copia). (C) la fila del buscador queda pegada arriba al bajar, y el «↑» vuelve al principio. */
+    .ajustes { display: contents; }
+    .tira-corta { display: none; }
+    @media (max-width: 600px) {
+      /* el .panel y el .admin-main sumaban 29 px de cada costado: el panel deja de sumar. A 360 los 4 atajos llegan a 44 de ancho (NO ROMPER #51) */
+      .panel { padding: .25rem .25rem 1.2rem; }
+      .panel-header { padding: .25rem .55rem; }
+    }
+    @media (max-width: 480px) {
+      .panel-atajos { gap: .2rem; }   /* a 360 los atajos quedaban en 43 */
+      .tira-larga { display: none; }
+      .tira-corta { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* Todo · Árabes · Diseñador · Sets en un renglón que se desliza de costado (a 360 «Sets» caía solo a un segundo renglón) */
+      .precios-filtro { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+      .precios-filtro::-webkit-scrollbar { display: none; }
+      .precios-filtro > * { flex: 0 0 auto; }
+    }
+    .ajustes-btn, .ajustes-cab, .ajustes-listo, .ajustes-fondo, .arriba-btn { display: none; }
+    @media (max-width: 1000px) {
+      .ajustes-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: 0 0 auto; min-height: var(--tap-min); min-width: var(--tap-min); padding: 0 .75rem;
+        font: inherit; font-size: .78rem; font-weight: 700; color: inherit; background: transparent; border: 1px solid var(--borde); border-radius: 4px; cursor: pointer; }
+      .ajustes-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+      @media (hover: hover) { .ajustes-btn:hover { background: rgba(232,184,0,.08); } }
+      .ajustes-btn:focus-visible { outline: 2px solid var(--amarillo-tinta); outline-offset: 2px; }
+      .ajustes-n { display: inline-flex; align-items: center; justify-content: center; min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem; border-radius: 999px;
+        font-size: .7rem; font-weight: 800; background: var(--amarillo); color: #000; }
+      .ajustes-n[hidden] { display: none; }
+      .ajustes { display: none; }
+      .ajustes.abierta { display: flex; flex-direction: column; align-items: flex-start; gap: .9rem; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9100;
+        max-height: 85vh; overflow-y: auto; padding: .6rem 1rem calc(1rem + env(safe-area-inset-bottom)); background: var(--superficie); border-top: 1px solid var(--borde);
+        border-radius: 14px 14px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,.45); animation: ajustesEntra .2s ease-out; }
+      .ajustes.abierta .ajustes-cab { display: flex; align-items: center; justify-content: space-between; align-self: stretch; }
+      .ajustes-tit { margin: 0; font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gris-claro); }
+      .ajustes-x { min-width: var(--tap-min); min-height: var(--tap-min); font: inherit; font-size: 1.7rem; line-height: 1; color: inherit; background: transparent; border: 0; cursor: pointer; }
+      .ajustes.abierta .ajustes-listo { display: block; align-self: stretch; min-height: 48px; font: inherit; font-size: .9rem; font-weight: 800; letter-spacing: .04em;
+        background: var(--amarillo); color: #000; border: 0; border-radius: 8px; cursor: pointer; }
+      .ajustes.abierta .cuadros, .ajustes.abierta .vista-lista { flex-wrap: wrap; max-width: 100%; }
+      .ajustes-fondo.abierta { display: block; position: fixed; inset: 0; z-index: 9090; background: rgba(0,0,0,.55); }
+      .busca-fila { position: sticky; top: 0; z-index: 30; flex-wrap: nowrap !important; background: var(--negro); padding: .5rem 0; margin-top: -.5rem; }
+      .busca-fila .admin-search { min-width: 0 !important; }
+      .tab-content .cp-letra { top: 60px; }   /* la letra de «Compacta» se pega debajo de la fila del buscador (44 + 2 × 8) */
+      /* lo que se lee una vez pasa a un globito de [PISTAS] (una vez por tablet); lo demás, más corto */
+      #tipPrecios, #tipDeposito, .dep-intro, .precios-tira-nota { display: none !important; }
+      .bajo-btn-dep small { display: none; }
+      .arriba-btn.visible { display: flex; align-items: center; justify-content: center; position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 35;
+        width: 48px; height: 48px; font: inherit; font-size: 1.3rem; font-weight: 800; color: #000; background: var(--amarillo); border: 0; border-radius: 50%;
+        box-shadow: 0 6px 18px rgba(0,0,0,.4); cursor: pointer; }
+    }
+    @media (max-width: 480px) {   /* a 360 buscador + Escanear + Ajustes en un renglón: los dos botones sólo con el ícono */
+      .busca-fila .btn-escanear { font-size: 0; gap: 0; padding: 0; width: var(--tap-min); justify-content: center; }
+      .ajustes-btn > span:not(.ajustes-n) { display: none; }
+      .ajustes-btn { padding: 0 .5rem; gap: .25rem; }
+    }
+    @keyframes ajustesEntra { from { transform: translateY(24px); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .ajustes.abierta { animation: none; } }
     /* [PRECIOS-EN-UN-LUGAR] 123i · a ≤ 360 el nombre de Precios & Stock va hasta 3 renglones (entre 361 y 600, 2): a 360
        «BORN IN ROMA INTENSE» necesitaba 3 y se veía «BORN IN / ROMA…». Después del bloque ≤ 600, así le gana. */
     @media (max-width: 360px) {
@@ -3275,6 +3363,12 @@
       <div class="sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
 
       <aside class="sidebar" id="adminSidebar">
+        <!-- [PANEL-ARRIBA-LIVIANO] (A) a ≤ 700 el encabezado es un renglón: la cuenta, el tema y «Salir» viven acá arriba del menú -->
+        <div class="sb-cuenta" id="sbCuenta">
+          <span class="sb-cuenta-rol" id="sbCuentaRol"></span>
+          <button type="button" class="sb-cuenta-btn" onclick="toggleAdminTheme()"><span aria-hidden="true">&#9680;</span> Tema claro / oscuro</button>
+          <button type="button" class="sb-cuenta-btn sb-cuenta-salir" onclick="colaAntesDeSalir() &amp;&amp; doLogout()">Salir</button>
+        </div>
         <!-- [SIDEBAR-USO] Orden segun uso medido en admin_actions (5-jul a 5-sep, 2.308 acciones).
              OJO al leer los numeros: admin_actions solo registra ESCRITURAS, y ademas hay
              pestanas que escriben SIN loguear (Clientes hace 11 escrituras sin log). Un cero
@@ -3401,10 +3495,15 @@
            Reemplaza los window.open automáticos (los frenaba el pop-up blocker). -->
       <div id="waitlistBanner"></div>
 
-      <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
+      <!-- [PANEL-ARRIBA-LIVIANO] (B) y (C) · a ≤ 1000 la fila del buscador queda pegada arriba al bajar, y orden, vista, «ocultos» y
+           Lista / Compacta van a la hoja «Ajustes» (.ajustes es la hoja; arriba de 1000 es display: contents y todo sigue en la fila) -->
+      <div class="busca-fila" style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchPrecios" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('precios')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <!-- [ESCANER] 163a · el código de barras es una forma más de buscar -->
         <button type="button" class="btn-escanear" id="btnEscanearPrecios" onclick="escanearAbrir('precios')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
+        <button type="button" class="ajustes-btn" id="ajustesBtnPrecios" onclick="ajustesAbrir('precios')" aria-haspopup="dialog" aria-controls="ajustesPrecios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Ajustes</span><span class="ajustes-n" hidden></span></button>
+        <div class="ajustes" id="ajustesPrecios" role="dialog" aria-modal="true" aria-labelledby="ajustesTitPrecios">
+        <div class="ajustes-cab"><p class="ajustes-tit" id="ajustesTitPrecios">Ajustes de la lista</p><button type="button" class="ajustes-x" onclick="ajustesCerrar()" aria-label="Cerrar">&times;</button></div>
         <!-- [SELECTS-A-CUADRADOS] 16-oct · el menú queda en el DOM (escondido) y lo manejan los cuadrados que pinta cuadrosInit -->
         <select class="admin-search" id="sortPrecios" data-cuadros="Orden" onchange="renderPrecios()" style="margin-bottom:0;width:auto;min-width:160px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="name-asc" selected>Nombre A-Z</option>
@@ -3427,6 +3526,14 @@
           <input type="checkbox" id="chkVerPausados" onchange="toggleVerPausados()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
           Mostrar ocultos
         </label>
+        <!-- [VISTA-COMPACTA] B2 (16-oct) · «Lista» es la de siempre, sin cambios; «Compacta» es una línea por perfume, por letra (pensada para ~300 perfumes). La elección se recuerda. -->
+        <div class="vista-lista vista-compacta-sw" role="group" aria-label="Cómo se ve el stock: lista o compacta">
+          <span class="vista-lista-tit" aria-hidden="true">Mostrar</span>
+          <button type="button" class="vista-op vista-op2" data-compacta="0" aria-pressed="true" onclick="setCompacta(false)">Lista</button>
+          <button type="button" class="vista-op vista-op2" data-compacta="1" aria-pressed="false" onclick="setCompacta(true)">Compacta</button>
+        </div>
+        <button type="button" class="ajustes-listo" onclick="ajustesCerrar()">Listo</button>
+        </div>
       </div>
       <p class="escaneo-nota" id="escaneoNotaPrecios" role="status" hidden></p>
       <p id="tipPrecios" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá un número de arriba para ver sólo esos perfumes, y la badge de <strong>Estado</strong> para cambiar el stock. Para editar precios y otros datos del perfume, usá la pestaña <strong>Editar</strong>.</p>
@@ -3442,12 +3549,6 @@
         <button type="button" class="log-chip" data-filtro="sets" onclick="preciosFiltrar('sets')">📦 Sets</button>
         <button type="button" class="log-chip precios-nuevo-set" id="btnNuevoSet" hidden onclick="irACombo(null)">+ Nuevo set</button>
       </div>
-      <!-- [VISTA-COMPACTA] B2 (16-oct) · «Lista» es la de siempre, sin cambios; «Compacta» es una línea por perfume, por letra (pensada para ~300 perfumes). La elección se recuerda. -->
-      <div class="vista-lista vista-compacta-sw" role="group" aria-label="Cómo se ve el stock: lista o compacta" style="margin-bottom:.6rem;">
-        <span class="vista-lista-tit" aria-hidden="true">Mostrar</span>
-        <button type="button" class="vista-op vista-op2" data-compacta="0" aria-pressed="true" onclick="setCompacta(false)">Lista</button>
-        <button type="button" class="vista-op vista-op2" data-compacta="1" aria-pressed="false" onclick="setCompacta(true)">Compacta</button>
-      </div>
       <p class="aviso-lectura-tabla" id="avisoStockPrecios" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Estado</th><th>Precio</th><th>Efectivo</th></tr></thead>
@@ -3460,7 +3561,7 @@
 
     <!-- [DEPOSITO] TAB: STOCK EN DEPÓSITO (aparte del stock del local) -->
     <div class="tab-content" id="tab-deposito">
-      <div style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.25rem;margin-bottom:1rem;">
+      <div class="dep-intro" style="background:#111;border:1px solid var(--borde);border-radius:8px;padding:1.25rem;margin-bottom:1rem;">
         <h2 style="margin:0 0 .4rem;font-size:1.1rem;">📦 Stock en depósito</h2>
         <p style="color:#bbb;font-size:.82rem;margin:0;line-height:1.5;">Lo que hay <strong>guardado en el depósito</strong>, separado de lo que está en el local.<br>
         Este número <strong style="color:var(--amarillo-tinta);">no se muestra en la web</strong> — el cliente sigue viendo sólo el stock del local.</p>
@@ -3481,10 +3582,14 @@
       <p class="stat-filtro-nota" id="depFiltroNota" hidden></p>
       <button type="button" class="inicio-merc inicio-hoja inicio-bajo bajo-btn-dep" onclick="bajoAbrir()"><span class="inicio-merc-ico" aria-hidden="true">&#11014;&#65039;</span><span><b>Bajo al depósito</b><small>Qué subir al local: lo que se terminó, lo que se vendió hoy y lo que queda poco</small></span></button>   <!-- [BAJO-AL-DEPOSITO] -->
 
-      <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
+      <!-- [PANEL-ARRIBA-LIVIANO] (B) y (C) · la misma fila que en Precios & Stock -->
+      <div class="busca-fila" style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchDeposito" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('deposito')" style="margin-bottom:0;flex:1;min-width:180px;"/>
         <!-- [ESCANER] 163a -->
         <button type="button" class="btn-escanear" id="btnEscanearDeposito" onclick="escanearAbrir('deposito')" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5v14M6.5 5v14M10 5v14M14 5v14M17.5 5v14M21 5v14" /></svg>Escanear</button>
+        <button type="button" class="ajustes-btn" id="ajustesBtnDeposito" onclick="ajustesAbrir('deposito')" aria-haspopup="dialog" aria-controls="ajustesDeposito"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Ajustes</span><span class="ajustes-n" hidden></span></button>
+        <div class="ajustes" id="ajustesDeposito" role="dialog" aria-modal="true" aria-labelledby="ajustesTitDeposito">
+        <div class="ajustes-cab"><p class="ajustes-tit" id="ajustesTitDeposito">Ajustes de la lista</p><button type="button" class="ajustes-x" onclick="ajustesCerrar()" aria-label="Cerrar">&times;</button></div>
         <select class="admin-search" id="sortDeposito" data-cuadros="Orden" onchange="renderDeposito()" style="margin-bottom:0;width:auto;min-width:150px;cursor:pointer;appearance:auto;-webkit-appearance:auto;">
           <option value="dep-desc" selected>Más en depósito</option>
           <option value="dep-asc">Menos en depósito</option>
@@ -3501,15 +3606,17 @@
           <input type="checkbox" id="chkSoloConDeposito" onchange="renderDeposito()" style="width:15px;height:15px;accent-color:var(--amarillo);cursor:pointer;margin:0;flex-shrink:0;"/>
           Sólo los que tienen unidades
         </label>
+        <!-- [VISTA-COMPACTA] B2 (16-oct) · «Lista» es la de siempre, sin cambios; «Compacta» es una línea por perfume, por letra (pensada para ~300 perfumes). La elección se recuerda. -->
+        <div class="vista-lista vista-compacta-sw" role="group" aria-label="Cómo se ve el stock: lista o compacta">
+          <span class="vista-lista-tit" aria-hidden="true">Mostrar</span>
+          <button type="button" class="vista-op vista-op2" data-compacta="0" aria-pressed="true" onclick="setCompacta(false)">Lista</button>
+          <button type="button" class="vista-op vista-op2" data-compacta="1" aria-pressed="false" onclick="setCompacta(true)">Compacta</button>
+        </div>
+        <button type="button" class="ajustes-listo" onclick="ajustesCerrar()">Listo</button>
+        </div>
       </div>
       <p class="escaneo-nota" id="escaneoNotaDeposito" role="status" hidden></p>
       <p id="tipDeposito" style="font-size:.6rem;color:var(--gris);margin:0 0 .8rem 0;">Tip: tocá el número de <strong>Depósito</strong> o la badge de <strong>Local</strong> para cambiarlos. Es el mismo control que en <strong>Precios &amp; Stock</strong>.</p>
-      <!-- [VISTA-COMPACTA] B2 (16-oct) · «Lista» es la de siempre, sin cambios; «Compacta» es una línea por perfume, por letra (pensada para ~300 perfumes). La elección se recuerda. -->
-      <div class="vista-lista vista-compacta-sw" role="group" aria-label="Cómo se ve el stock: lista o compacta" style="margin-bottom:.6rem;">
-        <span class="vista-lista-tit" aria-hidden="true">Mostrar</span>
-        <button type="button" class="vista-op vista-op2" data-compacta="0" aria-pressed="true" onclick="setCompacta(false)">Lista</button>
-        <button type="button" class="vista-op vista-op2" data-compacta="1" aria-pressed="false" onclick="setCompacta(true)">Compacta</button>
-      </div>
       <p class="aviso-lectura-tabla" id="avisoStockDep" role="alert"></p>   <!-- 128n: si el stock no se pudo leer -->
       <table class="admin-table">
         <thead><tr><th>Perfume</th><th>Local</th><th>Depósito</th></tr></thead>
@@ -6055,6 +6162,7 @@
         var ini = document.getElementById('tab-inicio'); if (ini) ini.classList.add('active');
         if (typeof deshacerCerrar === 'function' && DESHACER.el) deshacerCerrar();
         pistaQuitar(); var nv = document.getElementById('novedades'); if (nv) { nv.hidden = true; nv.innerHTML = ''; }   // [PISTAS]
+        ajustesCerrar(true); var sr = document.getElementById('sbCuentaRol'); if (sr) sr.textContent = '';   // [PANEL-ARRIBA-LIVIANO]
       } catch (e) { console.warn('[logout] limpieza de sesión', e); }
     }
     async function doLogout() {
@@ -6458,7 +6566,12 @@
     }
 
     // Compat con el onclick del hamburguesa
-    function toggleMobileSidebar() { toggleSidebar(); }
+    function toggleMobileSidebar() {
+      // [PANEL-ARRIBA-LIVIANO] (A) a ≤ 700 la chapa del rol vive arriba del menú (.sb-cuenta): se copia de #roleBadge al abrir
+      var rol = document.getElementById('sbCuentaRol'), badge = document.getElementById('roleBadge');
+      if (rol && badge) rol.textContent = badge.textContent ? 'Cuenta: ' + badge.textContent : '';
+      toggleSidebar();
+    }
     // [CIERRE-RAPIDO] Cuánto queda abierto el modal después de guardar.
     // Supabase contesta en ~194 ms; el resto de la espera la poníamos
     // nosotros (eran 900, 1200 y hasta 1500 ms). Con 1.756 guardados de
@@ -6609,6 +6722,7 @@
       if (bi) { bi.classList.toggle('active', tab === 'inicio'); if (tab === 'inicio') bi.setAttribute('aria-current', 'page'); else bi.removeAttribute('aria-current'); }
       if (tab === 'destacados') { try { elegidosPintar(); } catch(e) {} }   // [ELEGIDOS-EXCLUIR] la lista sale de la memoria: se pinta cada vez
       document.querySelectorAll('.panel-atajo').forEach(function(a) { if (a.dataset.atajo === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });   // [ATAJOS-ARRIBA]
+      try { ajustesCerrar(true); ajustesContar(); arribaRevisar(); } catch (e) {}   // [PANEL-ARRIBA-LIVIANO] la hoja «Ajustes» no queda abierta en otra pestaña
 
       // Lazy load: cargar datos solo la primera vez que se entra a la tab
       if (!tabLoaded[tab]) {
@@ -6882,6 +6996,7 @@
         if (DEP_MODO === 'unidades') { var s = document.getElementById('sortDeposito'); if (s) s.value = 'dep-desc'; }
       }
       renderDeposito();
+      try { ajustesContar(); } catch (e) {}   // [PANEL-ARRIBA-LIVIANO] la casilla cambió desde la tarjeta: el número del botón «Ajustes» también
     }
     function pintarDepStat(con, modo) {
       var set = function(id, on) { var b = document.getElementById(id); if (b) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.disabled = !stockCargado; } };
@@ -7313,6 +7428,14 @@
     // Lo visto se guarda en esta tablet (`st_vistas`, con try/catch: sin acceso, dura lo que la pestaña). Una función nueva para las chicas:
     // una línea arriba de todo en NOVEDADES (se muestran las 5 más nuevas) y, si se aprende tocando, una pista en PISTAS.
     var PISTAS = [
+      // [PANEL-ARRIBA-LIVIANO] 18-oct · a ≤ 1000 el orden, la vista y «ocultos» se mudaron a «Ajustes», y los tips de siempre pasaron a globito
+      // (`si`: la pista sale sólo si devuelve true; acá, sólo donde el tip de texto ya no se ve)
+      { id: 'ajustes', sel: '#tab-precios.active .ajustes-btn, #tab-deposito.active .ajustes-btn',
+        html: '<b>Nuevo:</b> el orden, la vista, «Mostrar ocultos» y Lista / Compacta están acá adentro.' },
+      { id: 'tip-precios', sel: '#tab-precios.active .stat-franja', si: panelAngosto,
+        html: 'Tocá un número para ver sólo esos perfumes, y la badge de <b>Estado</b> para cambiar el stock. Los precios se cambian en <b>Editar</b>.' },
+      { id: 'tip-deposito', sel: '#tab-deposito.active .stat-franja', si: panelAngosto,
+        html: 'Lo del depósito <b>no se ve en la web</b>. Tocá el número de <b>Depósito</b> o la badge de <b>Local</b> para cambiarlos.' },
       // [CAJA-EN-EL-MOSTRADOR] 18-oct · lo nuevo de la hoja y de Precios, una vez por tablet
       { id: 'vend-elegir', sel: '#tab-hoja.active .hv-vend',
         html: '<b>Nuevo:</b> antes de cómo pagó, tocá tu nombre. Así queda quién vendió cada venta. Si te olvidás, se completa después.' },
@@ -7326,6 +7449,8 @@
         html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
     ];
     var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
+      { id: 'n18-liviano', fecha: '18-oct', texto: 'Precios y Depósito más livianos: el orden, la vista y «Mostrar ocultos» están en «Ajustes», y el buscador te sigue al bajar', ir: 'precios' },
+      { id: 'n18-menu', fecha: '18-oct', texto: 'En el celu y la tablet parada, el tema claro / oscuro y «Salir» están en el menú ☰' },
       { id: 'n18-bajo', fecha: '18-oct', texto: '«Bajo al depósito»: la lista de lo que falta arriba. Tildás lo que agarrás y lo subís todo al local con un toque', ir: 'deposito' },
       { id: 'n18-quien', fecha: '18-oct', texto: 'Al cobrar, tocá tu nombre: queda quién vendió cada venta y en la hoja ves «Lo de cada una»', ir: 'hoja' },
       { id: 'n18-rapida', fecha: '18-oct', texto: 'Vender es más rápido: tocás el perfume y vas directo a cómo pagó. La cantidad se cambia con − y +', ir: 'hoja' },
@@ -7340,6 +7465,7 @@
       { id: 'n16-tachar', fecha: '16-oct', texto: '¿Tachaste un renglón de la hoja sin querer? Tocá «Deshacer» en el aviso de abajo', ir: 'hoja' },
       { id: 'n16-tope', fecha: '16-oct', texto: 'La hoja no deja anotar más frascos de los que hay en el local', ir: 'hoja' }
     ];
+    function panelAngosto() { return !!(window.matchMedia && window.matchMedia('(max-width: 1000px)').matches); }   // [PANEL-ARRIBA-LIVIANO] el ancho de la hoja «Ajustes»
     var VISTAS_MEM = null;
     function vistasLeer() {
       if (VISTAS_MEM) return VISTAS_MEM;
@@ -7406,11 +7532,12 @@
     function pistasRevisar() {
       var panel = document.getElementById('adminPanel');
       if (!currentRole || currentRole === 'dev' || !panel || !panel.classList.contains('active')
-          || document.querySelector('.modal-overlay.active')) { pistaQuitar(); return; }
+          || document.querySelector('.modal-overlay.active') || AJUSTES_ABIERTA) { pistaQuitar(); return; }
       var v = vistasLeer();
       for (var i = 0; i < PISTAS.length; i++) {
         var p = PISTAS[i];
         if (v['p-' + p.id]) continue;
+        if (p.si && !p.si()) continue;   // [PANEL-ARRIBA-LIVIANO]
         if (PISTA.id === p.id && pistaVisible(PISTA.ancla)) { pistaUbicar(); return; }   // la misma, en el mismo lugar: no la vuelve a armar
         var cand = document.querySelectorAll(p.sel), ancla = null;
         for (var j = 0; j < cand.length && !ancla; j++) if (pistaVisible(cand[j])) ancla = cand[j];
@@ -7567,7 +7694,9 @@
       var l1 = '💧 Decants árabes (' + ml + ' ml) · 1–2: ' + promoPesos(promoNum(c.precio_1)) + ' · 3–4: ' + promoPesos(promoNum(c.precio_3)) + ' · 5 o más: ' + promoPesos(promoNum(c.precio_5));
       var P = PRECIOS_DATOS.promo ? promoVigentePanel() : null;
       var l2 = P ? '🧪 Promo: ' + P.n + ' × ' + promoPesos(P.precio_pack) + ' (' + promoPesos(P.precio_pack / P.n) + ' c/u) · entran todos menos los que dicen «sin promo» · hasta el ' + promoDiaCortoPanel(P.hasta) : '';
-      el.innerHTML = '<div>' + escHtml(l1) + '</div>' + (l2 ? '<div>' + escHtml(l2) + '</div>' : '')
+      // [PANEL-ARRIBA-LIVIANO] en el celu la misma escalera, corta, para que entre en un renglón (el CSS elige cuál se ve)
+      var l1c = '💧 Decants ' + ml + ' ml · 1–2 ' + promoPesos(promoNum(c.precio_1)) + ' · 3–4 ' + promoPesos(promoNum(c.precio_3)) + ' · 5+ ' + promoPesos(promoNum(c.precio_5));
+      el.innerHTML = '<div class="tira-larga">' + escHtml(l1) + '</div><div class="tira-corta">' + escHtml(l1c) + '</div>' + (l2 ? '<div>' + escHtml(l2) + '</div>' : '')
         + '<div class="precios-tira-nota">Abajo se marcan sólo las excepciones.</div>';
       el.hidden = false;
     }
@@ -14275,7 +14404,9 @@
                    + '<span class="sync-text">' + escHtml(text) + (edad ? '<span class="sync-edad">' + escHtml(edad) + '</span>' : '') + '</span>';
       el.title = title + (edad ? ' · ' + edad : '');
       el.classList.toggle('sync--cola', !!cola);
-      el.onclick = cola ? function() { COLA.abierta = true; colaPintar(); window.scrollTo(0, 0); } : null;
+      // [PANEL-ARRIBA-LIVIANO] (A) a ≤ 700 el estado es sólo el punto: tocarlo muestra el texto 3 s (arriba de 700 la clase no cambia nada)
+      el.onclick = cola ? function() { COLA.abierta = true; colaPintar(); window.scrollTo(0, 0); }
+                        : function() { el.classList.add('sync-ver'); clearTimeout(el._verT); el._verT = setTimeout(function() { el.classList.remove('sync-ver'); }, 3000); };
       el.style.display = (rtState === 'INIT' && !cola) ? 'none' : 'inline-flex';
     }
 
@@ -15456,7 +15587,9 @@
     function compactaRestaurar() {
       if (_compactaRestaurada) return;
       _compactaRestaurada = true;
-      try { COMPACTA = localStorage.getItem(COMPACTA_KEY) === '1'; } catch (e) {}
+      // [PANEL-ARRIBA-LIVIANO] (D) sin elección guardada, en el celu (≤ 480) arranca en «Compacta»: ~12 perfumes a la vista en vez de 5
+      var celu = window.matchMedia && window.matchMedia('(max-width: 480px)').matches;
+      try { var g = localStorage.getItem(COMPACTA_KEY); COMPACTA = g === null ? celu : g === '1'; } catch (e) { COMPACTA = celu; }
       compactaSync();
     }
     function compactaSync() {
@@ -15470,6 +15603,72 @@
       compactaSync();
       compactoPintar();
     }
+
+    // ══ [PANEL-ARRIBA-LIVIANO] 18-oct · (B) la hoja «Ajustes» de Precios & Stock y Depósito (a ≤ 1000; arriba, sus controles están en la fila
+    // del buscador: el CSS decide). La hoja es el mismo `.ajustes` que envuelve los controles: no se mueve ni se copia nada, así los `onchange`,
+    // los cuadrados (`cuadrosInit`) y `chkVerPausados` / `chkSoloConDeposito` siguen siendo los de siempre. El número del botón cuenta lo que
+    // cambia QUÉ se ve (el orden fuera del de siempre y la casilla); la vista y Lista / Compacta son gusto, no cuentan.
+    var AJUSTES_TABS = {
+      precios:  { hoja: 'ajustesPrecios',  btn: 'ajustesBtnPrecios',  sel: 'sortPrecios',  def: 'name-asc', chk: 'chkVerPausados' },
+      deposito: { hoja: 'ajustesDeposito', btn: 'ajustesBtnDeposito', sel: 'sortDeposito', def: 'dep-desc', chk: 'chkSoloConDeposito' }
+    };
+    var AJUSTES_ABIERTA = null;
+    function ajustesAbrir(tab) {
+      var t = AJUSTES_TABS[tab], hoja = t && document.getElementById(t.hoja);
+      if (!hoja) return;
+      ajustesCerrar(true);
+      var fondo = document.getElementById('ajustesFondo');
+      if (!fondo) {
+        fondo = document.createElement('div');
+        fondo.id = 'ajustesFondo'; fondo.className = 'ajustes-fondo';
+        fondo.addEventListener('click', function() { ajustesCerrar(); });
+        document.body.appendChild(fondo);
+      }
+      hoja.classList.add('abierta'); fondo.classList.add('abierta');
+      AJUSTES_ABIERTA = tab;
+      pistaUsada('ajustes');
+      var x = hoja.querySelector('.ajustes-x');
+      if (x) try { x.focus({ preventScroll: true }); } catch (e) {}
+    }
+    function ajustesCerrar(sinFoco) {
+      var tab = AJUSTES_ABIERTA;
+      AJUSTES_ABIERTA = null;
+      document.querySelectorAll('.ajustes.abierta, .ajustes-fondo.abierta').forEach(function(el) { el.classList.remove('abierta'); });
+      ajustesContar();
+      if (tab && !sinFoco) { var b = document.getElementById(AJUSTES_TABS[tab].btn); if (b) try { b.focus({ preventScroll: true }); } catch (e) {} }
+    }
+    function ajustesContar() {
+      Object.keys(AJUSTES_TABS).forEach(function(tab) {
+        var t = AJUSTES_TABS[tab], b = document.getElementById(t.btn), sel = document.getElementById(t.sel), chk = document.getElementById(t.chk);
+        if (!b) return;
+        var n = (sel && sel.value && sel.value !== t.def ? 1 : 0) + (chk && chk.checked ? 1 : 0);
+        var span = b.querySelector('.ajustes-n');
+        if (span) { span.textContent = n; span.hidden = !n; }
+        b.setAttribute('aria-label', 'Ajustes de la lista' + (n ? ' (' + n + (n === 1 ? ' cambiado)' : ' cambiados)') : ''));
+      });
+    }
+    document.addEventListener('change', function(e) { if (e.target.closest && e.target.closest('.ajustes')) ajustesContar(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && AJUSTES_ABIERTA) { e.preventDefault(); ajustesCerrar(); } });
+
+    // (C) el «↑»: en Precios & Stock y Depósito, después de bajar más de una pantalla, vuelve al principio (a ≤ 1000; el CSS decide)
+    var ARRIBA = { btn: null, raf: 0 };
+    function arribaRevisar() {
+      ARRIBA.raf = 0;
+      var b = ARRIBA.btn;
+      if (!b) {
+        b = ARRIBA.btn = document.createElement('button');
+        b.type = 'button'; b.className = 'arriba-btn'; b.textContent = '↑'; b.setAttribute('aria-label', 'Volver arriba'); b.title = 'Volver arriba';
+        b.addEventListener('click', function() {
+          var suave = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+          window.scrollTo({ top: 0, behavior: suave ? 'smooth' : 'auto' });
+        });
+        document.body.appendChild(b);
+      }
+      var tab = document.querySelector('#tab-precios.active, #tab-deposito.active');
+      var panel = document.getElementById('adminPanel');
+      b.classList.toggle('visible', !!tab && !!panel && panel.classList.contains('active') && window.scrollY > window.innerHeight * 1.2);
+    }
+    window.addEventListener('scroll', function() { if (!ARRIBA.raf) ARRIBA.raf = requestAnimationFrame(arribaRevisar); }, { passive: true });
     function compactoPintar() {
       compactaRestaurar();
       if (!COMPACTA) return;
