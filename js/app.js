@@ -1,11 +1,18 @@
     // ============================================================
     // [STOCK-OCULTO] EL INTERRUPTOR · false = la web de siempre · true = no dice ni que hay ni que no hay
     // Para la noche del domingo 25-oct (ST pasa a la caja nueva y el stock de acá deja de actualizarse).
-    // Prendido: sin «Sin stock», «Próximamente», «Último», «🔥 Solo quedan N» ni «Avisame cuando vuelva»; donde había
-    // un estado, «Consultá disponibilidad por WhatsApp». Lo que entra al pedido NO cambia (sePuedePedir, NO ROMPER #28).
-    // Al cambiarlo, bumpear CACHE_VERSION en sw.js (NO ROMPER #4).
+    // Prendido: sin «Sin stock», «Próximamente», «Último», «Quedan N», «Salió uno…», «Volvió» ni «Avisame cuando vuelva».
+    // STOCK_OCULTO_MODO decide qué pasa con lo que la web tiene como sin stock (18-oct, Alejo eligió la B y pidió las dos a mano):
+    //   'igual'    (B) se ve y se pide igual que uno con stock: desde esa noche el stock de acá deja de ser cierto para los
+    //                  dos lados, y el pedido es una consulta por WhatsApp que termina en «¿Tienen disponibilidad?».
+    //                  sePuedePedir (NO ROMPER #28) deja de mirar el stock SÓLO con el interruptor prendido. NO usar si la
+    //                  web cobra online: alguien podría pagar algo que no hay.
+    //   'consulta' el sin stock no se pide y dice «Consultá disponibilidad por WhatsApp» (lo del 7-oct).
+    // Para prender o apagar: node scripts/stock_oculto.js prender | apagar (también sube CACHE_VERSION, NO ROMPER #4).
     // ============================================================
     var STOCK_OCULTO = false;
+    var STOCK_OCULTO_MODO = 'igual';
+    var STOCK_IGUAL = STOCK_OCULTO && STOCK_OCULTO_MODO === 'igual';   // prendido y en B: el sin stock se trata como uno con stock
     var TXT_CONSULTA_DISPONIBILIDAD = 'Consultá disponibilidad por WhatsApp';
 
     // ============================================================
@@ -2077,6 +2084,7 @@
       return base + (diaART(promo.hasta - 1) === diaART(Date.now()) ? ' · termina hoy' : ' · termina mañana');
     }
     function etiquetasCard(p, stockStatus) {
+      if (STOCK_IGUAL && stockStatus === 'out') stockStatus = 'ok';   // [STOCK-OCULTO] B: el sin stock lleva sus etiquetas como cualquiera
       if (stockStatus === 'out' || stockStatus === 'pausado') return '';
       if (STOCK_OCULTO && stockStatus === 'low') stockStatus = 'ok';   // [STOCK-OCULTO] sin «Último»
       var cinta = p.etiqueta ? normCinta(p.etiqueta) : '';
@@ -2193,6 +2201,7 @@
 
       // Stock badge
       var stockStatus = p._stockStatus || 'ok';
+      if (STOCK_IGUAL && stockStatus === 'out') stockStatus = 'ok';   // [STOCK-OCULTO] B: la card de un sin stock es igual a una con stock
       var isPaused = stockStatus === 'pausado';
       var stockBadge = '';
       // Si hay nota del equipo para este estado, agregamos class 'has-note' y un onclick
@@ -2772,6 +2781,7 @@
         // [STOCK-OCULTO] un set pausado se ve como los demás (sin atenuar ni «Próximamente») y, en vez de «Consultar →», la consulta de disponibilidad
         var setConsulta = STOCK_OCULTO && setPaused;
         if (setConsulta) setPaused = false;
+        if (STOCK_IGUAL) setConsulta = false;   // B: el botón dice «Consultar →» como los demás (es el mismo WhatsApp)
         html += '<div class="set-card" style="' + (setPaused ? 'opacity:.45;pointer-events:none;position:relative;' : '') + '">'
           + (setPaused ? '<span class="badge-proximamente">Próximamente</span>' : '')
           + '<div class="set-images ' + itemsClass + '">' + imgsHTML + '</div>'
@@ -6742,7 +6752,8 @@
     // no se pide: ni desde la card, ni desde la ficha, ni desde Comparar, ni desde los favoritos, ni desde un pedido guardado. «Último» (low) sí.
     // Una puerta nueva al pedido la usa; nunca un cart.push suelto.
     function sePuedePedir(p) {
-      return !!p && !p._oculto && !p._pausado && p._stockStatus !== 'out';
+      // [STOCK-OCULTO] B (STOCK_IGUAL, sólo con el interruptor prendido): el stock de la web ya no es cierto, el sin stock se pide
+      return !!p && !p._oculto && !p._pausado && (STOCK_IGUAL || p._stockStatus !== 'out');
     }
 
     // [SIN-STOCK-NO-ENTRA] El aviso chico del pedido. #cartLimitMsg vive DENTRO del panel «Tu pedido» (sólo se ve con el panel abierto), así que
