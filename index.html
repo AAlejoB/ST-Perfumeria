@@ -1328,6 +1328,7 @@
         <button class="decant-builder-close" onclick="closeDecantBuilder()" aria-label="Cerrar">×</button>
         <p class="decant-builder-title">Armá tu pack de decants</p>
         <p class="decant-builder-subtitle">Decants de <span id="decantMlLabel">5</span> ml · Máx <span id="decantMaxLabel">10</span></p>
+        <p class="decant-explica" id="decantExplica" hidden></p><!-- [NUBES-CATALOGO] (11) el decant explicado, la primera vez que se abre el armador (decantExplicar, js/extras.js) -->
         <!-- [DECANTS-UX-2 #4] Tab switcher Catálogo / Mis decants -->
         <div class="decant-tabs" id="decantTabs" role="tablist">
           <button type="button" class="decant-tab is-active" data-tab="catalogo" onclick="switchDecantTab('catalogo')" role="tab" aria-selected="true">Catálogo <span class="decant-tab-badge" id="decantTabCatBadge">0</span></button>
@@ -1423,6 +1424,7 @@
       <p class="cart-cash" id="cartCash"></p>
       <textarea class="cart-note" id="cartNote" placeholder="¿Algún comentario? Ej: Retiro el jueves, es para regalo, quiero pagar con tarjeta..." rows="2" maxlength="200"></textarea>
       <button class="cart-wa-btn" onclick="sendCartToWA()">Enviar pedido por WhatsApp</button>
+      <p class="cart-quien">Te responde una persona del local, en el horario del local.</p><!-- [NUBES-CATALOGO] (29) sin número de minutos: decisión de Alejo, 18-oct -->
       <div class="cart-mp-info">
         <p class="cart-mp-text"><strong>¿Pagás con tarjeta?</strong> Aceptamos todas las tarjetas vía Mercado Pago. Te mandamos el link de pago por WhatsApp.</p>
         <p class="cart-mp-envios"><strong>¿No sos de Comodoro?</strong> Hacemos envíos a todo el país. Consultanos por WhatsApp.</p>
@@ -1789,6 +1791,16 @@
       <div class="vh-manija" aria-hidden="true"></div>
       <div class="vh-cab"><h2 class="vh-tit" id="vhCompraTitulo">C&oacute;mo comprar</h2><button type="button" class="vh-x" onclick="cerrarComoComprar()" aria-label="Cerrar">&times;</button></div>
       <div class="vh-cuerpo" id="vhCompraLista"></div>
+    </div>
+  </div>
+  <!-- [NUBES-CATALOGO] (2) «¿Primera vez acá?»: 3 tarjetas que se deslizan. La abre el botón «Contame» de la nube de bienvenida (sólo < 768 y >= 1024,
+       donde existen las hojas). Las arma app.js (abrirPrimeraVez). -->
+  <div class="vh-overlay" id="vhPrimeraOverlay" onclick="if(event.target===this)cerrarPrimeraVez()">
+    <div class="vh-hoja vh-hoja--primera" role="dialog" aria-modal="true" aria-labelledby="vhPrimeraTitulo">
+      <div class="vh-manija" aria-hidden="true"></div>
+      <div class="vh-cab"><h2 class="vh-tit" id="vhPrimeraTitulo">&iquest;Primera vez ac&aacute;?</h2><button type="button" class="vh-x" onclick="cerrarPrimeraVez()" aria-label="Cerrar">&times;</button></div>
+      <div class="vh-cuerpo pv-cuerpo" id="vhPrimeraLista"></div>
+      <div class="pv-pie"><button type="button" class="pv-listo" onclick="cerrarPrimeraVez()">Ver el cat&aacute;logo</button></div>
     </div>
   </div>
 

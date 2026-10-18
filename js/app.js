@@ -5004,10 +5004,79 @@
           + '<span class="vh-tb-txt"><span class="vh-tb-tit">' + escapeHTML(b.titulo || '') + '</span>'
           + (b.bajada ? '<span class="vh-tb-sub">' + escapeHTML(b.bajada) + '</span>' : '') + '</span>'
           + '</' + (link ? 'button' : 'div') + '>';
-      }).join('');
+      }).join('') + originalesHTML('vh-originales');   // [NUBES-CATALOGO] (12)
       vidAbrirHoja('vhCompraOverlay');
     }
     function cerrarComoComprar() { vidCerrarHoja(); }
+
+    // ============================================================
+    // [NUBES-CATALOGO] tanda 2 · enseñar sin clase (18-oct-2026, textos revisados por Alejo). Sin emojis y sin números inventados:
+    // lo que dice cuánto dura sale de la respuesta de siempre de las preguntas frecuentes, y el decant toma los ml de DECANTS_CONFIG.
+    // ============================================================
+    // (12) «¿Son originales?»: la misma respuesta de las preguntas frecuentes. Va en «Cómo comprar» y, plegada, en la ficha.
+    var ORIGINALES_TXT = 'Sí. Todos son originales, importados de casas árabes como Lattafa, Afnan, Armaf y Maison Alhambra. No vendemos réplicas.';
+    function originalesHTML(clase) {
+      if (clase === 'bs-originales') return '<details class="bs-originales"><summary>¿Son originales?</summary><p>' + escapeHTML(ORIGINALES_TXT) + '</p></details>';
+      return '<div class="' + clase + '"><span class="vh-tb-tit">¿Son originales?</span><span class="vh-tb-sub">' + escapeHTML(ORIGINALES_TXT) + '</span></div>';
+    }
+    // (2) «¿Primera vez acá?»: tres tarjetas que se deslizan (en la compu, una debajo de la otra). La abre la nube de bienvenida.
+    function abrirPrimeraVez() {
+      var cont = document.getElementById('vhPrimeraLista');
+      if (!cont) return;
+      var ml = (typeof DECANTS_CONFIG !== 'undefined' && DECANTS_CONFIG.ml) || 5;
+      var tarjetas = [
+        { t: 'Qué es un perfume árabe', s: 'Perfumes de casas de Medio Oriente, como Lattafa, Afnan, Armaf y Maison Alhambra. Son más concentrados: la mayoría dura entre 8 y 12 horas en la piel.' },
+        { t: 'Qué es un decant', s: 'Un frasquito de ' + ml + ' ml sacado del perfume original, para probarlo en tu piel antes de comprar el frasco.' },
+        { t: 'Cómo se compra', s: 'Armás tu pedido y lo mandás por WhatsApp. 10% off en efectivo o transferencia, o 3 cuotas sin interés. Enviamos a todo el país, y si querés probarlos, escribinos y avisanos cuándo venís al local.' }
+      ];
+      cont.innerHTML = '<div class="pv-tarjetas">' + tarjetas.map(function(x, i) {
+        return '<article class="pv-tarjeta"><span class="pv-num" aria-hidden="true">' + (i + 1) + '</span><h3 class="pv-tit">' + escapeHTML(x.t) + '</h3><p class="pv-sub">' + escapeHTML(x.s) + '</p></article>';
+      }).join('') + '</div><p class="pv-desliza" aria-hidden="true">Deslizá para ver las 3</p>';
+      vidAbrirHoja('vhPrimeraOverlay');
+    }
+    function cerrarPrimeraVez() { vidCerrarHoja(); }
+    // (8) el glosario: en la ficha, «A qué huele» con el perfil y los acordes como palabras que se tocan; cada una dice qué es.
+    var GLOSARIO = {
+      dulce: 'Golosa: caramelo, azúcar, praliné. Se nota de lejos.',
+      vainilla: 'Cremosa y cálida, como un postre.',
+      especiado: 'Pimienta, canela, cardamomo: picante y cálido.',
+      amaderado: 'Cedro, sándalo: seco y elegante.',
+      oud: 'Madera oscura y resinosa de Medio Oriente: profunda y ahumada. Es la firma de muchos árabes.',
+      ambar: 'Cálido y dulce, entre resina y vainilla. Abriga.',
+      floral: 'Flores: rosa, jazmín, azahar.',
+      frutal: 'Frutas: manzana, frutos rojos, durazno. Alegre y jugoso.',
+      citrico: 'Limón, bergamota, naranja: chispeante, se siente al principio.',
+      fresco: 'Limpio y liviano, como recién bañado. Para el calor.',
+      cuero: 'Ahumado y áspero, como una campera de cuero.',
+      almizcle: 'Suave y limpio, como piel. Hace que el perfume dure.'
+    };
+    var GLOSARIO_PERFIL = {
+      'versatil': 'Para todos los días, de día y de noche.',
+      'intenso': 'Fuerte, para la noche y el frío.',
+      'dulce': 'Golosos y llamativos: van bien de noche.',
+      'fresco': 'Livianos, para el día y el calor.'
+    };
+    function glosarioHTML(p) {
+      var perfil = String(p.perfil || '').trim(), palabras = [];
+      var clave = stripAccents(perfil.toLowerCase());
+      if (perfil && GLOSARIO_PERFIL[clave]) palabras.push({ n: perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase(), d: GLOSARIO_PERFIL[clave], perfil: true });
+      acordesValidos(p.acordes).forEach(function(s) { if (GLOSARIO[s]) palabras.push({ n: acordeNombre(s), d: GLOSARIO[s] }); });
+      if (!palabras.length) return '';
+      return '<div class="bs-huele"><p class="bs-huele-tit">A qué huele <span>· tocá una palabra</span></p><div class="bs-huele-chips">'
+        + palabras.map(function(w) {
+          return '<button type="button" class="bs-huele-chip' + (w.perfil ? ' bs-huele-chip--perfil' : '') + '" aria-pressed="false" data-def="' + escapeHTML(w.d) + '" onclick="glosarioTocar(this)">' + escapeHTML(w.n) + '</button>';
+        }).join('') + '</div><p class="bs-huele-def" aria-live="polite" hidden></p></div>';
+    }
+    function glosarioTocar(btn) {
+      var caja = btn.closest('.bs-huele'), def = caja && caja.querySelector('.bs-huele-def');
+      if (!def) return;
+      var ya = btn.getAttribute('aria-pressed') === 'true';
+      caja.querySelectorAll('.bs-huele-chip').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      if (ya) { def.hidden = true; def.textContent = ''; return; }
+      btn.setAttribute('aria-pressed', 'true');
+      def.textContent = btn.textContent + ': ' + btn.getAttribute('data-def');
+      def.hidden = false;
+    }
     // un beneficio con link: primero se cierra la hoja y después salta
     function vidBeneficioIr(i) {
       var lista = (trustBadgesLista && trustBadgesLista.length) ? trustBadgesLista : TRUST_BADGES_DEFAULTS;
@@ -6997,7 +7066,7 @@
           + '<p class="bs-note"><span class="note-label">CORAZ\u00d3N</span> ' + escapeHTML(p.notas_corazon || '\u2014') + '</p>'
           + '<p class="bs-note"><span class="note-label">BASE</span> ' + escapeHTML(p.notas_base || '\u2014') + '</p>';
       }
-      document.getElementById('bsNotes').innerHTML = notesHTML;
+      document.getElementById('bsNotes').innerHTML = (p.esSet ? '' : glosarioHTML(p)) + notesHTML + originalesHTML('bs-originales');   // [NUBES-CATALOGO] (8) y (12)
 
       // Botón consultar
       var btnConsultar = document.getElementById('bsBtnConsultar');
@@ -9123,7 +9192,9 @@
         }
         // (1) la primera vez en este aparato
         if (n.nuevo && !n.bienvenida) return { id: 'bienvenida', titulo: 'Perfumes árabes originales',
-          sub: 'Los probás en El Coliseo, en Comodoro · local 8.', marcar: function() { n.bienvenida = 1; } };
+          sub: 'Los probás en El Coliseo, en Comodoro · local 8.', marcar: function() { n.bienvenida = 1; },
+          // [NUBES-CATALOGO] (2) el botón abre «¿Primera vez acá?»: sólo donde existen las hojas (< 768 y >= 1024; en la tablet no)
+          boton: vidEsCelu() ? 'Contame' : null, accion: abrirPrimeraVez };
         // (3) el local está cerrado (una vez por día): la misma cuenta del horario (NO ROMPER #14)
         var e = ESTADO_LOCAL;
         if (e && e.tipo !== 'abierto' && n.cerrado !== hoy()) {

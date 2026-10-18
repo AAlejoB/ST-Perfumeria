@@ -442,6 +442,27 @@
     updateDecantHeader();
   }
 
+  // [NUBES-CATALOGO] (11) el decant explicado, la PRIMERA vez que se abre el armador en este aparato (st_decant_explicado; sin acceso
+  // al navegador no sale). Queda a la vista mientras el armador está abierto. Sin precios escritos: «menos sale cada uno» sólo si la
+  // escalera de DECANTS_CONFIG de verdad baja (precio_1 > precio_3 > precio_5).
+  var decantExplicaVisto = false;
+  function decantExplicar() {
+    var el = document.getElementById('decantExplica');
+    if (!el) return;
+    if (!decantExplicaVisto) {
+      try {
+        if (localStorage.getItem('st_decant_explicado')) { el.hidden = true; return; }
+        localStorage.setItem('st_decant_explicado', '1');
+      } catch (e) { el.hidden = true; return; }
+      decantExplicaVisto = true;
+    }
+    var c = DECANTS_CONFIG || {}, ml = c.ml || 5;
+    var baja = Number(c.precio_1) > Number(c.precio_3) && Number(c.precio_3) > Number(c.precio_5);
+    el.textContent = 'Un decant es un frasquito de ' + ml + ' ml sacado del perfume original, para probarlo en tu piel antes de comprar el frasco.'
+      + (baja ? ' Cuantos más llevás, menos sale cada uno.' : '');
+    el.hidden = false;
+  }
+
   // ─────────────────────────────────────────────────────────────
   // Abrir el modal del armador.
   // ─────────────────────────────────────────────────────────────
@@ -451,6 +472,7 @@
     decantActiveTab = 'catalogo';
     updateDecantUI();
     renderDecantGrid();
+    decantExplicar();
     var overlay = document.getElementById('decantBuilderOverlay');
     if (overlay) {
       overlay.classList.add('active');

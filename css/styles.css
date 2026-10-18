@@ -10647,3 +10647,48 @@
     body:not(.dark-mode) .nube-sub { color: #3d3830; }
     @media (max-width: 767px) { .nube { bottom: calc(60px + env(safe-area-inset-bottom) + 12px); width: calc(100vw - 24px); } }
     @media (prefers-reduced-motion: reduce) { .nube { transition: none; transform: translate(-50%, 0); } }
+
+    /* [NUBES-CATALOGO] tanda 2 · enseñar sin clase (18-oct-2026). Todo con los tokens del tema (claro y oscuro), letra recta y sin emojis. */
+    /* (29) debajo del botón de WhatsApp del pedido */
+    .cart-quien { margin: .45rem 0 .2rem; font-size: .72rem; line-height: 1.4; text-align: center; color: var(--gris-claro); }
+    /* (11) el decant explicado, arriba del armador la primera vez */
+    .decant-explica { margin: 0 2.2rem .7rem 0; padding: .5rem .7rem; border-left: 3px solid var(--amarillo); border-radius: 4px;
+      background: rgba(232,184,0,.07); font-size: .78rem; line-height: 1.45; color: var(--blanco); text-wrap: pretty; }
+    .decant-explica[hidden] { display: none; }
+    body:not(.dark-mode) .decant-explica { color: #1a1a1d; background: rgba(184,148,0,.1); }
+    /* (8) el glosario de la ficha: «A qué huele» con palabras que se tocan (44 de alto) */
+    .bs-huele { margin: 0 0 .6rem; }
+    .bs-huele-tit { margin: 0 0 .4rem; font-size: .62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo-tinta); }
+    .bs-huele-tit span { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--gris); }
+    .bs-huele-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .bs-huele-chip { min-height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid var(--borde); background: transparent; color: var(--blanco);
+      font: 600 .8rem/1 var(--font-body); cursor: pointer; }
+    .bs-huele-chip--perfil { border-color: var(--amarillo); }
+    .bs-huele-chip[aria-pressed="true"] { background: var(--amarillo); border-color: var(--amarillo); color: #111; }
+    .bs-huele-def { margin: .5rem 0 0; font-size: .8rem; line-height: 1.45; color: var(--blanco); }
+    body:not(.dark-mode) .bottom-sheet .bs-huele-chip, body:not(.dark-mode) .bottom-sheet .bs-huele-def { color: #1a1a1d; }
+    body:not(.dark-mode) .bottom-sheet .bs-huele-chip[aria-pressed="true"] { color: #111; }
+    /* (12) «¿Son originales?»: plegado en la ficha, a la vista en «Cómo comprar» */
+    .bs-originales { margin-top: .5rem; }
+    .bs-originales summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: .82rem; font-weight: 700; color: var(--amarillo-tinta); }
+    .bs-originales p { margin: 0 0 .3rem; font-size: .8rem; line-height: 1.45; color: var(--blanco); }
+    body:not(.dark-mode) .bottom-sheet .bs-originales p { color: #1a1a1d; }
+    .vh-originales { padding: 12px 0 2px; border-top: 1px solid var(--borde); }
+    .vh-originales .vh-tb-tit { display: block; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .vh-originales .vh-tb-sub { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--gris-claro); }
+    /* (2) «¿Primera vez acá?»: tres tarjetas que se deslizan; en la compu (cuadro centrado), una debajo de la otra */
+    .pv-cuerpo { overflow-x: hidden; }
+    .pv-tarjetas { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 12px 0 6px; touch-action: pan-x pan-y; scrollbar-width: none; }
+    .pv-tarjetas::-webkit-scrollbar { display: none; }
+    .pv-tarjeta { flex: 0 0 84%; scroll-snap-align: start; box-sizing: border-box; padding: 16px; border-radius: 12px; border: 1px solid var(--borde); background: rgba(232,184,0,.05); }
+    .pv-num { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 50%; background: var(--amarillo); color: #111; font: 800 .8rem/1 var(--font-body); }
+    .pv-tit { margin: 10px 0 6px; font: 800 1rem/1.25 var(--font-body); color: var(--blanco); }
+    .pv-sub { margin: 0; font-size: .86rem; line-height: 1.5; color: var(--gris-claro); text-wrap: pretty; }
+    .pv-desliza { margin: 4px 0 0; font-size: .72rem; text-align: center; color: var(--gris); }
+    .pv-pie { flex: 0 0 auto; margin-top: 12px; }
+    .pv-listo { width: 100%; height: 48px; border: 0; border-radius: 8px; background: var(--amarillo); color: #111; font: 800 .82rem/1 var(--font-body); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+    @media (min-width: 1024px) {
+      .pv-tarjetas { flex-direction: column; overflow: visible; scroll-snap-type: none; }
+      .pv-tarjeta { flex: none; }
+      .pv-desliza { display: none; }
+    }

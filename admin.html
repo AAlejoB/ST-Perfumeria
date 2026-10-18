@@ -16296,7 +16296,7 @@
     // tocaron su botón y si escriben más que las del grupo de control (1 de cada 5 a las que les tocaba y no la vieron). Sale de
     // `holmes_metricas().nubes` (sql/holmes_nubes.sql). La vara para decidir es la de siempre: 95 %.
     var HOLMES_NUBES = { pedido: { nom: 'Tu pedido te espera', boton: true }, favorito: { nom: 'Volvió un favorito', boton: true },
-      nuevos: { nom: 'Hola de nuevo · perfumes nuevos', boton: true }, bienvenida: { nom: 'Bienvenida (primera vez)' },
+      nuevos: { nom: 'Hola de nuevo · perfumes nuevos', boton: true }, bienvenida: { nom: 'Bienvenida (primera vez)', boton: true },
       cerrado: { nom: 'Local cerrado' }, festivo: { nom: 'Saludo del día festivo', sinControl: true } };
     function holmesNubesHTML(d, H) {
       var nb = (d.nubes || []).filter(function(x) { return Number(x.vieron) + Number(x.control) > 0; });
