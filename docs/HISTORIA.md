@@ -6159,9 +6159,88 @@ La tanda 4 de las nubes (prueba social: 19, 20, 21, 22 y 23), en la rama `nubes-
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (noche, segunda) · **`[NUBES-CATALOGO]` tanda 5 · regalo y venta**, más `[CONCENTRACION]` y `[DURACION-ESTIMADA]`
+
+La tanda 5 de las nubes (4, 17, 24, 25, 26), en la rama `nubes-5`. Alejo: «dale, arrancá con la 4, 17, 24 y 26»; la (25) esperó a que dijera qué da ST para regalo. Con las respuestas a las preguntas salieron tres cosas más: «Elegir» en la (17) con lo que ya tiene o ya pidió afuera (A + B), Halloween, y la concentración con una «duración estimada» investigada.
+
+#### Qué se hizo
+
+- **`577e637` · tanda 5 (4, 17, 24, 26), SW v1.1.299**, en producción (subió Alejo):
+  - **(4)** quien entra por el link de un perfume (`?perfume=` / `?p=`, leído al cargar en `LINK_SLUG`): al cerrar esa ficha, «Viniste por Vogue Night · Ahora no hay, pero estos se le parecen.» (o «Estos se le parecen…» si hay stock) con **Ver parecidos** → `showSimilares`. Sólo si tiene parecidos (los del equipo o `findSimilares`). El director espera hasta ~3 min a que cierre la ficha (90 vueltas de 2 s; sin link, 10). Primera de la prioridad, después del saludo del festivo.
+  - **(24)** la semana antes de un día de regalo: campo `regalo` (y `cat`) en `FESTIVOS` (Padre → Hombre, Madre → Mujer, San Valentín, Amigo, Navidad el 24); `regaloCerca(d)` vive entre las marcas `FESTIVOS:INICIO/FIN` y la expone `festivoRegaloCerca`. «Faltan 5 días para el Día del Padre · Hay 34 perfumes de hombre para elegir el regalo.» con **Ver ideas** (`filterByCat`) o, sin género, «Hay 6 sets armados para regalar.» con **Ver sets**. Una vez por fecha y aparato (`st_nubes`.regalo). Va después del pedido guardado.
+  - **(26)** según el mes (`TEMPORADA`): dic-feb «Para el calor» (filtro Día), abr-ago «Para el frío», sep-nov «Para el viento de Comodoro» (filtro Noche), marzo nada; «Los intensos y los dulces se sienten más: hay 25 para elegir.» con **Verlos** (`setOccasion`). Una vez por mes y aparato, antes del saludo de local cerrado.
+  - **(17)** sumó un frasco al pedido (`nubeAgrego` desde `addToCart`): «Sumá el decant de Ramz Gold · Se parece a Your Touch Intense. Es una muestra para probarlo antes del frasco.» con **Sumar decant** (`addDecant` + «Sumaste el decant de…»). Es de «mientras mira» (las reglas de la tanda 3).
+  - Los 4 ids en `HOLMES_NUBES`: `link`, `regalo_cuenta`, `temporada`, `decant_parecido`. Sin SQL: `holmes_metricas` cuenta cualquier id de hasta 20 letras.
+  - `scripts/probar_festivos.js`: 13 casos de la cuenta regresiva (36 de 36).
+- **`8e880d4` · Elegir decants, «Es para regalo» y Halloween, SW v1.1.300**, en producción (subió Alejo):
+  - **(17) A + B:** la nube no ofrece los decants que ya están en el pack (A) ni los del último pack que mandó por WhatsApp (B: `sendDecantPackToWA` de `js/extras.js` guarda `st_decants_enviado` `{ slugs, t }`, vale 120 días). La nube admite un segundo botón (`boton2` / `accion2`, `.nube-btns`, `.nube-btn--2` con borde): **Elegir** abre la hoja «Elegí tus decants» (`#vhDecantOverlay`, `abrirDecantElegir` / `decantElegirTocar` / `decantElegirSumar`): «Los de tu pedido» y hasta 4 «Parecidos», filas que se tildan (`.dp-fila`, 56 de alto), «Sumar N decants» hasta lo que le queda al pack, «Ninguno», y «No te mostramos uno que ya pediste en decant la última vez» cuando sacó alguno. Sólo donde existen las hojas (< 768 y >= 1024); en la tablet queda «Sumar decant».
+  - **(25)** «Es para regalo» en «Tu pedido» (`#cartRegalo`, `pedidoRegaloPintar` / `pedidoRegaloTocar`, `st_regalo` en sessionStorage, se borra al mandar): tildado, el WhatsApp suma «🎁 *Es para regalo*» (`buildWaMessage(items, note, regalo)`). Texto: «Va en el mensaje, así el local ya lo sabe.» Sin prometer moñito ni decant. Se mide como la (16): id `regalo`, 1 de cada 5 visitas sin la casilla (`st_regalo_grupo`). El placeholder de la nota ya no da «es para regalo» de ejemplo.
+  - **Halloween** (31-oct) en `FESTIVOS` con `ocasion: 'noche'`: el saludo ese día y, del 24 al 30, «Faltan 5 días para Halloween · Para esa noche, los intensos y los dulces: hay 25 para elegir.» con **Verlos**. 41 de 41 en `probar_festivos.js`.
+- **`d28198c` · `[CONCENTRACION]` y `[DURACION-ESTIMADA]`** (con `8bd7049`, SW v1.1.302, en producción desde el 18-oct ~20:25, subió Alejo; verificado por `curl`):
+  - **`sql/concentracion.sql`, aplicada el 18-oct por Claude Code con el MCP de Supabase** (el «dale … lo de la concentración» de Alejo): `perfume_overrides.concentracion` text, opcional, con check `Extrait | Parfum | Elixir | EDP | EDT | Cologne`. Sin tocar políticas; la tabla ya estaba en los backups.
+  - **Panel:** «Concentración» en Editar, en cuadrados (`#editConcentracion`, `data-cuadros`: Sin dato · EDP · EDT · Parfum · Extrait · Elixir · Colonia), para las dos cuentas; renglón «Concentración» en el Log; reintento sin la columna si no existiera; `overridesAplicar` la lleva a la memoria. Línea en «Lo nuevo del panel» (`n18-concentracion`).
+  - **Catálogo:** `concentracionDeNombre` la lee del nombre cuando la dice (14 de 264 hoy); en la ficha es una palabra más de «A qué huele» (`GLOSARIO_CONC`, la tabla general al tocarla).
+  - **Duración estimada:** la regla vive en `js/app.js` entre `DURACION:INICIO/FIN` (`pesoFondo` + `ajustePerfil` + `DURACION_CONC` → `duracionEstimada`). La ficha dice sólo «Suele durar más» (9 puntos o más), con «Es una estimación, no una medición: en cada piel dura distinto.» `scripts/duracion_estimada.js` corta la misma regla y escribe `docs/DURACION_ESTIMADA.md` con un volcado de la base (sólo lectura): hoy 14 «suele durar más», 100 normal, 47 «más liviano» (no se muestra), 103 sin notas de fondo.
+- **`52a9613` · `[PANEL-SIN-PASSWORD]`** (otra sesión, v1.1.301): llegó a `main` en el medio. El push de Alejo rebotó (non-fast-forward); se trajo `main` con `sync_with_base_branch` (`3f83826`, sin conflictos) y el SW pasó a **v1.1.302** (`8bd7049`): los dos commits habían puesto v1.1.301 y producción ya la tenía.
+- **Probado en la copia del QA** a 375, 390, 360 × 640 y 834 (panel como jefe): las cuatro nubes con sus números iguales a los del filtro (25 = 25 con Noche, 34 = 34 con Hombre), la hoja de decants con A + B, el mensaje de WhatsApp con «Es para regalo», Halloween simulado, la concentración guardada en Editar y leída en la memoria, la ficha con «Elixir» y «Suele durar más». En 360 × 640 «Agregar» sigue en 595 (las palabras nuevas entran en el renglón que ya existía).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arrancar con 4, 17, 24 y 26; en la (17), «un perfume parecido sí obvio» y además acceso rápido a «el mismo, LOS MISMOS, NINGUNO o ALGUNOS, pero ALGUNOS no del último pack»; pedido **A + B** (lo del pack de ahora y lo mandado la vez anterior).
+- **Decidió Alejo:** sumar Halloween como día fijo («quizás dejaría esos días fijos… el día de mañana lo cambio desde donde corresponda»). La cuenta regresiva con los de noche **la propuse yo**.
+- **Decidió Alejo — (25):** «si es regalo, como mucho un decant y CREO que le ponen moñito a la bolsa». Por el «CREO», el texto no promete nada (**propuse yo**).
+- **Decidió Alejo:** la duración estimada y la concentración («que sea una ayuda nomás de memoria… la gente igual lo va a buscar en otra pestaña»). Los números que recordaba (EDT 10-20 %, EDP «más del 40») no son los que dan las fuentes; quedaron EDT 5-15 %, EDP 15-20 %, Parfum / Extrait 20-40 %, Colonia 2-5 %, aclarando que no hay norma legal.
+- **Propuse yo:** los pesos 3 / 2 / 1 de las notas de fondo (criterio, no medición), el tope de 9, el umbral de 9 puntos, mostrar **sólo** «Suele durar más» y no «más liviano» (medido: muchos caen ahí por tener 2 o 3 notas cargadas, Yara Tous, Hayaati), y que la regla viva en un solo lugar (`app.js`) con el script cortándola.
+- **Bug encontrado al medir:** la primera versión de la (24) decía «Hay 30 perfumes de hombre» (sólo con stock) y el filtro mostraba 34. Se igualó al filtro, como en NO ROMPER #29.
+- **La (26), texto:** Alejo había escrito «los que más duran»; no había ningún dato de duración, así que quedó «se sienten más» (perfiles Intenso y Dulce). Con la duración estimada ya hay dato, pero el botón abre el filtro de ocasión (25), no los 14: se dejó como estaba.
+- **Investigado:** las notas de fondo duran más por el peso de sus moléculas (la pirámide de Jean Carles, la escala de evaporación de Poucher); casi todas las fuentes son blogs de tiendas y las horas no coinciden, por eso nunca se dicen horas. No encontré «agent-reach» (Alejo lo nombró): se usó la búsqueda web.
+- **Workarounds:** con el panel del navegador escondido el scroll suave tarda mucho (parecía que «Ver sets» no movía la página; llegaba a 4999 al rato); un `javascript_tool` que escribe en `window.festivoRegaloCerca` antes de que cargue `app.js` queda pisado (hay que esperar a que exista la función); un `node -e` con `'\n'` adentro de un heredoc escribió un salto real en el script (se corrigió a mano).
+- **La rama de la otra sesión:** `52a9613` entró por `main` mientras Alejo empujaba; antes de dar un comando de push conviene `git fetch` y mirar si `main` se movió (los dos commits habían tomado el mismo número de SW).
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[NUBES-CATALOGO]` tanda 5 | (4) «Viniste por…» con los parecidos · (17) el decant de uno parecido, con «Elegir» (A + B) · (24) la cuenta regresiva de los días de regalo y Halloween · (25) «Es para regalo» en el pedido · (26) según el mes |
+| `[CONCENTRACION]` | La concentración de cada perfume: columna en la base, campo en Editar, leída del nombre, palabra en la ficha |
+| `[DURACION-ESTIMADA]` | «Suele durar más» en la ficha, con la regla en un solo lugar y la tabla para revisar |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[NUBES-CATALOGO]` 🟡 | Tanda 6 (datos y personas: 9, 10, 27, 28) |
+| `[DURACION-REVISAR]` 🟡 (nuevo) | Alejo mira `docs/DURACION_ESTIMADA.md`: si un perfume que conoce queda mal, se cambia un peso y se vuelve a correr el script |
+| `[CONCENTRACION-CARGAR]` 🟢 (nuevo) | Las chicas o Alejo cargan la concentración en Editar mirando la caja (hoy sólo 14 la tienen, por el nombre) |
+| `[HUMO-NUBES-1]` 🟡 | Ahora también la tanda 5 en un celu de verdad: entrar por un link de Instagram, sumar un frasco y «Elegir», tildar «Es para regalo» y ver el mensaje, y la cuenta de Halloween desde el 24-oct |
+| `[NUBES-RESULTADO]` 🟡 | Los 5 ids nuevos (`link`, `regalo_cuenta`, `temporada`, `decant_parecido`, `regalo`) entran en la comparación de mediados de noviembre |
+
+#### 💬 Mensajes meta
+
+- Alejo dicta (mensajes con «eh», «no sé», «una cosa así»): hay que sacar la intención («que sea una ayuda de memoria, la gente igual lo busca en otra pestaña») y corregir con fuente un dato que recuerda mal (las concentraciones), sin hacerlo sentir mal.
+- Empuja desde su PowerShell mientras otras sesiones también suben a `main`: el rebote non-fast-forward lo asusta un poco («mira lo que me salió»). Antes de darle el comando de push, `git fetch` y, si `main` se movió, traerlo primero.
+
+**Estado del repo al cierre (18-oct, ~20:35):**
+- `origin/main` = `8bd7049` (v1.1.302 en producción, verificado por `curl`); la rama `nubes-5` = `8bd7049` + este cierre, para el push a `main`.
+- Árbol limpio y la copia del QA prendida en el puerto 8777 (no toca nada real). `perfume_overrides.concentracion` existe en la base (aplicada).
+
+**Próxima revisión cuando:**
+- 🟡 `[RESENAS-CARGAR]` · `[DURACION-REVISAR]` (los dos, de Alejo)
+- 🟡 `[NUBES-CATALOGO]` tanda 6 (datos y personas, la próxima tanda)
+- 🟡 `[HUMO-NUBES-1]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct · `[NUBES-RESULTADO]`, mediados de noviembre
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[CONCENTRACION-CARGAR]` · `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~19:05, cierre de la prueba social) — pasó de `CLAUDE.md` al archivo el 18-oct (~20:35, cierre de la tanda 5 de las nubes)
+
+**Última actualización:** **Octubre 18, 2026, ~19:05 (cierre de la prueba social, rama `nubes-4`)** — 1 commit sobre el cierre `d3d4d18` (SW **v1.1.297 → v1.1.298**, en producción, subido por Alejo y verificado por `curl`): `71208cc`. **Hecho:** `[NUBES-CATALOGO]` tanda 4 · `[PRUEBA-SOCIAL]` (NO ROMPER #64): la prueba social sólo con datos reales. «N personas lo miraron hoy», «Salió uno del local hace…», la etiqueta «Volvió», «Quedan N» / «Quedan N en el local» y las reseñas que se cargan en la pestaña nueva «Reseñas» del panel (las dos cuentas, con la fecha del comentario editable). Se fue el «N mirando ahora», que era un número inventado (decisión de Alejo). `sql/prueba_social.sql` aplicada (función `prueba_social` y tabla `resenas`, en las dos listas de backups). **Medido:** `ventas` tiene 0 filas y la hoja de caja no se usa desde el 16-oct (dato en `[REEMPLAZO-DE-HOJA]`). **Próxima tanda:** `[NUBES-CATALOGO]` tanda 5 (regalo y venta). **Pendientes, en orden:** 🟡 `[RESENAS-CARGAR]` · `[NUBES-CATALOGO]` · `[HUMO-NUBES-1]` · `[NUBES-RESULTADO]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-QA-16-OCT]` · `[HUMO-PISTAS-17-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[STOCK-OCULTO]` (25-oct) · `[LAB-FUNDAMENTOS]` · 🟢 `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (noche)».
 
 ### Última actualización del 18-oct-2026 (~18:20, cierre de las nubes 3) — pasó de `CLAUDE.md` al archivo el 18-oct (~19:05, cierre de la prueba social)
 
