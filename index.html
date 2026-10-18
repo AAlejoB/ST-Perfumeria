@@ -461,7 +461,7 @@
       .trust-badges, .price-banner-wrap--big, .quiz-cta-wrap { display: none; }
       .hero { padding: 10px 16px 8px; min-height: 83px; text-align: left; }
       .hero-blob { display: none; }
-      body > #destacados, body > #decants, body > #decants + .price-banner-wrap { display: none; }
+      body > #destacados, body > #decants, body > #decants + .price-banner-wrap, body > #resenas { display: none; }
     }
   </style>
   <!-- [RECUERDA-LA-VISTA] 146i · la vista del catálogo en el celu (▦ grilla / ☰ lista) se guarda en el navegador del visitante; si no se puede leer, arranca en ☰ lista. No va a la base. -->
@@ -776,6 +776,14 @@
       </span>
     </button>
   </div>
+
+  <!-- [PRUEBA-SOCIAL] (23) Lo que dicen de ST: las reseñas que cargan desde el panel (tabla resenas). En el celu y la compu
+       vidUbicarEstantes la muda a la lista (después de la 12.ª fila); en la tablet queda acá. Sin reseñas, escondida. -->
+  <section class="resenas-st" id="resenas" hidden aria-label="Lo que dicen de ST">
+    <p class="resenas-tit">Lo que dicen de ST</p>
+    <figure class="resena-cuerpo" aria-live="off"></figure>
+    <div class="resenas-puntos"></div>
+  </section>
 
   <!--
     FILTROS: ahora usan .filter-group para que los botones
@@ -1615,6 +1623,7 @@
       <div class="bs-buttons">
         <!-- [AGREGAR-ARRIBA] 153 (A) · fila 1: «Agregar» (amarillo, 48, al 88 % del ancho; el texto lo escribe pintarBtnCart) · fila 2: «Consultar →» en gris, con «◆ Similares» adelante y el 🔗 al lado · fila 3: Favoritos y Comparar -->
         <button type="button" class="bs-btn-primary bs-btn-agregar" id="bsBtnCart"></button>
+        <div class="bs-social" id="bsSocial" hidden></div>   <!-- [PRUEBA-SOCIAL] (19) (20) (22): lo escribe psPintarFicha. Debajo de «Agregar» y no debajo del precio: ahí lo bajaba fuera de la pantalla a 360 × 640 (hasta 53 px) -->
         <div class="bs-btn-row">
           <button class="bs-btn-secondary" id="bsBtnSimilares">&#9830; Similares</button>
           <a href="#" class="bs-btn-cart" id="bsBtnConsultar">Consultar &#8594;</a>
@@ -1625,6 +1634,7 @@
           <button class="bs-btn-secondary" id="bsBtnCompare">&#9878; Comparar</button>
         </div>
       </div>
+      <div class="bs-resena-wrap" id="bsResena" hidden></div>   <!-- [PRUEBA-SOCIAL] (23) la reseña de este perfume: al final, para no bajar «Agregar» (a 360 × 640 la empujaba 100 px) -->
     </div>
   </div>
 

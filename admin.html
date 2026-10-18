@@ -1572,6 +1572,31 @@
     .hv-pago .hoja-monto { min-height: 110px; }
     .hv-pago .hoja-monto b { font-size: 1.35rem; }
     .hv-links { display: flex; flex-wrap: wrap; gap: 0 1.2rem; }
+    /* ── [PRUEBA-SOCIAL] (23) 18-oct · la pestaña «Reseñas»: el formulario arriba y las cargadas abajo, en tarjetas ── */
+    .resenas-intro { font-size: .8rem; color: var(--gris-claro); line-height: 1.5; margin: 0 0 1rem; max-width: 640px; }
+    .resena-form { background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1.4rem; max-width: 640px; }
+    .resena-form-tit { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo-tinta); margin: 0 0 .6rem; }
+    .resena-form textarea { width: 100%; min-height: 84px; resize: vertical; font-family: inherit; }
+    .resena-cuenta { font-size: .7rem; color: var(--gris); text-align: right; margin: -.3rem 0 .4rem; }
+    .resena-dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+    @media (max-width: 480px) { .resena-dos { grid-template-columns: minmax(0, 1fr); } }
+    .resena-form .cuadros { margin-bottom: .6rem; flex-wrap: wrap; }
+    .resena-perfume-elegido { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: 0 0 .5rem; font-size: .85rem; }
+    #resenaBuscarLista { margin: .5rem 0; }
+    .resena-botones { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .9rem; }
+    .resena-guardar { background: var(--amarillo); color: #000; font-weight: 700; min-height: 48px; }
+    .resena-cancelar { background: #333; color: #fff; min-height: 48px; }
+    .resenas-subt { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amarillo-tinta); margin: 0 0 .5rem; }
+    .resenas-cuenta-lista, .resenas-vacio { font-size: .78rem; color: var(--gris); margin: 0 0 .7rem; }
+    #resenasLista { display: grid; gap: .7rem; max-width: 640px; }
+    .resena-item { background: var(--superficie); border: 1px solid var(--borde); border-left: 3px solid var(--amarillo); border-radius: 8px; padding: .8rem 1rem; }
+    .resena-item--apagada { border-left-color: var(--gris); opacity: .75; }
+    .resena-item-texto { margin: 0; font-size: .92rem; font-weight: 600; line-height: 1.45; }
+    .resena-item-pie { margin: .35rem 0 0; font-size: .75rem; color: var(--gris-claro); }
+    .resena-item-estado { margin: .2rem 0 0; font-size: .72rem; color: var(--tinta-ok); font-weight: 600; }
+    .resena-item--apagada .resena-item-estado { color: var(--tinta-aviso); }
+    .resena-item-botones { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+    .resena-item-botones .action-btn { min-height: 44px; padding: 0 1rem; }
     /* ── [TARJETERO] 13-oct · elegir tocando (nombre de Alejo): tarjetas grandes en dos columnas; que se note que se tocan ── */
     .tarjetero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
     .tarjeta {
@@ -3395,6 +3420,7 @@
             <button class="tab-btn" data-tab="espera" title="Espera" onclick="switchTab('espera',this);loadListaEspera();closeMobileSidebar()"><span class="sb-ico">&#128205;</span><span class="sb-label">Espera</span></button>
             <button class="tab-btn" data-tab="hoja" title="Reemplazo de hoja" onclick="switchTab('hoja',this);hojaAbrir();closeMobileSidebar()"><span class="sb-ico">&#129534;</span><span class="sb-label">Reemplazo de hoja</span></button>   <!-- [REEMPLAZO-DE-HOJA] las dos cuentas (sin data-role, #8) -->
             <button class="tab-btn" data-role="jefe" data-tab="opiniones" title="Opiniones" onclick="switchTab('opiniones',this);closeMobileSidebar()"><span class="sb-ico">&#128172;</span><span class="sb-label">Opiniones</span></button>
+            <button class="tab-btn" data-tab="resenas" title="Reseñas" onclick="switchTab('resenas',this);closeMobileSidebar()"><span class="sb-ico">&#128221;</span><span class="sb-label">Reseñas</span></button>   <!-- [PRUEBA-SOCIAL] (23) las dos cuentas (sin data-role, #8) -->
             <button class="tab-btn" data-tab="decants" title="Decants" onclick="switchTab('decants',this);loadDecantsAdmin();closeMobileSidebar()"><span class="sb-ico">&#128167;</span><span class="sb-label">Decants</span></button>
           </div>
         </div>
@@ -4340,6 +4366,38 @@
         <thead><tr><th>Cliente</th><th>Perfume</th><th>Opinión</th><th>Fecha</th><th>Acción</th></tr></thead>
         <tbody id="tbodyOpiniones"></tbody>
       </table>
+    </div>
+
+    <!-- TAB: RESEÑAS · [PRUEBA-SOCIAL] (23), 18-oct-2026: lo que dicen los clientes, para el catálogo (tabla resenas, sql/prueba_social.sql) -->
+    <div class="tab-content" id="tab-resenas">
+      <p class="resenas-intro">Copiá acá un comentario lindo de un cliente (de un reel, de Google, de WhatsApp o lo que te dijo en el local). Las <b>prendidas</b> van cambiando solas en la web, en «Lo que dicen de ST»; si elegís el perfume del que habla, sale también en su ficha.</p>
+      <div class="resena-form" id="resenaForm">
+        <p class="resena-form-tit" id="resenaFormTit">Nueva reseña</p>
+        <label class="modal-label" for="resenaTexto">Qué dijo</label>
+        <textarea class="modal-input" id="resenaTexto" maxlength="280" rows="3" placeholder="Ej: Me encantó el Khamrah, dura todo el día" oninput="resenaContar()"></textarea>
+        <p class="resena-cuenta" id="resenaCuenta">0 de 280</p>
+        <div class="resena-dos">
+          <div><label class="modal-label" for="resenaNombre">Nombre (si quiere que salga)</label><input class="modal-input" id="resenaNombre" maxlength="40" placeholder="Ej: Lucía" autocomplete="off"/></div>
+          <div><label class="modal-label" for="resenaFecha">Fecha del comentario</label><input type="date" class="modal-input" id="resenaFecha"/></div>
+        </div>
+        <div><label class="modal-label" for="resenaFuente">De dónde lo sacaste</label>
+          <select class="admin-search" id="resenaFuente" data-cuadros style="margin-bottom:0;">
+            <option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="whatsapp">WhatsApp</option>
+            <option value="google">Google</option><option value="local">En el local</option><option value="otra">Otro</option>
+          </select>
+        </div>
+        <label class="modal-label" for="resenaBuscar">Perfume del que habla (si habla de uno)</label>
+        <div id="resenaPerfume"></div>
+        <input type="text" class="admin-search" id="resenaBuscar" placeholder="Buscá el perfume…" oninput="resenaBuscarPintar()" autocomplete="off"/>
+        <div id="resenaBuscarLista"></div>
+        <div class="resena-botones">
+          <button type="button" class="modal-btn resena-guardar" id="resenaGuardarBtn" onclick="resenaGuardar()">Guardar reseña</button>
+          <button type="button" class="modal-btn resena-cancelar" id="resenaCancelarBtn" onclick="resenaLimpiar()" hidden>Cancelar</button>
+        </div>
+        <p class="modal-success" id="resenaMsg" aria-live="polite"></p>
+      </div>
+      <p class="resenas-subt">Cargadas</p>
+      <div id="resenasLista"><p class="resenas-vacio">Cargando…</p></div>
     </div>
 
     <!-- TAB: CLIENTES -->
@@ -6146,7 +6204,7 @@
     // (SESION_IDS), que vuelven a como estaban al abrir; los datos en memoria se vacían; y `tabLoaded` se reinicia, así que cada pestaña se vuelve a LEER (y a dibujar según el
     // rol de quien entra) la próxima vez que se abre. No se toca la cola de la tablet (lo guardado sin internet es de la tablet, no de la persona), ni el catálogo (se relee al entrar).
     // Una pestaña nueva cuyo contenido arma JS con datos de la base: su contenedor va en SESION_IDS.
-    var SESION_IDS = ['doctorResults', 'doctorSummary', 'clientsList', 'clientCount', 'statsBarChart', 'statsZeroVisits', 'statsGrid', 'statsCatDistrib', 'statsPriceRange', 'statsCatalogGrid', 'statsDesdeFecha', 'semGrid', 'semTop', 'semEstado', 'semBandaRango', 'badgesList', 'hourHeatmap', 'referrerBreakdown', 'deviceBreakdown', 'tbodyTopViewed', 'tbodyTopDecants', 'tbodyTopWA', 'tbodySearchEmpty', 'analyticsMeta', 'totViews', 'totDecants', 'totWA', 'totSessions', 'totEmpty', 'combosList', 'comboCount', 'tbodyPuntosRanking', 'tbodyPuntosLog', 'hojaVenta', 'hojaLista', 'hojaTotales', 'hojaCierre', 'hojaMsg', 'hojaVendRes', 'hojaBusca30', 'resCuerpo', 'resEstado', 'resTitulo', 'logFeed', 'logChips', 'homeBannerList', 'pushHistory', 'decantsCustomList', 'decantsCustomCuenta', 'marcasLista', 'elegidosLista', 'editLogList', 'resetRequestsList', 'tbodyOpiniones', 'tbodyBackups', 'backupsMeta', 'tbodyCierres', 'votacionEstado', 'votacionMesActual', 'promoResumen', 'promoCadaUno', 'promoAvisoCosto', 'avisoDeposito', 'edrTransf', 'edrSub', 'edrTitulo', 'holmesCuerpo'];
+    var SESION_IDS = ['doctorResults', 'doctorSummary', 'clientsList', 'clientCount', 'statsBarChart', 'statsZeroVisits', 'statsGrid', 'statsCatDistrib', 'statsPriceRange', 'statsCatalogGrid', 'statsDesdeFecha', 'semGrid', 'semTop', 'semEstado', 'semBandaRango', 'badgesList', 'hourHeatmap', 'referrerBreakdown', 'deviceBreakdown', 'tbodyTopViewed', 'tbodyTopDecants', 'tbodyTopWA', 'tbodySearchEmpty', 'analyticsMeta', 'totViews', 'totDecants', 'totWA', 'totSessions', 'totEmpty', 'combosList', 'comboCount', 'tbodyPuntosRanking', 'tbodyPuntosLog', 'hojaVenta', 'hojaLista', 'hojaTotales', 'hojaCierre', 'hojaMsg', 'hojaVendRes', 'hojaBusca30', 'resCuerpo', 'resEstado', 'resTitulo', 'logFeed', 'logChips', 'homeBannerList', 'pushHistory', 'decantsCustomList', 'decantsCustomCuenta', 'marcasLista', 'elegidosLista', 'editLogList', 'resetRequestsList', 'tbodyOpiniones', 'tbodyBackups', 'backupsMeta', 'tbodyCierres', 'votacionEstado', 'votacionMesActual', 'promoResumen', 'promoCadaUno', 'promoAvisoCosto', 'avisoDeposito', 'edrTransf', 'edrSub', 'edrTitulo', 'holmesCuerpo', 'resenasLista', 'resenaBuscarLista', 'resenaPerfume'];
     var SESION_PRISTINA = null;
     function sesionCapturar() {   // al abrir la página, antes de que nadie entre
       SESION_PRISTINA = {};
@@ -6165,6 +6223,7 @@
         document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
         var ini = document.getElementById('tab-inicio'); if (ini) ini.classList.add('active');
         if (typeof deshacerCerrar === 'function' && DESHACER.el) deshacerCerrar();
+        try { resenaLimpiar(); RESENAS.lista = []; resenaMsg(''); } catch (e) {}   // [PRUEBA-SOCIAL] (23) lo escrito en «Reseñas» no queda para la próxima cuenta
         pistaQuitar(); var nv = document.getElementById('novedades'); if (nv) { nv.hidden = true; nv.innerHTML = ''; }   // [PISTAS]
         ajustesCerrar(true); var sr = document.getElementById('sbCuentaRol'); if (sr) sr.textContent = '';   // [PANEL-ARRIBA-LIVIANO]
       } catch (e) { console.warn('[logout] limpieza de sesión', e); }
@@ -6734,6 +6793,7 @@
         switch(tab) {
           case 'editar': loadEditLog(); break;
           case 'opiniones': loadOpiniones(); break;
+          case 'resenas': loadResenas(); break;   // [PRUEBA-SOCIAL] (23)
           case 'clientes': loadClientes(); break;
           case 'stats': loadStats(); break;
           case 'combos': if (typeof loadCombos === 'function') loadCombos(); break;
@@ -7453,6 +7513,7 @@
         html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
     ];
     var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
+      { id: 'n18-resenas', fecha: '18-oct', texto: 'Pestaña «Reseñas»: copiá un comentario lindo de un cliente (de un reel, de Google, de WhatsApp) y sale en la web', ir: 'resenas' },
       { id: 'n18-liviano', fecha: '18-oct', texto: 'Precios y Depósito más livianos: el orden, la vista, «Mostrar ocultos» y los precios de los decants están en «Ajustes», y el buscador te sigue al bajar', ir: 'precios' },
       { id: 'n18-menu', fecha: '18-oct', texto: 'En el celu y la tablet parada, el tema claro / oscuro y «Salir» están en el menú ☰' },
       { id: 'n18-bajo', fecha: '18-oct', texto: '«Bajo al depósito»: la lista de lo que falta arriba. Tildás lo que agarrás y lo subís todo al local con un toque', ir: 'deposito' },
@@ -8332,6 +8393,165 @@
     // ============================================================
     // OPINIONES
     // ============================================================
+    // ============================================================
+    // [PRUEBA-SOCIAL] (23) · RESEÑAS (18-oct-2026, Alejo: «las cargo yo en el panel», con la fecha del comentario original editable:
+    // «entre a videos/reels con comentarios buena onda y los saque de ahí»). Tabla resenas (sql/prueba_social.sql): las dos cuentas
+    // cargan, editan y prenden / apagan; borra sólo el jefe. El catálogo lee sólo las prendidas (las 30 más nuevas por fecha) y las
+    // muestra en «Lo que dicen de ST» y, si tienen perfume, en su ficha (js/app.js, psEstantePintar / psPintarFicha).
+    // ============================================================
+    var RESENAS = { lista: [], editando: null, slug: null, guardando: false };
+    var RESENA_FUENTES = { instagram: 'Instagram', tiktok: 'TikTok', whatsapp: 'WhatsApp', google: 'Google', local: 'En el local', otra: 'Otro' };
+    function resenaArg(v) { return escHtml(JSON.stringify(String(v))); }
+    function resenaMsg(txt, tinta) { var m = document.getElementById('resenaMsg'); if (!m) return; m.textContent = txt || ''; m.style.color = tinta ? 'var(--tinta-' + tinta + ')' : ''; }
+    function resenaContar() {
+      var t = document.getElementById('resenaTexto'), c = document.getElementById('resenaCuenta');
+      if (t && c) c.textContent = t.value.trim().length + ' de 280';
+    }
+    function resenaFechaTxt(f) {
+      var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f || '');
+      return m ? Number(m[3]) + '/' + Number(m[2]) + '/' + m[1] : '';
+    }
+    async function loadResenas() {
+      var cont = document.getElementById('resenasLista');
+      var fecha = document.getElementById('resenaFecha');
+      if (fecha) { fecha.max = resumenHoyART(); if (!fecha.value) fecha.value = resumenHoyART(); }
+      var res;
+      try { res = await sb.from('resenas').select('id, texto, nombre, fuente, slug, fecha, activa, creado_por, creado_en').order('fecha', { ascending: false }).order('creado_en', { ascending: false }); }
+      catch (e) { res = { error: e }; }
+      if (res.error) {   // [GUARDAR-SIN-LEER] la lista queda con el error; cargar una nueva no depende de esta lectura
+        if (cont) cont.innerHTML = '<p class="resenas-vacio">' + escHtml(sinLeer('resenas', res.error, 'cargar las reseñas')) + '</p>';
+        tabLoaded['resenas'] = false;
+        return;
+      }
+      leido('resenas', document.getElementById('resenaMsg'));
+      RESENAS.lista = res.data || [];
+      resenasPintar();
+    }
+    function resenasPintar() {
+      var cont = document.getElementById('resenasLista');
+      if (!cont) return;
+      if (!RESENAS.lista.length) { cont.innerHTML = '<p class="resenas-vacio">Todavía no hay ninguna. La primera que guardes sale en la web.</p>'; return; }
+      var prendidas = RESENAS.lista.filter(function(r) { return r.activa; }).length;
+      var jefe = currentRole === 'jefe';
+      cont.innerHTML = '<p class="resenas-cuenta-lista">' + prendidas + (prendidas === 1 ? ' prendida' : ' prendidas') + ' de ' + RESENAS.lista.length + ' · en la web salen las 30 más nuevas</p>'
+        + RESENAS.lista.map(function(r) {
+        var p = r.slug ? PERFUMES.find(function(x) { return x.slug === r.slug; }) : null;
+        var pie = [r.nombre || 'Sin nombre', RESENA_FUENTES[r.fuente] || '', resenaFechaTxt(r.fecha)].filter(Boolean).join(' · ');
+        return '<article class="resena-item' + (r.activa ? '' : ' resena-item--apagada') + '">'
+          + '<p class="resena-item-texto">“' + escHtml(r.texto) + '”</p>'
+          + '<p class="resena-item-pie">' + escHtml(pie) + (p ? ' · <b>' + escHtml(p.name) + '</b>' : (r.slug ? ' · <b>' + escHtml(r.slug) + '</b>' : '')) + '</p>'
+          + '<p class="resena-item-estado">' + (r.activa ? '✓ Sale en la web' : 'Apagada: no sale en la web') + '</p>'
+          + '<div class="resena-item-botones">'
+            + '<button type="button" class="action-btn" onclick="resenaPrender(' + resenaArg(r.id) + ',' + (r.activa ? 'false' : 'true') + ')">' + (r.activa ? 'Apagar' : 'Prender') + '</button>'
+            + '<button type="button" class="action-btn btn-stock" onclick="resenaEditar(' + resenaArg(r.id) + ')">Editar</button>'
+            + (jefe ? '<button type="button" class="action-btn btn-hide" onclick="resenaBorrar(' + resenaArg(r.id) + ')">Borrar</button>' : '')
+          + '</div></article>';
+      }).join('');
+    }
+    function resenaBuscarPintar() {
+      var cont = document.getElementById('resenaBuscarLista');
+      if (!cont) return;
+      var palabras = busqPalabras(document.getElementById('resenaBuscar').value);   // [BUSCAR-TOLERANTE]
+      if (!palabras.length) { cont.innerHTML = ''; return; }
+      var lista = PERFUMES.filter(function(p) { return !p.esSet && !p._oculto && busqPasa(busqPerfume(p), palabras); })
+        .sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); });
+      cont.innerHTML = lista.length ? tarjeteroHTML(lista.slice(0, 12).map(function(p) {   // [TARJETERO] NO ROMPER #33
+        return { onclick: 'resenaElegirPerfume(' + resenaArg(p.slug) + ')', nombre: p.name || '', sub: p.marca_real || p.marca || '', elegida: RESENAS.slug === p.slug };
+      })) : '<p class="resenas-vacio">No hay perfumes con ese nombre.</p>';
+    }
+    function resenaPerfumePintar() {
+      var el = document.getElementById('resenaPerfume');
+      if (!el) return;
+      var p = RESENAS.slug ? PERFUMES.find(function(x) { return x.slug === RESENAS.slug; }) : null;
+      el.innerHTML = RESENAS.slug
+        ? '<p class="resena-perfume-elegido">Habla de <b>' + escHtml(p ? p.name : RESENAS.slug) + '</b> <button type="button" class="action-btn" onclick="resenaElegirPerfume(null)">Sacar</button></p>'
+        : '';
+    }
+    function resenaElegirPerfume(slug) {
+      RESENAS.slug = slug || null;
+      var b = document.getElementById('resenaBuscar');
+      if (b) { b.value = ''; resenaBuscarPintar(); }
+      resenaPerfumePintar();
+    }
+    function resenaLimpiar() {
+      RESENAS.editando = null; RESENAS.slug = null;
+      ['resenaTexto', 'resenaNombre', 'resenaBuscar'].forEach(function(id) { var e = document.getElementById(id); if (e) e.value = ''; });
+      var f = document.getElementById('resenaFecha'); if (f) f.value = resumenHoyART();
+      var fu = document.getElementById('resenaFuente'); if (fu) fu.value = 'instagram';
+      document.getElementById('resenaFormTit').textContent = 'Nueva reseña';
+      document.getElementById('resenaGuardarBtn').textContent = 'Guardar reseña';
+      document.getElementById('resenaCancelarBtn').hidden = true;
+      document.getElementById('resenaBuscarLista').innerHTML = '';
+      resenaPerfumePintar(); resenaContar();
+    }
+    function resenaEditar(id) {
+      var r = RESENAS.lista.find(function(x) { return x.id === id; });
+      if (!r) return;
+      RESENAS.editando = id; RESENAS.slug = r.slug || null;
+      document.getElementById('resenaTexto').value = r.texto || '';
+      document.getElementById('resenaNombre').value = r.nombre || '';
+      document.getElementById('resenaFecha').value = r.fecha || resumenHoyART();
+      document.getElementById('resenaFuente').value = RESENA_FUENTES[r.fuente] ? r.fuente : 'otra';
+      document.getElementById('resenaFormTit').textContent = 'Editando una reseña';
+      document.getElementById('resenaGuardarBtn').textContent = 'Guardar cambios';
+      document.getElementById('resenaCancelarBtn').hidden = false;
+      resenaPerfumePintar(); resenaContar(); resenaMsg('');
+      document.getElementById('resenaForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    async function resenaGuardar() {
+      if (RESENAS.guardando) return;
+      var texto = document.getElementById('resenaTexto').value.replace(/\s+/g, ' ').trim();
+      var nombre = document.getElementById('resenaNombre').value.replace(/\s+/g, ' ').trim();
+      var fecha = document.getElementById('resenaFecha').value;
+      var fuente = document.getElementById('resenaFuente').value;
+      if (texto.length < 5) { resenaMsg('Escribí lo que dijo (5 letras o más).', 'error'); document.getElementById('resenaTexto').focus(); return; }
+      if (texto.length > 280) { resenaMsg('Es muy larga: hasta 280 letras.', 'error'); return; }
+      if (nombre.length > 40) { resenaMsg('El nombre es muy largo: hasta 40 letras.', 'error'); return; }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) { resenaMsg('Falta la fecha del comentario.', 'error'); document.getElementById('resenaFecha').focus(); return; }
+      if (fecha > resumenHoyART()) { resenaMsg('La fecha no puede ser después de hoy.', 'error'); return; }   // NO ROMPER #6: «hoy» de Argentina
+      var fila = { texto: texto, nombre: nombre || null, fecha: fecha, fuente: RESENA_FUENTES[fuente] ? fuente : 'otra', slug: RESENAS.slug || null };
+      RESENAS.guardando = true;
+      var btn = document.getElementById('resenaGuardarBtn');
+      btn.disabled = true;
+      try {
+        var res = RESENAS.editando
+          ? await sb.from('resenas').update(fila).eq('id', RESENAS.editando).select('id')
+          : await sb.from('resenas').insert(fila).select('id');
+        if (res.error) throw res.error;
+        if (!res.data || !res.data.length) throw { propio: true, message: 'No se guardó: la reseña ya no está (¿la borraron?). Recargá la pestaña.' };
+        var eraEdicion = !!RESENAS.editando;
+        resenaLimpiar();
+        resenaMsg(eraEdicion ? '✓ Cambios guardados.' : '✓ Guardada: sale en la web la próxima vez que alguien abra el catálogo.', 'ok');
+        loadResenas();
+      } catch (e) {
+        resenaMsg(errorEnCriollo(e, null, 'guardar la reseña'), 'error');
+      } finally { RESENAS.guardando = false; btn.disabled = false; }
+    }
+    async function resenaPrender(id, on) {
+      var res = await sb.from('resenas').update({ activa: on }).eq('id', id).select('id');
+      if (res.error || !res.data || !res.data.length) { resenaMsg(res.error ? errorEnCriollo(res.error, null, 'cambiar la reseña') : 'No se pudo: recargá la pestaña.', 'error'); return; }
+      loadResenas();
+      if (!on) deshacerToast({   // NO ROMPER #39: lo que se puede deshacer, con «Deshacer»
+        texto: 'Reseña apagada', sub: 'Ya no sale en la web',
+        alDeshacer: async function() {
+          var r = await sb.from('resenas').update({ activa: true }).eq('id', id).select('id');
+          if (r.error || !r.data || !r.data.length) return { ok: false, texto: 'No se pudo volver a prender' };
+          loadResenas();
+          return { ok: true, texto: 'Listo: sale de nuevo en la web' };
+        }
+      });
+    }
+    async function resenaBorrar(id) {
+      var r = RESENAS.lista.find(function(x) { return x.id === id; });
+      if (!r || currentRole !== 'jefe') return;
+      if (!confirm('¿Borrar esta reseña para siempre?\n\n“' + r.texto.slice(0, 120) + '”\n\nSi sólo querés que no salga, tocá «Apagar».')) return;
+      var res = await sb.from('resenas').delete().eq('id', id).select('id');
+      if (res.error || !res.data || !res.data.length) { resenaMsg(res.error ? errorEnCriollo(res.error, null, 'borrar la reseña') : 'No se borró (sólo el jefe puede borrar).', 'error'); return; }
+      if (RESENAS.editando === id) resenaLimpiar();
+      resenaMsg('Reseña borrada.', 'ok');
+      loadResenas();
+    }
+
     async function loadOpiniones() {
       var tbody = document.getElementById('tbodyOpiniones');
       var { data } = await sb.from('opiniones').select('*').order('created_at', { ascending: false });
@@ -16300,7 +16520,10 @@
       cerrado: { nom: 'Local cerrado' }, festivo: { nom: 'Saludo del día festivo', sinControl: true },
       // [NUBES-CATALOGO] tanda 3 · mientras mira (salen después, por lo que hace el cliente; la de búsqueda va en el aviso «No encontramos…»)
       comparar: { nom: 'Mirando 2 parecidos · ¿Los comparás?', boton: true }, indeciso: { nom: '4 fichas sin agregar · el test', boton: true },
-      filtrar: { nom: 'Desliza sin tocar · filtrar', boton: true }, busqueda: { nom: 'Buscó algo que no hay · WhatsApp', boton: true } };
+      filtrar: { nom: 'Desliza sin tocar · filtrar', boton: true }, busqueda: { nom: 'Buscó algo que no hay · WhatsApp', boton: true },
+      // [PRUEBA-SOCIAL] tanda 4 · prueba social con datos reales (no flotan: van en la ficha, la card o la lista; sin botón propio)
+      miraron: { nom: '«N personas lo miraron hoy»' }, salio: { nom: '«Salió uno del local hace…»' }, volvio: { nom: 'La etiqueta «Volvió»' },
+      quedan: { nom: '«Quedan N» / «Quedan N en el local»' }, resenas: { nom: 'Reseñas (estante y ficha)' } };
     function holmesNubesHTML(d, H) {
       var nb = (d.nubes || []).filter(function(x) { return Number(x.vieron) + Number(x.control) > 0; });
       var h = '<section class="lab-sec"><h3>Las nubes del catálogo</h3>'
@@ -19617,6 +19840,7 @@
       { name: 'perfume_codigos',         critical: true },   // [ESCANER] 163 · código de barras -> perfume (sin lectura pública)
       { name: 'caja_movimientos',        critical: true },   // [REEMPLAZO-DE-HOJA] la hoja de caja (sin lectura pública: hay plata adentro)
       { name: 'vendedores',              critical: false },  // [QUIEN-VENDIO] los nombres de la hoja (sin lectura pública)
+      { name: 'resenas',                 critical: false },  // [PRUEBA-SOCIAL] (23) las reseñas del catálogo (igual que api/cron/backup.js)
       // Data de negocio
       { name: 'clientes',                critical: false },
       { name: 'opiniones',               critical: false },

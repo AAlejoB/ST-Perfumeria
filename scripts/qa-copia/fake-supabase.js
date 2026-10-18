@@ -97,6 +97,26 @@
       if (rnd() < 0.6) { var nid = ['bienvenida', 'bienvenida', 'cerrado', 'nuevos', 'pedido'][ri(0, 4)], ctl = rnd() < 0.2; T.analytics_events.push({ id: uuid(), created_at: iso(base + 1500), session_id: sid, event_type: 'nube_vista', slug: null, query: null, meta: { hour: 12, nube: nid, control: ctl || undefined } }); if (!ctl && (nid === 'nuevos' || nid === 'pedido') && rnd() < 0.3) T.analytics_events.push({ id: uuid(), created_at: iso(base + 4000), session_id: sid, event_type: 'nube_tocada', slug: null, query: null, meta: { hour: 12, nube: nid } }); }   // [NUBES-HOLMES]
       if (rnd() < 0.55) { var nf = ri(1, 3); for (var f = 0; f < nf; f++) { var pp = P.length ? P[Math.min(P.length - 1, Math.floor(Math.pow(rnd(), 2) * 18))] : { slug: 'x' }; mete('ficha_abierta', pp.slug); if (rnd() < (f === 0 ? 0.09 : 0.04)) mete('wa_intento', pp.slug); } }
     }
+    // [PRUEBA-SOCIAL] sql/prueba_social.sql · fichas de HOY (19), un perfume que volvió tras 5 días en 0 (21) y bajas del local (20)
+    if (P.length > 8) {
+      [[0, 6], [1, 4], [2, 3], [3, 2]].forEach(function (z) { for (var q = 0; q < z[1]; q++) T.analytics_events.push({ id: uuid(), created_at: iso(ahora - ri(1, 50) * 60000), session_id: 'ps' + z[0] + '-' + q, event_type: 'ficha_abierta', slug: P[z[0]].slug, query: null, meta: { hour: 12 } }); });
+      act(6 * 24, EMP, 'stock_update', P[5].slug, { stock_qty: { old: 1, new: 0 } });
+      act(30, JEFE, 'stock_update', P[5].slug, { stock_qty: { old: 0, new: 4 } });
+      act(2, EMP, 'stock_update', P[0].slug, { stock_qty: { old: 3, new: 2 } });
+      act(9, EMP, 'stock_update', P[6].slug, { stock_qty: { old: 5, new: 4 } });
+      act(3, EMP, 'stock_update', P[7].slug, { stock_qty: { old: 5, new: 4 } });   // ésta se deshizo enseguida: no cuenta
+      act(2.9, EMP, 'stock_update', P[7].slug, { stock_qty: { old: 4, new: 5 } });
+      T.perfume_overrides.forEach(function (o) {
+        if (o.slug === P[0].slug || o.slug === P[6].slug) { o.stock_qty = Math.max(o.stock_qty, 4); o.stock_status = 'ok'; o.oculto = false; }
+        if (o.slug === P[5].slug) { o.stock_qty = 4; o.stock_status = 'ok'; o.oculto = false; }
+        if (o.slug === P[1].slug) { o.stock_qty = 2; o.stock_status = 'ok'; o.stock_deposito = 0; o.oculto = false; }
+        if (o.slug === P[2].slug) { o.stock_qty = 2; o.stock_status = 'ok'; o.stock_deposito = 6; o.oculto = false; }
+      });
+    }
+    T.resenas = [
+      { id: uuid(), texto: 'Me encantó, dura todo el día y me lo preguntan en la oficina', nombre: 'Lucía', fuente: 'instagram', slug: P.length ? P[0].slug : null, fecha: hoyART(new Date(ahora - 12 * 86400000)), activa: true, creado_por: EMP, creado_en: iso(ahora - 86400000) },
+      { id: uuid(), texto: 'Atención de diez en el local, me ayudaron a elegir el regalo', nombre: null, fuente: 'google', slug: null, fecha: hoyART(new Date(ahora - 40 * 86400000)), activa: true, creado_por: JEFE, creado_en: iso(ahora - 2 * 86400000) },
+      { id: uuid(), texto: 'Ésta está apagada y no tiene que salir', nombre: 'Prueba', fuente: 'tiktok', slug: null, fecha: hoyART(), activa: false, creado_por: JEFE, creado_en: iso(ahora) }];
     T.marcas_costo = []; T.perfumes_costo = []; T.costos_config = [{ id: 1, costo_envase: 0 }];
     T.usuarios_dev = [{ email: LAB, nombre: 'Laboratorio' }];
     return T;
@@ -111,6 +131,8 @@
     if (JEFE_SOLO[tabla] && JEFE_SOLO[tabla].indexOf(op) !== -1 && e !== JEFE) return op === 'insert' ? { error: err('42501', 'new row violates row-level security policy for table "' + tabla + '"') } : 'vacio';
     if (SOLO_STAFF[tabla] && !staff) return op === 'select' || op === 'update' || op === 'delete' ? 'vacio' : { error: err('42501', 'new row violates row-level security policy for table "' + tabla + '"') };
     if (tabla === 'analytics_events' && op === 'select' && e !== JEFE) return 'vacio';
+    if (tabla === 'resenas' && !staff && op !== 'select') return { error: err('42501', 'permission denied for table resenas') };   // [PRUEBA-SOCIAL]
+    if (tabla === 'resenas' && op === 'delete' && e !== JEFE) return 'vacio';
     if (tabla === 'usuarios_dev') return { error: err('42501', 'permission denied for table usuarios_dev') };
     if (tabla === 'stock_movimientos') return { error: err('42501', 'permission denied for table stock_movimientos') };
     if (!e && ['clientes', 'admin_actions', 'admin_backups', 'password_reset_requests'].indexOf(tabla) !== -1) return op === 'insert' ? { error: err('42501', 'RLS') } : 'vacio';
@@ -118,6 +140,7 @@
   }
   function filtrarFilasVisibles(tabla, rows) {
     var e = email();
+    if (tabla === 'resenas' && !esStaff(e)) return rows.filter(function (r) { return r.activa; });   // [PRUEBA-SOCIAL] anon: sólo las prendidas
     if (tabla === 'admin_actions' && e !== JEFE) return rows.filter(function (r) { return e === EMP && (r.action === 'stock_update' || r.action === 'deposito_update'); });
     return rows;
   }
@@ -132,6 +155,14 @@
     if (conIdNum.indexOf(tabla) !== -1 && r.id == null) { ID_NUM[tabla] = Math.max(ID_NUM[tabla] || 0, T.reduce(function (m, x) { return Math.max(m, Number(x.id) || 0); }, 0)) + 1; r.id = ID_NUM[tabla]; }
     if (['admin_actions', 'analytics_events', 'perfume_clicks', 'puntos_log'].indexOf(tabla) !== -1 && r.id == null) r.id = uuid();
     if (r.created_at === undefined && ['admin_actions', 'analytics_events', 'perfume_clicks', 'edit_log', 'opiniones', 'lista_espera', 'clientes', 'puntos_log', 'admin_backups', 'password_reset_requests', 'perfumes_nuevos', 'combos', 'announcements', 'home_top_banner'].indexOf(tabla) !== -1) r.created_at = iso(Date.now());
+    if (tabla === 'resenas') {   // [PRUEBA-SOCIAL] sql/prueba_social.sql
+      if (r.id == null) r.id = uuid();
+      if (r.activa === undefined) r.activa = true;
+      if (r.fuente === undefined) r.fuente = 'otra';
+      if (r.fecha === undefined) r.fecha = hoyART();
+      if (r.creado_por === undefined) r.creado_por = e;
+      if (r.creado_en === undefined) r.creado_en = iso(Date.now());
+    }
     if (tabla === 'vendedores') {   // [QUIEN-VENDIO] id, activo y creado_* por defecto
       if (r.id == null) r.id = uuid();
       if (r.activo === undefined) r.activo = true;
@@ -175,6 +206,7 @@
     if (tabla === 'clientes' && (op === 'insert' || 'nombre' in r)) { if (op === 'insert' || 'nombre' in r) { var nm = r.nombre; if (nm == null || String(nm).length < 1 || String(nm).length > 60 || /[\u0000-\u001f\u007f]/.test(String(nm))) return err('23514', 'new row for relation "clientes" violates check constraint "clientes_nombre_limpio"'); } }
     if (tabla === 'clientes' && ('telefono' in r) && !/^549[0-9]{10}$/.test(String(r.telefono))) return err('23514', 'new row for relation "clientes" violates check constraint "clientes_telefono_canonico"');
     if (tabla === 'clientes' && ('puntos' in r) && Number(r.puntos) < 0) return err('23514', 'new row for relation "clientes" violates check constraint "clientes_puntos_no_negativo"');
+    if (tabla === 'resenas') { var rz = Object.assign({}, previo || {}, r), lt = String(rz.texto || '').trim().length; if (lt < 5 || lt > 280 || (rz.nombre != null && (String(rz.nombre).trim().length < 1 || String(rz.nombre).trim().length > 40)) || ['whatsapp', 'instagram', 'tiktok', 'google', 'local', 'otra'].indexOf(rz.fuente) === -1) return err('23514', 'new row for relation "resenas" violates check constraint'); }   // [PRUEBA-SOCIAL]
     if (tabla === 'opiniones' && op === 'insert' && String(r.texto || '').length > 280) return err('23514', 'new row for relation "opiniones" violates check constraint "opiniones_texto_check"');
     if (tabla === 'promos_decants') { var pd = Object.assign({}, previo || {}, r); if (pd.n != null && (pd.n < 2 || pd.n > 10)) return err('23514', 'violates check constraint "promos_decants_n_check"'); if (pd.precio_pack != null && pd.precio_pack <= 0) return err('23514', 'violates check constraint "promos_decants_precio_pack_check"'); if (pd.max_packs != null && pd.max_packs <= 0) return err('23514', 'violates check constraint "promos_decants_max_packs_check"'); if (pd.activa && !pd.hasta) return err('23514', 'violates check constraint "promos_decants_prendida_con_fin"'); if (pd.hasta && pd.desde && !(pd.hasta > pd.desde)) return err('23514', 'violates check constraint "promos_decants_fechas"'); }
     if (tabla === 'puntos_config') { var pc = Object.assign({}, previo || {}, r); if (pc.threshold_proximo_premio != null && pc.threshold_proximo_premio <= 0) return err('23514', 'violates check constraint "puntos_config_threshold_proximo_premio_check"'); if (pc.pesos_por_punto != null && pc.pesos_por_punto <= 0) return err('23514', 'violates check constraint "puntos_config_pesos_por_punto_check"'); }
@@ -342,6 +374,29 @@
     },
     lab_metricas: function (a) { if (email() !== LAB) return { data: null, error: err('42501', 'sin permiso') }; return { data: QA.labFixture(a.p_dias), error: null }; },
     perfume_clicks_resumen: function () { var m = {}; QA.db.perfume_clicks.forEach(function (c) { m[c.slug] = (m[c.slug] || 0) + 1; }); return { data: Object.keys(m).map(function (s) { return { slug: s, clicks: m[s] }; }), error: null }; },
+    prueba_social: function (a) {   // [PRUEBA-SOCIAL] la misma cuenta que sql/prueba_social.sql (sin las visitas raras)
+      var ahora = Date.now(), desde = new Date(hoyART() + 'T00:00:00-03:00').getTime(), vis = {};
+      QA.db.analytics_events.forEach(function (x) { if (x.event_type === 'ficha_abierta' && x.slug && new Date(x.created_at).getTime() >= desde && x.session_id !== a.p_session) (vis[x.slug] || (vis[x.slug] = {}))[x.session_id] = 1; });
+      var vistas = {}; Object.keys(vis).forEach(function (s) { var n = Object.keys(vis[s]).length; if (n >= 3) vistas[s] = n; });
+      var ev = QA.db.admin_actions.filter(function (x) { return x.action === 'stock_update' && x.target_slug && x.changes && x.changes.stock_qty && typeof x.changes.stock_qty.new === 'number'; })
+        .map(function (x) { return { slug: x.target_slug, t: new Date(x.created_at).getTime(), o: typeof x.changes.stock_qty.old === 'number' ? x.changes.stock_qty.old : null, n: x.changes.stock_qty.new }; });
+      var dep = QA.db.admin_actions.filter(function (x) { return x.action === 'deposito_update' && x.changes && x.changes.stock_deposito && x.changes.stock_deposito.new > x.changes.stock_deposito.old; }).map(function (x) { return { slug: x.target_slug, t: new Date(x.created_at).getTime() }; });
+      var sub = {}; ev.forEach(function (e) { if ((e.o || 0) === 0 && e.n > 0 && e.t > ahora - 7 * 86400000 && (!sub[e.slug] || sub[e.slug].t < e.t)) sub[e.slug] = e; });
+      var volvieron = Object.keys(sub).map(function (k) { return sub[k]; }).filter(function (s) {
+        if (ev.some(function (e) { return e.slug === s.slug && e.t > s.t && e.n === 0; })) return false;
+        var z = ev.filter(function (e) { return e.slug === s.slug && e.t < s.t && e.n === 0; }).map(function (e) { return e.t; });
+        return z.length && Math.max.apply(null, z) <= s.t - 3 * 86400000;
+      }).sort(function (x, y) { return y.t - x.t; }).slice(0, 8).map(function (s) { return s.slug; });
+      var salidas = {};
+      ev.forEach(function (b) {
+        if (b.o == null || b.o - b.n < 1 || b.o - b.n > 2 || b.t <= ahora - 48 * 3600000 || b.t > ahora - 20 * 60000) return;
+        if (ev.some(function (u) { return u.slug === b.slug && u.o != null && u.n > u.o && Math.abs(u.t - b.t) <= 30 * 60000; })) return;
+        if (dep.some(function (d) { return d.slug === b.slug && Math.abs(d.t - b.t) <= 5 * 60000; })) return;
+        var m = Math.floor((ahora - b.t) / 60000);
+        if (salidas[b.slug] == null || m < salidas[b.slug]) salidas[b.slug] = m;
+      });
+      return { data: { vistas: vistas, volvieron: volvieron, salidas: salidas }, error: null };
+    },
     analytics_events_cleanup: function () { return { data: 0, error: null }; },
     admin_actions_cleanup: function () { return { data: 0, error: null }; },
     admin_backups_cleanup: function () { return { data: 0, error: null }; },

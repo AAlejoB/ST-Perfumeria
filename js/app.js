@@ -2049,42 +2049,8 @@
       gallery.scrollTo({ left: newIdx * slideWidth, behavior: 'smooth' });
     }
 
-    // ✨ Social proof — "X personas mirando ahora"
-    // Genera un número 0-5 determinista por slug + ventana de 5 min.
-    // Mismo slug + misma ventana de tiempo = mismo número (estable).
-    // Cada 5 min cambia. No usa Supabase ni Realtime — cero costo.
-    function computeLiveViewers(slug) {
-      if (!slug) return 0;
-      // hash determinista del slug (DJB2-ish)
-      var h = 5381;
-      for (var i = 0; i < slug.length; i++) {
-        h = ((h << 5) + h) + slug.charCodeAt(i);
-        h = h & 0xFFFFFFFF;
-      }
-      // ventana de 5 minutos (cambia el número cada 5')
-      var timeWindow = Math.floor(Date.now() / (5 * 60 * 1000));
-      var seed = Math.abs(h ^ timeWindow);
-      // mapear a 0-6 con bias hacia 1-3 (más realista que 5+ siempre)
-      var n = seed % 7;
-      return n; // 0-6 (cuando es 0 no se muestra el badge)
-    }
-
-    // Re-render del badge cada 5 minutos para que el número se actualice
-    // "en vivo" sin recargar la página. Usa setInterval ligero.
-    setInterval(function() {
-      document.querySelectorAll('.card-live-viewers').forEach(function(el) {
-        var slug = el.getAttribute('data-slug');
-        if (!slug) return;
-        var n = computeLiveViewers(slug);
-        var countEl = el.querySelector('.card-live-count');
-        if (n === 0) {
-          el.style.display = 'none';
-        } else {
-          el.style.display = '';
-          if (countEl) countEl.textContent = n;
-        }
-      });
-    }, 5 * 60 * 1000); // cada 5 minutos
+    // [PRUEBA-SOCIAL] Acá vivía computeLiveViewers: el «N mirando ahora» inventado (hash del slug + ventana de 5 min). Lo reemplaza
+    // el número real de prueba_social («N lo miraron hoy», vistasCardHTML), decisión de Alejo del 18-oct-2026.
 
     // ══════════════════════════════════════════════════════════════
     // [PROMO-DECANTS] N3 · las etiquetas de la card (decisiones 111 y 112).
@@ -2119,6 +2085,7 @@
       if (promo && promoDecantEntra(p, promo)) items.push('<span class="badge-promo">' + escapeHTML(textoEtiquetaPromo(promo)) + '</span>');
       if (stockStatus === 'low' && CINTA_IGUAL_ULTIMO.indexOf(cinta) === -1) items.push('<span class="badge-ultimo">Último</span>');
       if (p._isNew && cinta !== 'nuevo') items.push('<span class="badge-nuevo">Nuevo</span>');
+      else if (p._volvio && !STOCK_OCULTO && cinta !== 'volvio') items.push('<span class="badge-volvio">Volvió</span>');   // [PRUEBA-SOCIAL] (21) volvió a tener después de 3 días o más en 0 (prueba_social)
       return items.slice(0, cinta ? 1 : 2).join('');
     }
     // Repinta las etiquetas de las cards ya dibujadas (cuando llega la promo, y cada minuto con el reloj).
@@ -2272,16 +2239,11 @@
         perfumeDelMesHTML = '<span class="card-pdm-badge" title="Ganador del mes anterior — votación de clientes">Perfume del mes</span>';
       }
 
-      // 🔥 URGENCY — "Solo queda N" cuando stock real es 1-3
-      // Stock real del perfume (viene de perfume_overrides). Mostramos
-      // badge de urgencia solo si stock está entre 1 y 3 — crea FOMO
-      // basado en data verdadera, no en marketing falso.
+      // [PRUEBA-SOCIAL] (22) «Quedan 2» (3 o menos entre el local y el depósito) o «Quedan 2 en el local» (pocos arriba, más abajo):
+      // psQuedan, la misma cuenta que la ficha. Hasta v1.1.297 era «Solo quedan N» con el local solo. Con STOCK_OCULTO no sale.
       var urgencyHTML = '';
-      var stockQty = typeof p._stockQty === 'number' ? p._stockQty : null;
-      if (stockQty !== null && stockQty >= 1 && stockQty <= 3 && !isPaused && !STOCK_OCULTO) {   // [STOCK-OCULTO] sin «Solo quedan N»
-        var urgencyText = stockQty === 1 ? 'Solo queda 1' : 'Solo quedan ' + stockQty;
-        urgencyHTML = '<span class="card-urgency" title="Stock real del local — ¡apurate!">' + urgencyText + '</span>';
-      }
+      var urgencyText = psQuedan(p);
+      if (urgencyText && psMuestra('quedan')) urgencyHTML = '<span class="card-urgency">' + escapeHTML(urgencyText) + '</span>';
 
       var isOutOfStock = stockStatus === 'out';
 
@@ -3555,18 +3517,12 @@
     function vistasCardHTML(slug) {
       var viewCount = perfumeViews[slug] || 0;
       var viewsHTML = viewCount > 5 ? '<div class="card-views"><svg viewBox="0 0 16 16"><path d="M8 3C4.36 3 1.26 5.28 0 8.5c1.26 3.22 4.36 5.5 8 5.5s6.74-2.28 8-5.5C14.74 5.28 11.64 3 8 3zm0 9.17c-1.84 0-3.33-1.49-3.33-3.33S6.16 5.5 8 5.5s3.33 1.49 3.33 3.33S9.84 12.17 8 12.17zM8 7a1.83 1.83 0 1 0 0 3.67A1.83 1.83 0 0 0 8 7z"/></svg>' + viewCount + '</div>' : '';
-      // ✨ SOCIAL PROOF — "X personas mirando ahora"
-      // Algoritmo determinista basado en slug + ventana de 5 min:
-      // genera un número 1-5 estable que cambia cada 5 min. Da sensación
-      // de tracking en vivo sin Realtime real (caro). Solo aparece en
-      // perfumes con tracking acumulado (viewCount > 3) para evitar
-      // mostrar el badge en todos.
+      // [PRUEBA-SOCIAL] (19) «N lo miraron hoy»: personas distintas que abrieron la ficha hoy (prueba_social), 3 o más. Hasta v1.1.297
+      // era «N mirando ahora», un número INVENTADO (un hash del slug y de la hora, cambiaba cada 5 min): decisión de Alejo, se fue.
       var liveViewersHTML = '';
-      if (viewCount > 3) {
-        var liveN = computeLiveViewers(slug);
-        if (liveN > 0) {
-          liveViewersHTML = '<div class="card-live-viewers" data-slug="' + escapeHTML(slug) + '"><span class="card-live-dot"></span><span class="card-live-count">' + liveN + '</span> mirando ahora</div>';
-        }
+      var hoyN = psVistas(slug);
+      if (hoyN && psMuestra('miraron')) {
+        liveViewersHTML = '<div class="card-live-viewers"><span class="card-live-count">' + hoyN + '</span> lo miraron hoy</div>';
       }
       return viewsHTML + liveViewersHTML;
     }
@@ -3608,6 +3564,202 @@
       } catch(e) {
         console.warn('[views] Excepción leyendo perfume_clicks_resumen:', e);
       }
+    }
+
+    // ============================================================
+    // [PRUEBA-SOCIAL] · [NUBES-CATALOGO] tanda 4 (18-oct-2026, Alejo: «hacé TODAS»). Prueba social SÓLO con datos reales
+    // (regla b de las nubes: nunca un número inventado; el «N mirando ahora» de antes era una cuenta con el slug y la hora, y se fue):
+    //   (19) «N personas lo miraron hoy»   · ficha y card en cuadrícula · prueba_social().vistas (3 o más, sin contar esta visita)
+    //   (20) «Salió uno del local hace 2 h» · ficha                      · prueba_social().salidas (resguardos en sql/prueba_social.sql)
+    //   (21) la etiqueta «Volvió»           · card                       · prueba_social().volvieron (hasta 8)
+    //   (22) «Quedan 2» / «Quedan 2 en el local» · ficha y card en cuadrícula · el stock (local + depósito) que ya está en memoria
+    //   (23) las reseñas que cargan desde el panel (tabla resenas) · estante que rota en la lista y una en la ficha de su perfume
+    // Un pedido a prueba_social y uno a resenas por carga, después de pintar el catálogo. Con STOCK_OCULTO no salen (20), (21) ni (22).
+    // Cada cosa se mide en Holmes como una nube (nube_vista con meta.nube = su id) y a 1 de cada PS_CONTROL visitas no se le muestra
+    // (meta.control): psMuestra(id). Un dato nuevo de este tipo: su id en HOLMES_NUBES (admin.html) y psMuestra / psVio acá.
+    // ============================================================
+    var PS = { vistas: {}, volvieron: [], salidas: {}, resenas: [], t: 0, listo: false };
+    var PS_CONTROL = 5;   // igual que NUBE_CONTROL de las nubes
+    var PS_GRUPO = (function() { try { return JSON.parse(sessionStorage.getItem('st_ps_grupo') || '{}') || {}; } catch (e) { return null; } })();
+    var PS_VISTO = {};
+    // ¿Esta visita ve `id`? El grupo se sortea una vez por visita y por cosa. Sin sessionStorage se muestra y no se mide.
+    function psMuestra(id) {
+      if (!PS_GRUPO) return true;
+      if (PS_GRUPO[id] !== 'v' && PS_GRUPO[id] !== 'c') {
+        PS_GRUPO[id] = Math.random() < 1 / PS_CONTROL ? 'c' : 'v';
+        try { sessionStorage.setItem('st_ps_grupo', JSON.stringify(PS_GRUPO)); } catch (e) {}
+      }
+      return PS_GRUPO[id] === 'v';
+    }
+    // La vio (o le tocaba y es del grupo de control): una vez por carga y por cosa (Holmes cuenta visitas, no veces).
+    function psVio(id) {
+      if (!PS_GRUPO || PS_VISTO[id]) return;
+      PS_VISTO[id] = true;
+      nubeEvento('nube_vista', id, !psMuestra(id));
+    }
+    // (19) cuántos lo miraron hoy (0 = no se dice nada)
+    function psVistas(slug) { return PS.vistas[slug] >= 3 ? PS.vistas[slug] : 0; }
+    // (20) «hace 40 min» · «hace 2 horas» · «hoy» · «ayer» (con lo que pasó desde que llegó el dato)
+    function psHace(slug) {
+      var min = PS.salidas[slug];
+      if (typeof min !== 'number') return '';
+      min += Math.floor((Date.now() - PS.t) / 60000);
+      if (min < 60) return 'hace ' + min + ' min';
+      var h = Math.floor(min / 60);
+      if (h < 12) return 'hace ' + h + (h === 1 ? ' hora' : ' horas');
+      var dHoy = diaART(Date.now()), dEse = diaART(Date.now() - min * 60000);
+      return dEse === dHoy ? 'hoy' : (dHoy - dEse === 1 ? 'ayer' : '');
+    }
+    // (22) decisión de Alejo (18-oct): si quedan 3 o menos EN TOTAL, «Quedan 2» (es de verdad lo último); si quedan pocos arriba pero hay
+    // en el depósito, «Quedan 2 en el local» (que escriban igual, sin mentirles: «tenemos en el depósito, venite tal día»).
+    function psQuedan(p) {
+      if (STOCK_OCULTO || !p || p._pausado || p._oculto || p.esSet || !sePuedePedir(p)) return '';
+      var loc = typeof p._stockQty === 'number' ? p._stockQty : null;
+      if (loc === null || loc < 1) return '';
+      var dep = typeof p._stockDep === 'number' && p._stockDep > 0 ? p._stockDep : 0;
+      if (loc + dep <= 3) return loc + dep === 1 ? 'Queda 1' : 'Quedan ' + (loc + dep);
+      if (loc <= 3) return (loc === 1 ? 'Queda 1' : 'Quedan ' + loc) + ' en el local';
+      return '';
+    }
+    function psResenasDe(slug) { return PS.resenas.filter(function(r) { return r.slug === slug; }); }
+    var PS_FUENTES = { whatsapp: 'por WhatsApp', instagram: 'en Instagram', tiktok: 'en TikTok', google: 'en Google', local: 'en el local' };
+    var PS_MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    // «Lucía, en Instagram · sep 2026»
+    function psResenaPie(r) {
+      var f = /^(\d{4})-(\d{2})/.exec(r.fecha || '');
+      var quien = r.nombre ? String(r.nombre).trim() : '';
+      var donde = PS_FUENTES[r.fuente] || '';
+      var t = quien ? quien + (donde ? ', ' + donde : '') : (donde ? 'Un cliente, ' + donde : '');
+      if (f) t += (t ? ' · ' : '') + PS_MESES[Number(f[2]) - 1] + ' ' + f[1];
+      return t;
+    }
+    var ICO_OJO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var ICO_SALIO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>';
+
+    // Las líneas de la ficha (#bsSocial, debajo del precio): (19), (20) y (22); la reseña de ese perfume (23) va en #bsResena, al final.
+    // La llaman openBottomSheet y la llegada del dato.
+    function psPintarFicha(slug) {
+      var el = document.getElementById('bsSocial');
+      if (!el) return;
+      var p = PERFUMES.find(function(pf) { return pf.slug === slug; });
+      var h = '';
+      if (p && !p._oculto) {
+        var pedible = sePuedePedir(p);
+        var q = pedible ? psQuedan(p) : '';
+        if (q) { psVio('quedan'); if (psMuestra('quedan')) h += '<p class="bs-social-l bs-social-quedan">' + escapeHTML(q) + '</p>'; }
+        var n = psVistas(slug);
+        if (n) { psVio('miraron'); if (psMuestra('miraron')) h += '<p class="bs-social-l">' + ICO_OJO + '<span><b>' + n + ' personas</b> lo miraron hoy</span></p>'; }
+        var hace = pedible && !STOCK_OCULTO ? psHace(slug) : '';
+        if (hace) { psVio('salio'); if (psMuestra('salio')) h += '<p class="bs-social-l">' + ICO_SALIO + '<span>Salió uno del local <b>' + escapeHTML(hace) + '</b></span></p>'; }
+      }
+      el.innerHTML = h;
+      el.hidden = !h;
+      // (23) la reseña va al final de la ficha (#bsResena), debajo de los botones: arriba bajaba «Agregar» fuera de la pantalla en un celu chico
+      var er = document.getElementById('bsResena');
+      if (!er) return;
+      var rh = '';
+      var rs = p && !p._oculto ? psResenasDe(slug) : [];
+      if (rs.length) {
+        psVio('resenas');
+        if (psMuestra('resenas')) {
+          var r = rs[0];
+          rh = '<p class="bs-resena-tit">Lo que dijo un cliente</p><figure class="bs-resena"><blockquote>“' + escapeHTML(r.texto) + '”</blockquote>'
+            + (psResenaPie(r) ? '<figcaption>' + escapeHTML(psResenaPie(r)) + '</figcaption>' : '') + '</figure>';
+        }
+      }
+      er.innerHTML = rh;
+      er.hidden = !rh;
+    }
+
+    // (21) la etiqueta «Volvió» (la pone etiquetasCard con p._volvio). Se cuenta como vista cuando una card con la etiqueta entra en
+    // pantalla; en el grupo de control, cuando entra la card que la hubiera llevado.
+    var psObs = null;
+    function psObservarVolvio() {
+      if (!PS.volvieron.length || !('IntersectionObserver' in window) || PS_VISTO.volvio) return;
+      if (!psObs) psObs = new IntersectionObserver(function(ents) {
+        ents.forEach(function(en) {
+          if (!en.isIntersecting) return;
+          var p = PERFUMES.find(function(pf) { return pf.slug === en.target.dataset.slug; });
+          if (p && etiquetasCard(Object.assign({}, p, { _volvio: true }), p._stockStatus || 'ok').indexOf('badge-volvio') !== -1) {
+            psVio('volvio');
+            psObs.disconnect();
+          }
+        });
+      }, { threshold: 0.6 });
+      PS.volvieron.forEach(function(slug) {
+        var c = document.querySelector('#catalogGrid > .product-card[data-slug="' + CSS.escape(slug) + '"]');
+        if (c) psObs.observe(c);
+      });
+    }
+
+    // (23) el estante «Lo que dicen de ST»: una reseña a la vez, cambia cada 7 s mientras se ve (no con la pestaña escondida ni
+    // con «menos movimiento»: ahí se cambia con los puntitos). Lo ubica vidUbicarEstantes (celu y compu); en la tablet queda en su casa.
+    var PS_EST = { i: 0, timer: null, visible: false };
+    function psEstantePintar() {
+      var sec = document.getElementById('resenas');
+      if (!sec) return;
+      var lista = PS.resenas;
+      if (!lista.length) { sec.hidden = true; return; }
+      // Grupo de control: el estante queda como una marca invisible de 1 px en su lugar, para contar cuándo hubiera entrado en pantalla.
+      if (!psMuestra('resenas')) { sec.innerHTML = ''; sec.classList.add('resenas-control'); sec.setAttribute('aria-hidden', 'true'); sec.hidden = false; return; }
+      if (PS_EST.i >= lista.length) PS_EST.i = 0;
+      var r = lista[PS_EST.i];
+      var p = r.slug ? PERFUMES.find(function(pf) { return pf.slug === r.slug && !pf._oculto; }) : null;
+      var pie = psResenaPie(r);
+      sec.querySelector('.resena-cuerpo').innerHTML = '<blockquote>“' + escapeHTML(r.texto) + '”</blockquote>'
+        + '<figcaption>' + (pie ? escapeHTML(pie) : '')
+        + (p ? (pie ? ' · ' : '') + '<button type="button" class="resena-perfume" onclick="openBottomSheet(' + jsAttr(p.slug) + ')">' + escapeHTML(p.name) + ' →</button>' : '')
+        + '</figcaption>';
+      var pts = sec.querySelector('.resenas-puntos');
+      pts.innerHTML = lista.length > 1 ? lista.map(function(_, i) {
+        return '<button type="button" class="resena-punto' + (i === PS_EST.i ? ' activo' : '') + '" aria-label="Reseña ' + (i + 1) + ' de ' + lista.length + '"' + (i === PS_EST.i ? ' aria-current="true"' : '') + ' onclick="psEstanteIr(' + i + ')"></button>';
+      }).join('') : '';
+      sec.hidden = false;
+    }
+    function psEstanteIr(i) { PS_EST.i = i; psEstantePintar(); psEstanteReloj(); }
+    window.psEstanteIr = psEstanteIr;
+    function psEstanteReloj() {
+      clearInterval(PS_EST.timer);
+      PS_EST.timer = null;
+      var quieto = false;
+      try { quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+      if (quieto || PS.resenas.length < 2 || !PS_EST.visible || document.hidden) return;
+      PS_EST.timer = setInterval(function() { PS_EST.i = (PS_EST.i + 1) % PS.resenas.length; psEstantePintar(); }, 7000);
+    }
+    document.addEventListener('visibilitychange', psEstanteReloj);
+
+    async function pruebaSocialCargar() {
+      try {
+        var r = await Promise.all([
+          sb.rpc('prueba_social', { p_session: ANALYTICS_SESSION_ID }),
+          sb.from('resenas').select('id, texto, nombre, fuente, slug, fecha').eq('activa', true).order('fecha', { ascending: false }).limit(30)
+        ]);
+        var d = r[0] && !r[0].error && r[0].data ? r[0].data : {};
+        PS.vistas = d.vistas && typeof d.vistas === 'object' ? d.vistas : {};
+        PS.salidas = STOCK_OCULTO ? {} : (d.salidas && typeof d.salidas === 'object' ? d.salidas : {});
+        PS.volvieron = STOCK_OCULTO || !Array.isArray(d.volvieron) ? [] : d.volvieron;
+        PS.resenas = r[1] && !r[1].error && Array.isArray(r[1].data) ? r[1].data : [];
+        PS.t = Date.now();
+        PS.listo = true;
+      } catch (e) { console.warn('[prueba-social]', e); return; }
+      // (21) la etiqueta: sólo en las visitas que la ven
+      if (PS.volvieron.length && psMuestra('volvio')) {
+        PERFUMES.forEach(function(p) { p._volvio = PS.volvieron.indexOf(p.slug) !== -1; });
+      }
+      try { refrescarEtiquetasCards(); } catch (e) {}
+      try { actualizarVistasEnCards(); } catch (e) {}
+      psObservarVolvio();
+      try { psEstantePintar(); vidUbicarEstantes(); } catch (e) {}
+      var sec = document.getElementById('resenas');
+      if (sec && 'IntersectionObserver' in window) {
+        // la vista de Holmes cuenta cuando el estante entra en pantalla (no al dibujarlo, que puede estar 12 filas más abajo)
+        new IntersectionObserver(function(ents) {
+          PS_EST.visible = ents[0].isIntersecting;
+          if (PS_EST.visible && PS.resenas.length) psVio('resenas');
+          psEstanteReloj();
+        }, { threshold: 0 }).observe(sec);
+      }
+      if (currentBsSlug) psPintarFicha(currentBsSlug);   // la ficha abierta (closeBottomSheet lo vuelve null)
     }
 
     // ============================================================
@@ -4905,9 +5057,9 @@
     function vidUbicarEstantes() {
       if (!vidEst) {
         var dec = document.getElementById('decants');
-        vidEst = { sel: document.getElementById('destacados'), dec: dec, ban: (dec && dec.nextElementSibling && dec.nextElementSibling.classList.contains('price-banner-wrap')) ? dec.nextElementSibling : null };
+        vidEst = { sel: document.getElementById('destacados'), dec: dec, ban: (dec && dec.nextElementSibling && dec.nextElementSibling.classList.contains('price-banner-wrap')) ? dec.nextElementSibling : null, res: document.getElementById('resenas') };
       }
-      var lista = [vidEst.sel, vidEst.dec, vidEst.ban];
+      var lista = [vidEst.sel, vidEst.dec, vidEst.ban, vidEst.res];
       var grid = document.getElementById('catalogGrid');
       var i;
       if (!vidEsCelu() || !grid) {
@@ -4930,6 +5082,7 @@
       despuesDe(vidEst.sel, vis[3] || null);
       var ref8 = despuesDe(vidEst.dec, vis[7] || null);
       despuesDe(vidEst.ban, ref8);
+      if (vis[11]) despuesDe(vidEst.res, vis[11]);   // [PRUEBA-SOCIAL] (23) las reseñas, después de la 12.ª fila (con menos, en su casa: no se ven)
     }
 
     // Lo que cambia de lugar según el ancho (al cargar y al cruzar los 768, sin recargar).
@@ -5671,6 +5824,7 @@
       // (ver filtro de sets). Pausar no debería hacer desaparecer un pack.
       p._pausado = (o.stock_status === 'pausado');
       if (o.stock_qty !== null && o.stock_qty !== undefined) p._stockQty = o.stock_qty;
+      if (typeof o.stock_deposito === 'number') p._stockDep = o.stock_deposito;   // [PRUEBA-SOCIAL] (22) «Quedan N» cuenta local + depósito
       if (o.fotos_extra) p.fotos_extra = o.fotos_extra;
       if (o.etiqueta !== undefined) p.etiqueta = o.etiqueta || '';
       if (o.etiqueta_color) p.etiqueta_color = o.etiqueta_color;
@@ -5782,6 +5936,7 @@
           // [LCP-VISTAS-SIN-RENDER] sólo la etiqueta de vistas de las cards que ya están (antes: otro renderCatalog() entero)
           actualizarVistasEnCards();
         });
+        pruebaSocialCargar();   // [PRUEBA-SOCIAL] (19) a (23): un pedido a prueba_social y uno a resenas
       });
     }).catch(function(err) {
       // FALLBACK CRÍTICO: si algo en la cadena loadNuevos→loadOverrides→render
@@ -7101,6 +7256,7 @@
           + '<span class="price-cash">' + bsCashFormatted + ' efectivo/transf.</span>';   // [EFECTIVO-UN-RENGLON] decisión 85: sin «descuento» entra en un renglón a 360
       }
       document.getElementById('bsPrice').innerHTML = priceHTML;
+      try { psPintarFicha(slug); } catch (e) {}   // [PRUEBA-SOCIAL] (19), (20), (22) y la reseña de este perfume (23)
 
       // Notas
       var notesHTML = '';
