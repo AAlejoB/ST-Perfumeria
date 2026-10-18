@@ -420,7 +420,7 @@ Definido en la lógica de admin.html (`currentRole`).
 
 ### 🔴 Urgentes
 
-- (ninguno desde el 27-sep: `[VERCEL-ENV-VARS]` pasó a 🟡 con el backup andando)
+- **`[BORRAR-CLAVES-ST-VIEJO]`** (18-oct · 🔴, pedido de Alejo) — agujero abierto: **sólo la keyword** (regla del 23-sep). Va **apenas la plataforma nueva tenga los clientes importados y verificados (~26-oct)**: en el ST viejo, borrar (o hashear) lo que quedó de los clientes y cerrar las dos funciones que lo exponen, para que no se filtren claves, teléfonos ni nombres. El paso a paso está fuera del repo (`D:\workspace\plataforma-saas\BCRYPT-RESTO_para_CCodeProyectoSaas_2026-10-18.md`, § 6 y § «No copiar de ST») y lo ensayado (Docker, datos falsos), en la rama local `clientes-bcrypt`. Antes de borrar: el OK de Alejo y confirmar que ya no hace falta volver atrás. Va con `[BCRYPT-RESTO]`.
 
 ### 🟠 Altos
 
