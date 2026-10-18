@@ -3,6 +3,56 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
+## [PANEL-ARRIBA-LIVIANO] · 📐 aprobada → Pendientes (la próxima tanda) · 18-oct-2026
+
+**En palabras de Alejo:** «no ves el panel admin con mucho espacio arriba (pensando en dimensiones tablet y mobile)… como que a lo mejor eso hace como que esté "tosca" o incómodo de usar/ver; incluso el "scroll largo" también».
+**Medido (18-oct, copia del QA, cuenta empleada):**
+
+| | Tablet parada (600 × 900) | Celu (390 × 844) |
+|---|---|---|
+| Encabezado (☰, Inicio, estado, 🌙, Salir, atajos) | 181 px (3 renglones) | 181 px |
+| Dónde arranca la lista en Precios & Stock | 728 de 900 | 844 de 844 (ninguna fila a la vista) |
+| En Depósito | 869 | 958 |
+| Largo de la lista | 152 filas × 63 px = ~9.600 px (~11 pantallas) | igual |
+
+Entre el encabezado y la lista hay 7 bloques: las 3 tarjetas, el buscador, el orden (6 botones, 2 renglones), la vista, «Mostrar ocultos», el tip (`#tipPrecios` / `#tipDeposito`), el aviso de decants, la tira Todos / Árabes / Diseñador / Sets y Lista / Compacta. Cada uno se sumó en una tanda distinta.
+**Qué se hace (opción 1, la completa, decidió Alejo):** (A) encabezado de un renglón: ☰ · Inicio · los 4 atajos · un punto de estado; 🌙 y Salir pasan al menú (181 → ~56 px). (B) orden, vista y ocultos van a un botón «Ajustes» con una hoja de abajo (como «Filtros» del catálogo); el tip deja de estar siempre y pasa a un globito de `[PISTAS]` que sale una vez por tablet; el aviso de decants, en una línea. (C) el buscador queda pegado arriba al bajar, y aparece un «↑ arriba». (D) en el celu, «Compacta» de entrada (o «Ver 30 más», como el Doctor). **Meta:** la lista arranca a ~250 px en los dos tamaños (~9 filas en la tablet, ~12 compactas en el celu).
+**Descartada por Alejo:** la opción 3 («algo chico»: sólo A + C). Medida en la maqueta, la lista arrancaba a ~720 en el celu: ganaba poco arriba y lo bueno era sólo al bajar.
+**Ojo:** choca con `[BUSCAR-ARRIBA]` (NO ROMPER #58: al tacto, buscar ya esconde orden, vista, ocultos, tip y la tira), las tarjetas que filtran (#29) y `[SELECTS-A-CUADRADOS]`. Cambia dónde están botones que las chicas usan de memoria: se sube después de las 21 y con su línea en «Lo nuevo del panel» (#53). El panel tiene fecha de mudanza (~26-oct): además se le deja la nota con estas medidas a CCodeProyectoSaas, para que el panel nuevo nazca así. Se cruza con `[PANEL-CELU-TOSCO]` (abajo).
+**Tamaño:** M.
+**Le toca primero a:** 🤖 Claude Code (las decisiones ya están).
+
+## [NUBES-CATALOGO] · 📐 aprobada → Pendientes (6 tandas de 5) · 18-oct-2026
+
+**En palabras de Alejo:** «falta muchísimo de esas de los nubes-mensajes que se esfuman y eso en el catálogo. Es como que nunca me puse a pensar que si alguien NO conoce de ningún lado, como que se entera que son perfumes pero falta ese algo…». Después: «quiero hacerlos TODOS… me gustaría hacer de a 5».
+**Qué es:** que el catálogo le hable al que llega de cero: quiénes somos, qué es un perfume árabe y un decant, ayudarlo a decidir, mostrar que hay gente del otro lado y vender el regalo en temporada. Hoy le habla bien sólo al que ya sabe qué quiere.
+
+**Las 29, por momento de la visita:**
+- **Llegar (el que no conoce):** (1) bienvenida que se esfuma, sólo la primera vez: «Perfumes árabes originales · los probás en el local de Comodoro o te llegan a casa» · (2) «¿Primera vez acá?»: 3 tarjetas que se deslizan (qué es un perfume árabe, qué es un decant, cómo se compra) · (3) saludo según la hora: «Buenas noches · el local abre mañana a las 10, pero tu pedido lo armás ahora» · (4) si llegó por un link (Instagram, un perfume compartido): «Viniste por *Khamrah*. Estos se le parecen →».
+- **El que vuelve:** (5) «Hola de nuevo · entraron 4 perfumes nuevos» · (6) «Volvió *Asad*, que tenías en favoritos» · (7) «Tenés 2 perfumes en tu pedido · ¿lo terminamos?».
+- **Enseñar sin clase:** (8) glosario al tocar («Oud», «Intenso»…) · (9) «Perfil parecido a *Sauvage*» (cuidar la forma: nunca «réplica») · (10) cuánto dura y cuánto se siente, en dos barritas · (11) el decant explicado la primera vez que aparece · (12) «¿Son originales?» con la respuesta y una foto real.
+- **Mientras mira:** (13) abrió 4 fichas sin agregar → «¿No sabés cuál? 4 preguntas» (el test ya existe) · (14) miró 2 parecidos → «¿Los comparás?» · (15) desliza mucho sin tocar → «Probá filtrar por ocasión» · (16) buscó algo que no hay → «Dejanos tu número y lo buscamos» · (17) agregó al pedido → «Sumá el decant de *X* para probarlo» · (18) el ♡ vuela al nav al marcar favorito.
+- **Prueba social, sólo con datos reales:** (19) «12 personas miraron este perfume hoy» (las vistas) · (20) «Se vendió hace 2 h en el local» (`ventas`, sin nombres) · (21) cinta «Volvió» (el stock de 0 a algo) · (22) «Quedan 2» (el stock de verdad) · (23) reseñas reales rotando (las opiniones de «Tu sector»).
+- **Regalo y temporada:** (24) cuenta regresiva antes del festivo: «Faltan 5 días para el Día del Padre · ideas de regalo» (sale de `FESTIVOS`, NO ROMPER #61) · (25) «¿Es para regalar?»: precio, envoltorio, un mensajito en el pedido · (26) según el mes: «Para el viento de Comodoro: los que más duran».
+- **Que se note que hay alguien:** (27) «Hoy te atiende Sofi» en el botón de WhatsApp (la tabla `vendedores` existe; hay que preguntarles a las chicas) · (28) foto o video corto del local · (29) «Respondemos en ~10 min en horario del local».
+
+**Las 6 tandas (orden aceptado por Alejo: «Va ese orden»):**
+
+| Tanda | Tema | Ideas | Qué necesita de Alejo |
+|---|---|---|---|
+| 1 | El director + llegar | 1 · 3 · 5 · 6 · 7 | OK a los textos |
+| 2 | Enseñar | 2 · 8 · 11 · 12 · 29 | Revisar los textos; una foto del local o de las cajas |
+| 3 | Mientras mira | 13 · 14 · 15 · 16 · 18 | Nada |
+| 4 | Prueba social real | 19 · 20 · 21 · 22 · 23 | OK al SQL (una función por dato, sin abrir `ventas` al público) |
+| 5 | Regalo y venta | 4 · 17 · 24 · 25 · 26 | Qué ofrece ST para regalo (¿envoltorio? ¿tarjetita?) |
+| 6 | Datos y personas | 9 · 10 · 27 · 28 | Los «parecido a» (le armo la lista para corregir), preguntar a las chicas por la 27, el video |
+
+Si una tanda se demora, la 5 sube al 3.er lugar: la temporada fuerte es noviembre y diciembre.
+**Reglas (propuse yo, valen para las 6):** (a) **una nube por visita**, con un «director» que decide cuál toca y con prioridad; se amplía lo de `[PISTAS-CATALOGO]` (NO ROMPER #55: sin `MutationObserver`, sin mover el layout); (b) **nunca un número inventado**; (c) nunca tapa lo que el cliente toca, se va sola, respeta el «menos movimiento» del teléfono y no lleva emojis (sólo los glifos ♡ ⚖); (d) cada nube se mide con Holmes: si no sube los WhatsApp, se saca.
+**Pendiente de Alejo:** pasar los links y las fotos de Telegram con referencias (dijo que las tiene); si son muchas, se abre una sesión aparte con el agente que busca referencias.
+**Tamaño:** L en total (6 × M).
+**Le toca primero a:** 🤖 Claude Code (tanda 1, después de `[PANEL-ARRIBA-LIVIANO]`).
+
 ## [PANEL-CELU-TOSCO] · 💡 idea · 14-oct-2026
 
 **En palabras de Alejo:** "lo uso en el celu y siento que está medio tosca, toco algo y como que se me hace… cuando seleccionás el numerito, los botones, son medio raros. Capaz no hay tanta interacción con la interfaz del teléfono en sí, no puedo arrastrar archivos y eso." Para después: está con otras cosas.

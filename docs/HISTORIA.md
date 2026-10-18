@@ -4209,6 +4209,8 @@ El prompt `_x` del PREPARADOR.
 
 ✅ **`[STAT-FILTRO-MAS]`** (12-oct, 🟢; **hecho el 12-oct (noche), v1.1.207 (`34954b7`), en producción desde el 12-oct 21:15**) — en Estadísticas, las tarjetas con una pestaña donde seguir son botones «Ir a … →» (`statCard`, `irDesdeInicio`, la misma regla de roles del Inicio: `canAccessTab`): 🧴 Perfumes → Precios & Stock, 👥 Clientes → Clientes, 💬 Opiniones → Opiniones, 👁️ Visitas totales → Analytics, 📸 Con foto y 🎵 Notas completas → Doctor. Siguen planas Promedio por perfume, Con promo y Precio promedio. Si la cuenta no puede entrar a esa pestaña queda la tarjeta de siempre: el jefe ve 5 botones y la empleada 2 (Perfumes y Clientes). Analytics no se tocó (son totales, sin otra pestaña a la que saltar); Clientes, Puntos y Resumen siguen sin cuadrados. **Medido en local** (jefe y empleada, el clic cambia de pestaña, tarjetas de 86 px de alto, sin desborde; contraste del «Ir a … →» 9,97 oscuro y 6,90 claro); **no se miró el tema claro en pantalla ni con datos reales**.
 
+✅ **`[ANALYTICS-SESION-SIN-UUID]`** (16-oct, 🟢; **hecho el 18-oct (mañana), `aeebcab`, SW v1.1.290, en producción desde ~10:35**) — si el navegador no deja usar `localStorage`, `ANALYTICS_SESSION_ID` (`js/app.js`) vale `anon-…`, que no es un uuid: la base rebota todos los eventos de esa visita (los viejos y los de Holmes). Pasaba antes de Holmes también. Arreglo chico: generar un uuid en memoria en vez de `anon-…`. **Arreglado así:** el uuid se genera antes de mirar el almacenamiento y, si `localStorage` tira error, se usa ese (dura lo que la pestaña).
+
 ---
 
 ## 🚀 Cómo arrancar la próxima sesión (handoff para Claude que vuelve)
@@ -5785,9 +5787,66 @@ Alejo volvió del local después de un Día de la Madre muy movido y contó lo q
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (mañana) · **`[DIAS-FESTIVOS]`**: el «Feliz Día de la Madre» en el catálogo, y dos charlas grandes (las nubes del catálogo y el panel liviano)
+
+Arrancó con `/tanda` y una idea de Alejo: «ya que tenemos enganchado los feriados nacionales, se podría enganchar a algo que sea días festivos… cosa que hoy se ponga FELIZ DÍA DE LA MADRE». Era el mismo Día de la Madre (domingo 18-oct), así que había que subirlo en la mañana. Después vinieron dos charlas sin código: qué le falta al catálogo para el que no conoce ST y por qué el panel se siente «tosco» arriba.
+
+#### Qué se hizo
+
+- `6dec1f2` (SW **v1.1.290**) · `[DIAS-FESTIVOS]`: 10 fechas (Año Nuevo, San Valentín, Día de la Mujer, Padre, Amigo, Infancias, Madre, Nochebuena, Navidad, 31-dic) calculadas en el código (día fijo o el 3.er domingo del mes); la píldora del hero alterna saludo y horario cada 4 s con los dos textos en la misma celda, y un mensajito abajo que se esfuma a los 5 s, una vez por festivo y por dispositivo. Prueba nueva: `scripts/probar_festivos.js`, 23 de 23 (2025 a 2028, incluido un octubre que empieza en domingo). NO ROMPER #61.
+- `aeebcab` · `[ANALYTICS-SESION-SIN-UUID]`: sin acceso a `localStorage`, `ANALYTICS_SESSION_ID` es un uuid v4 en memoria en vez de `anon-…` (la base rebotaba todos los eventos de esa visita). Probado en Node con y sin almacenamiento.
+- **En producción:** Alejo subió los dos (~10:35); verificado por `curl`: `sw.js` con `v1.1.290` y `js/app.js` con las dos marcas. `main` = `aeebcab`.
+- **Charlado, sin código:** las 29 ideas de `[NUBES-CATALOGO]` y `[PANEL-ARRIBA-LIVIANO]`, con medidas de la copia del QA y una maqueta a escala en el chat (hoy / opción 3 / opción 1). Las dos fichas quedaron en `docs/IDEAS.md`.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** opción A (el saludo en la píldora del horario) y «un mensajito de esos que se esfuman»; sumar el Día de la Mujer; hacer **las 29** ideas de las nubes, «de a 5», en el orden que propuse («Va ese orden»); para el panel, la **opción 1, la completa** (y no la chica).
+- **Propuse yo y Alejo lo aceptó:** que la píldora **alterne** en vez de mostrar los dos textos juntos (medido a 360: «Feliz Día de la Madre · Cerrado · abrimos lunes 10hs» pasa a dos renglones y la franja crece de 87 a 101 px); los dos textos en una sola celda para que no haya CLS (medido: 212,66 px con cualquiera de los dos a 360, y 225,69 a 1280); el orden de las 6 tandas (el «director» primero, lo que necesita material de Alejo al final).
+- **Propuse yo, Alejo no lo confirmó con sus palabras:** el Día de la Mujer **sin «Feliz»** (le dije que se cambia con una palabra si lo quiere); `[PANEL-ARRIBA-LIVIANO]` **antes** que la tanda 1 de las nubes («si preferís al revés, me decís»).
+- **Le dije «para hoy, sin código»:** cargar «Feliz Día de la Madre» en el panel → Banner (`home_top_banner`) mientras se subía lo automático. No sé si lo hizo.
+- **Medido para el panel** (copia del QA, cuenta empleada): encabezado 181 px en tablet y celu; Precios & Stock: la lista arranca a 728 de 900 (600 × 900) y a 844 de 844 (390 × 844); Depósito, 869 y 958; 152 filas de 63 px = ~9.600 px.
+- **Workarounds:** con el pane del navegador escondido, las transiciones CSS quedan congeladas a mitad de camino (el color leído no es el final) y `requestAnimationFrame` no corre: los colores se midieron apagando la transición y el mensajito se prende con un `setTimeout` de 30 ms (además es más robusto). Un `position: fixed` con `left: 50%` se achicaba a la mitad de la pantalla: `width: max-content`. Un heredoc largo de Bash con comillas rompió el script del cierre: se escribió con la herramienta de archivos.
+- **Mío, corregido antes de subir:** la transición de color estaba puesta en `.store-status` para todos los días; pasó a `.con-festivo`.
+- La consola de la copia del QA muestra 404 al registrar el SW: es de la copia (no lo sirve), no del cambio.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[DIAS-FESTIVOS]` | El saludo de los días festivos en la píldora del horario y el mensajito que se esfuma (NO ROMPER #61) |
+| `[ANALYTICS-SESION-SIN-UUID]` | La visita sin acceso al navegador lleva un uuid en memoria |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[PANEL-ARRIBA-LIVIANO]` 🟡 | La próxima tanda: encabezado de un renglón, «Ajustes», buscador pegado, compacta en el celu, el tip como globito; la nota para el SaaS |
+| `[NUBES-CATALOGO]` 🟡 | 6 tandas de 5; la 1 es el director + llegar. Alejo pasa links y fotos de Telegram |
+
+#### 💬 Mensajes meta
+
+- Ante una lista grande de ideas, Alejo no elige: «quiero hacerlos TODOS», pero de a 5 por tanda. Y para decidir entre opciones de pantalla pide verlas: «graficámelo». Anotado en `memory/preferencias_alejo.md` (#145).
+
+**Estado del repo al cierre (18-oct, ~10:45):**
+- `origin/main` = `aeebcab` + este cierre, con el SW **v1.1.290** en producción (verificado por `curl`).
+- La rama `dias-festivos` = `main` (la de esta tanda); `bajo-deposito` quedó en el cierre anterior. Árbol limpio y la copia del QA prendida en el puerto 8777 (no toca nada real).
+
+**Próxima revisión cuando:**
+- 🟡 `[PANEL-ARRIBA-LIVIANO]` (la próxima tanda) → `[NUBES-CATALOGO]` tanda 1
+- 🟡 `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~05:45, cierre de la hoja contra el papel) — pasó de `CLAUDE.md` al archivo el 18-oct (~10:45, cierre de los días festivos)
+
+**Última actualización:** **Octubre 18, 2026, ~05:45 (cierre de la hoja contra el papel, rama `bajo-deposito` = `main`)** — 5 commits sobre el cierre `78004f6` (SW **v1.1.288 → v1.1.289**, todo en producción, subido por Alejo en dos tandas y verificado). Lo que Alejo vio en el Día de la Madre: el teclado de la Galaxy tapa, la hoja pierde contra el papel y el depósito se repone de memoria. **Hecho:** el teclado no tapa y buscar sube el buscador (NO ROMPER #58), el depósito en Precios & Stock, el panel se mide solo (Log `dispositivo`), la venta en 4 toques con «Los que más salen», «Vendió» con los nombres de las chicas (tabla `vendedores`, `sql/caja_vendedor.sql` aplicada por Claude Code), «Cambio» (el que vuelve queda de probador, sin `slug`), «Otra igual», «Chequeo de plata caja registradora», buscar en la hoja, señas con «hace N días» (#59) y «Bajo al depósito» para Santi (#60). Nota para el SaaS en `plataforma-saas\CAJA-EN-EL-MOSTRADOR_para_CCodeProyectoSaas_2026-10-18.md`. **Pendiente nuevo:** `[HUMO-CAJA-MOSTRADOR]` 🟡. El resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (madrugada)».
 
 ### Última actualización del 17-oct-2026 (~01:30, cierre de fotos, globitos, Holmes y la cinta «Nuevo») — pasó de `CLAUDE.md` al archivo el 18-oct (~05:45, cierre de la hoja contra el papel)
 
