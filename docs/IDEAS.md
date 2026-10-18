@@ -3,7 +3,7 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
-## [PANEL-ARRIBA-LIVIANO] · 📐 aprobada → Pendientes (la próxima tanda) · 18-oct-2026
+## [PANEL-ARRIBA-LIVIANO] · ✅ hecha (18-oct, `6ead159` y `b1d60c5`, SW v1.1.291 y v1.1.292 → HISTORIA.md, NO ROMPER #62) · 18-oct-2026
 
 **En palabras de Alejo:** «no ves el panel admin con mucho espacio arriba (pensando en dimensiones tablet y mobile)… como que a lo mejor eso hace como que esté "tosca" o incómodo de usar/ver; incluso el "scroll largo" también».
 **Medido (18-oct, copia del QA, cuenta empleada):**

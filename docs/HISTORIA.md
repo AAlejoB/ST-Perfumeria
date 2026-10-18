@@ -3893,6 +3893,10 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 18-oct-2026 (~11:10, cierre del panel liviano):** en producción la v1.1.291; la v1.1.292 se sube con el cierre.
+
+- ✅ ~~**`[PANEL-ARRIBA-LIVIANO]`**~~ (18-oct, **hecho**: `6ead159` y `b1d60c5`, SW v1.1.291 y v1.1.292, NO ROMPER #62; la lista de Precios arranca a 279 en la tablet parada y en el celu) — texto de antes: (18-oct · 🟡, **la próxima tanda**: lo decidió Alejo, opción 1 «completa»; el orden «antes que las nubes» lo propuse yo y Alejo puede darlo vuelta) — en Precios & Stock la lista arranca a **728 px de 900** en la tablet parada y a **844 de 844 en el celu** (ninguna fila a la vista; Depósito 869 / 958), debajo de un encabezado de **181 px** y 7 bloques de controles; la lista mide ~9.600 px (152 × 63). **Qué se hace:** (A) encabezado de un renglón (☰ · Inicio · 4 atajos · un punto de estado; 🌙 y Salir al menú), (B) orden, vista y ocultos a una hoja «Ajustes» y el tip de ayuda pasa a globito de una vez (`[PISTAS]`), (C) el buscador queda pegado al bajar + «↑ arriba», (D) en el celu, «Compacta» de entrada. Meta medida: la lista a ~250 px. Se sube después de las 21 y con su línea en «Lo nuevo del panel». Choca con `[BUSCAR-ARRIBA]` (NO ROMPER #58), las tarjetas que filtran (#29) y los cuadrados (`[SELECTS-A-CUADRADOS]`). Además, la nota para CCodeProyectoSaas con estas medidas. Medidas y detalle en `docs/IDEAS.md` § `[PANEL-ARRIBA-LIVIANO]` (se cruza con `[PANEL-CELU-TOSCO]`).
+
 **Movidos el 17-oct-2026 (~01:30, cierre de fotos, globitos, Holmes y la cinta «Nuevo»):** todo en producción (v1.1.283 a v1.1.287).
 
 - ✅ ~~**`[DISYUNTOR-EVENTOS]`**~~ (17-oct · 🟡, Alejo: «¿qué pasa si me tocan Consultar 20 veces o me atacan?») — SQL aplicado y verificado (el ataque de prueba quedó en 60, lo normal sigue entrando, Holmes devuelve `descartadas`); **falta subir** v1.1.285 (sólo cambia el texto de la pestaña y el comentario del borrado; la protección ya está andando en la base). **Cerrado el 17-oct:** v1.1.285 subida (`0aa044e`) y en producción; después, v1.1.286 y v1.1.287 encima.
@@ -5840,9 +5844,80 @@ Arrancó con `/tanda` y una idea de Alejo: «ya que tenemos enganchado los feria
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (mediodía) · **`[PANEL-ARRIBA-LIVIANO]`**: Precios & Stock y Depósito, livianos arriba
+
+Arrancó con `/tanda` y el OK de Alejo («dale, arrancá con panel-arriba-liviano») para hacer la opción 1, la completa, que había elegido a la mañana: en la tablet parada la lista de Precios & Stock arrancaba a 728 de 900 y en el celu a 844 de 844 (ninguna fila a la vista). Se hizo entera, Alejo subió la primera parte y, porque era domingo («ES DOMINGO!! hoy no trabaja la perfumería»), pidió también meter la escalera de decants en «Ajustes» y cerrar.
+
+#### Qué se hizo
+
+- `6ead159` (SW **v1.1.291**, en producción desde ~11:00, subido por Alejo y verificado por `curl`) · `[PANEL-ARRIBA-LIVIANO]`:
+  - **(A)** a ≤ 700 el encabezado es un renglón: ☰ · Inicio · los 4 atajos · el punto de estado (181 → 53-61 px). La cuenta («Cuenta: Empleado»), «Tema claro / oscuro» y «Salir» pasan arriba del menú ☰ (`.sb-cuenta`). Hasta 1000 el estado es sólo el punto y tocarlo muestra el texto 3 s.
+  - **(B)** a ≤ 1000 el botón **Ajustes** (al lado de Escanear) abre una hoja de abajo con el orden, la vista, «Mostrar ocultos» / «Sólo los que tienen unidades» y Lista / Compacta; el botón lleva un número con lo que cambia qué se ve. Arriba de 1000 todo sigue en la fila del buscador (la hoja es `display: contents`).
+  - **(C)** la fila del buscador queda pegada arriba al bajar, con un «↑» amarillo después de 1,2 pantallas.
+  - **(D)** sin elección guardada, a ≤ 480 arranca en «Compacta».
+  - Los tips de Precios y Depósito y la caja «Stock en depósito» pasan a globitos de `[PISTAS]` (campo nuevo `si`), más uno para «Ajustes»; dos líneas en «Lo nuevo del panel».
+  - A ≤ 600 el `.panel` deja de sumar margen al costado (29 → 17 px) y los 4 atajos llegan a 44 a 360; Todo · Árabes · Diseñador · Sets se desliza de costado a ≤ 480.
+- `b1d60c5` (SW **v1.1.292**, se sube con este cierre) · la escalera de decants sale de la pantalla a ≤ 1000 y se lee entera adentro de «Ajustes» (`#preciosTiraHoja`).
+- **Nota para CCodeProyectoSaas:** `D:\workspace\plataforma-saas\PANEL-ARRIBA-LIVIANO_para_CCodeProyectoSaas_2026-10-18.md` (las medidas, lo que se hizo y 5 reglas para que el panel nuevo nazca así). Está fuera del repo de ST y sin commit.
+- **Probado** en la copia del QA (`scripts/qa-copia/`) a 360 × 740, 390 × 844, 600 × 900, 834 × 1112, 1000 × 600 y 1280 × 800, en claro y oscuro, con jefe, empleada y laboratorio; sin desborde de costado; «Salir» desde el menú; `probar_link_push.js` (24 × 3) y `probar_normalizar_codigo.js` (19) bien.
+
+| Dónde arranca la lista (cuenta empleada) | Antes | v1.1.291 | v1.1.292 |
+|---|---|---|---|
+| Precios & Stock, 600 × 900 | 728 | 348 | **279** |
+| Precios & Stock, 390 × 844 | 844 | 372 | **279** |
+| Precios & Stock, 360 × 740 | — | 331 | **286** |
+| Depósito, 600 × 900 | 869 | 313 | 313 |
+| Encabezado, ≤ 700 | 181 | 53-61 | 53-61 |
+| Encabezado del jefe, 834 | 131 (2 renglones) | 77 | 77 |
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** la opción 1 completa (a la mañana); arrancar la tanda («dale»); meter la escalera de decants en «Ajustes» (se la ofrecí como opción para acercarnos a la meta de ~250: quedó en 279); subir de día porque los domingos la perfumería no abre.
+- **Propuse yo, sin confirmación con sus palabras:** los cortes (encabezado a ≤ 700 porque arriba ya era un renglón; Ajustes y buscador pegado a ≤ 1000 para cubrir la Galaxy acostada); «Compacta» de entrada sólo a ≤ 480 (la Galaxy parada, 600, sigue en Lista); que el número de «Ajustes» cuente sólo lo que cambia qué se ve; el estado como punto también de 701 a 1000; el margen del celu de 29 a 17 px en **todas** las pestañas; en la compu Lista / Compacta subió a la fila del buscador (efecto de que la hoja sea `display: contents`).
+- **Encontrado de antes y arreglado de paso** (se lo dije en el reporte): a 834 el encabezado del jefe ocupaba dos renglones (131 px) porque el texto «Al día · Catálogo: recién» mandaba «Salir» abajo.
+- **Encontrado de antes y no tocado:** a 600 la tabla de Precios (vista Lista) mide 538 y no llena el ancho → `[TABLA-PRECIOS-ANCHO]` 🟢.
+- **Queda en el código sin uso** (chico, sin keyword): la versión corta de la tira (`.tira-corta`) dentro de `#preciosTira`; desde v1.1.292 esa tira no se ve a ≤ 1000 y la corta era sólo para ≤ 480.
+- **Workarounds:** la primera vez que se entra, el globito del tip sale debajo de los números y tapa el botón «Ajustes» hasta tocar «Entendido» (sale una vez por tablet). El «↑» se crea con el primer scroll. La consola de la copia muestra 404 al registrar el SW: es de la copia.
+- **Cómo se hizo sin mudar nodos:** en vez de mover los controles a una hoja aparte (como `vidAcomodar` del catálogo), se envolvieron en un `.ajustes` que arriba de 1000 es `display: contents` y a ≤ 1000 es la hoja fija. Así no hay ids duplicados ni hay que volver a enganchar nada.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[PANEL-ARRIBA-LIVIANO]` | Encabezado de un renglón, hoja «Ajustes» con la escalera de decants, buscador pegado con «↑», Compacta en el celu y los tips como globitos (NO ROMPER #62) |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[NUBES-CATALOGO]` 🟡 | La próxima tanda: la 1 (el director + llegar) |
+| `[HUMO-PANEL-LIVIANO]` 🟡 | Probarlo con el dedo en la Galaxy y un celu: Salir en el menú, Ajustes, el buscador pegado con el teclado abierto, los globitos |
+| `[TABLA-PRECIOS-ANCHO]` 🟢 | La tabla de Precios no llena el ancho a 600 (de antes) |
+
+#### 💬 Mensajes meta
+
+- Los domingos ST no abre: el merge del panel se puede hacer de día («ES DOMINGO!! hoy no trabaja la perfumería»). Anotado en `memory/preferencias_alejo.md` (#146) y en la memoria de Claude Code.
+
+**Estado del repo al cierre (18-oct, ~11:10):**
+- `origin/main` = `6ead159` (v1.1.291 en producción, verificado por `curl`); la rama `panel-arriba-liviano` tiene `b1d60c5` (v1.1.292) y este cierre, **para que Alejo los suba juntos**.
+- Árbol limpio y la copia del QA prendida en el puerto 8777 (no toca nada real).
+
+**Próxima revisión cuando:**
+- 🟡 `[NUBES-CATALOGO]` tanda 1 (la próxima tanda)
+- 🟡 `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~10:45, cierre de los días festivos) — pasó de `CLAUDE.md` al archivo el 18-oct (~11:10, cierre del panel liviano)
+
+**Última actualización:** **Octubre 18, 2026, ~10:45 (cierre de los días festivos, rama `dias-festivos` = `main`)** — 2 commits sobre el cierre `189419a` (SW **v1.1.289 → v1.1.290**, en producción desde ~10:35, subido por Alejo y verificado por `curl`). **Hecho:** `[DIAS-FESTIVOS]` (el Día de la Madre y otros 9 días festivos en la píldora del horario, alternando con el horario sin mover nada, y un mensajito que se esfuma: NO ROMPER #61) y `[ANALYTICS-SESION-SIN-UUID]` (sin acceso al navegador, la visita lleva un uuid en memoria). **Charlado y decidido, sin código:** `[NUBES-CATALOGO]` (29 ideas, todas, en 6 tandas de 5) y `[PANEL-ARRIBA-LIVIANO]` (opción 1, la completa), las dos en `docs/IDEAS.md`. **Próxima tanda:** `[PANEL-ARRIBA-LIVIANO]`, después `[NUBES-CATALOGO]` tanda 1. **Pendientes, en orden:** 🟡 `[PANEL-ARRIBA-LIVIANO]` · `[NUBES-CATALOGO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-QA-16-OCT]` · `[HUMO-PISTAS-17-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[STOCK-OCULTO]` (25-oct) · `[LAB-FUNDAMENTOS]` · 🟢 `[LOGIN-B10-RESTO]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (mañana)».
 
 ### Última actualización del 18-oct-2026 (~05:45, cierre de la hoja contra el papel) — pasó de `CLAUDE.md` al archivo el 18-oct (~10:45, cierre de los días festivos)
 
