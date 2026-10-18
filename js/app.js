@@ -59,21 +59,24 @@
     // ============================================================
     var ANALYTICS_QUEUE = [];
     var ANALYTICS_SESSION_ID = (function(){
+      // UUID v4 light
+      var nuevo = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0;
+        var v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
       try {
         var k = 'st_analytics_sid';
         var sid = localStorage.getItem(k);
         if (!sid) {
-          // UUID v4 light
-          sid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0;
-            var v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
+          sid = nuevo;
           localStorage.setItem(k, sid);
         }
         return sid;
       } catch (_) {
-        return 'anon-' + Math.random().toString(36).slice(2, 10);
+        // [ANALYTICS-SESION-SIN-UUID] sin acceso al navegador, un uuid en memoria (dura lo que la pestaña): la base pide un uuid y
+        // rebotaba los eventos de toda la visita con el 'anon-…' de antes.
+        return nuevo;
       }
     })();
     var ANALYTICS_DEVICE = (function(){
