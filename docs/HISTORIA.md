@@ -5911,9 +5911,68 @@ Arrancó con `/tanda` y el OK de Alejo («dale, arrancá con panel-arriba-livian
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (mediodía, segunda) · **`[NUBES-CATALOGO]` tanda 1**: el director y las nubes de llegada
+
+Arrancó con `/tanda` y el «daleeee si» de Alejo a la tanda 1 de las 29 nubes del catálogo (el director + llegar: ideas 1, 3, 5, 6 y 7 de `docs/IDEAS.md`). Le mostré las 5 nubes dibujadas con su texto, cambió la (1), pidió que la letra no pareciera «de IA», y se hizo, se probó en la copia del QA y se subió el mismo domingo.
+
+#### Qué se hizo
+
+- `05dfccd` (SW **v1.1.293**, en producción desde ~11:40, subido por Alejo y verificado por `curl`: SW, `app.js` con el director y `styles.css` con `.nube-btn`) · `[NUBES-CATALOGO]` tanda 1:
+  - **El director** (IIFE al final de `js/app.js`): UNA nube por visita (`sessionStorage` `st_nube_ses`), a 1,5 s de pintado el catálogo (`nubesCatalogoListo(true)` después del STEP 5; `(false)` en el respaldo con el seed: sin datos no habla de stock ni de nuevos). Espera si hay una ventana abierta o un globito (hasta ~20 s; si no, queda para la próxima). Lo que recuerda el aparato va en `localStorage` `st_nubes` (`desde`, `nuevo`, `ultima`, `favsSin`, `bienvenida`, `pedido`, `cerrado`).
+  - **Prioridad:** el saludo del festivo (`[DIAS-FESTIVOS]`, toma el mismo turno con `turnoTomar`) → **(7)** «Tu pedido te espera · Tenés N perfumes guardados. ¿Lo terminamos?» [Ver pedido] → **(6)** «Volvió X · Lo tenías en favoritos y ya hay.» [Verlo] → **(5)** «Hola de nuevo · Entraron N perfumes nuevos desde tu última visita.» [Ver nuevos] → **(1)** «Perfumes árabes originales · Los probás en El Coliseo, en Comodoro · local 8.» (sólo la primera vez en el aparato) → **(3)** «Buen día / Buenas tardes / Buenas noches · El local abre mañana a las 10 hs, pero tu pedido lo armás ahora.» (con el local cerrado, una vez por día; sale de `ESTADO_LOCAL`, la misma cuenta del horario, NO ROMPER #14).
+  - **El pedido guardado 7 días:** `updateCartUI` deja una copia en `localStorage` `st_pedido_guardado` (`{ slugs, t }`), que se lee al cargar en `PEDIDO_GUARDADO` antes de que nada la pise y se borra sólo si el pedido se vació en esa pestaña (mandado por WhatsApp o vaciado). «Ver pedido» lo devuelve pasando por `sePuedePedir` y `limpiarPedido` (NO ROMPER #28) y abre «Tu pedido».
+  - **Globitos:** `[PISTAS-CATALOGO]` espera hasta `MENSAJE_VISITA.hasta` (la nube o el saludo del festivo + 6 s): nunca salen juntos.
+  - **Letra:** recta y en negrita, con la de la página (Inter; Archivo desde 1024), sin la Playfair itálica; el dorado sólo en el borde y el botón (44 de alto). Opaca en los dos temas; arriba de la barra del celu (NO ROMPER #15), `z-index: 9989`.
+  - Los nombres en MAYÚSCULAS de la base se pasan a «Your Touch Amber» en la frase (`nombreFrase`; una palabra con números, como «9PM», queda igual).
+- **Probado** en la copia del QA (`scripts/qa-copia/`, base de mentira) a 375 × 812 y 1280 × 800, en claro y oscuro: el festivo ocupa el turno; las 5 nubes salen con su texto; «Ver pedido» devuelve los 2 perfumes; «Ver nuevos» prende el filtro (10 visibles); `probar_festivos.js` (23) y `probar_link_push.js` (24 × 3) bien; `git diff --check` limpio. Este repo no tiene CI de GitHub: 0 corridas.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** arrancar la tanda 1 («daleeee si»); el texto de la (1) («LOS PROBÁS EN EL COLISEO EN COMODORO, LOCAL 8»; ST no lo dijo como envío a domicilio); guardar el pedido 7 días (la recomendada); letra «recta y en negrita» (la recomendada: «siento que la letra se nota mucho que es IA»); que un globito pueda salir en la misma visita que una nube, pero después (la recomendada, tras explicárselo con un ejemplo: la primera vez contestó «No entendí»).
+- **Propuse yo, sin confirmación con sus palabras:** el orden de prioridad del director; los tiempos (1,5 s de espera, 6 s / 9 s en pantalla, 6 s de respiro para los globitos, ~20 s de espera máxima con una ventana abierta); la (3) sólo con el local cerrado; la (5) contando sólo los de la cinta «Nuevo» cargados después de la última visita; los saludos por hora (6-13 Buen día, 13-20 Buenas tardes, el resto Buenas noches); pasar los nombres en mayúsculas a «Your Touch Amber».
+- **Bug encontrado y arreglado antes del commit:** el saludo del festivo deja `st_festivo_visto` en el aparato, y en la visita siguiente el director creía que la persona «ya había venido» y le sacaba la bienvenida. Ahora la primera vez se decide una sola vez, en la primera visita con nubes (`n.desde` / `n.nuevo`).
+- **Sabido y aceptado:** la (5) puede decir «entraron 2 nuevos» y el filtro mostrar 10 (cuenta los nuevos desde su última visita; el filtro, los 10 más nuevos). Quien ya venía antes y no dejó ninguna marca en el aparato (sin favoritos, sin fichas vistas, sin vista elegida) ve la bienvenida una vez. Un toque justo cuando la nube se va cae en lo de atrás (en la prueba, el botón de WhatsApp: el navegador de la copia lo bloqueó).
+- **Falta medirlas con Holmes** (regla (d) de las nubes): hace falta un evento «nube vista» / «nube tocada», que hay que sumar al CHECK de `analytics_events` (NO ROMPER #56). SQL con el OK de Alejo → `[NUBES-HOLMES]`.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[NUBES-CATALOGO]` tanda 1 | El director (una nube por visita) y las 5 nubes de llegada: pedido guardado, favorito que volvió, nuevos, bienvenida y local cerrado (NO ROMPER #63). Las tandas 2 a 6 siguen abiertas |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[NUBES-CATALOGO]` 🟡 | Tanda 2 (enseñar: 2, 8, 11, 12, 29); Alejo revisa los textos y pasa una foto del local o de las cajas |
+| `[NUBES-HOLMES]` 🟡 | El evento para medir cada nube (vista / tocada) y su lugar en Holmes; SQL con el OK de Alejo |
+| `[HUMO-NUBES-1]` 🟡 | Verlas en un celu de verdad: la bienvenida en un aparato nuevo, un pedido que vuelve al otro día, la (3) a la noche |
+
+#### 💬 Mensajes meta
+
+- La Playfair itálica «se nota que es IA» también en el celu (antes lo había dicho para la compu, `[CATALOGO-COMPU]`): lo nuevo del catálogo va con letra recta y en negrita. Anotado en `memory/preferencias_alejo.md` (#147).
+- Una pregunta con dos conceptos nuevos a la vez («nube» y «globito») no se entendió: con un ejemplo de lo que pasa segundo a segundo, sí.
+
+**Estado del repo al cierre (18-oct, ~11:50):**
+- `origin/main` = `05dfccd` (v1.1.293 en producción, verificado por `curl`); la rama `nubes-1` = `05dfccd` + este cierre, para el push a `main` (fast-forward). La rama `panel-arriba-liviano` ya está en `main` (se puede borrar).
+- Árbol limpio y la copia del QA prendida en el puerto 8777 (no toca nada real).
+
+**Próxima revisión cuando:**
+- 🟡 `[NUBES-CATALOGO]` tanda 2 (la próxima tanda) · `[NUBES-HOLMES]`
+- 🟡 `[HUMO-NUBES-1]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~11:10, cierre del panel liviano) — pasó de `CLAUDE.md` al archivo el 18-oct (~11:50, cierre de las nubes 1)
+
+**Última actualización:** **Octubre 18, 2026, ~11:10 (cierre del panel liviano, rama `panel-arriba-liviano`)** — 2 commits sobre el cierre `5641808` (SW **v1.1.290 → v1.1.292**): `6ead159` (v1.1.291, en producción desde ~11:00, subido por Alejo y verificado por `curl`) y `b1d60c5` (v1.1.292, la escalera de decants en «Ajustes»; **se sube con este cierre**: domingo, la perfumería no abre). **Hecho:** `[PANEL-ARRIBA-LIVIANO]`, la opción 1 entera: encabezado de un renglón con la cuenta, el tema y «Salir» en el menú ☰, la hoja «Ajustes» (orden, vista, ocultos, Lista / Compacta y los precios de los decants), el buscador pegado con «↑», Compacta de entrada en el celu y los tips como globitos (NO ROMPER #62). Medido: la lista de Precios arranca a 279 en la tablet parada y en el celu (eran 728 y 844). Nota para el SaaS en `plataforma-saas\PANEL-ARRIBA-LIVIANO_para_CCodeProyectoSaas_2026-10-18.md`. **Próxima tanda:** `[NUBES-CATALOGO]` tanda 1. **Pendientes, en orden:** 🟡 `[NUBES-CATALOGO]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-QA-16-OCT]` · `[HUMO-PISTAS-17-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[STOCK-OCULTO]` (25-oct) · `[LAB-FUNDAMENTOS]` · 🟢 `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (mediodía)».
 
 ### Última actualización del 18-oct-2026 (~10:45, cierre de los días festivos) — pasó de `CLAUDE.md` al archivo el 18-oct (~11:10, cierre del panel liviano)
 

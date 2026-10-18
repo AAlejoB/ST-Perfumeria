@@ -52,6 +52,7 @@ Si una tanda se demora, la 5 sube al 3.er lugar: la temporada fuerte es noviembr
 **Pendiente de Alejo:** pasar los links y las fotos de Telegram con referencias (dijo que las tiene); si son muchas, se abre una sesión aparte con el agente que busca referencias.
 **Tamaño:** L en total (6 × M).
 **Le toca primero a:** 🤖 Claude Code (tanda 1, después de `[PANEL-ARRIBA-LIVIANO]`).
+**Tanda 1 ✅ en producción (18-oct, v1.1.293, `05dfccd`, NO ROMPER #63):** el director y las nubes 1, 3, 5, 6 y 7. Cambió la (1), por decisión de Alejo: «Los probás en El Coliseo, en Comodoro · local 8» (sin «te llegan a casa»). Letra recta y en negrita, sin la Playfair («se nota que es IA»). La (7) guarda el pedido 7 días en el aparato. Falta medirlas (`[NUBES-HOLMES]`) y verlas en un celu (`[HUMO-NUBES-1]`). **Sigue la tanda 2.**
 
 ## [PANEL-CELU-TOSCO] · 💡 idea · 14-oct-2026
 
