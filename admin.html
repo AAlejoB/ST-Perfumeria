@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"/>
   <meta name="robots" content="noindex, nofollow"/>
   <title>ST Admin</title>
   <link rel="icon" type="image/png" href="img/logo-st.webp"/>
@@ -879,6 +879,16 @@
        min-height de 48 ([BADGE-48]) sigue. Sólo acá: Depósito tiene su tabla y no cambia. */
     #tbodyPrecios td.td-stock { height: 1px; }
     #tbodyPrecios .td-stock .badge-stock { height: 100%; }
+    /* [DEPOSITO-EN-PRECIOS] la segunda línea de la badge: lo que hay en el depósito (sólo si hay), en la letra de la badge */
+    #tbodyPrecios .td-stock .badge-stock:has(.badge-dep) { flex-direction: column; gap: 2px; }
+    .badge-dep { display: block; font-size: .56rem; font-weight: 600; letter-spacing: .02em; text-transform: none; opacity: .9; }
+    /* [BUSCAR-ARRIBA] al tacto, mientras se busca, sólo quedan el buscador y la lista (con el teclado abierto no entraba ni un resultado) */
+    @media (pointer: coarse) {
+      .tab-content.buscando .cuadros, .tab-content.buscando .vista-lista, .tab-content.buscando #lblVerPausados,
+      .tab-content.buscando #tipPrecios, .tab-content.buscando #tipDeposito, .tab-content.buscando #preciosTira,
+      .tab-content.buscando label:has(> #chkSoloConDeposito) { display: none !important; }
+      .tab-content.buscando { padding-bottom: 85vh; }   /* lugar para que el buscador suba aunque haya un solo resultado */
+    }
     /* 123j · el precio del decant de diseñador en la fila de su frasco: en la tinta dorada y en negrita. */
     .td-decant-precio { color: var(--amarillo-tinta); font-weight: 700; }
     .td-stock .badge-stock.badge-decant { background: transparent; color: var(--gris-claro); border: 1px solid var(--gris-claro); cursor: default; }
@@ -1170,6 +1180,11 @@
       display: none; align-items: center; justify-content: center; padding: 1rem;
     }
     .modal-overlay.active { display: flex; }
+    /* [TECLADO-NO-TAPA] 18-oct-2026 (Alejo: en la Galaxy parada el teclado «queda medio cortado»): con interactive-widget=resizes-content
+       (meta viewport) Android achica la página al abrir el teclado; la ventana tiene que poder deslizarse en ese espacio. Antes el fondo
+       no se deslizaba y lo que no entraba (el «Guardar») quedaba inalcanzable. margin-block auto centra y, si no entra, arranca arriba. */
+    .modal-overlay { overflow-y: auto; overscroll-behavior: contain; }
+    .modal-overlay.active > .modal-box { margin-top: auto; margin-bottom: auto; }
     .modal-box {
       background: #111; border: 1px solid var(--amarillo); border-radius: 8px;
       padding: 2rem; max-width: 420px; width: 100%; position: relative;
@@ -5396,6 +5411,7 @@
       applyRolePermissions();
       switchTab('inicio', null);   // [PANEL-INICIO] 133a · el panel arranca en Inicio cada vez que se abre (entrar o recargar)
       novedadesPintar();           // [PISTAS] «Lo nuevo del panel» en Inicio, según el rol
+      dispositivoMedir();          // [MEDIR-DISPOSITIVO] una vez por tablet: pantalla, modelo y (al abrirse) el teclado
       hojaInicioPintar();          // [REEMPLAZO-DE-HOJA] «hay días sin cerrar» en el botón del Inicio
       colaArrancar();              // [PANEL-SIN-CONEXION] el cartel y la subida de lo que quedó guardado en esta tablet (antes de las cargas: sin red tardan)
       startInactivityWatcher();
@@ -5467,6 +5483,69 @@
         // El log es secundario. Nunca abortamos la accion real.
         console.warn('[audit log] fallo registrando', action, e);
       }
+    }
+
+    // ============================================================
+    // [MEDIR-DISPOSITIVO] 18-oct-2026 (idea de Alejo: «que el sistema sepa en qué DISPOSITIVOS se usa, para errarle lo menos posible
+    // a las dimensiones»): cada tablet o celu se mide solo, sin preguntarle nada a nadie. Una vez por equipo, el tamaño de la pantalla
+    // y el modelo; y la primera vez que se abre el teclado en cada orientación, cuánto alto deja libre. Va al Log como `dispositivo`
+    // (familia Sistema: lo ve el jefe). Lo ya medido vive en esta tablet (DISP_CLAVE): no se repite. El Laboratorio no mide.
+    // ============================================================
+    var DISP_CLAVE = 'st_dispositivo_medido';
+    var DISP = { escucha: false, libre: {}, timer: null };
+    function dispLeer() { try { return JSON.parse(localStorage.getItem(DISP_CLAVE) || '{}') || {}; } catch (e) { return null; } }
+    function dispGuardar(o) { try { localStorage.setItem(DISP_CLAVE, JSON.stringify(o)); } catch (e) {} }
+    function dispOrientacion() { return window.innerHeight >= window.innerWidth ? 'parada' : 'acostada'; }
+    function dispAlto() { return Math.round(window.visualViewport ? window.visualViewport.height : window.innerHeight); }
+    function dispCampoConTeclado(el) {
+      if (!el) return false;
+      if (el.tagName === 'TEXTAREA' || el.isContentEditable) return true;
+      return el.tagName === 'INPUT' && !/^(checkbox|radio|button|submit|range|color|file|date|time|datetime-local|month)$/i.test(el.type || '');
+    }
+    async function dispositivoMedir() {
+      var hecho = dispLeer(); if (!hecho || currentRole === 'dev') return;   // sin localStorage no se mide: se repetiría en cada entrada
+      if (!hecho.base) {
+        var d = { ancho: window.innerWidth, alto: window.innerHeight, pantalla: screen.width + '×' + screen.height,
+          dpr: window.devicePixelRatio || 1, orientacion: dispOrientacion(), tactil: window.matchMedia('(pointer: coarse)').matches,
+          navegador: String(navigator.userAgent || '').slice(0, 180) };
+        try {   // Chrome en Android esconde el modelo en el userAgent: lo da userAgentData (p. ej. «SM-X110»)
+          if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+            var h = await navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion']);
+            d.modelo = h.model || ''; d.sistema = (navigator.userAgentData.platform || '') + ' ' + (h.platformVersion || '');
+          }
+        } catch (e) {}
+        hecho.base = true; dispGuardar(hecho);
+        logAdminAction('dispositivo', null, d);
+      }
+      if (DISP.escucha || !window.matchMedia('(pointer: coarse)').matches) return;
+      DISP.escucha = true;
+      DISP.libre[dispOrientacion()] = dispAlto();
+      var medir = function() {
+        var o = dispOrientacion(), alto = dispAlto();
+        if (!dispCampoConTeclado(document.activeElement)) { DISP.libre[o] = Math.max(DISP.libre[o] || 0, alto); return; }
+        clearTimeout(DISP.timer);
+        DISP.timer = setTimeout(function() {   // el teclado sube con una animación: se mide cuando se quedó quieto
+          var ya = dispLeer() || {}, alto2 = dispAlto(), libre = DISP.libre[o] || 0;
+          if (ya['teclado_' + o] || !libre || libre - alto2 < 150) return;
+          ya['teclado_' + o] = true; dispGuardar(ya);
+          logAdminAction('dispositivo', null, { orientacion: o, ancho: window.innerWidth, alto_sin_teclado: libre, alto_con_teclado: alto2, teclado: libre - alto2 });
+        }, 700);
+      };
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', medir);
+      window.addEventListener('resize', medir);
+    }
+
+    // [TECLADO-NO-TAPA] 18-oct · al tacto, el campo que se toca queda a la vista arriba del teclado (también adentro de una ventana).
+    // Chrome corre la página solo, pero no siempre el contenido de una ventana con su propio scroll; esto lo completa.
+    function tecladoCampoALaVista() {
+      var el = document.activeElement; if (!dispCampoConTeclado(el)) return;
+      var vv = window.visualViewport, r = el.getBoundingClientRect();
+      var arriba = vv ? vv.offsetTop : 0, abajo = arriba + (vv ? vv.height : window.innerHeight);
+      if (r.bottom > abajo - 16 || r.top < arriba + 8) { try { el.scrollIntoView({ block: 'center' }); } catch (e) {} }
+    }
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      document.addEventListener('focusin', function(ev) { if (dispCampoConTeclado(ev.target)) setTimeout(tecladoCampoALaVista, 350); });
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', function() { setTimeout(tecladoCampoALaVista, 120); });
     }
 
     // ============================================================
@@ -6972,6 +7051,7 @@
       msgEl.style.color = 'var(--tinta-ok)';
       msgEl.textContent = sumar ? ('✓ Guardado · +' + movidas + ' al local') : '✓ Guardado';
       renderDeposito();
+      try { renderPrecios(); } catch (e) {}   // [DEPOSITO-EN-PRECIOS] la badge de Precios & Stock también dice lo del depósito
       setTimeout(function() { closeModal('modalDeposito'); }, MODAL_CIERRE_MS);
     }
 
@@ -7583,7 +7663,9 @@
           // 128n [PANEL-STOCK-CALLA] sin la lectura del stock, «—» gris y sin toque; sin la de los overrides (de ahí salen los precios
           // que cambió el jefe), el precio y el efectivo también: no se muestra el de perfumes.js como si fuera el vigente.
           + (stockCargado
-              ? '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + escHtml(info.badgeText) + '</span></td>'
+              ? '<td class="td-stock"><span class="badge-stock ' + info.badgeClass + '" style="cursor:pointer;user-select:none;" title="Tocá para cambiar el stock" onclick="openStockModal(' + escHtml(JSON.stringify(String(p.slug))) + ')">' + escHtml(info.badgeText)
+                  // [DEPOSITO-EN-PRECIOS] 18-oct (Alejo: «¿tenés el Hawas verde?» obligaba a buscar en Precios y después en Depósito): lo de abajo, en la misma badge
+                  + (typeof p._stockDeposito === 'number' && p._stockDeposito > 0 ? '<small class="badge-dep">+' + p._stockDeposito + ' en depósito</small>' : '') + '</span></td>'
               : '<td class="td-stock"><span class="stock-sin-lectura" title="El stock no se leyó">—</span></td>')
           + (overridesCargado
               ? '<td class="td-price">$' + parsePrice(p.price).toLocaleString('es-AR') + '</td>'
@@ -9158,10 +9240,33 @@
     }
     function busqPerfume(p) { return [p.name, p.marca, p.marca_real, p.alias].join(' '); }   // nombre + marca propia + fabricante + apodos
 
+    // [BUSCAR-ARRIBA] 18-oct-2026 (Alejo, Día de la Madre: «¿tenés el Hawas verde?» con la Galaxy parada). Medido a 600 × 560 (la tablet
+    // parada con el teclado abierto): el buscador de Precios quedaba a 313 px y el primer resultado a 756, DEBAJO del teclado. Al tacto,
+    // mientras se busca (con foco o con texto), la pestaña lleva `.buscando`: se esconden orden, vista, «ocultos», el tip y la tira de
+    // decants (CSS, sólo con `pointer: coarse`), y el buscador sube arriba de la pantalla. Al salir del campo vacío, todo vuelve.
+    var BUSCA_TACTIL = window.matchMedia('(pointer: coarse)');
+    function buscandoSync(tab) {
+      var inp = document.getElementById(tab === 'deposito' ? 'searchDeposito' : 'searchPrecios'), cont = document.getElementById('tab-' + tab);
+      if (!inp || !cont) return;
+      cont.classList.toggle('buscando', BUSCA_TACTIL.matches && (document.activeElement === inp || !!inp.value.trim()));
+    }
+    function buscadorArriba(inp) {
+      if (!BUSCA_TACTIL.matches) return;
+      var y = inp.getBoundingClientRect().top + window.scrollY - 10;
+      window.scrollTo(0, Math.max(0, y));   // sin animación: el teclado ya mueve la pantalla y una animación encima se corta
+    }
+    ['precios', 'deposito'].forEach(function(tab) {
+      var inp = document.getElementById(tab === 'deposito' ? 'searchDeposito' : 'searchPrecios'); if (!inp) return;
+      inp.addEventListener('focus', function() { buscandoSync(tab); setTimeout(function() { buscadorArriba(inp); }, 60); setTimeout(function() { buscadorArriba(inp); }, 400); });
+      inp.addEventListener('blur', function() { setTimeout(function() { buscandoSync(tab); }, 150); });   // el respiro deja tocar una fila antes de que la lista se corra
+      inp.addEventListener('input', function() { buscandoSync(tab); });
+    });
+
     // ============================================================
     // FILTER TABLE
     // ============================================================
     function filterTable(tab) {
+      try { buscandoSync(tab); } catch (e) {}   // [BUSCAR-ARRIBA] también cuando el texto lo pone el código (escáner, «×»)
       var palabras = busqPalabras(document.getElementById('search' + tab.charAt(0).toUpperCase() + tab.slice(1)).value);
       var rows = document.querySelectorAll('#tbody' + tab.charAt(0).toUpperCase() + tab.slice(1) + ' tr');
       rows.forEach(function(row) {
@@ -16798,7 +16903,8 @@
       'hoja_cierre':          { icon: '🧾', label: 'Hoja · cierre del día' },
       'hoja_cierre_tarde':    { icon: '🧾', label: 'Hoja · por qué se cerró tarde' },   // [PANEL-SIN-CONEXION]
       'hoja_cobro':           { icon: '🧾', label: 'Hoja · cobro del resto' },
-      'hoja_borrar':          { icon: '🗑️', label: 'Hoja · borrado' }
+      'hoja_borrar':          { icon: '🗑️', label: 'Hoja · borrado' },
+      'dispositivo':          { icon: '📱', label: 'Dispositivo medido' }   // [MEDIR-DISPOSITIVO] familia Sistema
     };
 
     /* ── [LOG-LEGIBLE] Traducir la jerga de la base al castellano ──
@@ -16975,7 +17081,7 @@
       if (action === 'price_update') return ['precios'];
       // [LOG-SISTEMA-CHIP] Un filtro cuyo trabajo es sacar ruido no puede tener adentro
       // "login 09:02" entre dos ediciones de catálogo: login/logout y los backups van a Sistema.
-      if (action === 'login_success' || action === 'logout' || action === 'backup_create_manual' || action === 'backup_create_auto' || action === 'backup_create_fallback') return ['sistema'];
+      if (action === 'login_success' || action === 'logout' || action === 'backup_create_manual' || action === 'backup_create_auto' || action === 'backup_create_fallback' || action === 'dispositivo') return ['sistema'];
       // [PROMO-DECANTS] 36b · si cambia el precio (del pack o N, que cambia el precio de cada decant), Precios; si no, Catálogo.
       if (action === 'promo_decants_update') { var cp = e.changes; return (cp && typeof cp === 'object' && (cp.precio_pack || cp.n)) ? ['precios'] : ['catalogo']; }
       var c = e.changes, fam = [];
