@@ -6028,9 +6028,73 @@ Dos tandas seguidas en el mismo chat, en el orden que eligió Alejo («arrancá 
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (tarde) · **`[NUBES-CATALOGO]` tanda 3**: el catálogo ayuda mientras mira, y vuelve `search_empty`
+
+La tanda 3 de las nubes («mientras mira»: 13, 14, 15, 16 y 18), en la rama `nubes-3`. Antes de programar salieron dos choques con lo que ya existía: el director daba UNA nube por visita y estas salen después, por lo que hace el cliente; y la (16) pedía anotar el teléfono, cosa que el catálogo no puede hacer en la base desde el 1-oct. Leyendo el buscador apareció un error del 2-oct: lo que buscan sin encontrar no se anotaba más.
+
+#### Qué se hizo
+
+- **`8954a41` · `[NUBES-CATALOGO]` tanda 3 (SW v1.1.296, NO ROMPER #63 k):** un módulo «mientras mira» adentro del director (`js/app.js`, después de `nubesCatalogoListo`), con la misma `mostrar`, la misma memoria (`st_nubes`.mira) y el mismo grupo de control (1 de cada 5). Las tres nubes que flotan:
+  - **(14) `comparar`** · abrió las fichas de dos parecidos (`getMatchPct` de ida y de vuelta ≥ 50, los dos se pueden pedir, no está comparando) → «¿Los comparás?» con los dos nombres; **Comparar** los suma a Comparar y abre la ventana.
+  - **(13) `indeciso`** · 4 fichas distintas y el pedido vacío → «¿No sabés cuál?» · **Hacer el test** abre el test de 4 preguntas (`openJuegos('quiz')`).
+  - **(15) `filtrar`** · más de 3 pantallas bajadas con la lista a la vista, sin tocar nada (salvo «Ver más») y sin filtros → «¿Para el día o para la noche?» · **Filtrar** abre la hoja «Filtros» (< 768) o lleva a Ocasión (≥ 768). Sólo si al frenar la lista sigue a la vista.
+  - Las de las fichas se fijan al cerrar la ficha (`miraFicha`, la llama `openBottomSheet`, mira cada 0,8 s si la ficha sigue abierta: así vale cualquier forma de cerrarla).
+  - **(16) `busqueda`** · no flota: va adentro del aviso «No encontramos…» (`#sinResultadosWa`, `busquedaWa`): «¿Lo buscamos por vos?» + **Preguntar por WhatsApp** con el mensaje ya escrito («Hola, busco *xxx*. ¿Lo tienen o me avisan si lo consiguen?», `api.whatsapp.com`, NO ROMPER #35; `waIntento('busqueda')`, NO ROMPER #56 f). Se mide una vez por visita si el aviso sigue 2 s; el grupo de control se sortea una vez por visita (`st_nube_busq`) y no ve la línea.
+  - **(18)** el ♥ vuela del botón al ♡ del nav, que late al llegar (`favVuela`, junto a `spawnHeartParticles`; CSS `.fav-vuela` / `.fav-llego`). No vuela con «menos movimiento», si alguno de los dos está fuera de la pantalla, ni si la ficha tapa el nav (en la compu es un panel a la derecha). No es una nube ni se mide.
+  - Holmes del panel (`HOLMES_NUBES`, `admin.html`) con los 4 nombres nuevos y el texto «uno al entrar y, como mucho, uno más mientras mira».
+- **`sql/holmes_nubes_mira.sql`, aplicada el 18-oct a la tarde por Claude Code con el MCP de Supabase:** en `holmes_metricas().nubes` una visita cuenta en el grupo de control de una nube si le tocaba **esa** nube y no la vio (`control and not vio`), en vez de «no vio ninguna nube ese día» (`not vio_nube`). Antes se leyó la función de la base (huella `87afac2727b253c38b0399de417396ee`, igual a `sql/holmes_nubes.sql`); el archivo es esa misma con las 4 apariciones cambiadas. Después: 0 apariciones viejas, 4 nuevas, `anon` sin permiso; huella nueva `6518c8d9181573606c76f0e64688edca`. Los ids nuevos no necesitaron nada (`meta.nube` es texto libre). La copia del QA (`scripts/qa-copia/fake-supabase.js`) cuenta igual.
+- **`086284d` · `[SEARCH-EMPTY-VUELVE]` (SW v1.1.297):** 143e (`a9730a0`, 2-oct) había dejado el `trackEvent('search_empty')` de las sugerencias debajo de un `return`. Medido en la base: el último es del **2-oct 21:29** (eran 2.198) y 0 en los 14 días siguientes, así que «Lo que buscan sin encontrar» del panel estaba vacío. Volvió con la misma regla de siempre (3+ letras, 2 s sin escribir, ninguna sugerencia), para comparar con lo viejo; salió el resto del código muerto de ese `return`. Lo buscado entre el 2 y el 18-oct no se recupera.
+- **Probado en la copia del QA** (base de mentira, nada real): las 5 a 375 y 1280, en claro y oscuro, cada botón abre lo suyo, consola sin errores. La (16) en claro: tinta `#1a1a1d` sobre `#e3d6b3`, botón de 44. Holmes de la cuenta de laboratorio con eventos de mentira: una visita que vio «Local cerrado» y era control de `busqueda` cuenta «sin nube 1» (con la regla vieja daba 0). `search_empty`: con 1 s nada, a los 2 s una fila, y una búsqueda con resultados no suma. **Producción verificada por `curl`:** v1.1.296 (`8954a41`) y v1.1.297 (`086284d`, 18:16).
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** «una al llegar + una mirando» (le di dos opciones: ésa, con una línea de SQL para que Holmes compare bien, o una sola por visita como antes). La (16) **por WhatsApp** y no a la lista de espera. Sumar `[SEARCH-EMPTY-VUELVE]` a esta tanda. Aplicar el SQL (venía en la opción que eligió).
+- **La (16) y la lista de espera:** a mitad del trabajo Alejo preguntó si la (16) no podía anotar el teléfono y un nombre en la lista de espera a la vez («¿lo ves lógico? sinceridad !!»). **Le dije que no, ahora no:** el número no está verificado (las chicas le escribirían a un desconocido), haría falta abrir a cualquier visitante una escritura de texto libre en `lista_espera` que se cerró a propósito el 1-oct (NO ROMPER #25) y la lista del panel viejo muere con la mudanza (~26-oct). Alternativa que da casi lo mismo: el WhatsApp ya escrito dice «¿me avisan si lo consiguen?» y la chica lo anota con «+ Anotar del mostrador», que ya acepta lo que no está en el catálogo. Alejo siguió sin repreguntar. Si se quiere de verdad, va en el sistema nuevo, validado en un servidor.
+- **Propuse yo:** que las de «mientras mira» salgan 1 minuto después de la de llegada y una vez por aparato; que la (16) vaya adentro del aviso y no flote (con el teclado abierto, una nube abajo queda tapada); los umbrales (4 fichas, parecidos ≥ 50 de ida y de vuelta, 3 pantallas); que la (14) pida que los dos se puedan pedir (en la prueba propuso comparar uno «NO DISPONIBLE»); que la (15) no salga si el cliente frenó cuando ya pasó la lista (pasó en la prueba: salía en «Categorías»); que la (18) no vuele si la ficha tapa el nav.
+- **Bug de prueba, no del código:** el primer intento de la (14) no salía porque hoy es Día de la Madre y ya había salido el saludo del festivo: la regla del minuto la frenaba, como tiene que ser.
+- **Workarounds de prueba:** con el panel del navegador escondido Chromium no corre animaciones ni manda eventos de `scroll` (medido: 0 eventos en 34 saltos): la (15) se probó despachando `scroll` a mano después de cada `scrollBy({ behavior: 'instant' })` (la página tiene desplazamiento suave y los saltos se pisaban). Por lo mismo el ♥ quedaba colgado: `favVuela` lo borra solo a los 0,9 s. El ♥ en pleno vuelo no se pudo capturar (0,7 s): se midió origen, destino y la clase `fav-llego` del nav.
+- **Fin de línea:** `js/app.js` e `index.html` quedaron con CRLF en la copia de trabajo después de editar (el repo los guarda en LF y `core.autocrlf = true` los normaliza al commit). Un `python` que buscaba texto con `\n` no encontraba nada: hay que normalizar antes de buscar.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[NUBES-CATALOGO]` tanda 3 | El catálogo ayuda mientras mira: «¿Los comparás?», «¿No sabés cuál?», «¿Para el día o para la noche?», «¿Lo buscamos por vos?» y el ♥ que vuela (NO ROMPER #63 k). Las tandas 4 a 6 siguen abiertas |
+| `[SEARCH-EMPTY-VUELVE]` | Lo que buscan sin encontrar vuelve a anotarse (no entraba nada desde el 2-oct) |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[NUBES-CATALOGO]` 🟡 | Tanda 4 (prueba social con datos reales: 19 a 23, con SQL) |
+| `[HUMO-NUBES-1]` 🟡 | Ahora también la tanda 3 en un celu de verdad: abrir 4 fichas, dos parecidos, deslizar sin tocar, buscar algo que no hay y tocar WhatsApp, y ver volar el ♥ |
+| `[NUBES-RESULTADO]` 🟡 | Las 4 nuevas entran en la misma comparación de Holmes de mediados de noviembre |
+
+#### 💬 Mensajes meta
+
+- Alejo propone una idea a mitad del turno y pide sinceridad («¿lo ves lógico? sinceridad !!»): una tabla corta con la contra concreta (el número sin verificar, el agujero que se cerró, la vida útil) y **una alternativa que le da casi lo mismo** alcanzó para que siguiera sin repreguntar. Anotado en `memory/preferencias_alejo.md` (#149).
+- Volvió a subir apenas le di el comando y avisó en el mensaje siguiente («ya pushee»): la verificación por `curl` va al toque, y si Vercel todavía no terminó, se vuelve a mirar al final del cierre.
+
+**Estado del repo al cierre (18-oct, ~18:20):**
+- `origin/main` = `086284d` (v1.1.297 en producción, verificado por `curl` a las 18:16); la rama `nubes-3` = `086284d` + este cierre, para el push a `main` (fast-forward).
+- Árbol limpio y la copia del QA prendida en el puerto 8777 (no toca nada real).
+
+**Próxima revisión cuando:**
+- 🟡 `[NUBES-CATALOGO]` tanda 4 (la próxima tanda; si la temporada aprieta, la 5 de regalo sube al lugar de la 4)
+- 🟡 `[HUMO-NUBES-1]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[HUMO-CARTAS-16-OCT]` · `[HUMO-16-OCT]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct · `[NUBES-RESULTADO]`, mediados de noviembre
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~12:40, cierre de la medición de las nubes y la tanda 2) — pasó de `CLAUDE.md` al archivo el 18-oct (~18:20, cierre de las nubes 3)
+
+**Última actualización:** **Octubre 18, 2026, ~12:40 (cierre de la medición de las nubes y la tanda 2, rama `nubes-2`)** — 2 commits sobre el cierre `4475e79` (SW **v1.1.293 → v1.1.295**, todo en producción, subido por Alejo y verificado por `curl`): `e232d26` (v1.1.294) y `9ec80a0` (v1.1.295). **Hecho:** `[NUBES-HOLMES]`: cada nube queda anotada (cuál salió y si tocaron su botón) y a 1 de cada 5 visitas que les tocaba una no se la mostramos (decisión de Alejo), para saber en Holmes si la nube hace que escriban más; el SQL (`sql/holmes_nubes.sql`) lo apliqué con su OK. `[BIENVENIDA-FESTIVO]`: en un día festivo nadie que llegaba por primera vez veía la bienvenida (error de la tanda 1, arreglado). `[NUBES-CATALOGO]` tanda 2: «Contame» con 3 tarjetas para el que llega por primera vez, «A qué huele» con palabras que se tocan en la ficha, el decant explicado en el armador, «¿Son originales?» y «Te responde una persona del local» en el pedido (NO ROMPER #63 h a j). **Próxima tanda:** `[NUBES-CATALOGO]` tanda 3 (mientras mira). **Pendientes, en orden:** 🟡 `[NUBES-CATALOGO]` · `[HUMO-NUBES-1]` · `[NUBES-RESULTADO]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-QA-16-OCT]` · `[HUMO-PISTAS-17-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[STOCK-OCULTO]` (25-oct) · `[LAB-FUNDAMENTOS]` · 🟢 `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (mediodía, tercera)».
 
 ### Última actualización del 18-oct-2026 (~11:50, cierre de las nubes 1) — pasó de `CLAUDE.md` al archivo el 18-oct (~12:40, cierre de la medición de las nubes y la tanda 2)
 
