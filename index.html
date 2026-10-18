@@ -906,6 +906,11 @@
       <p class="sin-resultados-titulo" id="sinResultadosTitulo"></p>
       <p class="sin-resultados-ayuda">Probá con otra palabra: el nombre, la marca o una nota (vainilla, oud…).</p>
       <button type="button" class="sin-resultados-btn" onclick="borrarBusqueda()">BORRAR LA BÚSQUEDA</button>
+      <!-- [NUBES-CATALOGO] (16) · el link lo arma busquedaWa (js/app.js) con lo escrito; a 1 de cada 5 visitas no se muestra (grupo de control) -->
+      <div class="sin-resultados-wa" id="sinResultadosWa" hidden>
+        <p class="sin-resultados-wa-txt"><b>¿Lo buscamos por vos?</b> Escribinos y te avisamos si lo conseguimos.</p>
+        <a class="sin-resultados-wa-btn" id="sinResultadosWaBtn" href="https://api.whatsapp.com/send?phone=5492975416017" target="_blank" rel="noopener">Preguntar por WhatsApp</a>
+      </div>
     </div>
     <div class="catalog-grid" id="catalogGrid">
       <!-- Skeleton loader: 6 cards fantasma con shimmer mientras renderCatalog corre.

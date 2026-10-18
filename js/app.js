@@ -1570,6 +1570,7 @@
         if (window.pushGestoVisita) window.pushGestoVisita();   // [CELU-RETOQUES] 8 \u00b7 primer gesto: habilita el cartel de notificaciones
         btn.classList.add('liked');
         btn.innerHTML = '\u2665';
+        try { favVuela((event && event.target && event.target.closest && event.target.closest('#bsBtnFav')) || btn); } catch (e) {}   // [NUBES-CATALOGO] (18)
         // \u2764\ufe0f Efecto "pop" al agregar a favoritos
         spawnHeartParticles(btn);
         btn.classList.remove('heart-pop');
@@ -1584,6 +1585,49 @@
     }
 
     // \u2764\ufe0f Spawn de part\u00edculas peque\u00f1as alrededor del coraz\u00f3n al agregar fav
+    // [NUBES-CATALOGO] (18) · 18-oct-2026 · al marcar un favorito, un ♥ sale del botón y vuela al ♡ del nav, que late al llegar: así se
+    // aprende dónde quedan guardados. Sólo si los dos se ven (en la compu la ficha es un panel a la derecha y tapa el nav: ahí no vuela)
+    // y nunca con «menos movimiento». Va por encima de todo (10006) y no se puede tocar.
+    function favVuela(desde) {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var navs = document.querySelectorAll('.nav-fav-btn'), meta = null;
+      for (var i = 0; i < navs.length && !meta; i++) if (navs[i].getClientRects().length) meta = navs[i];
+      if (!desde || !meta || !desde.getClientRects().length) return;
+      var a = desde.getBoundingClientRect(), b = meta.getBoundingClientRect();
+      if (a.width < 1 || b.width < 1 || b.bottom < 0 || a.bottom < 0 || a.top > window.innerHeight) return;   // los dos en la pantalla
+      var bx = b.left + b.width / 2, by = b.top + b.height / 2;
+      var sheet = document.getElementById('bottomSheet'), ov = document.getElementById('bsOverlay');
+      if (ov && ov.classList.contains('active') && sheet) {
+        var s = sheet.getBoundingClientRect();
+        if (bx >= s.left && bx <= s.right && by >= s.top && by <= s.bottom) return;   // el nav queda debajo de la ficha
+      }
+      var ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+      var h = document.createElement('span');
+      h.className = 'fav-vuela';
+      h.setAttribute('aria-hidden', 'true');
+      h.textContent = '♥';
+      h.style.left = ax + 'px';
+      h.style.top = ay + 'px';
+      document.body.appendChild(h);
+      var dx = bx - ax, dy = by - ay;
+      var anim = h.animate ? h.animate([
+        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+        { transform: 'translate(calc(-50% + ' + (dx * 0.5) + 'px), calc(-50% + ' + (dy * 0.5 - 60) + 'px)) scale(1.4)', opacity: 1, offset: 0.45 },
+        { transform: 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(.6)', opacity: .9 }
+      ], { duration: 700, easing: 'cubic-bezier(.4, 0, .2, 1)' }) : null;
+      var listo = false;
+      var llego = function() {
+        if (listo) return;
+        listo = true;
+        h.remove();
+        meta.classList.remove('fav-llego');
+        void meta.offsetWidth;   // re-dispara la animación si marca otro enseguida
+        meta.classList.add('fav-llego');
+        setTimeout(function() { meta.classList.remove('fav-llego'); }, 600);
+      };
+      if (anim) { anim.onfinish = llego; setTimeout(llego, 900); } else llego();   // el respaldo: con la pestaña escondida la animación no termina
+    }
+
     function spawnHeartParticles(btn) {
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       var rect = btn.getBoundingClientRect();
@@ -4035,6 +4079,7 @@
         if (mostrarSinRes) {
           var escrito = (document.getElementById('searchInput').value || '').trim() || currentSearch;
           document.getElementById('sinResultadosTitulo').textContent = 'No encontramos «' + escrito + '»';
+          try { busquedaWa(escrito); } catch (e) {}   // [NUBES-CATALOGO] (16) «¿Lo buscamos por vos?»
           if (gridEl) gridEl.style.display = 'none';
           if (loadWrap) loadWrap.style.display = 'none';
         }
@@ -6993,6 +7038,7 @@
       if (!p) return;
       currentBsSlug = slug;
       trackEvent('ficha_abierta', { slug: slug });   // [HOLMES] todo detalle abierto, venga de donde venga (view_product sigue igual)
+      try { miraFicha(slug); } catch (e) {}   // [NUBES-CATALOGO] (13) y (14): las fichas que miró en esta visita
       pushRecentView(slug);   // 🕐 trackear "visto recientemente"
 
       // SEO/UX: actualizar URL del navegador con ?perfume=slug.
@@ -9120,6 +9166,7 @@
     function turnoTomar(quien) { if (MENSAJE_VISITA.quien) return false; MENSAJE_VISITA.quien = quien; return true; }
     var ESTADO_LOCAL = null;   // lo escribe el horario (calcularEstadoHorario)
     var nubesCatalogoListo = function() {};
+    var miraFicha = function() {}, busquedaWa = function() {};   // [NUBES-CATALOGO] tanda 3: las llenan el director (abajo)
     (function() {
       var CLAVE = 'st_nubes', SES = 'st_nube_ses', TZ = 'America/Argentina/Buenos_Aires';
       var NUBE_CONTROL = 5;   // [NUBES-HOLMES] 1 de cada 5 visitas con nube es del grupo de control (no la ve)
@@ -9272,4 +9319,152 @@
         corrio = true;
         setTimeout(function() { intentar(conDatos, 0); }, 1500);
       };
+
+      // ----------------------------------------------------------
+      // [NUBES-CATALOGO] tanda 3 · mientras mira (18-oct-2026). Decisión de Alejo: «una al llegar + una mirando». Aparte de la nube de
+      // llegada sale, como mucho, UNA de éstas por visita (sessionStorage `st_nube_mira_ses`), nunca junto a otra y con al menos 1 minuto
+      // después de la de llegada (o del saludo del festivo). Cada una sale UNA vez por aparato (`st_nubes`.mira) y se mide igual que las
+      // de llegada (nube_vista / nube_tocada, 1 de cada NUBE_CONTROL sin nube). Lo que dispara cada una:
+      //   (14) 'comparar' · abrió las fichas de dos perfumes parecidos (getMatchPct de ida y de vuelta >= 50) y no está comparando
+      //   (13) 'indeciso' · abrió 4 fichas distintas y el pedido sigue vacío → el test de 4 preguntas (ya existía, en los juegos)
+      //   (15) 'filtrar'  · deslizó más de 3 pantallas por la lista sin tocar nada y sin ningún filtro prendido
+      // Las tres se fijan cuando no hay nada abierto (OCUPADO): las de las fichas, al cerrar la ficha. La (16) no es una nube que flota
+      // (con el teclado abierto quedaría tapada): va en el aviso «No encontramos…» (`busquedaWa`, más abajo) y se mide con el mismo id.
+      var MIRA_SES = 'st_nube_mira_ses', MIRA = { fichas: [], vigia: 0, t: 0, baja: 0, y: 0, desde: Date.now() };
+      function miraPuede() {
+        try { if (sessionStorage.getItem(SES) !== '1' || sessionStorage.getItem(MIRA_SES) === '1') return false; } catch (e) { return false; }   // el director ya decidió la de llegada
+        if (Date.now() - MIRA.desde < 20000) return false;
+        if (Date.now() < MENSAJE_VISITA.hasta + (MENSAJE_VISITA.quien ? 54000 : 0)) return false;   // `hasta` = se fue + 6 s: 1 minuto después
+        return !document.querySelector(OCUPADO + ', .nube');
+      }
+      function miraMostrar(nube) {
+        var n = leer();
+        if (!n) return;
+        n.mira = n.mira || {};
+        n.mira[nube.id] = 1;
+        guardar(n);
+        try { sessionStorage.setItem(MIRA_SES, '1'); } catch (e) {}
+        MENSAJE_VISITA.quien = MENSAJE_VISITA.quien || 'mira';
+        MIRA.fin = true;   // en esta visita ya no sale otra: el scroll deja de medir
+        var control = Math.random() < 1 / NUBE_CONTROL;   // [NUBES-HOLMES] igual que las de llegada
+        nubeEvento('nube_vista', nube.id, control);
+        if (!control) mostrar(nube);
+      }
+      function yaSalio(id) { var n = leer(); return !n || !!(n.mira && n.mira[id]); }
+      function parecidos(a, b) {
+        if (!a || !b || a.esSet || b.esSet || !sePuedePedir(a) || !sePuedePedir(b) || !getNotas(a).length || !getNotas(b).length) return false;   // los dos se pueden pedir: es para elegir
+        return getMatchPct(a, b) >= 50 && getMatchPct(b, a) >= 50;
+      }
+      function miraFichas() {
+        if (!miraPuede()) return;
+        var f = MIRA.fichas, ult = perfume(f[f.length - 1]);
+        // (14) dos parecidos: el último que miró con el más reciente de antes que se le parezca
+        if (f.length >= 2 && !compareList.length && !yaSalio('comparar')) {
+          var otro = null;
+          for (var i = f.length - 2; i >= 0 && !otro; i--) { var q = perfume(f[i]); if (parecidos(ult, q)) otro = q; }
+          if (otro) {
+            var a = otro, b = ult;
+            miraMostrar({ id: 'comparar', titulo: '¿Los comparás?',
+              sub: nombreFrase(a.name) + ' y ' + nombreFrase(b.name) + ' tienen notas parecidas. Miralos lado a lado.',
+              boton: 'Comparar', accion: function() {
+                [a.slug, b.slug].forEach(function(s) {
+                  if (compareList.indexOf(s) !== -1) return;
+                  if (compareList.length >= COMPARE_MAX) compareList.shift();
+                  compareList.push(s);
+                  var btn = document.querySelector('[data-slug="' + s + '"] .compare-btn');
+                  if (btn) btn.classList.add('active');
+                });
+                updateCompareBar();
+                openCompareModal();
+              } });
+            return;
+          }
+        }
+        // (13) cuatro fichas y nada en el pedido
+        if (f.length >= 4 && !cart.length && !yaSalio('indeciso')) {
+          miraMostrar({ id: 'indeciso', titulo: '¿No sabés cuál?', sub: 'Respondé 4 preguntas y te recomendamos 3.',
+            boton: 'Hacer el test', accion: function() { openJuegos('quiz'); } });
+        }
+      }
+      // La llama openBottomSheet. Se fija al cerrar la ficha (cualquier forma: ✕, deslizar, «atrás»), mirando cada 0,8 s si sigue abierta.
+      miraFicha = function(slug) {
+        if (MIRA.fichas.indexOf(slug) === -1) MIRA.fichas.push(slug);
+        if (MIRA.vigia) return;
+        MIRA.vigia = setInterval(function() {
+          if (document.querySelector('#bsOverlay.active')) return;
+          clearInterval(MIRA.vigia); MIRA.vigia = 0;
+          clearTimeout(MIRA.t);
+          MIRA.t = setTimeout(miraFichas, 900);
+        }, 800);
+      };
+      // (15) deslizar mucho sin tocar: cuenta lo bajado mientras la lista está a la vista; un toque (salvo «Ver más») vuelve a cero.
+      function algoPrendido() {
+        var bar = document.getElementById('activeFiltersBar');
+        return !!currentOccasion || !!(bar && bar.style.display !== 'none');
+      }
+      function miraFiltrar() {
+        if (MIRA.baja < 3 * window.innerHeight || algoPrendido() || yaSalio('filtrar') || !miraPuede()) return;
+        var g = document.getElementById('catalogGrid'), rg = g && g.getBoundingClientRect();
+        if (!rg || rg.bottom < window.innerHeight / 2) return;   // frenó cuando ya pasó la lista: ahí no ayuda (vuelve a contar si sube y sigue)
+        var oc = document.querySelector('.occasion-wrap');
+        if (!oc && window.innerWidth >= 768) return;
+        miraMostrar({ id: 'filtrar', titulo: '¿Para el día o para la noche?', sub: 'Filtrá por ocasión y la lista se achica.',
+          boton: 'Filtrar', accion: function() {
+            if (window.innerWidth < 768) abrirFiltrosHoja();
+            else if (oc) oc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } });
+      }
+      window.addEventListener('scroll', function() {
+        if (MIRA.fin) return;
+        var y = window.scrollY, d = y - MIRA.y;
+        MIRA.y = y;
+        if (d <= 0) return;
+        if (MIRA.fin === undefined) MIRA.fin = yaSalio('filtrar') || (function() { try { return sessionStorage.getItem(MIRA_SES) === '1'; } catch (e) { return true; } })();
+        if (MIRA.fin) return;
+        var g = document.getElementById('catalogGrid');
+        if (!g) return;
+        var r = g.getBoundingClientRect();
+        if (r.top > window.innerHeight || r.bottom < 0) return;
+        MIRA.baja += d;
+        clearTimeout(MIRA.t);
+        MIRA.t = setTimeout(miraFiltrar, 700);   // cuando deja de deslizar
+      }, { passive: true });
+      document.addEventListener('click', function(e) {
+        if (e.target && e.target.closest && e.target.closest('#loadMoreBtn')) return;
+        MIRA.baja = 0;
+      }, true);
+
+      // (16) buscó algo que no hay: en el aviso «No encontramos…», «¿Lo buscamos por vos?» con WhatsApp y el mensaje ya escrito (decisión
+      // de Alejo: WhatsApp y no la lista de espera, que sólo anota el panel, NO ROMPER #25). Sale cada vez que aparece el aviso (no gasta
+      // el turno de la visita: no flota) y se mide una vez por visita: `nube_vista` si el aviso sigue 2 s (no al pasar mientras escribe),
+      // con el grupo de control decidido una vez por visita (`st_nube_busq`: 'v' la ve, 'c' no). Sin sessionStorage se ve y no se mide.
+      var BUSQ_SES = 'st_nube_busq', BUSQ = { t: 0, medido: false, grupo: undefined };
+      busquedaWa = function(escrito) {
+        var caja = document.getElementById('sinResultadosWa'), btn = document.getElementById('sinResultadosWaBtn');
+        if (!caja || !btn) return;
+        clearTimeout(BUSQ.t);
+        escrito = String(escrito || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+        if (escrito.length < 3) { caja.hidden = true; return; }
+        if (BUSQ.grupo === undefined) {   // una vez por visita: 'v' la ve, 'c' es del grupo de control, null = sin sessionStorage (se ve, no se mide)
+          try {
+            BUSQ.grupo = sessionStorage.getItem(BUSQ_SES);
+            if (BUSQ.grupo !== 'v' && BUSQ.grupo !== 'c') { BUSQ.grupo = Math.random() < 1 / NUBE_CONTROL ? 'c' : 'v'; sessionStorage.setItem(BUSQ_SES, BUSQ.grupo); }
+          } catch (e) { BUSQ.grupo = null; }
+        }
+        caja.hidden = BUSQ.grupo === 'c';
+        btn.href = 'https://api.whatsapp.com/send?phone=5492975416017&text=' + encodeURIComponent('Hola, busco ' + escrito + '. ¿Lo tienen o me avisan si lo consiguen?');
+        if (!BUSQ.grupo || BUSQ.medido) return;
+        BUSQ.t = setTimeout(function() {
+          var aviso = document.getElementById('sinResultados');
+          if (!aviso || aviso.style.display === 'none') return;
+          BUSQ.medido = true;
+          try { if (sessionStorage.getItem('st_nube_busq_vista') === '1') return; sessionStorage.setItem('st_nube_busq_vista', '1'); } catch (e) { return; }
+          nubeEvento('nube_vista', 'busqueda', BUSQ.grupo === 'c');
+        }, 2000);
+      };
+      document.addEventListener('click', function(e) {
+        if (!e.target || !e.target.closest || !e.target.closest('#sinResultadosWaBtn')) return;
+        waIntento('busqueda');
+        nubeEvento('nube_tocada', 'busqueda');
+      });
     })();

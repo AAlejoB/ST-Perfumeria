@@ -10692,3 +10692,20 @@
       .pv-tarjeta { flex: none; }
       .pv-desliza { display: none; }
     }
+
+    /* [NUBES-CATALOGO] tanda 3 · mientras mira (18-oct-2026). Las nubes (13), (14) y (15) usan la misma `.nube` de la tanda 1.
+       (16) «¿Lo buscamos por vos?» va adentro del aviso «No encontramos…»: separada por una raya, el botón en el verde de WhatsApp con la
+       letra que pide ese fondo (negra, igual en los dos temas: regla 19) y 44 de alto. `.sin-resultados .…` por lo mismo que el título (0,2,0). */
+    .sin-resultados-wa { margin-top: 1.6rem; padding-top: 1.4rem; border-top: 1px solid var(--borde, rgba(128,128,128,.25)); }
+    .sin-resultados-wa[hidden] { display: none; }
+    .sin-resultados .sin-resultados-wa-txt { font-size: 14px; line-height: 1.5; color: var(--blanco); margin: 0 0 1rem; text-wrap: pretty; }
+    .sin-resultados-wa-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 1.4rem;
+      border-radius: 8px; background: #25D366; color: #000; font: 700 .85rem/1 var(--font-body); text-decoration: none; }
+    .sin-resultados-wa-btn:focus-visible { outline: 2px solid var(--amarillo); outline-offset: 2px; }
+
+    /* (18) el ♥ que vuela al ♡ del nav al marcar un favorito, y el nav que late al llegar. Sin «menos movimiento» no corre (lo frena el JS). */
+    .fav-vuela { position: fixed; z-index: 10006; pointer-events: none; font-size: 26px; line-height: 1; color: #e74c3c;
+      transform: translate(-50%, -50%); text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+    .nav-fav-btn.fav-llego .nav-fav-wrap { animation: favLlego .55s ease; }
+    @keyframes favLlego { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+    @media (prefers-reduced-motion: reduce) { .nav-fav-btn.fav-llego .nav-fav-wrap { animation: none; } }
