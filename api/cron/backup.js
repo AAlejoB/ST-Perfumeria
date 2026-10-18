@@ -56,6 +56,7 @@ const BACKUP_TABLES = [
   'puntos_config',            // [PUNTOS-LOG] la regla de puntos (una fila)
   'perfume_codigos',          // [ESCANER] 163 · código de barras -> perfume (sin lectura pública; el cron lo trae con la clave de servicio)
   'caja_movimientos',         // [REEMPLAZO-DE-HOJA] la hoja de caja (sin lectura pública: hay plata adentro; el cron la trae con la clave de servicio)
+  'vendedores',               // [QUIEN-VENDIO] los nombres de la hoja (sin lectura pública; igual que BACKUP_TABLES de admin.html)
   // Data de negocio
   'clientes',
   'opiniones',

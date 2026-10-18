@@ -68,6 +68,8 @@
       { id: uuid(), creado_en: iso(ahora - 2 * 3600000), dia: hoy, tipo: 'nota', detalle: 'apagar luz vidriera', efectivo: 0, mp: 0, posnet: 0, items: [], creado_por: EMP, anulado_en: null, anulado_por: null, debe: 0, debe_quien: null, saldado_en: null, saldado_por: null, salda_a: null, sin_conexion: false }];
     T.ventas = [];
     T.stock_movimientos = [];
+    // [QUIEN-VENDIO] sql/caja_vendedor.sql: los nombres de la hoja (las dos cuentas leen, suman y esconden; sin lectura pública)
+    T.vendedores = ['Sofía', 'Angelina', 'Pinky', 'Barria'].map(function (n, i) { return { id: uuid(), nombre: n, activo: true, creado_por: 'alejo', creado_en: iso(ahora - (10 - i) * 1000) }; });
     // el log: stock y precios de hoy, para que el Resumen y el Log tengan qué mostrar
     T.admin_actions = [];
     function act(h, who, action, slug, ch) { T.admin_actions.push({ id: uuid(), created_at: iso(ahora - h * 3600000), actor_email: who, actor_role: who === JEFE ? 'jefe' : 'empleado', action: action, target_slug: slug, changes: ch }); }
@@ -102,7 +104,7 @@
 
   // ── reglas de acceso (RLS) simplificadas, las de producción para las tablas que importan ──
   var JEFE_SOLO = { decants_config: ['insert', 'update', 'delete'], marcas_costo: ['select', 'insert', 'update', 'delete'], perfumes_costo: ['select', 'insert', 'update', 'delete'], costos_config: ['select', 'insert', 'update', 'delete'], admin_backups: ['insert'], caja_movimientos: ['delete'] };
-  var SOLO_STAFF = { caja_movimientos: 1, ventas: 1, perfume_codigos: 1, stock_movimientos: 0 };
+  var SOLO_STAFF = { caja_movimientos: 1, ventas: 1, perfume_codigos: 1, stock_movimientos: 0, vendedores: 1 };
   function acceso(tabla, op, row) {   // devuelve 'ok' | 'vacio' (la base calla y no toca nada) | error
     var e = email(), staff = esStaff(e);
     if (JEFE_SOLO[tabla] && JEFE_SOLO[tabla].indexOf(op) !== -1 && e !== JEFE) return op === 'insert' ? { error: err('42501', 'new row violates row-level security policy for table "' + tabla + '"') } : 'vacio';
@@ -129,6 +131,12 @@
     if (conIdNum.indexOf(tabla) !== -1 && r.id == null) { ID_NUM[tabla] = Math.max(ID_NUM[tabla] || 0, T.reduce(function (m, x) { return Math.max(m, Number(x.id) || 0); }, 0)) + 1; r.id = ID_NUM[tabla]; }
     if (['admin_actions', 'analytics_events', 'perfume_clicks', 'puntos_log'].indexOf(tabla) !== -1 && r.id == null) r.id = uuid();
     if (r.created_at === undefined && ['admin_actions', 'analytics_events', 'perfume_clicks', 'edit_log', 'opiniones', 'lista_espera', 'clientes', 'puntos_log', 'admin_backups', 'password_reset_requests', 'perfumes_nuevos', 'combos', 'announcements', 'home_top_banner'].indexOf(tabla) !== -1) r.created_at = iso(Date.now());
+    if (tabla === 'vendedores') {   // [QUIEN-VENDIO] id, activo y creado_* por defecto
+      if (r.id == null) r.id = uuid();
+      if (r.activo === undefined) r.activo = true;
+      if (r.creado_por === undefined) r.creado_por = e;
+      if (r.creado_en === undefined) r.creado_en = iso(Date.now());
+    }
     if (tabla === 'caja_movimientos') {
       if (r.creado_en === undefined) r.creado_en = iso(Date.now());
       if (r.dia === undefined) r.dia = hoyART();
@@ -173,6 +181,7 @@
     if (tabla === 'lista_espera' && op === 'insert') { var lib = String(r.slug || '').indexOf('libre:') === 0; if (lib !== !!r.libre || (r.libre && (r.origen !== 'local' || String(r.perfume_name || '').length < 3 || String(r.perfume_name || '').length > 60))) return err('23514', 'new row for relation "lista_espera" violates check constraint "lista_espera_libre_check"'); if (['web', 'local'].indexOf(r.origen || 'web') === -1) return err('23514', 'violates check constraint "lista_espera_origen_check"'); }
     var UNICOS = { perfumes_nuevos: 'slug', combos: 'slug', destacados: 'slug', cierres_especiales: 'fecha' };
     if (UNICOS[tabla] && op === 'insert' && T.some(function (x) { return x[UNICOS[tabla]] === r[UNICOS[tabla]]; })) return err('23505', 'duplicate key value violates unique constraint "' + tabla + '_' + UNICOS[tabla] + '_key"');
+    if (tabla === 'vendedores' && op === 'insert' && T.some(function (x) { return String(x.nombre).trim().toLowerCase() === String(r.nombre || '').trim().toLowerCase(); })) return err('23505', 'duplicate key value violates unique constraint "vendedores_nombre_uniq"');   // [QUIEN-VENDIO]
     if (tabla === 'perfume_codigos' && op === 'insert') {
       if (!/^[0-9]{8}$|^[0-9]{13}$/.test(String(r.codigo))) return err('23514', 'new row for relation "perfume_codigos" violates check constraint');
       if (T.some(function (x) { return x.codigo === r.codigo; })) return err('23505', 'duplicate key value violates unique constraint "perfume_codigos_pkey"');
@@ -422,6 +431,16 @@
         logAccion('hoja_cierre', null, { dia: dia, renglones: cuenta, perfumes: plan });
       }
       return { data: { dia: dia, aplicado: aplicar, plan: plan, renglones: cuenta, senas: senas, ya_bajados: yab }, error: null };
+    },
+    caja_vendedor: function (a) {   // [QUIEN-VENDIO] sql/caja_vendedor.sql
+      var n = noAut(); if (n) return n;
+      var nom = String(a.p_vendedor == null ? '' : a.p_vendedor).trim() || null;
+      if (nom && nom.length > 40) return { data: null, error: err('22001', 'El nombre es muy largo') };
+      var fl = QA.db.caja_movimientos.filter(function (x) { return x.id === a.p_id && x.tipo === 'venta'; })[0];
+      if (!fl) return { data: 'no', error: null };
+      fl.vendedor = nom;
+      QA.db.ventas.forEach(function (v) { if (v.caja_id === a.p_id) v.vendedor = nom || fl.creado_por; });
+      return { data: 'ok', error: null };
     },
     caja_tachar: function (a) {
       var n = noAut(); if (n) return n;
