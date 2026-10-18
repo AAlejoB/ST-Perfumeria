@@ -1495,6 +1495,26 @@
     .hv-carro-fila:last-child { border-bottom: none; }
     .hv-mas-menos { display: inline-flex; gap: .35rem; flex: 0 0 auto !important; }   /* [VENTA-RAPIDA] − y + en «¿Cómo pagó?» */
     .hv-mas-menos .hv-quitar { width: 44px; height: 44px; font-weight: 700; }
+    /* [BAJO-AL-DEPOSITO] 18-oct · la lista para subir del depósito: fila grande que se tilda + − N + */
+    .bajo-btn-dep { margin: 0 0 1rem; }
+    .bajo-box { max-width: 560px; }
+    .bajo-grupo { margin-top: 1rem; }
+    .bajo-fila { display: flex; align-items: center; gap: .5rem; border: 1px solid var(--borde); border-radius: 10px; padding: .25rem .4rem .25rem .25rem; margin-bottom: .45rem; }
+    .bajo-fila.agarrado { border-color: var(--amarillo); background: rgba(232,184,0,.08); }
+    .bajo-tilde { flex: 1; min-width: 0; display: flex; align-items: center; gap: .65rem; min-height: 60px; padding: .35rem .4rem; background: none; border: none; color: inherit; font-family: inherit; text-align: left; cursor: pointer; }
+    .bajo-check { flex: 0 0 28px; width: 28px; height: 28px; border: 2px solid var(--gris); border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-weight: 900; color: #000; }
+    .bajo-fila.agarrado .bajo-check { background: var(--amarillo); border-color: var(--amarillo); }
+    .bajo-txt { min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
+    .bajo-txt b { font-size: .95rem; overflow-wrap: anywhere; }
+    .bajo-txt small { font-size: .72rem; color: var(--gris); }
+    .bajo-cant { display: inline-flex; align-items: center; gap: .35rem; flex: 0 0 auto; }
+    .bajo-cant b { min-width: 1.6rem; text-align: center; font-size: 1.05rem; }
+    .bajo-cant .hv-quitar { width: 44px; height: 44px; font-weight: 700; }
+    .bajo-otro { margin-top: 1rem; }
+    .bajo-otro .modal-input { margin-bottom: .4rem; }
+    .bajo-msg { color: var(--tinta-error); }
+    .bajo-pie { position: sticky; bottom: -1rem; background: inherit; padding: .7rem 0 .2rem; margin-top: .6rem; }
+    .bajo-pie .hv-listo { width: 100%; }
     /* [QUIEN-VENDIO] [CAMBIO] [CUADRAR-CAJA] [OTRA-IGUAL] [BUSCAR-EN-LA-HOJA] 18-oct */
     .hv-vend { flex-wrap: wrap; }
     .hv-vend .cuadros { flex-wrap: wrap; }
@@ -3331,6 +3351,8 @@
     <div class="tab-content active" id="tab-inicio">
       <!-- [LLEGO-MERCADERIA] paso 3 · botón fijo, para las dos cuentas -->
       <button type="button" class="inicio-merc" onclick="mercAbrir()"><span class="inicio-merc-ico" aria-hidden="true">&#128230;</span><span><b>Llegó mercadería</b><small>Cargá el pedido: escaneás y se suma</small></span></button>
+      <!-- [BAJO-AL-DEPOSITO] 18-oct · la lista de lo que hay que subir al local (las dos cuentas) -->
+      <button type="button" class="inicio-merc inicio-hoja inicio-bajo" onclick="bajoAbrir()"><span class="inicio-merc-ico" aria-hidden="true">&#11014;&#65039;</span><span><b>Bajo al depósito</b><small>La lista de lo que hay que subir al local</small></span></button>
       <!-- [REEMPLAZO-DE-HOJA] el segundo botón fijo: la hoja de caja; mismo .click() sobre el menú que los 4 de abajo (#21) -->
       <button type="button" class="inicio-merc inicio-hoja" onclick="irDesdeInicio('hoja')"><span class="inicio-merc-ico" aria-hidden="true">&#129534;</span><span><b>Reemplazo de hoja</b><small id="inicioHoja">Anotá lo que se vendió hoy: efectivo, MP y Posnet</small></span></button>
       <div class="inicio-grid">
@@ -3457,6 +3479,7 @@
         </button>
       </div>
       <p class="stat-filtro-nota" id="depFiltroNota" hidden></p>
+      <button type="button" class="inicio-merc inicio-hoja inicio-bajo bajo-btn-dep" onclick="bajoAbrir()"><span class="inicio-merc-ico" aria-hidden="true">&#11014;&#65039;</span><span><b>Bajo al depósito</b><small>Qué subir al local: lo que se terminó, lo que se vendió hoy y lo que queda poco</small></span></button>   <!-- [BAJO-AL-DEPOSITO] -->
 
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem;align-items:center;flex-wrap:wrap;">
         <input type="text" class="admin-search" id="searchDeposito" placeholder="Buscar por nombre, fabricante o apodo..." oninput="filterTable('deposito')" style="margin-bottom:0;flex:1;min-width:180px;"/>
@@ -4474,7 +4497,7 @@
       <div class="hoja-cierre" id="hojaCierre"></div>   <!-- [REEMPLAZO-DE-HOJA] sesión 2 · «Cierre del día»: acá se ve lo que falta bajar, la lista previa y el resultado -->
       <!-- [BUSCAR-EN-LA-HOJA] filtra los renglones del día; «Buscar en 30 días» trae los del mes -->
       <div class="hoja-busca"><input type="search" id="hojaBuscaTxt" class="modal-input" placeholder="&#128269; Buscar en la hoja: perfume o quién vendió" autocomplete="off" aria-label="Buscar en la hoja" oninput="hojaBuscaHoja(this.value)"/>
-        <button type="button" class="hoja-busca-30" onclick="hojaBuscar30()">Buscar en 30 días</button></div>
+        <button type="button" class="hoja-busca-30" onclick="hojaBuscar30()">Buscar en el último mes</button></div>
       <div id="hojaBusca30"></div>
       <div class="hoja-lista" id="hojaLista"></div>
     </div>
@@ -7303,11 +7326,12 @@
         html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
     ];
     var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
+      { id: 'n18-bajo', fecha: '18-oct', texto: '«Bajo al depósito»: la lista de lo que falta arriba. Tildás lo que agarrás y lo subís todo al local con un toque', ir: 'deposito' },
       { id: 'n18-quien', fecha: '18-oct', texto: 'Al cobrar, tocá tu nombre: queda quién vendió cada venta y en la hoja ves «Lo de cada una»', ir: 'hoja' },
       { id: 'n18-rapida', fecha: '18-oct', texto: 'Vender es más rápido: tocás el perfume y vas directo a cómo pagó. La cantidad se cambia con − y +', ir: 'hoja' },
       { id: 'n18-otra', fecha: '18-oct', texto: '«Otra igual» copia una venta en un toque, y arriba de la lista podés buscar en la hoja', ir: 'hoja' },
       { id: 'n18-cambio', fecha: '18-oct', texto: 'Botón «Cambio»: el perfume roto, fallado o vacío queda de probador y se cobra la diferencia', ir: 'hoja' },
-      { id: 'n18-caja', fecha: '18-oct', texto: '«Cuadrar la caja»: ponés cuánto hay en el cajón y te dice si falta o sobra', ir: 'hoja' },
+      { id: 'n18-caja', fecha: '18-oct', texto: '«Contar la plata»: escribís cuánta plata hay en el cajón y te dice si falta o sobra', ir: 'hoja' },
       { id: 'n18-deposito', fecha: '18-oct', texto: 'Precios & Stock ya dice cuántos hay en el depósito, y al buscar el teclado no tapa los resultados', ir: 'precios' },
       { id: 'n16-sin-stock', fecha: '16-oct', texto: 'Cuando un perfume se termina en el local, abajo te avisa si hay en el depósito y lo pasás con un toque' },
       { id: 'n16-fotos', fecha: '16-oct', texto: 'Las fotos se agrandan: tocá la miniatura o mantené apretada cualquier foto', ir: 'precios' },
@@ -9925,6 +9949,161 @@
         deshacerToast({ aviso: true, ico: '!', ms: 10000, texto: 'Se terminó ' + nombre + ' en el local',
           sub: 'No hay en el depósito: hay que pedirlo' + (esp ? ' · ' + stockCeroQuien(esp) : '') });
       }
+    }
+    // ============================================================
+    // [BAJO-AL-DEPOSITO] 18-oct-2026 (Alejo: Santi baja al depósito y elige «de memoria» lo que voló en el día). El panel ya sabe qué falta
+    // arriba: arma la lista en tres grupos, siempre con stock abajo y sin los ocultos: «Se terminó arriba» (0 en el local), «Se vendió hoy»
+    // (frascos que se llevaron, de la hoja de hoy) y «Quedan pocos arriba» (1 o 2). Se tilda lo que se agarra, con la cantidad (sugerida: lo
+    // vendido hoy, o 1), y «¿Otro perfume?» suma uno que no esté. Al volver, UN botón lo pasa todo al local con stockMover (del depósito,
+    // «pasan al local»: el mismo camino que «Pasar 1», también sin internet) y sale el aviso con DESHACER (NO ROMPER #39). Lo tildado se
+    // guarda en este aparato (st_bajo, por día) por si se bloquea abajo. «Arriba» = el local y «abajo» = el depósito: las palabras de Santi.
+    // ============================================================
+    var BAJO = { sel: {}, vendHoy: {}, extra: [], busca: '', subiendo: false, leyoHoja: null, msg: '' };
+    function bajoGuardar() { try { localStorage.setItem('st_bajo', JSON.stringify({ dia: resumenHoyART(), sel: BAJO.sel, extra: BAJO.extra })); } catch (e) {} }
+    function bajoLeer() {
+      try { var o = JSON.parse(localStorage.getItem('st_bajo') || 'null'); if (o && o.dia === resumenHoyART()) { BAJO.sel = o.sel || {}; BAJO.extra = o.extra || []; return; } } catch (e) {}
+      BAJO.sel = {}; BAJO.extra = [];
+    }
+    function bajoPerfume(slug) { return PERFUMES.find(function(pf) { return pf.slug === slug; }); }
+    function bajoArriba(p) { return typeof p._stockQty === 'number' ? p._stockQty : null; }
+    async function bajoAbrir() {
+      var ov = document.getElementById('modalBajo');
+      if (!ov) {
+        ov = document.createElement('div'); ov.className = 'modal-overlay'; ov.id = 'modalBajo';
+        ov.innerHTML = '<div class="modal-box merc-box bajo-box"><button class="modal-close" onclick="bajoCerrar()" aria-label="Cerrar">&times;</button><div id="bajoCuerpo"></div></div>';
+        document.body.appendChild(ov);
+      }
+      bajoLeer(); BAJO.busca = ''; BAJO.msg = ''; BAJO.leyoHoja = null;
+      ov.classList.add('active');
+      bajoPintar();
+      var hoy = resumenHoyART(), v = {};
+      var cuenta = function(f) { if (!f || f.anulado_en || f.tipo !== 'venta') return; (f.items || []).forEach(function(it) { if (it && it.slug && it.llevar !== false) v[it.slug] = (v[it.slug] || 0) + (Number(it.qty) || 1); }); };
+      var r = await colaConTope(function() { return sb.from('caja_movimientos').select('tipo, items, anulado_en').eq('tipo', 'venta').eq('dia', hoy); });
+      if (!r.error) (r.data || []).forEach(cuenta);
+      colaLeer().forEach(function(x) { if (x.tipo === 'caja' && x.fila && x.fila.dia === hoy) cuenta(x.fila); });   // lo que se vendió sin internet
+      BAJO.vendHoy = v; BAJO.leyoHoja = !r.error;
+      bajoPintar();
+    }
+    function bajoCerrar() { var ov = document.getElementById('modalBajo'); if (ov) ov.classList.remove('active'); }
+    function bajoListas() {
+      var g1 = [], g2 = [], g3 = [], en = {};
+      PERFUMES.forEach(function(p) {
+        if (!p || p.esSet || depQty(p) <= 0 || p._stockStatus === 'pausado') return;
+        var l = bajoArriba(p), v = BAJO.vendHoy[p.slug] || 0;
+        if (l === 0) g1.push(p); else if (v > 0) g2.push(p); else if (l !== null && l <= 2) g3.push(p); else return;
+        en[p.slug] = 1;
+      });
+      var nom = function(a, b) { return String(a.name).localeCompare(String(b.name)); };
+      g1.sort(function(a, b) { return (stockCeroEsperan(b.slug) - stockCeroEsperan(a.slug)) || nom(a, b); });
+      g2.sort(function(a, b) { return ((BAJO.vendHoy[b.slug] || 0) - (BAJO.vendHoy[a.slug] || 0)) || nom(a, b); });
+      g3.sort(function(a, b) { return (bajoArriba(a) - bajoArriba(b)) || nom(a, b); });
+      var g4 = BAJO.extra.filter(function(sl) { return !en[sl]; }).map(bajoPerfume).filter(Boolean);
+      return [['Se terminó arriba', g1], ['Se vendió hoy', g2], ['Quedan pocos arriba', g3], ['Otros que sumaste', g4]];
+    }
+    function bajoSugerido(p) { var v = BAJO.vendHoy[p.slug] || 0; return Math.max(1, Math.min(depQty(p), v || 1)); }
+    function bajoFilaHTML(p) {
+      var s = BAJO.sel[p.slug], tiene = !!(s && s.ok), n = s ? s.n : bajoSugerido(p), dep = depQty(p), l = bajoArriba(p), v = BAJO.vendHoy[p.slug] || 0, esp = stockCeroEsperan(p.slug);
+      var slq = escHtml(JSON.stringify(String(p.slug)));
+      return '<div class="bajo-fila' + (tiene ? ' agarrado' : '') + '">'
+        + '<button type="button" class="bajo-tilde" aria-pressed="' + (tiene ? 'true' : 'false') + '" onclick="bajoTildar(' + slq + ')"><span class="bajo-check" aria-hidden="true">' + (tiene ? '&#10003;' : '') + '</span>'
+        + '<span class="bajo-txt"><b>' + escHtml(p.name || p.slug) + '</b><small>Arriba ' + (l === null ? '—' : l) + ' · abajo ' + dep + (v ? ' · hoy se ' + (v === 1 ? 'vendió 1' : 'vendieron ' + v) : '') + (esp ? ' · ' + stockCeroQuien(esp) : '') + '</small></span></button>'
+        + '<span class="bajo-cant"><button type="button" class="hv-quitar" onclick="bajoCant(' + slq + ', -1)" aria-label="Uno menos de ' + escHtml(p.name || '') + '">&minus;</button><b>' + n + '</b>'
+        + '<button type="button" class="hv-quitar" onclick="bajoCant(' + slq + ', 1)" aria-label="Uno más de ' + escHtml(p.name || '') + '">+</button></span></div>';
+    }
+    function bajoTildar(slug) {
+      var p = bajoPerfume(slug); if (!p) return;
+      var s = BAJO.sel[slug] || { n: bajoSugerido(p), ok: false };
+      s.ok = !s.ok; BAJO.sel[slug] = s; BAJO.msg = ''; bajoGuardar(); bajoPintar();
+    }
+    function bajoCant(slug, d) {
+      var p = bajoPerfume(slug); if (!p) return;
+      var s = BAJO.sel[slug] || { n: bajoSugerido(p), ok: false };
+      s.n = Math.max(1, Math.min(depQty(p), s.n + d)); s.ok = true;   // cambiar la cantidad es que lo agarraste
+      BAJO.sel[slug] = s; BAJO.msg = ''; bajoGuardar(); bajoPintar();
+    }
+    function bajoPintar() {
+      var c = document.getElementById('bajoCuerpo'); if (!c) return;
+      var h = '<p class="modal-title">Bajo al depósito</p>';
+      if (!stockCargado) { c.innerHTML = h + '<p class="hoja-hint" style="color:var(--tinta-error)">No se pudo leer el stock: sin eso no sé qué falta arriba. Probá de nuevo en un rato.</p>'; return; }
+      var total = 0;
+      Object.keys(BAJO.sel).forEach(function(k) { var x = BAJO.sel[k]; if (x && x.ok && bajoPerfume(k)) total += x.n; });
+      h += '<p class="hoja-hint">Lo que conviene subir al local. Tocá lo que agarrás y cuántos. Al volver, tocá el botón de abajo.</p>'
+        + (BAJO.leyoHoja === false ? '<p class="hoja-hint" style="color:var(--tinta-aviso)">No pude leer la hoja de hoy: «Se vendió hoy» puede estar incompleto.</p>' : '')
+        + (BAJO.leyoHoja === null ? '<p class="hoja-hint">Mirando qué se vendió hoy…</p>' : '');
+      var hay = false;
+      bajoListas().forEach(function(g) {
+        if (!g[1].length) return; hay = true;
+        h += '<p class="hv-top-tit bajo-grupo">' + g[0] + ' · ' + g[1].length + '</p>' + g[1].map(bajoFilaHTML).join('');
+      });
+      if (!hay) h += '<p class="hoja-vacio">Arriba está todo bien: no se terminó nada ni quedó con poco.</p>';
+      h += '<div class="bajo-otro"><input type="text" id="bajoBuscar" class="modal-input" placeholder="&#128269; ¿Otro perfume? Escribí el nombre" autocomplete="off" value="' + escHtml(BAJO.busca) + '" oninput="bajoBuscarInput()"/><div id="bajoRes"></div></div>'
+        + (BAJO.msg ? '<p class="hoja-hint bajo-msg">' + BAJO.msg + '</p>' : '')
+        + '<div class="bajo-pie"><button type="button" class="hv-listo"' + (total && !BAJO.subiendo ? '' : ' disabled') + ' onclick="bajoSubir()">'
+        + (BAJO.subiendo ? 'Subiendo…' : (total ? 'Subí ' + total + (total === 1 ? ' frasco' : ' frascos') + ' al local' : 'Tocá lo que agarrás')) + '</button></div>';
+      c.innerHTML = h;
+      bajoBuscarInput();
+    }
+    function bajoBuscarInput() {
+      var inp = document.getElementById('bajoBuscar'), res = document.getElementById('bajoRes'); if (!inp || !res) return;
+      BAJO.busca = inp.value;
+      var pal = busqPalabras(inp.value);
+      if (!pal.length) { res.innerHTML = ''; return; }
+      var lista = PERFUMES.filter(function(p) { return !p.esSet && busqPasa(busqPerfume(p), pal); })
+        .sort(function(a, b) { return String(a.name).localeCompare(String(b.name)); }).slice(0, 8);
+      res.innerHTML = lista.length ? tarjeteroHTML(lista.map(function(p) {
+        var l = bajoArriba(p);
+        return { onclick: 'bajoSumar(' + escHtml(JSON.stringify(String(p.slug))) + ')', nombre: p.name || '', sub: 'Arriba ' + (l === null ? '—' : l) + ' · abajo ' + depQty(p) };
+      })) : '<p class="hoja-hint">No hay perfumes con ese nombre.</p>';
+    }
+    function bajoSumar(slug) {
+      var p = bajoPerfume(slug); if (!p) return;
+      BAJO.busca = '';
+      if (depQty(p) <= 0) { BAJO.msg = 'De ' + escHtml(p.name || slug) + ' no hay nada abajo, según el panel.'; bajoPintar(); return; }
+      if (BAJO.extra.indexOf(slug) === -1) BAJO.extra.push(slug);
+      var x = BAJO.sel[slug]; BAJO.sel[slug] = { n: x ? x.n : 1, ok: true }; BAJO.msg = '';
+      bajoGuardar(); bajoPintar();
+    }
+    async function bajoSubir() {
+      if (BAJO.subiendo) return;
+      var lista = Object.keys(BAJO.sel).filter(function(k) { return BAJO.sel[k] && BAJO.sel[k].ok; })
+        .map(function(k) { return { p: bajoPerfume(k), n: BAJO.sel[k].n }; }).filter(function(x) { return x.p; });
+      if (!lista.length) return;
+      BAJO.subiendo = true; BAJO.msg = ''; bajoPintar();
+      var hechos = [], fallas = [], avisar = 0, sinRed = false;
+      for (var i = 0; i < lista.length; i++) {
+        var x = lista[i], n = Math.min(x.n, depQty(x.p)), nombre = x.p.name || x.p.slug;
+        if (n <= 0) { fallas.push(nombre + ': no hay abajo'); continue; }
+        var r = await stockMover(x.p, 'deposito', -1, n, true);
+        if (!r.ok) { fallas.push(nombre + ': ' + r.texto); continue; }
+        if (r.tablet) sinRed = true;
+        hechos.push({ p: x.p, n: n });
+        if (!r.tablet && r.cambioLocal && r.prevStatus === 'out' && (r.newStatus === 'ok' || r.newStatus === 'low')) {
+          try { var a = await autoNotifyWaitlist(x.p.slug); if (a && a.length) avisar += a.length; } catch (e) {}
+        }
+      }
+      BAJO.subiendo = false;
+      var total = hechos.reduce(function(t, h) { return t + h.n; }, 0);
+      hechos.forEach(function(h) { delete BAJO.sel[h.p.slug]; });
+      BAJO.extra = BAJO.extra.filter(function(sl) { return !!BAJO.sel[sl]; });
+      bajoGuardar();
+      if (hechos.length) logAdminAction('deposito_bajada', null, { total: total, perfumes: hechos.length, sin_conexion: sinRed, items: hechos.map(function(h) { return { slug: h.p.slug, nombre: h.p.name, n: h.n }; }) });
+      if (fallas.length) { BAJO.msg = '<b>No se pudieron subir:</b> ' + fallas.map(escHtml).join(' · '); bajoPintar(); } else bajoCerrar();
+      if (!hechos.length) return;
+      deshacerToast({ texto: 'Subiste ' + total + (total === 1 ? ' frasco' : ' frascos') + ' al local' + (sinRed ? ' (sin internet: se sube solo)' : ''),
+        sub: hechos.length + (hechos.length === 1 ? ' perfume' : ' perfumes') + (avisar ? ' · hay gente esperando: avisales desde Precios & Stock' : ''),
+        ms: 10000, alDeshacer: function() { return bajoDeshacer(hechos); } });
+    }
+    async function bajoDeshacer(hechos) {   // vuelve todo abajo: −n arriba (sin el aviso de «se terminó») y +n abajo
+      var malos = [];
+      for (var i = 0; i < hechos.length; i++) {
+        var h = hechos[i], nombre = h.p.name || h.p.slug;
+        var a = await stockMover(h.p, 'local', -1, h.n, false, true);
+        if (!a.ok) { malos.push(nombre); continue; }
+        var b = await stockMover(h.p, 'deposito', 1, h.n, false);
+        if (!b.ok) malos.push(nombre + ' (se sacó de arriba pero no volvió abajo)');
+      }
+      logAdminAction('deposito_bajada_deshecha', null, { items: hechos.map(function(h) { return { slug: h.p.slug, n: h.n }; }), fallas: malos });
+      return malos.length ? { ok: false, texto: 'No se pudo volver: ' + malos.join(', ') } : { ok: true, texto: 'Listo: volvió todo al depósito' };
     }
     async function stockCeroPasar(p) {
       var r = await stockMover(p, 'deposito', -1, 1, true);
@@ -16963,8 +17142,10 @@
       'hoja_cobro':           { icon: '🧾', label: 'Hoja · cobro del resto' },
       'hoja_borrar':          { icon: '🗑️', label: 'Hoja · borrado' },
       'hoja_vendedor':        { icon: '🧾', label: 'Hoja · quién vendió' },      // [QUIEN-VENDIO]
-      'hoja_arqueo':          { icon: '🧾', label: 'Hoja · cuadrar la caja' },   // [CUADRAR-CAJA]
+      'hoja_arqueo':          { icon: '🧾', label: 'Hoja · plata contada' },   // [CUADRAR-CAJA]
       'vendedor_alta':        { icon: '🙋', label: 'Nombre nuevo en la hoja' },
+      'deposito_bajada':      { icon: '⬆️', label: 'Subido del depósito al local' },        // [BAJO-AL-DEPOSITO]
+      'deposito_bajada_deshecha': { icon: '↩️', label: 'Subida del depósito deshecha' },
       'vendedor_esconder':    { icon: '🙋', label: 'Nombre escondido' },
       'vendedor_mostrar':     { icon: '🙋', label: 'Nombre vuelto a mostrar' },
       'dispositivo':          { icon: '📱', label: 'Dispositivo medido' }   // [MEDIR-DISPOSITIVO] familia Sistema
@@ -17140,7 +17321,7 @@
     function logFamilias(e) {
       var action = e.action;
       if (action === 'stock_update' || action === 'mercaderia_recibida') return ['stock'];
-      if (action === 'deposito_update') return ['deposito'];
+      if (action === 'deposito_update' || action === 'deposito_bajada' || action === 'deposito_bajada_deshecha') return ['deposito'];   // [BAJO-AL-DEPOSITO]
       if (action === 'price_update') return ['precios'];
       // [LOG-SISTEMA-CHIP] Un filtro cuyo trabajo es sacar ruido no puede tener adentro
       // "login 09:02" entre dos ediciones de catálogo: login/logout y los backups van a Sistema.
@@ -17406,7 +17587,7 @@
     // repartido) va por «Otro monto…». Se anota AUNQUE el panel diga sin stock o pausado (los «grises»): el cierre del día descuenta sólo lo que hay
     // (NO ROMPER #31). Sólo los perfumes en frasco llevan slug en items (los únicos que tocan stock); decants y «otra cosa» van sin slug.
     // ============================================================
-    var HOJA_MEDIO_NOMBRE = { efectivo: 'Efec.', mp: 'MP', posnet: 'Posnet', fondo: 'Arrancó con', contado: 'En el cajón' };   // los dos últimos: [CUADRAR-CAJA]
+    var HOJA_MEDIO_NOMBRE = { efectivo: 'Efec.', mp: 'MP', posnet: 'Posnet', fondo: 'Al abrir había', contado: 'Ahora hay' };   // los dos últimos: [CUADRAR-CAJA]
     function hojaNum(medio) { var v = HOJA.montos[medio]; return v ? Number(v) : 0; }
     function hojaArabesTotal(carro) { var n = 0; (carro || []).forEach(function(l) { if (l.tipo === 'arabe') n += l.qty; }); return n; }
     function hojaUnitArabe(n) { var c = HOJA.cfgDec; if (!c) return 0; return n >= 5 ? (c.p5 || c.p3 || c.p1) : (n >= 3 ? (c.p3 || c.p1) : c.p1); }
@@ -17522,7 +17703,7 @@
       if (!destino) destino = hojaEl('hojaTecladoCasa');
       if (tec.parentNode !== destino) destino.appendChild(tec);
       tec.hidden = !m;
-      if (m) hojaEl('hojaTecladoTit').textContent = m === 'debe' ? 'Lo que queda debiendo' : (m === 'cobro' ? 'Cuánto pagó ahora' : (m === 'precio' ? 'Cuánto cuesta' : (m === 'fondo' ? 'Con cuánto arrancó la caja' : (m === 'contado' ? 'Cuánto efectivo hay en el cajón' : 'Monto en ' + HOJA_MEDIO_NOMBRE[m]))));
+      if (m) hojaEl('hojaTecladoTit').textContent = m === 'debe' ? 'Lo que queda debiendo' : (m === 'cobro' ? 'Cuánto pagó ahora' : (m === 'precio' ? 'Cuánto cuesta' : (m === 'fondo' ? 'Cuánta plata había en el cajón al abrir' : (m === 'contado' ? 'Cuánta plata hay ahora en el cajón' : 'Monto en ' + HOJA_MEDIO_NOMBRE[m]))));
     }
     function hojaMedio(m) {   // elige un cuadrado y abre el teclado; tocarlo de nuevo (o «Listo») lo cierra
       HOJA.medio = (m && HOJA.medio !== m) ? m : null;
@@ -17801,7 +17982,7 @@
       if (p === 'inicio') {
         h = '<button type="button" class="hv-gigante" onclick="hojaEmpezar()"><span aria-hidden="true">＋</span> Anotar venta</button>'
           + '<div class="hv-acc"><button type="button" class="hv-boton hoja-btn-cambio" onclick="hojaCambioEmpezar()"><span class="hv-boton-ico" aria-hidden="true">&#8644;</span><span><b>Cambio</b><small>vuelve un perfume roto, fallado o vacío</small></span></button>'   // [CAMBIO]
-          + '<button type="button" class="hv-boton hoja-btn-caja" onclick="hojaCajaAbrir()"><span class="hv-boton-ico" aria-hidden="true">=</span><span><b>Cuadrar la caja</b><small>¿cuadra el efectivo del cajón?</small></span></button></div>'   // [CUADRAR-CAJA]
+          + '<button type="button" class="hv-boton hoja-btn-caja" onclick="hojaCajaAbrir()"><span class="hv-boton-ico" aria-hidden="true">=</span><span><b>Contar la plata</b><small>¿está toda la plata del cajón?</small></span></button></div>'   // [CUADRAR-CAJA]
           + '<button type="button" class="hv-sec" onclick="hojaPaso(\'nota\')">&#9999;&#65039; Anotar una nota (algo que no es una venta)</button>';
       }
       else if (p === 'que') {
@@ -17883,7 +18064,7 @@
           + '<div class="hoja-montos hv-pago">'
           + hojaTileHTML('efectivo', 'hojaGuardarVenta({ auto: \'efectivo\' })', hojaPesos(pc.efectivo), HOJA.vuelve ? 'la diferencia' : (hayFrasco ? 'perfumes con 10% off' : ''), false, 'auto')
           + hojaTileHTML('mp', 'hojaGuardarVenta({ auto: \'mp\' })', hojaPesos(pc.efectivo), HOJA.vuelve ? 'la diferencia' : (hayFrasco ? 'perfumes con 10% off' : ''), false, 'auto')
-          + hojaTileHTML('posnet', 'hojaGuardarVenta({ auto: \'posnet\' })', hojaPesos(pc.lista), HOJA.vuelve ? 'la diferencia, a lista' : 'precio de lista', false, 'auto')
+          + hojaTileHTML('posnet', 'hojaGuardarVenta({ auto: \'posnet\' })', hojaPesos(pc.lista), HOJA.vuelve ? 'la diferencia, con tarjeta' : 'precio de lista', false, 'auto')
           + '</div>'
           + '<p class="hoja-hint">Tocá cómo pagó y queda anotado. El 10% de Efec. y MP es sólo para los perfumes en frasco; si hay una excepción (otro precio, un descuento, una seña o un pago repartido), usá «Otro monto…».</p>'
           + '<div class="hv-acc"><button type="button" class="hv-boton" onclick="hojaPaso(\'que\')"><span class="hv-boton-ico" aria-hidden="true">＋</span><span><b>Sumar otro producto</b><small>perfume, decant u otra cosa</small></span></button>'
@@ -17926,7 +18107,7 @@
               + hojaTileHTML('efectivo', 'hojaDevolver(\'efectivo\')', hojaPesos(efv), 'si pagó en efectivo', false, 'con-monto')
               + hojaTileHTML('mp', 'hojaDevolver(\'mp\')', hojaPesos(efv), 'si pagó por MP', false, 'con-monto')
               + hojaTileHTML('posnet', 'hojaDevolver(\'posnet\')', hojaPesos(vb.base), 'si pagó con tarjeta', false, 'con-monto') + '</div>'
-              + '<p class="hoja-hint">Tocá cómo se la devolviste y queda anotado como nota. No resta de los totales del día; «Cuadrar la caja» sí lo descuenta del efectivo. Si fue otro monto, anotalo como nota.</p>'
+              + '<p class="hoja-hint">Tocá cómo se la devolviste y queda anotado como nota. No resta de los totales del día; «Contar la plata» sí lo descuenta. Si fue otro monto, anotalo como nota.</p>'
             : '<p class="hoja-hint">Ese perfume no tiene precio cargado: anotá la devolución como una nota, con el monto en el texto.</p>');
       }
       else if (p === 'caja') {   // [CUADRAR-CAJA]
@@ -17934,17 +18115,17 @@
         var ce = hojaCajaEsperado(), fondo = Number(cj.fondo) || 0, esperado = fondo + ce.ef - ce.dev, res = '';
         if (cj.contado !== '') {
           var dif = Number(cj.contado) - esperado;
-          res = '<div class="hv-caja-res ' + (dif === 0 ? 'ok' : (dif < 0 ? 'falta' : 'sobra')) + '">' + (dif === 0 ? '&#10003; Cuadra justo' : (dif < 0 ? 'Faltan ' : 'Sobran ') + hojaPesos(Math.abs(dif))) + '</div>';
+          res = '<div class="hv-caja-res ' + (dif === 0 ? 'ok' : (dif < 0 ? 'falta' : 'sobra')) + '">' + (dif === 0 ? '&#10003; Está justo' : (dif < 0 ? 'Falta ' : 'Sobra ') + hojaPesos(Math.abs(dif))) + '</div>';
         }
         var diaTxt = String(HOJA.dia || resumenHoyART());
-        h = hojaCab('Cuadrar la caja', 'hojaPaso(\'inicio\')')
-          + '<p class="hoja-hint">Día ' + escHtml(diaTxt.slice(8) + '/' + diaTxt.slice(5, 7)) + ': efectivo anotado ' + hojaPesos(ce.ef) + (ce.dev ? ' · devoluciones en efectivo &minus;' + hojaPesos(ce.dev) : '') + '. Tocá un cuadrado y escribí el número.</p>'
+        h = hojaCab('Contar la plata del cajón', 'hojaPaso(\'inicio\')')
+          + '<p class="hoja-hint">Día ' + escHtml(diaTxt.slice(8) + '/' + diaTxt.slice(5, 7)) + ': hoy entró ' + hojaPesos(ce.ef) + ' en efectivo' + (ce.dev ? ' y devolviste ' + hojaPesos(ce.dev) : '') + '. Tocá cada cuadrado y escribí cuánta plata hay.</p>'
           + '<div class="hoja-montos hv-montos-2">'
-          + hojaTileHTML('fondo', 'hojaMedio(\'fondo\')', cj.fondo !== '' ? hojaPesos(Number(cj.fondo)) : '—', 'la caja arrancó con', HOJA.medio === 'fondo', cj.fondo !== '' ? 'con-monto' : '')
-          + hojaTileHTML('contado', 'hojaMedio(\'contado\')', cj.contado !== '' ? hojaPesos(Number(cj.contado)) : '—', 'hay ahora en el cajón', HOJA.medio === 'contado', cj.contado !== '' ? 'con-monto' : '')
+          + hojaTileHTML('fondo', 'hojaMedio(\'fondo\')', cj.fondo !== '' ? hojaPesos(Number(cj.fondo)) : '—', 'en el cajón', HOJA.medio === 'fondo', cj.fondo !== '' ? 'con-monto' : '')
+          + hojaTileHTML('contado', 'hojaMedio(\'contado\')', cj.contado !== '' ? hojaPesos(Number(cj.contado)) : '—', 'en el cajón', HOJA.medio === 'contado', cj.contado !== '' ? 'con-monto' : '')
           + '</div><div id="hvTeclado"></div>'
-          + '<p class="hoja-form-total">Tendría que haber ' + hojaPesos(esperado) + ' en efectivo</p>' + res
-          + (cj.contado !== '' ? '<button type="button" class="hv-listo" onclick="hojaCajaAnotar()">Anotar en el Log</button>' : '');
+          + '<p class="hoja-form-total">Tendría que haber ' + hojaPesos(esperado) + ' en el cajón</p>' + res
+          + (cj.contado !== '' ? '<button type="button" class="hv-listo" onclick="hojaCajaAnotar()">Guardar el conteo</button>' : '');
       }
       else if (p === 'nota') {
         h = hojaCab('Anotar una nota', 'hojaPaso(\'inicio\')')
@@ -17989,7 +18170,7 @@
         : '<button type="button" class="cuadro hv-vend-mas" onclick="hojaVendNuevoAbrir()" aria-label="Sumar un nombre">+</button>';
       return '<div class="hv-vino hv-vend"><span class="cuadros-tit">Vendió</span><div class="cuadros">'
         + hojaVendChips(function(n) { return 'hojaVendElegir(' + escHtml(JSON.stringify(n)) + ')'; }, HOJA.vendedor) + nuevo + '</div>'
-        + '<button type="button" class="hv-vend-editar" onclick="hojaVendEditar()">Nombres</button></div>';
+        + '<button type="button" class="hv-vend-editar" onclick="hojaVendEditar()">Editar nombres</button></div>';
     }
     function hojaVendElegir(n) { HOJA.vendedor = HOJA.vendedor === n ? null : n; pistaUsada('vend-elegir'); hojaVentaPintar(); }
     function hojaVendNuevoAbrir() { HOJA.vendNuevo = true; hojaVentaPintar(); var i = hojaEl('hvVendNuevo'); if (i) { try { i.focus(); } catch (e) {} } }
@@ -18193,7 +18374,7 @@
       var ce = hojaCajaEsperado(), fondo = Number(cj.fondo) || 0, esperado = fondo + ce.ef - ce.dev, dif = Number(cj.contado) - esperado;
       logAdminAction('hoja_arqueo', null, { dia: HOJA.dia || resumenHoyART(), arranco: fondo, efectivo_anotado: ce.ef, devoluciones: ce.dev, esperado: esperado, contado: Number(cj.contado), diferencia: dif });
       HOJA.caja = null; hojaPaso('inicio');
-      hojaMsg('✓ Caja anotada en el Log: ' + (dif === 0 ? 'cuadra justo' : (dif < 0 ? 'faltan ' : 'sobran ') + hojaPesos(Math.abs(dif))), dif === 0 ? 'ok' : 'aviso');
+      hojaMsg('✓ Conteo guardado: ' + (dif === 0 ? 'está justo' : (dif < 0 ? 'falta ' : 'sobra ') + hojaPesos(Math.abs(dif))), dif === 0 ? 'ok' : 'aviso');
     }
 
     // [BUSCAR-EN-LA-HOJA] 18-oct · lo que el papel no hace: buscar. El campo de arriba de la lista filtra los renglones del día que se mira
@@ -18207,7 +18388,7 @@
       var r = await colaConTope(function() { return sb.from('caja_movimientos').select('id, dia, creado_en, tipo, detalle, efectivo, mp, posnet, debe, vendedor, anulado_en').gte('dia', desde).order('creado_en', { ascending: false }).limit(3000); });
       if (r.error) { el.innerHTML = '<p class="hoja-hint" style="color:var(--tinta-error)">' + escHtml(hojaErrorTexto(r.error, 'buscar')) + '</p>'; return; }
       var res = (r.data || []).filter(function(f) { return busqPasa(String(f.detalle || '') + ' ' + String(f.vendedor || ''), pal); });
-      el.innerHTML = '<div class="hoja-busca-res"><div class="hbr-cab"><p class="hv-top-tit">' + res.length + (res.length === 1 ? ' renglón' : ' renglones') + ' en los últimos 30 días</p>'
+      el.innerHTML = '<div class="hoja-busca-res"><div class="hbr-cab"><p class="hv-top-tit">' + res.length + (res.length === 1 ? ' renglón' : ' renglones') + ' en el último mes</p>'
         + '<button type="button" class="hv-vend-editar" onclick="hojaEl(\'hojaBusca30\').innerHTML = \'\'">Cerrar</button></div>'
         + res.slice(0, 60).map(function(f) {
           var d = String(f.dia || ''), plata = (Number(f.efectivo) || 0) + (Number(f.mp) || 0) + (Number(f.posnet) || 0);
@@ -18323,7 +18504,7 @@
       var esJefe = currentRole === 'jefe';
       var palHoja = busqPalabras(HOJA.busqHoja || '');   // [BUSCAR-EN-LA-HOJA]
       var visibles = palHoja.length ? filas.filter(function(f) { return busqPasa(String(f.detalle || '') + ' ' + String(f.vendedor || ''), palHoja); }) : filas;
-      hojaEl('hojaLista').innerHTML = (palHoja.length && filas.length && !visibles.length ? '<p class="hoja-vacio">Ningún renglón de este día dice «' + escHtml(HOJA.busqHoja) + '». Probá «Buscar en 30 días».</p>' : '')
+      hojaEl('hojaLista').innerHTML = (palHoja.length && filas.length && !visibles.length ? '<p class="hoja-vacio">Ningún renglón de este día dice «' + escHtml(HOJA.busqHoja) + '». Probá «Buscar en el último mes».</p>' : '')
         + (visibles.length ? visibles.map(function(f) {
         var hora = new Date(f.creado_en).toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit' });
         var quien = String(f.creado_por || '').split('@')[0];
