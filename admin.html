@@ -8237,7 +8237,7 @@
       // .select('slug').length, cualquier tabla con >1000 registros quedaba "clavada"
       // en 1000. Usamos head:true + count:'exact' para que Postgres devuelva solo el
       // número total (mucho más barato y SIN límite).
-      var clientesQ = await sb.from('clientes').select('*', { count: 'exact', head: true });
+      var clientesQ = await sb.from('clientes').select('id', { count: 'exact', head: true });
       var totalClientes = clientesQ.error ? '—' : (clientesQ.count || 0);   // [CARGA-FALLIDA-CERO] con error decía «0»
       var opinionesQ = await sb.from('opiniones').select('*', { count: 'exact', head: true });
       var totalOpiniones = opinionesQ.error ? '—' : (opinionesQ.count || 0);
@@ -8618,7 +8618,8 @@
       container.innerHTML = '<p style="text-align:center;color:var(--gris);padding:2rem;">Cargando...</p>';
       document.getElementById('clientCount').textContent = '— clientes';   // [CARGA-FALLIDA-CERO] 128m · antes, «0 clientes»
       clientesCargando = true;
-      var { data, error } = await sb.from('clientes').select('*').order('created_at', { ascending: false });
+      // [PANEL-SIN-PASSWORD] (18-oct) sin `password`: la tablet no la necesita y no tiene que bajarla
+      var { data, error } = await sb.from('clientes').select('id,nombre,telefono,created_at,bloqueado,puntos,compro,nota,puntos_log').order('created_at', { ascending: false });
       clientesCargando = false;
       if (error) {   // 128j · antes decía «Sin clientes registrados»
         errorClientes = errorEnCriollo(error, null, 'cargar los clientes', 'recargar');
@@ -8840,13 +8841,13 @@
       var soloDig = query.replace(/[\s\-+().]/g, '');
       var esNumero = /^\d{6,}$/.test(soloDig);
       var telBusca = esNumero ? cleanPhone(soloDig) : '';
-      var { data, error: errTel } = await sb.from('clientes').select('*').eq('telefono', esperaTelValido(telBusca) ? telBusca : query).limit(1);
+      var { data, error: errTel } = await sb.from('clientes').select('id,nombre,telefono,created_at,bloqueado,puntos,compro,nota,puntos_log').eq('telefono', esperaTelValido(telBusca) ? telBusca : query).limit(1);
       // [GUARDAR-SIN-LEER] con la búsqueda fallida ofrecía registrarlo como nuevo
       if (errTel) { avisoLectura(msgEl, errorEnCriollo(errTel, null, 'buscar el cliente')); return; }
 
       // Si no encontró por teléfono, buscar por nombre (parcial, case-insensitive)
       if (!data || data.length === 0) {
-        var { data: byName, error: errNombre } = await sb.from('clientes').select('*').ilike('nombre', '%' + query + '%');
+        var { data: byName, error: errNombre } = await sb.from('clientes').select('id,nombre,telefono,created_at,bloqueado,puntos,compro,nota,puntos_log').ilike('nombre', '%' + query + '%');
         if (errNombre) { avisoLectura(msgEl, errorEnCriollo(errNombre, null, 'buscar el cliente')); return; }
         if (byName && byName.length === 1) {
           data = byName; // Encontró exactamente 1 → usarlo
