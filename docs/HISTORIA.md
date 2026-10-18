@@ -6088,9 +6088,84 @@ La tanda 3 de las nubes («mientras mira»: 13, 14, 15, 16 y 18), en la rama `nu
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 18-oct-2026 (noche) · **`[NUBES-CATALOGO]` tanda 4 · `[PRUEBA-SOCIAL]`**: prueba social sólo con datos reales
+
+La tanda 4 de las nubes (prueba social: 19, 20, 21, 22 y 23), en la rama `nubes-4`. Alejo: «hacé TODAS. Primero: 19, 21 y 23. Después: 20 y 22». Al mirar el código apareció que el catálogo **ya mostraba un número inventado** («N mirando ahora», `computeLiveViewers`: un hash del slug y de la hora que cambiaba cada 5 min), contra la regla b de las nubes. Y al mirar la base, que `ventas` estaba vacía (0 filas) y `opiniones` tenía 3 mensajes de marzo: la (20) y la (23) no tenían de dónde salir tal como estaban pensadas.
+
+#### Qué se hizo
+
+- **`sql/prueba_social.sql`, aplicada el 18-oct (~19:00) por Claude Code con el MCP de Supabase** (el «hacé TODAS» de Alejo era el OK de la tanda; la ficha de `docs/IDEAS.md` pedía «OK al SQL, sin abrir `ventas` al público» y no se abrió). Probada antes como consulta suelta (28 ms con los datos reales) y después con `set local role anon` en una transacción deshecha: anon ejecuta la función, lee sólo las reseñas prendidas y no puede insertar (42501).
+  - **`prueba_social(p_session)`** (security definer, `execute` para anon) devuelve en un jsonb: `vistas` (19: personas distintas con `ficha_abierta` hoy, día de Argentina, sin la sesión que pregunta ni las visitas de más de 80 fichas, sólo 3 o más), `volvieron` (21: del Log del panel, la última subida 0 → más de 0 de los últimos 7 días después de 3 días o más en 0, sin volver a 0; hasta 8) y `salidas` (20: la última baja del local de 48 h que parece venta: de 1 o 2, de hace 20 min o más, sin una subida del local 30 min antes o después, sin una subida del depósito 5 min antes o después). Con los datos del 18-oct: 15 perfumes con 3 o más vistas, 5 «volvieron», 86 con una salida en 48 h (fin de semana del Día de la Madre).
+  - **Tabla `resenas`** (`texto` 5 a 280, `nombre` opcional hasta 40, `fuente` instagram / tiktok / whatsapp / google / local / otra, `slug` opcional, `fecha` editable, `activa`, `creado_*`): RLS prendida; anon lee sólo `activa` y sin `creado_por`; las dos cuentas del panel leen, cargan y editan (por email, como `vendedores`); borra sólo `is_jefe()`.
+- **`71208cc` · `[PRUEBA-SOCIAL]` (SW v1.1.298), en producción desde el 18-oct ~19:00 (subió Alejo; verificado por `curl`: SW v1.1.298, `pruebaSocialCargar` servido, `computeLiveViewers(` ausente, `loadResenas` en el panel, `/sql/prueba_social.sql` → 404):**
+  - `js/app.js`: un bloque nuevo después de `loadPerfumeViews` (`PS`, `psMuestra`, `psVio`, `psVistas`, `psHace`, `psQuedan`, `psPintarFicha`, `psEstantePintar`, `pruebaSocialCargar`), que corre después del STEP 5 de la carga, en el mismo `deferTask` de las vistas: un pedido a `prueba_social` y uno a `resenas`. Se fue `computeLiveViewers` con su `setInterval`.
+  - **(19)** «**13 personas** lo miraron hoy» en la ficha y «N lo miraron hoy» en la card (vista ▦; en ☰ no sale, como antes).
+  - **(20)** «Salió uno del local **hace 2 horas**» en la ficha («hace N min» · «hace N horas» hasta 12 · «hoy» · «ayer»).
+  - **(21)** la etiqueta verde **«Volvió»** (`badge-volvio`, `#1f6f43` con letra blanca) en la pila de `etiquetasCard`, después de «Nuevo» (nunca las dos).
+  - **(22)** `psQuedan`: «Quedan 2» si quedan 3 o menos entre el local y el depósito; «Quedan 2 en el local» si arriba hay 3 o menos y abajo más. En la ficha y en la card (reemplaza al «Solo quedan N» que contaba sólo el local). `_stockDep` sale de `stock_deposito` en `applyOverrideToPerfume`.
+  - **(23)** el estante «Lo que dicen de ST» (`#resenas` en `index.html`, su casa después del banner de decants): en el celu y la compu `vidUbicarEstantes` lo muda después de la 12.ª fila (con algo prendido se esconde, como los otros estantes); cambia cada 7 s mientras se ve (no con la pestaña escondida ni con «menos movimiento»; los puntitos miden 32 × 44); el nombre del perfume abre su ficha. Y la reseña del perfume al final de su ficha (`#bsResena`).
+  - En la ficha, (19), (20) y (22) van en `#bsSocial` **debajo de «Agregar»**; la reseña, al final.
+  - Con `STOCK_OCULTO` no salen (20), (21) ni (22).
+  - **Holmes:** cada una es una «nube» con id `miraron` / `salio` / `volvio` / `quedan` / `resenas` (`nube_vista`, 1 de cada 5 visitas sin verla, sorteado por visita y por cosa en `sessionStorage` `st_ps_grupo`). Las de la ficha cuentan al abrirla; «Volvió», cuando una card con la etiqueta entra en pantalla; el estante, cuando entra en pantalla (en el control queda una marca invisible de 1 px para contar igual). `HOLMES_NUBES` del panel tiene los 5 nombres.
+  - **Panel:** pestaña nueva **«Reseñas»** (`#tab-resenas`, menú «Día a día», sin `data-role`): formulario con el texto, el nombre, la **fecha del comentario** (con tope en el «hoy» de Argentina), de dónde salió (cuadrados), el perfume con Tarjetero y la lista de cargadas con **Apagar** (con «Deshacer»), **Editar** y **Borrar** (sólo el jefe, con confirmación). Línea en «Lo nuevo del panel». `resenasLista`, `resenaBuscarLista` y `resenaPerfume` en `SESION_IDS`, y `sesionLimpiar` vacía el formulario.
+  - `resenas` en las dos listas de backups (ahora 29).
+  - La copia del QA (`scripts/qa-copia/fake-supabase.js`) tiene `prueba_social` (la misma cuenta, sin las visitas raras) y `resenas` con sus reglas.
+- **Probado en la copia del QA** a 360 × 640, 375, 768 y 1280, en claro y oscuro: los datos llegan, el estante rota y se muda, la ficha con las tres líneas y la reseña, el grupo de control sin nada a la vista; el panel con la cuenta de empleada (cargar, texto corto y fecha futura rechazados, apagar con «Deshacer», editar, sin «Borrar»). `node scripts/contraste.js` da las mismas 32 fallas que `d3d4d18` (medido en un worktree aparte): ninguna es de lo nuevo. `scripts/probar_festivos.js`: 23 de 23.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo:** hacer las cinco; sacar el «N mirando ahora» inventado y poner el real («Sacarlo, poner el real»).
+- **Decidió Alejo — (20):** que salga de las bajas del stock del local, «PERO guarda porque a veces hacemos pruebas o bajan sin querer». Los resguardos (1 o 2, 20 min, sin subida ±30 min, sin pase al depósito) y el texto «Salió uno del local» (y no «se vendió», porque puede ser una corrección) los **propuse yo**.
+- **Decidió Alejo — (22):** las dos cosas: «como hoy PARA que escriban» y «local + depósito cuando de verdad te quedes sin». Quedó «Quedan N en el local» cuando hay abajo y «Quedan N» cuando el total es 3 o menos (la forma la **propuse yo**).
+- **Decidió Alejo — (23):** «Las cargo yo en el panel», con la fecha editable («entre a videos/reels con comentarios buena onda y los saque de ahí»). La primera pregunta no la entendió («No entendí esto»): la repregunté con un ejemplo de cómo se vería.
+- **Propuse yo:** el umbral de 3 personas en la (19); el tope de 8 y los 3 días en 0 de la (21); el estante después de la 12.ª fila; borrar sólo el jefe; el control por visita y por cosa.
+- **Bug de diseño encontrado al medir:** con las tres líneas debajo del precio, en 360 × 640 «Agregar» bajaba de 618 a 671 (31 px fuera de la pantalla), y la reseña empujaba 100 px más. Se pasaron las líneas debajo de «Agregar» y la reseña al final: «Agregar» volvió a 618.
+- **Medido:** `ventas` tiene **0 filas** y `caja_movimientos` tiene 4 renglones en total, todos tachados, ninguno desde el 16-oct: la hoja de caja no se está usando y las chicas venden bajando el stock con el cuadro (473 bajas en 14 días). Va como dato en `[REEMPLAZO-DE-HOJA]`.
+- **Orden:** Alejo pidió 19-21-23 primero y 20-22 después; salieron juntas en un commit porque las cinco comparten la misma lectura de la base. Se lo dije.
+- **Workarounds:** la herramienta de edición cambia `“` por el carácter real al escribir, así que un script de reemplazo con el escape no encuentra el texto (pasó una vez; se resolvió con la herramienta de edición). Un heredoc con comillas simples dentro de un `python -` en el Bash falló dos veces con «unexpected EOF»: los scripts largos van a un archivo en el scratchpad. Las capturas del panel del navegador llegan atrasadas: medir con JavaScript y sacar la captura después de un `wait`.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[NUBES-CATALOGO]` tanda 4 · `[PRUEBA-SOCIAL]` | (19) «N personas lo miraron hoy», (20) «Salió uno del local hace…», (21) «Volvió», (22) «Quedan N» / «Quedan N en el local», (23) las reseñas del panel en el catálogo; sin el número inventado |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[NUBES-CATALOGO]` 🟡 | Tanda 5 (regalo y venta: 4, 17, 24, 25, 26) |
+| `[HUMO-NUBES-1]` 🟡 | Ahora también la tanda 4 en un celu de verdad: las líneas de la ficha, la etiqueta «Volvió» y el estante de reseñas (que necesita la primera reseña cargada) |
+| `[RESENAS-CARGAR]` 🟡 (nuevo) | Alejo o las chicas cargan las primeras reseñas en el panel: sin ninguna, el estante no aparece |
+| `[NUBES-RESULTADO]` 🟡 | Los 5 ids nuevos entran en la comparación de Holmes de mediados de noviembre |
+| `[REEMPLAZO-DE-HOJA]` 🟡 | Dato nuevo: la hoja no se usa desde el 16-oct y `ventas` está vacía; decidir con las chicas antes de la mudanza |
+
+#### 💬 Mensajes meta
+
+- Cuando Alejo no entiende una pregunta lo dice sin vueltas («No entendí esto»): la segunda vez fue con un ejemplo de cómo se vería en la pantalla y contestó al toque. Las preguntas sobre algo visual llevan el ejemplo desde la primera.
+- En las respuestas de opción múltiple escribe su propia mezcla («Sería buena idea que sea como hoy… Pero a la vez es buena también…»): no hay que elegir una de las opciones, hay que armar la que junta las dos y decirle cómo quedó antes de seguir.
+
+**Estado del repo al cierre (18-oct, ~19:05):**
+- `origin/main` = `71208cc` (v1.1.298 en producción, verificado por `curl`); la rama `nubes-4` = `71208cc` + este cierre, para el push a `main`.
+- Árbol limpio y la copia del QA prendida en el puerto 8777 (no toca nada real).
+
+**Próxima revisión cuando:**
+- 🟡 `[RESENAS-CARGAR]` (lo hace Alejo o las chicas: sin eso el estante no sale)
+- 🟡 `[NUBES-CATALOGO]` tanda 5 (regalo y venta, la próxima tanda)
+- 🟡 `[HUMO-NUBES-1]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct · `[NUBES-RESULTADO]`, mediados de noviembre
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~18:20, cierre de las nubes 3) — pasó de `CLAUDE.md` al archivo el 18-oct (~19:05, cierre de la prueba social)
+
+**Última actualización:** **Octubre 18, 2026, ~18:20 (cierre de las nubes 3, rama `nubes-3`)** — 2 commits sobre el cierre `0023587` (SW **v1.1.295 → v1.1.297**, todo en producción, subido por Alejo y verificado por `curl`): `8954a41` (v1.1.296) y `086284d` (v1.1.297). **Hecho:** `[NUBES-CATALOGO]` tanda 3: el catálogo ayuda mientras mira, con una nube como mucho además de la de llegada (decisión de Alejo): «¿Los comparás?» con dos parecidos, «¿No sabés cuál?» con el test después de 4 fichas, «¿Para el día o para la noche?» al deslizar mucho, «¿Lo buscamos por vos?» por WhatsApp cuando no encuentra algo (no a la lista de espera: decisión de Alejo) y el ♥ que vuela al nav; todas medidas en Holmes, con el control ahora por nube (`sql/holmes_nubes_mira.sql`, aplicada con su OK; NO ROMPER #63 k). `[SEARCH-EMPTY-VUELVE]`: lo que buscan sin encontrar no se anotaba desde el 2-oct; vuelve. **Próxima tanda:** `[NUBES-CATALOGO]` tanda 4 (prueba social real). **Pendientes, en orden:** 🟡 `[NUBES-CATALOGO]` · `[HUMO-NUBES-1]` · `[NUBES-RESULTADO]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-QA-16-OCT]` · `[HUMO-PISTAS-17-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[STOCK-OCULTO]` (25-oct) · `[LAB-FUNDAMENTOS]` · 🟢 `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (tarde)».
 
 ### Última actualización del 18-oct-2026 (~12:40, cierre de la medición de las nubes y la tanda 2) — pasó de `CLAUDE.md` al archivo el 18-oct (~18:20, cierre de las nubes 3)
 
