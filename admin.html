@@ -7318,7 +7318,7 @@
         html: '<b>Nuevo:</b> antes de cómo pagó, tocá tu nombre. Así queda quién vendió cada venta. Si te olvidás, se completa después.' },
       { id: 'otra-igual', sel: '#tab-hoja.active .hoja-otra-igual',
         html: '<b>Nuevo:</b> «Otra igual» copia esta venta para el próximo cliente: sólo tocás cómo pagó.' },
-      { id: 'top-salen', sel: '#tab-hoja.active .hv-top-tit',
+      { id: 'top-salen', sel: '#tab-hoja.active #hvResultados .hv-top-tit',
         html: 'Los que más salen, sin escribir: tocá uno y vas directo a cobrar.' },
       { id: 'badge-dep', sel: '#tab-precios.active .badge-dep',
         html: '<b>Nuevo:</b> acá también ves cuántos hay en el depósito, sin cambiar de pestaña.' },
@@ -7331,7 +7331,7 @@
       { id: 'n18-rapida', fecha: '18-oct', texto: 'Vender es más rápido: tocás el perfume y vas directo a cómo pagó. La cantidad se cambia con − y +', ir: 'hoja' },
       { id: 'n18-otra', fecha: '18-oct', texto: '«Otra igual» copia una venta en un toque, y arriba de la lista podés buscar en la hoja', ir: 'hoja' },
       { id: 'n18-cambio', fecha: '18-oct', texto: 'Botón «Cambio»: el perfume roto, fallado o vacío queda de probador y se cobra la diferencia', ir: 'hoja' },
-      { id: 'n18-caja', fecha: '18-oct', texto: '«Contar la plata»: escribís cuánta plata hay en el cajón y te dice si falta o sobra', ir: 'hoja' },
+      { id: 'n18-caja', fecha: '18-oct', texto: '«Chequeo de plata caja registradora»: escribís cuánta plata hay en la caja y te dice si falta o sobra', ir: 'hoja' },
       { id: 'n18-deposito', fecha: '18-oct', texto: 'Precios & Stock ya dice cuántos hay en el depósito, y al buscar el teclado no tapa los resultados', ir: 'precios' },
       { id: 'n16-sin-stock', fecha: '16-oct', texto: 'Cuando un perfume se termina en el local, abajo te avisa si hay en el depósito y lo pasás con un toque' },
       { id: 'n16-fotos', fecha: '16-oct', texto: 'Las fotos se agrandan: tocá la miniatura o mantené apretada cualquier foto', ir: 'precios' },
@@ -17142,7 +17142,7 @@
       'hoja_cobro':           { icon: '🧾', label: 'Hoja · cobro del resto' },
       'hoja_borrar':          { icon: '🗑️', label: 'Hoja · borrado' },
       'hoja_vendedor':        { icon: '🧾', label: 'Hoja · quién vendió' },      // [QUIEN-VENDIO]
-      'hoja_arqueo':          { icon: '🧾', label: 'Hoja · plata contada' },   // [CUADRAR-CAJA]
+      'hoja_arqueo':          { icon: '🧾', label: 'Hoja · chequeo de plata' },   // [CUADRAR-CAJA]
       'vendedor_alta':        { icon: '🙋', label: 'Nombre nuevo en la hoja' },
       'deposito_bajada':      { icon: '⬆️', label: 'Subido del depósito al local' },        // [BAJO-AL-DEPOSITO]
       'deposito_bajada_deshecha': { icon: '↩️', label: 'Subida del depósito deshecha' },
@@ -17982,7 +17982,7 @@
       if (p === 'inicio') {
         h = '<button type="button" class="hv-gigante" onclick="hojaEmpezar()"><span aria-hidden="true">＋</span> Anotar venta</button>'
           + '<div class="hv-acc"><button type="button" class="hv-boton hoja-btn-cambio" onclick="hojaCambioEmpezar()"><span class="hv-boton-ico" aria-hidden="true">&#8644;</span><span><b>Cambio</b><small>vuelve un perfume roto, fallado o vacío</small></span></button>'   // [CAMBIO]
-          + '<button type="button" class="hv-boton hoja-btn-caja" onclick="hojaCajaAbrir()"><span class="hv-boton-ico" aria-hidden="true">=</span><span><b>Contar la plata</b><small>¿está toda la plata del cajón?</small></span></button></div>'   // [CUADRAR-CAJA]
+          + '<button type="button" class="hv-boton hoja-btn-caja" onclick="hojaCajaAbrir()"><span class="hv-boton-ico" aria-hidden="true">=</span><span><b>Chequeo de plata caja registradora</b><small>¿está toda la plata de la caja?</small></span></button></div>'   // [CUADRAR-CAJA]
           + '<button type="button" class="hv-sec" onclick="hojaPaso(\'nota\')">&#9999;&#65039; Anotar una nota (algo que no es una venta)</button>';
       }
       else if (p === 'que') {
@@ -18107,7 +18107,7 @@
               + hojaTileHTML('efectivo', 'hojaDevolver(\'efectivo\')', hojaPesos(efv), 'si pagó en efectivo', false, 'con-monto')
               + hojaTileHTML('mp', 'hojaDevolver(\'mp\')', hojaPesos(efv), 'si pagó por MP', false, 'con-monto')
               + hojaTileHTML('posnet', 'hojaDevolver(\'posnet\')', hojaPesos(vb.base), 'si pagó con tarjeta', false, 'con-monto') + '</div>'
-              + '<p class="hoja-hint">Tocá cómo se la devolviste y queda anotado como nota. No resta de los totales del día; «Contar la plata» sí lo descuenta. Si fue otro monto, anotalo como nota.</p>'
+              + '<p class="hoja-hint">Tocá cómo se la devolviste y queda anotado como nota. No resta de los totales del día; «Chequeo de plata caja registradora» sí lo descuenta. Si fue otro monto, anotalo como nota.</p>'
             : '<p class="hoja-hint">Ese perfume no tiene precio cargado: anotá la devolución como una nota, con el monto en el texto.</p>');
       }
       else if (p === 'caja') {   // [CUADRAR-CAJA]
@@ -18118,7 +18118,7 @@
           res = '<div class="hv-caja-res ' + (dif === 0 ? 'ok' : (dif < 0 ? 'falta' : 'sobra')) + '">' + (dif === 0 ? '&#10003; Está justo' : (dif < 0 ? 'Falta ' : 'Sobra ') + hojaPesos(Math.abs(dif))) + '</div>';
         }
         var diaTxt = String(HOJA.dia || resumenHoyART());
-        h = hojaCab('Contar la plata del cajón', 'hojaPaso(\'inicio\')')
+        h = hojaCab('Chequeo de plata caja registradora', 'hojaPaso(\'inicio\')')
           + '<p class="hoja-hint">Día ' + escHtml(diaTxt.slice(8) + '/' + diaTxt.slice(5, 7)) + ': hoy entró ' + hojaPesos(ce.ef) + ' en efectivo' + (ce.dev ? ' y devolviste ' + hojaPesos(ce.dev) : '') + '. Tocá cada cuadrado y escribí cuánta plata hay.</p>'
           + '<div class="hoja-montos hv-montos-2">'
           + hojaTileHTML('fondo', 'hojaMedio(\'fondo\')', cj.fondo !== '' ? hojaPesos(Number(cj.fondo)) : '—', 'en el cajón', HOJA.medio === 'fondo', cj.fondo !== '' ? 'con-monto' : '')
