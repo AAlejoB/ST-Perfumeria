@@ -4585,11 +4585,8 @@
         // [SIN-RESULTADOS-UNA-VEZ] 143e · sin sugerencias el desplegable NO se abre (antes mostraba «No se encontraron resultados» y a la vez el bloque
         // «No encontramos…» de 143c: dos avisos para lo mismo). El único aviso es el bloque de la grilla.
         hideSearchSuggestions();
-        return;
-        box.innerHTML = '<div class="search-sug-empty">No se encontraron resultados</div>';
-        box.classList.add('active');
-        sugActiveIndex = -1;
-        // Trackear solo si query tiene 3+ chars y el usuario dejó de tipear 2s
+        // [SEARCH-EMPTY-VUELVE] 18-oct-2026 · 143e (a9730a0, 2-oct) dejó esto debajo de su `return` y desde el 2-oct 21:29 no entró
+        // ningún `search_empty` («Lo que buscan sin encontrar» del panel quedó vacío). Misma regla de siempre: 3+ letras, 2 s sin escribir.
         if (query.trim().length >= 3) {
           if (window._searchEmptyTimer) clearTimeout(window._searchEmptyTimer);
           window._searchEmptyTimer = setTimeout(function(){
