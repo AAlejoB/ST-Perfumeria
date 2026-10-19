@@ -3,6 +3,27 @@
 > Fichas capturadas con `/idea`. Una idea acá **no es un pendiente**: pasa a `CLAUDE.md` § Pendientes cuando Alejo la aprueba.
 > Estados: 💡 idea · 📐 en diseño · 🧾 en prompt · 🔨 en curso · ✅ hecha (→ HISTORIA.md) · ❌ descartada (con el porqué, una línea).
 
+## [ARRASTRAR] · 📐 en diseño (página de prueba hecha) · 19-oct-2026
+
+**En palabras de Alejo:** «una de las cosas que más hace simple navegar o dejar algo en otro lugar es arrastrar… ¿cómo funciona que yo pueda agarrar un perfume y dejarlo en vendido?». Después de probar la página en el celu: «me encanta, me fascina… sería interesante utilizar la modalidad del Gmail. El deslizar sería increíble, porque tenés la foto, el nombre del perfume, y se podría combinar con lo que tenemos hoy en Precios y Stock».
+**Página de prueba:** https://claude.ai/artifact/Qs3sjKdmcypUzCjJeiaExA (privada, datos de ejemplo, no toca nada real). Pestañas: **Mano a mano** (una fila igual a la de Precios & Stock que se cambia de tres formas: como hoy con el cuadro «Cambiar stock», deslizando y arrastrando, con un desafío de 9 ventas que mide cuál es más rápida), **Mover** (cajas Vendí · Apartar · Al depósito), **Deslizar**, **Ordenar** y **Catálogo** (al pedido, favoritos o comparar). Hecha a mano con Pointer Events, sin librerías: mantener apretado ~0,35 s para despegar (así no choca con bajar la lista), con un `touchmove` no pasivo que frena el scroll sólo con algo agarrado.
+
+**Lo que decidió Alejo (19-oct):**
+1. **«Mover un frasco» y «Deslizar» → al panel de hoy** (Precios & Stock), combinados con lo que ya hay. Que «peleen mano a mano» antes de elegir: para eso es el desafío de la página.
+2. **«Ordenar» → sí, en la tablet, el celu y la compu**, tal cual la página (agarrar de los puntitos, sin espera; las flechas ↑ ↓ siguen como alternativa).
+3. **«Catálogo» → seguir probando en la página**; si gusta, va a la plataforma SaaS.
+
+**Medido en el repo (19-oct), antes de construir:**
+- **Deslizar en Precios & Stock:** las filas son `<tr>` de una tabla; deslizar pide envolver la fila o pasarla a tarjeta. En el celu (≤ 600) con foto **la tabla ya se desliza de costado** (`[STOCK-FOTO]`, NO ROMPER #19): chocan. En la tablet (834) y la compu entra completa y no hay choque. La vista Compacta (de entrada a ≤ 480) es otra candidata.
+- **Mantener apretado** en el panel ya abre el visor cuando se aprieta la **foto** (`[FOTO-VISOR]`, NO ROMPER #52): el arrastre tendría que agarrar desde el nombre, o el visor quedarse con la foto.
+- **Qué haría cada gesto:** «Vendí» = `stockMover(p, 'local', -1)` (anda sin internet, NO ROMPER #34, avisa si queda en 0, #54) con el aviso **Deshacer** (#39). Izquierda = **«Sube 1 del depósito»** (lo que más hacen: el mismo camino que «Pasar 1»), mejor que «Al depósito». «Apartar» no existe hoy en el panel como stock.
+- **Dónde ordenar tiene efecto de verdad:** Beneficios (los 4 cuadros, `trust_badges.orden`: sí se ve en la tienda) · Destacados (hoy con ▲ ▼, pero **no manda** mientras la Selección rota: `SELECCION_ROTA = true`) · decants de diseñador (tienen un número «Orden en el armador», pero el armador los muestra **alfabéticos**: el número no hace nada) · mensajes del banner de arriba (se ordenan por `id`: haría falta una columna). Decide Alejo dónde va primero.
+
+**Idea de Lautaro, de la plataforma SaaS (19-oct):** el empleado casi no mira el stock: lo suyo es el **punto de venta** («te vendo esto, te vendo un decant, se anota todo»). Entonces el deslizar podría decir lo que hace la chica y no lo que pasa en el depósito: por ejemplo, a la derecha **Vendí** y a la izquierda **Hice un decant**. Sin decidir.
+**Ojo:** el panel tiene fecha de mudanza (~26-oct). Lo que se haga acá vive poco: se le deja la nota a CCodeProyectoSaas para que el panel nuevo nazca con los gestos que ganen. Cambia cómo tocan las chicas cosas de todos los días: va con su línea en «Lo nuevo del panel» (#53), un globito (`[PISTAS]`) y se sube después de las 21.
+**Tamaño:** M (deslizar en Precios), S (ordenar en un lugar).
+**Le toca primero a:** 🧑 Alejo (jugar el desafío «Mano a mano» en el celu y la Galaxy, y elegir dónde va ordenar) → 🤖 Claude Code.
+
 ## [PANEL-ARRIBA-LIVIANO] · ✅ hecha (18-oct, `6ead159` y `b1d60c5`, SW v1.1.291 y v1.1.292 → HISTORIA.md, NO ROMPER #62) · 18-oct-2026
 
 **En palabras de Alejo:** «no ves el panel admin con mucho espacio arriba (pensando en dimensiones tablet y mobile)… como que a lo mejor eso hace como que esté "tosca" o incómodo de usar/ver; incluso el "scroll largo" también».

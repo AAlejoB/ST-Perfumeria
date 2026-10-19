@@ -424,8 +424,11 @@ Definido en la lógica de admin.html (`currentRole`).
 
 ### 🟠 Altos
 
+- **`[AJUSTES-ANDROID]`** (19-oct · 🟠, lo avisó una de las chicas por Alejo; **«para después»**) — el botón **Ajustes** de Precios & Stock (la hoja de `[PANEL-ARRIBA-LIVIANO]`, NO ROMPER #62) **no le funciona a una empleada** y en el iPhone de Alejo sí. Falta saber en qué aparato (seguramente la Galaxy Tab A9, Android) y qué pasa exactamente: no abre, abre vacía, o abre y lo que tocás no cambia nada. Primer paso: abrir el panel en la Galaxy y mirarlo, y revisar en el Log (filtro Sistema, «📱 Dispositivo medido») qué aparato es.
 
 ### 🟡 Medios
+
+- **`[ARRASTRAR]`** (19-oct · 🟡, idea de Alejo, en diseño) — arrastrar y deslizar en el panel: «Mover un frasco» y «Deslizar» (como Gmail) en Precios & Stock, y «Ordenar» en tablet, celu y compu; el catálogo se sigue probando y, si gusta, va a la plataforma SaaS. Hay una página de prueba con un desafío «Mano a mano» (como hoy · deslizando · arrastrando). Todo lo medido y lo decidido, en `docs/IDEAS.md` § `[ARRASTRAR]`. **Le toca a Alejo:** jugar el desafío en el celu y la Galaxy y elegir dónde va ordenar primero.
 
 - **`[RESENAS-CARGAR]`** (18-oct · 🟡, **lo hacen Alejo o las chicas**) — la tabla `resenas` arrancó vacía: hasta que carguen la primera en el panel (pestaña «Reseñas», menú «Día a día»), el estante «Lo que dicen de ST» no aparece en el catálogo. Alejo las va a sacar de comentarios buena onda de reels y videos, con la fecha del comentario.
 - **`[DURACION-REVISAR]`** (18-oct · 🟡, **lo hace Alejo**) — mirar `docs/DURACION_ESTIMADA.md` (la tabla perfume por perfume, con sus puntos): hoy 14 dicen «Suele durar más» en la ficha (Khamrah, Asad, Club de Nuit Iconic, Teriaq Intense, His Confession…). Si uno que conocés queda mal ubicado, se cambia un peso en `js/app.js` (`DURACION_PESOS`, NO ROMPER #65) y se vuelve a correr `node scripts/duracion_estimada.js` con un volcado nuevo de la base.
