@@ -3893,6 +3893,11 @@ El prompt `_x` del PREPARADOR.
 
 > Desde el 18-sep-2026, `CLAUDE.md` § Pendientes lista **sólo los abiertos** (ID = keyword). Lo que se cierra viene acá con su texto completo, tal como estaba, para no perder nada. Numeración original de CLAUDE.md quitada (los números se repetían y no identificaban nada).
 
+**Movidos el 19-oct-2026 (~19:10, cierre de `[ARRASTRAR]`):** en producción (v1.1.304).
+
+- ✅ ~~**`[AJUSTES-ANDROID]`**~~ (19-oct, **hecho**: `a8d9426`, SW v1.1.304, verificado por `curl`, NO ROMPER #62 g; la prueba en la Galaxy sigue en `[HUMO-AJUSTES-BENEFICIOS]`) — texto de `CLAUDE.md` al cerrarse:
+  **`[AJUSTES-ANDROID]`** (19-oct · 🟠, lo avisó una de las chicas por Alejo) — **arreglado en `a8d9426` (SW v1.1.304), falta subirlo y probarlo en la Galaxy.** El botón **Ajustes** de Precios & Stock y Depósito no aplicaba nada en Chrome (Android) y en el iPhone sí: el fondo oscuro tapaba la hoja y cada toque la cerraba (NO ROMPER #62 g). Medido en la copia a 600 × 900 antes (0 de 10 controles alcanzables) y después (12/12 en Precios, 10/10 en Depósito). **Humo:** en la Galaxy, abrir Ajustes, tocar «Precio ↓» y «Mostrar ocultos» y ver que la lista cambie.
+
 **Movidos el 18-oct-2026 (~12:40, cierre de la medición de las nubes y la tanda 2):** todo en producción (v1.1.294 y v1.1.295).
 
 - ✅ ~~**`[NUBES-HOLMES]`**~~ (18-oct, **hecho**: `e232d26`, SW v1.1.294, `sql/holmes_nubes.sql` aplicada con el OK de Alejo, NO ROMPER #63 h) — texto de `CLAUDE.md` al cerrarse:
@@ -6234,9 +6239,72 @@ La tanda 5 de las nubes (4, 17, 24, 25, 26), en la rama `nubes-5`. Alejo: «dale
 
 El resto, como en `CLAUDE.md` § Pendientes.
 
+### Sesión 19-oct-2026 · **`[ARRASTRAR]`**: arrastrar y deslizar con el dedo (la charla, la página de prueba y el primero en el panel), más `[AJUSTES-ANDROID]`
+
+Arrancó como una pregunta de Alejo con `/tanda`: «¿cómo funciona que yo pueda agarrar, arrastrar un perfume y dejarlo en vendido? ¿Es muy complicado?». Se charló, se armó una página de prueba fuera del repo, Alejo la probó en el celu («me encanta, me fascina») y decidió qué va al panel. En el medio avisó que a una de las chicas no le andaba **Ajustes** en Precios & Stock: se encontró la causa y se arregló. Rama `nubes-5` (el worktree), puesta al día con `main` al arrancar.
+
+#### Qué se hizo
+
+- **La charla (sin código):** cómo funciona arrastrar en la web. El arrastre del navegador (`draggable`) va bien con mouse y mal con el dedo, así que se hace con Pointer Events (un solo código para mouse, dedo y lápiz) y **mantener apretado ~0,35 s** para que no choque con bajar la lista. Cuándo gana arrastrar (ordenar, repartir entre cajas que se ven a la vez) y cuándo gana tocar (es más rápido). Siempre con un botón que haga lo mismo (accesibilidad).
+- **Página de prueba** (artifact privado, fuera del repo, datos de ejemplo): https://claude.ai/artifact/Qs3sjKdmcypUzCjJeiaExA. Versión 1: Mover (cajas Vendí · Apartar · Al depósito, con desafío arrastrar contra tocar), Ordenar, Deslizar (como Gmail) y Catálogo (al pedido, favoritos, comparar). Versión 2: la pestaña **«Mano a mano»**, una fila igual a la de Precios & Stock (foto, «3 u. · +4 en depósito», precio, efectivo) que se cambia de tres formas que conviven (como hoy con el cuadro «Cambiar stock», deslizando y arrastrando), con un desafío de 9 ventas y barras con la más rápida. Probada simulando toques en un servidor local: 2 bugs propios arreglados antes de publicar (el desafío no arrancaba; ordenar dependía de `requestAnimationFrame`).
+- **`a29b8b9`** · la ficha `[ARRASTRAR]` en `docs/IDEAS.md` (lo decidido, lo medido en el repo y la idea de Lautaro) y `[AJUSTES-ANDROID]` en Pendientes.
+- **`c8ca70d` · `[ORDENAR-BENEFICIOS]`, SW v1.1.304**, en producción: en la pestaña Beneficios cada uno de los 4 cuadros lleva arriba un renglón con los puntitos para arrastrar (sin espera: `touch-action: none`), «Cuadro #N», lo que dice (sigue a lo que se escribe) y ↑ ↓. Mientras se arrastra, los 4 se achican a ese renglón y la lista guarda su alto (`min-height`) para que el cuadro no se vaya del dedo. Sólo mueve en pantalla: se guarda con «💾 Guardar cambios» (`saveBadges` ya tomaba el orden de la pantalla: orden = posición) y el aviso en `--tinta-aviso` lo recuerda. Línea en «Lo nuevo del panel» (`n19-beneficios-orden`) y globito `beneficios-orden` en `PISTAS`. Probado en la copia del QA (cuenta empleada, 375): flecha, arrastrar el 4.º arriba de todo y guardar; la base de mentira quedó en el orden nuevo.
+- **`a8d9426` · `[AJUSTES-ANDROID]`**, misma v1.1.304, en producción: la hoja «Ajustes» (NO ROMPER #62) no aplicaba nada en Chrome. Ver abajo.
+- **`01d6089`** · docs: NO ROMPER #62 (g) y los pendientes.
+- **Subió Alejo** (`git push origin nubes-5:main`, ~19:00, horario del local: decidió él que fuera ya); **verificado por `curl`**: `origin/main` = `01d6089`, SW **v1.1.304**, `admin.html` publicado idéntico al del repo, con `ajustes-arriba`, `badge-asa` y la novedad.
+
+#### Decisiones / bugs encontrados / workarounds
+
+- **Decidió Alejo (19-oct):** «Mover un frasco» y «Deslizar» van al panel de hoy (stperfumeria.com/admin), combinados con Precios & Stock, después de que «peleen mano a mano» (para eso la pestaña y el desafío). «Ordenar», «rotundo sí», para tablet, celu y compu, y **primero en Beneficios**. El catálogo, a seguir probando en la página; si gusta, va a la plataforma SaaS. «Si terminamos de decidir que no hace falta añadirlo, no lo añadimos, no pasa nada».
+- **Propuse yo:** la izquierda del deslizar como «Sube 1 del depósito» en vez de «Al depósito» (lo que más hacen es subir); Beneficios como primer lugar para ordenar (el único donde el orden hoy se ve en la tienda); que el panel nuevo de la mudanza nazca con los gestos que ganen.
+- **Medido en el repo antes de construir (está en la ficha):** las filas de Precios & Stock son `<tr>`; en el celu con foto la tabla ya se desliza de costado (choca con deslizar); mantener apretada la **foto** ya abre el visor (#52). Dónde tiene efecto ordenar: Beneficios sí; Destacados no manda mientras la Selección rota; el «Orden en el armador» de los decants de diseñador **no hace nada** (el armador los muestra alfabéticos, `js/extras.js` L250-265); los mensajes del banner se ordenan por `id`.
+- **Idea de Lautaro (vía Alejo, sin decidir):** el empleado vive en el punto de venta, no en el stock; el deslizar podría decir lo que hace la chica («Vendí» / «Hice un decant»). Ojo anotado: «Vendí» hoy sólo baja el stock y la hoja de caja baja otra vez en el Cierre del día (#31): si el deslizar anotara la venta, bajaría dos veces.
+- **Bug `[AJUSTES-ANDROID]` (lo avisó una de las chicas; en el iPhone de Alejo andaba):** la hoja vive **adentro** de `.busca-fila`, que a ≤ 1000 es `position: sticky; z-index: 30`: eso la vuelve una capa propia, y en Chrome el `z-index: 9100` de la hoja sólo valía adentro de esa capa, mientras el fondo (`#ajustesFondo`, 9090) está en el `body`: **el fondo quedaba encima de la hoja**. Cada toque caía en el fondo, cerraba y no aplicaba. Medido con `elementFromPoint` en la copia a 600 × 900: **0 de 10** controles alcanzables antes; **12/12 en Precios y 10/10 en Depósito** después. Arreglo: con la hoja abierta la fila sube a 9095 (`.ajustes-arriba`), y tocar la fila fuera de la hoja también cierra. Safari del iPhone apila distinto (ahí andaba). Regla nueva en NO ROMPER #62 (g).
+- **Workarounds de medición:** el panel del navegador de Claude está escondido: `requestAnimationFrame` no corre y la captura de pantalla queda vieja (mostraba filas a medio animar con el DOM ya bien). Se midió con `getBoundingClientRect` / `getComputedStyle` y se hizo que ordenar no dependa de `requestAnimationFrame` (aplica en cada `pointermove`, y el FLIP fuerza el punto de partida con `offsetHeight`). Además: un `[hidden]` sin `!important` lo pisa un `display: grid` (en la copia local el cuadro de stock escondido tapaba las cajas: se agregó `[hidden] { display: none !important; }` a la página de prueba). Un `heredoc` largo en Git Bash se cortó solo a mitad de archivo: para archivos largos, la herramienta Write.
+
+#### Keywords cerrados
+
+| Keyword | Qué hace |
+|---|---|
+| `[ORDENAR-BENEFICIOS]` | Los 4 cuadros de Beneficios se ordenan arrastrando de los puntitos o con ↑ ↓, y se guardan con «Guardar cambios» |
+| `[AJUSTES-ANDROID]` | La hoja «Ajustes» de Precios & Stock y Depósito vuelve a aplicar en Chrome (Android): el fondo ya no la tapa |
+
+#### Keywords abiertos para próxima sesión
+
+| Keyword | Qué falta |
+|---|---|
+| `[HUMO-AJUSTES-BENEFICIOS]` 🟡 (nuevo) | En la Galaxy: ACTUALIZAR, Ajustes en Precios y Depósito («Precio ↓», «Mostrar ocultos») y arrastrar un cuadro de Beneficios y guardar |
+| `[ARRASTRAR]` 🟡 (nuevo) | Alejo juega el desafío «Mano a mano» en el celu y la Galaxy; con eso se elige deslizar o arrastrar para Precios & Stock (tablet y compu sin choque; el celu con foto choca) |
+
+#### 💬 Mensajes meta
+
+- Alejo usa `/tanda` también para **charlar una idea** antes de construir («primero lo charlemos»): la respuesta que funcionó fue explicar con un dibujo ASCII, una tabla de dónde sirve y dónde no, y **una página para probar con el dedo** en vez de más texto. Le encantó poder tocarlo en el celu.
+- Manda mensajes mientras trabajo («seguí haciendo esto y después léeme»): se termina lo que estaba en curso y se contesta al final, en una sección propia.
+- «Para después» quiere decir eso: se anota y no se toca hasta que él lo traiga (lo de Ajustes lo trajo en el siguiente mensaje).
+
+**Estado del repo al cierre (19-oct, ~19:10):**
+- `origin/main` = `01d6089` (SW **v1.1.304** en producción, verificado por `curl`); la rama `nubes-5` = `01d6089` + este cierre, para el push a `main`.
+- Árbol limpio. Sin SQL en esta sesión. La copia del QA quedó apagada.
+
+**Próxima revisión cuando:**
+- 🔴 `[BORRAR-CLAVES-ST-VIEJO]`, cuando los clientes estén importados en la plataforma nueva (~26-oct)
+- 🟡 `[HUMO-AJUSTES-BENEFICIOS]` (en la Galaxy) · `[ARRASTRAR]` (el desafío de Alejo)
+- 🟡 `[RESENAS-CARGAR]` · `[DURACION-REVISAR]` (los dos, de Alejo)
+- 🟡 `[NUBES-CATALOGO]` tanda 6 (datos y personas)
+- 🟡 `[HUMO-NUBES-1]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-PISTAS-17-OCT]` · `[HUMO-QA-16-OCT]` · `[VENTA-COMO-DATO-HUMO]`
+- 🟡 `[STOCK-OCULTO]`, el domingo 25-oct (modo B y script listos, `f49f039`) · `[NUBES-RESULTADO]`, mediados de noviembre
+- 🟡 `[LAB-FUNDAMENTOS]`, cuando haya ventas
+- 🟢 `[CONCENTRACION-CARGAR]` · `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`
+
+El resto, como en `CLAUDE.md` § Pendientes.
+
 ## 🗄️ Archivo de “Última actualización” (movido desde `CLAUDE.md`, 30-sep-2026)
 
 Los bloques «Contexto previo» que `CLAUDE.md` acumulaba debajo de su «Última actualización», del más nuevo al más viejo, sin cambios (los más viejos están anidados adentro de los más nuevos, como estaban). Son historial: el estado vigente está en `CLAUDE.md` § Pendientes y en las secciones de sesión de más arriba.
+
+### Última actualización del 18-oct-2026 (~20:35, cierre de la tanda 5 de las nubes) — pasó de `CLAUDE.md` al archivo el 19-oct (~19:10, cierre de `[ARRASTRAR]`)
+
+**Última actualización:** **Octubre 18, 2026, ~20:35 (cierre de la tanda 5 de las nubes, rama `nubes-5`)** — 4 commits sobre el cierre `8d02a7d` más el de otra sesión (`52a9613`, `[PANEL-SIN-PASSWORD]`) traído con `sync_with_base_branch` (SW **v1.1.298 → v1.1.302**, todo en producción, subido por Alejo y verificado por `curl`): `577e637`, `8e880d4`, `d28198c`, `8bd7049`. **Hecho:** `[NUBES-CATALOGO]` tanda 5 (NO ROMPER #63 l): «Viniste por…» con los parecidos, el decant de uno parecido con «Elegir» (sin lo del pack ni lo mandado la vez anterior), la cuenta regresiva de los días de regalo y Halloween, «Es para regalo» en el pedido y la nube según el mes. `[CONCENTRACION]` y `[DURACION-ESTIMADA]` (NO ROMPER #65): `sql/concentracion.sql` aplicada (columna `perfume_overrides.concentracion`), campo en Editar, palabra en la ficha y «Suele durar más» (14 hoy) con la regla en `js/app.js` y la tabla en `docs/DURACION_ESTIMADA.md`. **Próxima tanda:** `[NUBES-CATALOGO]` tanda 6 (datos y personas). **Pendientes, en orden:** 🟡 `[RESENAS-CARGAR]` · `[DURACION-REVISAR]` · `[NUBES-CATALOGO]` · `[HUMO-NUBES-1]` · `[NUBES-RESULTADO]` · `[HUMO-PANEL-LIVIANO]` · `[HUMO-CAJA-MOSTRADOR]` · `[HUMO-QA-16-OCT]` · `[HUMO-PISTAS-17-OCT]` · `[VENTA-COMO-DATO-HUMO]` · `[STOCK-OCULTO]` (25-oct) · `[LAB-FUNDAMENTOS]` · 🟢 `[CONCENTRACION-CARGAR]` · `[GLOSARIO-TEXTOS]` · `[ORIGINALES-FOTO]` · `[TABLA-PRECIOS-ANCHO]` · `[LOGIN-B10-RESTO]`; el resto, como en § Pendientes. Detalle en `docs/HISTORIA.md` § «Sesión 18-oct-2026 (noche, segunda)».
 
 ### Última actualización del 18-oct-2026 (~19:05, cierre de la prueba social) — pasó de `CLAUDE.md` al archivo el 18-oct (~20:35, cierre de la tanda 5 de las nubes)
 
