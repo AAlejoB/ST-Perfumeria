@@ -2238,6 +2238,29 @@
     .dest-btn:hover { background: rgba(255,255,255,.1); }
     .dest-btn-up, .dest-btn-down { color: var(--gris-claro); font-size: .9rem; }
     .dest-btn-remove { color: #e74c3c; font-size: .9rem; }
+
+    /* [ORDENAR-BENEFICIOS] 19-oct · cada cuadro se agarra de los puntitos (⋮⋮, sin espera: esa parte sólo sirve para mover) o se
+       mueve con ↑ ↓. Mientras se arrastra, los 4 se achican al renglón de arriba para que entren en la pantalla. */
+    .badge-cab { display: flex; align-items: center; gap: .5rem; margin: -.3rem 0 .5rem; }
+    .badge-asa { width: 44px; height: 44px; flex: 0 0 44px; margin-left: -.4rem; display: grid; place-items: center; border-radius: 6px;
+      color: var(--gris-claro); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    .badge-asa svg { width: 18px; height: 18px; fill: currentColor; }
+    .badge-asa:hover { background: rgba(255,255,255,.06); }
+    .badge-num { font-size: .65rem; color: var(--amarillo-tinta); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+    .badge-resumen { flex: 1; min-width: 0; font-size: .75rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge-flechas { display: flex; gap: .3rem; }
+    .badge-flecha { width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--borde); background: transparent; color: var(--gris-claro);
+      font: inherit; font-size: 1rem; cursor: pointer; }
+    .badge-flecha:disabled { opacity: .3; cursor: default; }
+    #badgesList { position: relative; }
+    #badgesList.ordenando .badge-cuerpo { display: none; }
+    #badgesList.ordenando .badge-cab { margin: 0; }
+    .badge-row.hueco { opacity: .3; border-style: dashed !important; }
+    .badge-fantasma { position: fixed; left: 0; top: 0; z-index: 10040; pointer-events: none; margin: 0; box-shadow: 0 14px 34px rgba(0,0,0,.5); will-change: transform; }
+    .badge-fantasma.volando { transition: transform .22s ease; }
+    .badge-row.recien { animation: badgeRecien .8s ease; }
+    @keyframes badgeRecien { 0% { box-shadow: 0 0 0 3px var(--amarillo); } 100% { box-shadow: 0 0 0 0 transparent; } }
+    @media (prefers-reduced-motion: reduce) { .badge-fantasma.volando { transition: none; } .badge-row.recien { animation: none; } }
     .dest-search-item {
       padding: .5rem .8rem; cursor: pointer; font-size: .75rem;
       border-bottom: 1px solid var(--borde); transition: background .15s;
@@ -7507,6 +7530,9 @@
     // Lo visto se guarda en esta tablet (`st_vistas`, con try/catch: sin acceso, dura lo que la pestaña). Una función nueva para las chicas:
     // una línea arriba de todo en NOVEDADES (se muestran las 5 más nuevas) y, si se aprende tocando, una pista en PISTAS.
     var PISTAS = [
+      // [ORDENAR-BENEFICIOS] 19-oct · la usa el arrastre y las flechas (pistaUsada)
+      { id: 'beneficios-orden', sel: '#tab-badges.active .badge-asa',
+        html: 'Agarrá un cuadro de los <b>puntitos</b> y llevalo arriba o abajo para cambiar el orden. Después, <b>Guardar cambios</b>.' },
       // [PANEL-ARRIBA-LIVIANO] 18-oct · a ≤ 1000 el orden, la vista y «ocultos» se mudaron a «Ajustes», y los tips de siempre pasaron a globito
       // (`si`: la pista sale sólo si devuelve true; acá, sólo donde el tip de texto ya no se ve)
       { id: 'ajustes', sel: '#tab-precios.active .ajustes-btn, #tab-deposito.active .ajustes-btn',
@@ -7528,6 +7554,7 @@
         html: '<b>Nuevo:</b> tocá la foto y se ve grande, para mostrársela al cliente.' }
     ];
     var NOVEDADES = [   // la más nueva arriba · `rol: 'jefe'` = sólo la ve el jefe · `ir` = la pestaña (la clave de irDesdeInicio)
+      { id: 'n19-beneficios-orden', fecha: '19-oct', texto: 'En Beneficios se cambia el orden de los 4 cuadros: agarrá uno de los puntitos y llevalo arriba o abajo (o usá las flechas), y después «Guardar cambios»', ir: 'badges' },
       { id: 'n18-concentracion', fecha: '18-oct', texto: 'En Editar está «Concentración» (EDP, EDT, Parfum…): lo que dice la caja. Sale en la ficha de la web', ir: 'editar' },
       { id: 'n18-resenas', fecha: '18-oct', texto: 'Pestaña «Reseñas»: copiá un comentario lindo de un cliente (de un reel, de Google, de WhatsApp) y sale en la web', ir: 'resenas' },
       { id: 'n18-liviano', fecha: '18-oct', texto: 'Precios y Depósito más livianos: el orden, la vista, «Mostrar ocultos» y los precios de los decants están en «Ajustes», y el buscador te sigue al bajar', ir: 'precios' },
@@ -12877,7 +12904,14 @@
       var html = '';
       rows.forEach(function(b, i) {
         html += '<div class="badge-row" data-i="' + i + '" style="border:1px solid var(--borde);border-radius:6px;padding:.8rem;background:#0d0d0d;">'
-          + '<p style="font-size:.65rem;color:var(--amarillo-tinta);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;">Cuadro #' + (i+1) + '</p>'   // [CONTRASTE-CLARO] tinta: igual en oscuro, legible en claro
+          // [ORDENAR-BENEFICIOS] el renglón de arriba: puntitos para arrastrar, el número (tinta: [CONTRASTE-CLARO]), lo que dice y ↑ ↓
+          + '<div class="badge-cab">'
+            + '<span class="badge-asa" title="Arrastrá para cambiar el orden" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="7" cy="4" r="1.6"/><circle cx="13" cy="4" r="1.6"/><circle cx="7" cy="10" r="1.6"/><circle cx="13" cy="10" r="1.6"/><circle cx="7" cy="16" r="1.6"/><circle cx="13" cy="16" r="1.6"/></svg></span>'
+            + '<span class="badge-num">Cuadro #' + (i+1) + '</span>'
+            + '<span class="badge-resumen">' + escHtml(((b.icono || '') + ' ' + (b.titulo || '')).trim()) + '</span>'
+            + '<span class="badge-flechas"><button type="button" class="badge-flecha" data-mov="-1" aria-label="Subir este cuadro">↑</button><button type="button" class="badge-flecha" data-mov="1" aria-label="Bajar este cuadro">↓</button></span>'
+          + '</div>'
+          + '<div class="badge-cuerpo">'
           + '<div style="display:grid;grid-template-columns:1fr 2fr;gap:.5rem;margin-bottom:.5rem;">'
             + '<div><label class="modal-label">Ícono</label><input class="modal-input badge-icono" value="' + escHtml(b.icono || '') + '" maxlength="3" placeholder="$"/></div>'
             + '<div><label class="modal-label">Título</label><input class="modal-input badge-titulo" value="' + escHtml(b.titulo || '') + '" maxlength="24" placeholder="10% OFF"/></div>'
@@ -12890,10 +12924,145 @@
           + '<label style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--gris-claro);margin-top:.3rem;">'
             + '<input type="checkbox" class="badge-activo"' + (b.activo !== false ? ' checked' : '') + '/> Mostrar en el sitio'
           + '</label>'
+          + '</div>'   // .badge-cuerpo
         + '</div>';
       });
       cont.innerHTML = html;
+      cont.classList.remove('ordenando');
+      cont.style.minHeight = '';
+      badgesRenumerar();
     }
+
+    // ============================================================
+    // [ORDENAR-BENEFICIOS] 19-oct-2026 · pedido de Alejo (de la página de prueba de [ARRASTRAR]): el orden de los 4 cuadros se
+    // cambia arrastrando de los puntitos (tablet, celu y compu: Pointer Events; `touch-action: none` en los puntitos, así el dedo
+    // no baja la página) o con ↑ ↓. Sólo mueve los cuadros en la pantalla: se guarda con «💾 Guardar cambios», como el resto de
+    // la pestaña (saveBadges toma el orden de la pantalla: orden = posición).
+    // ============================================================
+    function badgesRenumerar() {
+      var filas = Array.prototype.slice.call(document.querySelectorAll('#badgesList .badge-row'));
+      filas.forEach(function(row, i) {
+        var n = row.querySelector('.badge-num'); if (n) n.textContent = 'Cuadro #' + (i + 1);
+        var up = row.querySelector('.badge-flecha[data-mov="-1"]'), dn = row.querySelector('.badge-flecha[data-mov="1"]');
+        if (up) up.disabled = i === 0;
+        if (dn) dn.disabled = i === filas.length - 1;
+      });
+    }
+    function badgesOrdenCambiado(row) {
+      badgesRenumerar();
+      if (row) { row.classList.remove('recien'); void row.offsetWidth; row.classList.add('recien'); }
+      var msg = document.getElementById('badgesMsg');
+      if (msg) { msg.style.color = 'var(--tinta-aviso)'; msg.textContent = 'Cambiaste el orden: tocá «💾 Guardar cambios» para que se vea así en la tienda.'; }
+      if (typeof pistaUsada === 'function') pistaUsada('beneficios-orden');
+    }
+    // Mueve las filas animando el cambio (FLIP con offsetTop: no lo tuercen los transform de la animación)
+    function badgesFlip(lista, cambio) {
+      var hijos = Array.prototype.slice.call(lista.children);
+      var antes = hijos.map(function(h) { return h.offsetTop; });
+      cambio();
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      hijos.forEach(function(h, i) {
+        var d = antes[i] - h.offsetTop;
+        if (!d) return;
+        h.style.transition = 'none';
+        h.style.transform = 'translateY(' + d + 'px)';
+        void h.offsetHeight;   // el navegador toma el punto de partida acá, sin esperar un cuadro de animación
+        h.style.transition = 'transform .18s ease';
+        h.style.transform = '';
+      });
+    }
+    document.addEventListener('click', function(e) {
+      var b = e.target.closest && e.target.closest('#badgesList .badge-flecha');
+      if (!b || b.disabled) return;
+      var row = b.closest('.badge-row'), lista = row.parentNode;
+      var otro = b.dataset.mov === '-1' ? row.previousElementSibling : row.nextElementSibling;
+      if (!otro) return;
+      badgesFlip(lista, function() { lista.insertBefore(row, b.dataset.mov === '-1' ? otro : otro.nextElementSibling); });
+      badgesOrdenCambiado(row);
+      var mismo = row.querySelector('.badge-flecha[data-mov="' + b.dataset.mov + '"]');
+      if (mismo && !mismo.disabled) mismo.focus();
+    });
+    // Lo que dice el renglón de arriba sigue a lo que se escribe (así, achicados mientras se arrastra, se sabe cuál es cuál)
+    document.addEventListener('input', function(e) {
+      var t = e.target;
+      if (!t.closest || !t.closest('#badgesList') || !(t.classList.contains('badge-icono') || t.classList.contains('badge-titulo'))) return;
+      var row = t.closest('.badge-row');
+      row.querySelector('.badge-resumen').textContent = (row.querySelector('.badge-icono').value + ' ' + row.querySelector('.badge-titulo').value).trim();
+    });
+    var BADGE_ORD = null;
+    document.addEventListener('pointerdown', function(e) {
+      var asa = e.target.closest && e.target.closest('#badgesList .badge-asa');
+      if (!asa || BADGE_ORD || e.button > 0) return;
+      e.preventDefault();
+      var lista = document.getElementById('badgesList'), row = asa.closest('.badge-row');
+      if (document.activeElement && lista.contains(document.activeElement)) document.activeElement.blur();
+      // Se achican los 4 al renglón de arriba; la página se corre lo justo para que el cuadro agarrado quede bajo el dedo
+      // (la lista guarda su alto mientras tanto: si la página se achicara, el navegador la correría y el cuadro se iría del dedo)
+      var antesTop = row.getBoundingClientRect().top, offY = Math.max(0, e.clientY - antesTop);
+      lista.style.minHeight = lista.offsetHeight + 'px';
+      lista.classList.add('ordenando');
+      window.scrollBy(0, row.getBoundingClientRect().top - antesTop);
+      var r = row.getBoundingClientRect();
+      var g = row.cloneNode(true);
+      var cuerpo = g.querySelector('.badge-cuerpo'); if (cuerpo) cuerpo.remove();
+      g.classList.add('badge-fantasma');
+      g.removeAttribute('data-i');
+      g.setAttribute('aria-hidden', 'true');
+      g.style.width = r.width + 'px';
+      g.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px)';
+      document.body.appendChild(g);
+      row.classList.add('hueco');
+      BADGE_ORD = { lista: lista, row: row, g: g, id: e.pointerId, left: r.left, offY: Math.min(offY, r.height), y: e.clientY,
+        antes: Array.prototype.map.call(lista.children, function(x) { return x.dataset.i; }).join() };
+      try { asa.setPointerCapture(e.pointerId); } catch (err) {}
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch (err) {}
+      if (typeof pistaUsada === 'function') pistaUsada('beneficios-orden');
+      requestAnimationFrame(badgeOrdCuadro);
+    });
+    function badgeOrdAplicar() {
+      var o = BADGE_ORD;
+      o.g.style.transform = 'translate(' + o.left + 'px,' + (o.y - o.offY) + 'px) scale(1.02)';
+      var lr = o.lista.getBoundingClientRect();
+      var otros = Array.prototype.filter.call(o.lista.children, function(x) { return x !== o.row; });
+      var antesDe = null;
+      for (var i = 0; i < otros.length; i++) {
+        if (o.y < lr.top + otros[i].offsetTop + otros[i].offsetHeight / 2) { antesDe = otros[i]; break; }
+      }
+      if (antesDe !== o.row.nextElementSibling) {
+        badgesFlip(o.lista, function() { o.lista.insertBefore(o.row, antesDe); });
+        badgesRenumerar();
+        try { if (navigator.vibrate) navigator.vibrate(5); } catch (err) {}
+      }
+    }
+    function badgeOrdCuadro() {
+      if (!BADGE_ORD) return;
+      // Cerca del borde de la pantalla, la página se corre sola
+      if (BADGE_ORD.y < 90) window.scrollBy(0, -8);
+      else if (BADGE_ORD.y > window.innerHeight - 90) window.scrollBy(0, 8);
+      badgeOrdAplicar();
+      requestAnimationFrame(badgeOrdCuadro);
+    }
+    document.addEventListener('pointermove', function(e) {
+      if (BADGE_ORD && e.pointerId === BADGE_ORD.id) { BADGE_ORD.y = e.clientY; badgeOrdAplicar(); }
+    });
+    function badgeOrdTerminar() {
+      var o = BADGE_ORD; BADGE_ORD = null;
+      var r = o.row.getBoundingClientRect();
+      o.g.classList.add('volando');
+      o.g.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px)';
+      setTimeout(function() {
+        o.g.remove();
+        o.row.classList.remove('hueco');
+        o.lista.classList.remove('ordenando');
+        o.lista.style.minHeight = '';
+        badgesRenumerar();
+        try { o.row.scrollIntoView({ block: 'nearest' }); } catch (err) {}
+        var ahora = Array.prototype.map.call(o.lista.children, function(x) { return x.dataset.i; }).join();
+        if (ahora !== o.antes) badgesOrdenCambiado(o.row);
+      }, 230);
+    }
+    document.addEventListener('pointerup', function(e) { if (BADGE_ORD && e.pointerId === BADGE_ORD.id) badgeOrdTerminar(); });
+    document.addEventListener('pointercancel', function(e) { if (BADGE_ORD && e.pointerId === BADGE_ORD.id) badgeOrdTerminar(); });
 
     async function saveBadges() {
       var msg = document.getElementById('badgesMsg');
