@@ -2534,6 +2534,11 @@
       .ajustes.abierta .cuadros, .ajustes.abierta .vista-lista { flex-wrap: wrap; max-width: 100%; }
       .ajustes-fondo.abierta { display: block; position: fixed; inset: 0; z-index: 9090; background: rgba(0,0,0,.55); }
       .busca-fila { position: sticky; top: 0; z-index: 30; flex-wrap: nowrap !important; background: var(--negro); padding: .5rem 0; margin-top: -.5rem; }
+      /* [AJUSTES-ANDROID] 19-oct · la hoja vive ADENTRO de .busca-fila, y sticky + z-index la vuelve una capa propia: en Chrome (la Galaxy)
+         el z-index 9100 de la hoja sólo valía adentro de esa capa (30), y el fondo (9090, en el body) quedaba ENCIMA de la hoja: cada toque
+         caía en el fondo, cerraba y no aplicaba nada. Medido: los 10 controles de la hoja daban «ajustesFondo». Safari del iPhone las
+         apila distinto (ahí andaba). Con la hoja abierta, la fila sube arriba del fondo. */
+      .busca-fila.ajustes-arriba { z-index: 9095; }
       .busca-fila .admin-search { min-width: 0 !important; }
       .tab-content .cp-letra { top: 60px; }   /* la letra de «Compacta» se pega debajo de la fila del buscador (44 + 2 × 8) */
       /* lo que se lee una vez pasa a un globito de [PISTAS] (una vez por tablet); lo demás, más corto */
@@ -16047,6 +16052,7 @@
         document.body.appendChild(fondo);
       }
       hoja.classList.add('abierta'); fondo.classList.add('abierta');
+      var fila = hoja.closest('.busca-fila'); if (fila) fila.classList.add('ajustes-arriba');   // [AJUSTES-ANDROID] la hoja arriba del fondo en Chrome
       AJUSTES_ABIERTA = tab;
       pistaUsada('ajustes');
       var x = hoja.querySelector('.ajustes-x');
@@ -16056,6 +16062,7 @@
       var tab = AJUSTES_ABIERTA;
       AJUSTES_ABIERTA = null;
       document.querySelectorAll('.ajustes.abierta, .ajustes-fondo.abierta').forEach(function(el) { el.classList.remove('abierta'); });
+      document.querySelectorAll('.busca-fila.ajustes-arriba').forEach(function(el) { el.classList.remove('ajustes-arriba'); });
       ajustesContar();
       if (tab && !sinFoco) { var b = document.getElementById(AJUSTES_TABS[tab].btn); if (b) try { b.focus({ preventScroll: true }); } catch (e) {} }
     }
@@ -16070,6 +16077,11 @@
       });
     }
     document.addEventListener('change', function(e) { if (e.target.closest && e.target.closest('.ajustes')) ajustesContar(); });
+    // [AJUSTES-ANDROID] con la hoja abierta la fila del buscador queda arriba del fondo: tocarla (fuera de la hoja y del botón) también cierra
+    document.addEventListener('click', function(e) {
+      if (!AJUSTES_ABIERTA || !e.target.closest) return;
+      if (e.target.closest('.busca-fila.ajustes-arriba') && !e.target.closest('.ajustes') && !e.target.closest('.ajustes-btn')) ajustesCerrar();
+    });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && AJUSTES_ABIERTA) { e.preventDefault(); ajustesCerrar(); } });
 
     // (C) el «↑»: en Precios & Stock y Depósito, después de bajar más de una pantalla, vuelve al principio (a ≤ 1000; el CSS decide)
