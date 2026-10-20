@@ -205,6 +205,9 @@ module.exports = async (req, res) => {
   <script type="application/ld+json">${JSON.stringify(productSchema).replace(/</g, '\\u003c')}</script>
   <script type="application/ld+json">${JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')}</script>
   ${botRequest ? '<!-- bot detected: no JS redirect, full page indexable -->' : ''}
+  <!-- [VERCEL-ANALYTICS] contador de visitas de Vercel (sin cookies); el mismo de index.html -->
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: linear-gradient(180deg, #0a0a0a 0%, #131316 100%); color: #f0ede8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; min-height: 100vh; line-height: 1.55; padding: 2rem 1.2rem; }

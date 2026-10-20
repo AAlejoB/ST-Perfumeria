@@ -466,6 +466,9 @@
   </style>
   <!-- [RECUERDA-LA-VISTA] 146i · la vista del catálogo en el celu (▦ grilla / ☰ lista) se guarda en el navegador del visitante; si no se puede leer, arranca en ☰ lista. No va a la base. -->
   <script>try { var _v = localStorage.getItem('st_vista'); document.documentElement.setAttribute('data-vista', _v === 'grid' ? 'grid' : 'lista'); } catch (e) { document.documentElement.setAttribute('data-vista', 'lista'); }</script>
+  <!-- [VERCEL-ANALYTICS] contador de visitas de Vercel (sin cookies): de dónde llega la gente y desde qué aparato. Lo sirve Vercel en /_vercel/insights/ sólo con Analytics prendido en el proyecto; el SW no lo toca. No va en admin.html. -->
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="is-guest dark-mode">
   <!-- [PRIMER-CUADRO-ARMADO] 149d · el tema guardado se aplica ANTES del primer cuadro (app.js sigue manejando el botón de cambiar tema).

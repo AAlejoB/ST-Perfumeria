@@ -149,6 +149,9 @@ module.exports = async (req, res) => {
   <script type="application/ld+json">${JSON.stringify(blogSchema)}</script>
   <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
   ${blogStyles()}
+  <!-- [VERCEL-ANALYTICS] contador de visitas de Vercel (sin cookies); el mismo de index.html -->
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="blog-wrap">
@@ -259,6 +262,9 @@ module.exports = async (req, res) => {
   <script type="application/ld+json">${JSON.stringify(articleSchema)}</script>
   <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
   ${blogStyles()}
+  <!-- [VERCEL-ANALYTICS] contador de visitas de Vercel (sin cookies); el mismo de index.html -->
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="blog-wrap">

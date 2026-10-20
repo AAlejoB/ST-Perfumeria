@@ -48,7 +48,7 @@
 //     invierte a pill dark con texto dorado.
 //   - JS toggleDarkMode: actualiza emoji + label simultáneo. Init sets
 //     navThemeLabel a "LIGHT" si dark / "DARK" si light.
-var CACHE_VERSION = 'v1.1.304';
+var CACHE_VERSION = 'v1.1.305';
 var CACHE_STATIC  = 'st-static-'  + CACHE_VERSION;
 var CACHE_PAGES   = 'st-pages-'   + CACHE_VERSION;
 var CACHE_IMAGES  = 'st-images-'  + CACHE_VERSION;
@@ -132,6 +132,9 @@ self.addEventListener('fetch', function(event) {
       url.hostname.indexOf('api.telegram.org') !== -1) {
     return; // dejamos que el navegador maneje normalmente
   }
+
+  // [VERCEL-ANALYTICS] el contador de visitas de Vercel (/_vercel/insights/*) va siempre a la red: ni el script ni los envíos se guardan en caché
+  if (url.origin === self.location.origin && url.pathname.indexOf('/_vercel/') === 0) return;
 
   // [SIN-CONEXION-CODIGOS] js/vendor/: cache-first (los nombres llevan la versión: un archivo nuevo es otro nombre). Con red y sin copia, se baja y se guarda.
   if (url.origin === self.location.origin && url.pathname.indexOf('/js/vendor/') === 0) {
