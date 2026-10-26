@@ -10,7 +10,7 @@
     //   'consulta' el sin stock no se pide y dice «Consultá disponibilidad por WhatsApp» (lo del 7-oct).
     // Para prender o apagar: node scripts/stock_oculto.js prender | apagar (también sube CACHE_VERSION, NO ROMPER #4).
     // ============================================================
-    var STOCK_OCULTO = true;
+    var STOCK_OCULTO = false;
     var STOCK_OCULTO_MODO = 'igual';
     var STOCK_IGUAL = STOCK_OCULTO && STOCK_OCULTO_MODO === 'igual';   // prendido y en B: el sin stock se trata como uno con stock
     var TXT_CONSULTA_DISPONIBILIDAD = 'Consultá disponibilidad por WhatsApp';
